@@ -1,10 +1,10 @@
 package com.aegisql.conveyor;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.BiConsumer;
 
 public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Conveyor<K, IN, OUT> {
 
@@ -22,7 +22,8 @@ public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Convey
 
 	private final Class<? extends Builder<OUT>> builder;
 
-	public AssemblingConveyor(Class<? extends Builder<OUT>> builder) {
+	public AssemblingConveyor(Class<? extends Builder<OUT>> builder,
+			BiConsumer<Cart<K, ?>, Builder<OUT>> cartConsumer) {
 		this.builder = builder;
 		Thread t = new Thread(() -> {
 			while (running) {
@@ -32,7 +33,7 @@ public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Convey
 							lock.wait();
 						}
 					} catch (InterruptedException e) {
-						//e.printStackTrace();
+						// e.printStackTrace();
 						running = false;
 					}
 				}
@@ -46,12 +47,12 @@ public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Convey
 				Builder<OUT> b;
 				try {
 					b = collector.get(key);
-					if(b==null) {
+					if (b == null) {
 						b = builder.newInstance();
 						collector.put(key, b);
 					}
 
-					findMethod(cart.getLabel(), cart.getValue().getClass()).invoke(b, cart.getValue());
+					cartConsumer.accept(cart, b);
 
 					if (b.ready()) {
 						collector.remove(key);
@@ -67,10 +68,6 @@ public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Convey
 		t.setDaemon(false);
 		t.setName("AssemblingConveyor collecting " + builder.getSimpleName());
 		t.start();
-	}
-
-	private Method findMethod(String name, Class<?> claz) throws NoSuchMethodException, SecurityException {
-		return builder.getDeclaredMethod(name, claz);
 	}
 
 	@Override
