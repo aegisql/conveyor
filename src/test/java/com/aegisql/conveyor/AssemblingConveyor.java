@@ -20,11 +20,8 @@ public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Convey
 
 	private final Object lock = new Lock();
 
-	private final Class<? extends Builder<OUT>> builder;
-
-	public AssemblingConveyor(Class<? extends Builder<OUT>> builder,
+	public AssemblingConveyor(Class<? extends Builder<OUT>> builderClass,
 			BiConsumer<Cart<K, ?>, Builder<OUT>> cartConsumer) {
-		this.builder = builder;
 		Thread t = new Thread(() -> {
 			while (running) {
 				if (inQueue.isEmpty()) {
@@ -48,7 +45,7 @@ public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Convey
 				try {
 					b = collector.get(key);
 					if (b == null) {
-						b = builder.newInstance();
+						b = builderClass.newInstance();
 						collector.put(key, b);
 					}
 
@@ -66,7 +63,7 @@ public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Convey
 			System.out.println("Leaving thread ");
 		});
 		t.setDaemon(false);
-		t.setName("AssemblingConveyor collecting " + builder.getSimpleName());
+		t.setName("AssemblingConveyor collecting " + builderClass.getSimpleName());
 		t.start();
 	}
 
