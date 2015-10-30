@@ -6,7 +6,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiConsumer;
 
-public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Conveyor<K, IN, OUT> {
+public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Conveyor<K, L, IN, OUT> {
 
 	private final Queue<IN> inQueue = new ConcurrentLinkedQueue<>();
 	private final Queue<OUT> outQueue = new ConcurrentLinkedQueue<>();
@@ -21,7 +21,7 @@ public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Convey
 	private final Object lock = new Lock();
 
 	public AssemblingConveyor(Class<? extends Builder<OUT>> builderClass,
-			BiConsumer<Cart<K, ?>, Builder<OUT>> cartConsumer) {
+			BiConsumer<Cart<K, ?, L>, Builder<OUT>> cartConsumer) {
 		Thread t = new Thread(() -> {
 			while (running) {
 				if (inQueue.isEmpty()) {
@@ -35,7 +35,7 @@ public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Convey
 					}
 				}
 
-				Cart<K, ?> cart = inQueue.poll();
+				Cart<K, ?, L> cart = inQueue.poll();
 				if (cart == null) {
 					continue;
 				}

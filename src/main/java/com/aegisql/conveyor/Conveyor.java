@@ -1,6 +1,6 @@
 package com.aegisql.conveyor;
 
-public interface Conveyor<K, IN extends Cart<K,?>,OUT> {
+public interface Conveyor<K, L, IN extends Cart<K,?,L>,OUT> {
 
 	public boolean add(IN cart);
 	public boolean offer(IN cart);

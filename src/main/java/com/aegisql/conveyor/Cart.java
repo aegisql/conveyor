@@ -1,16 +1,16 @@
 package com.aegisql.conveyor;
 
-public class Cart<K,V> {
+public class Cart<K,V,L> {
 	
 	private final K k;
 	private final V v;
-	private final String label;
+	private final L label;
 	
 	private final long created = System.currentTimeMillis();
 	private final long expiration;
 	
 	
-	public Cart(K k, V v, String label, long expiration) {
+	public Cart(K k, V v, L label, long expiration) {
 		super();
 		this.k = k;
 		this.v = v;
@@ -18,7 +18,7 @@ public class Cart<K,V> {
 		this.expiration = expiration;
 	}
 	
-	public Cart(K k, V v, String label) {
+	public Cart(K k, V v, L label) {
 		super();
 		this.k = k;
 		this.v = v;
@@ -32,7 +32,7 @@ public class Cart<K,V> {
 	public V getValue() {
 		return v;
 	}
-	public String getLabel() {
+	public L getLabel() {
 		return label;
 	}
 	public long getCreationTime() {

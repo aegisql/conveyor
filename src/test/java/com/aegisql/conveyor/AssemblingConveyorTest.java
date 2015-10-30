@@ -97,9 +97,9 @@ public class AssemblingConveyorTest {
 
 	@Test
 	public void test() throws InterruptedException {
-		AssemblingConveyor<Integer, Cart<Integer, ?>, Name> c 
-		= new AssemblingConveyor<Integer, Cart<Integer, ?>, Name>(
-				(Class<? extends Builder<Name>>) NameBuilder.class, (cart, b) -> {
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, Name> c 
+		= new AssemblingConveyor<>(
+				    NameBuilder.class, (cart, b) -> {
 					NameBuilder nb = (NameBuilder) b;
 					try {
 					} catch (Exception e) {
@@ -120,10 +120,10 @@ public class AssemblingConveyorTest {
 					}
 				});
 
-		Cart<Integer, String> c1 = new Cart<Integer, String>(1, "Mike", "setFirst");
-		Cart<Integer, String> c2 = new Cart<Integer, String>(1, "Teplitskiy", "setLast");
-		Cart<Integer, String> c3 = new Cart<Integer, String>(2, "Mike", "setFirst");
-		Cart<Integer, Integer> c4 = new Cart<Integer, Integer>(1, 1970, "setYob");
+		Cart<Integer, String, String> c1 = new Cart<>(1, "Mike", "setFirst");
+		Cart<Integer, String, String> c2 = new Cart<>(1, "Teplitskiy", "setLast");
+		Cart<Integer, String, String> c3 = new Cart<>(2, "Mike", "setFirst");
+		Cart<Integer, Integer, String> c4 = new Cart<>(1, 1970, "setYob");
 
 		c.offer(c1);
 		System.out.println(c.poll());
