@@ -2,6 +2,9 @@ package com.aegisql.conveyor;
 
 import static org.junit.Assert.*;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -10,16 +13,18 @@ import org.junit.Test;
 
 public class AssemblingConveyorTest {
 
-	public static class Name {
+	Queue<User> outQueue = new ConcurrentLinkedQueue<>();
+	
+	public static class User {
 		final String first;
 		final String last;
-		final int yob;
+		final int yearOfBirth;
 
-		public Name(String first, String last, int yob) {
+		public User(String first, String last, int yob) {
 			super();
 			this.first = first;
 			this.last = last;
-			this.yob = yob;
+			this.yearOfBirth = yob;
 		}
 
 		public String getFirst() {
@@ -29,26 +34,30 @@ public class AssemblingConveyorTest {
 		public String getLast() {
 			return last;
 		}
+		
+		public int getYearOfBirth() {
+			return yearOfBirth;
+		}
 
 		@Override
 		public String toString() {
-			return "Name [first=" + first + ", last=" + last + ", yob=" + yob + "]";
+			return "Name [first=" + first + ", last=" + last + ", born in " + yearOfBirth + "]";
 		}
 
 	}
 
-	public static class NameBuilder implements Builder<Name> {
+	public static class UserBuilder implements Builder<User> {
 
 		String first;
 		String last;
-		Integer yob;
+		Integer yearOfBirth;
 
-		public Integer getYob() {
-			return yob;
+		public Integer getYearOfBirth() {
+			return yearOfBirth;
 		}
 
-		public void setYob(Integer yob) {
-			this.yob = yob;
+		public void setYearOfBirth(Integer yob) {
+			this.yearOfBirth = yob;
 		}
 
 		public String getFirst() {
@@ -68,13 +77,13 @@ public class AssemblingConveyorTest {
 		}
 
 		@Override
-		public Name build() {
-			return new Name(first, last, yob);
+		public User build() {
+			return new User(first, last, yearOfBirth);
 		}
 
 		@Override
 		public boolean ready() {
-			return first != null && last != null && yob != null;
+			return first != null && last != null && yearOfBirth != null;
 		}
 
 	}
@@ -97,11 +106,11 @@ public class AssemblingConveyorTest {
 
 	@Test
 	public void test() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, Name> c 
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> c 
 		= new AssemblingConveyor<>(
-				    NameBuilder::new,
+				    UserBuilder::new,
 				    (cart, b) -> {
-					NameBuilder nb = (NameBuilder) b;
+					UserBuilder nb = (UserBuilder) b;
 					try {
 					} catch (Exception e) {
 
@@ -114,27 +123,30 @@ public class AssemblingConveyorTest {
 						nb.setLast((String) cart.getValue());
 						break;
 					case "setYob":
-						nb.setYob((Integer) cart.getValue());
+						nb.setYearOfBirth((Integer) cart.getValue());
 						break;
 					default:
 						throw new RuntimeException("Unknown cart " + cart);
 					}
-				});
+				},
+				    res->{
+				    	outQueue.add(res);
+				    });
 
-		Cart<Integer, String, String> c1 = new Cart<>(1, "Mike", "setFirst");
-		Cart<Integer, String, String> c2 = new Cart<>(1, "Teplitskiy", "setLast");
+		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		Cart<Integer, String, String> c2 = new Cart<>(1, "Doe", "setLast");
 		Cart<Integer, String, String> c3 = new Cart<>(2, "Mike", "setFirst");
-		Cart<Integer, Integer, String> c4 = new Cart<>(1, 1970, "setYob");
+		Cart<Integer, Integer, String> c4 = new Cart<>(1, 1999, "setYob");
 
 		c.offer(c1);
-		System.out.println(c.poll());
+		System.out.println(outQueue.poll());
 		c.offer(c2);
 		c.offer(c3);
 		c.offer(c4);
 		Thread.sleep(100);
 
-		System.out.println(c.poll());
-		System.out.println(c.poll());
+		System.out.println(outQueue.poll());
+		System.out.println(outQueue.poll());
 
 		c.stop();
 	}

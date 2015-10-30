@@ -5,9 +5,4 @@ public interface Conveyor<K, L, IN extends Cart<K,?,L>,OUT> {
 	public boolean add(IN cart);
 	public boolean offer(IN cart);
 
-	public OUT element();
-	public OUT peek();
-	public OUT poll();
-	public OUT remove();
-
 }

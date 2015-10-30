@@ -5,12 +5,17 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Conveyor<K, L, IN, OUT> {
 
-	private final Queue<IN> inQueue = new ConcurrentLinkedQueue<>();
-	private final Queue<OUT> outQueue = new ConcurrentLinkedQueue<>();
+	private final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
+	
+	private final Queue<IN> inQueue   = new ConcurrentLinkedQueue<>();
 
 	private Map<K, Builder<OUT>> collector = new HashMap<>();
 
@@ -21,8 +26,11 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	private final Object lock = new Lock();
 
-	public AssemblingConveyor(Supplier<Builder<OUT>> builderSupplier,
-			BiConsumer<Cart<K, ?, L>, Builder<OUT>> cartConsumer) {
+	public AssemblingConveyor(
+			Supplier<Builder<OUT>> builderSupplier,
+			BiConsumer<Cart<K, ?, L>, Builder<OUT>> cartConsumer,
+			Consumer<OUT> resultConsumer
+			) {
 		Thread t = new Thread(() -> {
 			while (running) {
 				if (inQueue.isEmpty()) {
@@ -31,7 +39,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 							lock.wait();
 						}
 					} catch (InterruptedException e) {
-						// e.printStackTrace();
+						LOG.error("Interrupted ",e);
 						running = false;
 					}
 				}
@@ -40,7 +48,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				if (cart == null) {
 					continue;
 				}
-				System.out.println("Cart read " + cart);
+				LOG.debug("Cart read " + cart);
 				K key = cart.getKey();
 				Builder<OUT> b;
 				try {
@@ -54,14 +62,14 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 					if (b.ready()) {
 						collector.remove(key);
-						outQueue.add(b.build());
+						resultConsumer.accept(b.build());
 					}
 
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
-			System.out.println("Leaving thread ");
+			LOG.debug("Leaving thread {}"+Thread.currentThread().getName());
 		});
 		t.setDaemon(false);
 		t.setName("AssemblingConveyor collecting " + builderSupplier.get().getClass().getSimpleName());
@@ -84,26 +92,6 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			lock.notify();
 		}
 		return r;
-	}
-
-	@Override
-	public OUT element() {
-		return outQueue.element();
-	}
-
-	@Override
-	public OUT peek() {
-		return outQueue.peek();
-	}
-
-	@Override
-	public OUT poll() {
-		return outQueue.poll();
-	}
-
-	@Override
-	public OUT remove() {
-		return outQueue.remove();
 	}
 
 	public void stop() {
