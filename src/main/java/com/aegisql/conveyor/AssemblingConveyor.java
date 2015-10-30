@@ -92,7 +92,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	@Override
 	public boolean add(IN cart) {
-		if( cart.expired() ) {
+		if( ! running || cart.expired() ) {
 			stallConsumer.accept(cart);
 			return false;
 		}
@@ -105,7 +105,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	@Override
 	public boolean offer(IN cart) {
-		if( cart.expired() ) {
+		if( ! running || cart.expired() ) {
 			stallConsumer.accept(cart);
 			return false;
 		}
