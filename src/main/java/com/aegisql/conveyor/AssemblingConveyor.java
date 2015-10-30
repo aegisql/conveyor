@@ -57,7 +57,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				}
 				LOG.debug("Read " + cart);
 				K key = cart.getKey();
-				Builder<OUT> b;
+				Builder<OUT> b = null;
 				try {
 					b = collector.get(key);
 					if (b == null) {
@@ -74,6 +74,13 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 				} catch (Exception e) {
 					LOG.error("Cart processor failed",e);
+					stallConsumer.accept(cart);
+					if(b != null) {
+						stallConsumer.accept(b);
+					}
+					if(key != null) {
+						collector.remove(key);
+					}
 				}
 			}
 			LOG.debug("Leaving thread {}" + Thread.currentThread().getName());
@@ -109,6 +116,10 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		return r;
 	}
 
+	public int getCollectorSize() {
+		return collector.size();
+	}
+	
 	public void stop() {
 		running = false;
 	}
