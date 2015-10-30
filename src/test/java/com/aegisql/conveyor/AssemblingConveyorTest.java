@@ -99,7 +99,8 @@ public class AssemblingConveyorTest {
 	public void test() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, Name> c 
 		= new AssemblingConveyor<>(
-				    NameBuilder.class, (cart, b) -> {
+				    NameBuilder::new,
+				    (cart, b) -> {
 					NameBuilder nb = (NameBuilder) b;
 					try {
 					} catch (Exception e) {

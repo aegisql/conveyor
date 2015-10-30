@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Conveyor<K, L, IN, OUT> {
 
@@ -20,7 +21,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	private final Object lock = new Lock();
 
-	public AssemblingConveyor(Class<? extends Builder<OUT>> builderClass,
+	public AssemblingConveyor(Supplier<Builder<OUT>> builderSupplier,
 			BiConsumer<Cart<K, ?, L>, Builder<OUT>> cartConsumer) {
 		Thread t = new Thread(() -> {
 			while (running) {
@@ -45,7 +46,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				try {
 					b = collector.get(key);
 					if (b == null) {
-						b = builderClass.newInstance();
+						b = builderSupplier.get();
 						collector.put(key, b);
 					}
 
@@ -63,7 +64,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			System.out.println("Leaving thread ");
 		});
 		t.setDaemon(false);
-		t.setName("AssemblingConveyor collecting " + builderClass.getSimpleName());
+		t.setName("AssemblingConveyor collecting " + builderSupplier.get().getClass().getSimpleName());
 		t.start();
 	}
 
