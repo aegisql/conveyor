@@ -154,6 +154,7 @@ public class AssemblingConveyorTest {
 		System.out.println(outQueue.poll());
 
 		c.offer(c5);
+		Thread.sleep(100);
 
 		c.stop();
 	}
