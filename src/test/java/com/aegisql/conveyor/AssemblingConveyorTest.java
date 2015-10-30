@@ -97,7 +97,8 @@ public class AssemblingConveyorTest {
 
 	@Test
 	public void test() throws InterruptedException {
-		AssemblingConveyor<Integer, Cart<Integer, ?>, Name> c = new AssemblingConveyor<Integer, Cart<Integer, ?>, Name>(
+		AssemblingConveyor<Integer, Cart<Integer, ?>, Name> c 
+		= new AssemblingConveyor<Integer, Cart<Integer, ?>, Name>(
 				(Class<? extends Builder<Name>>) NameBuilder.class, (cart, b) -> {
 					NameBuilder nb = (NameBuilder) b;
 					try {

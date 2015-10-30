@@ -71,7 +71,7 @@ public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Convey
 	public boolean add(IN cart) {
 		boolean r = inQueue.add(cart);
 		synchronized (lock) {
-			lock.notifyAll();
+			lock.notify();
 		}
 		return r;
 	}
@@ -80,7 +80,7 @@ public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Convey
 	public boolean offer(IN cart) {
 		boolean r = inQueue.offer(cart);
 		synchronized (lock) {
-			lock.notifyAll();
+			lock.notify();
 		}
 		return r;
 	}
@@ -112,7 +112,7 @@ public class AssemblingConveyor<K, IN extends Cart<K, ?>, OUT> implements Convey
 	public void finalize() throws Throwable {
 		running = false;
 		synchronized (lock) {
-			lock.notifyAll();
+			lock.notify();
 		}
 	}
 
