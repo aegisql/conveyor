@@ -111,10 +111,6 @@ public class AssemblingConveyorTest {
 				    UserBuilder::new,
 				    (cart, b) -> {
 					UserBuilder nb = (UserBuilder) b;
-					try {
-					} catch (Exception e) {
-
-					}
 					switch (cart.getLabel()) {
 					case "setFirst":
 						nb.setFirst((String) cart.getValue());
