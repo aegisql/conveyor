@@ -39,15 +39,16 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		
 		Thread t = new Thread(() -> {
 			while (running) {
-				if (inQueue.isEmpty()) {
-					try {
-						synchronized (lock) {
+				try {
+					synchronized (lock) {
+						if (inQueue.isEmpty()) {
 							lock.wait();
 						}
-					} catch (InterruptedException e) {
-						LOG.error("Interrupted ", e);
-						running = false;
 					}
+					if( ! running ) break;
+				} catch (InterruptedException e) {
+					LOG.error("Interrupted ", e);
+					running = false;
 				}
 
 				Cart<K, ?, L> cart = inQueue.poll();
@@ -122,6 +123,9 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	
 	public void stop() {
 		running = false;
+		synchronized (lock) {
+			lock.notify();
+		}
 	}
 
 }
