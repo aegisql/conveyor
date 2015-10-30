@@ -84,7 +84,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 					}
 				}
 			}
-			LOG.debug("Leaving thread {}" + Thread.currentThread().getName());
+			LOG.debug("Leaving {}", Thread.currentThread().getName());
 		});
 		t.setDaemon(false);
 		t.setName("AssemblingConveyor collecting " + builderSupplier.get().getClass().getSimpleName());
