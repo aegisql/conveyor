@@ -94,9 +94,13 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	@Override
 	public boolean add(IN cart) {
-		if( ! running || cart.expired() ) {
+		if( ! running ) {
 			stallConsumer.accept(cart);
-			return false;
+			throw new IllegalStateException("Assembling Conveyor is not running");
+		}
+		if( cart.expired() ) {
+			stallConsumer.accept(cart);
+			throw new IllegalStateException("Data expired "+cart);
 		}
 		boolean r = inQueue.add(cart);
 		synchronized (lock) {
