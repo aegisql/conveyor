@@ -41,7 +41,7 @@ public class AssemblingConveyorTest {
 
 		@Override
 		public String toString() {
-			return "Name [first=" + first + ", last=" + last + ", born in " + yearOfBirth + "]";
+			return "User [first=" + first + ", last=" + last + ", born in " + yearOfBirth + "]";
 		}
 
 	}
@@ -109,17 +109,17 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> c 
 		= new AssemblingConveyor<>(
 				    UserBuilder::new,
-				    (cart, b) -> {
-					UserBuilder nb = (UserBuilder) b;
+				    (cart, builder) -> {
+					UserBuilder userBuilder = (UserBuilder) builder;
 					switch (cart.getLabel()) {
 					case "setFirst":
-						nb.setFirst((String) cart.getValue());
+						userBuilder.setFirst((String) cart.getValue());
 						break;
 					case "setLast":
-						nb.setLast((String) cart.getValue());
+						userBuilder.setLast((String) cart.getValue());
 						break;
 					case "setYearOfBirth":
-						nb.setYearOfBirth((Integer) cart.getValue());
+						userBuilder.setYearOfBirth((Integer) cart.getValue());
 						break;
 					default:
 						throw new RuntimeException("Unknown cart " + cart);
