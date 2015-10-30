@@ -14,23 +14,29 @@ import org.slf4j.LoggerFactory;
 public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Conveyor<K, L, IN, OUT> {
 
 	private final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
+
+	private final Queue<IN> inQueue = new ConcurrentLinkedQueue<>();
+
+	private final Map<K, Builder<OUT>> collector = new HashMap<>();
+
+	private final Consumer<Object> stallConsumer;
 	
-	private final Queue<IN> inQueue   = new ConcurrentLinkedQueue<>();
-
-	private Map<K, Builder<OUT>> collector = new HashMap<>();
-
 	private boolean running = true;
 
 	private static final class Lock {
 	}
 
-	private final Object lock = new Lock();
+	private final Lock lock = new Lock();
 
 	public AssemblingConveyor(
 			Supplier<Builder<OUT>> builderSupplier,
-			BiConsumer<Cart<K, ?, L>, Builder<OUT>> cartConsumer,
-			Consumer<OUT> resultConsumer
-			) {
+			BiConsumer<Cart<K, ?, L>, Builder<OUT>> cartConsumer, 
+			Consumer<OUT> resultConsumer,
+			Consumer<Object> stallConsumer
+			) 
+		{
+		this.stallConsumer = stallConsumer;
+		
 		Thread t = new Thread(() -> {
 			while (running) {
 				if (inQueue.isEmpty()) {
@@ -39,16 +45,17 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 							lock.wait();
 						}
 					} catch (InterruptedException e) {
-						LOG.error("Interrupted ",e);
+						LOG.error("Interrupted ", e);
 						running = false;
 					}
 				}
 
 				Cart<K, ?, L> cart = inQueue.poll();
 				if (cart == null) {
+					LOG.warn("Empty cart");
 					continue;
 				}
-				LOG.debug("Cart read " + cart);
+				LOG.debug("Read " + cart);
 				K key = cart.getKey();
 				Builder<OUT> b;
 				try {
@@ -66,10 +73,10 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 					}
 
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOG.error("Cart processor failed",e);
 				}
 			}
-			LOG.debug("Leaving thread {}"+Thread.currentThread().getName());
+			LOG.debug("Leaving thread {}" + Thread.currentThread().getName());
 		});
 		t.setDaemon(false);
 		t.setName("AssemblingConveyor collecting " + builderSupplier.get().getClass().getSimpleName());
@@ -78,6 +85,10 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	@Override
 	public boolean add(IN cart) {
+		if( cart.expired() ) {
+			stallConsumer.accept(cart);
+			return false;
+		}
 		boolean r = inQueue.add(cart);
 		synchronized (lock) {
 			lock.notify();
@@ -87,6 +98,10 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	@Override
 	public boolean offer(IN cart) {
+		if( cart.expired() ) {
+			stallConsumer.accept(cart);
+			return false;
+		}
 		boolean r = inQueue.offer(cart);
 		synchronized (lock) {
 			lock.notify();
@@ -96,13 +111,6 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	public void stop() {
 		running = false;
-	}
-
-	public void finalize() throws Throwable {
-		running = false;
-		synchronized (lock) {
-			lock.notify();
-		}
 	}
 
 }

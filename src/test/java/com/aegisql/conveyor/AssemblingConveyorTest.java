@@ -131,6 +131,9 @@ public class AssemblingConveyorTest {
 				},
 				    res->{
 				    	outQueue.add(res);
+				    },
+				    bad -> {
+				    	System.out.println("Stall: "+bad);
 				    });
 
 		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
