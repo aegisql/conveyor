@@ -52,7 +52,15 @@ public class Cart<K,V,L> {
 		this.label = label;
 		this.expiration = 0;
 	}
-	
+
+	public Cart(K k, V v, L label, long expiration) {
+		super();
+		this.k = k;
+		this.v = v;
+		this.label = label;
+		this.expiration = expiration;
+	}
+
 	public K getKey() {
 		return k;
 	}
