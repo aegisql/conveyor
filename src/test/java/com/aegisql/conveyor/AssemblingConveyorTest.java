@@ -122,7 +122,7 @@ public class AssemblingConveyorTest {
 					case "setLast":
 						nb.setLast((String) cart.getValue());
 						break;
-					case "setYob":
+					case "setYearOfBirth":
 						nb.setYearOfBirth((Integer) cart.getValue());
 						break;
 					default:
@@ -139,7 +139,9 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
 		Cart<Integer, String, String> c2 = new Cart<>(1, "Doe", "setLast");
 		Cart<Integer, String, String> c3 = new Cart<>(2, "Mike", "setFirst");
-		Cart<Integer, Integer, String> c4 = new Cart<>(1, 1999, "setYob");
+		Cart<Integer, Integer, String> c4 = new Cart<>(1, 1999, "setYearOfBirth");
+
+		Cart<Integer, Integer, String> c5 = new Cart<>(3, 1999, "setBlah");
 
 		c.offer(c1);
 		System.out.println(outQueue.poll());
@@ -150,6 +152,8 @@ public class AssemblingConveyorTest {
 
 		System.out.println(outQueue.poll());
 		System.out.println(outQueue.poll());
+
+		c.offer(c5);
 
 		c.stop();
 	}
