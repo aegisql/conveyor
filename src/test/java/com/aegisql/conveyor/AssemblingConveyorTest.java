@@ -22,7 +22,7 @@ public class AssemblingConveyorTest {
 		final String first;
 		final String last;
 		final int yearOfBirth;
-
+		
 		public User(String first, String last, int yob) {
 			super();
 			this.first = first;
@@ -55,6 +55,8 @@ public class AssemblingConveyorTest {
 		String last;
 		Integer yearOfBirth;
 
+		private boolean ready = false;
+
 		public Integer getYearOfBirth() {
 			return yearOfBirth;
 		}
@@ -86,7 +88,11 @@ public class AssemblingConveyorTest {
 
 		@Override
 		public boolean ready() {
-			return first != null && last != null && yearOfBirth != null;
+			return ready;
+		}
+
+		public void setReady(boolean ready) {
+			this.ready = ready;
 		}
 
 	}
@@ -147,6 +153,9 @@ public class AssemblingConveyorTest {
 						break;
 					default:
 						throw new RuntimeException("Unknown cart " + lot);
+					}
+					if(lot.previouslyAccepted == 2) {
+						userBuilder.setReady(true);
 					}
 				},
 				    res->{
