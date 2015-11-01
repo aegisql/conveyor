@@ -14,89 +14,13 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.user.UserBuilder;
+
 public class AssemblingConveyorTest {
 
 	Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 	
-	public static class User {
-		final String first;
-		final String last;
-		final int yearOfBirth;
-		
-		public User(String first, String last, int yob) {
-			super();
-			this.first = first;
-			this.last = last;
-			this.yearOfBirth = yob;
-		}
-
-		public String getFirst() {
-			return first;
-		}
-
-		public String getLast() {
-			return last;
-		}
-		
-		public int getYearOfBirth() {
-			return yearOfBirth;
-		}
-
-		@Override
-		public String toString() {
-			return "User [first=" + first + ", last=" + last + ", born in " + yearOfBirth + "]";
-		}
-
-	}
-
-	public static class UserBuilder implements Builder<User> {
-
-		String first;
-		String last;
-		Integer yearOfBirth;
-
-		private boolean ready = false;
-
-		public Integer getYearOfBirth() {
-			return yearOfBirth;
-		}
-
-		public void setYearOfBirth(Integer yob) {
-			this.yearOfBirth = yob;
-		}
-
-		public String getFirst() {
-			return first;
-		}
-
-		public void setFirst(String first) {
-			this.first = first;
-		}
-
-		public String getLast() {
-			return last;
-		}
-
-		public void setLast(String last) {
-			this.last = last;
-		}
-
-		@Override
-		public User build() {
-			return new User(first, last, yearOfBirth);
-		}
-
-		@Override
-		public boolean ready() {
-			return ready;
-		}
-
-		public void setReady(boolean ready) {
-			this.ready = ready;
-		}
-
-	}
-
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
@@ -125,7 +49,7 @@ public class AssemblingConveyorTest {
 		assertEquals(1000, c1.getExpirationTime() - c1.getCreationTime());
 		System.out.println(c1.getDelay(TimeUnit.MILLISECONDS));
 		
-		BlockingQueue q = new DelayQueue();
+		BlockingQueue<Cart<Integer, String, String>> q = new DelayQueue<>();
 		q.add(c1);
 		assertNull(q.poll());
 		Thread.sleep(1000);
@@ -152,7 +76,7 @@ public class AssemblingConveyorTest {
 						userBuilder.setYearOfBirth((Integer) lot.value);
 						break;
 					default:
-						throw new RuntimeException("Unknown cart " + lot);
+						throw new RuntimeException("Unknown lot " + lot);
 					}
 					if(lot.previouslyAccepted == 2) {
 						userBuilder.setReady(true);
