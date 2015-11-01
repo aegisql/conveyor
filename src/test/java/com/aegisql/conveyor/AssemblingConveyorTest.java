@@ -132,28 +132,27 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> c 
 		= new AssemblingConveyor<>(
 				    UserBuilder::new,
-				    (cart, builder) -> {
+				    (lot, builder) -> {
 					UserBuilder userBuilder = (UserBuilder) builder;
-					switch (cart.getLabel()) {
+					System.out.println("Executing "+lot.label+"("+ +lot.key+") already done "+lot.previouslyAccepted);
+					switch (lot.label) {
 					case "setFirst":
-						userBuilder.setFirst((String) cart.getValue());
+						userBuilder.setFirst((String) lot.value);
 						break;
 					case "setLast":
-						userBuilder.setLast((String) cart.getValue());
+						userBuilder.setLast((String) lot.value);
 						break;
 					case "setYearOfBirth":
-						userBuilder.setYearOfBirth((Integer) cart.getValue());
+						userBuilder.setYearOfBirth((Integer) lot.value);
 						break;
 					default:
-						throw new RuntimeException("Unknown cart " + cart);
+						throw new RuntimeException("Unknown cart " + lot);
 					}
 				},
 				    res->{
 				    	outQueue.add(res);
-				    },
-				    bad -> {
-				    	System.out.println("Stall: "+bad);
-				    });
+				    }
+				    );
 
 		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
 		Cart<Integer, String, String> c2 = new Cart<>(1, "Doe", "setLast");
@@ -163,14 +162,17 @@ public class AssemblingConveyorTest {
 		Cart<Integer, Integer, String> c5 = new Cart<>(3, 1999, "setBlah");
 
 		c.offer(c1);
-		System.out.println(outQueue.poll());
+		User u0 = outQueue.poll();
+		assertNull(u0);
 		c.offer(c2);
 		c.offer(c3);
 		c.offer(c4);
 		Thread.sleep(100);
-
-		System.out.println(outQueue.poll());
-		System.out.println(outQueue.poll());
+		User u1 = outQueue.poll();
+		assertNotNull(u1);
+		System.out.println(u1);
+		User u2 = outQueue.poll();
+		assertNull(u2);
 
 		c.offer(c5);
 		Thread.sleep(100);
