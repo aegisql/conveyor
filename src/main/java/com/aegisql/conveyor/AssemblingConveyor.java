@@ -58,26 +58,26 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				}
 				LOG.debug("Read " + cart);
 				K key = cart.getKey();
-				Builder<OUT> b = null;
+				Builder<OUT> builder = null;
 				try {
-					b = collector.get(key);
-					if (b == null) {
-						b = builderSupplier.get();
-						collector.put(key, b);
+					builder = collector.get(key);
+					if (builder == null) {
+						builder = builderSupplier.get();
+						collector.put(key, builder);
 					}
 
-					cartConsumer.accept(cart, b);
+					cartConsumer.accept(cart, builder);
 
-					if (b.ready()) {
+					if (builder.ready()) {
 						collector.remove(key);
-						resultConsumer.accept(b.build());
+						resultConsumer.accept(builder.build());
 					}
 
 				} catch (Exception e) {
 					LOG.error("Cart processor failed",e);
 					stallConsumer.accept(cart);
-					if(b != null) {
-						stallConsumer.accept(b);
+					if(builder != null) {
+						stallConsumer.accept(builder);
 					}
 					if(key != null) {
 						collector.remove(key);

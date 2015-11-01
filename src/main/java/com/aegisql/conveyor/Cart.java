@@ -1,9 +1,10 @@
 package com.aegisql.conveyor;
 
 import java.util.Date;
+import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-public class Cart<K,V,L> {
+public class Cart<K,V,L> implements Delayed {
 	
 	private final K k;
 	private final V v;
@@ -15,34 +16,10 @@ public class Cart<K,V,L> {
 	
 	public Cart(K k, V v, L label, long ttl, TimeUnit timeUnit) {
 		super();
-		this.k = k;
-		this.v = v;
-		this.label = label;
-		switch(timeUnit) {
-		case NANOSECONDS:
-			this.expiration = created + ttl / 1_000_000; 
-			break;
-		case MICROSECONDS:
-			this.expiration = created + ttl / 1_000; 
-			break;
-		case MILLISECONDS:
-			this.expiration = created + ttl; 
-			break;
-		case SECONDS:
-			this.expiration = created + ttl * 1000; 
-			break;
-		case MINUTES:
-			this.expiration = created + ttl * 60 * 1000; 
-			break;
-		case HOURS:
-			this.expiration = created + ttl * 60 * 60 * 1000; 
-			break;
-		case DAYS:
-			this.expiration = created + ttl * 24 * 60 * 60 * 1000; 
-			break;
-		default:
-			throw new RuntimeException("Unexpected Time Unit "+timeUnit);
-		}
+		this.k          = k;
+		this.v          = v;
+		this.label      = label;
+		this.expiration = created + TimeUnit.MILLISECONDS.convert(ttl, timeUnit);
 	}
 	
 	public Cart(K k, V v, L label) {
@@ -77,7 +54,7 @@ public class Cart<K,V,L> {
 		return expiration;
 	}
 	public boolean expired() {
-		return expiration > 0 && expiration > System.currentTimeMillis();
+		return expiration > 0 && expiration <= System.currentTimeMillis();
 	}
 	
 	@Override
@@ -88,6 +65,27 @@ public class Cart<K,V,L> {
 				", created=" + new Date(created) + 
 				(expiration > 0 ? (", expires=" + new Date(expiration) ) : ", unexpireable") +
 				 "]";
+	}
+
+	@Override
+	public int compareTo(Delayed o) {
+		if( this.expiration == ((Cart<?,?,?>)o).expiration) return 0;
+		if( this.expiration == 0 ) return 1;
+		if( ((Cart<?,?,?>)o).expiration == 0 ) return -1;
+		if( this.expiration < ((Cart<?,?,?>)o).expiration) return -1;
+		if( this.expiration > ((Cart<?,?,?>)o).expiration) return +1;
+		return 0;
+	}
+
+	@Override
+	public long getDelay(TimeUnit unit) {
+        long delta;
+		if( this.expiration == 0 ) {
+			delta = Long.MAX_VALUE;
+		} else {
+			delta = this.expiration - System.currentTimeMillis();
+		}
+        return unit.convert(delta, TimeUnit.MILLISECONDS);
 	}
 	
 }
