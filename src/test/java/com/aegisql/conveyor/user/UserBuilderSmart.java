@@ -22,7 +22,7 @@ public class UserBuilderSmart implements Builder<User> {
 		return first;
 	}
 
-	public static void setFirst(UserBuilderSmart builder, Object first) {
+	public static void setFirst(UserBuilderSmart builder, String first) {
 		builder.first = (String) first;
 	}
 
