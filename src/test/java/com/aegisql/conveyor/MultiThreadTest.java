@@ -99,7 +99,7 @@ public class MultiThreadTest {
 	@Test
 	public void test() throws InterruptedException {
 
-	c.setExpirationCollectionInterval(1000, TimeUnit.SECONDS);
+	c.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
 	c.setTimeoutStrategy(TimeoutStrategy.TIMEOUT_FROM_CONVEYOR);
 	c.setBuilderTimeout(1, TimeUnit.SECONDS);
 	c.setOnTimeoutAction(true);
