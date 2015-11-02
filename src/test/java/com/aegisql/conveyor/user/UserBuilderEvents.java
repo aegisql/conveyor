@@ -4,7 +4,7 @@ import java.util.function.BiConsumer;
 
 import com.aegisql.conveyor.SmartLabel;
 
-public enum UserBuilderEvents implements SmartLabel<UserBuilderSmart,Object> {
+public enum UserBuilderEvents implements SmartLabel<UserBuilderSmart> {
 	
 	
 	SET_FIRST(UserBuilderSmart::setFirst),
@@ -12,14 +12,14 @@ public enum UserBuilderEvents implements SmartLabel<UserBuilderSmart,Object> {
 	SET_YEAR(UserBuilderSmart::setYearOfBirth)
 	;
 
-	BiConsumer<UserBuilderSmart, ?> setter;
+	BiConsumer<UserBuilderSmart, Object> setter;
 
 	<T> UserBuilderEvents(BiConsumer<UserBuilderSmart,T> setter) {
-		this.setter = setter;
+		this.setter = (BiConsumer<UserBuilderSmart, Object>) setter;
 	}
 	
 	@Override
 	public BiConsumer<UserBuilderSmart, Object> getSetter() {
-		return (BiConsumer<UserBuilderSmart, Object>) setter;
+		return setter;
 	}
 }
