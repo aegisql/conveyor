@@ -76,7 +76,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 						running = false;
 					}
 
-					Cart<K, ?, L> cart = inQueue.poll();
+					IN cart = inQueue.poll();
 					if (cart == null) {
 						LOG.warn("Empty cart");
 						continue;
@@ -90,13 +90,13 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 							
 							switch(timeoutStrategy) {
 							case NON_EXPIREABLE:
-								bs = new BuildingSite<K, L, IN, OUT>((IN) cart, builderSupplier, cartConsumer);
+								bs = new BuildingSite<K, L, IN, OUT>( cart, builderSupplier, cartConsumer);
 								break;
 							case TIMEOUT_FROM_CONVEYOR:
-								bs = new BuildingSite<K, L, IN, OUT>((IN) cart, builderSupplier, cartConsumer, builderTimeout, TimeUnit.MILLISECONDS);
+								bs = new BuildingSite<K, L, IN, OUT>( cart, builderSupplier, cartConsumer, builderTimeout, TimeUnit.MILLISECONDS);
 								break;
 							case TIMEOUT_FROM_QUERY:
-								bs = new BuildingSite<K, L, IN, OUT>((IN) cart, builderSupplier, cartConsumer, cart.getExpirationTime() );
+								bs = new BuildingSite<K, L, IN, OUT>( cart, builderSupplier, cartConsumer, cart.getExpirationTime() );
 								break;
 							}
 							
