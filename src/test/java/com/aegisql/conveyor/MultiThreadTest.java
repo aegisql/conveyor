@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.AssemblingConveyor.TimeoutStrategy;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
@@ -54,6 +55,11 @@ public class MultiThreadTest {
 		    (lot, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
 			System.out.println("Executing "+lot.label+"("+ +lot.key+") already done "+lot.previouslyAccepted);
+			if(lot.label == null) {
+				userBuilder.setReady(true);
+				System.out.println("Trying to finish..."+lot.key);
+				return;
+			}
 			switch (lot.label) {
 			case "setFirst":
 				userBuilder.setFirst((String) lot.value);
@@ -93,17 +99,18 @@ public class MultiThreadTest {
 	@Test
 	public void test() throws InterruptedException {
 
+	c.setExpirationCollectionInterval(1000, TimeUnit.SECONDS);
+	c.setTimeoutStrategy(TimeoutStrategy.TIMEOUT_FROM_CONVEYOR);
+	c.setBuilderTimeout(1, TimeUnit.SECONDS);
+	c.setOnTimeoutAction(true);
+		
 	Thread runFirst = new Thread(()->{
 		Random r = new Random();
 		int[] ids = getRandomInts();
 		for(int i = 0; i < SIZE; i++) {
 			User u = inUser[ids[i]];
 			Cart<Integer, String, String> cart = new Cart<>(ids[i], "First_"+ids[i], "setFirst",1,TimeUnit.SECONDS);
-			try {
-				Thread.sleep(r.nextInt(10));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			if(r.nextInt(100) == 22) continue;
 			c.offer(cart);
 		}
 	});	
@@ -114,11 +121,7 @@ public class MultiThreadTest {
 		for(int i = 0; i < SIZE; i++) {
 			User u = inUser[ids[i]];
 			Cart<Integer, String, String> cart = new Cart<>(ids[i], "Last_"+ids[i], "setLast",1,TimeUnit.SECONDS);
-			try {
-				Thread.sleep(r.nextInt(10));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			if(r.nextInt(100) == 22) continue;
 			c.offer(cart);
 		}
 	});	
@@ -129,11 +132,7 @@ public class MultiThreadTest {
 		for(int i = 0; i < SIZE; i++) {
 			User u = inUser[ids[i]];
 			Cart<Integer, Integer, String> cart = new Cart<>(ids[i], 1900+r.nextInt(100), "setYearOfBirth",1,TimeUnit.SECONDS);
-			try {
-				Thread.sleep(r.nextInt(10));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			if(r.nextInt(100) == 22) continue;
 			c.offer(cart);
 		}
 	});	
@@ -145,12 +144,22 @@ public class MultiThreadTest {
 	while(	runFirst.isAlive() || runLast.isAlive() || runYear.isAlive() ) {
 		Thread.sleep(1000);
 	}
+
+	System.out.println("Good data");
+	while(!outQueue.isEmpty()) {
+		System.out.println(outQueue.poll());
+	}
 	
-	outQueue.forEach(user->{
-		System.out.println(user);
-	});
-	
-	
+
+	System.out.println("Left: "+c.getCollectorSize());
+	Thread.sleep(2000);
+
+	System.out.println("Incomplete data");
+	while(!outQueue.isEmpty()) {
+		System.out.println(outQueue.poll());
+	}
+	System.out.println("Left: "+c.getCollectorSize());
+
 	}
 
 }

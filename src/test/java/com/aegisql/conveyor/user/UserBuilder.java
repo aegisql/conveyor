@@ -36,7 +36,7 @@ public class UserBuilder implements Builder<User> {
 
 	@Override
 	public User build() {
-		return new User(first, last, yearOfBirth);
+		return new User(first, last, yearOfBirth==null? 0:yearOfBirth.intValue());
 	}
 
 	@Override

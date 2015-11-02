@@ -9,31 +9,62 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Builde
 
 	private final Builder<OUT> builder;
 	private final BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer;
+	private final  C initialCart;
 	
 	private int acceptCount = 0;
 	private final long builderCreated;
 	private final long builderExpiration;
 
-	
-	public BuildingSite( Supplier<Builder<OUT>> builderSupplier, BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer) {
+	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer) {
+		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
 		this.cartConsumer = cartConsumer;
 		builderCreated = System.currentTimeMillis();
 		builderExpiration = 0;
 	}
-	
+
+	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer, long expiration) {
+		this.initialCart = cart;
+		this.builder = builderSupplier.get() ;
+		this.cartConsumer = cartConsumer;
+		builderCreated = System.currentTimeMillis();
+		builderExpiration = expiration;
+	}
+
+	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer, long ttl, TimeUnit unit) {
+		this.initialCart = cart;
+		this.builder = builderSupplier.get() ;
+		this.cartConsumer = cartConsumer;
+		builderCreated = System.currentTimeMillis();
+		builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, unit);
+	}
+
 	public void accept(C cart) {
-		
-		Lot<K, ?, L> lot = new Lot<>(
-				cart.getKey(),
-				cart.getValue(), 
-				cart.getLabel(),
-				builderCreated,
-				0,
-				cart.getCreationTime(),
-				cart.getExpirationTime(),
-				acceptCount
-				);
+		Lot<K, ?, L> lot = null;
+		if(cart == null) {
+			 lot = new Lot<>(
+						initialCart.getKey(),
+						null, 
+						null,
+						builderCreated,
+						builderExpiration,
+						initialCart.getCreationTime(),
+						initialCart.getExpirationTime(),
+						acceptCount
+						);
+			
+		} else {
+			 lot = new Lot<>(
+						cart.getKey(),
+						cart.getValue(), 
+						cart.getLabel(),
+						builderCreated,
+						builderExpiration,
+						cart.getCreationTime(),
+						cart.getExpirationTime(),
+						acceptCount
+						);
+		}
 		
 		cartConsumer.accept(lot, builder);
 		acceptCount++;
@@ -80,4 +111,13 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Builde
 	public boolean expired() {
 		return builderExpiration > 0 && builderExpiration <= System.currentTimeMillis();
 	}
+
+	public long getBuilderExpiration() {
+		return builderExpiration;
+	}
+
+	public C getCart() {
+		return initialCart;
+	}
+
 }

@@ -6,7 +6,6 @@ public class User {
 	final int yearOfBirth;
 	
 	public User(String first, String last, int yob) {
-		super();
 		this.first = first;
 		this.last = last;
 		this.yearOfBirth = yob;
