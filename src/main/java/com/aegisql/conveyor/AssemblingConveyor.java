@@ -73,7 +73,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 							break;
 					} catch (InterruptedException e) {
 						LOG.error("Interrupted ", e);
-						running = false;
+						stop();
 					}
 
 					IN cart = inQueue.poll();
@@ -126,7 +126,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				}
 				LOG.debug("Leaving {}", Thread.currentThread().getName());
 			} catch (Throwable e) { //Let it crash, but don't pretend its running
-				running = false;
+				stop();
 				throw e;
 			}
 		});
@@ -176,6 +176,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	public void stop() {
 		running = false;
+		timer.cancel();
+		timer.purge();
 		synchronized (lock) {
 			lock.notify();
 		}
