@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Builder<OUT>, Delayed {
+public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delayed {
 
 	private final Builder<OUT> builder;
 	private final BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer;
@@ -72,7 +72,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Builde
 		acceptCount++;
 	}
 
-	@Override
 	public OUT build() {
 		if( ! ready() ) {
 			throw new IllegalStateException("Builder is not ready!");
@@ -80,9 +79,19 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Builde
 		return builder.build();
 	}
 
-	@Override
 	public boolean ready() {
-		return builder.ready();
+		Lot<K, ?, L> lot = null;
+		 lot = new Lot<>(
+					initialCart.getKey(),
+					null, 
+					null,
+					builderCreated,
+					builderExpiration,
+					initialCart.getCreationTime(),
+					initialCart.getExpirationTime(),
+					acceptCount
+					);
+		return builder.ready(lot);
 	}
 
 	public int getAcceptCount() {
