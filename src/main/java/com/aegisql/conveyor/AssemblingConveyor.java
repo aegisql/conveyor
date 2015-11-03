@@ -227,21 +227,20 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	public void setExpirationCollectionInterval(long expirationCollectionInterval, TimeUnit unit) {
 		this.expirationCollectionInterval = unit.toMillis(expirationCollectionInterval);
-		if (expiredCollector == null) {
-			expiredCollector = new TimerTask() {
-				@Override
-				public void run() {
-					if (delayQueue.poll() != null) {
-						LOG.debug("CHECK TIMEOUT SENT " + inQueue.size() + " " + inQueue.peek());
-						Cart<K, Object, L> msg = new Cart<>(null, "CHECK_TIMEOUT", null);
-						add((IN) msg);
-					}
-				}
-			};
-		} else {
+		if (expiredCollector != null) {
 			expiredCollector.cancel();
 			timer.purge();
 		}
+		expiredCollector = new TimerTask() {
+			@Override
+			public void run() {
+				if (delayQueue.poll() != null) {
+					LOG.debug("CHECK TIMEOUT SENT " + inQueue.size() + " " + inQueue.peek());
+					Cart<K, Object, L> msg = new Cart<>(null, "CHECK_TIMEOUT", null);
+					add((IN) msg);
+				}
+			}
+		};
 		timer.schedule(expiredCollector, expirationCollectionInterval, expirationCollectionInterval);
 	}
 
