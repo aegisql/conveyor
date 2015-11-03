@@ -120,6 +120,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 							LOG.error("Cart processor failed", e);
 							scrapConsumer.accept(cart);
 							if (buildingSite != null) {
+								buildingSite.setLastError(e);
 								scrapConsumer.accept(buildingSite);
 							}
 							collector.remove(key);

@@ -14,6 +14,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Builde
 	private int acceptCount = 0;
 	private final long builderCreated;
 	private final long builderExpiration;
+	
+	private Throwable lastError;
 
 	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer) {
 		this.initialCart = cart;
@@ -120,4 +122,23 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Builde
 		return initialCart;
 	}
 
+	public Throwable getLastError() {
+		return lastError;
+	}
+
+	public void setLastError(Throwable lastError) {
+		this.lastError = lastError;
+	}
+
+	@Override
+	public String toString() {
+		return "BuildingSite [" + (builder != null ? "builder=" + builder + ", " : "")
+				+ (cartConsumer != null ? "cartConsumer=" + cartConsumer + ", " : "")
+				+ (initialCart != null ? "initialCart=" + initialCart + ", " : "") + "acceptCount=" + acceptCount
+				+ ", builderCreated=" + builderCreated + ", builderExpiration=" + builderExpiration + ", "
+				+ (lastError != null ? "lastError=" + lastError : "") + "]";
+	}
+
+	
+	
 }
