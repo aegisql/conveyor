@@ -1,7 +1,6 @@
 package com.aegisql.conveyor;
 
 import java.util.Date;
-import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
 public class Cart<K,V,L> {
