@@ -231,7 +231,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			expiredCollector = new TimerTask() {
 				@Override
 				public void run() {
-					if (!delayQueue.isEmpty()) {
+					if (delayQueue.poll() != null) {
 						LOG.debug("CHECK TIMEOUT SENT " + inQueue.size() + " " + inQueue.peek());
 						Cart<K, Object, L> msg = new Cart<>(null, "CHECK_TIMEOUT", null);
 						add((IN) msg);
