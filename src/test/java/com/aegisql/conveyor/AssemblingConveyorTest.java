@@ -38,26 +38,6 @@ public class AssemblingConveyorTest {
 	@After
 	public void tearDown() throws Exception {
 	}
-
-	@Test
-	public void testDelayed() throws InterruptedException {
-		Cart<Integer, String, String> c1 = new Cart<>(1, "A", "setFirst",1,TimeUnit.SECONDS);
-		Cart<Integer, String, String> c2 = new Cart<>(1, "B", "setLast",c1.getExpirationTime());
-
-		assertFalse(c1.expired());
-		assertFalse(c2.expired());
-		System.out.println(c1);
-		System.out.println(c2);
-		assertEquals(1000, c1.getExpirationTime() - c1.getCreationTime());
-		System.out.println(c1.getDelay(TimeUnit.MILLISECONDS));
-		
-		BlockingQueue<Cart<Integer, String, String>> q = new DelayQueue<>();
-		q.add(c1);
-		assertNull(q.poll());
-		Thread.sleep(1000);
-		assertNotNull(q.poll());
-		
-	}
 	
 	@Test
 	public void testBasics() throws InterruptedException {

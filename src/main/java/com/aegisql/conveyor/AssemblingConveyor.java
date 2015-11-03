@@ -19,33 +19,31 @@ import org.slf4j.LoggerFactory;
 public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Conveyor<K, L, IN, OUT> {
 
 	public static enum TimeoutStrategy {
-		NON_EXPIREABLE,
-		TIMEOUT_FROM_QUERY,
-		TIMEOUT_FROM_CONVEYOR
+		NON_EXPIREABLE, TIMEOUT_FROM_QUERY, TIMEOUT_FROM_CONVEYOR
 	}
-	
+
 	private final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
 
-	private final Timer timer = new Timer();
-	
+	private final Timer timer = new Timer("BuilderTimeoutTicker");
+
 	private TimerTask expiredCollector = null;
-	
+
 	private long expirationCollectionInterval;
-	
+
 	private final Queue<IN> inQueue = new ConcurrentLinkedQueue<>();
 
-	private final BlockingQueue<BuildingSite<K,L,IN,OUT>> delayQueue = new DelayQueue<>();
+	private final BlockingQueue<BuildingSite<K, L, IN, OUT>> delayQueue = new DelayQueue<>();
 
-	private final Map<K, BuildingSite<K,L,IN,OUT>> collector = new HashMap<>();
+	private final Map<K, BuildingSite<K, L, IN, OUT>> collector = new HashMap<>();
 
 	private TimeoutStrategy timeoutStrategy = TimeoutStrategy.TIMEOUT_FROM_CONVEYOR;
 
 	private long builderTimeout = 1000;
 
 	private boolean onTimeoutAction = false;
-	
+
 	private final Consumer<OUT> resultConsumer;
-	
+
 	private Consumer<Object> scrapConsumer = scrap -> {
 		LOG.debug("scrap: " + scrap);
 	};
@@ -69,11 +67,13 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 								lock.wait();
 							}
 						}
-						if (!running)
+						if (!running) {
 							break;
+						}
 					} catch (InterruptedException e) {
 						LOG.error("Interrupted ", e);
 						stop();
+						break;
 					}
 
 					IN cart = inQueue.poll();
@@ -83,49 +83,53 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 					}
 					LOG.debug("Read " + cart);
 					K key = cart.getKey();
-					BuildingSite<K,L,IN,OUT> bs = null;
-					try {
-						bs = collector.get(key);
-						if (bs == null) {
-							
-							switch(timeoutStrategy) {
-							case NON_EXPIREABLE:
-								bs = new BuildingSite<K, L, IN, OUT>( cart, builderSupplier, cartConsumer);
-								break;
-							case TIMEOUT_FROM_CONVEYOR:
-								bs = new BuildingSite<K, L, IN, OUT>( cart, builderSupplier, cartConsumer, builderTimeout, TimeUnit.MILLISECONDS);
-								break;
-							case TIMEOUT_FROM_QUERY:
-								bs = new BuildingSite<K, L, IN, OUT>( cart, builderSupplier, cartConsumer, cart.getExpirationTime() );
-								break;
+					if (key != null) {
+						BuildingSite<K, L, IN, OUT> buildingSite = null;
+						try {
+							buildingSite = collector.get(key);
+							if (buildingSite == null) {
+
+								switch (timeoutStrategy) {
+								case NON_EXPIREABLE:
+									buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer);
+									break;
+								case TIMEOUT_FROM_CONVEYOR:
+									buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer,
+											builderTimeout, TimeUnit.MILLISECONDS);
+									break;
+								case TIMEOUT_FROM_QUERY:
+									buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer,
+											cart.getExpirationTime());
+									break;
+								}
+
+								collector.put(key, buildingSite);
+								if (buildingSite.getBuilderExpiration() > 0) {
+									delayQueue.add(buildingSite);
+								}
 							}
-							
-							collector.put(key, bs);
-							if(bs.getBuilderExpiration() > 0) {
-								delayQueue.add(bs);
+
+							buildingSite.accept((IN) cart);
+
+							if (buildingSite.ready()) {
+								collector.remove(key);
+								resultConsumer.accept(buildingSite.build());
 							}
-						}
 
-						bs.accept((IN) cart);
-
-						if (bs.ready()) {
-							collector.remove(key);
-							resultConsumer.accept(bs.build());
-						}
-
-					} catch (Exception e) {
-						LOG.error("Cart processor failed", e);
-						scrapConsumer.accept(cart);
-						if (bs != null) {
-							scrapConsumer.accept(bs);
-						}
-						if (key != null) {
+						} catch (Exception e) {
+							LOG.error("Cart processor failed", e);
+							scrapConsumer.accept(cart);
+							if (buildingSite != null) {
+								scrapConsumer.accept(buildingSite);
+							}
 							collector.remove(key);
 						}
 					}
+					removeExpired();
 				}
 				LOG.debug("Leaving {}", Thread.currentThread().getName());
-			} catch (Throwable e) { //Let it crash, but don't pretend its running
+			} catch (Throwable e) { // Let it crash, but don't pretend its
+									// running
 				stop();
 				throw e;
 			}
@@ -140,10 +144,16 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	public boolean add(IN cart) {
 		if (!running) {
 			scrapConsumer.accept(cart);
+			synchronized (lock) {
+				lock.notify();
+			}
 			throw new IllegalStateException("Assembling Conveyor is not running");
 		}
 		if (cart.expired()) {
 			scrapConsumer.accept(cart);
+			synchronized (lock) {
+				lock.notify();
+			}
 			throw new IllegalStateException("Data expired " + cart);
 		}
 		boolean r = inQueue.add(cart);
@@ -157,6 +167,9 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	public boolean offer(IN cart) {
 		if (!running || cart.expired()) {
 			scrapConsumer.accept(cart);
+			synchronized (lock) {
+				lock.notify();
+			}
 			return false;
 		}
 		boolean r = inQueue.offer(cart);
@@ -187,39 +200,42 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		return expirationCollectionInterval;
 	}
 
-	public void setExpirationCollectionInterval(long expirationCollectionInterval,TimeUnit unit) {
-		this.expirationCollectionInterval = unit.toMillis(expirationCollectionInterval);
-		if(expiredCollector == null) {
-			expiredCollector = new TimerTask() {
+	public void removeExpired() {
+		int cnt = 0;
+		BuildingSite<K, L, IN, OUT> buildingSite = null;
+		while ( (buildingSite = delayQueue.poll()) != null) {
+			K key = buildingSite.getCart().getKey();
+			if (collector.containsKey(key)) {
+				LOG.debug("Expired " + key);
+				collector.remove(key);
+				cnt++;
+				if (onTimeoutAction) {
+					buildingSite.accept(null);
+					if (buildingSite.ready()) {
+						LOG.debug("Good after timeout " + key);
+						resultConsumer.accept(buildingSite.build());
+					} else {
+						LOG.debug("To Scrap Yard " + key);
+						scrapConsumer.accept(buildingSite);
+					}
+				}
+			}
+		}
+		LOG.debug("Timeout collected: " + cnt);
+	}
 
+	public void setExpirationCollectionInterval(long expirationCollectionInterval, TimeUnit unit) {
+		this.expirationCollectionInterval = unit.toMillis(expirationCollectionInterval);
+		if (expiredCollector == null) {
+			expiredCollector = new TimerTask() {
 				@Override
 				public void run() {
-					int cnt = 0;
-					while( ! delayQueue.isEmpty() ) {
-						BuildingSite<K, L, Cart<K,?,L>, OUT> bs = (BuildingSite<K, L, Cart<K, ?, L>, OUT>) delayQueue.poll();
-						if(bs == null) {
-							continue;
-						}
-						K key = bs.getCart().getKey();
-						if(collector.containsKey(key)) {
-							LOG.debug("expired "+key);
-							collector.remove(key);
-							cnt++;
-							if(onTimeoutAction) {
-								bs.accept(null);
-								if( bs.ready()) {
-									LOG.debug("Good after timeout "+key);
-									resultConsumer.accept(bs.build());
-								} else {
-									LOG.debug("To Scrap Yard "+key);
-									scrapConsumer.accept(bs);
-								}
-							}
-						}
+					if (!delayQueue.isEmpty()) {
+						LOG.debug("CHECK TIMEOUT SENT " + inQueue.size() + " " + inQueue.peek());
+						Cart<K, Object, L> msg = new Cart<>(null, "CHECK_TIMEOUT", null);
+						add((IN) msg);
 					}
-					LOG.debug("Expired collected: " + cnt);
 				}
-				
 			};
 		} else {
 			expiredCollector.cancel();
@@ -241,7 +257,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	}
 
 	public void setBuilderTimeout(long builderTimeout, TimeUnit unit) {
-		this.builderTimeout = unit.toMillis( builderTimeout );
+		this.builderTimeout = unit.toMillis(builderTimeout);
 	}
 
 	public boolean isOnTimeoutAction() {

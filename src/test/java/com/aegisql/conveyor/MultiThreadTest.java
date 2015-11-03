@@ -111,6 +111,11 @@ public class MultiThreadTest {
 			User u = inUser[ids[i]];
 			Cart<Integer, String, String> cart = new Cart<>(ids[i], "First_"+ids[i], "setFirst",1,TimeUnit.SECONDS);
 			if(r.nextInt(100) == 22) continue;
+			try {
+				Thread.sleep(1);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			c.offer(cart);
 		}
 	});	
@@ -122,6 +127,11 @@ public class MultiThreadTest {
 			User u = inUser[ids[i]];
 			Cart<Integer, String, String> cart = new Cart<>(ids[i], "Last_"+ids[i], "setLast",1,TimeUnit.SECONDS);
 			if(r.nextInt(100) == 22) continue;
+			try {
+				Thread.sleep(1);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			c.offer(cart);
 		}
 	});	
@@ -133,6 +143,11 @@ public class MultiThreadTest {
 			User u = inUser[ids[i]];
 			Cart<Integer, Integer, String> cart = new Cart<>(ids[i], 1900+r.nextInt(100), "setYearOfBirth",1,TimeUnit.SECONDS);
 			if(r.nextInt(100) == 22) continue;
+			try {
+				Thread.sleep(1);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			c.offer(cart);
 		}
 	});	
@@ -152,7 +167,7 @@ public class MultiThreadTest {
 	
 
 	System.out.println("Left: "+c.getCollectorSize());
-	Thread.sleep(2000);
+	Thread.sleep(3000);
 
 	System.out.println("Incomplete data");
 	while(!outQueue.isEmpty()) {
