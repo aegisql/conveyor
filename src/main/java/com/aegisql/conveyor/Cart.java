@@ -12,7 +12,6 @@ public class Cart<K,V,L> {
 	private final long created = System.currentTimeMillis();
 	private final long expiration;
 	
-	
 	public Cart(K k, V v, L label, long ttl, TimeUnit timeUnit) {
 		super();
 		this.k          = k;
@@ -56,6 +55,14 @@ public class Cart<K,V,L> {
 		return expiration > 0 && expiration <= System.currentTimeMillis();
 	}
 	
+	public <L1,V1> Cart<K,L1,V1> nextCart(L1 newLabel, V1 newValue) {
+		return new Cart<>(this.getKey(),newLabel,newValue,this.getExpirationTime());
+	}
+
+	public <V1> Cart<K,L,V1> nextCart(V1 newValue) {
+		return new Cart<>(this.getKey(), this.getLabel(), newValue, this.getExpirationTime());
+	}
+
 	@Override
 	public String toString() {
 		return "Cart [key=" + k + 
