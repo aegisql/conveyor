@@ -41,7 +41,7 @@ public class AssemblingConveyorTest {
 	
 	@Test
 	public void testBasics() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> c 
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> conveyor 
 		= new AssemblingConveyor<>(
 				    UserBuilder::new,
 				    (lot, builder) -> {
@@ -63,12 +63,13 @@ public class AssemblingConveyorTest {
 					if(lot.previouslyAccepted == 2) {
 						userBuilder.setReady(true);
 					}
-				},
-				    res->{
-				    	outQueue.add(res);
-				    }
-				    );
+				}   
+			   );
 
+		conveyor.setResultConsumer(res->{
+				    	outQueue.add(res);
+				    });
+		
 		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
 		Cart<Integer, String, String> c2 = new Cart<>(1, "Doe", "setLast");
 		Cart<Integer, String, String> c3 = new Cart<>(2, "Mike", "setFirst");
@@ -76,12 +77,12 @@ public class AssemblingConveyorTest {
 
 		Cart<Integer, Integer, String> c5 = new Cart<>(3, 1999, "setBlah");
 
-		c.offer(c1);
+		conveyor.offer(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		c.offer(c2);
-		c.offer(c3);
-		c.offer(c4);
+		conveyor.offer(c2);
+		conveyor.offer(c3);
+		conveyor.offer(c4);
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -89,10 +90,10 @@ public class AssemblingConveyorTest {
 		User u2 = outQueue.poll();
 		assertNull(u2);
 
-		c.offer(c5);
+		conveyor.offer(c5);
 		Thread.sleep(100);
 
-		c.stop();
+		conveyor.stop();
 	}
 
 	@Test

@@ -49,7 +49,7 @@ public class MultiThreadTest {
 	
 	public static Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 
-	public static 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> c 
+	public static 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> conveyor 
 	= new AssemblingConveyor<>(
 		    UserBuilder::new,
 		    (lot, builder) -> {
@@ -76,11 +76,8 @@ public class MultiThreadTest {
 			if(lot.previouslyAccepted == 2) {
 				userBuilder.setReady(true);
 			}
-		},
-		    res->{
-		    	outQueue.add(res);
-		    }
-		    );
+		}
+	   );
 	
 	
 	public static int[] getRandomInts() {
@@ -99,10 +96,13 @@ public class MultiThreadTest {
 	@Test
 	public void test() throws InterruptedException {
 
-	c.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
-	c.setTimeoutStrategy(TimeoutStrategy.TIMEOUT_FROM_CONVEYOR);
-	c.setBuilderTimeout(1, TimeUnit.SECONDS);
-	c.setOnTimeoutAction(true);
+	conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
+	conveyor.setTimeoutStrategy(TimeoutStrategy.TIMEOUT_FROM_CONVEYOR);
+	conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
+	conveyor.setOnTimeoutAction(true);
+	conveyor.setResultConsumer( res->{
+		    	outQueue.add(res);
+		    });
 		
 	Thread runFirst = new Thread(()->{
 		Random r = new Random();
@@ -116,7 +116,7 @@ public class MultiThreadTest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			c.offer(cart);
+			conveyor.offer(cart);
 		}
 	});	
 
@@ -132,7 +132,7 @@ public class MultiThreadTest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			c.offer(cart);
+			conveyor.offer(cart);
 		}
 	});	
 
@@ -148,7 +148,7 @@ public class MultiThreadTest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			c.offer(cart);
+			conveyor.offer(cart);
 		}
 	});	
 	
@@ -166,14 +166,16 @@ public class MultiThreadTest {
 	}
 	
 
-	System.out.println("Left: "+c.getCollectorSize());
+	System.out.println("Left: "+conveyor.getCollectorSize());
 	Thread.sleep(3000);
 
 	System.out.println("Incomplete data");
 	while(!outQueue.isEmpty()) {
 		System.out.println(outQueue.poll());
 	}
-	System.out.println("Left: "+c.getCollectorSize());
+	System.out.println("Input: "+conveyor.getInputQueueSize());
+	System.out.println("Collector: "+conveyor.getCollectorSize());
+	System.out.println("Delayed: "+conveyor.getDelayedQueueSize());
 
 	}
 

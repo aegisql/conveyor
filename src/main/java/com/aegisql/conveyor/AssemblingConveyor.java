@@ -42,11 +42,9 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	private boolean onTimeoutAction = false;
 
-	private final Consumer<OUT> resultConsumer;
+	private Consumer<OUT> resultConsumer   = out   -> { LOG.error("LOST RESULT "+out); };
 
-	private Consumer<Object> scrapConsumer = scrap -> {
-		LOG.debug("scrap: " + scrap);
-	};
+	private Consumer<Object> scrapConsumer = scrap -> { LOG.debug("scrap: " + scrap); };
 
 	private boolean running = true;
 
@@ -56,8 +54,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	private final Lock lock = new Lock();
 
 	public AssemblingConveyor(Supplier<Builder<OUT>> builderSupplier,
-			BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer, Consumer<OUT> resultConsumer) {
-		this.resultConsumer = resultConsumer;
+			BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer) {
 		Thread t = new Thread(() -> {
 			try {
 				while (running) {
@@ -184,6 +181,14 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		return collector.size();
 	}
 
+	public int getInputQueueSize() {
+		return inQueue.size();
+	}
+
+	public int getDelayedQueueSize() {
+		return delayQueue.size();
+	}
+
 	public void setScrapConsumer(Consumer<Object> scrapConsumer) {
 		this.scrapConsumer = scrapConsumer;
 	}
@@ -234,10 +239,12 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		expiredCollector = new TimerTask() {
 			@Override
 			public void run() {
-				if (delayQueue.poll() != null) {
-					LOG.debug("CHECK TIMEOUT SENT " + inQueue.size() + " " + inQueue.peek());
+				BuildingSite<K, L, IN, OUT> exp;
+				if ( (exp = delayQueue.poll()) != null) {
+					LOG.debug("CHECK TIMEOUT SENT" );
 					Cart<K, Object, L> msg = new Cart<>(null, "CHECK_TIMEOUT", null);
 					add((IN) msg);
+					delayQueue.add(exp); //return back
 				}
 			}
 		};
@@ -267,5 +274,10 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	public void setOnTimeoutAction(boolean onTimeoutAction) {
 		this.onTimeoutAction = onTimeoutAction;
 	}
+
+	public void setResultConsumer(Consumer<OUT> resultConsumer) {
+		this.resultConsumer = resultConsumer;
+	}
+
 
 }
