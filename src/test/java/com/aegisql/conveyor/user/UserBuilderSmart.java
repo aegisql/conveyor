@@ -40,7 +40,7 @@ public class UserBuilderSmart implements Builder<User> {
 		return new User(first, last, yearOfBirth==null? 0:yearOfBirth.intValue());
 	}
 
-	public boolean ready(Lot lot) {
+	public boolean ready() {
 		return ready;
 	}
 
