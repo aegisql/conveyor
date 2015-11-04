@@ -44,26 +44,25 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> conveyor 
 		= new AssemblingConveyor<>(
 				    UserBuilder::new,
-				    (lot, builder) -> {
+				    (label, value, builder) -> {
 					UserBuilder userBuilder = (UserBuilder) builder;
-					System.out.println("Executing "+lot.label+"("+ +lot.key+") already done "+lot.previouslyAccepted);
-					switch (lot.label) {
+					System.out.println("Executing "+label);
+					switch (label) {
 					case "setFirst":
-						userBuilder.setFirst((String) lot.value);
+						userBuilder.setFirst((String) value);
 						break;
 					case "setLast":
-						userBuilder.setLast((String) lot.value);
+						userBuilder.setLast((String) value);
 						break;
 					case "setYearOfBirth":
-						userBuilder.setYearOfBirth((Integer) lot.value);
+						userBuilder.setYearOfBirth((Integer) value);
 						break;
 					default:
-						throw new RuntimeException("Unknown lot " + lot);
+						throw new RuntimeException("Unknown label " + label);
 					}
-					if(lot.previouslyAccepted == 2) {
-						userBuilder.setReady(true);
-					}
-				}   
+				}, (lot, builder) -> {
+					return lot.previouslyAccepted == 2;
+				}  
 			   );
 
 		conveyor.setResultConsumer(res->{

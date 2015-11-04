@@ -3,51 +3,62 @@ package com.aegisql.conveyor;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delayed {
 
+	public static enum Status{
+		WAITING,TIMEED_OUT,READY,INVALID;
+	}
+	
 	private final Builder<OUT> builder;
-	private final BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer;
+	private final LabeledValueConsumer<L, Object, Builder<OUT>> valueConsumer;
+	private final BiFunction<Lot<K>, Builder<OUT>, Boolean> ready;
+	
 	private final  C initialCart;
 	
 	private int acceptCount = 0;
 	private final long builderCreated;
 	private final long builderExpiration;
 	
+	private Status status = Status.WAITING;
 	private Throwable lastError;
 
-	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer) {
+	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer, BiFunction<Lot<K>, Builder<OUT>, Boolean> ready) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
-		this.cartConsumer = cartConsumer;
+		this.valueConsumer = (LabeledValueConsumer<L, Object, Builder<OUT>>) cartConsumer;
+		this.ready = ready;
 		builderCreated = System.currentTimeMillis();
 		builderExpiration = 0;
 	}
 
-	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer, long expiration) {
+	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer, BiFunction<Lot<K>, Builder<OUT>, Boolean> ready, long expiration) {		
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
-		this.cartConsumer = cartConsumer;
+		this.valueConsumer = (LabeledValueConsumer<L, Object, Builder<OUT>>) cartConsumer;
+		this.ready = ready;
 		builderCreated = System.currentTimeMillis();
 		builderExpiration = expiration;
 	}
 
-	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer, long ttl, TimeUnit unit) {
+	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer, BiFunction<Lot<K>, Builder<OUT>, Boolean> ready, long ttl, TimeUnit unit) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
-		this.cartConsumer = cartConsumer;
+		this.valueConsumer = (LabeledValueConsumer<L, Object, Builder<OUT>>) cartConsumer;
+		this.ready = ready;
 		builderCreated = System.currentTimeMillis();
 		builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, unit);
 	}
 
 	public void accept(C cart) {
-		Lot<K, ?, L> lot = null;
+		Lot<K> lot = null;
+		L label = null;
+		Object value = null;
 		if(cart == null) {
 			 lot = new Lot<>(
 						initialCart.getKey(),
-						null, 
-						null,
 						builderCreated,
 						builderExpiration,
 						initialCart.getCreationTime(),
@@ -58,17 +69,17 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		} else {
 			 lot = new Lot<>(
 						cart.getKey(),
-						cart.getValue(), 
-						cart.getLabel(),
 						builderCreated,
 						builderExpiration,
 						cart.getCreationTime(),
 						cart.getExpirationTime(),
 						acceptCount
 						);
+			 label = cart.getLabel();
+			 value = cart.getValue();
 		}
 		
-		cartConsumer.accept(lot, builder);
+		valueConsumer.accept(label, value, builder);
 		acceptCount++;
 	}
 
@@ -80,18 +91,16 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	}
 
 	public boolean ready() {
-		Lot<K, ?, L> lot = null;
+		Lot<K> lot = null;
 		 lot = new Lot<>(
 					initialCart.getKey(),
-					null, 
-					null,
 					builderCreated,
 					builderExpiration,
 					initialCart.getCreationTime(),
 					initialCart.getExpirationTime(),
 					acceptCount
 					);
-		return builder.ready(lot);
+		return ready.apply(lot, builder);
 	}
 
 	public int getAcceptCount() {
@@ -146,10 +155,18 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	@Override
 	public String toString() {
 		return "BuildingSite [" + (builder != null ? "builder=" + builder + ", " : "")
-				+ (cartConsumer != null ? "cartConsumer=" + cartConsumer + ", " : "")
+				+ (valueConsumer != null ? "cartConsumer=" + valueConsumer + ", " : "")
 				+ (initialCart != null ? "initialCart=" + initialCart + ", " : "") + "acceptCount=" + acceptCount
 				+ ", builderCreated=" + builderCreated + ", builderExpiration=" + builderExpiration + ", "
 				+ (lastError != null ? "lastError=" + lastError : "") + "]";
+	}
+
+	public Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
 	}
 
 	

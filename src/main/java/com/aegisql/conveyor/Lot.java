@@ -1,9 +1,7 @@
 package com.aegisql.conveyor;
 
-public class Lot<K,V,L> {
+public class Lot<K> {
 	public final K key;
-	public final V value;
-	public final L label;
 
 	public final long builderCreated;
 	public final long builderExpiration;
@@ -15,8 +13,6 @@ public class Lot<K,V,L> {
 	
 	public Lot(
 			K k 
-			,V v 
-			,L label 
 			,long builderCreated 
 			,long builderExpiration
 			,long cartCreated 
@@ -24,8 +20,6 @@ public class Lot<K,V,L> {
 			,int previouslyAccepted
 			) {
 		this.key = k;
-		this.value = v;
-		this.label = label;
 		this.builderCreated = builderCreated;
 		this.builderExpiration = builderExpiration;
 		this.cartCreated = cartCreated;

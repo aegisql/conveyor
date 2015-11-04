@@ -9,7 +9,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -45,6 +45,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	private Consumer<OUT> resultConsumer   = out   -> { LOG.error("LOST RESULT "+out); };
 
 	private Consumer<Object> scrapConsumer = scrap -> { LOG.debug("scrap: " + scrap); };
+	
+	private BiFunction<Lot<K>, Builder<OUT>, Boolean> ready;
 
 	private boolean running = true;
 
@@ -54,7 +56,10 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	private final Lock lock = new Lock();
 
 	public AssemblingConveyor(Supplier<Builder<OUT>> builderSupplier,
-			BiConsumer<Lot<K, ?, L>, Builder<OUT>> cartConsumer) {
+			LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer,
+					BiFunction<Lot<K>, Builder<OUT>, Boolean> ready
+					) {
+		this.ready = ready;
 		Thread t = new Thread(() -> {
 			try {
 				while (running) {
@@ -88,14 +93,14 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 								switch (timeoutStrategy) {
 								case NON_EXPIREABLE:
-									buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer);
+									buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready);
 									break;
 								case TIMEOUT_FROM_CONVEYOR:
-									buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer,
+									buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready,
 											builderTimeout, TimeUnit.MILLISECONDS);
 									break;
 								case TIMEOUT_FROM_QUERY:
-									buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer,
+									buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready,
 											cart.getExpirationTime());
 									break;
 								}

@@ -40,8 +40,7 @@ public class UserBuilder implements Builder<User> {
 		return new User(first, last, yearOfBirth==null? 0:yearOfBirth.intValue());
 	}
 
-	@Override
-	public boolean ready(Lot lot) {
+	public boolean ready() {
 		return ready;
 	}
 
