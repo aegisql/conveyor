@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Conveyor<K, L, IN, OUT> {
 
 	public static enum TimeoutStrategy {
-		NON_EXPIREABLE, TIMEOUT_FROM_QUERY, TIMEOUT_FROM_CONVEYOR
+		NON_EXPIREABLE, TIMEOUT_FROM_QUERY, TIMEOUT_FROM_CONVEYOR, TIMEOUT_FROM_BUILDER
 	}
 
 	private final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
