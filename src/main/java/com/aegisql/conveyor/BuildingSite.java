@@ -131,6 +131,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		return initialCart;
 	}
 
+	public K getKey() {
+		return initialCart.getKey();
+	}
+	
 	public Throwable getLastError() {
 		return lastError;
 	}

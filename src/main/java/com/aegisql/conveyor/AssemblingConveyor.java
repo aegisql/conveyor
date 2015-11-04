@@ -210,7 +210,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		int cnt = 0;
 		BuildingSite<K, L, IN, OUT> buildingSite = null;
 		while ( (buildingSite = delayQueue.poll()) != null) {
-			K key = buildingSite.getCart().getKey();
+			K key = buildingSite.getKey();
 			if (collector.containsKey(key)) {
 				LOG.debug("Expired " + key);
 				collector.remove(key);
