@@ -46,7 +46,6 @@ public class AssemblingConveyorTest {
 				    UserBuilder::new,
 				    (label, value, builder) -> {
 					UserBuilder userBuilder = (UserBuilder) builder;
-					System.out.println("Executing "+label);
 					switch (label) {
 					case "setFirst":
 						userBuilder.setFirst((String) value);

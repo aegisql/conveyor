@@ -54,10 +54,8 @@ public class MultiThreadTest {
 		    UserBuilder::new,
 		    (label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
-			System.out.println("Executing "+label);
 			if(label == null) {
 				userBuilder.setReady(true);
-				System.out.println("Trying to finish...");
 				return;
 			}
 			switch (label) {

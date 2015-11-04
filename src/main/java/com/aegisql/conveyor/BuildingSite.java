@@ -80,7 +80,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		}
 		
 		valueConsumer.accept(label, value, builder);
-		acceptCount++;
+		if(label != null) {
+			acceptCount++;
+		}
 	}
 
 	public OUT build() {

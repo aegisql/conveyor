@@ -223,16 +223,16 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				if (onTimeoutAction) {
 					buildingSite.accept(null);
 					if (buildingSite.ready()) {
-						LOG.debug("Good after timeout " + key);
 						resultConsumer.accept(buildingSite.build());
 					} else {
-						LOG.debug("To Scrap Yard " + key);
 						scrapConsumer.accept(buildingSite);
 					}
 				}
 			}
 		}
-		LOG.debug("Timeout collected: " + cnt);
+		if(cnt > 0) {
+			LOG.debug("Timeout collected: " + cnt);
+		}
 	}
 
 	public void setExpirationCollectionInterval(long expirationCollectionInterval, TimeUnit unit) {
