@@ -53,33 +53,19 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	}
 
 	public void accept(C cart) {
-		Lot<K> lot = null;
 		L label = null;
 		Object value = null;
-		if(cart == null) {
-			 lot = new Lot<>(
-						initialCart.getKey(),
-						builderCreated,
-						builderExpiration,
-						initialCart.getCreationTime(),
-						initialCart.getExpirationTime(),
-						acceptCount
-						);
-			
-		} else {
-			 lot = new Lot<>(
-						cart.getKey(),
-						builderCreated,
-						builderExpiration,
-						cart.getCreationTime(),
-						cart.getExpirationTime(),
-						acceptCount
-						);
+		if(cart != null) {
 			 label = cart.getLabel();
 			 value = cart.getValue();
 		}
 		
-		valueConsumer.accept(label, value, builder);
+		if( label == null || ! (label instanceof SmartLabel) ) {
+			valueConsumer.accept(label, value, builder);
+		} else {
+			((SmartLabel)label).getSetter().accept(builder,value);
+		}
+		
 		if(label != null) {
 			acceptCount++;
 		}
