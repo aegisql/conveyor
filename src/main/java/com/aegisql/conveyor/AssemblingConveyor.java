@@ -118,7 +118,6 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	
 	public AssemblingConveyor() {
 		this.innerThread = new Thread(() -> {
-			
 			try {
 				while (running) {
 					if (! await() ) break;
@@ -148,16 +147,29 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 					removeExpired();
 				}
 				LOG.debug("Leaving {}", Thread.currentThread().getName());
-			} catch (Throwable e) { // Let it crash, but don't pretend its
-									// running
+				drainQueues();
+			} catch (Throwable e) { // Let it crash, but don't pretend its running
 				stop();
 				throw e;
 			}
 		});
 		innerThread.setDaemon(false);
-		innerThread.setName("AssemblingConveyor");
+		innerThread.setName("AssemblingConveyor Uninitialized");
 		innerThread.start();
 		LOG.debug("Started {}", innerThread.getName());
+	}
+
+	protected void drainQueues() {
+		IN cart = null;
+		while((cart = inQueue.poll()) != null) {
+			scrapConsumer.accept(cart);
+		}
+		delayQueue.clear();
+		collector.forEach((k,v)->{
+			scrapConsumer.accept(k);
+			scrapConsumer.accept(v);
+		});
+		collector.clear();
 	}
 
 	protected boolean addFirst(IN cart) {
