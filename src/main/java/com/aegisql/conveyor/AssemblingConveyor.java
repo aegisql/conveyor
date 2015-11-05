@@ -6,7 +6,7 @@ import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
@@ -30,7 +30,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	private long expirationCollectionInterval;
 
-	private final Queue<IN> inQueue = new ConcurrentLinkedQueue<>();
+	private final Queue<IN> inQueue = new ConcurrentLinkedDeque<>();
 
 	private final BlockingQueue<BuildingSite<K, L, IN, OUT>> delayQueue = new DelayQueue<>();
 
@@ -164,6 +164,28 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		LOG.debug("Started {}", innerThread.getName());
 	}
 
+	protected boolean addFirst(IN cart) {
+		if (!running) {
+			scrapConsumer.accept(cart);
+			synchronized (lock) {
+				lock.notify();
+			}
+			throw new IllegalStateException("Assembling Conveyor is not running");
+		}
+		if (cart.expired()) {
+			scrapConsumer.accept(cart);
+			synchronized (lock) {
+				lock.notify();
+			}
+			throw new IllegalStateException("Data expired " + cart);
+		}
+		boolean r = inQueue.add(cart);
+		synchronized (lock) {
+			lock.notify();
+		}
+		return r;
+	}
+
 	@Override
 	public boolean add(IN cart) {
 		if (!running) {
@@ -269,7 +291,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				if ( (exp = delayQueue.poll()) != null) {
 					LOG.debug("CHECK TIMEOUT SENT" );
 					Cart<K, Object, L> msg = new Cart<>(null, "CHECK_TIMEOUT", null);
-					add((IN) msg);
+					addFirst((IN) msg);
 					delayQueue.add(exp); //return back
 				}
 			}
