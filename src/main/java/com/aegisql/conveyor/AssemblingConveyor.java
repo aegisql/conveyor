@@ -30,7 +30,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	private long expirationCollectionInterval;
 
-	private final Queue<IN> inQueue = new ConcurrentLinkedDeque<>();
+	private final Queue<IN> inQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
 
 	private final BlockingQueue<BuildingSite<K, L, IN, OUT>> delayQueue = new DelayQueue<>();
 
@@ -124,10 +124,6 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 					if (! await() ) break;
 
 					IN cart = inQueue.poll();
-					if (cart == null) {
-						LOG.warn("Empty cart");
-						continue;
-					}
 					LOG.debug("Read " + cart);
 					K key = cart.getKey();
 					if (key != null) {

@@ -94,6 +94,11 @@ public class MultiThreadTest {
 		return idInt;
 	}
 	
+	@Test(expected=NullPointerException.class)
+	public void testException() {
+		conveyor.add(null);
+	}
+	
 	@Test
 	public void test() throws InterruptedException {
 
