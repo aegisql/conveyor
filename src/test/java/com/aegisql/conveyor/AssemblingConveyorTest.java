@@ -41,37 +41,36 @@ public class AssemblingConveyorTest {
 	
 	@Test
 	public void testBasics() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> conveyor 
-		= new AssemblingConveyor<>(
-				    UserBuilder::new,
-				    (label, value, builder) -> {
-					UserBuilder userBuilder = (UserBuilder) builder;
-					switch (label) {
-					case "setFirst":
-						userBuilder.setFirst((String) value);
-						break;
-					case "setLast":
-						userBuilder.setLast((String) value);
-						break;
-					case "setYearOfBirth":
-						userBuilder.setYearOfBirth((Integer) value);
-						break;
-					default:
-						throw new RuntimeException("Unknown label " + label);
-					}
-				}, (lot, builder) -> {
-					return lot.previouslyAccepted == 2;
-				}  
-			   );
-
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilder::new);
+		conveyor.setCartConsumer((label, value, builder) -> {
+			UserBuilder userBuilder = (UserBuilder) builder;
+			switch (label) {
+			case "setFirst":
+				userBuilder.setFirst((String) value);
+				break;
+			case "setLast":
+				userBuilder.setLast((String) value);
+				break;
+			case "setYearOfBirth":
+				userBuilder.setYearOfBirth((Integer) value);
+				break;
+			default:
+				throw new RuntimeException("Unknown label " + label);
+			}
+		});
 		conveyor.setResultConsumer(res->{
 				    	outQueue.add(res);
 				    });
+		conveyor.setReadinessEvaluator((lot, builder) -> {
+			return lot.previouslyAccepted == 2;
+		});
 		
 		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
-		Cart<Integer, String, String> c2 = new Cart<>(1, "Doe", "setLast");
+		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
 		Cart<Integer, String, String> c3 = new Cart<>(2, "Mike", "setFirst");
-		Cart<Integer, Integer, String> c4 = new Cart<>(1, 1999, "setYearOfBirth");
+		Cart<Integer, Integer, String> c4 = c1.nextCart(1999, "setYearOfBirth");
 
 		Cart<Integer, Integer, String> c5 = new Cart<>(3, 1999, "setBlah");
 

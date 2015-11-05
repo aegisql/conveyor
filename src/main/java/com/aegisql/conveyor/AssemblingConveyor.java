@@ -46,7 +46,22 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	private Consumer<Object> scrapConsumer = scrap -> { LOG.debug("scrap: " + scrap); };
 	
-	private BiFunction<Lot<K>, Builder<OUT>, Boolean> ready;
+	private LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer = (l,v,b) -> { 
+		LOG.error("Cart Consumer is not set");
+		scrapConsumer.accept(l);
+		scrapConsumer.accept(v);
+		throw new IllegalStateException("Cart Consumer is not set");
+	};
+	
+	private BiFunction<Lot<K>, Builder<OUT>, Boolean> ready = (l,b) -> {
+		LOG.error("Readiness Evaluator is not set");
+		scrapConsumer.accept(l);
+		throw new IllegalStateException("Readiness Evaluator is not set");
+	};
+	
+	private Supplier<Builder<OUT>> builderSupplier = () -> {
+		throw new IllegalStateException("Builder Supplier is not set");
+	};
 
 	private boolean running = true;
 
@@ -55,28 +70,58 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	private final Lock lock = new Lock();
 
-	public AssemblingConveyor(Supplier<Builder<OUT>> builderSupplier,
-			LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer,
-					BiFunction<Lot<K>, Builder<OUT>, Boolean> ready
-					) {
-		this.ready = ready;
-		Thread t = new Thread(() -> {
+	private boolean await() {
+		try {
+			synchronized (lock) {
+				if (inQueue.isEmpty()) {
+					lock.wait();
+				}
+			}
+		} catch (InterruptedException e) {
+			LOG.error("Interrupted ", e);
+			stop();
+		}
+		return running;
+	}
+	
+	private BuildingSite<K, L, IN, OUT> getBuildingSite(IN cart) {
+		K key = cart.getKey();
+		if(key == null) {
+			return null;
+		}
+		BuildingSite<K, L, IN, OUT> buildingSite = null;
+		buildingSite = collector.get(key);
+		if (buildingSite == null) {
+			switch (timeoutStrategy) {
+			case NON_EXPIREABLE:
+				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready);
+				break;
+			case TIMEOUT_FROM_CONVEYOR:
+				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready,
+						builderTimeout, TimeUnit.MILLISECONDS);
+				break;
+			case TIMEOUT_FROM_QUERY:
+				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready,
+						cart.getExpirationTime());
+				break;
+			}
+
+			collector.put(key, buildingSite);
+			if (buildingSite.getBuilderExpiration() > 0) {
+				delayQueue.add(buildingSite);
+			}
+		}
+		return buildingSite;
+	}
+	
+	private final Thread innerThread;
+	
+	public AssemblingConveyor() {
+		this.innerThread = new Thread(() -> {
+			
 			try {
 				while (running) {
-					try {
-						synchronized (lock) {
-							if (inQueue.isEmpty()) {
-								lock.wait();
-							}
-						}
-						if (!running) {
-							break;
-						}
-					} catch (InterruptedException e) {
-						LOG.error("Interrupted ", e);
-						stop();
-						break;
-					}
+					if (! await() ) break;
 
 					IN cart = inQueue.poll();
 					if (cart == null) {
@@ -86,38 +131,14 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 					LOG.debug("Read " + cart);
 					K key = cart.getKey();
 					if (key != null) {
-						BuildingSite<K, L, IN, OUT> buildingSite = null;
+						BuildingSite<K, L, IN, OUT> buildingSite = null; 
 						try {
-							buildingSite = collector.get(key);
-							if (buildingSite == null) {
-
-								switch (timeoutStrategy) {
-								case NON_EXPIREABLE:
-									buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready);
-									break;
-								case TIMEOUT_FROM_CONVEYOR:
-									buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready,
-											builderTimeout, TimeUnit.MILLISECONDS);
-									break;
-								case TIMEOUT_FROM_QUERY:
-									buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready,
-											cart.getExpirationTime());
-									break;
-								}
-
-								collector.put(key, buildingSite);
-								if (buildingSite.getBuilderExpiration() > 0) {
-									delayQueue.add(buildingSite);
-								}
-							}
-
+							buildingSite = getBuildingSite(cart);
 							buildingSite.accept((IN) cart);
-
 							if (buildingSite.ready()) {
 								collector.remove(key);
 								resultConsumer.accept(buildingSite.build());
 							}
-
 						} catch (Exception e) {
 							LOG.error("Cart processor failed", e);
 							scrapConsumer.accept(cart);
@@ -137,10 +158,10 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				throw e;
 			}
 		});
-		t.setDaemon(false);
-		t.setName("AssemblingConveyor for " + builderSupplier.get().getClass().getSimpleName());
-		t.start();
-		LOG.debug("Started {}", t.getName());
+		innerThread.setDaemon(false);
+		innerThread.setName("AssemblingConveyor");
+		innerThread.start();
+		LOG.debug("Started {}", innerThread.getName());
 	}
 
 	@Override
@@ -282,6 +303,19 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	public void setResultConsumer(Consumer<OUT> resultConsumer) {
 		this.resultConsumer = resultConsumer;
+	}
+
+	public void setCartConsumer(LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer) {
+		this.cartConsumer = cartConsumer;
+	}
+
+	public void setReadinessEvaluator(BiFunction<Lot<K>, Builder<OUT>, Boolean> ready) {
+		this.ready = ready;
+	}
+
+	public void setBuilderSupplier(Supplier<Builder<OUT>> builderSupplier) {
+		innerThread.setName( this.getClass().getSimpleName()+" building "+builderSupplier.get().getClass().getSimpleName() );
+		this.builderSupplier = builderSupplier;
 	}
 
 

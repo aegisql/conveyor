@@ -28,9 +28,39 @@ public class MultiThreadTest {
 	public static User[] inUser  = new User[SIZE];
 	public static User[] outUser = new User[SIZE];
 
+	public static 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+	conveyor = new AssemblingConveyor<>();
+
+	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		
+
+		conveyor.setBuilderSupplier( UserBuilder::new );
+	    conveyor.setCartConsumer( (label, value, builder) -> {
+		UserBuilder userBuilder = (UserBuilder) builder;
+		if(label == null) {
+			userBuilder.setReady(true);
+			return;
+		}
+		switch (label) {
+		case "setFirst":
+			userBuilder.setFirst((String) value);
+			break;
+		case "setLast":
+			userBuilder.setLast((String) value);
+			break;
+		case "setYearOfBirth":
+			userBuilder.setYearOfBirth((Integer) value);
+			break;
+		default:
+			throw new RuntimeException("Unknown label " + label);
+		}
+	    } );
+	    conveyor.setReadinessEvaluator( (lot, builder) -> {
+		UserBuilder userBuilder = (UserBuilder) builder;
+		return lot.previouslyAccepted == 2 || userBuilder.ready();
+	    });
+   
 		
 		
 	}
@@ -49,33 +79,6 @@ public class MultiThreadTest {
 	
 	public static Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 
-	public static 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> conveyor 
-	= new AssemblingConveyor<>(
-		    UserBuilder::new,
-		    (label, value, builder) -> {
-			UserBuilder userBuilder = (UserBuilder) builder;
-			if(label == null) {
-				userBuilder.setReady(true);
-				return;
-			}
-			switch (label) {
-			case "setFirst":
-				userBuilder.setFirst((String) value);
-				break;
-			case "setLast":
-				userBuilder.setLast((String) value);
-				break;
-			case "setYearOfBirth":
-				userBuilder.setYearOfBirth((Integer) value);
-				break;
-			default:
-				throw new RuntimeException("Unknown label " + label);
-			}
-		}, (lot, builder) -> {
-			UserBuilder userBuilder = (UserBuilder) builder;
-			return lot.previouslyAccepted == 2 || userBuilder.ready();
-		}
-	   );
 	
 	
 	public static int[] getRandomInts() {
