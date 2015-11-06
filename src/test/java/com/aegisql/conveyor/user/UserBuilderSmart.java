@@ -1,7 +1,6 @@
 package com.aegisql.conveyor.user;
 
 import com.aegisql.conveyor.Builder;
-import com.aegisql.conveyor.Lot;
 
 public class UserBuilderSmart implements Builder<User> {
 
