@@ -33,6 +33,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	private final Map<K, BuildingSite<K, L, IN, OUT>> collector = new HashMap<>();
 
 	private long builderTimeout = 1000;
+	
+	private long startTimeReject = System.currentTimeMillis();
 
 	private boolean onTimeoutAction = false;
 
@@ -60,6 +62,9 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	private boolean running = true;
 
 	private static final class Lock {
+		public synchronized void tell() {
+			this.notify();
+		}
 	}
 
 	private final Lock lock = new Lock();
@@ -192,10 +197,15 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			}
 			throw new IllegalStateException("Data expired " + cart);
 		}
-		boolean r = inQueue.add(cart);
-		synchronized (lock) {
-			lock.notify();
+		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
+			scrapConsumer.accept(cart);
+			synchronized (lock) {
+				lock.notify();
+			}
+			throw new IllegalStateException("Data too old");
 		}
+		boolean r = inQueue.add(cart);
+		lock.tell();
 		return r;
 	}
 
@@ -208,10 +218,15 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			}
 			return false;
 		}
-		boolean r = inQueue.offer(cart);
-		synchronized (lock) {
-			lock.notify();
+		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
+			scrapConsumer.accept(cart);
+			synchronized (lock) {
+				lock.notify();
+			}
+			return false;
 		}
+		boolean r = inQueue.offer(cart);
+		lock.tell();
 		return r;
 	}
 
@@ -297,6 +312,11 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		this.builderTimeout = unit.toMillis(builderTimeout);
 	}
 
+	public void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit) {
+		this.startTimeReject = unit.toMillis(timeout);
+	}
+
+	
 	public boolean isOnTimeoutAction() {
 		return onTimeoutAction;
 	}
