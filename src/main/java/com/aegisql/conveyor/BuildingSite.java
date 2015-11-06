@@ -24,32 +24,70 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	
 	private Status status = Status.WAITING;
 	private Throwable lastError;
-
-	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer, BiFunction<Lot<K>, Builder<OUT>, Boolean> ready) {
-		this.initialCart = cart;
-		this.builder = builderSupplier.get() ;
-		this.valueConsumer = (LabeledValueConsumer<L, Object, Builder<OUT>>) cartConsumer;
-		this.ready = ready;
-		builderCreated = System.currentTimeMillis();
-		builderExpiration = 0;
-	}
-
-	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer, BiFunction<Lot<K>, Builder<OUT>, Boolean> ready, long expiration) {		
-		this.initialCart = cart;
-		this.builder = builderSupplier.get() ;
-		this.valueConsumer = (LabeledValueConsumer<L, Object, Builder<OUT>>) cartConsumer;
-		this.ready = ready;
-		builderCreated = System.currentTimeMillis();
-		builderExpiration = expiration;
-	}
+	
+	Delayed delayKeeper;
 
 	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer, BiFunction<Lot<K>, Builder<OUT>, Boolean> ready, long ttl, TimeUnit unit) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Builder<OUT>>) cartConsumer;
 		this.ready = ready;
-		builderCreated = System.currentTimeMillis();
-		builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, unit);
+		
+		if(builder instanceof Delayed) {
+			builderCreated = System.currentTimeMillis();
+			builderExpiration = 0;
+			delayKeeper = new Delayed() {
+				@Override
+				public int compareTo(Delayed o) {
+					return ((Delayed)builder).compareTo( (Delayed) ((BuildingSite)o).builder );
+				}
+				@Override
+				public long getDelay(TimeUnit unit) {
+					return ((Delayed) builder).getDelay(unit);
+				}
+			};
+		} else if ( cart.getExpirationTime() > 0 ) {
+			builderCreated = cart.getCreationTime();
+			builderExpiration = cart.getExpirationTime();
+			delayKeeper = new Delayed() {
+				@Override
+				public int compareTo(Delayed o) {
+					return cart.compareTo( ((BuildingSite)o).initialCart );
+				}
+				@Override
+				public long getDelay(TimeUnit unit) {
+					return cart.getDelay(unit);
+				}
+				
+			};
+		} else {
+			builderCreated = System.currentTimeMillis();
+			builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, unit);
+			delayKeeper = new Delayed() {
+				@Override
+				public int compareTo(Delayed o) {
+					if( builderCreated < ((BuildingSite<?,?,?,?>)o).builderCreated) {
+						return -1;
+					}
+					if( builderCreated > ((BuildingSite<?,?,?,?>)o).builderCreated) {
+						return +1;
+					}
+					return 0;
+				}
+
+				@Override
+				public long getDelay(TimeUnit unit) {
+			        long delta;
+					if( builderExpiration == 0 ) {
+						delta = Long.MAX_VALUE;
+					} else {
+						delta = builderExpiration - System.currentTimeMillis();
+					}
+			        return unit.convert(delta, TimeUnit.MILLISECONDS);
+				}
+			};
+		}
+		
 	}
 
 	public void accept(C cart) {
@@ -97,24 +135,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 
 	@Override
 	public int compareTo(Delayed o) {
-		if( this.builderExpiration == ((BuildingSite<?,?,?,?>)o).builderExpiration) return 0;
-		if( this.builderExpiration == 0 ) return 1;
-		if( ((BuildingSite<?,?,?,?>)o).builderExpiration == 0 ) return -1;
-		if( this.builderExpiration < ((BuildingSite<?,?,?,?>)o).builderExpiration) return -1;
-		if( this.builderExpiration > ((BuildingSite<?,?,?,?>)o).builderExpiration) return +1;
-		return 0;
+		return delayKeeper.compareTo(o);
 	}
 
 	@Override
 	public long getDelay(TimeUnit unit) {
-        long delta;
-		if( this.builderExpiration == 0 ) {
-			delta = Long.MAX_VALUE;
-		} else {
-			delta = this.builderExpiration - System.currentTimeMillis();
-		}
-        return unit.convert(delta, TimeUnit.MILLISECONDS);
-	}
+		return this.delayKeeper.getDelay(unit);	}
 
 	public boolean expired() {
 		return builderExpiration > 0 && builderExpiration <= System.currentTimeMillis();

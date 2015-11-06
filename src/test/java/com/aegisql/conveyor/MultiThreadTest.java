@@ -1,7 +1,5 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,14 +8,12 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.AssemblingConveyor.TimeoutStrategy;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
@@ -103,7 +99,6 @@ public class MultiThreadTest {
 	public void test() throws InterruptedException {
 
 	conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
-	conveyor.setTimeoutStrategy(TimeoutStrategy.TIMEOUT_FROM_CONVEYOR);
 	conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
 	conveyor.setOnTimeoutAction(true);
 	conveyor.setResultConsumer( res->{

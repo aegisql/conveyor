@@ -1,9 +1,10 @@
 package com.aegisql.conveyor;
 
 import java.util.Date;
+import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-public class Cart<K,V,L> {
+public class Cart<K,V,L> implements Delayed {
 	
 	private final K k;
 	private final V v;
@@ -71,6 +72,28 @@ public class Cart<K,V,L> {
 				", created=" + new Date(created) + 
 				(expiration > 0 ? (", expires=" + new Date(expiration) ) : ", unexpireable") +
 				 "]";
+	}
+	
+	@Override
+	public int compareTo(Delayed o) {
+		if( this.created < ((Cart<?,?,?>)o).created) {
+			return -1;
+		}
+		if( this.created > ((Cart<?,?,?>)o).created) {
+			return +1;
+		}
+		return 0;
+	}
+	
+	@Override
+	public long getDelay(TimeUnit unit) {
+        long delta;
+		if( this.expiration == 0 ) {
+			delta = Long.MAX_VALUE;
+		} else {
+			delta = this.expiration - System.currentTimeMillis();
+		}
+        return unit.convert(delta, TimeUnit.MILLISECONDS);
 	}
 	
 }

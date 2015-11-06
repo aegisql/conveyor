@@ -18,10 +18,6 @@ import org.slf4j.LoggerFactory;
 
 public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Conveyor<K, L, IN, OUT> {
 
-	public static enum TimeoutStrategy {
-		NON_EXPIREABLE, TIMEOUT_FROM_QUERY, TIMEOUT_FROM_CONVEYOR, TIMEOUT_FROM_BUILDER
-	}
-
 	private final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
 
 	private final Timer timer = new Timer("BuilderTimeoutTicker");
@@ -35,8 +31,6 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	private final BlockingQueue<BuildingSite<K, L, IN, OUT>> delayQueue = new DelayQueue<>();
 
 	private final Map<K, BuildingSite<K, L, IN, OUT>> collector = new HashMap<>();
-
-	private TimeoutStrategy timeoutStrategy = TimeoutStrategy.TIMEOUT_FROM_CONVEYOR;
 
 	private long builderTimeout = 1000;
 
@@ -92,20 +86,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		BuildingSite<K, L, IN, OUT> buildingSite = null;
 		buildingSite = collector.get(key);
 		if (buildingSite == null) {
-			switch (timeoutStrategy) {
-			case NON_EXPIREABLE:
-				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready);
-				break;
-			case TIMEOUT_FROM_CONVEYOR:
-				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready,
-						builderTimeout, TimeUnit.MILLISECONDS);
-				break;
-			case TIMEOUT_FROM_QUERY:
-				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready,
-						cart.getExpirationTime());
-				break;
-			}
-
+			buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready,
+					builderTimeout, TimeUnit.MILLISECONDS);
 			collector.put(key, buildingSite);
 			if (buildingSite.getBuilderExpiration() > 0) {
 				delayQueue.add(buildingSite);
@@ -305,14 +287,6 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			}
 		};
 		timer.schedule(expiredCollector, expirationCollectionInterval, expirationCollectionInterval);
-	}
-
-	public TimeoutStrategy getTimeoutStrategy() {
-		return timeoutStrategy;
-	}
-
-	public void setTimeoutStrategy(TimeoutStrategy timeoutStrategy) {
-		this.timeoutStrategy = timeoutStrategy;
 	}
 
 	public long getBuilderTimeout() {
