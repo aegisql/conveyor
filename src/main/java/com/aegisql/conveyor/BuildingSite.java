@@ -1,7 +1,10 @@
 package com.aegisql.conveyor;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -25,6 +28,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	private Status status = Status.WAITING;
 	private Throwable lastError;
 	
+	private final Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>();
+	
 	Delayed delayKeeper;
 
 	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer, BiFunction<Lot<K>, Builder<OUT>, Boolean> ready, long ttl, TimeUnit unit) {
@@ -32,7 +37,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		this.builder = builderSupplier.get() ;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Builder<OUT>>) cartConsumer;
 		this.ready = ready;
-		
+		this.eventHistory.put(cart.getLabel(), new AtomicInteger(1));
 		if(builder instanceof Delayed) {
 			builderCreated = System.currentTimeMillis();
 			builderExpiration = 0;
@@ -106,6 +111,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		
 		if(label != null) {
 			acceptCount++;
+			if(eventHistory.containsKey(label)) {
+				eventHistory.get(label).incrementAndGet();
+			} else {
+				eventHistory.put(label, new AtomicInteger(1));
+			}
 		}
 	}
 
@@ -166,13 +176,15 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		this.lastError = lastError;
 	}
 
+
 	@Override
 	public String toString() {
 		return "BuildingSite [" + (builder != null ? "builder=" + builder + ", " : "")
-				+ (valueConsumer != null ? "cartConsumer=" + valueConsumer + ", " : "")
 				+ (initialCart != null ? "initialCart=" + initialCart + ", " : "") + "acceptCount=" + acceptCount
 				+ ", builderCreated=" + builderCreated + ", builderExpiration=" + builderExpiration + ", "
-				+ (lastError != null ? "lastError=" + lastError : "") + "]";
+				+ (status != null ? "status=" + status + ", " : "")
+				+ (lastError != null ? "lastError=" + lastError + ", " : "")
+				+ (eventHistory != null ? "eventHistory=" + eventHistory : "") + "]";
 	}
 
 	public Status getStatus() {
