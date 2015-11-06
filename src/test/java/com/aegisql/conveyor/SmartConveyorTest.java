@@ -52,7 +52,7 @@ public class SmartConveyorTest {
 		conveyor.setReadinessEvaluator((lot, builder) -> {
 			return lot.previouslyAccepted == 2;
 		});
-		
+		conveyor.setName("User Assembler");
 		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents> c3 = new Cart<>(2, "Mike", UserBuilderEvents.SET_FIRST);

@@ -144,9 +144,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			}
 		});
 		innerThread.setDaemon(false);
-		innerThread.setName("AssemblingConveyor Uninitialized");
+		innerThread.setName("AssemblingConveyor "+innerThread.getId());
 		innerThread.start();
-		LOG.debug("Started {}", innerThread.getName());
 	}
 
 	protected void drainQueues() {
@@ -167,11 +166,6 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			scrapConsumer.accept(cart);
 			lock.tell();
 			throw new IllegalStateException("Assembling Conveyor is not running");
-		}
-		if (cart.expired()) {
-			scrapConsumer.accept(cart);
-			lock.tell();
-			throw new IllegalStateException("Data expired " + cart);
 		}
 		boolean r = inQueue.add(cart);
 		lock.tell();
@@ -323,9 +317,11 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	}
 
 	public void setBuilderSupplier(Supplier<Builder<OUT>> builderSupplier) {
-		innerThread.setName( this.getClass().getSimpleName()+" building "+builderSupplier.get().getClass().getSimpleName() );
 		this.builderSupplier = builderSupplier;
 	}
 
+	public void setName(String name) {
+		innerThread.setName(name);
+	}
 
 }
