@@ -91,8 +91,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	}
 
 	public void accept(C cart) {
-		L label      = cart.getLabel();
-		Object value = cart.getValue();
+		L label = null;
+		Object value = null;
+		if(cart != null) {
+			 label = cart.getLabel();
+			 value = cart.getValue();
+		}
 		
 		if( label == null || ! (label instanceof SmartLabel) ) {
 			valueConsumer.accept(label, value, builder);
