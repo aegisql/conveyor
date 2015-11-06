@@ -110,6 +110,9 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 					if (! await() ) break;
 
 					IN cart = inQueue.poll();
+					if(cart == null) {
+						continue;
+					}
 					LOG.debug("Read " + cart);
 					K key = cart.getKey();
 					if (key != null) {

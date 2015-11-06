@@ -78,6 +78,48 @@ public class SmartConveyorTest {
 	}
 
 	@Test
+	public void testRejectedStartOffer() throws InterruptedException {
+		AssemblingConveyor<Integer, UserBuilderEvents, Cart<Integer, ?, UserBuilderEvents>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderSmart::new);
+
+		conveyor.setResultConsumer(res->{
+				    	outQueue.add(res);
+				    });
+		conveyor.setReadinessEvaluator((lot, builder) -> {
+			return lot.previouslyAccepted == 2;
+		});
+		conveyor.rejectUnexpireableCartsOlderThan(1, TimeUnit.SECONDS);
+		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);
+		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		assertTrue(conveyor.offer(c1));
+		Thread.sleep(1000);
+		assertFalse(conveyor.offer(c2));
+		conveyor.stop();
+	}
+
+	@Test(expected=IllegalStateException.class)
+	public void testRejectedStartAdd() throws InterruptedException {
+		AssemblingConveyor<Integer, UserBuilderEvents, Cart<Integer, ?, UserBuilderEvents>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderSmart::new);
+
+		conveyor.setResultConsumer(res->{
+				    	outQueue.add(res);
+				    });
+		conveyor.setReadinessEvaluator((lot, builder) -> {
+			return lot.previouslyAccepted == 2;
+		});
+		conveyor.rejectUnexpireableCartsOlderThan(1, TimeUnit.SECONDS);
+		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);
+		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		assertTrue(conveyor.add(c1));
+		Thread.sleep(1000);
+		conveyor.add(c2);
+		conveyor.stop();
+	}
+
+	@Test
 	public void testSmart() {
 		UserBuilderSmart ub = new UserBuilderSmart();
 		
