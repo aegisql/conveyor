@@ -98,7 +98,7 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
-	@Test(expected=IllegalStateException.class)
+	@Test(expected=IllegalStateException.class) //???? Failed
 	public void testRejectedStartAdd() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents, Cart<Integer, ?, UserBuilderEvents>, User> 
 		conveyor = new AssemblingConveyor<>();
