@@ -162,22 +162,16 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	protected boolean addFirst(IN cart) {
 		if (!running) {
 			scrapConsumer.accept(cart);
-			synchronized (lock) {
-				lock.notify();
-			}
+			lock.tell();
 			throw new IllegalStateException("Assembling Conveyor is not running");
 		}
 		if (cart.expired()) {
 			scrapConsumer.accept(cart);
-			synchronized (lock) {
-				lock.notify();
-			}
+			lock.tell();
 			throw new IllegalStateException("Data expired " + cart);
 		}
 		boolean r = inQueue.add(cart);
-		synchronized (lock) {
-			lock.notify();
-		}
+		lock.tell();
 		return r;
 	}
 
@@ -185,23 +179,17 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	public boolean add(IN cart) {
 		if (!running) {
 			scrapConsumer.accept(cart);
-			synchronized (lock) {
-				lock.notify();
-			}
+			lock.tell();
 			throw new IllegalStateException("Assembling Conveyor is not running");
 		}
 		if (cart.expired()) {
 			scrapConsumer.accept(cart);
-			synchronized (lock) {
-				lock.notify();
-			}
+			lock.tell();
 			throw new IllegalStateException("Data expired " + cart);
 		}
 		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
 			scrapConsumer.accept(cart);
-			synchronized (lock) {
-				lock.notify();
-			}
+			lock.tell();
 			throw new IllegalStateException("Data too old");
 		}
 		boolean r = inQueue.add(cart);
@@ -213,16 +201,12 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	public boolean offer(IN cart) {
 		if (!running || cart.expired()) {
 			scrapConsumer.accept(cart);
-			synchronized (lock) {
-				lock.notify();
-			}
+			lock.tell();
 			return false;
 		}
 		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
 			scrapConsumer.accept(cart);
-			synchronized (lock) {
-				lock.notify();
-			}
+			lock.tell();
 			return false;
 		}
 		boolean r = inQueue.offer(cart);
@@ -250,9 +234,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		running = false;
 		timer.cancel();
 		timer.purge();
-		synchronized (lock) {
-			lock.notify();
-		}
+		lock.tell();
 	}
 
 	public long getExpirationCollectionInterval() {
