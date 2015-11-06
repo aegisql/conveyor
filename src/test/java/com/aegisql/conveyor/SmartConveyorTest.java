@@ -45,13 +45,7 @@ public class SmartConveyorTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, Cart<Integer, ?, UserBuilderEvents>, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
-		conveyor.setCartConsumer((label, value, builder) -> {
-			UserBuilderSmart userBuilder = (UserBuilderSmart) builder;
-			switch (label) {
-			default:
-				throw new RuntimeException("Unknown label " + label);
-			}
-		});
+
 		conveyor.setResultConsumer(res->{
 				    	outQueue.add(res);
 				    });
