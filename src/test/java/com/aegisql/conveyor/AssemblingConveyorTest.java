@@ -6,6 +6,7 @@ import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -122,6 +123,35 @@ public class AssemblingConveyorTest {
 		assertNull(q.poll());
 		Thread.sleep(1000);
 		assertNotNull(q.poll());
+		
+	}
+
+	public static class MyDelayed implements Delayed {
+		public long delay = 1;
+		public int compareTo(Delayed o) {
+			return 0;
+		}
+		public long getDelay(TimeUnit unit) {
+			return delay;
+		}
+		
+	}
+	
+	@Test
+	public void testManagedDelayed() {
+		MyDelayed d1 = new MyDelayed();
+		MyDelayed d2 = new MyDelayed();
+		BlockingQueue<MyDelayed> q = new DelayQueue<>();
+		q.add(d1);
+		q.add(d2);
+		
+		assertNull(q.poll());
+		d1.delay = -1;
+		assertNotNull(q.poll());
+		assertNull(q.poll());
+		d2.delay = -1;
+		assertNotNull(q.poll());
+		assertNull(q.poll());
 		
 	}
 	
