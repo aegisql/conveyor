@@ -41,17 +41,15 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	private Consumer<OUT> resultConsumer   = out   -> { LOG.error("LOST RESULT "+out); };
 
-	private BiConsumer<String,Object> scrapConsumer = (explanation, scrap) -> { LOG.debug(explanation + " " + scrap); };
+	private BiConsumer<String,Object> scrapConsumer = (explanation, scrap) -> { LOG.error(explanation + " " + scrap); };
 	
 	private LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer = (l,v,b) -> { 
-		LOG.error("Cart Consumer is not set");
 		scrapConsumer.accept("Cart Consumer is not set",l);
 		scrapConsumer.accept("Cart Consumer is not set",v);
 		throw new IllegalStateException("Cart Consumer is not set");
 	};
 	
 	private BiPredicate<Lot<K>, Builder<OUT>> ready = (l,b) -> {
-		LOG.error("Readiness Evaluator is not set");
 		scrapConsumer.accept("Readiness Evaluator is not set",l);
 		throw new IllegalStateException("Readiness Evaluator is not set");
 	};
@@ -126,11 +124,10 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 								resultConsumer.accept(buildingSite.build());
 							}
 						} catch (Exception e) {
-							LOG.error("Cart processor failed", e);
 							scrapConsumer.accept("Cart processor failed "+e.getMessage(),cart);
 							if (buildingSite != null) {
 								buildingSite.setLastError(e);
-								scrapConsumer.accept("Cart processor failed "+e.getMessage(),buildingSite);
+								scrapConsumer.accept("Site processor failed "+e.getMessage(),buildingSite);
 							}
 							collector.remove(key);
 						}
@@ -152,19 +149,18 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	protected void drainQueues() {
 		IN cart = null;
 		while((cart = inQueue.poll()) != null) {
-			scrapConsumer.accept("Draining inQueue ",cart);
+			scrapConsumer.accept("Draining inQueue",cart);
 		}
 		delayQueue.clear();
 		collector.forEach((k,v)->{
-			scrapConsumer.accept("Draining ",k);
-			scrapConsumer.accept("Draining ",v);
+			scrapConsumer.accept("Draining site",v);
 		});
 		collector.clear();
 	}
 
 	protected boolean addFirst(IN cart) {
 		if (!running) {
-			scrapConsumer.accept("Not Running ",cart);
+			scrapConsumer.accept("Not Running",cart);
 			lock.tell();
 			throw new IllegalStateException("Assembling Conveyor is not running");
 		}
@@ -176,17 +172,17 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	@Override
 	public boolean add(IN cart) {
 		if (!running) {
-			scrapConsumer.accept("Not Running ",cart);
+			scrapConsumer.accept("Not Running",cart);
 			lock.tell();
 			throw new IllegalStateException("Assembling Conveyor is not running");
 		}
 		if (cart.expired()) {
-			scrapConsumer.accept("Expired cart ",cart);
+			scrapConsumer.accept("Expired cart",cart);
 			lock.tell();
 			throw new IllegalStateException("Data expired " + cart);
 		}
 		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept("Cart too old ",cart);
+			scrapConsumer.accept("Cart too old",cart);
 			lock.tell();
 			throw new IllegalStateException("Data too old");
 		}
@@ -197,13 +193,18 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	@Override
 	public boolean offer(IN cart) {
-		if (!running || cart.expired()) {
-			scrapConsumer.accept("Not Running ",cart);
+		if ( ! running) {
+			scrapConsumer.accept("Not Running",cart);
+			lock.tell();
+			return false;
+		}
+		if (cart.expired()) {
+			scrapConsumer.accept("Cart expired",cart);
 			lock.tell();
 			return false;
 		}
 		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept("Cart too old ", cart);
+			scrapConsumer.accept("Cart is too old", cart);
 			lock.tell();
 			return false;
 		}
@@ -253,7 +254,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 					if (buildingSite.ready()) {
 						resultConsumer.accept(buildingSite.build());
 					} else {
-						scrapConsumer.accept("Expired ", buildingSite);
+						scrapConsumer.accept("Site expired", buildingSite);
 					}
 				}
 			}
