@@ -8,7 +8,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -17,7 +16,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderEvents2;
 import com.aegisql.conveyor.user.UserBuilderSmart;
