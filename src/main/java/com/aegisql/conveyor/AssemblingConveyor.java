@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -50,7 +50,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		throw new IllegalStateException("Cart Consumer is not set");
 	};
 	
-	private BiFunction<Lot<K>, Builder<OUT>, Boolean> ready = (l,b) -> {
+	private BiPredicate<Lot<K>, Builder<OUT>> ready = (l,b) -> {
 		LOG.error("Readiness Evaluator is not set");
 		scrapConsumer.accept("Readiness Evaluator is not set",l);
 		throw new IllegalStateException("Readiness Evaluator is not set");
@@ -313,7 +313,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		this.cartConsumer = cartConsumer;
 	}
 
-	public void setReadinessEvaluator(BiFunction<Lot<K>, Builder<OUT>, Boolean> ready) {
+	public void setReadinessEvaluator(BiPredicate<Lot<K>, Builder<OUT>> ready) {
 		this.ready = ready;
 	}
 

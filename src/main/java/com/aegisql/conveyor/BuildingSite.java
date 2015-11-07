@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
 public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delayed {
@@ -17,7 +18,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	
 	private final Builder<OUT> builder;
 	private final LabeledValueConsumer<L, Object, Builder<OUT>> valueConsumer;
-	private final BiFunction<Lot<K>, Builder<OUT>, Boolean> ready;
+	private final BiPredicate<Lot<K>, Builder<OUT>> ready;
 	
 	private final  C initialCart;
 	
@@ -32,7 +33,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	
 	Delayed delayKeeper;
 
-	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer, BiFunction<Lot<K>, Builder<OUT>, Boolean> ready, long ttl, TimeUnit unit) {
+	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer, BiPredicate<Lot<K>, Builder<OUT>> ready, long ttl, TimeUnit unit) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Builder<OUT>>) cartConsumer;
@@ -136,7 +137,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 					initialCart.getExpirationTime(),
 					acceptCount
 					);
-		return ready.apply(lot, builder);
+		return ready.test(lot, builder);
 	}
 
 	public int getAcceptCount() {
