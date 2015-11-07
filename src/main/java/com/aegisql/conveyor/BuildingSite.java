@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delayed {
@@ -37,7 +38,13 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Builder<OUT>>) cartConsumer;
-		this.ready = ready;
+		if(builder instanceof Predicate) {
+			this.ready = (lot,builder) -> {
+				return ((Predicate<Lot<K>>)builder).test(lot);
+			};
+		} else {
+			this.ready = ready;
+		}
 		this.eventHistory.put(cart.getLabel(), new AtomicInteger(1));
 		if(builder instanceof Delayed) {
 			builderCreated = System.currentTimeMillis();
