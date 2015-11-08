@@ -75,23 +75,26 @@ public class AssemblingConveyorTest {
 
 		Cart<Integer, Integer, String> c5 = new Cart<>(3, 1999, "setBlah");
 
+		Cart<Integer, String, String> c6 = new Cart<>(6, "Ann", "setFirst");
+
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
 		conveyor.offer(c2);
 		conveyor.offer(c3);
 		conveyor.offer(c4);
+		conveyor.offer(c6);
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
 		System.out.println(u1);
 		User u2 = outQueue.poll();
 		assertNull(u2);
+		conveyor.addCommand( new Cart<Integer,String,Command>(6,"",Command.REMOVE_KEY));
 
 		conveyor.offer(c5);
 		Thread.sleep(100);
-
-		conveyor.stop();
+		//conveyor.stop();
 	}
 	
 	@Test

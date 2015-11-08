@@ -29,6 +29,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	private final Queue<IN> inQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
 
+	private final Queue<Cart<K,?,Command>> mQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
+
 	private final BlockingQueue<BuildingSite<K, L, IN, OUT>> delayQueue = new DelayQueue<>();
 
 	private final Map<K, BuildingSite<K, L, IN, OUT>> collector = new HashMap<>();
@@ -108,6 +110,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				while (running) {
 					if (! await() ) break;
 
+					processCommand();
+					
 					IN cart = inQueue.poll();
 					if(cart == null) {
 						continue;
@@ -146,6 +150,15 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		innerThread.start();
 	}
 
+	private void processCommand() {
+		Cart<K,?,Command> cmd = mQueue.poll();
+		if( cmd != null ) {
+			LOG.debug("processing command "+cmd);
+			Command l = cmd.getLabel();
+			l.getSetter().accept(this, cmd.getKey());
+		}
+	}
+
 	protected void drainQueues() {
 		IN cart = null;
 		while((cart = inQueue.poll()) != null) {
@@ -169,6 +182,27 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		return r;
 	}
 
+	public boolean addCommand(Cart<K,?,Command> cart) {
+		if (!running) {
+			scrapConsumer.accept("Not Running",cart);
+			lock.tell();
+			throw new IllegalStateException("Assembling Conveyor is not running");
+		}
+		if (cart.expired()) {
+			scrapConsumer.accept("Expired cart",cart);
+			lock.tell();
+			throw new IllegalStateException("Data expired " + cart);
+		}
+		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
+			scrapConsumer.accept("Cart too old",cart);
+			lock.tell();
+			throw new IllegalStateException("Data too old");
+		}
+		boolean r = mQueue.add(cart);
+		lock.tell();
+		return r;
+	}
+	
 	@Override
 	public boolean add(IN cart) {
 		if (!running) {
@@ -324,6 +358,17 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	public void setName(String name) {
 		innerThread.setName(name);
+	}
+
+	public static void removeNow( AssemblingConveyor conveyor, Object key ) {
+		Object res = conveyor.collector.remove(key);
+		if(res != null) {
+			conveyor.scrapConsumer.accept("Remove Key Command executed ", res);
+		}
+	}
+
+	public static void stopConveyorNow( AssemblingConveyor conveyor, Object key ) {
+		conveyor.stop();
 	}
 
 }
