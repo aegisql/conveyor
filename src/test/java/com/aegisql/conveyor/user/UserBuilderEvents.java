@@ -6,7 +6,7 @@ import com.aegisql.conveyor.SmartLabel;
 
 public enum UserBuilderEvents implements SmartLabel<UserBuilderSmart> {
 	
-	
+	CREATE((a,b)->{}), //Just create and do not doo anything
 	SET_FIRST(UserBuilderSmart::setFirst),
 	SET_LAST(UserBuilderSmart::setLast),
 	SET_YEAR(UserBuilderSmart::setYearOfBirth)

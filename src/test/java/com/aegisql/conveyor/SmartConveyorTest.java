@@ -56,7 +56,7 @@ public class SmartConveyorTest {
 		conveyor.setName("User Assembler");
 		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, String, UserBuilderEvents> c3 = new Cart<>(2, "Mike", UserBuilderEvents.SET_FIRST);
+		Cart<Integer, String, UserBuilderEvents> c3 = new Cart<>(2, "Mike", UserBuilderEvents.CREATE);
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
 
@@ -128,7 +128,7 @@ public class SmartConveyorTest {
 		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		assertTrue(conveyor.offer(c1));
-		Thread.sleep(1000);
+		Thread.sleep(1100);
 		assertFalse(conveyor.offer(c2));
 		conveyor.stop();
 	}
