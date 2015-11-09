@@ -202,7 +202,5 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	public void setStatus(Status status) {
 		this.status = status;
 	}
-
-	
 	
 }

@@ -8,6 +8,7 @@ import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -16,6 +17,8 @@ import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.aegisql.conveyor.BuildingSite.Status;
 
 public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Conveyor<K, L, IN, OUT> {
 
@@ -367,8 +370,25 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		}
 	}
 
-	public static void stopConveyorNow( AssemblingConveyor conveyor, Object key ) {
-		conveyor.stop();
+	static void timeoutNow(AssemblingConveyor conveyor, Object key ) {
+		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
+		if( bs == null ) {
+			return;
+		}
+		final Delayed oldDelayKeeper = bs.delayKeeper;
+		bs.setStatus(Status.TIMEED_OUT);
+		bs.delayKeeper = new Delayed() {
+			
+			@Override
+			public int compareTo(Delayed o) {
+				return oldDelayKeeper.compareTo(o);
+			}
+			
+			@Override
+			public long getDelay(TimeUnit unit) {
+				return -1;
+			}
+		};
 	}
 
 }
