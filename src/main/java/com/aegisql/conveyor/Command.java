@@ -4,8 +4,8 @@ import java.util.function.BiConsumer;
 
 public enum Command  implements SmartLabel<AssemblingConveyor> {
 	
-	CANCEL_KEY(AssemblingConveyor::cancelNow),
-	TIMEOUT_KEY(AssemblingConveyor::timeoutNow);
+	CANCEL_BUILD(AssemblingConveyor::cancelNow),
+	TIMEOUT_BUILD(AssemblingConveyor::timeoutNow);
 
 	Command(BiConsumer<AssemblingConveyor, Object> setter) {
 		this.setter = setter;

@@ -90,7 +90,7 @@ public class AssemblingConveyorTest {
 		System.out.println(u1);
 		User u2 = outQueue.poll();
 		assertNull(u2);
-		conveyor.addCommand( new Cart<Integer,String,Command>(6,"",Command.CANCEL_KEY));
+		conveyor.addCommand( new Cart<Integer,String,Command>(6,"",Command.CANCEL_BUILD));
 
 		conveyor.offer(c5);
 		Thread.sleep(100);

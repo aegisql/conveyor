@@ -113,7 +113,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				while (running) {
 					if (! await() ) break;
 
-					processCommand();
+					processManagementCommands();
 					
 					IN cart = inQueue.poll();
 					if(cart == null) {
@@ -153,9 +153,9 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		innerThread.start();
 	}
 
-	private void processCommand() {
-		Cart<K,?,Command> cmd = mQueue.poll();
-		if( cmd != null ) {
+	private void processManagementCommands() {
+		Cart<K,?,Command> cmd = null;
+		while((cmd = mQueue.poll()) != null) {
 			LOG.debug("processing command "+cmd);
 			Command l = cmd.getLabel();
 			l.getSetter().accept(this, cmd.getKey());
@@ -363,10 +363,15 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		innerThread.setName(name);
 	}
 
-	public static void cancelNow( AssemblingConveyor conveyor, Object key ) {
+	/*
+	 * STATIC METHODS TO SUPPORT MANAGEMENT COMMANDS
+	 * 
+	 * */
+	
+	static void cancelNow( AssemblingConveyor conveyor, Object key ) {
 		Object res = conveyor.collector.remove(key);
 		if(res != null) {
-			conveyor.scrapConsumer.accept("Remove Key Command executed ", res);
+			conveyor.scrapConsumer.accept("Cancel Key Command executed ", res);
 		}
 	}
 
