@@ -65,6 +65,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	private boolean running = true;
 
+	private final Thread innerThread;
+
 	private static final class Lock {
 		public synchronized void tell() {
 			this.notify();
@@ -105,9 +107,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		}
 		return buildingSite;
 	}
-	
-	private final Thread innerThread;
-	
+		
 	public AssemblingConveyor() {
 		this.innerThread = new Thread(() -> {
 			try {
