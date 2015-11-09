@@ -69,17 +69,18 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		public synchronized void tell() {
 			this.notify();
 		}
+		public synchronized void waitData(Queue q) throws InterruptedException {
+			if( q.isEmpty() ) {
+				this.wait();
+			}
+		}
 	}
 
 	private final Lock lock = new Lock();
 
-	private boolean await() {
+	private boolean waitData() {
 		try {
-			synchronized (lock) {
-				if (inQueue.isEmpty()) {
-					lock.wait();
-				}
-			}
+			lock.waitData( inQueue );
 		} catch (InterruptedException e) {
 			LOG.error("Interrupted ", e);
 			stop();
@@ -111,7 +112,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		this.innerThread = new Thread(() -> {
 			try {
 				while (running) {
-					if (! await() ) break;
+					if (! waitData() ) break;
 
 					processManagementCommands();
 					

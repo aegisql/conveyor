@@ -1,5 +1,7 @@
 package com.aegisql.conveyor;
 
+import static org.junit.Assert.*;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -174,9 +176,10 @@ public class MultiThreadTest {
 	while(!outQueue.isEmpty()) {
 		System.out.println(outQueue.poll());
 	}
-	System.out.println("Input: "+conveyor.getInputQueueSize());
-	System.out.println("Collector: "+conveyor.getCollectorSize());
-	System.out.println("Delayed: "+conveyor.getDelayedQueueSize());
+
+	assertEquals(0,conveyor.getInputQueueSize());
+	assertEquals(0,conveyor.getCollectorSize());
+	assertEquals(0,conveyor.getDelayedQueueSize());
 
 	}
 
