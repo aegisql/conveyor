@@ -363,7 +363,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		innerThread.setName(name);
 	}
 
-	public static void removeNow( AssemblingConveyor conveyor, Object key ) {
+	public static void cancelNow( AssemblingConveyor conveyor, Object key ) {
 		Object res = conveyor.collector.remove(key);
 		if(res != null) {
 			conveyor.scrapConsumer.accept("Remove Key Command executed ", res);
