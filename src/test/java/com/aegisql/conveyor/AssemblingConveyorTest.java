@@ -65,7 +65,7 @@ public class AssemblingConveyorTest {
 				    	outQueue.add(res);
 				    });
 		conveyor.setReadinessEvaluator((lot, builder) -> {
-			return lot.previouslyAccepted == 2;
+			return lot.previouslyAccepted == 3;
 		});
 		
 		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");

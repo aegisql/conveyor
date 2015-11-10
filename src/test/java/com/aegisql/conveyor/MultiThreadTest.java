@@ -56,7 +56,7 @@ public class MultiThreadTest {
 	    } );
 	    conveyor.setReadinessEvaluator( (lot, builder) -> {
 		UserBuilder userBuilder = (UserBuilder) builder;
-		return lot.previouslyAccepted == 2 || userBuilder.ready();
+		return lot.previouslyAccepted == 3 || userBuilder.ready();
 	    });
    
 		

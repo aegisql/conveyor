@@ -112,34 +112,13 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		this.innerThread = new Thread(() -> {
 			try {
 				while (running) {
-					if (! waitData() ) break;
-
+					if (! waitData() ) 
+						break;
 					processManagementCommands();
-					
 					IN cart = inQueue.poll();
-					if(cart == null) {
+					if(cart == null) 
 						continue;
-					}
-					LOG.debug("Read " + cart);
-					K key = cart.getKey();
-					if (key != null) {
-						BuildingSite<K, L, IN, OUT> buildingSite = null; 
-						try {
-							buildingSite = getBuildingSite(cart);
-							buildingSite.accept((IN) cart);
-							if (buildingSite.ready()) {
-								collector.remove(key);
-								resultConsumer.accept(buildingSite.build());
-							}
-						} catch (Exception e) {
-							scrapConsumer.accept("Cart processor failed "+e.getMessage(),cart);
-							if (buildingSite != null) {
-								buildingSite.setLastError(e);
-								scrapConsumer.accept("Site processor failed "+e.getMessage(),buildingSite);
-							}
-							collector.remove(key);
-						}
-					}
+					processSite(cart);
 					removeExpired();
 				}
 				LOG.debug("Leaving {}", Thread.currentThread().getName());
@@ -278,6 +257,31 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		return expirationCollectionInterval;
 	}
 
+	public void processSite(IN cart) {
+		K key = cart.getKey();
+		if( key == null ) {
+			return;
+		}
+		BuildingSite<K, L, IN, OUT> buildingSite = null; 
+		try {
+			LOG.debug("Read " + cart);
+			buildingSite = getBuildingSite(cart);
+			buildingSite.accept((IN) cart);
+			if (buildingSite.ready()) {
+				collector.remove(key);
+				resultConsumer.accept(buildingSite.build());
+			}
+		} catch (Exception e) {
+			scrapConsumer.accept("Cart processor failed "+e.getMessage(),cart);
+			if (buildingSite != null) {
+				buildingSite.setStatus(Status.INVALID);
+				buildingSite.setLastError(e);
+				scrapConsumer.accept("Site processor failed "+e.getMessage(),buildingSite);
+			}
+			collector.remove(key);
+		}
+	}
+	
 	public void removeExpired() {
 		int cnt = 0;
 		BuildingSite<K, L, IN, OUT> buildingSite = null;
@@ -289,11 +293,17 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				collector.remove(key);
 				cnt++;
 				if (onTimeoutAction) {
-					buildingSite.accept(null);
-					if (buildingSite.ready()) {
-						resultConsumer.accept(buildingSite.build());
-					} else {
-						scrapConsumer.accept("Site expired", buildingSite);
+					try {
+						buildingSite.accept(null);
+						if (buildingSite.ready()) {
+							resultConsumer.accept(buildingSite.build());
+						} else {
+							scrapConsumer.accept("Site expired", buildingSite);
+						}
+					} catch (Exception e) {
+						buildingSite.setStatus(Status.INVALID);
+						buildingSite.setLastError(e);
+						scrapConsumer.accept("Timeout processor failed "+e.getMessage(),buildingSite);
 					}
 				}
 			}

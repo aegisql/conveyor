@@ -51,7 +51,7 @@ public class SmartConveyorTest {
 				    	outQueue.add(res);
 				    });
 		conveyor.setReadinessEvaluator((lot, builder) -> {
-			return lot.previouslyAccepted == 2;
+			return lot.previouslyAccepted == 3;
 		});
 		conveyor.setName("User Assembler");
 		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);
@@ -149,7 +149,7 @@ public class SmartConveyorTest {
 		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		assertTrue(conveyor.add(c1));
-		Thread.sleep(1000);
+		Thread.sleep(1100);
 		conveyor.add(c2);
 		conveyor.stop();
 	}
