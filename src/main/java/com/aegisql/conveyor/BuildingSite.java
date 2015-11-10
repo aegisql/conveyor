@@ -13,7 +13,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 
 	public static enum Status{
 		WAITING_DATA,
-		TIMEED_OUT,
+		TIMED_OUT,
 		READY,
 		CANCELED,
 		INVALID;
@@ -21,7 +21,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	
 	private final Builder<OUT> builder;
 	private final LabeledValueConsumer<L, Object, Builder<OUT>> valueConsumer;
-	private final BiPredicate<Lot<K>, Builder<OUT>> ready;
+	private final BiPredicate<Lot<K>, Builder<OUT>> readiness;
 	
 	private final  C initialCart;
 	
@@ -41,11 +41,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		this.builder = builderSupplier.get() ;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Builder<OUT>>) cartConsumer;
 		if(builder instanceof Predicate) {
-			this.ready = (lot,builder) -> {
+			this.readiness = (lot,builder) -> {
 				return ((Predicate<Lot<K>>)builder).test(lot);
 			};
 		} else {
-			this.ready = ready;
+			this.readiness = ready;
 		}
 		this.eventHistory.put(cart.getLabel(), new AtomicInteger(1));
 		if(builder instanceof Delayed) {
@@ -113,7 +113,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 			 value = cart.getValue();
 		}
 		
-		if( label == null || ! (label instanceof SmartLabel) ) {
+		if( status.equals(Status.TIMED_OUT) || ! (label instanceof SmartLabel) ) {
 			valueConsumer.accept(label, value, builder);
 		} else {
 			((SmartLabel)label).getSetter().accept(builder,value);
@@ -146,7 +146,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 					initialCart.getExpirationTime(),
 					acceptCount
 					);
-		return ready.test(lot, builder);
+		return readiness.test(lot, builder);
 	}
 
 	public int getAcceptCount() {

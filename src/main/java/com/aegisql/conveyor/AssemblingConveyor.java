@@ -282,7 +282,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		int cnt = 0;
 		BuildingSite<K, L, IN, OUT> buildingSite = null;
 		while ( (buildingSite = delayQueue.poll()) != null) {
-			buildingSite.setStatus(Status.TIMEED_OUT);
+			buildingSite.setStatus(Status.TIMED_OUT);
 			K key = buildingSite.getKey();
 			if (collector.containsKey(key)) {
 				LOG.debug("Expired " + key);
@@ -315,7 +315,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				BuildingSite<K, L, IN, OUT> exp;
 				if ( (exp = delayQueue.poll()) != null) {
 					LOG.debug("CHECK TIMEOUT SENT" );
-					Cart<K, Object, L> msg = new Cart<>(null, "CHECK_TIMEOUT", null);
+					Cart<K, Object, L> msg = exp.getCart().nextCart("CHECK_TIMEOUT", null);
 					addFirst((IN) msg);
 					delayQueue.add(exp); //return back
 				}
@@ -383,7 +383,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			return;
 		}
 		final Delayed oldDelayKeeper = bs.delayKeeper;
-		bs.setStatus(Status.TIMEED_OUT);
+		bs.setStatus(Status.TIMED_OUT);
 		bs.delayKeeper = new Delayed() {
 			
 			@Override
