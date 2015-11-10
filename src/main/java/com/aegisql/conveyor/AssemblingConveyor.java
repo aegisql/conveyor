@@ -282,6 +282,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		int cnt = 0;
 		BuildingSite<K, L, IN, OUT> buildingSite = null;
 		while ( (buildingSite = delayQueue.poll()) != null) {
+			buildingSite.setStatus(Status.TIMEED_OUT);
 			K key = buildingSite.getKey();
 			if (collector.containsKey(key)) {
 				LOG.debug("Expired " + key);
