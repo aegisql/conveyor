@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -14,7 +12,11 @@ import java.util.function.Supplier;
 public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delayed {
 
 	public static enum Status{
-		WAITING,TIMEED_OUT,READY,INVALID;
+		WAITING_DATA,
+		TIMEED_OUT,
+		READY,
+		CANCELED,
+		INVALID;
 	}
 	
 	private final Builder<OUT> builder;
@@ -27,7 +29,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	private final long builderCreated;
 	private final long builderExpiration;
 	
-	private Status status = Status.WAITING;
+	private Status status = Status.WAITING_DATA;
 	private Throwable lastError;
 	
 	private final Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>();
