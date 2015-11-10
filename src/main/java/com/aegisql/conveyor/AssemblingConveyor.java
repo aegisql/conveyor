@@ -370,9 +370,9 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 * */
 	
 	static void cancelNow( AssemblingConveyor conveyor, Object key ) {
-		Object res = conveyor.collector.remove(key);
-		if(res != null) {
-			conveyor.scrapConsumer.accept("Cancel Key Command executed ", res);
+		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
+		if(bs != null) {
+			bs.setStatus(Status.CANCELED);
 		}
 	}
 
