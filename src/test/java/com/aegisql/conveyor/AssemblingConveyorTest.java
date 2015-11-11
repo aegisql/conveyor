@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -15,6 +16,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.BuildingSite.Status;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.user.UserBuilderEvents;
@@ -38,6 +40,22 @@ public class AssemblingConveyorTest {
 
 	@After
 	public void tearDown() throws Exception {
+	}
+	
+	@Test
+	public void testUnconfiguredBuilderSupplier() throws InterruptedException {
+		AtomicBoolean visited = new AtomicBoolean(false);
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setScrapConsumer((ex,o)->{
+			assertTrue(ex.startsWith("Cart processor failed Builder Supplier is not set"));
+			assertTrue(o instanceof Cart);
+			visited.set(true);
+		});
+		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		assertTrue(conveyor.offer(c1));
+		Thread.sleep(100);
+		assertTrue(visited.get());
 	}
 	
 	@Test
