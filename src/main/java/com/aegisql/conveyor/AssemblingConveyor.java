@@ -325,7 +325,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				BuildingSite<K, L, IN, OUT> exp;
 				if ( (exp = delayQueue.poll()) != null) {
 					LOG.debug("CHECK TIMEOUT SENT" );
-					Cart<K, Object, L> msg = exp.getCart().nextCart("CHECK_TIMEOUT", null);
+					Cart<K, Object, L> msg = exp.getCart().nextCart( Status.TIMED_OUT, null );
 					addFirst((IN) msg);
 					delayQueue.add(exp); //return back
 				}
@@ -387,7 +387,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		}
 	}
 
-	static void timeoutNow(AssemblingConveyor conveyor, Object key ) {
+	static void timeoutNow( AssemblingConveyor conveyor, Object key ) {
 		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
 		if( bs == null ) {
 			return;

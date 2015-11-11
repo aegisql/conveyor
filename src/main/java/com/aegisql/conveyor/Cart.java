@@ -56,12 +56,12 @@ public class Cart<K,V,L> implements Delayed {
 		return expiration > 0 && expiration <= System.currentTimeMillis();
 	}
 	
-	public <L1,V1> Cart<K,L1,V1> nextCart(L1 newLabel, V1 newValue) {
-		return new Cart<>(this.getKey(),newLabel,newValue,this.getExpirationTime());
+	public <L1,V1> Cart<K,V1,L1> nextCart(V1 newValue,L1 newLabel) {
+		return new Cart<>(this.getKey(),newValue,newLabel,this.getExpirationTime());
 	}
 
-	public <V1> Cart<K,L,V1> nextCart(V1 newValue) {
-		return new Cart<>(this.getKey(), this.getLabel(), newValue, this.getExpirationTime());
+	public <V1> Cart<K,V1,L> nextCart(V1 newValue) {
+		return new Cart<>(this.getKey(), newValue, this.getLabel(), this.getExpirationTime());
 	}
 
 	@Override
