@@ -49,8 +49,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	private BiConsumer<String,Object> scrapConsumer = (explanation, scrap) -> { LOG.error(explanation + " " + scrap); };
 	
 	private LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer = (l,v,b) -> { 
-		scrapConsumer.accept("Cart Consumer is not set",l);
-		scrapConsumer.accept("Cart Consumer is not set",v);
+		scrapConsumer.accept("Cart Consumer is not set. label:",l);
+		scrapConsumer.accept("Cart Consumer is not set value:",v);
 		throw new IllegalStateException("Cart Consumer is not set");
 	};
 	
@@ -294,7 +294,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				cnt++;
 				if (onTimeoutAction) {
 					try {
-						buildingSite.accept(null);
+						buildingSite.accept((IN) buildingSite.getCart().nextCart( Status.TIMED_OUT, null ));
 						if (buildingSite.ready()) {
 							resultConsumer.accept(buildingSite.build());
 						} else {

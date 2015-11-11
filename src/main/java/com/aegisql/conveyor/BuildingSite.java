@@ -36,7 +36,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	
 	Delayed delayKeeper;
 
-	public BuildingSite( C cart, Supplier<Builder<OUT>> builderSupplier, LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer, BiPredicate<Lot<K>, Builder<OUT>> ready, long ttl, TimeUnit unit) {
+	public BuildingSite( 
+			C cart, 
+			Supplier<Builder<OUT>> builderSupplier, 
+			LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer, 
+			BiPredicate<Lot<K>, Builder<OUT>> ready, 
+			long ttl, TimeUnit unit) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Builder<OUT>>) cartConsumer;
@@ -113,7 +118,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 			 value = cart.getValue();
 		}
 		
-		if( status.equals(Status.TIMED_OUT) || ! (label instanceof SmartLabel) ) {
+		if( Status.TIMED_OUT.equals(value) || (label == null) || ! (label instanceof SmartLabel) ) {
 			valueConsumer.accept(label, value, builder);
 		} else {
 			((SmartLabel)label).getSetter().accept(builder,value);
@@ -146,7 +151,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 					initialCart.getExpirationTime(),
 					acceptCount
 					);
-		return readiness.test(lot, builder);
+		boolean res = readiness.test(lot, builder);
+		if( res ) {
+			status = Status.READY;
+		}
+		return res;
 	}
 
 	public int getAcceptCount() {
@@ -163,7 +172,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		return this.delayKeeper.getDelay(unit);	}
 
 	public boolean expired() {
-		return builderExpiration > 0 && builderExpiration <= System.currentTimeMillis();
+		return getDelay(TimeUnit.MILLISECONDS) < 0;
 	}
 
 	public long getBuilderExpiration() {
