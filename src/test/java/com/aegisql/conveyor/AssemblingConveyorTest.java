@@ -63,8 +63,8 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilder::new);
-		//conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
-		//conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
+		conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
+		conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
 		conveyor.setCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
 			switch (label) {
@@ -96,7 +96,7 @@ public class AssemblingConveyorTest {
 		Cart<Integer, Integer, String> c5 = new Cart<>(3, 1999, "setBlah");
 
 		Cart<Integer, String, String> c6 = new Cart<>(6, "Ann", "setFirst");
-		Cart<Integer, String, String> c7 = new Cart<>(7, "Nik", "setLast");
+		Cart<Integer, String, String> c7 = new Cart<>(7, "Nik", "setLast", 1, TimeUnit.HOURS);
 
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
