@@ -412,7 +412,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			}
 			@Override
 			public long getDelay(TimeUnit unit) {
-				return unit.convert(-10000000, TimeUnit.MILLISECONDS);
+				return unit.convert(-1, TimeUnit.MILLISECONDS);
 			}
 		};
 		conveyor.delayQueue.add(bs);

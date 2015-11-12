@@ -63,14 +63,10 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilder::new);
-		conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
-		conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
+		//conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
+		//conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
 		conveyor.setCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
-			if(label == null) {
-				System.out.println("---- no label");
-				return;
-			}
 			switch (label) {
 			case "setFirst":
 				userBuilder.setFirst((String) value);
