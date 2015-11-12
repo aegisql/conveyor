@@ -27,7 +27,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	
 	private int acceptCount = 0;
 	private final long builderCreated;
-	private final long builderExpiration;
+	long builderExpiration;
 	
 	private Status status = Status.WAITING_DATA;
 	private Throwable lastError;
@@ -82,7 +82,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 			};
 		} else {
 			builderCreated = System.currentTimeMillis();
-			builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, unit);
+			if(ttl == 0) {
+				builderExpiration = 0;
+			} else {
+				builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, unit);
+			}
 			delayKeeper = new Delayed() {
 				@Override
 				public int compareTo(Delayed o) {
@@ -169,7 +173,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 
 	@Override
 	public long getDelay(TimeUnit unit) {
-		return this.delayKeeper.getDelay(unit);	}
+		return delayKeeper.getDelay(unit);	}
 
 	public boolean expired() {
 		return getDelay(TimeUnit.MILLISECONDS) < 0;

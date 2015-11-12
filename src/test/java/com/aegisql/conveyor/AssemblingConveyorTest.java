@@ -63,8 +63,14 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilder::new);
+		conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
+		conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
 		conveyor.setCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
+			if(label == null) {
+				System.out.println("---- no label");
+				return;
+			}
 			switch (label) {
 			case "setFirst":
 				userBuilder.setFirst((String) value);
@@ -94,6 +100,7 @@ public class AssemblingConveyorTest {
 		Cart<Integer, Integer, String> c5 = new Cart<>(3, 1999, "setBlah");
 
 		Cart<Integer, String, String> c6 = new Cart<>(6, "Ann", "setFirst");
+		Cart<Integer, String, String> c7 = new Cart<>(7, "Nik", "setLast");
 
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
@@ -108,11 +115,18 @@ public class AssemblingConveyorTest {
 		System.out.println(u1);
 		User u2 = outQueue.poll();
 		assertNull(u2);
+		conveyor.offer(c7);
+		Thread.sleep(100);
 		conveyor.addCommand( new Cart<Integer,String,Command>(6,"",Command.CANCEL_BUILD));
+		conveyor.addCommand( new Cart<Integer,String,Command>(7,"",Command.TIMEOUT_BUILD));
 
 		conveyor.offer(c5);
-		Thread.sleep(100);
-		//conveyor.stop();
+		Thread.sleep(2000);
+		System.out.println("COL:"+conveyor.getCollectorSize());
+		System.out.println("DEL:"+conveyor.getDelayedQueueSize());
+		System.out.println("IN :"+conveyor.getInputQueueSize());
+		conveyor.stop();
+		Thread.sleep(1000);
 	}
 	
 	@Test
