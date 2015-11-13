@@ -63,7 +63,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		throw new IllegalStateException("Builder Supplier is not set");
 	};
 
-	private boolean running = true;
+	private volatile boolean running = true;
 
 	private final Thread innerThread;
 
@@ -213,12 +213,12 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	@Override
 	public boolean offer(IN cart) {
-		if ( ! running) {
+		if ( ! running ) {
 			scrapConsumer.accept("Not Running",cart);
 			lock.tell();
 			return false;
 		}
-		if (cart.expired()) {
+		if ( cart.expired() ) {
 			scrapConsumer.accept("Cart expired",cart);
 			lock.tell();
 			return false;
@@ -407,25 +407,23 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	static void timeoutNow( AssemblingConveyor conveyor, Object cart ) {
 		Object key = ((Cart)cart).getKey();
 		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
-		if( bs == null ) {
-			LOG.debug("TIMED OUT KEY NOT FOUND");
-			return;
+		if( bs != null ) {
+			conveyor.delayQueue.remove(bs);
+			final Delayed oldDelayKeeper = bs.delayKeeper;
+			bs.setStatus(Status.TIMED_OUT);
+			bs.delayKeeper = new Delayed() {
+				@Override
+				public int compareTo(Delayed o) {
+					return -1;
+				}
+				@Override
+				public long getDelay(TimeUnit unit) {
+					return -1;
+				}
+			};
+			conveyor.delayQueue.add(bs);
+			conveyor.addFirst( bs.getCart().nextCart(Status.TIMED_OUT,null));
 		}
-		conveyor.delayQueue.remove(bs);
-		final Delayed oldDelayKeeper = bs.delayKeeper;
-		bs.setStatus(Status.TIMED_OUT);
-		bs.delayKeeper = new Delayed() {
-			@Override
-			public int compareTo(Delayed o) {
-				return -1;
-			}
-			@Override
-			public long getDelay(TimeUnit unit) {
-				return -1;
-			}
-		};
-		conveyor.delayQueue.add(bs);
-		conveyor.addFirst( bs.getCart().nextCart(Status.TIMED_OUT,null));
 	}
 
 }

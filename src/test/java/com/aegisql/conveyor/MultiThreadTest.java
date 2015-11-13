@@ -102,7 +102,9 @@ public class MultiThreadTest {
 
 	conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
 	conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
+	assertFalse(conveyor.isOnTimeoutAction());
 	conveyor.setOnTimeoutAction(true);
+	assertTrue(conveyor.isOnTimeoutAction());
 	conveyor.setResultConsumer( res->{
 		    	outQueue.add(res);
 		    });

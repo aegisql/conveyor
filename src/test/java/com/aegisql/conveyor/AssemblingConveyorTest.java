@@ -57,14 +57,58 @@ public class AssemblingConveyorTest {
 		Thread.sleep(100);
 		assertTrue(visited.get());
 	}
+
+	@Test
+	public void testOfferStopped() throws InterruptedException {
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setScrapConsumer((ex,o)->{
+			System.out.println(ex+" "+o);
+			assertTrue(ex.startsWith("Not Running"));
+			assertTrue(o instanceof Cart);
+		});
+		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		conveyor.stop();
+		assertFalse(conveyor.offer(c1));
+	}
+
+	@Test(expected=IllegalStateException.class)
+	public void testCommandStopped() throws InterruptedException {
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setScrapConsumer((ex,o)->{
+			System.out.println(ex+" "+o);
+			assertTrue(ex.startsWith("Not Running"));
+			assertTrue(o instanceof Cart);
+		});
+		Cart<Integer, String, Command> c1 = new Cart<>(1, null, Command.TIMEOUT_BUILD);
+		conveyor.stop();
+		assertFalse(conveyor.addCommand(c1));
+	}
+
 	
+	@Test(expected=IllegalStateException.class)
+	public void testAddStopped() throws InterruptedException {
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setScrapConsumer((ex,o)->{
+			System.out.println(ex+" "+o);
+			assertTrue(ex.startsWith("Not Running"));
+			assertTrue(o instanceof Cart);
+		});
+		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		conveyor.stop();
+		conveyor.add(c1);
+	}
+
 	@Test
 	public void testBasics() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilder::new);
 		conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
-		conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
+		assertEquals(1000, conveyor.getBuilderTimeout());
+		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
 		conveyor.setCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
 			switch (label) {
@@ -108,6 +152,7 @@ public class AssemblingConveyorTest {
 		conveyor.offer(c4);
 		conveyor.offer(c6);
 		Thread.sleep(100);
+		conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
 		System.out.println(u1);
