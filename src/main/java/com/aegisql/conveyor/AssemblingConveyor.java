@@ -391,9 +391,6 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 
 	static void createNow( AssemblingConveyor conveyor, Object cart ) {
 		BuildingSite bs = (BuildingSite) conveyor.getBuildingSite((Cart) cart);
-		if(bs != null) {
-			
-		}
 	}
 
 	static void cancelNow( AssemblingConveyor conveyor, Object cart ) {
