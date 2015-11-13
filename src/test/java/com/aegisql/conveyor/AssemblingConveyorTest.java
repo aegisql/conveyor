@@ -86,7 +86,35 @@ public class AssemblingConveyorTest {
 		assertFalse(conveyor.addCommand(c1));
 	}
 
-	
+	@Test(expected=IllegalStateException.class)
+	public void testCommandExpired() throws InterruptedException {
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setScrapConsumer((ex,o)->{
+			System.out.println(ex+" "+o);
+			assertTrue(ex.startsWith("Expired command"));
+			assertTrue(o instanceof Cart);
+		});
+		Cart<Integer, String, Command> c1 = new Cart<>(1, null, Command.TIMEOUT_BUILD,1,TimeUnit.MILLISECONDS);
+		Thread.sleep(10);
+		conveyor.addCommand(c1);
+	}
+
+	@Test(expected=IllegalStateException.class)
+	public void testCommandTooOld() throws InterruptedException {
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.rejectUnexpireableCartsOlderThan(10, TimeUnit.MILLISECONDS);
+		conveyor.setScrapConsumer((ex,o)->{
+			System.out.println(ex+" "+o);
+			assertTrue(ex.startsWith("Command too old"));
+			assertTrue(o instanceof Cart);
+		});
+		Cart<Integer, String, Command> c1 = new Cart<>(1, null, Command.TIMEOUT_BUILD,100,TimeUnit.MILLISECONDS);
+		Thread.sleep(20);
+		conveyor.addCommand(c1);
+	}
+
 	@Test(expected=IllegalStateException.class)
 	public void testAddStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
@@ -137,6 +165,7 @@ public class AssemblingConveyorTest {
 		conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
 		assertEquals(1000, conveyor.getBuilderTimeout());
 		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
+		assertEquals(500,conveyor.getExpirationCollectionInterval());
 		conveyor.setCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
 			switch (label) {

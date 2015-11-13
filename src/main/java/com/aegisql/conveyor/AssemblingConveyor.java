@@ -175,12 +175,12 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			throw new IllegalStateException("Assembling Conveyor is not running");
 		}
 		if (cart.expired()) {
-			scrapConsumer.accept("Expired cart",cart);
+			scrapConsumer.accept("Expired command",cart);
 			lock.tell();
 			throw new IllegalStateException("Data expired " + cart);
 		}
 		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept("Cart too old",cart);
+			scrapConsumer.accept("Command too old",cart);
 			lock.tell();
 			throw new IllegalStateException("Data too old");
 		}
