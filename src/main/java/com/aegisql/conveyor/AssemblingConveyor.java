@@ -426,4 +426,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		}
 	}
 
+	public boolean isRunning() {
+		return running;
+	}
+
 }

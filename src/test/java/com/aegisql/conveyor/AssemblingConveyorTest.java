@@ -229,6 +229,39 @@ public class AssemblingConveyorTest {
 		conveyor.stop();
 		Thread.sleep(1000);
 	}
+
+	
+	@Test
+	public void testError() throws InterruptedException {
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilder::new);
+		conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
+		assertEquals(1000, conveyor.getBuilderTimeout());
+		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
+		assertEquals(500,conveyor.getExpirationCollectionInterval());
+		conveyor.setCartConsumer((label, value, builder) -> {
+			throw new Error("TEST ERROR");
+		});
+		conveyor.setResultConsumer(res->{
+				    	outQueue.add(res);
+				    });
+		conveyor.setReadinessEvaluator((lot, builder) -> {
+			return lot.previouslyAccepted == 3;
+		});
+		conveyor.setScrapConsumer((ex,o)->{
+			System.out.println(ex+" "+o);
+//			assertTrue(ex.startsWith("Cart expired"));
+//			assertTrue(o instanceof Cart);
+		});
+
+		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		assertTrue(conveyor.isRunning());
+		conveyor.offer(c1);
+		Thread.sleep(100);
+		assertFalse(conveyor.isRunning());
+	}
+
 	
 	@Test
 	public void testDelayed() throws InterruptedException {
