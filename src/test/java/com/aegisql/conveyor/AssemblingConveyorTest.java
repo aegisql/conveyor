@@ -98,6 +98,8 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c6 = new Cart<>(6, "Ann", "setFirst");
 		Cart<Integer, String, String> c7 = new Cart<>(7, "Nik", "setLast", 1, TimeUnit.HOURS);
 
+		Cart<Integer, String, Command> c8 = new Cart<>(8, null, Command.CREATE_BUILD, 1, TimeUnit.SECONDS);
+
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
@@ -112,6 +114,7 @@ public class AssemblingConveyorTest {
 		User u2 = outQueue.poll();
 		assertNull(u2);
 		conveyor.offer(c7);
+		conveyor.addCommand(c8);
 		Thread.sleep(100);
 		conveyor.addCommand( new Cart<Integer,String,Command>(6,"",Command.CANCEL_BUILD));
 		conveyor.addCommand( new Cart<Integer,String,Command>(7,"",Command.TIMEOUT_BUILD));

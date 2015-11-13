@@ -141,7 +141,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		while((cmd = mQueue.poll()) != null) {
 			LOG.debug("processing command "+cmd);
 			Command l = cmd.getLabel();
-			l.getSetter().accept(this, cmd.getKey());
+			l.getSetter().accept(this, cmd);
 		}
 	}
 
@@ -388,15 +388,24 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 * STATIC METHODS TO SUPPORT MANAGEMENT COMMANDS
 	 * 
 	 * */
-	
-	static void cancelNow( AssemblingConveyor conveyor, Object key ) {
+
+	static void createNow( AssemblingConveyor conveyor, Object cart ) {
+		BuildingSite bs = (BuildingSite) conveyor.getBuildingSite((Cart) cart);
+		if(bs != null) {
+			
+		}
+	}
+
+	static void cancelNow( AssemblingConveyor conveyor, Object cart ) {
+		Object key = ((Cart)cart).getKey();
 		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
 		if(bs != null) {
 			bs.setStatus(Status.CANCELED);
 		}
 	}
 
-	static void timeoutNow( AssemblingConveyor conveyor, Object key ) {
+	static void timeoutNow( AssemblingConveyor conveyor, Object cart ) {
+		Object key = ((Cart)cart).getKey();
 		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
 		if( bs == null ) {
 			LOG.debug("TIMED OUT KEY NOT FOUND");
