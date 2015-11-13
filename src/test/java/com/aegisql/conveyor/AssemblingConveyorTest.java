@@ -101,6 +101,34 @@ public class AssemblingConveyorTest {
 		conveyor.add(c1);
 	}
 
+	@Test(expected=IllegalStateException.class)
+	public void testAddExpiredStopped() throws InterruptedException {
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setScrapConsumer((ex,o)->{
+			System.out.println(ex+" "+o);
+			assertTrue(ex.startsWith("Cart expired"));
+			assertTrue(o instanceof Cart);
+		});
+		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
+		Thread.sleep(10);
+		conveyor.add(c1);
+	}
+
+	@Test()
+	public void testOfferExpiredStopped() throws InterruptedException {
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setScrapConsumer((ex,o)->{
+			System.out.println(ex+" "+o);
+			assertTrue(ex.startsWith("Cart expired"));
+			assertTrue(o instanceof Cart);
+		});
+		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
+		Thread.sleep(10);
+		assertFalse(conveyor.offer(c1));
+	}
+
 	@Test
 	public void testBasics() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
