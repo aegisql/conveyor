@@ -1,3 +1,6 @@
+/* 
+ * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
+ */
 package com.aegisql.conveyor;
 
 import java.util.LinkedHashMap;
@@ -9,33 +12,81 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class BuildingSite.
+ *
+ * @param <K> the key type
+ * @param <L> the generic type
+ * @param <C> the generic type
+ * @param <OUT> the generic type
+ */
 public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delayed {
 
+	/**
+	 * The Enum Status.
+	 */
 	public static enum Status{
+		
+		/** The waiting data. */
 		WAITING_DATA,
+		
+		/** The timed out. */
 		TIMED_OUT,
+		
+		/** The ready. */
 		READY,
+		
+		/** The canceled. */
 		CANCELED,
+		
+		/** The invalid. */
 		INVALID;
 	}
 	
+	/** The builder. */
 	private final Builder<OUT> builder;
+	
+	/** The value consumer. */
 	private final LabeledValueConsumer<L, Object, Builder<OUT>> valueConsumer;
+	
+	/** The readiness. */
 	private final BiPredicate<Lot<K>, Builder<OUT>> readiness;
 	
+	/** The initial cart. */
 	private final  C initialCart;
 	
+	/** The accept count. */
 	private int acceptCount = 0;
+	
+	/** The builder created. */
 	private final long builderCreated;
+	
+	/** The builder expiration. */
 	long builderExpiration;
 	
+	/** The status. */
 	private Status status = Status.WAITING_DATA;
+	
+	/** The last error. */
 	private Throwable lastError;
 	
+	/** The event history. */
 	private final Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>();
 	
+	/** The delay keeper. */
 	Delayed delayKeeper;
 
+	/**
+	 * Instantiates a new building site.
+	 *
+	 * @param cart the cart
+	 * @param builderSupplier the builder supplier
+	 * @param cartConsumer the cart consumer
+	 * @param ready the ready
+	 * @param ttl the ttl
+	 * @param unit the unit
+	 */
 	public BuildingSite( 
 			C cart, 
 			Supplier<Builder<OUT>> builderSupplier, 
@@ -114,6 +165,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		
 	}
 
+	/**
+	 * Accept.
+	 *
+	 * @param cart the cart
+	 */
 	public void accept(C cart) {
 		L label = null;
 		Object value = null;
@@ -138,6 +194,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		}
 	}
 
+	/**
+	 * Builds the.
+	 *
+	 * @return the out
+	 */
 	public OUT build() {
 		if( ! ready() ) {
 			throw new IllegalStateException("Builder is not ready!");
@@ -145,6 +206,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		return builder.build();
 	}
 
+	/**
+	 * Ready.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean ready() {
 		Lot<K> lot = null;
 		 lot = new Lot<>(
@@ -162,44 +228,88 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		return res;
 	}
 
+	/**
+	 * Gets the accept count.
+	 *
+	 * @return the accept count
+	 */
 	public int getAcceptCount() {
 		return acceptCount;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
 	@Override
 	public int compareTo(Delayed o) {
 		return delayKeeper.compareTo(o);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.util.concurrent.Delayed#getDelay(java.util.concurrent.TimeUnit)
+	 */
 	@Override
 	public long getDelay(TimeUnit unit) {
 		return delayKeeper.getDelay(unit);	}
 
+	/**
+	 * Expired.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean expired() {
 		return getDelay(TimeUnit.MILLISECONDS) < 0;
 	}
 
+	/**
+	 * Gets the builder expiration.
+	 *
+	 * @return the builder expiration
+	 */
 	public long getBuilderExpiration() {
 		return builderExpiration;
 	}
 
+	/**
+	 * Gets the cart.
+	 *
+	 * @return the cart
+	 */
 	public C getCart() {
 		return initialCart;
 	}
 
+	/**
+	 * Gets the key.
+	 *
+	 * @return the key
+	 */
 	public K getKey() {
 		return initialCart.getKey();
 	}
 	
+	/**
+	 * Gets the last error.
+	 *
+	 * @return the last error
+	 */
 	public Throwable getLastError() {
 		return lastError;
 	}
 
+	/**
+	 * Sets the last error.
+	 *
+	 * @param lastError the new last error
+	 */
 	public void setLastError(Throwable lastError) {
 		this.lastError = lastError;
 	}
 
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "BuildingSite [" + (builder != null ? "builder=" + builder + ", " : "")
@@ -210,10 +320,20 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 				+ (eventHistory != null ? "eventHistory=" + eventHistory : "") + "]";
 	}
 
+	/**
+	 * Gets the status.
+	 *
+	 * @return the status
+	 */
 	public Status getStatus() {
 		return status;
 	}
 
+	/**
+	 * Sets the status.
+	 *
+	 * @param status the new status
+	 */
 	public void setStatus(Status status) {
 		this.status = status;
 	}

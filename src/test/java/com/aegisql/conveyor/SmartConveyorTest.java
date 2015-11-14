@@ -1,3 +1,6 @@
+/* 
+ * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
+ */
 package com.aegisql.conveyor;
 
 import static org.junit.Assert.assertFalse;
@@ -21,26 +24,56 @@ import com.aegisql.conveyor.user.UserBuilderEvents2;
 import com.aegisql.conveyor.user.UserBuilderSmart;
 import com.aegisql.conveyor.user.UserBuilderTesting;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SmartConveyorTest.
+ */
 public class SmartConveyorTest {
 
+	/** The out queue. */
 	Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 	
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 	
+	/**
+	 * Test basics smart.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testBasicsSmart() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents, Cart<Integer, ?, UserBuilderEvents>, User> 
@@ -78,6 +111,11 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test basics testing.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testBasicsTesting() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents2, Cart<Integer, ?, UserBuilderEvents2>, User> 
@@ -112,6 +150,11 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test rejected start offer.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testRejectedStartOffer() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents, Cart<Integer, ?, UserBuilderEvents>, User> 
@@ -133,6 +176,11 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test rejected start add.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test(expected=IllegalStateException.class) //???? Failed
 	public void testRejectedStartAdd() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents, Cart<Integer, ?, UserBuilderEvents>, User> 
@@ -154,6 +202,9 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test smart.
+	 */
 	@Test
 	public void testSmart() {
 		UserBuilderSmart ub = new UserBuilderSmart();

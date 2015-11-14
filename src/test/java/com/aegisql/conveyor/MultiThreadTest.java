@@ -1,3 +1,6 @@
+/* 
+ * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
+ */
 package com.aegisql.conveyor;
 
 import static org.junit.Assert.*;
@@ -19,17 +22,31 @@ import org.junit.Test;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class MultiThreadTest.
+ */
 public class MultiThreadTest {
 	
+	/** The size. */
 	public static int SIZE = 1000;
 	
+	/** The in user. */
 	public static User[] inUser  = new User[SIZE];
+	
+	/** The out user. */
 	public static User[] outUser = new User[SIZE];
 
+	/** The conveyor. */
 	public static 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 	conveyor = new AssemblingConveyor<>();
 
 	
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 
@@ -63,24 +80,45 @@ public class MultiThreadTest {
 		
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		conveyor.stop();
 		Thread.sleep(100);
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 	
+	/** The out queue. */
 	public static Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 
 	
 	
+	/**
+	 * Gets the random ints.
+	 *
+	 * @return the random ints
+	 */
 	public static int[] getRandomInts() {
 		List<Integer> ids = new ArrayList<>(SIZE);
 		for(int i = 0; i < SIZE; i++) {
@@ -94,11 +132,19 @@ public class MultiThreadTest {
 		return idInt;
 	}
 	
+	/**
+	 * Test exception.
+	 */
 	@Test(expected=NullPointerException.class)
 	public void testException() {
 		conveyor.add(null);
 	}
 	
+	/**
+	 * Test.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void test() throws InterruptedException {
 

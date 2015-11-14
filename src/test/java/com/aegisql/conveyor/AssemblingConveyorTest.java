@@ -1,3 +1,6 @@
+/* 
+ * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
+ */
 package com.aegisql.conveyor;
 
 import static org.junit.Assert.*;
@@ -22,26 +25,56 @@ import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderSmart;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class AssemblingConveyorTest.
+ */
 public class AssemblingConveyorTest {
 
+	/** The out queue. */
 	Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 	
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 	
+	/**
+	 * Test unconfigured builder supplier.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testUnconfiguredBuilderSupplier() throws InterruptedException {
 		AtomicBoolean visited = new AtomicBoolean(false);
@@ -58,6 +91,11 @@ public class AssemblingConveyorTest {
 		assertTrue(visited.get());
 	}
 
+	/**
+	 * Test offer stopped.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testOfferStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
@@ -72,6 +110,11 @@ public class AssemblingConveyorTest {
 		assertFalse(conveyor.offer(c1));
 	}
 
+	/**
+	 * Test command stopped.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test(expected=IllegalStateException.class)
 	public void testCommandStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
@@ -86,6 +129,11 @@ public class AssemblingConveyorTest {
 		assertFalse(conveyor.addCommand(c1));
 	}
 
+	/**
+	 * Test command expired.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test(expected=IllegalStateException.class)
 	public void testCommandExpired() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
@@ -100,6 +148,11 @@ public class AssemblingConveyorTest {
 		conveyor.addCommand(c1);
 	}
 
+	/**
+	 * Test command too old.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test(expected=IllegalStateException.class)
 	public void testCommandTooOld() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
@@ -115,6 +168,11 @@ public class AssemblingConveyorTest {
 		conveyor.addCommand(c1);
 	}
 
+	/**
+	 * Test add stopped.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test(expected=IllegalStateException.class)
 	public void testAddStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
@@ -129,6 +187,11 @@ public class AssemblingConveyorTest {
 		conveyor.add(c1);
 	}
 
+	/**
+	 * Test add expired stopped.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test(expected=IllegalStateException.class)
 	public void testAddExpiredStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
@@ -143,6 +206,11 @@ public class AssemblingConveyorTest {
 		conveyor.add(c1);
 	}
 
+	/**
+	 * Test offer expired stopped.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test()
 	public void testOfferExpiredStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
@@ -157,6 +225,11 @@ public class AssemblingConveyorTest {
 		assertFalse(conveyor.offer(c1));
 	}
 
+	/**
+	 * Test basics.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testBasics() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
@@ -231,6 +304,11 @@ public class AssemblingConveyorTest {
 	}
 
 	
+	/**
+	 * Test error.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testError() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
@@ -263,6 +341,11 @@ public class AssemblingConveyorTest {
 	}
 
 	
+	/**
+	 * Test delayed.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testDelayed() throws InterruptedException {
 		Cart<Integer, String, String> c1 = new Cart<>(1, "A", "setFirst",1,TimeUnit.SECONDS);
@@ -283,17 +366,33 @@ public class AssemblingConveyorTest {
 		
 	}
 
+	/**
+	 * The Class MyDelayed.
+	 */
 	public static class MyDelayed implements Delayed {
+		
+		/** The delay. */
 		public long delay = 1;
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Comparable#compareTo(java.lang.Object)
+		 */
 		public int compareTo(Delayed o) {
 			return 0;
 		}
+		
+		/* (non-Javadoc)
+		 * @see java.util.concurrent.Delayed#getDelay(java.util.concurrent.TimeUnit)
+		 */
 		public long getDelay(TimeUnit unit) {
 			return delay;
 		}
 		
 	}
 	
+	/**
+	 * Test managed delayed.
+	 */
 	@Test
 	public void testManagedDelayed() {
 		MyDelayed d1 = new MyDelayed();
