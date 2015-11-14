@@ -61,12 +61,26 @@ public class ParallelConveyorTest {
    
 		conveyor.setName("Parallel User Builder");
 		
+		assertTrue(conveyor.isRunning());
+		assertTrue(conveyor.isRunning(0));
+		assertTrue(conveyor.isRunning(1));
+		assertTrue(conveyor.isRunning(2));
+		assertTrue(conveyor.isRunning(3));
+		assertFalse(conveyor.isRunning(-1));
+		assertFalse(conveyor.isRunning(4));
+
 	}
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		conveyor.stop();
-		Thread.sleep(1000);
+		Thread.sleep(100);
+		assertFalse(conveyor.isRunning());
+		assertFalse(conveyor.isRunning(0));
+		assertFalse(conveyor.isRunning(1));
+		assertFalse(conveyor.isRunning(2));
+		assertFalse(conveyor.isRunning(3));
+
 	}
 
 	@Before

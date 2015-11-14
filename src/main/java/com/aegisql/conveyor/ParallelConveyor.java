@@ -217,5 +217,18 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 			i++;
 		}
 	}
+	
+	public boolean isRunning() {
+		return running;
+	}
+
+	public boolean isRunning(int idx) {
+		if(idx < 0 || idx >= pf) {
+			return false;
+		} else {
+			return conveyors[idx].isRunning();
+		}
+	}
+
 
 }
