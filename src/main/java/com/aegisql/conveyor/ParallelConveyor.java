@@ -50,6 +50,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 		return conveyors[ idx(key) ];
 	}
 	
+	@Override
 	public boolean addCommand(Cart<K,?,Command> cart) {
 		Objects.requireNonNull(cart);
 		if (!running) {

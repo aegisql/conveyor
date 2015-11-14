@@ -168,6 +168,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		return r;
 	}
 
+	@Override
 	public boolean addCommand(Cart<K,?,Command> cart) {
 		if (!running) {
 			scrapConsumer.accept("Not Running",cart);
