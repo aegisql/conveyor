@@ -260,7 +260,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		return expirationCollectionInterval;
 	}
 
-	public void processSite(IN cart) {
+	private void processSite(IN cart) {
 		K key = cart.getKey();
 		if( key == null ) {
 			return;
@@ -288,7 +288,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		}
 	}
 	
-	public void removeExpired() {
+	private void removeExpired() {
 		int cnt = 0;
 		BuildingSite<K, L, IN, OUT> buildingSite = null;
 		while ( (buildingSite = delayQueue.poll()) != null) {
