@@ -21,13 +21,13 @@ import com.aegisql.conveyor.user.UserBuilder;
 
 public class ParallelConveyorTest {
 	
-	public static int SIZE = 1000;
+	public static int SIZE = 10000;
 	
 	public static User[] inUser  = new User[SIZE];
 	public static User[] outUser = new User[SIZE];
 
 	public static 		ParallelConveyor<Integer, String, Cart<Integer, ?, String>, User> 
-	conveyor = new ParallelConveyor<>(2);
+	conveyor = new ParallelConveyor<>(4);
 
 	
 	@BeforeClass
