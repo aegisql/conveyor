@@ -66,7 +66,7 @@ public class ParallelConveyorTest {
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		conveyor.stop();
-		Thread.sleep(100);
+		Thread.sleep(1000);
 	}
 
 	@Before
@@ -98,9 +98,27 @@ public class ParallelConveyorTest {
 	public void testException() {
 		conveyor.add(null);
 	}
+
+	@Test
+	public void testParallelCommand() throws InterruptedException {
+		
+		Cart<Integer,String,Command> c1 = new Cart<Integer, String, Command>(1, "", Command.CREATE_BUILD,10,TimeUnit.MILLISECONDS);
+		Cart<Integer,String,Command> c2 = new Cart<Integer, String, Command>(2, "", Command.CREATE_BUILD,10,TimeUnit.MILLISECONDS);
+		Cart<Integer,String,Command> c3 = new Cart<Integer, String, Command>(3, "", Command.CREATE_BUILD,10,TimeUnit.MILLISECONDS);
+		Cart<Integer,String,Command> c4 = new Cart<Integer, String, Command>(4, "", Command.CREATE_BUILD,10,TimeUnit.MILLISECONDS);
+		
+		conveyor.addCommand(c1);
+		conveyor.addCommand(c2);
+		conveyor.addCommand(c3);
+		conveyor.addCommand(c4);
+		
+		Thread.sleep(50);
+		
+		
+	}
 	
 	@Test
-	public void test() throws InterruptedException {
+	public void testParallel() throws InterruptedException {
 
 	conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
 	conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
