@@ -59,12 +59,14 @@ public class MultiThreadTest {
 		return lot.previouslyAccepted == 3 || userBuilder.ready();
 	    });
    
-		
+	    conveyor.setName("Multithread User Builder");
 		
 	}
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
+		conveyor.stop();
+		Thread.sleep(100);
 	}
 
 	@Before
