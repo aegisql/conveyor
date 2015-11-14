@@ -10,14 +10,14 @@ package com.aegisql.conveyor;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  * @param <K> the key type
- * @param <L> the generic type
- * @param <IN> the generic type
- * @param <OUT> the generic type
+ * @param <L> the label type
+ * @param <IN> the data cart type
+ * @param <OUT> the target class type
  */
 public interface Conveyor<K, L, IN extends Cart<K,?,L>,OUT> {
 
 	/**
-	 * Adds the.
+	 * Adds the cart to the input queue.
 	 *
 	 * @param cart the cart
 	 * @return true, if successful
@@ -25,7 +25,7 @@ public interface Conveyor<K, L, IN extends Cart<K,?,L>,OUT> {
 	public boolean add(IN cart);
 	
 	/**
-	 * Offer.
+	 * Offers the cart to the input queue.
 	 *
 	 * @param cart the cart
 	 * @return true, if successful
@@ -33,7 +33,7 @@ public interface Conveyor<K, L, IN extends Cart<K,?,L>,OUT> {
 	public boolean offer(IN cart);
 	
 	/**
-	 * Adds the command.
+	 * Adds the command to the management queue.
 	 *
 	 * @param cart the cart
 	 * @return true, if successful
