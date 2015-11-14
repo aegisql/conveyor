@@ -8,6 +8,9 @@ import com.aegisql.conveyor.Builder;
 // TODO: Auto-generated Javadoc
 /**
  * The Class UserBuilderSmart.
+ * 
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  */
 public class UserBuilderSmart implements Builder<User> {
 

@@ -7,6 +7,8 @@ package com.aegisql.conveyor;
 /**
  * The Class Lot.
  *
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  * @param <K> the key type
  */
 public class Lot<K> {

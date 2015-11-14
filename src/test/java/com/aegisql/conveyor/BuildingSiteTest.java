@@ -23,6 +23,9 @@ import com.aegisql.conveyor.user.UserBuilderSmart;
 // TODO: Auto-generated Javadoc
 /**
  * The Class BuildingSiteTest.
+ * 
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  */
 public class BuildingSiteTest {
 

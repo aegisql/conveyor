@@ -6,6 +6,9 @@ package com.aegisql.conveyor.user;
 // TODO: Auto-generated Javadoc
 /**
  * The Class User.
+ * 
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  */
 public class User {
 	

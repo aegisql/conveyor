@@ -11,6 +11,9 @@ import com.aegisql.conveyor.Lot;
 // TODO: Auto-generated Javadoc
 /**
  * The Class UserBuilderTesting.
+ * 
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  */
 public class UserBuilderTesting implements Builder<User>, Predicate<Lot<UserBuilderEvents2>> {
 

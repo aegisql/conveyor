@@ -25,6 +25,9 @@ import com.aegisql.conveyor.user.UserBuilder;
 // TODO: Auto-generated Javadoc
 /**
  * The Class ParallelConveyorTest.
+ * 
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  */
 public class ParallelConveyorTest {
 	

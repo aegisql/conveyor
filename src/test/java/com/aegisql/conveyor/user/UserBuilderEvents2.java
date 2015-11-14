@@ -10,6 +10,9 @@ import com.aegisql.conveyor.SmartLabel;
 // TODO: Auto-generated Javadoc
 /**
  * The Enum UserBuilderEvents2.
+ * 
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  */
 public enum UserBuilderEvents2 implements SmartLabel<UserBuilderTesting> {
 	

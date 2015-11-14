@@ -12,6 +12,9 @@ import com.aegisql.conveyor.Lot;
 // TODO: Auto-generated Javadoc
 /**
  * The Class UserBuilder.
+ * 
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  */
 public class UserBuilder implements Builder<User> {
 

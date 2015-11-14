@@ -8,7 +8,10 @@ import java.util.function.BiConsumer;
 // TODO: Auto-generated Javadoc
 /**
  * The Enum Command.
- */
+ * 
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
+*/
 public enum Command  implements SmartLabel<AssemblingConveyor> {
 	
 	/** The create build. */

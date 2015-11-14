@@ -7,6 +7,8 @@ package com.aegisql.conveyor;
 /**
  * The Interface Builder.
  *
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  * @param <T> the generic type
  */
 public interface Builder<T> {

@@ -16,6 +16,8 @@ import java.util.function.Supplier;
 /**
  * The Class BuildingSite.
  *
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  * @param <K> the key type
  * @param <L> the generic type
  * @param <C> the generic type

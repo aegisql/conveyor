@@ -7,6 +7,8 @@ package com.aegisql.conveyor;
 /**
  * The Interface LabeledValueConsumer.
  *
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  * @param <L> the generic type
  * @param <V> the value type
  * @param <B> the generic type

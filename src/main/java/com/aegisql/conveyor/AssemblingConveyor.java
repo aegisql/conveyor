@@ -27,6 +27,8 @@ import com.aegisql.conveyor.BuildingSite.Status;
 /**
  * The Class AssemblingConveyor.
  *
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  * @param <K> the key type
  * @param <L> the generic type
  * @param <IN> the generic type

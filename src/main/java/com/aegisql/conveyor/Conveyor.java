@@ -7,6 +7,8 @@ package com.aegisql.conveyor;
 /**
  * The Interface Conveyor.
  *
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  * @param <K> the key type
  * @param <L> the generic type
  * @param <IN> the generic type

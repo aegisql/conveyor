@@ -27,6 +27,9 @@ import com.aegisql.conveyor.user.UserBuilderTesting;
 // TODO: Auto-generated Javadoc
 /**
  * The Class SmartConveyorTest.
+ * 
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  */
 public class SmartConveyorTest {
 

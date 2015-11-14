@@ -13,6 +13,9 @@ import com.aegisql.conveyor.Lot;
 // TODO: Auto-generated Javadoc
 /**
  * The Class UserBuilderDelayed.
+ * 
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  */
 public class UserBuilderDelayed implements Builder<User>, Delayed {
 

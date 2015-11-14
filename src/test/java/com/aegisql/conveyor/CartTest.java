@@ -16,6 +16,9 @@ import org.junit.Test;
 // TODO: Auto-generated Javadoc
 /**
  * The Class CartTest.
+ * 
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  */
 public class CartTest {
 

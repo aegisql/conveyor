@@ -9,6 +9,8 @@ import java.util.function.BiConsumer;
 /**
  * The Interface SmartLabel.
  *
+ * @author Mikhail Teplitskiy
+ * @version 1.0.0
  * @param <L> the generic type
  */
 public interface SmartLabel<L> {
