@@ -216,7 +216,7 @@ public class SmartConveyorTest {
 		UserBuilderEvents.SET_LAST.getSetter().accept(ub, "last");
 		UserBuilderEvents.SET_YEAR.getSetter().accept(ub, 1970);
 		
-		System.out.println(ub.build());
+		System.out.println(ub.get());
 		
 	}
 		

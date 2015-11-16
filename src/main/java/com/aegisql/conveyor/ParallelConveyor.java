@@ -315,7 +315,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 *
 	 * @param cartConsumer the cart consumer
 	 */
-	public void setCartConsumer(LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer) {
+	public void setCartConsumer(LabeledValueConsumer<L, ?, Supplier<OUT>> cartConsumer) {
 		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
 			conv.setCartConsumer(cartConsumer);
 		}
@@ -326,7 +326,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 *
 	 * @param ready the ready
 	 */
-	public void setReadinessEvaluator(BiPredicate<Lot<K>, Builder<OUT>> ready) {
+	public void setReadinessEvaluator(BiPredicate<Lot<K>, Supplier<OUT>> ready) {
 		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
 			conv.setReadinessEvaluator(ready);
 		}
@@ -337,7 +337,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 *
 	 * @param builderSupplier the new builder supplier
 	 */
-	public void setBuilderSupplier(Supplier<Builder<OUT>> builderSupplier) {
+	public void setBuilderSupplier(Supplier<Supplier<OUT>> builderSupplier) {
 		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
 			conv.setBuilderSupplier(builderSupplier);
 		}

@@ -5,10 +5,7 @@ package com.aegisql.conveyor.user;
 
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-
-import com.aegisql.conveyor.Builder;
-import com.aegisql.conveyor.BuildingSite;
-import com.aegisql.conveyor.Lot;
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -17,7 +14,7 @@ import com.aegisql.conveyor.Lot;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  */
-public class UserBuilderDelayed implements Builder<User>, Delayed {
+public class UserBuilderDelayed implements Supplier<User>, Delayed {
 
 	/** The first. */
 	String first;
@@ -101,11 +98,8 @@ public class UserBuilderDelayed implements Builder<User>, Delayed {
 		this.last = last;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Builder#build()
-	 */
 	@Override
-	public User build() {
+	public User get() {
 		return new User(first, last, yearOfBirth==null? 0:yearOfBirth.intValue());
 	}
 

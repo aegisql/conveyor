@@ -47,13 +47,13 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	}
 	
 	/** The builder. */
-	private final Builder<OUT> builder;
+	private final Supplier<OUT> builder;
 	
 	/** The value consumer. */
-	private final LabeledValueConsumer<L, Object, Builder<OUT>> valueConsumer;
+	private final LabeledValueConsumer<L, Object, Supplier<OUT>> valueConsumer;
 	
 	/** The readiness. */
-	private final BiPredicate<Lot<K>, Builder<OUT>> readiness;
+	private final BiPredicate<Lot<K>, Supplier<OUT>> readiness;
 	
 	/** The initial cart. */
 	private final  C initialCart;
@@ -91,13 +91,13 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	 */
 	public BuildingSite( 
 			C cart, 
-			Supplier<Builder<OUT>> builderSupplier, 
-			LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer, 
-			BiPredicate<Lot<K>, Builder<OUT>> ready, 
+			Supplier<Supplier<OUT>> builderSupplier, 
+			LabeledValueConsumer<L, ?, Supplier<OUT>> cartConsumer, 
+			BiPredicate<Lot<K>, Supplier<OUT>> ready, 
 			long ttl, TimeUnit unit) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
-		this.valueConsumer = (LabeledValueConsumer<L, Object, Builder<OUT>>) cartConsumer;
+		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<OUT>>) cartConsumer;
 		if(builder instanceof Predicate) {
 			this.readiness = (lot,builder) -> {
 				return ((Predicate<Lot<K>>)builder).test(lot);
@@ -205,7 +205,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		if( ! ready() ) {
 			throw new IllegalStateException("Builder is not ready!");
 		}
-		return builder.build();
+		return builder.get();
 	}
 
 	/**

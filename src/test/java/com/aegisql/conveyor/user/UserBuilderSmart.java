@@ -3,7 +3,7 @@
  */
 package com.aegisql.conveyor.user;
 
-import com.aegisql.conveyor.Builder;
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -12,7 +12,7 @@ import com.aegisql.conveyor.Builder;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  */
-public class UserBuilderSmart implements Builder<User> {
+public class UserBuilderSmart implements Supplier<User> {
 
 	/** The first. */
 	String first;
@@ -73,12 +73,6 @@ public class UserBuilderSmart implements Builder<User> {
 		return last;
 	}
 
-	/**
-	 * Sets the last.
-	 *
-	 * @param builder the builder
-	 * @param last the last
-	 */
 	public static void setLast(UserBuilderSmart builder, String last) {
 		builder.last = last;
 	}
@@ -87,7 +81,7 @@ public class UserBuilderSmart implements Builder<User> {
 	 * @see com.aegisql.conveyor.Builder#build()
 	 */
 	@Override
-	public User build() {
+	public User get() {
 		return new User(first, last, yearOfBirth==null? 0:yearOfBirth.intValue());
 	}
 

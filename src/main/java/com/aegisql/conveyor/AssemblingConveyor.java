@@ -76,20 +76,20 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	private BiConsumer<String,Object> scrapConsumer = (explanation, scrap) -> { LOG.error(explanation + " " + scrap); };
 	
 	/** The cart consumer. */
-	private LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer = (l,v,b) -> { 
+	private LabeledValueConsumer<L, ?, Supplier<OUT>> cartConsumer = (l,v,b) -> { 
 		scrapConsumer.accept("Cart Consumer is not set. label:",l);
 		scrapConsumer.accept("Cart Consumer is not set value:",v);
 		throw new IllegalStateException("Cart Consumer is not set");
 	};
 	
 	/** The ready. */
-	private BiPredicate<Lot<K>, Builder<OUT>> ready = (l,b) -> {
+	private BiPredicate<Lot<K>, Supplier<OUT>> ready = (l,b) -> {
 		scrapConsumer.accept("Readiness Evaluator is not set",l);
 		throw new IllegalStateException("Readiness Evaluator is not set");
 	};
 	
 	/** The builder supplier. */
-	private Supplier<Builder<OUT>> builderSupplier = () -> {
+	private Supplier<Supplier<OUT>> builderSupplier = () -> {
 		throw new IllegalStateException("Builder Supplier is not set");
 	};
 
@@ -530,7 +530,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @param cartConsumer the cart consumer
 	 */
-	public void setCartConsumer(LabeledValueConsumer<L, ?, Builder<OUT>> cartConsumer) {
+	public void setCartConsumer(LabeledValueConsumer<L, ?, Supplier<OUT>> cartConsumer) {
 		this.cartConsumer = cartConsumer;
 	}
 
@@ -539,7 +539,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @param ready the ready
 	 */
-	public void setReadinessEvaluator(BiPredicate<Lot<K>, Builder<OUT>> ready) {
+	public void setReadinessEvaluator(BiPredicate<Lot<K>, Supplier<OUT>> ready) {
 		this.ready = ready;
 	}
 
@@ -548,7 +548,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @param builderSupplier the new builder supplier
 	 */
-	public void setBuilderSupplier(Supplier<Builder<OUT>> builderSupplier) {
+	public void setBuilderSupplier(Supplier<Supplier<OUT>> builderSupplier) {
 		this.builderSupplier = builderSupplier;
 	}
 

@@ -4,8 +4,8 @@
 package com.aegisql.conveyor.user;
 
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
-import com.aegisql.conveyor.Builder;
 import com.aegisql.conveyor.Lot;
 
 // TODO: Auto-generated Javadoc
@@ -15,7 +15,7 @@ import com.aegisql.conveyor.Lot;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  */
-public class UserBuilderTesting implements Builder<User>, Predicate<Lot<UserBuilderEvents2>> {
+public class UserBuilderTesting implements Supplier<User>, Predicate<Lot<UserBuilderEvents2>> {
 
 	/** The first. */
 	String first;
@@ -98,11 +98,8 @@ public class UserBuilderTesting implements Builder<User>, Predicate<Lot<UserBuil
 		builder.lastSet = true;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Builder#build()
-	 */
 	@Override
-	public User build() {
+	public User get() {
 		return new User(first, last, yearOfBirth==null? 0:yearOfBirth.intValue());
 	}
 
