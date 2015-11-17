@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.Serializable;
 import java.util.function.BiConsumer;
 
 // TODO: Auto-generated Javadoc
@@ -13,7 +14,7 @@ import java.util.function.BiConsumer;
  * @version 1.0.0
  * @param <L> the generic type
  */
-public interface SmartLabel<B> {
+public interface SmartLabel<B> extends Serializable {
 	
 	/**
 	 * Gets the setter.
