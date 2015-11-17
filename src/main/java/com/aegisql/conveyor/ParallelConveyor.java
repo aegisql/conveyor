@@ -326,7 +326,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 *
 	 * @param ready the ready
 	 */
-	public void setReadinessEvaluator(BiPredicate<Lot<K>, Supplier<OUT>> ready) {
+	public void setReadinessEvaluator(BiPredicate<State<K>, Supplier<OUT>> ready) {
 		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
 			conv.setReadinessEvaluator(ready);
 		}

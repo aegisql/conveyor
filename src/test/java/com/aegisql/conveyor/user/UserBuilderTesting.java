@@ -6,7 +6,7 @@ package com.aegisql.conveyor.user;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import com.aegisql.conveyor.Lot;
+import com.aegisql.conveyor.State;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -15,7 +15,7 @@ import com.aegisql.conveyor.Lot;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  */
-public class UserBuilderTesting implements Supplier<User>, Predicate<Lot<UserBuilderEvents2>> {
+public class UserBuilderTesting implements Supplier<User>, Predicate<State<UserBuilderEvents2>> {
 
 	/** The first. */
 	String first;
@@ -125,7 +125,7 @@ public class UserBuilderTesting implements Supplier<User>, Predicate<Lot<UserBui
 	 * @see java.util.function.Predicate#test(java.lang.Object)
 	 */
 	@Override
-	public boolean test(Lot<UserBuilderEvents2> lot) {
+	public boolean test(State<UserBuilderEvents2> lot) {
 		return firstSet && lastSet && yobSet;
 	}
 

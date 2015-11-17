@@ -11,7 +11,7 @@ package com.aegisql.conveyor;
  * @version 1.0.0
  * @param <K> the key type
  */
-public class Lot<K> {
+public class State<K> {
 	
 	/** The key. */
 	public final K key;
@@ -41,7 +41,7 @@ public class Lot<K> {
 	 * @param cartExpiration the cart expiration
 	 * @param previouslyAccepted the previously accepted
 	 */
-	public Lot(
+	public State(
 			K k 
 			,long builderCreated 
 			,long builderExpiration

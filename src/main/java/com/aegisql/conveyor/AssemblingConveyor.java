@@ -83,7 +83,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	};
 	
 	/** The ready. */
-	private BiPredicate<Lot<K>, Supplier<OUT>> ready = (l,b) -> {
+	private BiPredicate<State<K>, Supplier<OUT>> ready = (l,b) -> {
 		scrapConsumer.accept("Readiness Evaluator is not set",l);
 		throw new IllegalStateException("Readiness Evaluator is not set");
 	};
@@ -539,7 +539,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @param ready the ready
 	 */
-	public void setReadinessEvaluator(BiPredicate<Lot<K>, Supplier<OUT>> ready) {
+	public void setReadinessEvaluator(BiPredicate<State<K>, Supplier<OUT>> ready) {
 		this.ready = ready;
 	}
 

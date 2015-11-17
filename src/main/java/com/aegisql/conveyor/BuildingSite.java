@@ -53,7 +53,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	private final LabeledValueConsumer<L, Object, Supplier<OUT>> valueConsumer;
 	
 	/** The readiness. */
-	private final BiPredicate<Lot<K>, Supplier<OUT>> readiness;
+	private final BiPredicate<State<K>, Supplier<OUT>> readiness;
 	
 	/** The initial cart. */
 	private final  C initialCart;
@@ -93,14 +93,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 			C cart, 
 			Supplier<Supplier<OUT>> builderSupplier, 
 			LabeledValueConsumer<L, ?, Supplier<OUT>> cartConsumer, 
-			BiPredicate<Lot<K>, Supplier<OUT>> ready, 
+			BiPredicate<State<K>, Supplier<OUT>> ready, 
 			long ttl, TimeUnit unit) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<OUT>>) cartConsumer;
 		if(builder instanceof Predicate) {
 			this.readiness = (lot,builder) -> {
-				return ((Predicate<Lot<K>>)builder).test(lot);
+				return ((Predicate<State<K>>)builder).test(lot);
 			};
 		} else {
 			this.readiness = ready;
@@ -214,8 +214,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	 * @return true, if successful
 	 */
 	public boolean ready() {
-		Lot<K> lot = null;
-		 lot = new Lot<>(
+		State<K> lot = null;
+		 lot = new State<>(
 					initialCart.getKey(),
 					builderCreated,
 					builderExpiration,
