@@ -13,12 +13,12 @@ import java.util.function.BiConsumer;
  * @version 1.0.0
  * @param <L> the generic type
  */
-public interface SmartLabel<L> {
+public interface SmartLabel<B> {
 	
 	/**
 	 * Gets the setter.
 	 *
 	 * @return the setter
 	 */
-	BiConsumer<L, Object> getSetter();
+	BiConsumer<B, Object> getSetter();
 }
