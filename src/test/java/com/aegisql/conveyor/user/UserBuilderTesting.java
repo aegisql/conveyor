@@ -3,10 +3,10 @@
  */
 package com.aegisql.conveyor.user;
 
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.State;
+import com.aegisql.conveyor.TestingState;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -15,7 +15,7 @@ import com.aegisql.conveyor.State;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  */
-public class UserBuilderTesting implements Supplier<User>, Predicate<State<Integer>> {
+public class UserBuilderTesting implements Supplier<User>, TestingState<Integer> {
 
 	/** The first. */
 	String first;
