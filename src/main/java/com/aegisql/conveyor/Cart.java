@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -17,8 +18,10 @@ import java.util.concurrent.TimeUnit;
  * @param <V> the value type
  * @param <L> the generic type
  */
-public class Cart<K,V,L> implements Delayed {
+public class Cart<K,V,L> implements Delayed, Serializable {
 	
+	private static final long serialVersionUID = 5414733837801886611L;
+
 	/** The k. */
 	private final K k;
 	
