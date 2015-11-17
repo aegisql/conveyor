@@ -234,7 +234,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 */
 	@Test
-	public void testBasics() throws InterruptedException {
+	public void testSimpleConveyor() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilder::new);
@@ -306,6 +306,75 @@ public class AssemblingConveyorTest {
 		Thread.sleep(1000);
 	}
 
+	/**
+	 * Test basics.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
+	@Test
+	public void testSimpleConveyor2() throws InterruptedException {
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilder::new);
+		conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
+		assertEquals(1000, conveyor.getBuilderTimeout());
+		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
+		assertEquals(500,conveyor.getExpirationCollectionInterval());
+		conveyor.setCartConsumer((label, value, builder) -> {
+			UserBuilder userBuilder = (UserBuilder) builder;
+			switch (label) {
+			case "setFirst":
+				userBuilder.setFirst((String) value);
+				break;
+			case "setLast":
+				userBuilder.setLast((String) value);
+				break;
+			case "setYearOfBirth":
+				userBuilder.setYearOfBirth((Integer) value);
+				break;
+			default:
+				throw new RuntimeException("Unknown label " + label);
+			}
+		});
+		conveyor.setResultConsumer(res->{
+				    	outQueue.add(res);
+				    });
+		conveyor.setReadinessEvaluator((builder) -> {
+			UserBuilder ub = (UserBuilder)builder;
+			return ub.getFirst() != null && ub.getLast() != null && ub.getYearOfBirth() != null;
+		});
+		
+		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
+		Cart<Integer, String, String> c3 = new Cart<>(2, "Mike", "setFirst");
+		Cart<Integer, Integer, String> c4 = c1.nextCart(1999, "setYearOfBirth");
+
+		conveyor.offer(c1);
+		User u0 = outQueue.poll();
+		assertNull(u0);
+		conveyor.offer(c2);
+		conveyor.offer(c3);
+		conveyor.offer(c4);
+		Thread.sleep(100);
+		conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
+		User u1 = outQueue.poll();
+		assertNotNull(u1);
+		System.out.println(u1);
+		User u2 = outQueue.poll();
+		assertNull(u2);
+		Thread.sleep(100);
+		conveyor.addCommand( new Cart<Integer,String,Command>(6,"",Command.CANCEL_BUILD));
+		conveyor.addCommand( new Cart<Integer,String,Command>(7,"",Command.TIMEOUT_BUILD));
+
+		Thread.sleep(2000);
+		System.out.println("COL:"+conveyor.getCollectorSize());
+		System.out.println("DEL:"+conveyor.getDelayedQueueSize());
+		System.out.println("IN :"+conveyor.getInputQueueSize());
+		conveyor.stop();
+		Thread.sleep(1000);
+	}
+
+	
 	
 	/**
 	 * Test error.

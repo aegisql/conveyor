@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -83,7 +84,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	};
 	
 	/** The ready. */
-	private BiPredicate<State<K>, Supplier<OUT>> ready = (l,b) -> {
+	private BiPredicate<State<K>, Supplier<OUT>> readiness = (l,b) -> {
 		scrapConsumer.accept("Readiness Evaluator is not set",l);
 		throw new IllegalStateException("Readiness Evaluator is not set");
 	};
@@ -159,7 +160,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		BuildingSite<K, L, IN, OUT> buildingSite = null;
 		buildingSite = collector.get(key);
 		if (buildingSite == null) {
-			buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, ready,
+			buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, readiness,
 					builderTimeout, TimeUnit.MILLISECONDS);
 			collector.put(key, buildingSite);
 			if (buildingSite.getBuilderExpiration() > 0) {
@@ -537,10 +538,19 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	/**
 	 * Sets the readiness evaluator.
 	 *
-	 * @param ready the ready
+	 * @param readiness the ready
 	 */
-	public void setReadinessEvaluator(BiPredicate<State<K>, Supplier<OUT>> ready) {
-		this.ready = ready;
+	public void setReadinessEvaluator(BiPredicate<State<K>, Supplier<OUT>> readiness) {
+		this.readiness = readiness;
+	}
+
+	/**
+	 * Sets the readiness evaluator.
+	 *
+	 * @param readiness the ready
+	 */
+	public void setReadinessEvaluator(Predicate<Supplier<OUT>> readiness) {
+		this.readiness = (status,builder) -> readiness.test( builder ) ;
 	}
 
 	/**

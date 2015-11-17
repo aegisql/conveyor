@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -329,6 +330,17 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	public void setReadinessEvaluator(BiPredicate<State<K>, Supplier<OUT>> ready) {
 		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
 			conv.setReadinessEvaluator(ready);
+		}
+	}
+
+	/**
+	 * Sets the readiness evaluator.
+	 *
+	 * @param readiness the ready
+	 */
+	public void setReadinessEvaluator(Predicate<Supplier<OUT>> readiness) {
+		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
+			conv.setReadinessEvaluator(readiness);
 		}
 	}
 
