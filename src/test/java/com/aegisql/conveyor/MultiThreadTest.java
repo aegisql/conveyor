@@ -74,9 +74,9 @@ public class MultiThreadTest {
 			throw new RuntimeException("Unknown label " + label);
 		}
 	    } );
-	    conveyor.setReadinessEvaluator( (lot, builder) -> {
+	    conveyor.setReadinessEvaluator( (state, builder) -> {
 		UserBuilder userBuilder = (UserBuilder) builder;
-		return lot.previouslyAccepted == 3 || userBuilder.ready();
+		return state.previouslyAccepted == 3 || userBuilder.ready();
 	    });
    
 	    conveyor.setName("Multithread User Builder");

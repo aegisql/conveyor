@@ -5,7 +5,7 @@ package com.aegisql.conveyor;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class Lot.
+ * The Class State.
  *
  * @author Mikhail Teplitskiy
  * @version 1.0.0
@@ -32,7 +32,7 @@ public class State<K> {
 	public final int previouslyAccepted;
 	
 	/**
-	 * Instantiates a new lot.
+	 * Instantiates a new building state.
 	 *
 	 * @param k the k
 	 * @param builderCreated the builder created

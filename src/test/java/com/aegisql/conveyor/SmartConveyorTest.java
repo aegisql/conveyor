@@ -86,8 +86,8 @@ public class SmartConveyorTest {
 		conveyor.setResultConsumer(res->{
 				    	outQueue.add(res);
 				    });
-		conveyor.setReadinessEvaluator((lot, builder) -> {
-			return lot.previouslyAccepted == 3;
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			return state.previouslyAccepted == 3;
 		});
 		conveyor.setName("User Assembler");
 		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);
@@ -167,8 +167,8 @@ public class SmartConveyorTest {
 		conveyor.setResultConsumer(res->{
 				    	outQueue.add(res);
 				    });
-		conveyor.setReadinessEvaluator((lot, builder) -> {
-			return lot.previouslyAccepted == 2;
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			return state.previouslyAccepted == 2;
 		});
 		conveyor.rejectUnexpireableCartsOlderThan(1, TimeUnit.SECONDS);
 		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);
@@ -193,8 +193,8 @@ public class SmartConveyorTest {
 		conveyor.setResultConsumer(res->{
 				    	outQueue.add(res);
 				    });
-		conveyor.setReadinessEvaluator((lot, builder) -> {
-			return lot.previouslyAccepted == 2;
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			return state.previouslyAccepted == 2;
 		});
 		conveyor.rejectUnexpireableCartsOlderThan(1, TimeUnit.SECONDS);
 		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);

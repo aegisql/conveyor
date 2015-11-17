@@ -261,8 +261,8 @@ public class AssemblingConveyorTest {
 		conveyor.setResultConsumer(res->{
 				    	outQueue.add(res);
 				    });
-		conveyor.setReadinessEvaluator((lot, builder) -> {
-			return lot.previouslyAccepted == 3;
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			return state.previouslyAccepted == 3;
 		});
 		
 		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
@@ -327,8 +327,8 @@ public class AssemblingConveyorTest {
 		conveyor.setResultConsumer(res->{
 				    	outQueue.add(res);
 				    });
-		conveyor.setReadinessEvaluator((lot, builder) -> {
-			return lot.previouslyAccepted == 3;
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			return state.previouslyAccepted == 3;
 		});
 		conveyor.setScrapConsumer((ex,o)->{
 			System.out.println(ex+" "+o);

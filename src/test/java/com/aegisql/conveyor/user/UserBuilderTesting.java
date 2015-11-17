@@ -125,7 +125,7 @@ public class UserBuilderTesting implements Supplier<User>, Predicate<State<UserB
 	 * @see java.util.function.Predicate#test(java.lang.Object)
 	 */
 	@Override
-	public boolean test(State<UserBuilderEvents2> lot) {
+	public boolean test(State<UserBuilderEvents2> state) {
 		return firstSet && lastSet && yobSet;
 	}
 
