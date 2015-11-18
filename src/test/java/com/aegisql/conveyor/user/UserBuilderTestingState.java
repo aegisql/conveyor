@@ -98,6 +98,9 @@ public class UserBuilderTestingState implements Supplier<User>, TestingState<Int
 		builder.lastSet = true;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.util.function.Supplier#get()
+	 */
 	@Override
 	public User get() {
 		return new User(first, last, yearOfBirth==null? 0:yearOfBirth.intValue());

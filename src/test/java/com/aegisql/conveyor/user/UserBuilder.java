@@ -80,6 +80,9 @@ public class UserBuilder implements Supplier<User> {
 		this.last = last;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.util.function.Supplier#get()
+	 */
 	@Override
 	public User get() {
 		return new User(first, last, yearOfBirth==null? 0:yearOfBirth.intValue());

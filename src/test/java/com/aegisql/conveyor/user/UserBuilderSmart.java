@@ -73,6 +73,12 @@ public class UserBuilderSmart implements Supplier<User> {
 		return last;
 	}
 
+	/**
+	 * Sets the last.
+	 *
+	 * @param builder the builder
+	 * @param last the last
+	 */
 	public static void setLast(UserBuilderSmart builder, String last) {
 		builder.last = last;
 	}

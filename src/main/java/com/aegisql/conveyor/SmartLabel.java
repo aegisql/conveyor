@@ -12,7 +12,7 @@ import java.util.function.BiConsumer;
  *
  * @author Mikhail Teplitskiy
  * @version 1.0.0
- * @param <L> the generic type
+ * @param <B> the generic type
  */
 public interface SmartLabel<B> extends Serializable {
 	

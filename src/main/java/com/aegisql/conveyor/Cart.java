@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Cart<K,V,L> implements Delayed, Serializable {
 	
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 5414733837801886611L;
 
 	/** The k. */

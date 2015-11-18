@@ -98,6 +98,9 @@ public class UserBuilderDelayed implements Supplier<User>, Delayed {
 		this.last = last;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.util.function.Supplier#get()
+	 */
 	@Override
 	public User get() {
 		return new User(first, last, yearOfBirth==null? 0:yearOfBirth.intValue());
