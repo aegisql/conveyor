@@ -85,7 +85,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	 * @param cart the cart
 	 * @param builderSupplier the builder supplier
 	 * @param cartConsumer the cart consumer
-	 * @param ready the ready
+	 * @param readiness the ready
 	 * @param ttl the ttl
 	 * @param unit the unit
 	 */
@@ -93,17 +93,17 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 			C cart, 
 			Supplier<Supplier<OUT>> builderSupplier, 
 			LabeledValueConsumer<L, ?, Supplier<OUT>> cartConsumer, 
-			BiPredicate<State<K>, Supplier<OUT>> ready, 
+			BiPredicate<State<K>, Supplier<OUT>> readiness, 
 			long ttl, TimeUnit unit) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<OUT>>) cartConsumer;
-		if(builder instanceof Predicate) {
+		if(builder instanceof TestingState) {
 			this.readiness = (state,builder) -> {
-				return ((Predicate<State<K>>)builder).test(state);
+				return ((TestingState<K>)builder).test(state);
 			};
 		} else {
-			this.readiness = ready;
+			this.readiness = readiness;
 		}
 		this.eventHistory.put(cart.getLabel(), new AtomicInteger(1));
 		if(builder instanceof Delayed) {
