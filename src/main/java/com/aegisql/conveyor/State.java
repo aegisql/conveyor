@@ -3,6 +3,9 @@
  */
 package com.aegisql.conveyor;
 
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class State.
@@ -11,7 +14,7 @@ package com.aegisql.conveyor;
  * @version 1.0.0
  * @param <K> the key type
  */
-public class State<K> {
+public class State<K,L> {
 	
 	/** The key. */
 	public final K key;
@@ -31,6 +34,8 @@ public class State<K> {
 	/** The previously accepted. */
 	public final int previouslyAccepted;
 	
+	public final Map<L,AtomicInteger> eventHistory;
+	
 	/**
 	 * Instantiates a new building state.
 	 *
@@ -48,13 +53,15 @@ public class State<K> {
 			,long cartCreated 
 			,long cartExpiration
 			,int previouslyAccepted
+			,Map<L,AtomicInteger> eventHistory
 			) {
-		this.key = k;
-		this.builderCreated = builderCreated;
-		this.builderExpiration = builderExpiration;
-		this.cartCreated = cartCreated;
-		this.cartExpiration = cartExpiration;
+		this.key                = k;
+		this.builderCreated     = builderCreated;
+		this.builderExpiration  = builderExpiration;
+		this.cartCreated        = cartCreated;
+		this.cartExpiration     = cartExpiration;
 		this.previouslyAccepted = previouslyAccepted;
+		this.eventHistory       = eventHistory;
 	}
 
 }

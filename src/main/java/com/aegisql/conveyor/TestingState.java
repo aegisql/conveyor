@@ -11,6 +11,6 @@ import java.util.function.Predicate;
  * @param <K> the key type
  */
 @FunctionalInterface
-public interface TestingState <K> extends Predicate<State<K>> {
+public interface TestingState <K,L> extends Predicate<State<K,L>> {
 
 }

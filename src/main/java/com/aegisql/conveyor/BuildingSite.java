@@ -3,13 +3,13 @@
  */
 package com.aegisql.conveyor;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
@@ -53,7 +53,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	private final LabeledValueConsumer<L, Object, Supplier<OUT>> valueConsumer;
 	
 	/** The readiness. */
-	private final BiPredicate<State<K>, Supplier<OUT>> readiness;
+	private final BiPredicate<State<K,L>, Supplier<OUT>> readiness;
 	
 	/** The initial cart. */
 	private final  C initialCart;
@@ -93,14 +93,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 			C cart, 
 			Supplier<Supplier<OUT>> builderSupplier, 
 			LabeledValueConsumer<L, ?, Supplier<OUT>> cartConsumer, 
-			BiPredicate<State<K>, Supplier<OUT>> readiness, 
+			BiPredicate<State<K,L>, Supplier<OUT>> readiness, 
 			long ttl, TimeUnit unit) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<OUT>>) cartConsumer;
 		if(builder instanceof TestingState) {
 			this.readiness = (state,builder) -> {
-				return ((TestingState<K>)builder).test(state);
+				return ((TestingState<K,L>)builder).test(state);
 			};
 		}else if(builder instanceof Testing) {
 			this.readiness = (state,builder) -> {
@@ -218,14 +218,15 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	 * @return true, if successful
 	 */
 	public boolean ready() {
-		State<K> state = null;
+		State<K,L> state = null;
 		 state = new State<>(
 					initialCart.getKey(),
 					builderCreated,
 					builderExpiration,
 					initialCart.getCreationTime(),
 					initialCart.getExpirationTime(),
-					acceptCount
+					acceptCount,
+					Collections.unmodifiableMap( eventHistory )
 					);
 		boolean res = readiness.test(state, builder);
 		if( res ) {

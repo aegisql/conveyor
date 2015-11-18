@@ -15,7 +15,7 @@ import com.aegisql.conveyor.TestingState;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  */
-public class UserBuilderTestingState implements Supplier<User>, TestingState<Integer> {
+public class UserBuilderTestingState implements Supplier<User>, TestingState<Integer,UserBuilderEvents3> {
 
 	/** The first. */
 	String first;
@@ -128,7 +128,7 @@ public class UserBuilderTestingState implements Supplier<User>, TestingState<Int
 	 * @see java.util.function.Predicate#test(java.lang.Object)
 	 */
 	@Override
-	public boolean test(State<Integer> state) {
+	public boolean test(State<Integer,UserBuilderEvents3> state) {
 		return firstSet && lastSet && yobSet;
 	}
 
