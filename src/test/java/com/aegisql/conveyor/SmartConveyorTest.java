@@ -169,7 +169,7 @@ public class SmartConveyorTest {
 		conveyor.setResultConsumer(res->{
 				    	outQueue.add(res);
 				    });
-		conveyor.setName("Testing User Assembler");
+		conveyor.setName("TestingState User Assembler");
 		Cart<Integer, String, UserBuilderEvents3> c1 = new Cart<>(1, "John", UserBuilderEvents3.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents3> c2 = c1.nextCart("Doe", UserBuilderEvents3.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents3> c3 = new Cart<>(2, "Mike", UserBuilderEvents3.SET_FIRST);
