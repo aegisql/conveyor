@@ -129,6 +129,7 @@ public class UserBuilderTestingState implements Supplier<User>, TestingState<Int
 	 */
 	@Override
 	public boolean test(State<Integer,UserBuilderEvents3> state) {
+		System.out.println(state);
 		return firstSet && lastSet && yobSet;
 	}
 

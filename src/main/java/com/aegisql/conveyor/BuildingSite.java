@@ -109,7 +109,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		} else {
 			this.readiness = readiness;
 		}
-		this.eventHistory.put(cart.getLabel(), new AtomicInteger(1));
+		this.eventHistory.put(cart.getLabel(), new AtomicInteger(0));
 		if(builder instanceof Delayed) {
 			builderCreated = System.currentTimeMillis();
 			builderExpiration = 0;

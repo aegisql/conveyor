@@ -64,4 +64,12 @@ public class State<K,L> {
 		this.eventHistory       = eventHistory;
 	}
 
+	@Override
+	public String toString() {
+		return "State [" + (key != null ? "key=" + key + ", " : "") + "builderCreated=" + builderCreated
+				+ ", builderExpiration=" + builderExpiration + ", cartCreated=" + cartCreated + ", cartExpiration="
+				+ cartExpiration + ", previouslyAccepted=" + previouslyAccepted + ", "
+				+ (eventHistory != null ? "eventHistory=" + eventHistory : "") + "]";
+	}
+	
 }
