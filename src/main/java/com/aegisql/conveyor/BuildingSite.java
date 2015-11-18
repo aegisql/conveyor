@@ -102,6 +102,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 			this.readiness = (state,builder) -> {
 				return ((TestingState<K>)builder).test(state);
 			};
+		}else if(builder instanceof Testing) {
+			this.readiness = (state,builder) -> {
+				return ((Testing)builder).test();
+			};
 		} else {
 			this.readiness = readiness;
 		}

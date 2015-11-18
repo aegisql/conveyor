@@ -6,7 +6,7 @@ package com.aegisql.conveyor.user;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.State;
-import com.aegisql.conveyor.Testing;
+import com.aegisql.conveyor.TestingState;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -15,7 +15,7 @@ import com.aegisql.conveyor.Testing;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  */
-public class UserBuilderTesting implements Supplier<User>, Testing {
+public class UserBuilderTestingState implements Supplier<User>, TestingState<Integer> {
 
 	/** The first. */
 	String first;
@@ -47,7 +47,7 @@ public class UserBuilderTesting implements Supplier<User>, Testing {
 	 * @param builder the builder
 	 * @param yob the yob
 	 */
-	public static void setYearOfBirth(UserBuilderTesting builder, Integer yob) {
+	public static void setYearOfBirth(UserBuilderTestingState builder, Integer yob) {
 		builder.yearOfBirth = yob;
 		builder.yobSet = true;
 	}
@@ -70,7 +70,7 @@ public class UserBuilderTesting implements Supplier<User>, Testing {
 	 * @param builder the builder
 	 * @param first the first
 	 */
-	public static void setFirst(UserBuilderTesting builder, String first) {
+	public static void setFirst(UserBuilderTestingState builder, String first) {
 		builder.first = (String) first;
 		builder.firstSet = true;
 	}
@@ -93,14 +93,11 @@ public class UserBuilderTesting implements Supplier<User>, Testing {
 	 * @param builder the builder
 	 * @param last the last
 	 */
-	public static void setLast(UserBuilderTesting builder, String last) {
+	public static void setLast(UserBuilderTestingState builder, String last) {
 		builder.last = last;
 		builder.lastSet = true;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.util.function.Supplier#get()
-	 */
 	@Override
 	public User get() {
 		return new User(first, last, yearOfBirth==null? 0:yearOfBirth.intValue());
@@ -125,10 +122,10 @@ public class UserBuilderTesting implements Supplier<User>, Testing {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Testing#test()
+	 * @see java.util.function.Predicate#test(java.lang.Object)
 	 */
 	@Override
-	public boolean test() {
+	public boolean test(State<Integer> state) {
 		return firstSet && lastSet && yobSet;
 	}
 

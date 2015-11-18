@@ -21,8 +21,10 @@ import org.junit.Test;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderEvents2;
+import com.aegisql.conveyor.user.UserBuilderEvents3;
 import com.aegisql.conveyor.user.UserBuilderSmart;
 import com.aegisql.conveyor.user.UserBuilderTesting;
+import com.aegisql.conveyor.user.UserBuilderTestingState;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -133,6 +135,45 @@ public class SmartConveyorTest {
 		Cart<Integer, String, UserBuilderEvents2> c2 = c1.nextCart("Doe", UserBuilderEvents2.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents2> c3 = new Cart<>(2, "Mike", UserBuilderEvents2.SET_FIRST);
 		Cart<Integer, Integer, UserBuilderEvents2> c4 = c1.nextCart(1999, UserBuilderEvents2.SET_YEAR);
+
+
+		conveyor.offer(c1);
+		User u0 = outQueue.poll();
+		assertNull(u0);
+		conveyor.offer(c2);
+		conveyor.offer(c3);
+		conveyor.offer(c4);
+		Thread.sleep(100);
+		User u1 = outQueue.poll();
+		assertNotNull(u1);
+		System.out.println(u1);
+		User u2 = outQueue.poll();
+		assertNull(u2);
+
+		Thread.sleep(100);
+
+		conveyor.stop();
+	}
+
+	/**
+	 * Test basics testing.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
+	@Test
+	public void testBasicsTestingState() throws InterruptedException {
+		AssemblingConveyor<Integer, UserBuilderEvents3, Cart<Integer, ?, UserBuilderEvents3>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderTestingState::new);
+
+		conveyor.setResultConsumer(res->{
+				    	outQueue.add(res);
+				    });
+		conveyor.setName("Testing User Assembler");
+		Cart<Integer, String, UserBuilderEvents3> c1 = new Cart<>(1, "John", UserBuilderEvents3.SET_FIRST);
+		Cart<Integer, String, UserBuilderEvents3> c2 = c1.nextCart("Doe", UserBuilderEvents3.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents3> c3 = new Cart<>(2, "Mike", UserBuilderEvents3.SET_FIRST);
+		Cart<Integer, Integer, UserBuilderEvents3> c4 = c1.nextCart(1999, UserBuilderEvents3.SET_YEAR);
 
 
 		conveyor.offer(c1);
