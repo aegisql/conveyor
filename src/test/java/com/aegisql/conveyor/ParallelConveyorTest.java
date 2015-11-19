@@ -189,7 +189,7 @@ public class ParallelConveyorTest {
 	public void testParallel() throws InterruptedException {
 
 	conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
-	conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
+	conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 	assertFalse(conveyor.isOnTimeoutAction());
 	conveyor.setOnTimeoutAction(true);
 	assertTrue(conveyor.isOnTimeoutAction());

@@ -238,8 +238,8 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilder::new);
-		conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
-		assertEquals(1000, conveyor.getBuilderTimeout());
+		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
+		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
 		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
 		assertEquals(500,conveyor.getExpirationCollectionInterval());
 		conveyor.setCartConsumer((label, value, builder) -> {
@@ -316,8 +316,8 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilder::new);
-		conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
-		assertEquals(1000, conveyor.getBuilderTimeout());
+		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
+		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
 		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
 		assertEquals(500,conveyor.getExpirationCollectionInterval());
 		conveyor.setCartConsumer((label, value, builder) -> {
@@ -386,8 +386,8 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilder::new);
-		conveyor.setBuilderTimeout(1, TimeUnit.SECONDS);
-		assertEquals(1000, conveyor.getBuilderTimeout());
+		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
+		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
 		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
 		assertEquals(500,conveyor.getExpirationCollectionInterval());
 		conveyor.setCartConsumer((label, value, builder) -> {

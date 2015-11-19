@@ -474,7 +474,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @return the builder timeout
 	 */
-	public long getBuilderTimeout() {
+	public long getDefaultBuilderTimeout() {
 		return builderTimeout;
 	}
 
@@ -484,7 +484,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 * @param builderTimeout the builder timeout
 	 * @param unit the unit
 	 */
-	public void setBuilderTimeout(long builderTimeout, TimeUnit unit) {
+	public void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit) {
 		this.builderTimeout = unit.toMillis(builderTimeout);
 	}
 
