@@ -219,6 +219,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	 */
 	public boolean ready() {
 		State<K,L> state = null;
+		final Map<L,Integer> history = new LinkedHashMap<>();
+		eventHistory.forEach((k,v)->history.put(k, v.get()));
 		 state = new State<>(
 					initialCart.getKey(),
 					builderCreated,
@@ -226,7 +228,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 					initialCart.getCreationTime(),
 					initialCart.getExpirationTime(),
 					acceptCount,
-					Collections.unmodifiableMap( eventHistory )
+					Collections.unmodifiableMap( history )
 					);
 		boolean res = readiness.test(state, builder);
 		if( res ) {

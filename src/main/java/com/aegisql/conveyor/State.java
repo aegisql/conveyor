@@ -34,7 +34,7 @@ public class State<K,L> {
 	/** The previously accepted. */
 	public final int previouslyAccepted;
 	
-	public final Map<L,AtomicInteger> eventHistory;
+	public final Map<L,Integer> eventHistory;
 	
 	/**
 	 * Instantiates a new building state.
@@ -53,7 +53,7 @@ public class State<K,L> {
 			,long cartCreated 
 			,long cartExpiration
 			,int previouslyAccepted
-			,Map<L,AtomicInteger> eventHistory
+			,Map<L,Integer> eventHistory
 			) {
 		this.key                = k;
 		this.builderCreated     = builderCreated;
