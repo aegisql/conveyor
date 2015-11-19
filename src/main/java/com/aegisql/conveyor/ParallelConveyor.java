@@ -157,6 +157,10 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 		return getConveyor( cart.getKey() ).offer( cart );
 	}
 
+	public int getNumberOfConveyors() {
+		return conveyors.length;
+	}
+	
 	/**
 	 * Gets the collector size.
 	 *
