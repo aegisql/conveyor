@@ -150,22 +150,21 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 * @return the building site
 	 */
 	private BuildingSite<K, L, IN, OUT> getBuildingSite(IN cart) {
+		BuildingSite<K, L, IN, OUT> buildingSite = null;
+		boolean returnNull = false;
 		K key = cart.getKey();
 		if(key == null) {
-			return null;
-		}
-		if( Status.TIMED_OUT.equals( cart.getValue() )) {
-			return null;
-		}
-		BuildingSite<K, L, IN, OUT> buildingSite = null;
-		buildingSite = collector.get(key);
-		if (buildingSite == null) {
+			returnNull = true;
+		} else if( Status.TIMED_OUT.equals( cart.getValue() )) {
+			returnNull = true;
+		} else if ( (buildingSite = collector.get(key)) == null) {
 			Supplier<Supplier<OUT>> bs;
 			
 			if(cart.getValue() != null && cart.getValue() instanceof Supplier) {
 				try {
 					bs = (Supplier<Supplier<OUT>>) cart.getValue();
 					buildingSite = new BuildingSite<K, L, IN, OUT>(cart, bs, cartConsumer, readiness, builderTimeout, TimeUnit.MILLISECONDS);
+					returnNull = true;
 				} catch(ClassCastException cce) {
 					buildingSite = getBuildingSite((IN) cart.nextCart(null));
 				}
@@ -173,7 +172,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, readiness, builderTimeout, TimeUnit.MILLISECONDS);
 			} else {
 				scrapConsumer.accept("Ignore cart. Neither builder nor builder supplier available", cart);
-				return null;
+				returnNull = true;
 			}
 			if(buildingSite != null) {
 				collector.put(key, buildingSite);
@@ -182,7 +181,11 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				}
 			}
 		}
-		return buildingSite;
+		if( returnNull ) {
+			return null;
+		} else {
+			return buildingSite;
+		}
 	}
 		
 	/**
