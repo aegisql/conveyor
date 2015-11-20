@@ -160,11 +160,26 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		BuildingSite<K, L, IN, OUT> buildingSite = null;
 		buildingSite = collector.get(key);
 		if (buildingSite == null) {
-			buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, readiness,
-					builderTimeout, TimeUnit.MILLISECONDS);
-			collector.put(key, buildingSite);
-			if (buildingSite.getBuilderExpiration() > 0) {
-				delayQueue.add(buildingSite);
+			Supplier<Supplier<OUT>> bs;
+			
+			if(cart.getValue() != null && cart.getValue() instanceof Supplier) {
+				try {
+					bs = (Supplier<Supplier<OUT>>) cart.getValue();
+					buildingSite = new BuildingSite<K, L, IN, OUT>(cart, bs, cartConsumer, readiness, builderTimeout, TimeUnit.MILLISECONDS);
+				} catch(ClassCastException cce) {
+					buildingSite = getBuildingSite((IN) cart.nextCart(null));
+				}
+			} else if(builderSupplier != null) {
+				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, readiness, builderTimeout, TimeUnit.MILLISECONDS);
+			} else {
+				scrapConsumer.accept("Ignore cart. Neither builder nor builder supplier available", cart);
+				return null;
+			}
+			if(buildingSite != null) {
+				collector.put(key, buildingSite);
+				if (buildingSite.getBuilderExpiration() > 0) {
+					delayQueue.add(buildingSite);
+				}
 			}
 		}
 		return buildingSite;

@@ -12,6 +12,7 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -276,6 +277,7 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c7 = new Cart<>(7, "Nik", "setLast", 1, TimeUnit.HOURS);
 
 		Cart<Integer, String, Command> c8 = new Cart<>(8, null, Command.CREATE_BUILD, 1, TimeUnit.SECONDS);
+		Cart<Integer, Supplier<UserBuilder>, Command> c9 = new Cart<>(9, UserBuilder::new, Command.CREATE_BUILD, 1, TimeUnit.SECONDS);
 
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
@@ -293,6 +295,7 @@ public class AssemblingConveyorTest {
 		assertNull(u2);
 		conveyor.offer(c7);
 		conveyor.addCommand(c8);
+		conveyor.addCommand(c9);
 		Thread.sleep(100);
 		conveyor.addCommand( new Cart<Integer,String,Command>(6,"",Command.CANCEL_BUILD));
 		conveyor.addCommand( new Cart<Integer,String,Command>(7,"",Command.TIMEOUT_BUILD));
@@ -306,6 +309,117 @@ public class AssemblingConveyorTest {
 		Thread.sleep(1000);
 	}
 
+	@Test
+	public void testSimpleConveyorCreatedByMessage() throws InterruptedException {
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
+		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
+		conveyor.setCartConsumer((label, value, builder) -> {
+			UserBuilder userBuilder = (UserBuilder) builder;
+			switch (label) {
+			case "setFirst":
+				userBuilder.setFirst((String) value);
+				break;
+			case "setLast":
+				userBuilder.setLast((String) value);
+				break;
+			case "setYearOfBirth":
+				userBuilder.setYearOfBirth((Integer) value);
+				break;
+			default:
+				throw new RuntimeException("Unknown label " + label);
+			}
+		});
+		conveyor.setResultConsumer(res->{
+				    	outQueue.add(res);
+				    });
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			return state.previouslyAccepted == 3;
+		});
+		
+		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
+		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");
+
+		Cart<Integer, Supplier<?>, Command> c0 = new Cart<>(1, UserBuilder::new, Command.CREATE_BUILD, 1, TimeUnit.SECONDS);
+
+		conveyor.addCommand(c0);
+		conveyor.offer(c1);
+		User u0 = outQueue.poll();
+		assertNull(u0);
+		conveyor.offer(c2);
+		conveyor.offer(c3);
+		Thread.sleep(100);
+		conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
+		User u1 = outQueue.poll();
+		assertNotNull(u1);
+		System.out.println(u1);
+		User u2 = outQueue.poll();
+		assertNull(u2);
+		Thread.sleep(100);
+		System.out.println("COL:"+conveyor.getCollectorSize());
+		System.out.println("DEL:"+conveyor.getDelayedQueueSize());
+		System.out.println("IN :"+conveyor.getInputQueueSize());
+		conveyor.stop();
+		Thread.sleep(1000);
+	}
+
+	@Test
+	public void testSimpleConveyorNotCreatedByMessage() throws InterruptedException {
+		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(null);
+		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
+		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
+		conveyor.setCartConsumer((label, value, builder) -> {
+			UserBuilder userBuilder = (UserBuilder) builder;
+			switch (label) {
+			case "setFirst":
+				userBuilder.setFirst((String) value);
+				break;
+			case "setLast":
+				userBuilder.setLast((String) value);
+				break;
+			case "setYearOfBirth":
+				userBuilder.setYearOfBirth((Integer) value);
+				break;
+			default:
+				throw new RuntimeException("Unknown label " + label);
+			}
+		});
+		conveyor.setResultConsumer(res->{
+				    	outQueue.add(res);
+				    });
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			return state.previouslyAccepted == 3;
+		});
+		
+		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
+		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");
+
+		Cart<Integer, Supplier<?>, Command> c0 = new Cart<>(1, String::new, Command.CREATE_BUILD, 1, TimeUnit.SECONDS);
+
+		conveyor.addCommand(c0);
+		conveyor.offer(c1);
+		User u0 = outQueue.poll();
+		assertNull(u0);
+		conveyor.offer(c2);
+		conveyor.offer(c3);
+		Thread.sleep(100);
+		conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
+		User u2 = outQueue.poll();
+		assertNull(u2);
+		Thread.sleep(100);
+		System.out.println("COL:"+conveyor.getCollectorSize());
+		System.out.println("DEL:"+conveyor.getDelayedQueueSize());
+		System.out.println("IN :"+conveyor.getInputQueueSize());
+		conveyor.stop();
+		Thread.sleep(1000);
+	}
+	
+	
 	/**
 	 * Test basics.
 	 *
