@@ -4,7 +4,7 @@ import java.util.function.BiConsumer;
 
 import com.aegisql.conveyor.SmartLabel;
 
-public final class BatchLabel <T> implements SmartLabel<BatchCollectingBuilder<T>> {
+public final class BatchLabel<T> implements SmartLabel<BatchCollectingBuilder<T>> {
 
 	private static final long serialVersionUID = 1L;
 
