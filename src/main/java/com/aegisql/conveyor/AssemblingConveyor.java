@@ -176,9 +176,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			}
 			if(buildingSite != null) {
 				collector.put(key, buildingSite);
-				if (buildingSite.getBuilderExpiration() > 0) {
-					delayQueue.add(buildingSite);
-				}
+				delayQueue.add(buildingSite);
 			}
 		}
 		if( returnNull ) {

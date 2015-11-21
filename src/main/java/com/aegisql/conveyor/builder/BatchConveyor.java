@@ -9,6 +9,7 @@ public class BatchConveyor <V> extends AssemblingConveyor<String, SmartLabel<Bat
 
 	public BatchConveyor() {
 		super();
+		this.setName("BatchConveyor");
 	}
 
 }
