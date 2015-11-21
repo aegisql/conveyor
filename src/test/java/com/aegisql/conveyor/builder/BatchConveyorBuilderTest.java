@@ -78,4 +78,44 @@ public class BatchConveyorBuilderTest {
 		assertEquals(0,b.getInputQueueSize());
 	}
 
+	@Test
+	public void testBatchConveyorWithNAmedCart() throws InterruptedException {
+
+		BatchConveyor<Integer> b = new BatchConveyor<>();
+		
+		AtomicInteger ai = new AtomicInteger(0);
+		AtomicInteger aii = new AtomicInteger(0);
+		
+		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 10, TimeUnit.MILLISECONDS) );
+		b.setScrapConsumer((exp,obj)->{
+			System.out.println(exp+" "+obj);
+			ai.decrementAndGet();
+		});
+		b.setResultConsumer((list)->{
+			System.out.println(list);
+			ai.incrementAndGet();
+			aii.addAndGet(list.size());
+		});
+		b.setExpirationCollectionInterval(100, TimeUnit.MILLISECONDS);
+		for(int i = 0; i < 102; i++) {
+			if(i % 2 == 0) {
+				b.add(new BatchCart<Integer>("A",i));
+			} else {
+				b.add(new BatchCart<Integer>("B",i));
+			}
+		}
+		Thread.sleep(50);
+		assertEquals(10, ai.get());
+		assertEquals(100, aii.get());
+		Thread.sleep(200);
+		System.out.println("COL:"+b.getCollectorSize());
+		System.out.println("DEL:"+b.getDelayedQueueSize());
+		System.out.println("IN :"+b.getInputQueueSize());
+		assertEquals(12, ai.get());
+		assertEquals(102, aii.get());
+		assertEquals(0,b.getCollectorSize());
+		assertEquals(0,b.getDelayedQueueSize());
+		assertEquals(0,b.getInputQueueSize());
+	}
+
 }
