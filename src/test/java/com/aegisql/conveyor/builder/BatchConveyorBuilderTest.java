@@ -64,6 +64,9 @@ public class BatchConveyorBuilderTest {
 		for(int i = 0; i < 102; i++) {
 			b.add(new BatchCart<Integer>(i));
 		}
+		Thread.sleep(90);
+		assertEquals(10, ai.get());
+		assertEquals(100, aii.get());
 		Thread.sleep(200);
 		System.out.println("COL:"+b.getCollectorSize());
 		System.out.println("DEL:"+b.getDelayedQueueSize());
