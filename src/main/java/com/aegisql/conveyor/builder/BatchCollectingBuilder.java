@@ -16,6 +16,7 @@ public class BatchCollectingBuilder<T> implements Supplier<List<T>>,Testing, Del
 	private final long builderCreated = System.currentTimeMillis();
 	private final long builderExpiration;
 
+	private boolean ready = false;
 	
 	public BatchCollectingBuilder(int batchSize, long ttl, TimeUnit timeUnit ) {
 		this.batch = new ArrayList<>( batchSize );
@@ -50,7 +51,7 @@ public class BatchCollectingBuilder<T> implements Supplier<List<T>>,Testing, Del
 	
 	@Override
 	public boolean test() {
-		return batch.size() >= batchSize;
+		return ready || batch.size() >= batchSize;
 	}
 
 	/* (non-Javadoc)
@@ -72,6 +73,10 @@ public class BatchCollectingBuilder<T> implements Supplier<List<T>>,Testing, Del
 			delta = builderExpiration - System.currentTimeMillis();
 		}
         return unit.convert(delta, TimeUnit.MILLISECONDS);
+	}
+
+	public void setReady(boolean ready) {
+		this.ready = ready;
 	}
 	
 }

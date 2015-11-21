@@ -50,9 +50,6 @@ public class BatchConveyorBuilderTest {
 		b.setScrapConsumer((exp,obj)->{
 			System.out.println(exp+" "+obj);
 		});
-		b.setReadinessEvaluator((builder)->{
-			return true;
-		});
 		b.setResultConsumer((list)->{
 			System.out.println(list);
 		});

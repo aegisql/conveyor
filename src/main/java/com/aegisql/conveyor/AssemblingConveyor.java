@@ -408,6 +408,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			buildingSite.accept((IN) cart);
 			if (buildingSite.ready()) {
 				collector.remove(key);
+				delayQueue.remove(buildingSite);
 				resultConsumer.accept(buildingSite.build());
 			}
 		} catch (Exception e) {
@@ -418,6 +419,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				scrapConsumer.accept("Site processor failed "+e.getMessage(),buildingSite);
 			}
 			collector.remove(key);
+			delayQueue.remove(buildingSite);
 		}
 	}
 	
