@@ -40,7 +40,11 @@ public class BatchCart <V> extends ShoppingCart<String, V, SmartLabel<BatchColle
 			public BiConsumer<BatchCollectingBuilder<V>, Object> getSetter() {
 				BiConsumer<BatchCollectingBuilder<V>, V> consumer = BatchCollectingBuilder::add;
 				return (BiConsumer<BatchCollectingBuilder<V>, Object>)consumer;
-			}};
+			}
+			public String toString() {
+				return "BATCH";
+			}
+			};
 	}
 
 }
