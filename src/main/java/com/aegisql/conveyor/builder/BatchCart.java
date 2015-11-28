@@ -3,10 +3,10 @@ package com.aegisql.conveyor.builder;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
-import com.aegisql.conveyor.Cart;
 import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.cart.ShoppingCart;
 
-public class BatchCart <V> extends Cart<String, V, SmartLabel<BatchCollectingBuilder<V>>> {
+public class BatchCart <V> extends ShoppingCart<String, V, SmartLabel<BatchCollectingBuilder<V>>> {
 
 	private static final long serialVersionUID = 7358052456949320913L;
 

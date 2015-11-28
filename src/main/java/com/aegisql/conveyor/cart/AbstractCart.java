@@ -1,10 +1,10 @@
 /* 
  * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
  */
-package com.aegisql.conveyor;
+package com.aegisql.conveyor.cart;
 
-import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
@@ -18,25 +18,25 @@ import java.util.concurrent.TimeUnit;
  * @param <V> the value type
  * @param <L> the generic type
  */
-public class Cart<K,V,L> implements Delayed, Serializable {
+public abstract class AbstractCart<K,V,L> implements Cart<K,V,L> {
 	
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 5414733837801886611L;
 
 	/** The k. */
-	private final K k;
+	protected final K k;
 	
 	/** The v. */
-	private final V v;
+	protected final V v;
 	
 	/** The label. */
-	private final L label;
+	protected final L label;
 	
 	/** The created. */
-	private final long created = System.currentTimeMillis();
+	protected final long created = System.currentTimeMillis();
 	
 	/** The expiration. */
-	private final long expiration;
+	protected final long expiration;
 	
 	/**
 	 * Instantiates a new cart.
@@ -47,8 +47,8 @@ public class Cart<K,V,L> implements Delayed, Serializable {
 	 * @param ttl the ttl
 	 * @param timeUnit the time unit
 	 */
-	public Cart(K k, V v, L label, long ttl, TimeUnit timeUnit) {
-		super();
+	public AbstractCart(K k, V v, L label, long ttl, TimeUnit timeUnit) {
+		Objects.requireNonNull(k);
 		this.k          = k;
 		this.v          = v;
 		this.label      = label;
@@ -62,8 +62,8 @@ public class Cart<K,V,L> implements Delayed, Serializable {
 	 * @param v the v
 	 * @param label the label
 	 */
-	public Cart(K k, V v, L label) {
-		super();
+	public AbstractCart(K k, V v, L label) {
+		Objects.requireNonNull(k);
 		this.k = k;
 		this.v = v;
 		this.label = label;
@@ -78,8 +78,8 @@ public class Cart<K,V,L> implements Delayed, Serializable {
 	 * @param label the label
 	 * @param expiration the expiration
 	 */
-	public Cart(K k, V v, L label, long expiration) {
-		super();
+	public AbstractCart(K k, V v, L label, long expiration) {
+		Objects.requireNonNull(k);
 		this.k = k;
 		this.v = v;
 		this.label = label;
@@ -140,30 +140,6 @@ public class Cart<K,V,L> implements Delayed, Serializable {
 		return expiration > 0 && expiration <= System.currentTimeMillis();
 	}
 	
-	/**
-	 * Next cart.
-	 *
-	 * @param <L1> the generic type
-	 * @param <V1> the generic type
-	 * @param newValue the new value
-	 * @param newLabel the new label
-	 * @return the cart
-	 */
-	public <L1,V1> Cart<K,V1,L1> nextCart(V1 newValue,L1 newLabel) {
-		return new Cart<>(this.getKey(),newValue,newLabel,this.getExpirationTime());
-	}
-
-	/**
-	 * Next cart.
-	 *
-	 * @param <V1> the generic type
-	 * @param newValue the new value
-	 * @return the cart
-	 */
-	public <V1> Cart<K,V1,L> nextCart(V1 newValue) {
-		return new Cart<>(this.getKey(), newValue, this.getLabel(), this.getExpirationTime());
-	}
-
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -182,10 +158,10 @@ public class Cart<K,V,L> implements Delayed, Serializable {
 	 */
 	@Override
 	public int compareTo(Delayed o) {
-		if( this.created < ((Cart<?,?,?>)o).created) {
+		if( this.created < ((AbstractCart<?,?,?>)o).created) {
 			return -1;
 		}
-		if( this.created > ((Cart<?,?,?>)o).created) {
+		if( this.created > ((AbstractCart<?,?,?>)o).created) {
 			return +1;
 		}
 		return 0;

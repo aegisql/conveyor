@@ -3,7 +3,11 @@
  */
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
@@ -12,6 +16,7 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.junit.After;
@@ -20,11 +25,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.BuildingSite.Status;
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.command.AbstractCommand;
+import com.aegisql.conveyor.cart.command.CancelCommand;
+import com.aegisql.conveyor.cart.command.CreateCommand;
+import com.aegisql.conveyor.cart.command.TimeoutCommand;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
-import com.aegisql.conveyor.user.UserBuilderEvents;
-import com.aegisql.conveyor.user.UserBuilderSmart;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -89,7 +97,7 @@ public class AssemblingConveyorTest {
 			assertTrue(o instanceof Cart);
 			visited.set(true);
 		});
-		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		assertTrue(conveyor.offer(c1));
 		Thread.sleep(100);
 		assertTrue(visited.get());
@@ -109,7 +117,7 @@ public class AssemblingConveyorTest {
 			assertTrue(ex.startsWith("Not Running"));
 			assertTrue(o instanceof Cart);
 		});
-		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		conveyor.stop();
 		assertFalse(conveyor.offer(c1));
 	}
@@ -128,7 +136,7 @@ public class AssemblingConveyorTest {
 			assertTrue(ex.startsWith("Not Running"));
 			assertTrue(o instanceof Cart);
 		});
-		Cart<Integer, String, Command> c1 = new Cart<>(1, null, Command.TIMEOUT_BUILD);
+		AbstractCommand<Integer,?> c1 = new TimeoutCommand<>(1);
 		conveyor.stop();
 		assertFalse(conveyor.addCommand(c1));
 	}
@@ -147,7 +155,7 @@ public class AssemblingConveyorTest {
 			assertTrue(ex.startsWith("Expired command"));
 			assertTrue(o instanceof Cart);
 		});
-		Cart<Integer, String, Command> c1 = new Cart<>(1, null, Command.TIMEOUT_BUILD,1,TimeUnit.MILLISECONDS);
+		AbstractCommand<Integer,?> c1 = new TimeoutCommand<>(1,1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
 		conveyor.addCommand(c1);
 	}
@@ -167,7 +175,7 @@ public class AssemblingConveyorTest {
 			assertTrue(ex.startsWith("Command too old"));
 			assertTrue(o instanceof Cart);
 		});
-		Cart<Integer, String, Command> c1 = new Cart<>(1, null, Command.TIMEOUT_BUILD,100,TimeUnit.MILLISECONDS);
+		AbstractCommand<Integer,?> c1 = new TimeoutCommand<>(1,100,TimeUnit.MILLISECONDS);
 		Thread.sleep(20);
 		conveyor.addCommand(c1);
 	}
@@ -186,7 +194,7 @@ public class AssemblingConveyorTest {
 			assertTrue(ex.startsWith("Not Running"));
 			assertTrue(o instanceof Cart);
 		});
-		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		conveyor.stop();
 		conveyor.add(c1);
 	}
@@ -205,7 +213,7 @@ public class AssemblingConveyorTest {
 			assertTrue(ex.startsWith("Cart expired"));
 			assertTrue(o instanceof Cart);
 		});
-		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
+		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
 		conveyor.add(c1);
 	}
@@ -224,7 +232,7 @@ public class AssemblingConveyorTest {
 			assertTrue(ex.startsWith("Cart expired"));
 			assertTrue(o instanceof Cart);
 		});
-		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
+		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
 		assertFalse(conveyor.offer(c1));
 	}
@@ -266,18 +274,18 @@ public class AssemblingConveyorTest {
 			return state.previouslyAccepted == 3;
 		});
 		
-		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
-		Cart<Integer, String, String> c3 = new Cart<>(2, "Mike", "setFirst");
+		Cart<Integer, String, String> c3 = new ShoppingCart<>(2, "Mike", "setFirst");
 		Cart<Integer, Integer, String> c4 = c1.nextCart(1999, "setYearOfBirth");
 
-		Cart<Integer, Integer, String> c5 = new Cart<>(3, 1999, "setBlah");
+		Cart<Integer, Integer, String> c5 = new ShoppingCart<>(3, 1999, "setBlah");
 
-		Cart<Integer, String, String> c6 = new Cart<>(6, "Ann", "setFirst");
-		Cart<Integer, String, String> c7 = new Cart<>(7, "Nik", "setLast", 1, TimeUnit.HOURS);
+		Cart<Integer, String, String> c6 = new ShoppingCart<>(6, "Ann", "setFirst");
+		Cart<Integer, String, String> c7 = new ShoppingCart<>(7, "Nik", "setLast", 1, TimeUnit.HOURS);
 
-		Cart<Integer, String, Command> c8 = new Cart<>(8, null, Command.CREATE_BUILD, 1, TimeUnit.SECONDS);
-		Cart<Integer, Supplier<UserBuilder>, Command> c9 = new Cart<>(9, UserBuilder::new, Command.CREATE_BUILD, 1, TimeUnit.SECONDS);
+		AbstractCommand<Integer,?> c8 = new CreateCommand<>(8,1,TimeUnit.SECONDS);
+		AbstractCommand<Integer,?> c9 = new CreateCommand<>(8,UserBuilder::new,1,TimeUnit.SECONDS);
 
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
@@ -297,8 +305,8 @@ public class AssemblingConveyorTest {
 		conveyor.addCommand(c8);
 		conveyor.addCommand(c9);
 		Thread.sleep(100);
-		conveyor.addCommand( new Cart<Integer,String,Command>(6,"",Command.CANCEL_BUILD));
-		conveyor.addCommand( new Cart<Integer,String,Command>(7,"",Command.TIMEOUT_BUILD));
+		conveyor.addCommand( new CancelCommand<Integer>(6));
+		conveyor.addCommand( new TimeoutCommand<Integer, Supplier<?>>(7));
 
 		conveyor.offer(c5);
 		Thread.sleep(2000);
@@ -338,11 +346,11 @@ public class AssemblingConveyorTest {
 			return state.previouslyAccepted == 3;
 		});
 		
-		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
 		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");
 
-		Cart<Integer, Supplier<?>, Command> c0 = new Cart<>(1, UserBuilder::new, Command.CREATE_BUILD, 1, TimeUnit.SECONDS);
+		AbstractCommand<Integer,?> c0 = new CreateCommand<>(1,UserBuilder::new,1,TimeUnit.SECONDS);
 
 		conveyor.addCommand(c0);
 		conveyor.offer(c1);
@@ -352,6 +360,7 @@ public class AssemblingConveyorTest {
 		conveyor.offer(c3);
 		Thread.sleep(100);
 		conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
+		Thread.sleep(1100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
 		System.out.println(u1);
@@ -395,13 +404,10 @@ public class AssemblingConveyorTest {
 			return state.previouslyAccepted == 3;
 		});
 		
-		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
 		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");
 
-		Cart<Integer, Supplier<?>, Command> c0 = new Cart<>(1, String::new, Command.CREATE_BUILD, 1, TimeUnit.SECONDS);
-
-		conveyor.addCommand(c0);
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
@@ -458,9 +464,9 @@ public class AssemblingConveyorTest {
 			return ub.getFirst() != null && ub.getLast() != null && ub.getYearOfBirth() != null;
 		});
 		
-		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
-		Cart<Integer, String, String> c3 = new Cart<>(2, "Mike", "setFirst");
+		Cart<Integer, String, String> c3 = new ShoppingCart<>(2, "Mike", "setFirst");
 		Cart<Integer, Integer, String> c4 = c1.nextCart(1999, "setYearOfBirth");
 
 		conveyor.offer(c1);
@@ -477,8 +483,8 @@ public class AssemblingConveyorTest {
 		User u2 = outQueue.poll();
 		assertNull(u2);
 		Thread.sleep(100);
-		conveyor.addCommand( new Cart<Integer,String,Command>(6,"",Command.CANCEL_BUILD));
-		conveyor.addCommand( new Cart<Integer,String,Command>(7,"",Command.TIMEOUT_BUILD));
+		conveyor.addCommand( new CancelCommand<Integer>(6));
+		conveyor.addCommand( new TimeoutCommand<Integer, Supplier<?>>(7));
 
 		Thread.sleep(2000);
 		System.out.println("COL:"+conveyor.getCollectorSize());
@@ -519,7 +525,7 @@ public class AssemblingConveyorTest {
 //			assertTrue(o instanceof Cart);
 		});
 
-		Cart<Integer, String, String> c1 = new Cart<>(1, "John", "setFirst");
+		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		assertTrue(conveyor.isRunning());
 		conveyor.offer(c1);
 		Thread.sleep(100);
@@ -534,8 +540,8 @@ public class AssemblingConveyorTest {
 	 */
 	@Test
 	public void testDelayed() throws InterruptedException {
-		Cart<Integer, String, String> c1 = new Cart<>(1, "A", "setFirst",1,TimeUnit.SECONDS);
-		Cart<Integer, String, String> c2 = new Cart<>(1, "B", "setLast",c1.getExpirationTime());
+		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "A", "setFirst",1,TimeUnit.SECONDS);
+		Cart<Integer, String, String> c2 = new ShoppingCart<>(1, "B", "setLast",c1.getExpirationTime());
 
 		assertFalse(c1.expired());
 		assertFalse(c2.expired());

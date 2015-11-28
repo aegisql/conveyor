@@ -3,6 +3,9 @@
  */
 package com.aegisql.conveyor;
 
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.command.AbstractCommand;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Interface Conveyor.
@@ -38,6 +41,6 @@ public interface Conveyor<K, L, IN extends Cart<K,?,L>,OUT> {
 	 * @param cart the cart
 	 * @return true, if successful
 	 */
-	public boolean addCommand(Cart<K,?,Command> cart);
+	public boolean addCommand(AbstractCommand<K, ?> command);
 
 }

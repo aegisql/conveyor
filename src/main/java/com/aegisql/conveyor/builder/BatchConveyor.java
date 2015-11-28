@@ -10,9 +10,8 @@ public class BatchConveyor <V> extends AssemblingConveyor<String, SmartLabel<Bat
 	public BatchConveyor() {
 		super();
 		this.setName("BatchConveyor");
-		this.setOnTimeoutAction(true);
-		this.setCartConsumer((a,b,c)->{
-			BatchCollectingBuilder<V> builder = (BatchCollectingBuilder<V>)c;
+		this.setOnTimeoutAction((b)->{
+			BatchCollectingBuilder<V> builder = (BatchCollectingBuilder<V>)b;
 			builder.setReady(true);
 		});
 	}

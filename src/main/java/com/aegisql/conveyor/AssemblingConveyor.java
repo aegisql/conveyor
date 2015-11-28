@@ -22,6 +22,12 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.CreatingCart;
+import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.command.AbstractCommand;
+import com.aegisql.conveyor.cart.command.CreateCommand;
+import com.aegisql.conveyor.cart.command.TimeoutCommand;
 import com.aegisql.conveyor.BuildingSite.Status;
 
 // TODO: Auto-generated Javadoc
@@ -41,7 +47,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	private final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
 
 	/** The timer. */
-	private final Timer timer = new Timer("BuilderTimeoutTicker");
+	private Timer timer = new Timer("BuilderTimeoutTicker");
 
 	/** The expired collector. */
 	private TimerTask expiredCollector = null;
@@ -53,13 +59,13 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	private final Queue<IN> inQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
 
 	/** The m queue. */
-	private final Queue<Cart<K,?,Command>> mQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
+	private final Queue<AbstractCommand<K, ?>> mQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
 
 	/** The delay queue. */
-	private final BlockingQueue<BuildingSite<K, L, IN, OUT>> delayQueue = new DelayQueue<>();
+	private final BlockingQueue<BuildingSite<K, L, IN, ? extends OUT>> delayQueue = new DelayQueue<>();
 
 	/** The collector. */
-	private final Map<K, BuildingSite<K, L, IN, OUT>> collector = new HashMap<>();
+	private final Map<K, BuildingSite<K, L, IN, ? extends OUT>> collector = new HashMap<>();
 
 	/** The builder timeout. */
 	private long builderTimeout = 0;
@@ -67,30 +73,29 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	/** The start time reject. */
 	private long startTimeReject = System.currentTimeMillis();
 
-	/** The on timeout action. */
-	private boolean onTimeoutAction = false;
+	private Consumer<Supplier<? extends OUT>> timeoutAction;
 
 	/** The result consumer. */
-	private Consumer<OUT> resultConsumer   = out   -> { LOG.error("LOST RESULT "+out); };
+	private Consumer<OUT> resultConsumer = out -> { LOG.error("LOST RESULT "+out); };
 
 	/** The scrap consumer. */
 	private BiConsumer<String,Object> scrapConsumer = (explanation, scrap) -> { LOG.error(explanation + " " + scrap); };
 	
 	/** The cart consumer. */
-	private LabeledValueConsumer<L, ?, Supplier<OUT>> cartConsumer = (l,v,b) -> { 
+	private LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer = (l,v,b) -> { 
 		scrapConsumer.accept("Cart Consumer is not set. label:",l);
 		scrapConsumer.accept("Cart Consumer is not set value:",v);
 		throw new IllegalStateException("Cart Consumer is not set");
 	};
 	
 	/** The ready. */
-	private BiPredicate<State<K,L>, Supplier<OUT>> readiness = (l,b) -> {
+	private BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness = (l,b) -> {
 		scrapConsumer.accept("Readiness Evaluator is not set",l);
 		throw new IllegalStateException("Readiness Evaluator is not set");
 	};
 	
 	/** The builder supplier. */
-	private Supplier<Supplier<OUT>> builderSupplier = () -> {
+	private Supplier<Supplier<? extends OUT>> builderSupplier = () -> {
 		throw new IllegalStateException("Builder Supplier is not set");
 	};
 
@@ -149,8 +154,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 * @param cart the cart
 	 * @return the building site
 	 */
-	private BuildingSite<K, L, IN, OUT> getBuildingSite(IN cart) {
-		BuildingSite<K, L, IN, OUT> buildingSite = null;
+	private BuildingSite<K, L, IN, ? extends OUT> getBuildingSite(IN cart) {
+		BuildingSite<K, L, IN, ? extends OUT> buildingSite = null;
 		boolean returnNull = false;
 		K key = cart.getKey();
 		if(key == null) {
@@ -158,16 +163,18 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		} else if( Status.TIMED_OUT.equals( cart.getValue() )) {
 			returnNull = true;
 		} else if ( (buildingSite = collector.get(key)) == null) {
-			Supplier<Supplier<OUT>> bs;
+			Supplier<Supplier<? extends OUT>> bs;
 			
-			if(cart.getValue() != null && cart.getValue() instanceof Supplier) {
-				try {
-					bs = (Supplier<Supplier<OUT>>) cart.getValue();
-					buildingSite = new BuildingSite<K, L, IN, OUT>(cart, bs, cartConsumer, readiness, builderTimeout, TimeUnit.MILLISECONDS);
-					returnNull = true;
-				} catch(ClassCastException cce) {
-					buildingSite = getBuildingSite((IN) cart.nextCart(null));
-				}
+			if(cart.getValue() != null && cart instanceof CreatingCart ) {
+				CreatingCart<K,Supplier<? extends OUT>,L> cc = (CreatingCart<K,Supplier<? extends OUT>,L>)cart;
+				bs= cc.getValue();
+				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, bs, cartConsumer, readiness, builderTimeout, TimeUnit.MILLISECONDS);
+				returnNull = true;
+			} if(cart.getValue() != null && cart instanceof CreateCommand ) {
+				CreateCommand<K, Supplier<? extends OUT>> cc = (CreateCommand<K, Supplier<? extends OUT>>)cart;
+				bs= cc.getValue();
+				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, bs, cartConsumer, readiness, builderTimeout, TimeUnit.MILLISECONDS);
+				returnNull = true;
 			} else if(builderSupplier != null) {
 				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, readiness, builderTimeout, TimeUnit.MILLISECONDS);
 			} else {
@@ -218,10 +225,10 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 * Process management commands.
 	 */
 	private void processManagementCommands() {
-		Cart<K,?,Command> cmd = null;
+		Cart<K,?,CommandLabel> cmd = null;
 		while((cmd = mQueue.poll()) != null) {
 			LOG.debug("processing command "+cmd);
-			Command l = cmd.getLabel();
+			CommandLabel l = cmd.getLabel();
 			l.getSetter().accept(this, cmd);
 		}
 	}
@@ -262,7 +269,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public boolean addCommand(Cart<K,?,Command> cart) {
+	public boolean addCommand(AbstractCommand<K, ?> cart) {
 		if (!running) {
 			scrapConsumer.accept("Not Running",cart);
 			lock.tell();
@@ -398,7 +405,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		if( key == null ) {
 			return;
 		}
-		BuildingSite<K, L, IN, OUT> buildingSite = null; 
+		BuildingSite<K, L, IN, ? extends OUT> buildingSite = null; 
 		try {
 			LOG.debug("Read " + cart);
 			buildingSite = getBuildingSite(cart);
@@ -428,19 +435,21 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 */
 	private void removeExpired() {
 		int cnt = 0;
-		BuildingSite<K, L, IN, OUT> buildingSite = null;
+		BuildingSite<K, L, IN, ? extends OUT> buildingSite = null;
 		while ( (buildingSite = delayQueue.poll()) != null) {
 			buildingSite.setStatus(Status.TIMED_OUT);
 			K key = buildingSite.getKey();
 			if (collector.containsKey(key)) {
 				collector.remove(key);
 				cnt++;
-				if (onTimeoutAction) {
+				if (timeoutAction != null) {
 					try {
-						buildingSite.accept((IN) buildingSite.getCart().nextCart( Status.TIMED_OUT, null ));
+						ShoppingCart<K,Object,L> to = new ShoppingCart<K,Object,L>(buildingSite.getCart().getKey(), Status.TIMED_OUT,null);
+						buildingSite.accept((IN)to);
 						if (buildingSite.ready()) {
 							LOG.debug("Expired and finished " + key);
-							resultConsumer.accept(buildingSite.build());
+							OUT res = buildingSite.build();
+							resultConsumer.accept(res);
 						} else {
 							LOG.debug("Expired and not finished " + key);
 							scrapConsumer.accept("Site expired", buildingSite);
@@ -470,15 +479,19 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 		this.expirationCollectionInterval = unit.toMillis(expirationCollectionInterval);
 		if (expiredCollector != null) {
 			expiredCollector.cancel();
+			timer.cancel();
 			timer.purge();
+			timer = new Timer("BuilderTimeoutTicker");
 		}
 		expiredCollector = new TimerTask() {
 			@Override
 			public void run() {
-				BuildingSite<K, L, IN, OUT> exp;
+				BuildingSite<K, L, IN, ? extends OUT> exp;
 				if ( (exp = delayQueue.poll()) != null) {
 					LOG.debug("CHECK TIMEOUT SENT" );
-					Cart<K, Object, L> msg = exp.getCart().nextCart( Status.TIMED_OUT, null );
+					TimeoutCommand<K, Supplier<?>> to = new TimeoutCommand<>(exp.getCart().getKey());
+					Cart<K, Object, L> msg = new ShoppingCart<K,Object,L>(exp.getCart().getKey(), Status.TIMED_OUT,null); 
+							//exp.getCart().nextCart( Status.TIMED_OUT, null );
 					addFirst((IN) msg);
 					delayQueue.add(exp); //return back
 				}
@@ -523,7 +536,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 * @return true, if is on timeout action
 	 */
 	public boolean isOnTimeoutAction() {
-		return onTimeoutAction;
+		return timeoutAction != null;
 	}
 
 	/**
@@ -531,8 +544,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @param onTimeoutAction the new on timeout action
 	 */
-	public void setOnTimeoutAction(boolean onTimeoutAction) {
-		this.onTimeoutAction = onTimeoutAction;
+	public void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction) {
+		this.timeoutAction = timeoutAction;
 	}
 
 	/**
@@ -549,7 +562,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @param cartConsumer the cart consumer
 	 */
-	public void setCartConsumer(LabeledValueConsumer<L, ?, Supplier<OUT>> cartConsumer) {
+	public void setCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer) {
 		this.cartConsumer = cartConsumer;
 	}
 
@@ -558,7 +571,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @param readiness the ready
 	 */
-	public void setReadinessEvaluator(BiPredicate<State<K,L>, Supplier<OUT>> readiness) {
+	public void setReadinessEvaluator(BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness) {
 		this.readiness = readiness;
 	}
 
@@ -567,7 +580,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @param readiness the ready
 	 */
-	public void setReadinessEvaluator(Predicate<Supplier<OUT>> readiness) {
+	public void setReadinessEvaluator(Predicate<Supplier<? extends OUT>> readiness) {
 		this.readiness = (status,builder) -> readiness.test( builder ) ;
 	}
 
@@ -576,7 +589,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @param builderSupplier the new builder supplier
 	 */
-	public void setBuilderSupplier(Supplier<Supplier<OUT>> builderSupplier) {
+	public void setBuilderSupplier(Supplier<Supplier<? extends OUT>> builderSupplier) {
 		this.builderSupplier = builderSupplier;
 	}
 
@@ -642,7 +655,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				}
 			};
 			conveyor.delayQueue.add(bs);
-			conveyor.addFirst( bs.getCart().nextCart(Status.TIMED_OUT,null));
+			ShoppingCart to = new ShoppingCart(bs.getCart().getKey(), Status.TIMED_OUT, null);
+			conveyor.addFirst( to );
 		}
 	}
 

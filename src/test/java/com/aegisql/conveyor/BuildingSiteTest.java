@@ -2,7 +2,11 @@
  * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
  */
 package com.aegisql.conveyor;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
@@ -12,13 +16,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.BuildingSite;
 import com.aegisql.conveyor.BuildingSite.Status;
-import com.aegisql.conveyor.Cart;
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.user.UserBuilderDelayed;
-import com.aegisql.conveyor.user.UserBuilderSmart;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -70,7 +73,7 @@ public class BuildingSiteTest {
 	 */
 	@Test(expected=IllegalStateException.class)
 	public void testNotReady() {
-		Cart<Integer,String,String> c = new Cart<>(1,"v1","l",100,TimeUnit.MILLISECONDS);
+		Cart<Integer,String,String> c = new ShoppingCart<>(1,"v1","l",100,TimeUnit.MILLISECONDS);
 
 		BuildingSite<Integer, String, Cart<Integer,?,String>, User> bs = new BuildingSite<>
 		(
@@ -90,7 +93,7 @@ public class BuildingSiteTest {
 	 */
 	@Test()
 	public void testReady() throws InterruptedException {
-		Cart<Integer,String,String> c = new Cart<>(1,"v1","l",100,TimeUnit.MILLISECONDS);
+		ShoppingCart<Integer,String,String> c = new ShoppingCart<>(1,"v1","l",100,TimeUnit.MILLISECONDS);
 
 		BuildingSite<Integer, String, Cart<Integer,?,String>, User> bs = new BuildingSite<>
 		(
@@ -118,7 +121,7 @@ public class BuildingSiteTest {
 	 */
 	@Test()
 	public void testReadyDelayed() throws InterruptedException {
-		Cart<Integer,String,String> c = new Cart<>(1,"v1","l",100,TimeUnit.MILLISECONDS);
+		ShoppingCart<Integer,String,String> c = new ShoppingCart<>(1,"v1","l",100,TimeUnit.MILLISECONDS);
 
 		BuildingSite<Integer, String, Cart<Integer,?,String>, User> bs = new BuildingSite<>
 		(

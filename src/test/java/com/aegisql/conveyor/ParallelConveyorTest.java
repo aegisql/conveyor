@@ -3,7 +3,9 @@
  */
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +21,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.command.AbstractCommand;
+import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
@@ -165,10 +171,11 @@ public class ParallelConveyorTest {
 	@Test
 	public void testParallelCommand() throws InterruptedException {
 		
-		Cart<Integer,String,Command> c1 = new Cart<Integer, String, Command>(1, "", Command.CREATE_BUILD,10,TimeUnit.MILLISECONDS);
-		Cart<Integer,String,Command> c2 = new Cart<Integer, String, Command>(2, "", Command.CREATE_BUILD,10,TimeUnit.MILLISECONDS);
-		Cart<Integer,String,Command> c3 = new Cart<Integer, String, Command>(3, "", Command.CREATE_BUILD,10,TimeUnit.MILLISECONDS);
-		Cart<Integer,String,Command> c4 = new Cart<Integer, String, Command>(4, "", Command.CREATE_BUILD,10,TimeUnit.MILLISECONDS);
+		AbstractCommand<Integer,?> c1 = new CreateCommand<>(1,UserBuilder::new,10,TimeUnit.MILLISECONDS );
+		AbstractCommand<Integer,?> c2 = new CreateCommand<>(2,UserBuilder::new,10,TimeUnit.MILLISECONDS );
+		AbstractCommand<Integer,?> c3 = new CreateCommand<>(3,UserBuilder::new,10,TimeUnit.MILLISECONDS );
+		AbstractCommand<Integer,?> c4 = new CreateCommand<>(4,UserBuilder::new,10,TimeUnit.MILLISECONDS );
+
 		
 		conveyor.addCommand(c1);
 		conveyor.addCommand(c2);
@@ -191,7 +198,9 @@ public class ParallelConveyorTest {
 	conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
 	conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 	assertFalse(conveyor.isOnTimeoutAction());
-	conveyor.setOnTimeoutAction(true);
+	conveyor.setOnTimeoutAction((builder)->{
+		System.out.println("---");
+	});
 	assertTrue(conveyor.isOnTimeoutAction());
 	conveyor.setResultConsumer( res->{
 		    	outQueue.add(res);
@@ -202,7 +211,7 @@ public class ParallelConveyorTest {
 		int[] ids = getRandomInts();
 		for(int i = 0; i < SIZE; i++) {
 			User u = inUser[ids[i]];
-			Cart<Integer, String, String> cart = new Cart<>(ids[i], "First_"+ids[i], "setFirst",1,TimeUnit.SECONDS);
+			Cart<Integer, String, String> cart = new ShoppingCart<>(ids[i], "First_"+ids[i], "setFirst",1,TimeUnit.SECONDS);
 			if(r.nextInt(100) == 22) continue;
 			try {
 				Thread.sleep(1);
@@ -218,7 +227,7 @@ public class ParallelConveyorTest {
 		int[] ids = getRandomInts();
 		for(int i = 0; i < SIZE; i++) {
 			User u = inUser[ids[i]];
-			Cart<Integer, String, String> cart = new Cart<>(ids[i], "Last_"+ids[i], "setLast",1,TimeUnit.SECONDS);
+			Cart<Integer, String, String> cart = new ShoppingCart<>(ids[i], "Last_"+ids[i], "setLast",1,TimeUnit.SECONDS);
 			if(r.nextInt(100) == 22) continue;
 			try {
 				Thread.sleep(1);
@@ -234,7 +243,7 @@ public class ParallelConveyorTest {
 		int[] ids = getRandomInts();
 		for(int i = 0; i < SIZE; i++) {
 			User u = inUser[ids[i]];
-			Cart<Integer, Integer, String> cart = new Cart<>(ids[i], 1900+r.nextInt(100), "setYearOfBirth",1,TimeUnit.SECONDS);
+			Cart<Integer, Integer, String> cart = new ShoppingCart<>(ids[i], 1900+r.nextInt(100), "setYearOfBirth",1,TimeUnit.SECONDS);
 			if(r.nextInt(100) == 22) continue;
 			try {
 				Thread.sleep(1);

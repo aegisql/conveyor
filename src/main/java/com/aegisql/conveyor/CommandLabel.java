@@ -12,7 +12,7 @@ import java.util.function.BiConsumer;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
 */
-public enum Command  implements SmartLabel<AssemblingConveyor> {
+public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 	
 	/** The create build. */
 	CREATE_BUILD(AssemblingConveyor::createNow),
@@ -28,7 +28,7 @@ public enum Command  implements SmartLabel<AssemblingConveyor> {
 	 *
 	 * @param setter the setter
 	 */
-	Command(BiConsumer<AssemblingConveyor, Object> setter) {
+	CommandLabel(BiConsumer<AssemblingConveyor, Object> setter) {
 		this.setter = setter;
 	}
 	

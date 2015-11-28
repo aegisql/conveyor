@@ -60,10 +60,12 @@ public class BatchConveyorBuilderTest {
 			ai.incrementAndGet();
 			aii.addAndGet(list.size());
 		});
+		b.setCartConsumer(null);
 		b.setExpirationCollectionInterval(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
 			b.add(new BatchCart<Integer>(i));
 		}
+
 		Thread.sleep(90);
 		assertEquals(10, ai.get());
 		assertEquals(100, aii.get());
@@ -79,7 +81,7 @@ public class BatchConveyorBuilderTest {
 	}
 
 	@Test
-	public void testBatchConveyorWithNAmedCart() throws InterruptedException {
+	public void testBatchConveyorWithNamedCart() throws InterruptedException {
 
 		BatchConveyor<Integer> b = new BatchConveyor<>();
 		
@@ -97,6 +99,7 @@ public class BatchConveyorBuilderTest {
 			aii.addAndGet(list.size());
 		});
 		b.setExpirationCollectionInterval(100, TimeUnit.MILLISECONDS);
+		b.setCartConsumer(null);
 		for(int i = 0; i < 102; i++) {
 			if(i % 2 == 0) {
 				b.add(new BatchCart<Integer>("A",i));

@@ -18,6 +18,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderEvents2;
@@ -92,9 +94,9 @@ public class SmartConveyorTest {
 			return state.previouslyAccepted == 3;
 		});
 		conveyor.setName("User Assembler");
-		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);
+		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, String, UserBuilderEvents> c3 = new Cart<>(2, "Mike", UserBuilderEvents.CREATE);
+		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE);
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
 
@@ -131,9 +133,9 @@ public class SmartConveyorTest {
 				    	outQueue.add(res);
 				    });
 		conveyor.setName("Testing User Assembler");
-		Cart<Integer, String, UserBuilderEvents2> c1 = new Cart<>(1, "John", UserBuilderEvents2.SET_FIRST);
+		ShoppingCart<Integer, String, UserBuilderEvents2> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents2.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents2> c2 = c1.nextCart("Doe", UserBuilderEvents2.SET_LAST);
-		Cart<Integer, String, UserBuilderEvents2> c3 = new Cart<>(2, "Mike", UserBuilderEvents2.SET_FIRST);
+		Cart<Integer, String, UserBuilderEvents2> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents2.SET_FIRST);
 		Cart<Integer, Integer, UserBuilderEvents2> c4 = c1.nextCart(1999, UserBuilderEvents2.SET_YEAR);
 
 
@@ -170,9 +172,9 @@ public class SmartConveyorTest {
 				    	outQueue.add(res);
 				    });
 		conveyor.setName("TestingState User Assembler");
-		Cart<Integer, String, UserBuilderEvents3> c1 = new Cart<>(1, "John", UserBuilderEvents3.SET_FIRST);
+		ShoppingCart<Integer, String, UserBuilderEvents3> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents3.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents3> c2 = c1.nextCart("Doe", UserBuilderEvents3.SET_LAST);
-		Cart<Integer, String, UserBuilderEvents3> c3 = new Cart<>(2, "Mike", UserBuilderEvents3.SET_FIRST);
+		Cart<Integer, String, UserBuilderEvents3> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents3.SET_FIRST);
 		Cart<Integer, Integer, UserBuilderEvents3> c4 = c1.nextCart(1999, UserBuilderEvents3.SET_YEAR);
 
 
@@ -212,7 +214,7 @@ public class SmartConveyorTest {
 			return state.previouslyAccepted == 2;
 		});
 		conveyor.rejectUnexpireableCartsOlderThan(1, TimeUnit.SECONDS);
-		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);
+		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		assertTrue(conveyor.offer(c1));
 		Thread.sleep(1100);
@@ -238,7 +240,7 @@ public class SmartConveyorTest {
 			return state.previouslyAccepted == 2;
 		});
 		conveyor.rejectUnexpireableCartsOlderThan(1, TimeUnit.SECONDS);
-		Cart<Integer, String, UserBuilderEvents> c1 = new Cart<>(1, "John", UserBuilderEvents.SET_FIRST);
+		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		assertTrue(conveyor.add(c1));
 		Thread.sleep(1100);

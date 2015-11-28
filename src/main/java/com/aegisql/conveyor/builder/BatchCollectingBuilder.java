@@ -7,8 +7,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.Testing;
+import com.aegisql.conveyor.TimeoutAction;
 
-public class BatchCollectingBuilder<T> implements Supplier<List<T>>,Testing, Delayed {
+public class BatchCollectingBuilder<T> implements Supplier<List<T>>,Testing, Delayed, TimeoutAction {
 	
 	private final List<T> batch;
 	private final int batchSize;
@@ -77,6 +78,11 @@ public class BatchCollectingBuilder<T> implements Supplier<List<T>>,Testing, Del
 
 	public void setReady(boolean ready) {
 		this.ready = ready;
+	}
+
+	@Override
+	public void onTimeout() {
+		ready = true;
 	}
 	
 }

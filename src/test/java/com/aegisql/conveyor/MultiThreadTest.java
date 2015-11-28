@@ -3,7 +3,9 @@
  */
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +21,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
@@ -154,7 +158,9 @@ public class MultiThreadTest {
 	conveyor.setExpirationCollectionInterval(1000, TimeUnit.MILLISECONDS);
 	conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 	assertFalse(conveyor.isOnTimeoutAction());
-	conveyor.setOnTimeoutAction(true);
+	conveyor.setOnTimeoutAction((builder)->{
+		System.out.println("---");
+	});
 	assertTrue(conveyor.isOnTimeoutAction());
 	conveyor.setResultConsumer( res->{
 		    	outQueue.add(res);
@@ -165,7 +171,7 @@ public class MultiThreadTest {
 		int[] ids = getRandomInts();
 		for(int i = 0; i < SIZE; i++) {
 			User u = inUser[ids[i]];
-			Cart<Integer, String, String> cart = new Cart<>(ids[i], "First_"+ids[i], "setFirst",1,TimeUnit.SECONDS);
+			Cart<Integer, String, String> cart = new ShoppingCart<>(ids[i], "First_"+ids[i], "setFirst",1,TimeUnit.SECONDS);
 			if(r.nextInt(100) == 22) continue;
 			try {
 				Thread.sleep(1);
@@ -181,7 +187,7 @@ public class MultiThreadTest {
 		int[] ids = getRandomInts();
 		for(int i = 0; i < SIZE; i++) {
 			User u = inUser[ids[i]];
-			Cart<Integer, String, String> cart = new Cart<>(ids[i], "Last_"+ids[i], "setLast",1,TimeUnit.SECONDS);
+			Cart<Integer, String, String> cart = new ShoppingCart<>(ids[i], "Last_"+ids[i], "setLast",1,TimeUnit.SECONDS);
 			if(r.nextInt(100) == 22) continue;
 			try {
 				Thread.sleep(1);
@@ -197,7 +203,7 @@ public class MultiThreadTest {
 		int[] ids = getRandomInts();
 		for(int i = 0; i < SIZE; i++) {
 			User u = inUser[ids[i]];
-			Cart<Integer, Integer, String> cart = new Cart<>(ids[i], 1900+r.nextInt(100), "setYearOfBirth",1,TimeUnit.SECONDS);
+			Cart<Integer, Integer, String> cart = new ShoppingCart<>(ids[i], 1900+r.nextInt(100), "setYearOfBirth",1,TimeUnit.SECONDS);
 			if(r.nextInt(100) == 22) continue;
 			try {
 				Thread.sleep(1);

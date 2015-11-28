@@ -3,7 +3,10 @@
  */
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
@@ -12,6 +15,9 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -65,7 +71,7 @@ public class CartTest {
 	 */
 	@Test
 	public void test() throws InterruptedException {
-		Cart<String,String,String> c = new Cart<>("k","v1","l",100,TimeUnit.MILLISECONDS);
+		ShoppingCart<String,String,String> c = new ShoppingCart<>("k","v1","l",100,TimeUnit.MILLISECONDS);
 		
 		assertFalse(c.expired());
 		
@@ -103,7 +109,7 @@ public class CartTest {
 	 */
 	@Test
 	public void unexpireableTest() {
-		Cart<String,String,String> c = new Cart<>("k","v1","l");
+		Cart<String,String,String> c = new ShoppingCart<>("k","v1","l");
 		
 		assertFalse(c.expired());
 		long delay = c.getDelay(TimeUnit.MILLISECONDS);

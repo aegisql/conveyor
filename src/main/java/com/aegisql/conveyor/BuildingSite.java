@@ -12,6 +12,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.aegisql.conveyor.cart.Cart;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class BuildingSite.
@@ -25,6 +30,7 @@ import java.util.function.Supplier;
  */
 public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delayed {
 
+	private final static Logger LOG = LoggerFactory.getLogger(BuildingSite.class);
 	/**
 	 * The Enum Status.
 	 */
@@ -47,13 +53,13 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	}
 	
 	/** The builder. */
-	private final Supplier<OUT> builder;
+	private final Supplier<? extends OUT> builder;
 	
 	/** The value consumer. */
-	private final LabeledValueConsumer<L, Object, Supplier<OUT>> valueConsumer;
+	private final LabeledValueConsumer<L, Object, Supplier<? extends OUT>> valueConsumer;
 	
 	/** The readiness. */
-	private final BiPredicate<State<K,L>, Supplier<OUT>> readiness;
+	private final BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness;
 	
 	/** The initial cart. */
 	private final  C initialCart;
@@ -91,13 +97,13 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	 */
 	public BuildingSite( 
 			C cart, 
-			Supplier<Supplier<OUT>> builderSupplier, 
-			LabeledValueConsumer<L, ?, Supplier<OUT>> cartConsumer, 
-			BiPredicate<State<K,L>, Supplier<OUT>> readiness, 
+			Supplier<Supplier<? extends OUT>> builderSupplier, 
+			LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer, 
+			BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness, 
 			long ttl, TimeUnit unit) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
-		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<OUT>>) cartConsumer;
+		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
 		if(builder instanceof TestingState) {
 			this.readiness = (state,builder) -> {
 				return ((TestingState<K,L>)builder).test(state);
@@ -185,7 +191,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		}
 		
 		if( Status.TIMED_OUT.equals(value) || (label == null) || ! (label instanceof SmartLabel) ) {
-			valueConsumer.accept(label, value, builder);
+			LOG.debug("---- in timeout "+cart);
+			if( valueConsumer != null ) {
+				valueConsumer.accept(label, value, builder);
+			} else if (builder instanceof TimeoutAction ){
+				((TimeoutAction)builder).onTimeout();
+			}
 		} else {
 			((SmartLabel)label).getSetter().accept(builder,value);
 		}

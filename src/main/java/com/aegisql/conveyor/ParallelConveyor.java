@@ -14,6 +14,9 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.command.AbstractCommand;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class ParallelConveyor.
@@ -40,8 +43,8 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	private long startTimeReject = System.currentTimeMillis();
 
 	/** The on timeout action. */
-	private boolean onTimeoutAction = false;
-
+	private Consumer<Supplier<? extends OUT>> timeoutAction;
+	
 	/** The scrap consumer. */
 	private BiConsumer<String,Object> scrapConsumer = (explanation, scrap) -> { LOG.error(explanation + " " + scrap); };
 	
@@ -95,7 +98,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public boolean addCommand(Cart<K,?,Command> cart) {
+	public boolean addCommand(AbstractCommand<K, ?> cart) {
 		Objects.requireNonNull(cart);
 		if (!running) {
 			scrapConsumer.accept("Not Running",cart);
@@ -289,7 +292,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 * @return true, if is on timeout action
 	 */
 	public boolean isOnTimeoutAction() {
-		return onTimeoutAction;
+		return timeoutAction != null;
 	}
 
 	/**
@@ -297,10 +300,10 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 *
 	 * @param onTimeoutAction the new on timeout action
 	 */
-	public void setOnTimeoutAction(boolean onTimeoutAction) {
-		this.onTimeoutAction = onTimeoutAction;
+	public void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction) {
+		this.timeoutAction = timeoutAction;
 		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
-			conv.setOnTimeoutAction(onTimeoutAction);
+			conv.setOnTimeoutAction(timeoutAction);
 		}
 	}
 
@@ -320,7 +323,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 *
 	 * @param cartConsumer the cart consumer
 	 */
-	public void setCartConsumer(LabeledValueConsumer<L, ?, Supplier<OUT>> cartConsumer) {
+	public void setCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer) {
 		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
 			conv.setCartConsumer(cartConsumer);
 		}
@@ -331,7 +334,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 *
 	 * @param ready the ready
 	 */
-	public void setReadinessEvaluator(BiPredicate<State<K,L>, Supplier<OUT>> ready) {
+	public void setReadinessEvaluator(BiPredicate<State<K,L>, Supplier<? extends OUT>> ready) {
 		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
 			conv.setReadinessEvaluator(ready);
 		}
@@ -342,7 +345,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 *
 	 * @param readiness the ready
 	 */
-	public void setReadinessEvaluator(Predicate<Supplier<OUT>> readiness) {
+	public void setReadinessEvaluator(Predicate<Supplier<? extends OUT>> readiness) {
 		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
 			conv.setReadinessEvaluator(readiness);
 		}
@@ -353,7 +356,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 *
 	 * @param builderSupplier the new builder supplier
 	 */
-	public void setBuilderSupplier(Supplier<Supplier<OUT>> builderSupplier) {
+	public void setBuilderSupplier(Supplier<Supplier<? extends OUT>> builderSupplier) {
 		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
 			conv.setBuilderSupplier(builderSupplier);
 		}
