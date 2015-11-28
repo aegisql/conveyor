@@ -183,20 +183,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	 * @param cart the cart
 	 */
 	public void accept(C cart) {
-		L label = null;
-		Object value = null;
-		if(cart != null) {
-			 label = cart.getLabel();
-			 value = cart.getValue();
-		}
+		L label = cart.getLabel();
+		Object value = cart.getValue();
 		
-		if( Status.TIMED_OUT.equals(value) || (label == null) || ! (label instanceof SmartLabel) ) {
-			LOG.debug("---- in timeout "+cart);
-			if( valueConsumer != null ) {
-				valueConsumer.accept(label, value, builder);
-			} else if (builder instanceof TimeoutAction ){
-				((TimeoutAction)builder).onTimeout();
-			}
+		if( (label == null) || ! (label instanceof SmartLabel) ) {
+			valueConsumer.accept(label, value, builder);
 		} else {
 			((SmartLabel)label).getSetter().accept(builder,value);
 		}
@@ -209,6 +200,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 				eventHistory.put(label, new AtomicInteger(1));
 			}
 		}
+	}
+
+	public void timeout(C cart) {
+		if (builder instanceof TimeoutAction ){
+			((TimeoutAction)builder).onTimeout();
+		} else if( valueConsumer != null ) {
+			valueConsumer.accept(cart.getLabel(), cart.getValue(), builder);
+		} 
 	}
 
 	/**

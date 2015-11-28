@@ -412,7 +412,11 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			if(buildingSite == null) {
 				return;
 			}
-			buildingSite.accept((IN) cart);
+			if(Status.TIMED_OUT.equals(cart.getValue())) {
+				buildingSite.timeout((IN) cart);
+			} else {
+				buildingSite.accept((IN) cart);
+			}
 			if (buildingSite.ready()) {
 				collector.remove(key);
 				delayQueue.remove(buildingSite);
@@ -445,7 +449,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				if (timeoutAction != null) {
 					try {
 						ShoppingCart<K,Object,L> to = new ShoppingCart<K,Object,L>(buildingSite.getCart().getKey(), Status.TIMED_OUT,null);
-						buildingSite.accept((IN)to);
+						buildingSite.timeout((IN)to);
 						if (buildingSite.ready()) {
 							LOG.debug("Expired and finished " + key);
 							OUT res = buildingSite.build();
