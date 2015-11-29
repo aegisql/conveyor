@@ -323,9 +323,9 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 *
 	 * @param cartConsumer the cart consumer
 	 */
-	public void setCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer) {
+	public void setDefaultCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer) {
 		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
-			conv.setCartConsumer(cartConsumer);
+			conv.setDefaultCartConsumer(cartConsumer);
 		}
 	}
 

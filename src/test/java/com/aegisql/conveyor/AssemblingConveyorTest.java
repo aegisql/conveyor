@@ -251,7 +251,7 @@ public class AssemblingConveyorTest {
 		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
 		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
 		assertEquals(500,conveyor.getExpirationCollectionInterval());
-		conveyor.setCartConsumer((label, value, builder) -> {
+		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
 			switch (label) {
 			case "setFirst":
@@ -323,7 +323,7 @@ public class AssemblingConveyorTest {
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
-		conveyor.setCartConsumer((label, value, builder) -> {
+		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
 			switch (label) {
 			case "setFirst":
@@ -381,7 +381,7 @@ public class AssemblingConveyorTest {
 		conveyor.setBuilderSupplier(null);
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
-		conveyor.setCartConsumer((label, value, builder) -> {
+		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
 			switch (label) {
 			case "setFirst":
@@ -440,7 +440,7 @@ public class AssemblingConveyorTest {
 		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
 		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
 		assertEquals(500,conveyor.getExpirationCollectionInterval());
-		conveyor.setCartConsumer((label, value, builder) -> {
+		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
 			switch (label) {
 			case "setFirst":
@@ -510,7 +510,7 @@ public class AssemblingConveyorTest {
 		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
 		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
 		assertEquals(500,conveyor.getExpirationCollectionInterval());
-		conveyor.setCartConsumer((label, value, builder) -> {
+		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			throw new Error("TEST ERROR");
 		});
 		conveyor.setResultConsumer(res->{

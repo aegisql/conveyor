@@ -168,15 +168,15 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			if(cart.getValue() != null && cart instanceof CreatingCart ) {
 				CreatingCart<K,Supplier<? extends OUT>,L> cc = (CreatingCart<K,Supplier<? extends OUT>,L>)cart;
 				bs= cc.getValue();
-				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, bs, cartConsumer, readiness, builderTimeout, TimeUnit.MILLISECONDS);
+				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS);
 				returnNull = true;
 			} if(cart.getValue() != null && cart instanceof CreateCommand ) {
 				CreateCommand<K, Supplier<? extends OUT>> cc = (CreateCommand<K, Supplier<? extends OUT>>)cart;
 				bs= cc.getValue();
-				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, bs, cartConsumer, readiness, builderTimeout, TimeUnit.MILLISECONDS);
+				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS);
 				returnNull = true;
 			} else if(builderSupplier != null) {
-				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, readiness, builderTimeout, TimeUnit.MILLISECONDS);
+				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS);
 			} else {
 				scrapConsumer.accept("Ignore cart. Neither builder nor builder supplier available", cart);
 				returnNull = true;
@@ -566,7 +566,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @param cartConsumer the cart consumer
 	 */
-	public void setCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer) {
+	public void setDefaultCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer) {
 		this.cartConsumer = cartConsumer;
 	}
 

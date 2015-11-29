@@ -81,6 +81,7 @@ public class BuildingSiteTest {
 				() -> { return new UserBuilder();},
 				(label,value,builder)-> { }, 
 				(state,builder)->{return false;}, 
+				null,
 				100, TimeUnit.MILLISECONDS);
 		assertNull(bs.getLastError());
 		User u = bs.build();
@@ -101,6 +102,7 @@ public class BuildingSiteTest {
 				() -> { return new UserBuilder();},
 				(label,value,builder)-> { }, 
 				(state,builder)->{return true;}, 
+				null,
 				100, TimeUnit.MILLISECONDS);
 		assertEquals(0, bs.getAcceptCount());
 		assertEquals(Status.WAITING_DATA, bs.getStatus());
@@ -129,6 +131,7 @@ public class BuildingSiteTest {
 				() -> { return new UserBuilderDelayed(100);},
 				(label,value,builder)-> { }, 
 				(state,builder)->{return true;}, 
+				null,
 				100, TimeUnit.MILLISECONDS);
 		assertEquals(0, bs.getAcceptCount());
 		assertEquals(Status.WAITING_DATA, bs.getStatus());

@@ -58,7 +58,7 @@ public class MultiThreadTest {
 	public static void setUpBeforeClass() throws Exception {
 
 		conveyor.setBuilderSupplier( UserBuilder::new );
-	    conveyor.setCartConsumer( (label, value, builder) -> {
+	    conveyor.setDefaultCartConsumer( (label, value, builder) -> {
 		UserBuilder userBuilder = (UserBuilder) builder;
 		if(label == null) {
 			userBuilder.setReady(true);

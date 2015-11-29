@@ -9,53 +9,53 @@ import java.util.function.Supplier;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.TimeoutAction;
 
-public class BatchCollectingBuilder<T> implements Supplier<List<T>>,Testing, Delayed, TimeoutAction {
+public class CollectionBuilder<T> implements Supplier<List<T>>,Testing, Delayed {
 	
-	private final List<T> batch;
-	private final int batchSize;
+	private final List<T> collection;
 	
 	private final long builderCreated = System.currentTimeMillis();
 	private final long builderExpiration;
 
 	private boolean ready = false;
 	
-	public BatchCollectingBuilder(int batchSize, long ttl, TimeUnit timeUnit ) {
-		this.batch = new ArrayList<>( batchSize );
-		this.batchSize = batchSize;
+	public CollectionBuilder(long ttl, TimeUnit timeUnit ) {
+		this.collection = new ArrayList<>();
 		this.builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, timeUnit);
 	}
 
-	public BatchCollectingBuilder(int batchSize, long expiration ) {
-		this.batch = new ArrayList<>( batchSize );
-		this.batchSize = batchSize;
+	public CollectionBuilder(long expiration ) {
+		this.collection = new ArrayList<>();
 		this.builderExpiration = expiration;
 	}
 
-	public BatchCollectingBuilder(int batchSize ) {
-		this.batch = new ArrayList<>( batchSize );
-		this.batchSize = batchSize;
+	public CollectionBuilder() {
+		this.collection = new ArrayList<>();
 		this.builderExpiration = 0;
 	}
 
 	@Override
 	public List<T> get() {
-		return batch;
+		return collection;
 	}
 	
-	public static <T> void add(BatchCollectingBuilder<T> builder, T value) {
-		builder.batch.add(value);
+	public static <T> void add(CollectionBuilder<T> builder, T value) {
+		builder.collection.add(value);
+	}
+
+	public static <T> void complete(CollectionBuilder<T> builder, T dummy) {
+		builder.setReady(true);
 	}
 
 	@Override
 	public boolean test() {
-		return ready || batch.size() >= batchSize;
+		return ready;
 	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	public int compareTo(Delayed o) {
-		return (int) (builderCreated - ((BatchCollectingBuilder<T>)o).builderCreated);
+		return (int) (builderCreated - ((CollectionBuilder<T>)o).builderCreated);
 	}
 	
 	/* (non-Javadoc)
@@ -76,9 +76,4 @@ public class BatchCollectingBuilder<T> implements Supplier<List<T>>,Testing, Del
 		this.ready = ready;
 	}
 
-	@Override
-	public void onTimeout() {
-		ready = true;
-	}
-	
 }

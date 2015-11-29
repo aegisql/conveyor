@@ -10,6 +10,7 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -61,6 +62,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	/** The readiness. */
 	private final BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness;
 	
+	private Consumer<Supplier<? extends OUT>> timeoutAction;
+	
 	/** The initial cart. */
 	private final  C initialCart;
 	
@@ -100,9 +103,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 			Supplier<Supplier<? extends OUT>> builderSupplier, 
 			LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer, 
 			BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness, 
+			Consumer<Supplier<? extends OUT>> timeoutAction,
 			long ttl, TimeUnit unit) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
+		this.timeoutAction = timeoutAction;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
 		if(builder instanceof TestingState) {
 			this.readiness = (state,builder) -> {
@@ -205,9 +210,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	public void timeout(C cart) {
 		if (builder instanceof TimeoutAction ){
 			((TimeoutAction)builder).onTimeout();
-		} else if( valueConsumer != null ) {
-			valueConsumer.accept(cart.getLabel(), cart.getValue(), builder);
-		} 
+		} else if( timeoutAction != null ) {
+			timeoutAction.accept(builder);
+		}
 	}
 
 	/**
