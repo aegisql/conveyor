@@ -1,17 +1,16 @@
 package com.aegisql.conveyor.builder;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.Testing;
-import com.aegisql.conveyor.TimeoutAction;
 
-public class CollectionBuilder<T> implements Supplier<List<T>>,Testing, Delayed {
+public class CollectionBuilder<T> implements Supplier<Collection<T>>,Testing, Delayed {
 	
-	private final List<T> collection;
+	private final Collection<T> collection;
 	
 	private final long builderCreated = System.currentTimeMillis();
 	private final long builderExpiration;
@@ -33,8 +32,23 @@ public class CollectionBuilder<T> implements Supplier<List<T>>,Testing, Delayed 
 		this.builderExpiration = 0;
 	}
 
+	public CollectionBuilder(Collection<T> collection, long ttl, TimeUnit timeUnit ) {
+		this.collection = collection;
+		this.builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, timeUnit);
+	}
+
+	public CollectionBuilder(Collection<T> collection, long expiration ) {
+		this.collection = collection;
+		this.builderExpiration = expiration;
+	}
+
+	public CollectionBuilder(Collection<T> collection) {
+		this.collection = collection;
+		this.builderExpiration = 0;
+	}
+
 	@Override
-	public List<T> get() {
+	public Collection<T> get() {
 		return collection;
 	}
 	
