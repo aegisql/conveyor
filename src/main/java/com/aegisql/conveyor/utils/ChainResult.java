@@ -1,9 +1,10 @@
-package com.aegisql.conveyor;
+package com.aegisql.conveyor.utils;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 
