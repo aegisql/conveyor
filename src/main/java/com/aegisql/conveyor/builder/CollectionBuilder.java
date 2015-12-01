@@ -4,47 +4,39 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
-import com.aegisql.conveyor.Testing;
-
-public class CollectionBuilder<T> implements Supplier<Collection<T>>,Testing, Delayed {
+public class CollectionBuilder<T> extends CommonBuilder<Collection<T>> {
 	
 	private final Collection<T> collection;
 	
-	private final long builderCreated = System.currentTimeMillis();
-	private final long builderExpiration;
-
-	private boolean ready = false;
-	
 	public CollectionBuilder(long ttl, TimeUnit timeUnit ) {
+		super(ttl,timeUnit);
 		this.collection = new ArrayList<>();
-		this.builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, timeUnit);
 	}
 
 	public CollectionBuilder(long expiration ) {
+		super(expiration);
 		this.collection = new ArrayList<>();
-		this.builderExpiration = expiration;
 	}
 
 	public CollectionBuilder() {
+		super();
 		this.collection = new ArrayList<>();
-		this.builderExpiration = 0;
 	}
 
 	public CollectionBuilder(Collection<T> collection, long ttl, TimeUnit timeUnit ) {
+		super(ttl,timeUnit);
 		this.collection = collection;
-		this.builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, timeUnit);
 	}
 
 	public CollectionBuilder(Collection<T> collection, long expiration ) {
+		super(expiration);
 		this.collection = collection;
-		this.builderExpiration = expiration;
 	}
 
 	public CollectionBuilder(Collection<T> collection) {
+		super();
 		this.collection = collection;
-		this.builderExpiration = 0;
 	}
 
 	@Override
