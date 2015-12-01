@@ -50,4 +50,8 @@ public abstract class CommonBuilder<T> implements Testing, Delayed, Supplier<T> 
 		this.ready = ready;
 	}
 
+	@Override
+	public boolean test() {
+		return ready;
+	}
 }

@@ -53,9 +53,4 @@ public class CollectionBuilder<T> extends CommonBuilder<Collection<T>> {
 		builder.setReady(true);
 	}
 
-	@Override
-	public boolean test() {
-		return ready;
-	}
-
 }
