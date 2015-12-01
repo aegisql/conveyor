@@ -1,9 +1,11 @@
-package com.aegisql.conveyor.builder;
+package com.aegisql.conveyor.utils.collection;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+
+import com.aegisql.conveyor.utils.CommonBuilder;
 
 public class CollectionBuilder<T> extends CommonBuilder<Collection<T>> {
 	

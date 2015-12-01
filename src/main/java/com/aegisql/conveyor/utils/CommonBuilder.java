@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.builder;
+package com.aegisql.conveyor.utils;
 
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;

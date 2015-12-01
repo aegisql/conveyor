@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.builder;
+package com.aegisql.conveyor.utils.batch;
 
 import java.util.List;
 

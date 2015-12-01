@@ -1,10 +1,11 @@
-package com.aegisql.conveyor.builder;
+package com.aegisql.conveyor.utils.batch;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.aegisql.conveyor.TimeoutAction;
+import com.aegisql.conveyor.utils.CommonBuilder;
 
 public class BatchCollectingBuilder<T> extends CommonBuilder<List<T>> implements TimeoutAction {
 	

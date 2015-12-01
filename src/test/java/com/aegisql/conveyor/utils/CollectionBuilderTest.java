@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.builder;
+package com.aegisql.conveyor.utils;
 
 import static org.junit.Assert.*;
 
@@ -11,7 +11,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class BatchConveyorBuilderTest {
+import com.aegisql.conveyor.utils.collection.CollectionBuilder;
+import com.aegisql.conveyor.utils.collection.CollectionCompleteCart;
+import com.aegisql.conveyor.utils.collection.CollectionConveyor;
+import com.aegisql.conveyor.utils.collection.CollectionItemCart;
+
+public class CollectionBuilderTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -30,8 +35,8 @@ public class BatchConveyorBuilderTest {
 	}
 
 	@Test
-	public void testBatchCollectingBuilder() throws InterruptedException {
-		BatchCollectingBuilder<Integer> b = new BatchCollectingBuilder<>(10, 100, TimeUnit.MILLISECONDS);
+	public void testCollectionBuilder() throws InterruptedException {
+		CollectionBuilder<Integer> b = new CollectionBuilder<>(100, TimeUnit.MILLISECONDS);
 		
 		assertFalse(b.test());
 		assertTrue(b.getDelay(TimeUnit.MILLISECONDS) > 0);
@@ -43,14 +48,14 @@ public class BatchConveyorBuilderTest {
 	}
 	
 	@Test
-	public void testBatchConveyor() throws InterruptedException {
+	public void testCollectionConveyor() throws InterruptedException {
 
-		BatchConveyor<Integer> b = new BatchConveyor<>();
+		CollectionConveyor<Integer,Integer> b = new CollectionConveyor<>();
 		
 		AtomicInteger ai = new AtomicInteger(0);
 		AtomicInteger aii = new AtomicInteger(0);
 		
-		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 10, TimeUnit.MILLISECONDS) );
+		b.setBuilderSupplier( () -> new CollectionBuilder<>(100, TimeUnit.MILLISECONDS) );
 		b.setScrapConsumer((exp,obj)->{
 			System.out.println(exp+" "+obj);
 			ai.decrementAndGet();
@@ -61,33 +66,32 @@ public class BatchConveyorBuilderTest {
 			aii.addAndGet(list.size());
 		});
 		b.setExpirationCollectionInterval(100, TimeUnit.MILLISECONDS);
-		for(int i = 0; i < 102; i++) {
-			b.add(new BatchCart<Integer>(i));
+		for(int i = 0; i < 100; i++) {
+			b.add(new CollectionItemCart<Integer,Integer>(1,i));
 		}
 
-		Thread.sleep(90);
-		assertEquals(10, ai.get());
+		b.add(new CollectionCompleteCart<Integer,Integer>(1));
+
+		Thread.sleep(50);
+		assertEquals(1, ai.get());
 		assertEquals(100, aii.get());
-		Thread.sleep(200);
 		System.out.println("COL:"+b.getCollectorSize());
 		System.out.println("DEL:"+b.getDelayedQueueSize());
 		System.out.println("IN :"+b.getInputQueueSize());
-		assertEquals(11, ai.get());
-		assertEquals(102, aii.get());
 		assertEquals(0,b.getCollectorSize());
 		assertEquals(0,b.getDelayedQueueSize());
 		assertEquals(0,b.getInputQueueSize());
 	}
 
 	@Test
-	public void testBatchConveyorWithNamedCart() throws InterruptedException {
+	public void testCollectionConveyorExpire() throws InterruptedException {
 
-		BatchConveyor<Integer> b = new BatchConveyor<>();
+		CollectionConveyor<Integer,Integer> b = new CollectionConveyor<>();
 		
 		AtomicInteger ai = new AtomicInteger(0);
 		AtomicInteger aii = new AtomicInteger(0);
 		
-		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 10, TimeUnit.MILLISECONDS) );
+		b.setBuilderSupplier( () -> new CollectionBuilder<>(100, TimeUnit.MILLISECONDS) );
 		b.setScrapConsumer((exp,obj)->{
 			System.out.println(exp+" "+obj);
 			ai.decrementAndGet();
@@ -97,23 +101,18 @@ public class BatchConveyorBuilderTest {
 			ai.incrementAndGet();
 			aii.addAndGet(list.size());
 		});
-		b.setExpirationCollectionInterval(100, TimeUnit.MILLISECONDS);
-		for(int i = 0; i < 102; i++) {
-			if(i % 2 == 0) {
-				b.add(new BatchCart<Integer>("A",i));
-			} else {
-				b.add(new BatchCart<Integer>("B",i));
-			}
+		b.setOnTimeoutAction((builder)->{
+			System.out.println("TIMEOUT:"+builder.get());
+		});
+		b.setExpirationCollectionInterval(50, TimeUnit.MILLISECONDS);
+		for(int i = 0; i < 100; i++) {
+			b.add(new CollectionItemCart<Integer,Integer>(1,i));
 		}
-		Thread.sleep(50);
-		assertEquals(10, ai.get());
-		assertEquals(100, aii.get());
-		Thread.sleep(200);
+
+		Thread.sleep(150);
 		System.out.println("COL:"+b.getCollectorSize());
 		System.out.println("DEL:"+b.getDelayedQueueSize());
 		System.out.println("IN :"+b.getInputQueueSize());
-		assertEquals(12, ai.get());
-		assertEquals(102, aii.get());
 		assertEquals(0,b.getCollectorSize());
 		assertEquals(0,b.getDelayedQueueSize());
 		assertEquals(0,b.getInputQueueSize());

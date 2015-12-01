@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.builder;
+package com.aegisql.conveyor.utils.batch;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
