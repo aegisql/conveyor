@@ -2,10 +2,11 @@ package com.aegisql.conveyor.builder;
 
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import com.aegisql.conveyor.Testing;
 
-public abstract class CommonBuilder implements Testing, Delayed {
+public abstract class CommonBuilder<T> implements Testing, Delayed, Supplier<T> {
 	
 	protected final long builderCreated = System.currentTimeMillis();
 	protected final long builderExpiration;
