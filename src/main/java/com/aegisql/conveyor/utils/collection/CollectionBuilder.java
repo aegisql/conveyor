@@ -2,7 +2,6 @@ package com.aegisql.conveyor.utils.collection;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
 import com.aegisql.conveyor.utils.CommonBuilder;
@@ -57,31 +56,6 @@ public class CollectionBuilder<T> extends CommonBuilder<Collection<T>> {
 	@Override
 	public boolean test() {
 		return ready;
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	public int compareTo(Delayed o) {
-		return (int) (builderCreated - ((CollectionBuilder<T>)o).builderCreated);
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.util.concurrent.Delayed#getDelay(java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public long getDelay(TimeUnit unit) {
-        long delta;
-		if( builderExpiration == 0 ) {
-			delta = Long.MAX_VALUE;
-		} else {
-			delta = builderExpiration - System.currentTimeMillis();
-		}
-        return unit.convert(delta, TimeUnit.MILLISECONDS);
-	}
-
-	public void setReady(boolean ready) {
-		this.ready = ready;
 	}
 
 }
