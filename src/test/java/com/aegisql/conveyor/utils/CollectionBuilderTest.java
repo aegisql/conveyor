@@ -56,8 +56,8 @@ public class CollectionBuilderTest {
 		AtomicInteger aii = new AtomicInteger(0);
 		
 		b.setBuilderSupplier( () -> new CollectionBuilder<>(100, TimeUnit.MILLISECONDS) );
-		b.setScrapConsumer((exp,obj)->{
-			System.out.println(exp+" "+obj);
+		b.setScrapConsumer((obj)->{
+			System.out.println(obj);
 			ai.decrementAndGet();
 		});
 		b.setResultConsumer((list)->{
@@ -92,8 +92,8 @@ public class CollectionBuilderTest {
 		AtomicInteger aii = new AtomicInteger(0);
 		
 		b.setBuilderSupplier( () -> new CollectionBuilder<>(100, TimeUnit.MILLISECONDS) );
-		b.setScrapConsumer((exp,obj)->{
-			System.out.println(exp+" "+obj);
+		b.setScrapConsumer((obj)->{
+			System.out.println(obj);
 			ai.decrementAndGet();
 		});
 		b.setResultConsumer((list)->{

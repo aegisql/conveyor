@@ -5,6 +5,7 @@ package com.aegisql.conveyor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -79,18 +80,17 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	private Consumer<OUT> resultConsumer = out -> { LOG.error("LOST RESULT "+out); };
 
 	/** The scrap consumer. */
-	private BiConsumer<String,Object> scrapConsumer = (explanation, scrap) -> { LOG.error(explanation + " " + scrap); };
+	private Consumer<ScrapBin<?,?>> scrapConsumer = (scrapBin) -> { LOG.error("{}",scrapBin); };
 	
 	/** The cart consumer. */
 	private LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer = (l,v,b) -> { 
-		scrapConsumer.accept("Cart Consumer is not set. label:",l);
-		scrapConsumer.accept("Cart Consumer is not set value:",v);
+		scrapConsumer.accept( new ScrapBin<L, Object>(l,v, "Cart Consumer is not set. label"));
 		throw new IllegalStateException("Cart Consumer is not set");
 	};
 	
 	/** The ready. */
 	private BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness = (l,b) -> {
-		scrapConsumer.accept("Readiness Evaluator is not set",l);
+		scrapConsumer.accept( new ScrapBin<K, State<K,L>>(l.key,l, "Readiness Evaluator is not set"));
 		throw new IllegalStateException("Readiness Evaluator is not set");
 	};
 	
@@ -178,7 +178,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			} else if(builderSupplier != null) {
 				buildingSite = new BuildingSite<K, L, IN, OUT>(cart, builderSupplier, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS);
 			} else {
-				scrapConsumer.accept("Ignore cart. Neither builder nor builder supplier available", cart);
+				scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither builder nor builder supplier available") );
 				returnNull = true;
 			}
 			if(buildingSite != null) {
@@ -239,11 +239,11 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	protected void drainQueues() {
 		IN cart = null;
 		while((cart = inQueue.poll()) != null) {
-			scrapConsumer.accept("Draining inQueue",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Draining inQueue") );
 		}
 		delayQueue.clear();
 		collector.forEach((k,v)->{
-			scrapConsumer.accept("Draining site",v);
+			scrapConsumer.accept( new ScrapBin<K,Object>(k,v,"Draining site") );
 		});
 		collector.clear();
 	}
@@ -256,7 +256,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 */
 	protected boolean addFirst(IN cart) {
 		if (!running) {
-			scrapConsumer.accept("Not Running",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
 			lock.tell();
 			throw new IllegalStateException("Assembling Conveyor is not running");
 		}
@@ -270,18 +270,19 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 */
 	@Override
 	public boolean addCommand(AbstractCommand<K, ?> cart) {
+		Objects.requireNonNull(cart);
 		if (!running) {
-			scrapConsumer.accept("Not Running",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
 			lock.tell();
 			throw new IllegalStateException("Assembling Conveyor is not running");
 		}
 		if (cart.expired()) {
-			scrapConsumer.accept("Expired command",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Command Expired") );
 			lock.tell();
 			throw new IllegalStateException("Data expired " + cart);
 		}
 		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept("Command too old",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Command is too old") );
 			lock.tell();
 			throw new IllegalStateException("Data too old");
 		}
@@ -295,18 +296,19 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 */
 	@Override
 	public boolean add(IN cart) {
+		Objects.requireNonNull(cart);
 		if (!running) {
-			scrapConsumer.accept("Not Running",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
 			lock.tell();
 			throw new IllegalStateException("Assembling Conveyor is not running");
 		}
 		if (cart.expired()) {
-			scrapConsumer.accept("Cart expired",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Expired") );
 			lock.tell();
 			throw new IllegalStateException("Data expired " + cart);
 		}
 		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept("Cart too old",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is too old") );
 			lock.tell();
 			throw new IllegalStateException("Data too old");
 		}
@@ -320,18 +322,23 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 */
 	@Override
 	public boolean offer(IN cart) {
+		if( Objects.isNull(cart) ) {
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is NULL") );
+			lock.tell();
+			return false;
+		}
 		if ( ! running ) {
-			scrapConsumer.accept("Not Running",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
 			lock.tell();
 			return false;
 		}
 		if ( cart.expired() ) {
-			scrapConsumer.accept("Cart expired",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Expired") );
 			lock.tell();
 			return false;
 		}
 		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept("Cart is too old", cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is too old") );
 			lock.tell();
 			return false;
 		}
@@ -372,7 +379,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @param scrapConsumer the scrap consumer
 	 */
-	public void setScrapConsumer(BiConsumer<String,Object> scrapConsumer) {
+	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer) {
 		this.scrapConsumer = scrapConsumer;
 	}
 
@@ -423,11 +430,11 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				resultConsumer.accept(buildingSite.build());
 			}
 		} catch (Exception e) {
-			scrapConsumer.accept("Cart processor failed "+e.getMessage(),cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Processor Failed: "+e.getMessage()) );
 			if (buildingSite != null) {
 				buildingSite.setStatus(Status.INVALID);
 				buildingSite.setLastError(e);
-				scrapConsumer.accept("Site processor failed "+e.getMessage(),buildingSite);
+				scrapConsumer.accept( new ScrapBin<K,BuildingSite<K,?,?,?>>(cart.getKey(),buildingSite,"Site Processor failed "+e.getMessage()) );
 			}
 			collector.remove(key);
 			delayQueue.remove(buildingSite);
@@ -456,12 +463,12 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 							resultConsumer.accept(res);
 						} else {
 							LOG.debug("Expired and not finished " + key);
-							scrapConsumer.accept("Site expired", buildingSite);
+							scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, IN, ? extends OUT>>(key,buildingSite,"Site expired") );
 						}
 					} catch (Exception e) {
 						buildingSite.setStatus(Status.INVALID);
 						buildingSite.setLastError(e);
-						scrapConsumer.accept("Timeout processor failed "+e.getMessage(),buildingSite);
+						scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, IN, ? extends OUT>>(key,buildingSite,"Timeout processor failed "+e.getMessage()) );
 					}
 				} else {
 					LOG.debug("Expired and removed " + key);

@@ -46,7 +46,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	private Consumer<Supplier<? extends OUT>> timeoutAction;
 	
 	/** The scrap consumer. */
-	private BiConsumer<String,Object> scrapConsumer = (explanation, scrap) -> { LOG.error(explanation + " " + scrap); };
+	private Consumer<ScrapBin<?, ?>> scrapConsumer = (scrap) -> { LOG.error("{}",scrap); };
 	
 	/** The running. */
 	private volatile boolean running = true;
@@ -101,15 +101,15 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	public boolean addCommand(AbstractCommand<K, ?> cart) {
 		Objects.requireNonNull(cart);
 		if (!running) {
-			scrapConsumer.accept("Not Running",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
 			throw new IllegalStateException("Assembling Conveyor is not running");
 		}
 		if (cart.expired()) {
-			scrapConsumer.accept("Expired command",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Command Expired") );
 			throw new IllegalStateException("Data expired " + cart);
 		}
 		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept("Command too old",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Command is too old") );
 			throw new IllegalStateException("Data too old");
 		}
 		return getConveyor( cart.getKey() ).addCommand( cart );
@@ -122,15 +122,15 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	public boolean add(IN cart) {
 		Objects.requireNonNull(cart);
 		if (!running) {
-			scrapConsumer.accept("Not Running",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
 			throw new IllegalStateException("Assembling Conveyor is not running");
 		}
 		if (cart.expired()) {
-			scrapConsumer.accept("Cart expired",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Expired") );
 			throw new IllegalStateException("Data expired " + cart);
 		}
 		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept("Cart too old",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is too old") );
 			throw new IllegalStateException("Data too old");
 		}
 		return getConveyor( cart.getKey() ).add( cart );
@@ -142,19 +142,19 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	@Override
 	public boolean offer(IN cart) {
 		if( Objects.isNull(cart) ) {
-			scrapConsumer.accept("Null",null);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is NULL") );
 			return false;
 		}
 		if ( ! running ) {
-			scrapConsumer.accept("Not Running",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
 			return false;
 		}
 		if ( cart.expired() ) {
-			scrapConsumer.accept("Cart expired",cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Expired") );
 			return false;
 		}
 		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept("Cart is too old", cart);
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is too old") );
 			return false;
 		}
 		return getConveyor( cart.getKey() ).offer( cart );
@@ -211,7 +211,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 *
 	 * @param scrapConsumer the scrap consumer
 	 */
-	public void setScrapConsumer(BiConsumer<String,Object> scrapConsumer) {
+	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer) {
 		this.scrapConsumer = scrapConsumer;
 		for(AssemblingConveyor<K, L, IN, OUT> conv: conveyors) {
 			conv.setScrapConsumer(scrapConsumer);

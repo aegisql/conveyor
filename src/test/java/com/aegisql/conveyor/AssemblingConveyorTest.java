@@ -92,9 +92,10 @@ public class AssemblingConveyorTest {
 		AtomicBoolean visited = new AtomicBoolean(false);
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((ex,o)->{
-			assertTrue(ex.startsWith("Cart processor failed Builder Supplier is not set"));
-			assertTrue(o instanceof Cart);
+		conveyor.setScrapConsumer((o)->{
+			System.out.println(o);
+			assertTrue(o.getComment().startsWith("Cart Processor Failed: Builder Supplier is not set"));
+			assertTrue(o.getScrap() instanceof Cart);
 			visited.set(true);
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
@@ -112,10 +113,10 @@ public class AssemblingConveyorTest {
 	public void testOfferStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((ex,o)->{
-			System.out.println(ex+" "+o);
-			assertTrue(ex.startsWith("Not Running"));
-			assertTrue(o instanceof Cart);
+		conveyor.setScrapConsumer((o)->{
+			System.out.println(o);
+			assertTrue(o.getComment().startsWith("Conveyor Not Running"));
+			assertTrue(o.getScrap() instanceof Cart);
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		conveyor.stop();
@@ -131,10 +132,10 @@ public class AssemblingConveyorTest {
 	public void testCommandStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((ex,o)->{
-			System.out.println(ex+" "+o);
-			assertTrue(ex.startsWith("Not Running"));
-			assertTrue(o instanceof Cart);
+		conveyor.setScrapConsumer((o)->{
+			System.out.println(o);
+			assertTrue(o.getComment().startsWith("Conveyor Not Running"));
+			assertTrue(o.getScrap() instanceof Cart);
 		});
 		AbstractCommand<Integer,?> c1 = new TimeoutCommand<>(1);
 		conveyor.stop();
@@ -150,10 +151,10 @@ public class AssemblingConveyorTest {
 	public void testCommandExpired() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((ex,o)->{
-			System.out.println(ex+" "+o);
-			assertTrue(ex.startsWith("Expired command"));
-			assertTrue(o instanceof Cart);
+		conveyor.setScrapConsumer((o)->{
+			System.out.println(o);
+			assertTrue(o.getComment().startsWith("Command Expired"));
+			assertTrue(o.getScrap() instanceof Cart);
 		});
 		AbstractCommand<Integer,?> c1 = new TimeoutCommand<>(1,1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
@@ -170,10 +171,10 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.rejectUnexpireableCartsOlderThan(10, TimeUnit.MILLISECONDS);
-		conveyor.setScrapConsumer((ex,o)->{
-			System.out.println(ex+" "+o);
-			assertTrue(ex.startsWith("Command too old"));
-			assertTrue(o instanceof Cart);
+		conveyor.setScrapConsumer((o)->{
+			System.out.println(o);
+			assertTrue(o.getComment().startsWith("Command is too old"));
+			assertTrue(o.getScrap() instanceof Cart);
 		});
 		AbstractCommand<Integer,?> c1 = new TimeoutCommand<>(1,100,TimeUnit.MILLISECONDS);
 		Thread.sleep(20);
@@ -189,10 +190,10 @@ public class AssemblingConveyorTest {
 	public void testAddStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((ex,o)->{
-			System.out.println(ex+" "+o);
-			assertTrue(ex.startsWith("Not Running"));
-			assertTrue(o instanceof Cart);
+		conveyor.setScrapConsumer((o)->{
+			System.out.println(o);
+			assertTrue(o.getComment().startsWith("Conveyor Not Running"));
+			assertTrue(o.getScrap() instanceof Cart);
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		conveyor.stop();
@@ -208,10 +209,10 @@ public class AssemblingConveyorTest {
 	public void testAddExpiredStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((ex,o)->{
-			System.out.println(ex+" "+o);
-			assertTrue(ex.startsWith("Cart expired"));
-			assertTrue(o instanceof Cart);
+		conveyor.setScrapConsumer((o)->{
+			System.out.println(o);
+			assertTrue(o.getComment().startsWith("Cart Expired"));
+			assertTrue(o.getScrap() instanceof Cart);
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
@@ -227,10 +228,10 @@ public class AssemblingConveyorTest {
 	public void testOfferExpiredStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((ex,o)->{
-			System.out.println(ex+" "+o);
-			assertTrue(ex.startsWith("Cart expired"));
-			assertTrue(o instanceof Cart);
+		conveyor.setScrapConsumer((o)->{
+			System.out.println(o);
+			assertTrue(o.getComment().startsWith("Cart Expired"));
+			assertTrue(o.getScrap() instanceof Cart);
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
@@ -519,8 +520,8 @@ public class AssemblingConveyorTest {
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
-		conveyor.setScrapConsumer((ex,o)->{
-			System.out.println(ex+" "+o);
+		conveyor.setScrapConsumer((o)->{
+			System.out.println(o);
 //			assertTrue(ex.startsWith("Cart expired"));
 //			assertTrue(o instanceof Cart);
 		});

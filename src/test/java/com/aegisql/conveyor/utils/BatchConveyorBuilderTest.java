@@ -55,8 +55,8 @@ public class BatchConveyorBuilderTest {
 		AtomicInteger aii = new AtomicInteger(0);
 		
 		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 10, TimeUnit.MILLISECONDS) );
-		b.setScrapConsumer((exp,obj)->{
-			System.out.println(exp+" "+obj);
+		b.setScrapConsumer((obj)->{
+			System.out.println(obj);
 			ai.decrementAndGet();
 		});
 		b.setResultConsumer((list)->{
@@ -92,8 +92,8 @@ public class BatchConveyorBuilderTest {
 		AtomicInteger aii = new AtomicInteger(0);
 		
 		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 10, TimeUnit.MILLISECONDS) );
-		b.setScrapConsumer((exp,obj)->{
-			System.out.println(exp+" "+obj);
+		b.setScrapConsumer((obj)->{
+			System.out.println(obj);
 			ai.decrementAndGet();
 		});
 		b.setResultConsumer((list)->{
