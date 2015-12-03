@@ -94,7 +94,7 @@ public class AssemblingConveyorTest {
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
-			assertTrue(o.getComment().startsWith("Cart Processor Failed: Builder Supplier is not set"));
+			assertTrue(o.getComment().startsWith("Cart Processor Failed"));
 			assertTrue(o.getScrap() instanceof Cart);
 			visited.set(true);
 		});

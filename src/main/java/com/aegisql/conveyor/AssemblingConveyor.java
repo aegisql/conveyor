@@ -430,11 +430,11 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 				resultConsumer.accept(buildingSite.build());
 			}
 		} catch (Exception e) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Processor Failed: "+e.getMessage()) );
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Processor Failed",e) );
 			if (buildingSite != null) {
 				buildingSite.setStatus(Status.INVALID);
 				buildingSite.setLastError(e);
-				scrapConsumer.accept( new ScrapBin<K,BuildingSite<K,?,?,?>>(cart.getKey(),buildingSite,"Site Processor failed "+e.getMessage()) );
+				scrapConsumer.accept( new ScrapBin<K,BuildingSite<K,?,?,?>>(cart.getKey(),buildingSite,"Site Processor failed",e) );
 			}
 			collector.remove(key);
 			delayQueue.remove(buildingSite);
@@ -468,7 +468,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 					} catch (Exception e) {
 						buildingSite.setStatus(Status.INVALID);
 						buildingSite.setLastError(e);
-						scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, IN, ? extends OUT>>(key,buildingSite,"Timeout processor failed "+e.getMessage()) );
+						scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, IN, ? extends OUT>>(key,buildingSite,"Timeout processor failed ",e) );
 					}
 				} else {
 					LOG.debug("Expired and removed " + key);
