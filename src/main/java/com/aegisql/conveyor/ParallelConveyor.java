@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -57,6 +58,8 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	/** The pf. */
 	private final int pf;
 	
+	private Function<K,Integer> balancingFunction;
+	
 	/**
 	 * Instantiates a new parallel conveyor.
 	 *
@@ -72,6 +75,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 			conveyors[i] = new AssemblingConveyor<K, L, IN, OUT>();
 		}
 		this.conveyors = conveyors;
+		this.balancingFunction = key -> key.hashCode() % pf;
 	}
 	
 	/**
@@ -81,7 +85,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 * @return the int
 	 */
 	private int idx(K key) {
-		return key.hashCode() % pf;
+		return balancingFunction.apply(key);
 	}
 
 	/**
@@ -398,5 +402,8 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 		}
 	}
 
+	public void setBalancingFunction(Function<K, Integer> balancingFunction) {
+		this.balancingFunction = balancingFunction;
+	}
 
 }
