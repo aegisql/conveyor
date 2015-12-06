@@ -50,7 +50,7 @@ public class ScalarConvertingConveyorTest {
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		sc.setResultConsumer(u->{
 			System.out.println("RESULT: "+u);
-			usr.set(u);
+			usr.set(u.product);
 		});
 		String csv = "John,Dow,1990";
 		

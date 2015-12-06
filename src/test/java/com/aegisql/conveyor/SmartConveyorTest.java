@@ -88,7 +88,7 @@ public class SmartConveyorTest {
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
 		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res);
+				    	outQueue.add(res.product);
 				    });
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
@@ -130,7 +130,7 @@ public class SmartConveyorTest {
 		conveyor.setBuilderSupplier(UserBuilderTesting::new);
 
 		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res);
+				    	outQueue.add(res.product);
 				    });
 		conveyor.setName("Testing User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents2> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents2.SET_FIRST);
@@ -169,7 +169,7 @@ public class SmartConveyorTest {
 		conveyor.setBuilderSupplier(UserBuilderTestingState::new);
 
 		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res);
+				    	outQueue.add(res.product);
 				    });
 		conveyor.setName("TestingState User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents3> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents3.SET_FIRST);
@@ -208,7 +208,7 @@ public class SmartConveyorTest {
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
 		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res);
+				    	outQueue.add(res.product);
 				    });
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 2;
@@ -234,7 +234,7 @@ public class SmartConveyorTest {
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
 		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res);
+				    	outQueue.add(res.product);
 				    });
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 2;

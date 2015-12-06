@@ -269,7 +269,7 @@ public class AssemblingConveyorTest {
 			}
 		});
 		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res);
+				    	outQueue.add(res.product);
 				    });
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
@@ -341,7 +341,7 @@ public class AssemblingConveyorTest {
 			}
 		});
 		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res);
+				    	outQueue.add(res.product);
 				    });
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
@@ -399,7 +399,7 @@ public class AssemblingConveyorTest {
 			}
 		});
 		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res);
+				    	outQueue.add(res.product);
 				    });
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
@@ -458,7 +458,7 @@ public class AssemblingConveyorTest {
 			}
 		});
 		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res);
+				    	outQueue.add(res.product);
 				    });
 		conveyor.setReadinessEvaluator((builder) -> {
 			UserBuilder ub = (UserBuilder)builder;
@@ -515,7 +515,7 @@ public class AssemblingConveyorTest {
 			throw new Error("TEST ERROR");
 		});
 		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res);
+				    	outQueue.add(res.product);
 				    });
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;

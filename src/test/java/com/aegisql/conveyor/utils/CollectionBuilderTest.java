@@ -63,7 +63,7 @@ public class CollectionBuilderTest {
 		b.setResultConsumer((list)->{
 			System.out.println(list);
 			ai.incrementAndGet();
-			aii.addAndGet(list.size());
+			aii.addAndGet(list.product.size());
 		});
 		b.setExpirationCollectionInterval(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 100; i++) {
@@ -99,7 +99,7 @@ public class CollectionBuilderTest {
 		b.setResultConsumer((list)->{
 			System.out.println(list);
 			ai.incrementAndGet();
-			aii.addAndGet(list.size());
+			aii.addAndGet(list.product.size());
 		});
 		b.setOnTimeoutAction((builder)->{
 			System.out.println("TIMEOUT:"+builder.get());

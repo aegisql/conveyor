@@ -77,7 +77,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	private Consumer<Supplier<? extends OUT>> timeoutAction;
 
 	/** The result consumer. */
-	private Consumer<OUT> resultConsumer = out -> { LOG.error("LOST RESULT "+out); };
+	private Consumer<ProductBin<K,OUT>> resultConsumer = out -> { LOG.error("LOST RESULT {} {}",out.key,out.product); };
 
 	/** The scrap consumer. */
 	private Consumer<ScrapBin<?,?>> scrapConsumer = (scrapBin) -> { LOG.error("{}",scrapBin); };
@@ -427,7 +427,8 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 			if (buildingSite.ready()) {
 				collector.remove(key);
 				delayQueue.remove(buildingSite);
-				resultConsumer.accept(buildingSite.build());
+				OUT res = buildingSite.build();
+				resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.READY));
 			}
 		} catch (Exception e) {
 			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Processor Failed",e) );
@@ -460,7 +461,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 						if (buildingSite.ready()) {
 							LOG.debug("Expired and finished " + key);
 							OUT res = buildingSite.build();
-							resultConsumer.accept(res);
+							resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.TIMED_OUT));
 						} else {
 							LOG.debug("Expired and not finished " + key);
 							scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, IN, ? extends OUT>>(key,buildingSite,"Site expired") );
@@ -564,7 +565,7 @@ public class AssemblingConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements 
 	 *
 	 * @param resultConsumer the new result consumer
 	 */
-	public void setResultConsumer(Consumer<OUT> resultConsumer) {
+	public void setResultConsumer(Consumer<ProductBin<K,OUT>> resultConsumer) {
 		this.resultConsumer = resultConsumer;
 	}
 

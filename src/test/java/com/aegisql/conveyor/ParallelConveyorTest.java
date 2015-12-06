@@ -203,7 +203,7 @@ public class ParallelConveyorTest {
 	});
 	assertTrue(conveyor.isOnTimeoutAction());
 	conveyor.setResultConsumer( res->{
-		    	outQueue.add(res);
+		    	outQueue.add(res.product);
 		    });
 		
 	Thread runFirst = new Thread(()->{

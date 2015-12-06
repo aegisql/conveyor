@@ -312,7 +312,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 *
 	 * @param resultConsumer the new result consumer
 	 */
-	public void setResultConsumer(Consumer<OUT> resultConsumer) {
+	public void setResultConsumer(Consumer<ProductBin<K,OUT>> resultConsumer) {
 		for(AssemblingConveyor<K,L,IN,OUT> conv: conveyors) {
 			conv.setResultConsumer(resultConsumer);
 		}

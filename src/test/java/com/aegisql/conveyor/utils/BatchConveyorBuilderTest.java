@@ -62,7 +62,7 @@ public class BatchConveyorBuilderTest {
 		b.setResultConsumer((list)->{
 			System.out.println(list);
 			ai.incrementAndGet();
-			aii.addAndGet(list.size());
+			aii.addAndGet(list.product.size());
 		});
 		b.setExpirationCollectionInterval(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
@@ -99,7 +99,7 @@ public class BatchConveyorBuilderTest {
 		b.setResultConsumer((list)->{
 			System.out.println(list);
 			ai.incrementAndGet();
-			aii.addAndGet(list.size());
+			aii.addAndGet(list.product.size());
 		});
 		b.setExpirationCollectionInterval(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
