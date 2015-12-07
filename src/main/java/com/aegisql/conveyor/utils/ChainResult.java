@@ -8,8 +8,6 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.utils.collection.CollectionConveyor;
 
 public class ChainResult<K,IN2 extends Cart<K,?,?>, OUT1> implements Consumer<ProductBin<K,OUT1>> {
 
