@@ -43,8 +43,8 @@ public class ChainTest {
 
 	@Test
 	public void testChain() throws InterruptedException {
-		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
-		sc.setBuilderSupplier(StringToUserBuulder::new);
+		ScalarConvertingConveyor<String, String, User> scalarConveyor = new ScalarConvertingConveyor<>();
+		scalarConveyor.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		String csv1 = "John,Dow,1990";
 		String csv2 = "John,Smith,1991";
@@ -52,38 +52,34 @@ public class ChainTest {
 		ScalarCart<String,String> scalarCart1 = new ScalarCart<String, String>("test1", csv1);
 		ScalarCart<String,String> scalarCart2 = new ScalarCart<String, String>("test2", csv2);
 		
-		BatchConveyor<User> b = new BatchConveyor<>();
+		BatchConveyor<User> batchConveyor = new BatchConveyor<>();
 		
-		AtomicInteger ai = new AtomicInteger(0);
+		AtomicInteger ai  = new AtomicInteger(0);
 		AtomicInteger aii = new AtomicInteger(0);
 		
-		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(2, 10, TimeUnit.MILLISECONDS) );
-		b.setScrapConsumer((obj)->{
+		batchConveyor.setBuilderSupplier( () -> new BatchCollectingBuilder<>(2, 10, TimeUnit.MILLISECONDS) );
+		batchConveyor.setScrapConsumer((obj)->{
 			System.out.println(obj);
 			ai.decrementAndGet();
+			fail("Scrap unexpected in batch conveyor");
 		});
-		b.setResultConsumer((list)->{
-			System.out.println(list);
+		batchConveyor.setResultConsumer((list)->{
+			System.out.println(list.product);
 			ai.incrementAndGet();
 			aii.addAndGet(list.product.size());
 		});
-		b.setExpirationCollectionInterval(100, TimeUnit.MILLISECONDS);
-		b.setDefaultCartConsumer((a,l,c)->{
-			System.out.println(">>>"+a+" "+l+" "+c);
-		});
-		
+		batchConveyor.setExpirationCollectionInterval(100, TimeUnit.MILLISECONDS);		
 				
-		
-		
-		ChainResult<String, Cart<String,User,?>, User> chain = new ChainResult(b,new BatchCart(new User("A","B",1)));
+		BatchCart<User> protoCart = new BatchCart(new User("A","B",1));
+		ChainResult<String, Cart<String,User,?>, User> chain = new ChainResult(batchConveyor,protoCart);
 
-		sc.setResultConsumer(chain.andThen(u->{
-			System.out.println("RESULT: "+u);
+		scalarConveyor.setResultConsumer(chain.andThen(u->{
+			System.out.println("RESULT: "+u.product);
 			usr.set(u.product);
 		}));
 		
-		sc.add(scalarCart1);
-		sc.add(scalarCart2);
+		scalarConveyor.add(scalarCart1);
+		scalarConveyor.add(scalarCart2);
 
 		Thread.sleep(20);
 		assertNotNull(usr.get());
