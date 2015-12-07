@@ -64,7 +64,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	/** The pf. */
 	private final int pf;
 	
-	private Function<K,Integer> balancingFunction;
+	private BalancingFunction<K> balancingFunction;
 	
 	/**
 	 * Instantiates a new parallel conveyor.
@@ -91,7 +91,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 	 * @return the int
 	 */
 	private int idx(K key) {
-		return balancingFunction.apply(key);
+		return balancingFunction.balanceCart(key);
 	}
 
 	/**
@@ -408,7 +408,7 @@ public class ParallelConveyor<K, L, IN extends Cart<K, ?, L>, OUT> implements Co
 		}
 	}
 
-	public void setBalancingFunction(Function<K, Integer> balancingFunction) {
+	public void setBalancingFunction(BalancingFunction<K> balancingFunction) {
 		this.balancingFunction = balancingFunction;
 	}
 
