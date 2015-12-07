@@ -27,6 +27,7 @@ import com.aegisql.conveyor.cart.command.AbstractCommand;
 import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
+import com.aegisql.conveyor.utils.parallel.ParallelConveyor;
 
 // TODO: Auto-generated Javadoc
 /**

@@ -1,7 +1,7 @@
 /* 
  * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
  */
-package com.aegisql.conveyor;
+package com.aegisql.conveyor.utils.parallel;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -15,6 +15,12 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.LabeledValueConsumer;
+import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.ScrapBin;
+import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.command.AbstractCommand;
 
