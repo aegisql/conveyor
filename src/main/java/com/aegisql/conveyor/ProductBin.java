@@ -1,9 +1,6 @@
 package com.aegisql.conveyor;
 
-import java.util.concurrent.TimeUnit;
-
 import com.aegisql.conveyor.BuildingSite.Status;
-import com.aegisql.conveyor.cart.ShoppingCart;
 
 public class ProductBin<K,OUT> {
 
@@ -21,8 +18,4 @@ public class ProductBin<K,OUT> {
 		this.status = status;
 	}
 
-//	public <L> ShoppingCart<K,OUT,L> toShoppingCart( L label ) {
-//		return new ShoppingCart<K, OUT, L>(key, product, label,remainingDelayMsec,TimeUnit.MILLISECONDS);
-//	}
-	
 }
