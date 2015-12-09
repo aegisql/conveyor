@@ -226,6 +226,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		}
 		return builder.get();
 	}
+	
+	public Supplier<? extends OUT> getProductSupplier() {
+		return builder::get;
+	}
 
 	/**
 	 * Ready.

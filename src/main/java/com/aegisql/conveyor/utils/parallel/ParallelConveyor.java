@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.BuildingSite;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ProductBin;
@@ -410,4 +411,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.balancingFunction = balancingFunction;
 	}
 
+	public Supplier<? extends OUT> getProductSupplier(K key) {
+		return getConveyor(key).getProductSupplier(key);
+	}
 }

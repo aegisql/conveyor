@@ -612,6 +612,15 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public void setName(String name) {
 		innerThread.setName(name);
 	}
+	
+	public Supplier<? extends OUT> getProductSupplier(K key) {
+		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> site = collector.get(key);
+		if(site == null) {
+			return null;
+		} else {
+			return site.getProductSupplier();
+		}
+	}
 
 	/*
 	 * STATIC METHODS TO SUPPORT MANAGEMENT COMMANDS
