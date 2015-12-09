@@ -619,7 +619,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			return null;
 		} else {
 			Supplier<OUT> s = new Supplier<OUT>(){
-				boolean used = false;
+				private boolean used = false;
 				@Override
 				public OUT get() {
 					if(used) {
