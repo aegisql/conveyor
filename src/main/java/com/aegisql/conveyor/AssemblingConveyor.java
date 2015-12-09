@@ -618,7 +618,19 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if(site == null) {
 			return null;
 		} else {
-			return site.getProductSupplier();
+			Supplier<OUT> s = new Supplier<OUT>(){
+				boolean used = false;
+				@Override
+				public OUT get() {
+					if(used) {
+						throw new IllegalStateException("Product Suppler has been already used. Retrieve a new instance. Key used:"+key);
+					}
+					used = true;
+					return site.getProductSupplier().get();
+				}
+				
+			};
+			return s;
 		}
 	}
 
