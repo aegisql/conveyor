@@ -45,7 +45,7 @@ public class MultiThreadTest {
 	public static User[] outUser = new User[SIZE];
 
 	/** The conveyor. */
-	public static 		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+	public static 		AssemblingConveyor<Integer, String, User> 
 	conveyor = new AssemblingConveyor<>();
 
 	

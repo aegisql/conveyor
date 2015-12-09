@@ -4,9 +4,8 @@ import java.util.List;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.SmartLabel;
-import com.aegisql.conveyor.cart.Cart;
 
-public class BatchConveyor <V> extends AssemblingConveyor<String, SmartLabel<BatchCollectingBuilder<V>>, Cart<String, V, SmartLabel<BatchCollectingBuilder<V>>>, List<V>> {
+public class BatchConveyor <V> extends AssemblingConveyor<String, SmartLabel<BatchCollectingBuilder<V>>, List<V>> {
 
 	public BatchConveyor() {
 		super();

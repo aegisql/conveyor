@@ -48,7 +48,7 @@ public class ParallelConveyorTest {
 	public static User[] outUser = new User[SIZE];
 
 	/** The conveyor. */
-	public static 		ParallelConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+	public static 		ParallelConveyor<Integer, String, User> 
 	conveyor = new ParallelConveyor<>(4);
 
 	

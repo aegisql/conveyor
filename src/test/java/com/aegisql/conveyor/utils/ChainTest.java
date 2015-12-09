@@ -71,7 +71,7 @@ public class ChainTest {
 		batchConveyor.setExpirationCollectionInterval(100, TimeUnit.MILLISECONDS);		
 				
 		BatchCart<User> protoCart = new BatchCart(new User("A","B",1));
-		ChainResult<String, Cart<String,User,?>, User> chain = new ChainResult(batchConveyor,protoCart);
+		ChainResult<String, User> chain = new ChainResult(batchConveyor,protoCart);
 
 		scalarConveyor.setResultConsumer(chain.andThen(u->{
 			System.out.println("RESULT: "+u.product);

@@ -90,7 +90,7 @@ public class AssemblingConveyorTest {
 	@Test
 	public void testUnconfiguredBuilderSupplier() throws InterruptedException {
 		AtomicBoolean visited = new AtomicBoolean(false);
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
@@ -111,7 +111,7 @@ public class AssemblingConveyorTest {
 	 */
 	@Test
 	public void testOfferStopped() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
@@ -130,7 +130,7 @@ public class AssemblingConveyorTest {
 	 */
 	@Test(expected=IllegalStateException.class)
 	public void testCommandStopped() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
@@ -149,7 +149,7 @@ public class AssemblingConveyorTest {
 	 */
 	@Test(expected=IllegalStateException.class)
 	public void testCommandExpired() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
@@ -168,7 +168,7 @@ public class AssemblingConveyorTest {
 	 */
 	@Test(expected=IllegalStateException.class)
 	public void testCommandTooOld() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.rejectUnexpireableCartsOlderThan(10, TimeUnit.MILLISECONDS);
 		conveyor.setScrapConsumer((o)->{
@@ -188,7 +188,7 @@ public class AssemblingConveyorTest {
 	 */
 	@Test(expected=IllegalStateException.class)
 	public void testAddStopped() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
@@ -207,7 +207,7 @@ public class AssemblingConveyorTest {
 	 */
 	@Test(expected=IllegalStateException.class)
 	public void testAddExpiredStopped() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
@@ -226,7 +226,7 @@ public class AssemblingConveyorTest {
 	 */
 	@Test()
 	public void testOfferExpiredStopped() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
@@ -245,7 +245,7 @@ public class AssemblingConveyorTest {
 	 */
 	@Test
 	public void testSimpleConveyor() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilder::new);
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
@@ -320,7 +320,7 @@ public class AssemblingConveyorTest {
 
 	@Test
 	public void testSimpleConveyorCreatedByMessage() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		conveyor.setExpirationCollectionInterval(500, TimeUnit.MILLISECONDS);
@@ -377,7 +377,7 @@ public class AssemblingConveyorTest {
 
 	@Test
 	public void testSimpleConveyorNotCreatedByMessage() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(null);
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
@@ -434,7 +434,7 @@ public class AssemblingConveyorTest {
 	 */
 	@Test
 	public void testSimpleConveyor2() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilder::new);
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
@@ -504,7 +504,7 @@ public class AssemblingConveyorTest {
 	 */
 	@Test
 	public void testError() throws InterruptedException {
-		AssemblingConveyor<Integer, String, Cart<Integer, ?, String>, User> 
+		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilder::new);
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);

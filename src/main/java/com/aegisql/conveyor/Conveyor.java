@@ -17,7 +17,7 @@ import com.aegisql.conveyor.cart.command.AbstractCommand;
  * @param <IN> the data cart type
  * @param <OUT> the target class type
  */
-public interface Conveyor<K, L, IN extends Cart<K,?,L>,OUT> {
+public interface Conveyor<K, L, OUT> {
 
 	/**
 	 * Adds the cart to the input queue.
@@ -25,7 +25,7 @@ public interface Conveyor<K, L, IN extends Cart<K,?,L>,OUT> {
 	 * @param cart the cart
 	 * @return true, if successful
 	 */
-	public boolean add(IN cart);
+	public boolean add(Cart<K,?,L> cart);
 	
 	/**
 	 * Offers the cart to the input queue.
@@ -33,7 +33,7 @@ public interface Conveyor<K, L, IN extends Cart<K,?,L>,OUT> {
 	 * @param cart the cart
 	 * @return true, if successful
 	 */
-	public boolean offer(IN cart);
+	public boolean offer(Cart<K,?,L> cart);
 	
 	/**
 	 * Adds the command to the management queue.

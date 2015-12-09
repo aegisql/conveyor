@@ -83,7 +83,7 @@ public class SmartConveyorTest {
 	 */
 	@Test
 	public void testBasicsSmart() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents, Cart<Integer, ?, UserBuilderEvents>, User> 
+		AssemblingConveyor<Integer, UserBuilderEvents, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
@@ -125,7 +125,7 @@ public class SmartConveyorTest {
 	 */
 	@Test
 	public void testBasicsTesting() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents2, Cart<Integer, ?, UserBuilderEvents2>, User> 
+		AssemblingConveyor<Integer, UserBuilderEvents2, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTesting::new);
 
@@ -164,7 +164,7 @@ public class SmartConveyorTest {
 	 */
 	@Test
 	public void testBasicsTestingState() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents3, Cart<Integer, ?, UserBuilderEvents3>, User> 
+		AssemblingConveyor<Integer, UserBuilderEvents3, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTestingState::new);
 
@@ -203,7 +203,7 @@ public class SmartConveyorTest {
 	 */
 	@Test
 	public void testRejectedStartOffer() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents, Cart<Integer, ?, UserBuilderEvents>, User> 
+		AssemblingConveyor<Integer, UserBuilderEvents, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
@@ -229,7 +229,7 @@ public class SmartConveyorTest {
 	 */
 	@Test(expected=IllegalStateException.class) //???? Failed
 	public void testRejectedStartAdd() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents, Cart<Integer, ?, UserBuilderEvents>, User> 
+		AssemblingConveyor<Integer, UserBuilderEvents, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
