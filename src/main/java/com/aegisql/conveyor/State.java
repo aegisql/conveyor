@@ -4,7 +4,6 @@
 package com.aegisql.conveyor;
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 // TODO: Auto-generated Javadoc
 /**
