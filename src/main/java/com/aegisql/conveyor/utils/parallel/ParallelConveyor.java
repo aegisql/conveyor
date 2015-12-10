@@ -411,7 +411,4 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.balancingFunction = balancingFunction;
 	}
 
-	public Supplier<? extends OUT> getProductSupplier(K key) {
-		return getConveyor(key).getProductSupplier(key);
-	}
 }

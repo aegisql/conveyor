@@ -65,7 +65,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private final BlockingQueue<BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>> delayQueue = new DelayQueue<>();
 
 	/** The collector. */
-	private final Map<K, BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>> collector = new HashMap<>();
+	protected final Map<K, BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>> collector = new HashMap<>();
 
 	/** The builder timeout. */
 	private long builderTimeout = 0;
@@ -611,27 +611,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void setName(String name) {
 		innerThread.setName(name);
-	}
-	
-	public Supplier<? extends OUT> getProductSupplier(K key) {
-		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> site = collector.get(key);
-		if(site == null) {
-			return null;
-		} else {
-			Supplier<OUT> s = new Supplier<OUT>(){
-				private boolean used = false;
-				@Override
-				public OUT get() {
-					if(used) {
-						throw new IllegalStateException("Product Suppler has been already used. Retrieve a new instance. Key used:"+key);
-					}
-					used = true;
-					return site.getProductSupplier().get();
-				}
-				
-			};
-			return s;
-		}
 	}
 
 	/*
