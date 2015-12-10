@@ -18,6 +18,9 @@ public class CachingConveyor<K, L, OUT> extends AssemblingConveyor<K, L, OUT> {
 		super();
 		this.setReadinessEvaluator( (k,l) -> false);
 		this.setName("CachingConveyor");
+		this.setOnTimeoutAction(builder->{
+			LOG.debug("Evicting builder {}",builder);			
+		});
 		this.setResultConsumer(bin->{
 			LOG.debug("Evicting key {}",bin.key);
 		});
