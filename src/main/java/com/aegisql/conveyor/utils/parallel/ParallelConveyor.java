@@ -41,7 +41,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The expiration collection interval. */
 	private long expirationCollectionInterval = 0;
-	private TimeUnit expirationCollectionUnit;
+	private TimeUnit expirationCollectionUnit = TimeUnit.MILLISECONDS;
 	
 	/** The builder timeout. */
 	private long builderTimeout = 0;
