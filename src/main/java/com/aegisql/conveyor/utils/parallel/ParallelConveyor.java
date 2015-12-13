@@ -41,7 +41,8 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The expiration collection interval. */
 	private long expirationCollectionInterval = 0;
-
+	private TimeUnit expirationCollectionUnit;
+	
 	/** The builder timeout. */
 	private long builderTimeout = 0;
 	
@@ -245,6 +246,9 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public long getExpirationCollectionInterval() {
 		return expirationCollectionInterval;
 	}
+	public TimeUnit getExpirationCollectionTimeUnit() {
+		return expirationCollectionUnit;
+	}
 
 	/**
 	 * Sets the expiration collection interval.
@@ -253,7 +257,8 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param unit the unit
 	 */
 	public void setExpirationCollectionInterval(long expirationCollectionInterval, TimeUnit unit) {
-		this.expirationCollectionInterval = unit.toMillis(expirationCollectionInterval);
+		this.expirationCollectionInterval = expirationCollectionInterval;
+		this.expirationCollectionUnit = unit;
 		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
 			conv.setExpirationCollectionInterval(expirationCollectionInterval,unit);
 		}

@@ -7,13 +7,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -28,7 +28,6 @@ import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.AbstractCommand;
 import com.aegisql.conveyor.cart.command.CreateCommand;
-import com.aegisql.conveyor.cart.command.TimeoutCommand;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -45,15 +44,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
-
-	/** The timer. */
-	private Timer timer = new Timer("BuilderTimeoutTicker");
-
-	/** The expired collector. */
-	private TimerTask expiredCollector = null;
-
-	/** The expiration collection interval. */
-	private long expirationCollectionInterval = 0;
 
 	/** The in queue. */
 	private final Queue<Cart<K,?,L>> inQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
@@ -103,17 +93,36 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The inner thread. */
 	private final Thread innerThread;
-
+	
 	/**
 	 * The Class Lock.
 	 */
 	private static final class Lock {
+		private final ReentrantLock rLock = new ReentrantLock();
+		private final Condition hasCarts  = rLock.newCondition();
 		
+		private long expirationCollectionInterval = Long.MAX_VALUE;
+		
+		public void setExpirationCollectionInterval(long expirationCollectionInterval) {
+			this.expirationCollectionInterval = expirationCollectionInterval;
+		}
+
+		public void setExpirationCollectionUnit(TimeUnit expirationCollectionUnit) {
+			this.expirationCollectionUnit = expirationCollectionUnit;
+		}
+
+		private TimeUnit expirationCollectionUnit = TimeUnit.MILLISECONDS;
+
 		/**
 		 * Tell.
 		 */
-		public synchronized void tell() {
-			this.notify();
+		public void tell() {
+			rLock.lock();
+			try {
+				hasCarts.signal();
+			} finally {
+				rLock.unlock();
+			}
 		}
 		
 		/**
@@ -122,11 +131,18 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		 * @param q the q
 		 * @throws InterruptedException the interrupted exception
 		 */
-		public synchronized void waitData(Queue q) throws InterruptedException {
-			if( q.isEmpty() ) {
-				this.wait();
+		public void waitData(Queue q) throws InterruptedException {
+			rLock.lock();
+			try {
+				if( q.isEmpty() ) {
+					hasCarts.await(expirationCollectionInterval, expirationCollectionUnit);
+				}				
+			} finally {
+				rLock.unlock();
 			}
 		}
+		
+		
 	}
 
 	/** The lock. */
@@ -203,10 +219,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						break;
 					processManagementCommands();
 					Cart<K,?,L> cart = inQueue.poll();
-					if(cart == null) 
-						continue;
-					processSite(cart);
-					removeExpired();
+					if(cart == null) {
+						removeExpired();
+					} else {
+						processSite(cart);
+						removeExpired();
+					}
 				}
 				LOG.debug("Leaving {}", Thread.currentThread().getName());
 				drainQueues();
@@ -387,8 +405,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void stop() {
 		running = false;
-		timer.cancel();
-		timer.purge();
 		lock.tell();
 	}
 
@@ -398,7 +414,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @return the expiration collection interval
 	 */
 	public long getExpirationCollectionInterval() {
-		return expirationCollectionInterval;
+		return lock.expirationCollectionInterval;
+	}
+
+	public TimeUnit getExpirationCollectionTimeUnit() {
+		return lock.expirationCollectionUnit;
 	}
 
 	/**
@@ -487,28 +507,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param unit the unit
 	 */
 	public void setExpirationCollectionInterval(long expirationCollectionInterval, TimeUnit unit) {
-		this.expirationCollectionInterval = unit.toMillis(expirationCollectionInterval);
-		if (expiredCollector != null) {
-			expiredCollector.cancel();
-			timer.cancel();
-			timer.purge();
-			timer = new Timer("BuilderTimeoutTicker");
-		}
-		expiredCollector = new TimerTask() {
-			@Override
-			public void run() {
-				BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> exp;
-				if ( (exp = delayQueue.poll()) != null) {
-					LOG.debug("CHECK TIMEOUT SENT" );
-					TimeoutCommand<K, Supplier<?>> to = new TimeoutCommand<>(exp.getCart().getKey());
-					Cart<K, Object, L> msg = new ShoppingCart<K,Object,L>(exp.getCart().getKey(), Status.TIMED_OUT,null); 
-							//exp.getCart().nextCart( Status.TIMED_OUT, null );
-					addFirst((Cart<K,?,L>) msg);
-					delayQueue.add(exp); //return back
-				}
-			}
-		};
-		timer.schedule(expiredCollector, expirationCollectionInterval, expirationCollectionInterval);
+		lock.setExpirationCollectionInterval(expirationCollectionInterval);
+		lock.setExpirationCollectionUnit(unit);
+		lock.tell();
 	}
 
 	/**
