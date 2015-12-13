@@ -131,7 +131,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		 * @param q the q
 		 * @throws InterruptedException the interrupted exception
 		 */
-		public void waitData(Queue q) throws InterruptedException {
+		public void waitData(Queue<?> q) throws InterruptedException {
 			rLock.lock();
 			try {
 				if( q.isEmpty() ) {
