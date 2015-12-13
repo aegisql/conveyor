@@ -90,6 +90,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The running. */
 	private volatile boolean running = true;
+	
+	protected boolean synchronizeBuilder = false;
 
 	/** The inner thread. */
 	private final Thread innerThread;
@@ -183,15 +185,15 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(cart.getValue() != null && cart instanceof CreatingCart ) {
 				CreatingCart<K,Supplier<? extends OUT>,L> cc = (CreatingCart<K,Supplier<? extends OUT>,L>)cart;
 				bs= cc.getValue();
-				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS);
+				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder);
 				returnNull = true;
 			} if(cart.getValue() != null && cart instanceof CreateCommand ) {
 				CreateCommand<K, Supplier<? extends OUT>> cc = (CreateCommand<K, Supplier<? extends OUT>>)cart;
 				bs= cc.getValue();
-				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS);
+				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder);
 				returnNull = true;
 			} else if(builderSupplier != null) {
-				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, builderSupplier, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS);
+				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, builderSupplier, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder);
 			} else {
 				scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither builder nor builder supplier available") );
 				returnNull = true;
@@ -679,6 +681,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public boolean isRunning() {
 		return running;
+	}
+
+	public boolean isSynchronizeBuilder() {
+		return synchronizeBuilder;
+	}
+
+	public void setSynchronizeBuilder(boolean synchronizeBuilder) {
+		this.synchronizeBuilder = synchronizeBuilder;
 	}
 
 }

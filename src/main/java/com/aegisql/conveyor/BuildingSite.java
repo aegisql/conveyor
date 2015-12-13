@@ -9,9 +9,14 @@ import java.util.Map;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import javax.naming.OperationNotSupportedException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,6 +92,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	
 	/** The delay keeper. */
 	Delayed delayKeeper;
+	
+	private final boolean synchronizeBuilder;
+	
+	private final Lock lock;
 
 	/**
 	 * Instantiates a new building site.
@@ -104,9 +113,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 			LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer, 
 			BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness, 
 			Consumer<Supplier<? extends OUT>> timeoutAction,
-			long ttl, TimeUnit unit) {
+			long ttl, TimeUnit unit, boolean synchronizeBuilder) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
+		this.synchronizeBuilder = synchronizeBuilder;
 		this.timeoutAction = timeoutAction;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
 		if(builder instanceof TestingState) {
@@ -179,7 +189,24 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 				}
 			};
 		}
-		
+		if(synchronizeBuilder) {
+			lock = new ReentrantLock();
+		} else {
+			lock = new Lock() {
+				public void lock() {}
+				public void lockInterruptibly() throws InterruptedException {}
+				public boolean tryLock() {
+					return true;
+				}
+				public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+					return true;
+				}
+				public void unlock() {}
+				public Condition newCondition() {
+					return null;
+				}
+			};
+		}
 	}
 
 	/**
@@ -365,5 +392,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	public void setStatus(Status status) {
 		this.status = status;
 	}
-	
+
+	public Lock getLock() {
+		return lock;
+	}
+
 }

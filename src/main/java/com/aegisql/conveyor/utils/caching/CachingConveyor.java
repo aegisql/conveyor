@@ -40,7 +40,15 @@ public class CachingConveyor<K, L, OUT> extends AssemblingConveyor<K, L, OUT> {
 					if( ! site.getStatus().equals(Status.WAITING_DATA)) {
 						throw new IllegalStateException("Supplier is in a wrong state: "+site.getStatus());
 					}
-					return site.getProductSupplier().get();
+					Supplier<? extends OUT> supplier = site.getProductSupplier();
+					OUT res = null;
+					site.getLock().lock();
+					try {
+						res = supplier.get();
+					} finally {
+						site.getLock().unlock();
+					}
+					return res;
 				}
 				
 			};
