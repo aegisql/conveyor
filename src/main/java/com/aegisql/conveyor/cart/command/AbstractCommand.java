@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.cart.command;
 
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import com.aegisql.conveyor.CommandLabel;
@@ -30,8 +29,7 @@ public abstract class AbstractCommand<K, V> extends AbstractCart<K, V, CommandLa
 		return this.getClass().getSimpleName()+" [key=" + k + 
 				", value=" + v + 
 				", label=" + label + 
-				", created=" + new Date(created) + 
-				(expiration > 0 ? (", expires=" + new Date(expiration) ) : ", unexpireable") +
+				", delay=" + delay +
 				 "]";
 	}
 

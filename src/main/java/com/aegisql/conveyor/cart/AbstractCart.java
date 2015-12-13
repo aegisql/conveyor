@@ -3,10 +3,11 @@
  */
 package com.aegisql.conveyor.cart;
 
-import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+
+import com.aegisql.conveyor.DelayHolder;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -32,11 +33,7 @@ public abstract class AbstractCart<K,V,L> implements Cart<K,V,L> {
 	/** The label. */
 	protected final L label;
 	
-	/** The created. */
-	protected final long created = System.currentTimeMillis();
-	
-	/** The expiration. */
-	protected final long expiration;
+	protected final DelayHolder delay;
 	
 	/**
 	 * Instantiates a new cart.
@@ -52,7 +49,7 @@ public abstract class AbstractCart<K,V,L> implements Cart<K,V,L> {
 		this.k          = k;
 		this.v          = v;
 		this.label      = label;
-		this.expiration = created + TimeUnit.MILLISECONDS.convert(ttl, timeUnit);
+		delay = new DelayHolder(ttl,timeUnit);
 	}
 	
 	/**
@@ -67,7 +64,7 @@ public abstract class AbstractCart<K,V,L> implements Cart<K,V,L> {
 		this.k = k;
 		this.v = v;
 		this.label = label;
-		this.expiration = 0;
+		delay = new DelayHolder();
 	}
 
 	/**
@@ -83,7 +80,7 @@ public abstract class AbstractCart<K,V,L> implements Cart<K,V,L> {
 		this.k = k;
 		this.v = v;
 		this.label = label;
-		this.expiration = expiration;
+		delay = new DelayHolder(expiration);
 	}
 
 	/**
@@ -119,7 +116,7 @@ public abstract class AbstractCart<K,V,L> implements Cart<K,V,L> {
 	 * @return the creation time
 	 */
 	public long getCreationTime() {
-		return created;
+		return delay.getCreatedTime();
 	}
 	
 	/**
@@ -128,7 +125,7 @@ public abstract class AbstractCart<K,V,L> implements Cart<K,V,L> {
 	 * @return the expiration time
 	 */
 	public long getExpirationTime() {
-		return expiration;
+		return delay.getExpirationTime();
 	}
 	
 	/**
@@ -137,7 +134,7 @@ public abstract class AbstractCart<K,V,L> implements Cart<K,V,L> {
 	 * @return true, if successful
 	 */
 	public boolean expired() {
-		return expiration > 0 && expiration <= System.currentTimeMillis();
+		return delay.expired();
 	}
 	
 	/* (non-Javadoc)
@@ -148,8 +145,7 @@ public abstract class AbstractCart<K,V,L> implements Cart<K,V,L> {
 		return "Cart [key=" + k + 
 				", value=" + v + 
 				", label=" + label + 
-				", created=" + new Date(created) + 
-				(expiration > 0 ? (", expires=" + new Date(expiration) ) : ", unexpireable") +
+				", delay=" + delay +
 				 "]";
 	}
 	
@@ -158,13 +154,7 @@ public abstract class AbstractCart<K,V,L> implements Cart<K,V,L> {
 	 */
 	@Override
 	public int compareTo(Delayed o) {
-		if( this.created < ((AbstractCart<?,?,?>)o).created) {
-			return -1;
-		}
-		if( this.created > ((AbstractCart<?,?,?>)o).created) {
-			return +1;
-		}
-		return 0;
+		return delay.compareTo(((AbstractCart<?,?,?>)o).delay);
 	}
 	
 	/* (non-Javadoc)
@@ -172,13 +162,7 @@ public abstract class AbstractCart<K,V,L> implements Cart<K,V,L> {
 	 */
 	@Override
 	public long getDelay(TimeUnit unit) {
-        long delta;
-		if( this.expiration == 0 ) {
-			delta = Long.MAX_VALUE;
-		} else {
-			delta = this.expiration - System.currentTimeMillis();
-		}
-        return unit.convert(delta, TimeUnit.MILLISECONDS);
+		return delay.getDelay(unit);
 	}
 	
 }
