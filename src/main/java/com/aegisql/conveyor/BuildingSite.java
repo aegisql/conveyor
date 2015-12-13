@@ -16,8 +16,6 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import javax.naming.OperationNotSupportedException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,8 +91,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	/** The delay keeper. */
 	Delayed delayKeeper;
 	
-	private final boolean synchronizeBuilder;
-	
 	private final Lock lock;
 
 	/**
@@ -116,7 +112,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 			long ttl, TimeUnit unit, boolean synchronizeBuilder) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
-		this.synchronizeBuilder = synchronizeBuilder;
 		this.timeoutAction = timeoutAction;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
 		if(builder instanceof TestingState) {

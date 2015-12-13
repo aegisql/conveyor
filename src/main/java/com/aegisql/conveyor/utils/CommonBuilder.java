@@ -4,32 +4,32 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.DelayHolder;
 import com.aegisql.conveyor.Testing;
 
 public abstract class CommonBuilder<T> implements Testing, Delayed, Supplier<T> {
 	
-	protected final long builderCreated = System.currentTimeMillis();
-	protected final long builderExpiration;
+	protected final DelayHolder delay;
 
 	protected boolean ready = false;
 	
 	public CommonBuilder(long ttl, TimeUnit timeUnit ) {
-		this.builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, timeUnit);
+		delay = new DelayHolder(ttl,timeUnit);
 	}
 
 	public CommonBuilder(long expiration ) {
-		this.builderExpiration = expiration;
+		delay = new DelayHolder(expiration);
 	}
 
 	public CommonBuilder() {
-		this.builderExpiration = 0;
+		delay = new DelayHolder();
 	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	public int compareTo(Delayed o) {
-		return (int) (builderCreated - ((CommonBuilder)o).builderCreated);
+		return delay.compareTo(((CommonBuilder)o).delay);
 	}
 	
 	/* (non-Javadoc)
@@ -37,13 +37,7 @@ public abstract class CommonBuilder<T> implements Testing, Delayed, Supplier<T> 
 	 */
 	@Override
 	public long getDelay(TimeUnit unit) {
-        long delta;
-		if( builderExpiration == 0 ) {
-			delta = Long.MAX_VALUE;
-		} else {
-			delta = builderExpiration - System.currentTimeMillis();
-		}
-        return unit.convert(delta, TimeUnit.MILLISECONDS);
+		return delay.getDelay(unit);
 	}
 
 	public void setReady(boolean ready) {
