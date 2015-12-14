@@ -39,20 +39,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	 * The Enum Status.
 	 */
 	public static enum Status{
-		
-		/** The waiting data. */
 		WAITING_DATA,
-		
-		/** The timed out. */
 		TIMED_OUT,
-		
-		/** The ready. */
 		READY,
-		
-		/** The canceled. */
 		CANCELED,
-		
-		/** The invalid. */
 		INVALID;
 	}
 	
@@ -114,13 +104,41 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		this.builder = builderSupplier.get() ;
 		this.timeoutAction = timeoutAction;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
+		if(synchronizeBuilder) {
+			lock = new ReentrantLock();
+		} else {
+			lock = new Lock() {
+				public void lock() {}
+				public void lockInterruptibly() throws InterruptedException {}
+				public boolean tryLock() {
+					return true;
+				}
+				public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+					return true;
+				}
+				public void unlock() {}
+				public Condition newCondition() {
+					return null;
+				}
+			};
+		}	
 		if(builder instanceof TestingState) {
 			this.readiness = (state,builder) -> {
-				return ((TestingState<K,L>)builder).test(state);
+				lock.lock();
+				try {
+					return ((TestingState<K,L>)builder).test(state);
+				} finally {
+					lock.unlock();
+				}
 			};
 		}else if(builder instanceof Testing) {
 			this.readiness = (state,builder) -> {
-				return ((Testing)builder).test();
+				lock.lock();
+				try {
+					return ((Testing)builder).test();
+				} finally {
+					lock.unlock();
+				}
 			};
 		} else {
 			this.readiness = readiness;
@@ -184,24 +202,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 				}
 			};
 		}
-		if(synchronizeBuilder) {
-			lock = new ReentrantLock();
-		} else {
-			lock = new Lock() {
-				public void lock() {}
-				public void lockInterruptibly() throws InterruptedException {}
-				public boolean tryLock() {
-					return true;
-				}
-				public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-					return true;
-				}
-				public void unlock() {}
-				public Condition newCondition() {
-					return null;
-				}
-			};
-		}
 	}
 
 	/**
@@ -213,12 +213,16 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		L label = cart.getLabel();
 		Object value = cart.getValue();
 		
-		if( (label == null) || ! (label instanceof SmartLabel) ) {
-			valueConsumer.accept(label, value, builder);
-		} else {
-			((SmartLabel)label).getSetter().accept(builder,value);
+		lock.lock();
+		try {
+			if( (label == null) || ! (label instanceof SmartLabel) ) {
+				valueConsumer.accept(label, value, builder);
+			} else {
+				((SmartLabel)label).getSetter().accept(builder,value);
+			}
+		} finally {
+			lock.unlock();
 		}
-		
 		if(label != null) {
 			acceptCount++;
 			if(eventHistory.containsKey(label)) {
@@ -230,10 +234,15 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	}
 
 	public void timeout(C cart) {
-		if (builder instanceof TimeoutAction ){
-			((TimeoutAction)builder).onTimeout();
-		} else if( timeoutAction != null ) {
-			timeoutAction.accept(builder);
+		lock.lock();
+		try {
+			if (builder instanceof TimeoutAction ){
+				((TimeoutAction)builder).onTimeout();
+			} else if( timeoutAction != null ) {
+				timeoutAction.accept(builder);
+			}
+		} finally {
+			lock.unlock();
 		}
 	}
 
@@ -246,7 +255,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		if( ! ready() ) {
 			throw new IllegalStateException("Builder is not ready!");
 		}
-		return builder.get();
+		lock.lock();
+		try {
+			return builder.get();
+		} finally {
+			lock.unlock();
+		}
 	}
 	
 	public Supplier<? extends OUT> getProductSupplier() {
@@ -259,10 +273,13 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	 * @return true, if successful
 	 */
 	public boolean ready() {
-		State<K,L> state = null;
-		final Map<L,Integer> history = new LinkedHashMap<>();
-		eventHistory.forEach((k,v)->history.put(k, v.get()));
-		 state = new State<>(
+		boolean res = false;
+		lock.lock();
+		try {
+			State<K,L> state = null;
+			final Map<L,Integer> history = new LinkedHashMap<>();
+			eventHistory.forEach((k,v)->history.put(k, v.get()));
+			state = new State<>(
 					initialCart.getKey(),
 					builderCreated,
 					builderExpiration,
@@ -271,9 +288,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 					acceptCount,
 					Collections.unmodifiableMap( history )
 					);
-		boolean res = readiness.test(state, builder);
-		if( res ) {
-			status = Status.READY;
+			res = readiness.test(state, builder);
+			if( res ) {
+				status = Status.READY;
+			}
+		} finally {
+			lock.unlock();
 		}
 		return res;
 	}
