@@ -25,7 +25,7 @@ public class CachingConveyor<K, L, OUT> extends AssemblingConveyor<K, L, OUT> {
 			LOG.debug("Evicting key {}",bin.key);
 		});
 		this.setScrapConsumer(bin->{
-			LOG.debug("Evicting key {}",bin.getKey());
+			LOG.debug("Evicting key {}",bin.key);
 		});
 	}
 

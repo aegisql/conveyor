@@ -1,16 +1,16 @@
 package com.aegisql.conveyor;
 
 public class ScrapBin<K,O> {
-	private final K key;
-	private final String comment;
-	private final O scrap;
-	
-	private Throwable error = null;
+	public final K key;
+	public final String comment;
+	public final O scrap;
+	public final Throwable error;
 	
 	public ScrapBin(K key, O scrap, String comment) {
 		this.key     = key;
 		this.comment = comment;
 		this.scrap   = scrap;
+		this.error   = null;
 	}
 
 	public ScrapBin(K key, O scrap, String comment, Throwable error) {
@@ -18,19 +18,6 @@ public class ScrapBin<K,O> {
 		this.comment = comment;
 		this.scrap   = scrap;
 		this.error   = error;
-	}
-
-	public String getComment() {
-		return comment;
-	}
-	public O getScrap() {
-		return scrap;
-	}
-	public K getKey() {
-		return key;
-	}
-	public Throwable getError() {
-		return error;
 	}
 
 	@Override
