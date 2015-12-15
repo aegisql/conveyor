@@ -68,7 +68,7 @@ public class ChainTest {
 			ai.incrementAndGet();
 			aii.addAndGet(list.product.size());
 		});
-		batchConveyor.setExpirationCollectionInterval(100, TimeUnit.MILLISECONDS);		
+		batchConveyor.setExpirationCollectionIdleInterval(100, TimeUnit.MILLISECONDS);		
 				
 		BatchCart<User> protoCart = new BatchCart(new User("A","B",1));
 		ChainResult<String, User> chain = new ChainResult(batchConveyor,protoCart);

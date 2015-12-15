@@ -415,11 +415,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 *
 	 * @return the expiration collection interval
 	 */
-	public long getExpirationCollectionInterval() {
+	public long getExpirationCollectionIdleInterval() {
 		return lock.expirationCollectionInterval;
 	}
 
-	public TimeUnit getExpirationCollectionTimeUnit() {
+	public TimeUnit getExpirationCollectionIdleTimeUnit() {
 		return lock.expirationCollectionUnit;
 	}
 
@@ -508,7 +508,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param expirationCollectionInterval the expiration collection interval
 	 * @param unit the unit
 	 */
-	public void setExpirationCollectionInterval(long expirationCollectionInterval, TimeUnit unit) {
+	public void setExpirationCollectionIdleInterval(long expirationCollectionInterval, TimeUnit unit) {
 		lock.setExpirationCollectionInterval(expirationCollectionInterval);
 		lock.setExpirationCollectionUnit(unit);
 		lock.tell();

@@ -243,10 +243,10 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 *
 	 * @return the expiration collection interval
 	 */
-	public long getExpirationCollectionInterval() {
+	public long getExpirationCollectionIdleInterval() {
 		return expirationCollectionInterval;
 	}
-	public TimeUnit getExpirationCollectionTimeUnit() {
+	public TimeUnit getExpirationCollectionIdleTimeUnit() {
 		return expirationCollectionUnit;
 	}
 
@@ -256,11 +256,11 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param expirationCollectionInterval the expiration collection interval
 	 * @param unit the unit
 	 */
-	public void setExpirationCollectionInterval(long expirationCollectionInterval, TimeUnit unit) {
+	public void setExpirationCollectionIdleInterval(long expirationCollectionInterval, TimeUnit unit) {
 		this.expirationCollectionInterval = expirationCollectionInterval;
 		this.expirationCollectionUnit = unit;
 		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
-			conv.setExpirationCollectionInterval(expirationCollectionInterval,unit);
+			conv.setExpirationCollectionIdleInterval(expirationCollectionInterval,unit);
 		}
 	}
 
