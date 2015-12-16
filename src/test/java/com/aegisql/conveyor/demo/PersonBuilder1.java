@@ -4,8 +4,9 @@
 package com.aegisql.conveyor.demo;
 
 import java.util.Date;
+import java.util.function.Supplier;
 
-public class PersonBuilder1 {
+public class PersonBuilder1 implements Supplier<Person> {
 	
 	private String firstName;
 	private String lastName;
@@ -27,6 +28,7 @@ public class PersonBuilder1 {
 		this.dateOfBirth = dateOfBirth;
 	}
 
+	@Override
 	public Person get() {
 		return new Person(firstName,lastName,dateOfBirth);
 	}
