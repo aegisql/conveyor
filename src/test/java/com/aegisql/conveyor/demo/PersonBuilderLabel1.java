@@ -14,7 +14,7 @@ import com.aegisql.conveyor.SmartLabel;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  */
-public enum UserBuilderEvents implements SmartLabel<ReactivePersonBuilder1> {
+public enum PersonBuilderLabel1 implements SmartLabel<ReactivePersonBuilder1> {
 	
 	SET_FIRST(ReactivePersonBuilder1::setFirstName),
 	SET_LAST(ReactivePersonBuilder1::setLastName),
@@ -23,7 +23,7 @@ public enum UserBuilderEvents implements SmartLabel<ReactivePersonBuilder1> {
 
 	BiConsumer<ReactivePersonBuilder1, Object> setter;
 
-	<T> UserBuilderEvents(BiConsumer<ReactivePersonBuilder1,T> setter) {
+	<T> PersonBuilderLabel1(BiConsumer<ReactivePersonBuilder1,T> setter) {
 		this.setter = (BiConsumer<ReactivePersonBuilder1, Object>) setter;
 	}
 	

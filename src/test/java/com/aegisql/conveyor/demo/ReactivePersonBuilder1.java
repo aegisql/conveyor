@@ -6,14 +6,31 @@ package com.aegisql.conveyor.demo;
 import java.util.Date;
 import java.util.function.Supplier;
 
-public class ReactivePersonBuilder1 implements Supplier<Person> {
+import com.aegisql.conveyor.State;
+import com.aegisql.conveyor.TestingState;
+
+public class ReactivePersonBuilder1 implements Supplier<Person>, TestingState<Integer, PersonBuilderLabel1> {
 	
 	private String firstName;
 	private String lastName;
 	private Date dateOfBirth;
 	
+	private boolean forceReady = false;
+	
 	public ReactivePersonBuilder1() {
 
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public Date getDateOfBirth() {
+		return dateOfBirth;
 	}
 
 	public static void setFirstName(ReactivePersonBuilder1 builder, String firstName) {
@@ -31,6 +48,15 @@ public class ReactivePersonBuilder1 implements Supplier<Person> {
 	@Override
 	public Person get() {
 		return new Person(firstName,lastName,dateOfBirth);
+	}
+
+	@Override
+	public boolean test(State<Integer, PersonBuilderLabel1> state) {
+		return state.previouslyAccepted == 3 || forceReady;
+	}
+
+	public void setForceReady(boolean forceReady) {
+		this.forceReady = forceReady;
 	}
 	
 }

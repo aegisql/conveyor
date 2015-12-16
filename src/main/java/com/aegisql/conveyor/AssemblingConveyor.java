@@ -494,6 +494,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					}
 				} else {
 					LOG.debug("Expired and removed " + key);
+					scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Site expired. No timeout action") );
 				}
 			}
 		}
