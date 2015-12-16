@@ -475,7 +475,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if (collector.containsKey(key)) {
 				collector.remove(key);
 				cnt++;
-				if (timeoutAction != null) {
+				if (timeoutAction != null || buildingSite.builder instanceof TimeoutAction ) {
 					try {
 						ShoppingCart<K,Object,L> to = new ShoppingCart<K,Object,L>(buildingSite.getCart().getKey(), Status.TIMED_OUT,null);
 						buildingSite.timeout((Cart<K,?,L>)to);

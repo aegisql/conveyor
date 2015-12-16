@@ -47,7 +47,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	}
 	
 	/** The builder. */
-	private final Supplier<? extends OUT> builder;
+	final Supplier<? extends OUT> builder;
 	
 	/** The value consumer. */
 	private final LabeledValueConsumer<L, Object, Supplier<? extends OUT>> valueConsumer;

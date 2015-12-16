@@ -7,13 +7,6 @@ import java.util.function.BiConsumer;
 
 import com.aegisql.conveyor.SmartLabel;
 
-// TODO: Auto-generated Javadoc
-/**
- * The Enum UserBuilderEvents.
- * 
- * @author Mikhail Teplitskiy
- * @version 1.0.0
- */
 public enum PersonBuilderLabel1 implements SmartLabel<ReactivePersonBuilder1> {
 	
 	SET_FIRST(ReactivePersonBuilder1::setFirstName),
