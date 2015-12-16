@@ -4,10 +4,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
-import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.utils.caching.CachingConveyor;
 
@@ -23,12 +21,12 @@ public class Demo9 {
 		conveyor.setBuilderSupplier(ReactivePersonBuilder3::new);
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.HOURS);
 		
-		// IV - Wrap building parts in the Shopping Cart
+		// III - Wrap building parts in the Shopping Cart
 		ShoppingCart<Integer, String, PersonBuilderLabel3> firstNameCart = new ShoppingCart<>(1, "John", PersonBuilderLabel3.SET_FIRST);
 		ShoppingCart<Integer, String, PersonBuilderLabel3> lastNameCart = new ShoppingCart<>(1, "Silver", PersonBuilderLabel3.SET_LAST);
 		ShoppingCart<Integer, Date, PersonBuilderLabel3>   dateOfBirthNameCart = new ShoppingCart<>(1, format.parse("1695-11-10"), PersonBuilderLabel3.SET_YEAR);
 		
-		// V - Add carts to conveyor queue 
+		// IV - Add carts to conveyor queue 
 		conveyor.add(firstNameCart);
 		conveyor.add(lastNameCart);
 		conveyor.add(dateOfBirthNameCart);
