@@ -37,7 +37,7 @@ public class MapBuillderTest {
 		mc.setBuilderSupplier( ()-> new MapBuilder<>() );
 		
 		mc.setResultConsumer(bin->{
-			System.out.println(bin.product);
+			System.out.println(bin);
 		});
 		
 		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<Integer, String, String>(1, "FIRST", "ONE");
