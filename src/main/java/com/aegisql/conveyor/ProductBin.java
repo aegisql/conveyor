@@ -18,4 +18,11 @@ public class ProductBin<K,OUT> {
 		this.status = status;
 	}
 
+
+	@Override
+	public String toString() {
+		return "ProductBin [key=" + key + ", product=" + product + ", remainingDelayMsec=" + remainingDelayMsec
+				+ ", status=" + status + "]";
+	}
+
 }
