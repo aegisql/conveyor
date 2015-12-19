@@ -30,9 +30,8 @@ import com.aegisql.conveyor.cart.command.AbstractCommand;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  * @param <K> the key type
- * @param <L> the generic type
- * @param <IN> the generic type
- * @param <OUT> the generic type
+ * @param <L> the label type
+ * @param <OUT> the Product type
  */
 public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
