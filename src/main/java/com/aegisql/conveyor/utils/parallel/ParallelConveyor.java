@@ -72,16 +72,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param pf the pf
 	 */
 	public ParallelConveyor( int pf ) {
-		if( pf <=0 ) {
-			throw new IllegalArgumentException("");
-		}
-		this.pf = pf;
-		AssemblingConveyor<K, L, OUT>[] conveyors = new AssemblingConveyor[pf];
-		for(int i = 0; i < pf; i++) {
-			conveyors[i] = new AssemblingConveyor<K, L, OUT>();
-		}
-		this.conveyors = conveyors;
-		this.balancingFunction = key -> key.hashCode() % pf;
+		this(AssemblingConveyor::new,pf);
 	}
 
 	public ParallelConveyor( Supplier<? extends AssemblingConveyor<K, L, OUT>> cs, int pf ) {
