@@ -5,6 +5,7 @@ package com.aegisql.conveyor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -28,6 +30,9 @@ import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.utils.parallel.ParallelConveyor;
+import com.aegisql.conveyor.utils.scalar.ScalarCart;
+import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
+import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -286,4 +291,34 @@ public class ParallelConveyorTest {
 
 	}
 
+	static class StringToUserBuulder extends ScalarConvertingBuilder<String,User> {
+		@Override
+		public User get() {
+			String[] fields = scalar.split(",");
+			return new User(fields[0], fields[1], Integer.parseInt(fields[2]));
+		}
+		
+	}
+
+	@Test
+	public void otherConveyorTest() throws InterruptedException {
+		ParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
+		conveyor = new ParallelConveyor<>(ScalarConvertingConveyor::new,4);
+		StringToUserBuulder qqq;
+		conveyor.setBuilderSupplier(StringToUserBuulder::new);
+		AtomicReference<User> usr = new AtomicReference<User>(null);
+		conveyor.setResultConsumer(u->{
+			System.out.println("RESULT: "+u);
+			usr.set(u.product);
+		});
+
+		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow,1990");
+		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow,1990");
+		conveyor.add(c1);
+		conveyor.add(c2);
+		Thread.sleep(20);
+		assertNotNull(usr.get());
+
+	}
+	
 }
