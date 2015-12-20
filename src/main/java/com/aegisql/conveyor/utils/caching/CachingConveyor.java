@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuildingSite;
-import com.aegisql.conveyor.BuildingSite.Status;
 import com.aegisql.conveyor.cart.Cart;
 
 public class CachingConveyor<K, L, OUT> extends AssemblingConveyor<K, L, OUT> {
@@ -34,25 +33,7 @@ public class CachingConveyor<K, L, OUT> extends AssemblingConveyor<K, L, OUT> {
 		if(site == null) {
 			return null;
 		} else {
-			Supplier<OUT> s = new Supplier<OUT>(){
-				@Override
-				public OUT get() {
-					if( ! site.getStatus().equals(Status.WAITING_DATA)) {
-						throw new IllegalStateException("Supplier is in a wrong state: "+site.getStatus());
-					}
-					Supplier<? extends OUT> supplier = site.getProductSupplier();
-					OUT res = null;
-					site.getLock().lock();
-					try {
-						res = supplier.get();
-					} finally {
-						site.getLock().unlock();
-					}
-					return res;
-				}
-				
-			};
-			return s;
+			return site.getProductSupplier();
 		}
 	}
 	

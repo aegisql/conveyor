@@ -19,6 +19,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.BuildingSite.Status;
 import com.aegisql.conveyor.cart.Cart;
 
 // TODO: Auto-generated Javadoc
@@ -263,8 +264,28 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 		}
 	}
 	
+	private Supplier<? extends OUT> productSupplier = null;
+	
 	public Supplier<? extends OUT> getProductSupplier() {
-		return builder::get;
+		if(productSupplier == null ) {
+			productSupplier = new Supplier<OUT>() {
+				@Override
+				public OUT get() {
+					if( ! getStatus().equals(Status.WAITING_DATA)) {
+						throw new IllegalStateException("Supplier is in a wrong state: " + getStatus());
+					}
+					OUT res = null;
+					getLock().lock();
+					try {
+						res = builder.get();
+					} finally {
+						getLock().unlock();
+					}
+					return res;
+				}
+			};
+		}
+		return productSupplier;
 	}
 
 	/**
