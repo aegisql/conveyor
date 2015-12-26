@@ -221,12 +221,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						break;
 					processManagementCommands();
 					Cart<K,?,L> cart = inQueue.poll();
-					if(cart == null) {
-						removeExpired();
-					} else {
+					if(cart != null) {
 						processSite(cart);
-						removeExpired();
 					}
+					removeExpired();	
 				}
 				LOG.debug("Leaving {}", Thread.currentThread().getName());
 				drainQueues();
