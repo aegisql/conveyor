@@ -232,7 +232,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						processSite(cart);
 					}
 					long timestamp = System.currentTimeMillis() ;
-					if( timestamp > nextExpiredCollection ) {
+					if( timestamp >= nextExpiredCollection ) {
 						removeExpired();
 						nextExpiredCollection = timestamp + expirationCollectionInterval;
 					}
