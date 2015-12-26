@@ -43,7 +43,7 @@ import com.aegisql.conveyor.cart.command.CreateCommand;
 public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The Constant LOG. */
-	private final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
+	protected final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
 
 	/** The in queue. */
 	private final Queue<Cart<K,?,L>> inQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
@@ -58,38 +58,45 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected final Map<K, BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>> collector = new HashMap<>();
 
 	/** The builder timeout. */
-	private long builderTimeout = 0;
+	protected long builderTimeout = 0;
 	
 	/** The start time reject. */
-	private long startTimeReject = System.currentTimeMillis();
+	protected long startTimeReject = System.currentTimeMillis();
 
-	private Consumer<Supplier<? extends OUT>> timeoutAction;
+	protected Consumer<Supplier<? extends OUT>> timeoutAction;
 
 	/** The result consumer. */
-	private Consumer<ProductBin<K,OUT>> resultConsumer = out -> { LOG.error("LOST RESULT {} {}",out.key,out.product); };
+	protected Consumer<ProductBin<K,OUT>> resultConsumer = out -> { LOG.error("LOST RESULT {} {}",out.key,out.product); };
 
 	/** The scrap consumer. */
-	private Consumer<ScrapBin<?,?>> scrapConsumer = (scrapBin) -> { LOG.error("{}",scrapBin); };
+	protected Consumer<ScrapBin<?,?>> scrapConsumer = (scrapBin) -> { LOG.error("{}",scrapBin); };
 	
 	/** The cart consumer. */
-	private LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer = (l,v,b) -> { 
+	protected LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer = (l,v,b) -> { 
 		scrapConsumer.accept( new ScrapBin<L, Object>(l,v, "Cart Consumer is not set. label"));
 		throw new IllegalStateException("Cart Consumer is not set");
 	};
 	
 	/** The ready. */
-	private BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness = (l,b) -> {
+	protected BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness = (l,b) -> {
 		scrapConsumer.accept( new ScrapBin<K, State<K,L>>(l.key,l, "Readiness Evaluator is not set"));
 		throw new IllegalStateException("Readiness Evaluator is not set");
 	};
 	
 	/** The builder supplier. */
-	private Supplier<Supplier<? extends OUT>> builderSupplier = () -> {
+	protected Supplier<Supplier<? extends OUT>> builderSupplier = () -> {
 		throw new IllegalStateException("Builder Supplier is not set");
 	};
 
+	/**Increment in milliseconds for the next removeExpired() run*/
+	protected long expirationCollectionInterval = 1;
+	
+	/**Time when next removeExpired() will run*/
+	protected long nextExpiredCollection = 0;
+
+	
 	/** The running. */
-	private volatile boolean running = true;
+	protected volatile boolean running = true;
 	
 	protected boolean synchronizeBuilder = false;
 
@@ -224,9 +231,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					if(cart != null) {
 						processSite(cart);
 					}
-					removeExpired();	
+					long timestamp = System.currentTimeMillis() ;
+					if( timestamp > nextExpiredCollection ) {
+						removeExpired();
+						nextExpiredCollection = timestamp + expirationCollectionInterval;
+					}
 				}
-				LOG.debug("Leaving {}", Thread.currentThread().getName());
+				LOG.info("Leaving {}", Thread.currentThread().getName());
 				drainQueues();
 			} catch (Throwable e) { // Let it crash, but don't pretend its running
 				stop();
@@ -439,6 +450,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				return;
 			}
 			if(Status.TIMED_OUT.equals(cart.getValue())) {
+				nextExpiredCollection = System.currentTimeMillis();
 				buildingSite.timeout((Cart<K,?,L>) cart);
 			} else {
 				buildingSite.accept((Cart<K,?,L>) cart);
@@ -513,6 +525,19 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		lock.tell();
 	}
 
+	public void setExpirationCollectionInterval(long expirationCollectionInterval, TimeUnit unit) {
+		long interval  = unit.toMillis(expirationCollectionInterval);
+		if(interval > 0) {
+			this.expirationCollectionInterval = interval;
+		} else {
+			throw new IllegalArgumentException("Expiration collection interval should be >= 1 msec");
+		}
+	}
+	
+	public long getExpirationCollectionInterval() {
+		return expirationCollectionInterval;
+	}
+	
 	/**
 	 * Gets the builder timeout.
 	 *
