@@ -15,32 +15,34 @@ import java.util.function.BiConsumer;
 public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 	
 	/** The create build. */
-	CREATE_BUILD(AssemblingConveyor::createNow),
+	CREATE_BUILD {
+		public BiConsumer<AssemblingConveyor, Object> getSetter() {
+			return AssemblingConveyor::createNow;
+		}
+	},
 	
 	/** The cancel build. */
-	CANCEL_BUILD(AssemblingConveyor::cancelNow),
+	CANCEL_BUILD {
+		public BiConsumer<AssemblingConveyor, Object> getSetter() {
+			return AssemblingConveyor::cancelNow;
+		}
+	},
 	
 	/** The timeout build. */
-	TIMEOUT_BUILD(AssemblingConveyor::timeoutNow);
+	TIMEOUT_BUILD {
+		public BiConsumer<AssemblingConveyor, Object> getSetter() {
+			return AssemblingConveyor::timeoutNow;
+		}
+	};
 
-	/**
-	 * Instantiates a new command.
-	 *
-	 * @param setter the setter
-	 */
-	CommandLabel(BiConsumer<AssemblingConveyor, Object> setter) {
-		this.setter = setter;
-	}
-	
 	/** The setter. */
-	BiConsumer<AssemblingConveyor, Object> setter;
 	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.SmartLabel#getSetter()
 	 */
 	@Override
 	public BiConsumer<AssemblingConveyor, Object> getSetter() {
-		return setter;
+		throw new UnsupportedOperationException("Unimplemented");
 	}
 	
 }
