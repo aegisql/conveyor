@@ -42,7 +42,7 @@ public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 	 */
 	@Override
 	public BiConsumer<AssemblingConveyor, Object> getSetter() {
-		throw new UnsupportedOperationException("Unimplemented");
+		throw new AbstractMethodError("Unimplemented");
 	}
 	
 }

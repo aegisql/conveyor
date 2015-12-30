@@ -1,9 +1,10 @@
 package com.aegisql.conveyor.cart;
 
 import java.io.Serializable;
-import java.util.concurrent.Delayed;
 
-public interface Cart <K,V,L> extends Delayed, Serializable {
+import com.aegisql.conveyor.Expireable;
+
+public interface Cart <K,V,L> extends Expireable, Serializable {
 	/**
 	 * Gets the key.
 	 *
@@ -37,6 +38,7 @@ public interface Cart <K,V,L> extends Delayed, Serializable {
 	 *
 	 * @return the expiration time
 	 */
+	@Override
 	public long getExpirationTime();
 	
 	/**

@@ -33,7 +33,7 @@ import com.aegisql.conveyor.cart.Cart;
  * @param <C> the generic type
  * @param <OUT> the generic type
  */
-public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delayed {
+public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expireable {
 
 	private final static Logger LOG = LoggerFactory.getLogger(BuildingSite.class);
 	/**
@@ -366,7 +366,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Delaye
 	 *
 	 * @return the builder expiration
 	 */
-	public long getBuilderExpiration() {
+	@Override
+	public long getExpirationTime() {
 		return builderExpiration;
 	}
 
