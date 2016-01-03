@@ -52,7 +52,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private final Queue<AbstractCommand<K, ?>> mQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
 
 	/** The delay queue. */
-	private final BlockingQueue<BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>> delayQueue = new DelayQueue<>();
+	private final DelayQueue<BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>> delayQueue = new DelayQueue<>();
 
 	/** The collector. */
 	protected final Map<K, BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>> collector = new HashMap<>();
