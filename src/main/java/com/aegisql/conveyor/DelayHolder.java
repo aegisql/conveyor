@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-public class DelayHolder implements Delayed {
+public class DelayHolder implements Expireable {
 	
 	private final long created = System.currentTimeMillis();
 	private final long expiration;
@@ -26,10 +26,10 @@ public class DelayHolder implements Delayed {
 	 */
 	@Override
 	public int compareTo(Delayed o) {
-		if( this.created < ((DelayHolder)o).created) {
+		if( this.expiration < ((Expireable)o).getExpirationTime()) {
 			return -1;
 		}
-		if( this.created > ((DelayHolder)o).created) {
+		if( this.expiration > ((Expireable)o).getExpirationTime()) {
 			return +1;
 		}
 		return 0;
@@ -53,6 +53,7 @@ public class DelayHolder implements Delayed {
 		return created;
 	}
 
+	@Override
 	public long getExpirationTime() {
 		return expiration;
 	}

@@ -88,13 +88,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		throw new IllegalStateException("Builder Supplier is not set");
 	};
 
-	/**Increment in milliseconds for the next removeExpired() run*/
-	protected long expirationCollectionInterval = 1;
-	
-	/**Time when next removeExpired() will run*/
-	protected long nextExpiredCollection = 0;
-
-	
 	/** The running. */
 	protected volatile boolean running = true;
 	
@@ -231,11 +224,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					if(cart != null) {
 						processSite(cart);
 					}
-					long timestamp = System.currentTimeMillis() ;
-					if( timestamp >= nextExpiredCollection ) {
-						removeExpired();
-						nextExpiredCollection = timestamp + expirationCollectionInterval;
-					}
+					removeExpired();
 				}
 				LOG.info("Leaving {}", Thread.currentThread().getName());
 				drainQueues();
@@ -450,7 +439,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				return;
 			}
 			if(Status.TIMED_OUT.equals(cart.getValue())) {
-				nextExpiredCollection = System.currentTimeMillis();
 				buildingSite.timeout((Cart<K,?,L>) cart);
 			} else {
 				buildingSite.accept((Cart<K,?,L>) cart);
@@ -525,19 +513,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		lock.tell();
 	}
 
-	public void setExpirationCollectionInterval(long expirationCollectionInterval, TimeUnit unit) {
-		long interval  = unit.toMillis(expirationCollectionInterval);
-		if(interval > 0) {
-			this.expirationCollectionInterval = interval;
-		} else {
-			throw new IllegalArgumentException("Expiration collection interval should be >= 1 msec");
-		}
-	}
-	
-	public long getExpirationCollectionInterval() {
-		return expirationCollectionInterval;
-	}
-	
 	/**
 	 * Gets the builder timeout.
 	 *
