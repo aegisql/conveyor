@@ -26,6 +26,10 @@ public class DelayHolder implements Expireable {
 	 */
 	@Override
 	public int compareTo(Delayed o) {
+		 if( o == this ) {
+			 return 0;
+		 }
+
 		if( this.expiration < ((Expireable)o).getExpirationTime()) {
 			return -1;
 		}
@@ -66,5 +70,28 @@ public class DelayHolder implements Expireable {
 	public String toString() {
 		return "DelayHolder [created=" + new Date(created) + ", expiration=" + (expiration > 0 ? (", expires=" + new Date(expiration) ) : ", unexpireable") + "]";
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (int) (expiration ^ (expiration >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		DelayHolder other = (DelayHolder) obj;
+		if (expiration != other.expiration)
+			return false;
+		return true;
+	}
+	
 	
 }
