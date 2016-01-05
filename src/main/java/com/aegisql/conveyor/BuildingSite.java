@@ -182,10 +182,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			delayKeeper = new Delayed() {
 				@Override
 				public int compareTo(Delayed o) {
-					if( builderCreated < ((BuildingSite<?,?,?,?>)o).builderCreated) {
+					if( builderExpiration < ((BuildingSite<?,?,?,?>)o).builderExpiration) {
 						return -1;
 					}
-					if( builderCreated > ((BuildingSite<?,?,?,?>)o).builderCreated) {
+					if( builderExpiration > ((BuildingSite<?,?,?,?>)o).builderExpiration) {
 						return +1;
 					}
 					return 0;

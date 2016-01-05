@@ -1,5 +1,7 @@
 package com.aegisql.conveyor;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +22,15 @@ public class DelayHolder implements Expireable {
 	public DelayHolder(long ttl, TimeUnit timeUnit) {
 		this.expiration = created + TimeUnit.MILLISECONDS.convert(ttl, timeUnit);
 	}
+	
+	public DelayHolder(Duration d){
+		this.expiration = created + d.toMillis();
+	}
 
+	public DelayHolder(Instant inst) {
+		this.expiration = inst.toEpochMilli();
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
@@ -73,10 +83,7 @@ public class DelayHolder implements Expireable {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (int) (expiration ^ (expiration >>> 32));
-		return result;
+		return Long.hashCode(expiration);
 	}
 
 	@Override

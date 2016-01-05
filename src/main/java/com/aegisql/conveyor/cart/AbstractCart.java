@@ -3,6 +3,8 @@
  */
 package com.aegisql.conveyor.cart;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -81,6 +83,22 @@ public abstract class AbstractCart<K,V,L> implements Cart<K,V,L> {
 		this.v = v;
 		this.label = label;
 		delay = new DelayHolder(expiration);
+	}
+
+	public AbstractCart(K k, V v, L label, Duration duration) {
+		Objects.requireNonNull(k);
+		this.k = k;
+		this.v = v;
+		this.label = label;
+		delay = new DelayHolder(duration);
+	}
+
+	public AbstractCart(K k, V v, L label, Instant instant) {
+		Objects.requireNonNull(k);
+		this.k = k;
+		this.v = v;
+		this.label = label;
+		delay = new DelayHolder(instant);
 	}
 
 	/**
