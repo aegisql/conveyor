@@ -8,6 +8,7 @@ public class ScalarConvertingConveyor <K,IN,OUT> extends AssemblingConveyor<K, S
 	public ScalarConvertingConveyor() {
 		super();
 		this.setName("ScalarConvertingConveyor");
+		this.setReadinessEvaluator((state,builder) -> true ); //ready right after evaluation
 	}
 
 }
