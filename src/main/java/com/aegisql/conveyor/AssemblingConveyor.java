@@ -37,7 +37,6 @@ import com.aegisql.conveyor.cart.command.CreateCommand;
  * @version 1.0.0
  * @param <K> the key type
  * @param <L> the generic type
- * @param <IN> the generic type
  * @param <OUT> the generic type
  */
 public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
@@ -555,7 +554,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/**
 	 * Sets the on timeout action.
 	 *
-	 * @param onTimeoutAction the new on timeout action
+	 * @param timeoutAction the new on timeout action
 	 */
 	public void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction) {
 		this.timeoutAction = timeoutAction;

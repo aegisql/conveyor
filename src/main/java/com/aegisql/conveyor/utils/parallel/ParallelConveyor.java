@@ -315,7 +315,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/**
 	 * Sets the on timeout action.
 	 *
-	 * @param onTimeoutAction the new on timeout action
+	 * @param timeoutAction the new on timeout action
 	 */
 	public void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction) {
 		this.timeoutAction = timeoutAction;

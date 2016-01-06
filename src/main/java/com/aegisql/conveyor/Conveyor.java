@@ -14,7 +14,6 @@ import com.aegisql.conveyor.cart.command.AbstractCommand;
  * @version 1.0.0
  * @param <K> the key type
  * @param <L> the label type
- * @param <IN> the data cart type
  * @param <OUT> the target class type
  */
 public interface Conveyor<K, L, OUT> {
@@ -38,7 +37,7 @@ public interface Conveyor<K, L, OUT> {
 	/**
 	 * Adds the command to the management queue.
 	 *
-	 * @param cart the cart
+	 * @param command Cart
 	 * @return true, if successful
 	 */
 	public boolean addCommand(AbstractCommand<K, ?> command);

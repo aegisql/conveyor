@@ -44,6 +44,7 @@ public class State<K,L> {
 	 * @param cartCreated the cart created
 	 * @param cartExpiration the cart expiration
 	 * @param previouslyAccepted the previously accepted
+	 * @param eventHistory the eventHistory Map
 	 */
 	public State(
 			K k 

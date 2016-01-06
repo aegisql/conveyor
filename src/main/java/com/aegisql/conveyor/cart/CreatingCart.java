@@ -34,7 +34,6 @@ public class CreatingCart<K, B extends Supplier<?>, L> extends AbstractCart<K, S
 	/**
 	 * Next cart.
 	 *
-	 * @param <L1> the generic type
 	 * @param <V1> the generic type
 	 * @param newValue the new value
 	 * @param newLabel the new label
