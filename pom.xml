@@ -10,7 +10,7 @@
 
 	<groupId>com.aegisql</groupId>
 	<artifactId>conveyor</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>conveyor</name>
@@ -41,7 +41,7 @@
 	<scm>
 		<url>https://github.com/aegisql/conveyor</url>
 		<connection>scm:git:git://github.com/aegisql/conveyor.git</connection>
-		<developerConnection>scm:git:git@github.com/aegisql/conveyor.git</developerConnection>
+		<developerConnection>scm:git:git@github.com:aegisql/aegisql/conveyor.git</developerConnection>
 	</scm>
 
 	<build>
