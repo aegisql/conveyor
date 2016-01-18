@@ -1,5 +1,7 @@
 package com.aegisql.conveyor.cart.command;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 import com.aegisql.conveyor.CommandLabel;
@@ -20,6 +22,14 @@ public abstract class AbstractCommand<K, V> extends AbstractCart<K, V, CommandLa
 	public AbstractCommand(K k, V v, CommandLabel label) {
 		super(k, v, label);
 	}
+	
+	public AbstractCommand(K k, V v, CommandLabel label, Duration duration) {
+		super(k, v, label, duration);
+	}
+	
+	public AbstractCommand(K k, V v, CommandLabel label, Instant instant) {
+		super(k, v, label, instant);
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -29,7 +39,7 @@ public abstract class AbstractCommand<K, V> extends AbstractCart<K, V, CommandLa
 		return this.getClass().getSimpleName()+" [key=" + k + 
 				", value=" + v + 
 				", label=" + label + 
-				", delay=" + delay +
+				", expirationTime=" + expirationTime +
 				 "]";
 	}
 

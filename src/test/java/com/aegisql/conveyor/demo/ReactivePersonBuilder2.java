@@ -4,24 +4,19 @@
 package com.aegisql.conveyor.demo;
 
 import java.util.Date;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import com.aegisql.conveyor.DelayHolder;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.TestingState;
 import com.aegisql.conveyor.TimeoutAction;
 
-public class ReactivePersonBuilder2 implements Supplier<Person>, TestingState<Integer, PersonBuilderLabel2>, TimeoutAction ,Delayed {
+public class ReactivePersonBuilder2 implements Supplier<Person>, TestingState<Integer, PersonBuilderLabel2>, TimeoutAction {
 	
 	private String firstName;
 	private String lastName;
 	private Date dateOfBirth;
 	
 	private boolean forceReady = false;
-	
-	private DelayHolder delay = new DelayHolder(100,TimeUnit.MILLISECONDS);
 	
 	public ReactivePersonBuilder2() {
 
@@ -72,14 +67,4 @@ public class ReactivePersonBuilder2 implements Supplier<Person>, TestingState<In
 		}
 	}
 
-	@Override
-	public int compareTo(Delayed o) {
-		return delay.compareTo(((ReactivePersonBuilder2)o).delay);
-	}
-
-	@Override
-	public long getDelay(TimeUnit unit) {
-		return delay.getDelay(unit);
-	}
-	
 }

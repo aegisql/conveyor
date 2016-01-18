@@ -19,7 +19,6 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.aegisql.conveyor.BuildingSite.Status;
 import com.aegisql.conveyor.cart.Cart;
 
 // TODO: Auto-generated Javadoc
@@ -33,7 +32,7 @@ import com.aegisql.conveyor.cart.Cart;
  * @param <C> the generic type
  * @param <OUT> the generic type
  */
-public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expireable {
+public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expireable, Delayed {
 
 	private final static Logger LOG = LoggerFactory.getLogger(BuildingSite.class);
 	/**
@@ -147,33 +146,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			this.readiness = readiness;
 		}
 		this.eventHistory.put(cart.getLabel(), new AtomicInteger(0));
-		if(builder instanceof Delayed) {
+		if(builder instanceof Expireable) {
 			builderCreated = System.currentTimeMillis();
 			builderExpiration = 0;
-			delayKeeper = new Delayed() {
-				@Override
-				public int compareTo(Delayed o) {
-					return ((Delayed)builder).compareTo( (Delayed) ((BuildingSite)o).builder );
-				}
-				@Override
-				public long getDelay(TimeUnit unit) {
-					return ((Delayed) builder).getDelay(unit);
-				}
-			};
+			delayKeeper = Expireable.toDelayed((Expireable)builder);
 		} else if ( cart.getExpirationTime() > 0 ) {
 			builderCreated = cart.getCreationTime();
 			builderExpiration = cart.getExpirationTime();
-			delayKeeper = new Delayed() {
-				@Override
-				public int compareTo(Delayed o) {
-					return cart.compareTo( ((BuildingSite)o).initialCart );
-				}
-				@Override
-				public long getDelay(TimeUnit unit) {
-					return cart.getDelay(unit);
-				}
-				
-			};
+			delayKeeper = Expireable.toDelayed(cart);
 		} else {
 			builderCreated = System.currentTimeMillis();
 			if(ttl == 0) {

@@ -87,7 +87,7 @@ public class CartTest {
 		assertNotEquals(c.getLabel(),c3.getLabel());
 		assertNotEquals(c.getValue(), c3.getValue());
 		
-		long delay = c.getDelay(TimeUnit.MILLISECONDS);
+		long delay = Expireable.toDelayed(c).getDelay(TimeUnit.MILLISECONDS);
 		
 		assertTrue(delay > 0);
 		assertTrue(delay <= 100);
@@ -98,7 +98,7 @@ public class CartTest {
 		assertTrue(c2.expired());
 		assertTrue(c3.expired());
 		
-		delay = c.getDelay(TimeUnit.MILLISECONDS);
+		delay = Expireable.toDelayed(c).getDelay(TimeUnit.MILLISECONDS);
 		
 		assertTrue(delay < 0);
 
@@ -112,7 +112,7 @@ public class CartTest {
 		Cart<String,String,String> c = new ShoppingCart<>("k","v1","l");
 		
 		assertFalse(c.expired());
-		long delay = c.getDelay(TimeUnit.MILLISECONDS);
+		long delay = Expireable.toDelayed(c).getDelay(TimeUnit.MILLISECONDS);
 		assertTrue(delay > 0);
 
 	}

@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.Expireable;
 import com.aegisql.conveyor.utils.batch.BatchCart;
 import com.aegisql.conveyor.utils.batch.BatchCollectingBuilder;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
@@ -38,11 +39,11 @@ public class BatchConveyorBuilderTest {
 		BatchCollectingBuilder<Integer> b = new BatchCollectingBuilder<>(10, 100, TimeUnit.MILLISECONDS);
 		
 		assertFalse(b.test());
-		assertTrue(b.getDelay(TimeUnit.MILLISECONDS) > 0);
-		System.out.println(b.getDelay(TimeUnit.MILLISECONDS));
+		assertTrue(Expireable.toDelayed(b).getDelay(TimeUnit.MILLISECONDS) > 0);
+		System.out.println(Expireable.toDelayed(b).getDelay(TimeUnit.MILLISECONDS));
 		Thread.sleep(101);
-		System.out.println(b.getDelay(TimeUnit.MILLISECONDS));
-		assertTrue(b.getDelay(TimeUnit.MILLISECONDS) < 0);
+		System.out.println(Expireable.toDelayed(b).getDelay(TimeUnit.MILLISECONDS));
+		assertTrue(Expireable.toDelayed(b).getDelay(TimeUnit.MILLISECONDS) < 0);
 		
 	}
 	
