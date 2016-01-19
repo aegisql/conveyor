@@ -198,7 +198,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			if(buildingSite != null) {
 				collector.put(key, buildingSite);
-				delayQueue.add(buildingSite);
+				if(buildingSite.getExpirationTime() > 0) {
+					delayQueue.add(buildingSite);
+				}
 			}
 		}
 		if( returnNull ) {
