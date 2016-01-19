@@ -147,13 +147,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		}
 		this.eventHistory.put(cart.getLabel(), new AtomicInteger(0));
 		if(builder instanceof Expireable) {
-			builderCreated = System.currentTimeMillis();
-			builderExpiration = 0;
-			delayKeeper = Expireable.toDelayed((Expireable)builder);
+			Expireable expireable = (Expireable)builder;
+			builderCreated    = System.currentTimeMillis();
+			builderExpiration = expireable.getExpirationTime();
+			delayKeeper       = Expireable.toDelayed((Expireable)builder);
 		} else if ( cart.getExpirationTime() > 0 ) {
-			builderCreated = cart.getCreationTime();
+			builderCreated    = cart.getCreationTime();
 			builderExpiration = cart.getExpirationTime();
-			delayKeeper = Expireable.toDelayed(cart);
+			delayKeeper       = Expireable.toDelayed(cart);
 		} else {
 			builderCreated = System.currentTimeMillis();
 			if(ttl == 0) {
@@ -161,29 +162,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			} else {
 				builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, unit);
 			}
-			delayKeeper = new Delayed() {
-				@Override
-				public int compareTo(Delayed o) {
-					if( builderExpiration < ((BuildingSite<?,?,?,?>)o).builderExpiration) {
-						return -1;
-					}
-					if( builderExpiration > ((BuildingSite<?,?,?,?>)o).builderExpiration) {
-						return +1;
-					}
-					return 0;
-				}
-
-				@Override
-				public long getDelay(TimeUnit unit) {
-			        long delta;
-					if( builderExpiration == 0 ) {
-						delta = Long.MAX_VALUE;
-					} else {
-						delta = builderExpiration - System.currentTimeMillis();
-					}
-			        return unit.convert(delta, TimeUnit.MILLISECONDS);
-				}
-			};
+			delayKeeper = Expireable.toDelayed(this);
 		}
 	}
 
