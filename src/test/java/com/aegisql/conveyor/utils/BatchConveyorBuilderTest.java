@@ -2,6 +2,8 @@ package com.aegisql.conveyor.utils;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,33 +54,32 @@ public class BatchConveyorBuilderTest {
 
 		BatchConveyor<Integer> b = new BatchConveyor<>();
 		
-		AtomicInteger ai = new AtomicInteger(0);
-		AtomicInteger aii = new AtomicInteger(0);
+		List<List<Integer>> l = new ArrayList<>();
 		
-		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 10, TimeUnit.MILLISECONDS) );
+		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 50, TimeUnit.MILLISECONDS) );
 		b.setScrapConsumer((obj)->{
 			System.out.println(obj);
-			ai.decrementAndGet();
+			l.add(null);
 		});
 		b.setResultConsumer((list)->{
 			System.out.println(list);
-			ai.incrementAndGet();
-			aii.addAndGet(list.product.size());
+			l.add(list.product);
 		});
 		b.setExpirationCollectionIdleInterval(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
 			b.add(new BatchCart<Integer>(i));
 		}
-
-		Thread.sleep(90);
-		assertEquals(10, ai.get());
-		assertEquals(100, aii.get());
+		
+		Thread.sleep(40);
+		assertEquals(10,l.size());
+		System.out.println(l);
+		
 		Thread.sleep(200);
+		assertEquals(11,l.size());
+		System.out.println(l);
 		System.out.println("COL:"+b.getCollectorSize());
 		System.out.println("DEL:"+b.getDelayedQueueSize());
 		System.out.println("IN :"+b.getInputQueueSize());
-		assertEquals(11, ai.get());
-		assertEquals(102, aii.get());
 		assertEquals(0,b.getCollectorSize());
 		assertEquals(0,b.getDelayedQueueSize());
 		assertEquals(0,b.getInputQueueSize());

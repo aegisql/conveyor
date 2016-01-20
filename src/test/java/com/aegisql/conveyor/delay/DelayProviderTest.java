@@ -72,6 +72,16 @@ public class DelayProviderTest {
 		assertEquals(6, e.size());
 		System.out.println(e);
 
+		p.getBox(now).add("A");
+		p.getBox(now).add("B");
+		p.getBox(now).add("C");
+		assertEquals(1, p.delayedSize());
+		e = p.getAllExpiredKeys();
+		assertEquals(3, e.size());
+		System.out.println(e);
+		
+
+		
 	}
 
 }

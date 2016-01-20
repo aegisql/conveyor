@@ -1,6 +1,6 @@
 package com.aegisql.conveyor.delay;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -9,7 +9,7 @@ import com.aegisql.conveyor.Expireable;
 
 public class DelayBox <K> implements Delayed, Expireable {
 
-	private final List<K> keys = new ArrayList<>();
+	private final List<K> keys = new LinkedList<>();
 	
 	public void add(K key) {
 		keys.add(key);

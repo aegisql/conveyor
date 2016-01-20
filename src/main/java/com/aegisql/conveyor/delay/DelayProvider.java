@@ -1,7 +1,7 @@
 package com.aegisql.conveyor.delay;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.DelayQueue;
@@ -22,8 +22,8 @@ public class DelayProvider <K> {
 		return box;
 	}
 	
-	List<K> getAllExpiredKeys() {
-		List<K> expired = new ArrayList<>();
+	public List<K> getAllExpiredKeys() {
+		List<K> expired = new LinkedList<>();
 		DelayBox<K> box = null;
 		while( (box = queue.poll()) != null ) {
 			expired.addAll(box.getKeys());
@@ -34,6 +34,11 @@ public class DelayProvider <K> {
 
 	public int delayedSize() {
 		return queue.size();
+	}
+	
+	public void clear() {
+		boxes.clear();
+		queue.clear();
 	}
 	
 }

@@ -66,14 +66,17 @@ public class CollectionBuilderTest {
 			ai.incrementAndGet();
 			aii.addAndGet(list.product.size());
 		});
-		b.setExpirationCollectionIdleInterval(100, TimeUnit.MILLISECONDS);
+		b.setOnTimeoutAction((builder)->{
+			System.out.println("TIMEOUT:"+builder.get());
+		});
+		b.setExpirationCollectionIdleInterval(10, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 100; i++) {
 			b.add(new CollectionItemCart<Integer,Integer>(1,i));
 		}
 
 		b.add(new CollectionCompleteCart<Integer,Integer>(1));
 
-		Thread.sleep(50);
+		Thread.sleep(110);
 		assertEquals(1, ai.get());
 		assertEquals(100, aii.get());
 		System.out.println("COL:"+b.getCollectorSize());

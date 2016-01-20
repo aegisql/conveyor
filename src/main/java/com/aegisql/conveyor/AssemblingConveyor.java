@@ -27,6 +27,7 @@ import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.AbstractCommand;
 import com.aegisql.conveyor.cart.command.CreateCommand;
+import com.aegisql.conveyor.delay.DelayProvider;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -49,9 +50,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The m queue. */
 	private final Queue<AbstractCommand<K, ?>> mQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
 
-	/** The delay queue. */
-	private final DelayQueue<BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>> delayQueue = new DelayQueue<>();
-
+	/** The delay provider. */
+	private final DelayProvider<K> delayProvider = new DelayProvider<>();
+	
 	/** The collector. */
 	protected final Map<K, BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>> collector = new HashMap<>();
 
@@ -199,7 +200,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(buildingSite != null) {
 				collector.put(key, buildingSite);
 				if(buildingSite.getExpirationTime() > 0) {
-					delayQueue.add(buildingSite);
+					delayProvider.getBox(buildingSite.getExpirationTime()).add(key);
 				}
 			}
 		}
@@ -258,7 +259,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		while((cart = inQueue.poll()) != null) {
 			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Draining inQueue") );
 		}
-		delayQueue.clear();
+		delayProvider.clear();
 		collector.forEach((k,v)->{
 			scrapConsumer.accept( new ScrapBin<K,Object>(k,v,"Draining site") );
 		});
@@ -388,7 +389,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @return the delayed queue size
 	 */
 	public int getDelayedQueueSize() {
-		return delayQueue.size();
+		return delayProvider.delayedSize();
 	}
 
 	/**
@@ -445,7 +446,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			if (buildingSite.ready()) {
 				collector.remove(key);
-				delayQueue.remove(buildingSite);
 				OUT res = buildingSite.build();
 				resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.READY));
 			}
@@ -457,7 +457,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				scrapConsumer.accept( new ScrapBin<K,BuildingSite<K,?,?,?>>(cart.getKey(),buildingSite,"Site Processor failed",e) );
 			}
 			collector.remove(key);
-			delayQueue.remove(buildingSite);
 		}
 	}
 	
@@ -466,10 +465,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	private void removeExpired() {
 		int cnt = 0;
-		BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> buildingSite = null;
-		while ( (buildingSite = delayQueue.poll()) != null) {
+		for(K key: delayProvider.getAllExpiredKeys()) {	
+			BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> buildingSite = collector.get(key);
+			if(buildingSite == null) {
+				continue;
+			}
 			buildingSite.setStatus(Status.TIMED_OUT);
-			K key = buildingSite.getKey();
 			if (collector.containsKey(key)) {
 				collector.remove(key);
 				cnt++;
@@ -654,20 +655,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		Object key = ((Cart)cart).getKey();
 		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
 		if( bs != null ) {
-			conveyor.delayQueue.remove(bs);
-			final Delayed oldDelayKeeper = bs.delayKeeper;
 			bs.setStatus(Status.TIMED_OUT);
-			bs.delayKeeper = new Delayed() {
-				@Override
-				public int compareTo(Delayed o) {
-					return -1;
-				}
-				@Override
-				public long getDelay(TimeUnit unit) {
-					return -1;
-				}
-			};
-			conveyor.delayQueue.add(bs);
+			conveyor.delayProvider.getBox(System.currentTimeMillis()).add(bs);
 			ShoppingCart to = new ShoppingCart(bs.getCart().getKey(), Status.TIMED_OUT, null);
 			conveyor.addFirst( to );
 		}
