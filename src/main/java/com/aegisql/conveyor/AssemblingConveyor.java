@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -245,7 +243,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private void processManagementCommands() {
 		Cart<K,?,CommandLabel> cmd = null;
 		while((cmd = mQueue.poll()) != null) {
-			LOG.debug("processing command "+cmd);
+			if(LOG.isDebugEnabled()) {
+				LOG.debug("processing command "+cmd);
+			}
 			CommandLabel l = cmd.getLabel();
 			l.getSetter().accept(this, cmd);
 		}
@@ -434,7 +434,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 		BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> buildingSite = null; 
 		try {
-			LOG.debug("Read " + cart);
+			if(LOG.isTraceEnabled()) {
+				LOG.trace("Read " + cart);
+			}
 			buildingSite = getBuildingSite(cart);
 			if(buildingSite == null) {
 				return;
@@ -479,11 +481,15 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						ShoppingCart<K,Object,L> to = new ShoppingCart<K,Object,L>(buildingSite.getCart().getKey(), Status.TIMED_OUT,null);
 						buildingSite.timeout((Cart<K,?,L>)to);
 						if (buildingSite.ready()) {
-							LOG.debug("Expired and finished " + key);
+							if(LOG.isTraceEnabled()) {
+								LOG.trace("Expired and finished " + key);
+							}
 							OUT res = buildingSite.build();
 							resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.TIMED_OUT));
 						} else {
-							LOG.debug("Expired and not finished " + key);
+							if(LOG.isTraceEnabled()) {
+								LOG.trace("Expired and not finished " + key);
+							}
 							scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Site expired") );
 						}
 					} catch (Exception e) {
@@ -492,13 +498,17 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Timeout processor failed ",e) );
 					}
 				} else {
-					LOG.debug("Expired and removed " + key);
+					if(LOG.isTraceEnabled()) {
+						LOG.trace("Expired and removed " + key);
+					}
 					scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Site expired. No timeout action") );
 				}
 			}
 		}
 		if(cnt > 0) {
-			LOG.debug("Timeout collected: " + cnt);
+			if(LOG.isTraceEnabled()) {
+				LOG.trace("Timeout collected: " + cnt);
+			}
 		}
 	}
 
