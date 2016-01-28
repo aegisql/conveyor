@@ -116,4 +116,9 @@ public class ResultQueue<E> implements Queue<E>, Consumer<ProductBin<?,E>> {
 		this.add(productBin.product);
 	}
 
+	@SuppressWarnings("unchecked")
+	public <T extends Queue<E>> T unwrap() {
+		return (T) inner;
+	}
+	
 }
