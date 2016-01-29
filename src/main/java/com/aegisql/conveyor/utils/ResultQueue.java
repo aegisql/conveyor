@@ -9,18 +9,22 @@ import java.util.function.Supplier;
 
 import com.aegisql.conveyor.ProductBin;
 
-public class ResultQueue<E> implements Queue<E>, Consumer<ProductBin<?,E>> {
+public class ResultQueue<K,E> implements Queue<E>, Consumer<ProductBin<K,E>> {
 
 	private final Queue<E> inner;	
 	
 	public ResultQueue() {
-		inner = new ConcurrentLinkedDeque<>();
+		this(ConcurrentLinkedDeque::new);
 	}
 
 	public ResultQueue( Supplier<Queue<E>> supplier ) {
 		inner = supplier.get();
 	}
-	
+
+	public ResultQueue( Queue<E> queue ) {
+		inner = queue;
+	}
+
 	@Override
 	public int size() {
 		return inner.size();
@@ -112,7 +116,7 @@ public class ResultQueue<E> implements Queue<E>, Consumer<ProductBin<?,E>> {
 	}
 
 	@Override
-	public void accept(ProductBin<?, E> productBin) {
+	public void accept(ProductBin<K, E> productBin) {
 		this.add(productBin.product);
 	}
 
