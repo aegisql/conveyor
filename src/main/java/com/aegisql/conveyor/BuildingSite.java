@@ -185,7 +185,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			} else {
 				lock.lock();
 				try {
-					((SmartLabel)label).getSetter().accept(builder,value);
+					((SmartLabel)label).get().accept(builder,value);
 				} finally {
 					lock.unlock();
 				}

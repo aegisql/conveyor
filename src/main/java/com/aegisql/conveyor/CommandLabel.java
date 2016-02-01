@@ -16,21 +16,21 @@ public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 	
 	/** The create build. */
 	CREATE_BUILD {
-		public BiConsumer<AssemblingConveyor, Object> getSetter() {
+		public BiConsumer<AssemblingConveyor, Object> get() {
 			return AssemblingConveyor::createNow;
 		}
 	},
 	
 	/** The cancel build. */
 	CANCEL_BUILD {
-		public BiConsumer<AssemblingConveyor, Object> getSetter() {
+		public BiConsumer<AssemblingConveyor, Object> get() {
 			return AssemblingConveyor::cancelNow;
 		}
 	},
 	
 	/** The timeout build. */
 	TIMEOUT_BUILD {
-		public BiConsumer<AssemblingConveyor, Object> getSetter() {
+		public BiConsumer<AssemblingConveyor, Object> get() {
 			return AssemblingConveyor::timeoutNow;
 		}
 	};
@@ -41,7 +41,7 @@ public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 	 * @see com.aegisql.conveyor.SmartLabel#getSetter()
 	 */
 	@Override
-	public BiConsumer<AssemblingConveyor, Object> getSetter() {
+	public BiConsumer<AssemblingConveyor, Object> get() {
 		throw new AbstractMethodError("Unimplemented");
 	}
 	

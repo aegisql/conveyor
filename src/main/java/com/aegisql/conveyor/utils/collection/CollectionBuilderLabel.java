@@ -15,7 +15,7 @@ public class  CollectionBuilderLabel<T> implements SmartLabel<CollectionBuilder<
 	}
 	
 	@Override
-	public BiConsumer<CollectionBuilder<T>, Object> getSetter() {
+	public BiConsumer<CollectionBuilder<T>, Object> get() {
 		return (BiConsumer<CollectionBuilder<T>, Object>) setter;
 	}
 

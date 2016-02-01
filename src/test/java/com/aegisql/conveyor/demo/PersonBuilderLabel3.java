@@ -21,7 +21,7 @@ public enum PersonBuilderLabel3 implements SmartLabel<ReactivePersonBuilder3> {
 	}
 	
 	@Override
-	public BiConsumer<ReactivePersonBuilder3, Object> getSetter() {
+	public BiConsumer<ReactivePersonBuilder3, Object> get() {
 		return setter;
 	}
 }

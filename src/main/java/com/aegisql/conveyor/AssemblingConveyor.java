@@ -247,7 +247,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				LOG.debug("processing command "+cmd);
 			}
 			CommandLabel l = cmd.getLabel();
-			l.getSetter().accept(this, cmd);
+			l.get().accept(this, cmd);
 		}
 	}
 

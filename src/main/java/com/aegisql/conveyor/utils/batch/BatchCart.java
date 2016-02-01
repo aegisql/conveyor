@@ -37,7 +37,7 @@ public class BatchCart <V> extends ShoppingCart<String, V, SmartLabel<BatchColle
 	private static <V> SmartLabel<BatchCollectingBuilder<V>> getAddLabel() {
 		return new SmartLabel<BatchCollectingBuilder<V>>(){
 			private static final long serialVersionUID = 1L;
-			public BiConsumer<BatchCollectingBuilder<V>, Object> getSetter() {
+			public BiConsumer<BatchCollectingBuilder<V>, Object> get() {
 				BiConsumer<BatchCollectingBuilder<V>, V> consumer = BatchCollectingBuilder::add;
 				return (BiConsumer<BatchCollectingBuilder<V>, Object>)consumer;
 			}

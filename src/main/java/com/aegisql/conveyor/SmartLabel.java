@@ -5,6 +5,7 @@ package com.aegisql.conveyor;
 
 import java.io.Serializable;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -14,12 +15,13 @@ import java.util.function.BiConsumer;
  * @version 1.0.0
  * @param <B> the generic type
  */
-public interface SmartLabel<B> extends Serializable {
+public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Object>> {
 	
 	/**
 	 * Gets the setter.
 	 *
 	 * @return the setter
 	 */
-	BiConsumer<B, Object> getSetter();
+	@Override
+	BiConsumer<B, Object> get();
 }

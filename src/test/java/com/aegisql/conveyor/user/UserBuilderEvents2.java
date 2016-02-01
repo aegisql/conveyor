@@ -44,7 +44,7 @@ public enum UserBuilderEvents2 implements SmartLabel<UserBuilderTesting> {
 	 * @see com.aegisql.conveyor.SmartLabel#getSetter()
 	 */
 	@Override
-	public BiConsumer<UserBuilderTesting, Object> getSetter() {
+	public BiConsumer<UserBuilderTesting, Object> get() {
 		return setter;
 	}
 }

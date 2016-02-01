@@ -26,7 +26,7 @@ public class ScalarCart<K, V> extends ShoppingCart<K, V, SmartLabel<ScalarConver
 		return new SmartLabel<ScalarConvertingBuilder<T, ?>>() {
 			private static final long serialVersionUID = -4838924049752143794L;
 			@Override
-			public BiConsumer<ScalarConvertingBuilder<T, ?>, Object> getSetter() {
+			public BiConsumer<ScalarConvertingBuilder<T, ?>, Object> get() {
 				BiConsumer<ScalarConvertingBuilder<T, ?>, T> bc = ScalarConvertingBuilder::add;
 				return (BiConsumer<ScalarConvertingBuilder<T, ?>, Object>) bc;
 			}
