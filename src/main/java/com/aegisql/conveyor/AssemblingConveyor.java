@@ -261,7 +261,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 		delayProvider.clear();
 		collector.forEach((k,v)->{
-			scrapConsumer.accept( new ScrapBin<K,Object>(k,v,"Draining site") );
+			scrapConsumer.accept( new ScrapBin<K,Object>(k,v,"Draining collector") );
 		});
 		collector.clear();
 	}
