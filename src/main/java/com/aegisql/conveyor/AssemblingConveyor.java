@@ -43,10 +43,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
 
 	/** The in queue. */
-	private final Queue<Cart<K,?,L>> inQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
+	protected final Queue<Cart<K,?,L>> inQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
 
 	/** The m queue. */
-	private final Queue<AbstractCommand<K, ?>> mQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
+	protected final Queue<AbstractCommand<K, ?>> mQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
 
 	/** The delay provider. */
 	private final DelayProvider<K> delayProvider = new DelayProvider<>();
@@ -266,6 +266,34 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		collector.clear();
 	}
 
+	protected RuntimeException evaluateCart(Cart<K,?,?> cart) {
+		
+		if( cart == null ) {
+			lock.tell();
+			return new NullPointerException("Cart is void");
+		}
+
+		if (!running) {
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
+			lock.tell();
+			return new IllegalStateException("Assembling Conveyor is not running");
+		}
+
+		if (cart.expired()) {
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart has already expired") );
+			lock.tell();
+			return new IllegalStateException("Cart has already expired " + cart);
+		}
+
+		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is too old") );
+			lock.tell();
+			return new IllegalStateException("Cart is too old");
+		}
+	
+		return null;
+	}
+	
 	/**
 	 * Adds the first.
 	 *
@@ -273,11 +301,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @return true, if successful
 	 */
 	protected boolean addFirst(Cart<K,?,L> cart) {
-		if (!running) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
-			lock.tell();
-			throw new IllegalStateException("Assembling Conveyor is not running");
+		
+		RuntimeException e = evaluateCart(cart);
+		
+		if( e != null ) {
+			throw e;
 		}
+		
 		boolean r = inQueue.add(cart);
 		lock.tell();
 		return r;
@@ -288,22 +318,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public boolean addCommand(AbstractCommand<K, ?> cart) {
-		Objects.requireNonNull(cart);
-		if (!running) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
-			lock.tell();
-			throw new IllegalStateException("Assembling Conveyor is not running");
+		RuntimeException e = evaluateCart(cart);
+		
+		if( e != null ) {
+			throw e;
 		}
-		if (cart.expired()) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Command Expired") );
-			lock.tell();
-			throw new IllegalStateException("Data expired " + cart);
-		}
-		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Command is too old") );
-			lock.tell();
-			throw new IllegalStateException("Data too old");
-		}
+		
 		boolean r = mQueue.add(cart);
 		lock.tell();
 		return r;
@@ -314,22 +334,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public boolean add(Cart<K,?,L> cart) {
-		Objects.requireNonNull(cart);
-		if (!running) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
-			lock.tell();
-			throw new IllegalStateException("Assembling Conveyor is not running");
+		RuntimeException e = evaluateCart(cart);
+		
+		if( e != null ) {
+			throw e;
 		}
-		if (cart.expired()) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Expired") );
-			lock.tell();
-			throw new IllegalStateException("Data expired " + cart);
-		}
-		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is too old") );
-			lock.tell();
-			throw new IllegalStateException("Data too old");
-		}
+		
 		boolean r = inQueue.add(cart);
 		lock.tell();
 		return r;
@@ -340,26 +350,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public boolean offer(Cart<K,?,L> cart) {
-		if( Objects.isNull(cart) ) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is NULL") );
-			lock.tell();
+		RuntimeException e = evaluateCart(cart);
+		
+		if( e != null ) {
 			return false;
 		}
-		if ( ! running ) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
-			lock.tell();
-			return false;
-		}
-		if ( cart.expired() ) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Expired") );
-			lock.tell();
-			return false;
-		}
-		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is too old") );
-			lock.tell();
-			return false;
-		}
+		
 		boolean r = inQueue.offer(cart);
 		lock.tell();
 		return r;
