@@ -147,6 +147,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The lock. */
 	private final Lock lock = new Lock();
 
+	private boolean saveCarts;
+
 	/**
 	 * Wait data.
 	 *
@@ -182,15 +184,15 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(cart.getValue() != null && cart instanceof CreatingCart ) {
 				CreatingCart<K,Supplier<? extends OUT>,L> cc = (CreatingCart<K,Supplier<? extends OUT>,L>)cart;
 				bs= cc.getValue();
-				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder);
+				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder,saveCarts);
 				returnNull = true;
 			} if(cart.getValue() != null && cart instanceof CreateCommand ) {
 				CreateCommand<K, Supplier<? extends OUT>> cc = (CreateCommand<K, Supplier<? extends OUT>>)cart;
 				bs= cc.getValue();
-				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder);
+				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder, saveCarts);
 				returnNull = true;
 			} else if(builderSupplier != null) {
-				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, builderSupplier, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder);
+				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, builderSupplier, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder,saveCarts);
 			} else {
 				scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither builder nor builder supplier available") );
 				returnNull = true;
@@ -474,7 +476,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				cnt++;
 				if (timeoutAction != null || buildingSite.builder instanceof TimeoutAction ) {
 					try {
-						ShoppingCart<K,Object,L> to = new ShoppingCart<K,Object,L>(buildingSite.getCart().getKey(), Status.TIMED_OUT,null);
+						ShoppingCart<K,Object,L> to = new ShoppingCart<K,Object,L>(buildingSite.getCreatingCart().getKey(), Status.TIMED_OUT,null);
 						buildingSite.timeout((Cart<K,?,L>)to);
 						if (buildingSite.ready()) {
 							if(LOG.isTraceEnabled()) {
@@ -663,7 +665,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if( bs != null ) {
 			bs.setStatus(Status.TIMED_OUT);
 			conveyor.delayProvider.getBox(System.currentTimeMillis()).add(bs);
-			ShoppingCart to = new ShoppingCart(bs.getCart().getKey(), Status.TIMED_OUT, null);
+			ShoppingCart to = new ShoppingCart(bs.getCreatingCart().getKey(), Status.TIMED_OUT, null);
 			conveyor.addFirst( to );
 		}
 	}
@@ -679,6 +681,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	public boolean isSynchronizeBuilder() {
 		return synchronizeBuilder;
+	}
+
+	public boolean isKeepCartsOnSite() {
+		return saveCarts;
+	}
+
+	public void setKeepCartsOnSite(boolean saveCarts) {
+		this.saveCarts = saveCarts;
 	}
 
 	public void setSynchronizeBuilder(boolean synchronizeBuilder) {

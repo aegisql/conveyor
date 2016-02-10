@@ -3,7 +3,10 @@
  */
 package com.aegisql.conveyor;
 
+import java.util.List;
 import java.util.Map;
+
+import com.aegisql.conveyor.cart.Cart;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -35,6 +38,8 @@ public class State<K,L> {
 	
 	public final Map<L,Integer> eventHistory;
 	
+	public final List<Cart<K,?,L>> carts;
+	
 	/**
 	 * Instantiates a new building state.
 	 *
@@ -54,6 +59,7 @@ public class State<K,L> {
 			,long cartExpiration
 			,int previouslyAccepted
 			,Map<L,Integer> eventHistory
+			,List<Cart<K,?,L>> carts
 			) {
 		this.key                = k;
 		this.builderCreated     = builderCreated;
@@ -62,6 +68,7 @@ public class State<K,L> {
 		this.cartExpiration     = cartExpiration;
 		this.previouslyAccepted = previouslyAccepted;
 		this.eventHistory       = eventHistory;
+		this.carts              = carts;
 	}
 
 	@Override

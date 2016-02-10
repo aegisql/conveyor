@@ -3,8 +3,10 @@
  */
 package com.aegisql.conveyor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -57,6 +59,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	
 	private Consumer<Supplier<? extends OUT>> timeoutAction;
 	
+	private boolean saveCarts      = false;
+
+	private final List<C> allCarts = new ArrayList<>();
+	
 	/** The initial cart. */
 	private final  C initialCart;
 	
@@ -101,10 +107,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer, 
 			BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness, 
 			Consumer<Supplier<? extends OUT>> timeoutAction,
-			long ttl, TimeUnit unit, boolean synchronizeBuilder) {
+			long ttl, TimeUnit unit, boolean synchronizeBuilder, boolean saveCarts) {
 		this.initialCart = cart;
 		this.builder = builderSupplier.get() ;
 		this.timeoutAction = timeoutAction;
+		this.saveCarts = saveCarts;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
 		if(synchronizeBuilder) {
 			lock = new ReentrantLock();
@@ -167,11 +174,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	}
 
 	/**
-	 * Accept.
+	 * Accept the data.
 	 *
 	 * @param cart the cart
 	 */
 	public void accept(C cart) {
+		if( saveCarts) {
+			allCarts.add(cart);
+		}
 		L label = cart.getLabel();
 		Object value = cart.getValue();
 		
@@ -219,7 +229,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	}
 
 	/**
-	 * Builds the.
+	 * Builds the Product when it is ready.
 	 *
 	 * @return the out
 	 */
@@ -234,7 +244,23 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			lock.unlock();
 		}
 	}
-	
+
+	/**
+	 * Try to build the product without checking for it's readiness condition.
+	 * This method should not be used to produce actual results, but it can be useful
+	 * when processing the ScrapBin - the only place where this interface is accessible.
+	 *
+	 * @return the out
+	 */
+	public OUT unsafeBuild() {
+		lock.lock();
+		try {
+			return builder.get();
+		} finally {
+			lock.unlock();
+		}
+	}
+
 	private Supplier<? extends OUT> productSupplier = null;
 	
 	public Supplier<? extends OUT> getProductSupplier() {
@@ -275,7 +301,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				initialCart.getCreationTime(),
 				initialCart.getExpirationTime(),
 				acceptCount,
-				Collections.unmodifiableMap( history )
+				Collections.unmodifiableMap( history ),
+				Collections.unmodifiableList(allCarts)
 				);
 		lock.lock();
 		try {
@@ -337,8 +364,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 *
 	 * @return the cart
 	 */
-	public C getCart() {
+	public C getCreatingCart() {
 		return initialCart;
+	}
+
+	public List<C> getAcceptedCarts() {
+		return Collections.unmodifiableList( allCarts );
 	}
 
 	/**
