@@ -200,6 +200,24 @@ public class AssemblingConveyorTest {
 		conveyor.add(c1);
 	}
 
+	@Test(expected=NullPointerException.class)
+	public void testNullCartContentStopped() throws InterruptedException {
+		AssemblingConveyor<Integer, String, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setScrapConsumer((o)->{
+			System.out.println(o);
+			assertTrue(o.comment.startsWith("#####"));
+			assertTrue(o.scrap instanceof Cart);
+		});
+		conveyor.addCartBeforePlacementValidator(cart->{
+			if(cart.getValue()==null) {
+				throw new NullPointerException("#####");
+			}
+		});
+		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, null, "setFirst");
+		conveyor.add(c1);
+	}
+
 	/**
 	 * Test add expired stopped.
 	 *
