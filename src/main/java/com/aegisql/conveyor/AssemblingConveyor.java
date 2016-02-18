@@ -94,12 +94,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		LOG.trace("Key is ready to be evicted {}",key);
 	};
 	
-	public void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator) {
-		if(cartBeforePlacementValidator != null) {
-			this.cartBeforePlacementValidator = this.cartBeforePlacementValidator.andThen( cartBeforePlacementValidator );
-		}
-	}
-
 	/** The running. */
 	
 	protected volatile boolean running = true;
@@ -721,8 +715,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.synchronizeBuilder = synchronizeBuilder;
 	}
 
+	public void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator) {
+		if(cartBeforePlacementValidator != null) {
+			this.cartBeforePlacementValidator = this.cartBeforePlacementValidator.andThen( cartBeforePlacementValidator );
+		}
+	}
+
 	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction) {
-		this.keyBeforeEviction = this.keyBeforeEviction.andThen(keyBeforeEviction);
+		if(keyBeforeEviction != null) {
+			this.keyBeforeEviction = this.keyBeforeEviction.andThen(keyBeforeEviction);
+		}
 	}
 
 }

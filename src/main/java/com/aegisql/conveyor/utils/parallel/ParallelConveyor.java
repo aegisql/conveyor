@@ -418,5 +418,22 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public void setBalancingFunction(BalancingFunction<K> balancingFunction) {
 		this.balancingFunction = balancingFunction;
 	}
+	
+	public void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator) {
+		if(cartBeforePlacementValidator != null) {
+			for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+				conv.addCartBeforePlacementValidator(cartBeforePlacementValidator);
+			}
+		}
+	}
+
+
+	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction) {
+		if(keyBeforeEviction != null) {
+			for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+				conv.addBeforeKeyEvictionAction(keyBeforeEviction);
+			}
+		}
+	}
 
 }
