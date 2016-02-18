@@ -115,7 +115,7 @@ public class AssemblingConveyorTest {
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
-			assertTrue(o.comment.startsWith("Conveyor Not Running"));
+			assertTrue(o.comment.startsWith("Conveyor is not running"));
 			assertTrue(o.scrap instanceof Cart);
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
@@ -134,7 +134,7 @@ public class AssemblingConveyorTest {
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
-			assertTrue(o.comment.startsWith("Conveyor Not Running"));
+			assertTrue(o.comment.startsWith("Conveyor is not running"));
 			assertTrue(o.scrap instanceof Cart);
 		});
 		AbstractCommand<Integer,?> c1 = new TimeoutCommand<>(1);
@@ -153,7 +153,7 @@ public class AssemblingConveyorTest {
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
-			assertTrue(o.comment.startsWith("Cart has already expired"));
+			assertTrue(o.comment.startsWith("Command has already expired"));
 			assertTrue(o.scrap instanceof Cart);
 		});
 		AbstractCommand<Integer,?> c1 = new TimeoutCommand<>(1,1,TimeUnit.MILLISECONDS);
@@ -173,7 +173,7 @@ public class AssemblingConveyorTest {
 		conveyor.rejectUnexpireableCartsOlderThan(10, TimeUnit.MILLISECONDS);
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
-			assertTrue(o.comment.startsWith("Cart is too old"));
+			assertTrue(o.comment.startsWith("Command is too old"));
 			assertTrue(o.scrap instanceof Cart);
 		});
 		AbstractCommand<Integer,?> c1 = new TimeoutCommand<>(1,100,TimeUnit.MILLISECONDS);
@@ -192,7 +192,7 @@ public class AssemblingConveyorTest {
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
-			assertTrue(o.comment.startsWith("Conveyor Not Running"));
+			assertTrue(o.comment.startsWith("Conveyor is not running"));
 			assertTrue(o.scrap instanceof Cart);
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");

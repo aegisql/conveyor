@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -28,6 +29,8 @@ import com.aegisql.conveyor.cart.ShoppingCart;
  */
 public class CartTest {
 
+	private boolean running = true;
+	
 	/**
 	 * Sets the up before class.
 	 *
@@ -115,6 +118,18 @@ public class CartTest {
 		long delay = Expireable.toDelayed(c).getDelay(TimeUnit.MILLISECONDS);
 		assertTrue(delay > 0);
 
+	}
+
+	@Test
+	public void testClosure() {
+		Consumer<String> c = s->{
+			System.out.println(s+running);
+		};
+		
+		c.accept("running before=");
+		running=false;
+		c.accept("running after=");
+		
 	}
 	
 }

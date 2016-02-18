@@ -3,12 +3,13 @@
  */
 package com.aegisql.conveyor;
 
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiPredicate;
@@ -43,7 +44,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
 
 	/** The in queue. */
-	protected final Queue<Cart<K,?,L>> inQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
+	protected final Deque<Cart<K,?,L>> inQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
 
 	/** The m queue. */
 	protected final Queue<AbstractCommand<K, ?>> mQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
@@ -84,8 +85,19 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected Supplier<Supplier<? extends OUT>> builderSupplier = () -> {
 		throw new IllegalStateException("Builder Supplier is not set");
 	};
+	
+	protected Consumer<Cart<K,?,L>> cartBeforePlacementValidator = cart -> {if(cart==null) throw new NullPointerException("Cart is null");};
+
+	private Consumer<AbstractCommand<K, ?>> commandBeforePlacementValidator = cart -> {if(cart==null) throw new NullPointerException("Command is null");};
+
+	public void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator) {
+		if(cartBeforePlacementValidator != null) {
+			this.cartBeforePlacementValidator = this.cartBeforePlacementValidator.andThen( cartBeforePlacementValidator );
+		}
+	}
 
 	/** The running. */
+	
 	protected volatile boolean running = true;
 	
 	protected boolean synchronizeBuilder = false;
@@ -215,6 +227,31 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * Instantiates a new assembling conveyor.
 	 */
 	public AssemblingConveyor() {
+		
+		this.addCartBeforePlacementValidator(cart->{
+			if( ! running ) {
+				throw new IllegalStateException("Conveyor is not running");
+			}
+		});
+		this.addCartBeforePlacementValidator(cart->{
+			if( cart.expired() ) {
+				throw new IllegalStateException("Cart has already expired " + cart);
+			}
+		});
+		this.addCartBeforePlacementValidator(cart->{
+			if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject) ) {
+				throw new IllegalStateException("Cart is too old " + cart);
+			}
+		});
+		
+		commandBeforePlacementValidator = commandBeforePlacementValidator.andThen(cmd->{if( ! running ) {
+			throw new IllegalStateException("Conveyor is not running");
+		}}).andThen(cmd->{if( cmd.expired() ) {
+				throw new IllegalStateException("Command has already expired " + cmd);
+		}}).andThen(cmd->{if( cmd.getCreationTime() < (System.currentTimeMillis() - startTimeReject) ) {
+				throw new IllegalStateException("Command is too old " + cmd);
+		}});
+		
 		this.innerThread = new Thread(() -> {
 			try {
 				while (running) {
@@ -268,32 +305,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		collector.clear();
 	}
 
-	protected RuntimeException evaluateCart(Cart<K,?,?> cart) {
+	private void evaluateCart(Cart<K,?,?> cart) {
 		
-		if( cart == null ) {
-			lock.tell();
-			return new NullPointerException("Cart is void");
-		}
+		//scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is too old") );
+		//lock.tell();
 
-		if (!running) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
-			lock.tell();
-			return new IllegalStateException("Assembling Conveyor is not running");
-		}
-
-		if (cart.expired()) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart has already expired") );
-			lock.tell();
-			return new IllegalStateException("Cart has already expired " + cart);
-		}
-
-		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is too old") );
-			lock.tell();
-			return new IllegalStateException("Cart is too old");
-		}
-	
-		return null;
 	}
 	
 	/**
@@ -303,16 +319,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @return true, if successful
 	 */
 	protected boolean addFirst(Cart<K,?,L> cart) {
-		
-		RuntimeException e = evaluateCart(cart);
-		
-		if( e != null ) {
+		try {
+			cartBeforePlacementValidator.accept(cart);
+			boolean r = inQueue.offerFirst(cart);
+			lock.tell();
+			return r;
+		} catch (RuntimeException e ) {
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,e.getMessage()) );
+			lock.tell();
 			throw e;
 		}
-		
-		boolean r = inQueue.add(cart);
-		lock.tell();
-		return r;
 	}
 
 	/* (non-Javadoc)
@@ -320,15 +336,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public boolean addCommand(AbstractCommand<K, ?> cart) {
-		RuntimeException e = evaluateCart(cart);
-		
-		if( e != null ) {
+		try {
+			commandBeforePlacementValidator.accept(cart);
+			boolean r = mQueue.add(cart);
+			lock.tell();
+			return r;
+		} catch (RuntimeException e ) {
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,e.getMessage()) );
+			lock.tell();
 			throw e;
 		}
-		
-		boolean r = mQueue.add(cart);
-		lock.tell();
-		return r;
 	}
 	
 	/* (non-Javadoc)
@@ -336,15 +353,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public boolean add(Cart<K,?,L> cart) {
-		RuntimeException e = evaluateCart(cart);
-		
-		if( e != null ) {
+		try {
+			cartBeforePlacementValidator.accept(cart);
+			boolean r = inQueue.add(cart);
+			lock.tell();
+			return r;
+		} catch (RuntimeException e ) {
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,e.getMessage()) );
+			lock.tell();
 			throw e;
 		}
-		
-		boolean r = inQueue.add(cart);
-		lock.tell();
-		return r;
 	}
 
 	/* (non-Javadoc)
@@ -352,15 +370,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public boolean offer(Cart<K,?,L> cart) {
-		RuntimeException e = evaluateCart(cart);
-		
-		if( e != null ) {
+		try {
+			cartBeforePlacementValidator.accept(cart);
+			boolean r = inQueue.add(cart);
+			lock.tell();
+			return r;
+		} catch (RuntimeException e ) {
+			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,e.getMessage()) );
+			lock.tell();
 			return false;
 		}
-		
-		boolean r = inQueue.offer(cart);
-		lock.tell();
-		return r;
 	}
 
 	/**
