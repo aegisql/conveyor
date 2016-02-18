@@ -9,6 +9,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -293,6 +295,9 @@ public class AssemblingConveyorTest {
 			return state.previouslyAccepted == 3;
 		});
 		
+		List<Integer> evictedKeys = new ArrayList<>();
+		conveyor.addBeforeKeyEvictionAction(key->{evictedKeys.add(key);});
+		
 		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
 		Cart<Integer, String, String> c3 = new ShoppingCart<>(2, "Mike", "setFirst");
@@ -334,6 +339,8 @@ public class AssemblingConveyorTest {
 		System.out.println("IN :"+conveyor.getInputQueueSize());
 		conveyor.stop();
 		Thread.sleep(1000);
+		assertTrue(evictedKeys.size() > 0);
+		System.out.println("Evicted :"+evictedKeys);
 	}
 
 	@Test

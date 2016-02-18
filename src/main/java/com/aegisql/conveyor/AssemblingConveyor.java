@@ -90,6 +90,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	private Consumer<AbstractCommand<K, ?>> commandBeforePlacementValidator = cart -> {if(cart==null) throw new NullPointerException("Command is null");};
 
+	private Consumer<K> keyBeforeEviction = key -> {
+		LOG.trace("Key is ready to be evicted {}",key);
+	};
+	
 	public void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator) {
 		if(cartBeforePlacementValidator != null) {
 			this.cartBeforePlacementValidator = this.cartBeforePlacementValidator.andThen( cartBeforePlacementValidator );
@@ -464,6 +468,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				buildingSite.accept((Cart<K,?,L>) cart);
 			}
 			if (buildingSite.ready()) {
+				keyBeforeEviction.accept(key);
 				collector.remove(key);
 				OUT res = buildingSite.build();
 				resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.READY));
@@ -475,6 +480,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				buildingSite.setLastError(e);
 				scrapConsumer.accept( new ScrapBin<K,BuildingSite<K,?,?,?>>(cart.getKey(),buildingSite,"Site Processor failed",e) );
 			}
+			keyBeforeEviction.accept(key);
 			collector.remove(key);
 		}
 	}
@@ -491,6 +497,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			buildingSite.setStatus(Status.TIMED_OUT);
 			if (collector.containsKey(key)) {
+				keyBeforeEviction.accept(key);
 				collector.remove(key);
 				cnt++;
 				if (timeoutAction != null || buildingSite.builder instanceof TimeoutAction ) {
@@ -712,6 +719,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	public void setSynchronizeBuilder(boolean synchronizeBuilder) {
 		this.synchronizeBuilder = synchronizeBuilder;
+	}
+
+	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction) {
+		this.keyBeforeEviction = this.keyBeforeEviction.andThen(keyBeforeEviction);
 	}
 
 }
