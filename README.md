@@ -8,6 +8,36 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.0.5</version>
+  <version>1.0.6</version>
 </dependency>
 ```
+
+## Release History
+
+### 1.0.6
+* add cart pre-placement user's validation algorithm to parallel conveyor
+* add key pre-eviction user's algorithm to parallel conveyor
+
+### 1.0.5
+* add cart pre-placement user's validation algorithm
+* add key pre-eviction user's algorithm
+* minor timeout bugfix
+
+### 1.0.4
+* SmartLabel extends standard Supplier interface
+* Added option to keep all accepted carts on site and make them available at testing and scrap collection time
+
+### 1.0.3
+* Added utility ResutQueue - Wrapper implementing Queue and ProductBin Consumer
+* Changes scope of slf4j library to provided
+
+### 1.0.2
+* Moved excessive logging to TRACE level
+* Delay queue now holds all Builders with the same expiration time in one Box. 
+
+### 1.0.1
+* Expireable is the only interface to control expiration time
+* Updated libraries
+
+### 1.0.0
+* First release
