@@ -65,7 +65,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	
 	/** The initial cart. */
 	private final  C initialCart;
-	
+
+	private  C lastCart = null;
+
 	/** The accept count. */
 	private int acceptCount = 0;
 	
@@ -108,10 +110,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness, 
 			Consumer<Supplier<? extends OUT>> timeoutAction,
 			long ttl, TimeUnit unit, boolean synchronizeBuilder, boolean saveCarts) {
-		this.initialCart = cart;
-		this.builder = builderSupplier.get() ;
+		this.initialCart   = cart;
+		this.lastCart      = cart;
+		this.builder       = builderSupplier.get() ;
 		this.timeoutAction = timeoutAction;
-		this.saveCarts = saveCarts;
+		this.saveCarts     = saveCarts;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
 		if(synchronizeBuilder) {
 			lock = new ReentrantLock();
@@ -179,6 +182,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param cart the cart
 	 */
 	public void accept(C cart) {
+		this.lastCart = cart;
 		if( saveCarts) {
 			allCarts.add(cart);
 		}
@@ -211,6 +215,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	}
 
 	public void timeout(C cart) {
+		this.lastCart = cart;
 			if (builder instanceof TimeoutAction ){
 				lock.lock();
 				try {
@@ -429,6 +434,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 */
 	public void setStatus(Status status) {
 		this.status = status;
+	}
+
+	public C getLastCart() {
+		return lastCart;
+	}
+
+	public void setLastCart(C lastCart) {
+		this.lastCart = lastCart;
 	}
 
 }

@@ -112,19 +112,6 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public boolean addCommand(AbstractCommand<K, ?> cart) {
-		Objects.requireNonNull(cart);
-		if (!running) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
-			throw new IllegalStateException("Assembling Conveyor is not running");
-		}
-		if (cart.expired()) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Command Expired") );
-			throw new IllegalStateException("Data expired " + cart);
-		}
-		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Command is too old") );
-			throw new IllegalStateException("Data too old");
-		}
 		return getConveyor( cart.getKey() ).addCommand( cart );
 	}
 	
@@ -133,19 +120,6 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public boolean add(Cart<K,?,L> cart) {
-		Objects.requireNonNull(cart);
-		if (!running) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
-			throw new IllegalStateException("Assembling Conveyor is not running");
-		}
-		if (cart.expired()) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Expired") );
-			throw new IllegalStateException("Data expired " + cart);
-		}
-		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is too old") );
-			throw new IllegalStateException("Data too old");
-		}
 		return getConveyor( cart.getKey() ).add( cart );
 	}
 
@@ -154,22 +128,6 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public boolean offer(Cart<K,?,L> cart) {
-		if( Objects.isNull(cart) ) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is NULL") );
-			return false;
-		}
-		if ( ! running ) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Conveyor Not Running") );
-			return false;
-		}
-		if ( cart.expired() ) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Expired") );
-			return false;
-		}
-		if( cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject )) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is too old") );
-			return false;
-		}
 		return getConveyor( cart.getKey() ).offer( cart );
 	}
 
