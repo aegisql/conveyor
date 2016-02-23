@@ -8,11 +8,14 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.0.6</version>
+  <version>1.0.7</version>
 </dependency>
 ```
 
 ## Release History
+
+### 1.0.7
+* Detailed failure type in the Scrap Bin
 
 ### 1.0.6
 * add cart pre-placement user's validation algorithm to parallel conveyor
