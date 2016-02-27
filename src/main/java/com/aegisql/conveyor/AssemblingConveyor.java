@@ -93,6 +93,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	private Consumer<K> keyBeforeEviction = key -> {
 		LOG.trace("Key is ready to be evicted {}",key);
+		collector.remove(key);
 	};
 	
 	/** The running. */
@@ -469,7 +470,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if (buildingSite.ready()) {
 				failureType = FailureType.BEFORE_EVICTION_FAILED;
 				keyBeforeEviction.accept(key);
-				collector.remove(key);
 				failureType = FailureType.BUILD_FAILED;
 				OUT res = buildingSite.build();
 				failureType = FailureType.RESULT_CONSUMER_FAILED;
@@ -489,9 +489,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					keyBeforeEviction.accept(key);
 				} catch (Exception e2) {
 					LOG.error("BeforeEviction failed after processing failure: {} {} {}",failureType,e.getMessage(),e2.getMessage());
+					collector.remove(key);
 				}
 			}
-			collector.remove(key);
 		}
 	}
 	
@@ -508,7 +508,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			buildingSite.setStatus(Status.TIMED_OUT);
 			if (collector.containsKey(key)) {
 				keyBeforeEviction.accept(key);
-				collector.remove(key);
 				cnt++;
 				if (timeoutAction != null || buildingSite.builder instanceof TimeoutAction ) {
 					try {
@@ -683,10 +682,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	static void cancelNow( AssemblingConveyor conveyor, Object cart ) {
 		Object key = ((Cart)cart).getKey();
-		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
-		if(bs != null) {
-			bs.setStatus(Status.CANCELED);
-		}
+		conveyor.keyBeforeEviction.accept(key);;
 	}
 
 	/**
@@ -739,7 +735,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction) {
 		if(keyBeforeEviction != null) {
-			this.keyBeforeEviction = this.keyBeforeEviction.andThen(keyBeforeEviction);
+			this.keyBeforeEviction = keyBeforeEviction.andThen(this.keyBeforeEviction);
 		}
 	}
 

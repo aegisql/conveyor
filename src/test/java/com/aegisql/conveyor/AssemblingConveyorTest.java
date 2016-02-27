@@ -297,6 +297,7 @@ public class AssemblingConveyorTest {
 		
 		List<Integer> evictedKeys = new ArrayList<>();
 		conveyor.addBeforeKeyEvictionAction(key->{evictedKeys.add(key);});
+		conveyor.addBeforeKeyEvictionAction(key->{System.out.println("REMOVING! "+key);});
 		
 		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
