@@ -671,8 +671,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param conveyor the conveyor
 	 * @param cart the cart
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static void createNow( AssemblingConveyor conveyor, Object cart ) {
-		BuildingSite bs = (BuildingSite) conveyor.getBuildingSite((Cart) cart);
+		conveyor.getBuildingSite((Cart) cart);
 	}
 
 	/**
@@ -681,6 +682,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param conveyor the conveyor
 	 * @param cart the cart
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static void cancelNow( AssemblingConveyor conveyor, Object cart ) {
 		Object key = ((Cart)cart).getKey();
 		conveyor.keyBeforeEviction.accept(key);;
@@ -692,12 +694,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param conveyor the conveyor
 	 * @param cart the cart
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static void rescheduleNow( AssemblingConveyor conveyor, Object cart ) {
 		Cart command = ((Cart)cart);
 		Object key = command.getKey();
 		BuildingSite oldSite = (BuildingSite) conveyor.collector.get(key);
 		if( oldSite != null ) {
-			conveyor.keyBeforeEviction.accept(key);
+			conveyor.collector.remove(key);
 			conveyor.delayProvider.getBox(oldSite.getExpirationTime()).delete(key);
 			Supplier<?> oldBuilder  = oldSite.getBuilder();
 			BuildingSite newSite = oldSite.newInstance( command.getExpirationTime() );
@@ -719,6 +722,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param conveyor the conveyor
 	 * @param cart the cart
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static void timeoutNow( AssemblingConveyor conveyor, Object cart ) {
 		Object key = ((Cart)cart).getKey();
 		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
