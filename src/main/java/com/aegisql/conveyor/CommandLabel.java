@@ -33,6 +33,13 @@ public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 		public BiConsumer<AssemblingConveyor, Object> get() {
 			return AssemblingConveyor::timeoutNow;
 		}
+	},
+
+	/** Reschedule build. */
+	RESCHEDULE_BUILD {
+		public BiConsumer<AssemblingConveyor, Object> get() {
+			return AssemblingConveyor::rescheduleNow;
+		}
 	};
 
 	/** The setter. */

@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -683,6 +684,33 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	static void cancelNow( AssemblingConveyor conveyor, Object cart ) {
 		Object key = ((Cart)cart).getKey();
 		conveyor.keyBeforeEviction.accept(key);;
+	}
+
+	/**
+	 * Cancel now.
+	 *
+	 * @param conveyor the conveyor
+	 * @param cart the cart
+	 */
+	static void rescheduleNow( AssemblingConveyor conveyor, Object cart ) {
+		Cart command = ((Cart)cart);
+		Object key = command.getKey();
+		BuildingSite oldSite = (BuildingSite) conveyor.collector.get(key);
+		if( oldSite != null ) {
+			conveyor.keyBeforeEviction.accept(key);
+			conveyor.delayProvider.getBox(oldSite.getExpirationTime()).delete(key);
+			Supplier<?> oldBuilder  = oldSite.getBuilder();
+			BuildingSite newSite = oldSite.newInstance( command.getExpirationTime() );
+			Supplier<?> newBuilder  = newSite.getBuilder();
+			BiConsumer<Supplier<?>, Supplier<?>> method = (BiConsumer<Supplier<?>, Supplier<?>>) command.getValue();
+			method.accept(oldBuilder,newBuilder);
+			conveyor.collector.put(key, newSite);
+			LOG.debug("Rescheduling {} diff expiration {} ",key,oldSite.builderExpiration-newSite.builderExpiration);
+			if(newSite.getExpirationTime() > 0) {
+				conveyor.delayProvider.getBox(newSite.getExpirationTime()).add(key);
+			}
+
+		}
 	}
 
 	/**

@@ -61,7 +61,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	
 	private boolean saveCarts      = false;
 
-	private final List<C> allCarts = new ArrayList<>();
+	private List<C> allCarts = new ArrayList<>();
 	
 	/** The initial cart. */
 	private final  C initialCart;
@@ -84,13 +84,21 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private Throwable lastError;
 	
 	/** The event history. */
-	private final Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>();
+	private Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>();
 	
 	/** The delay keeper. */
 	Delayed delayKeeper;
 	
 	private final Lock lock;
 
+	private final long ttl;
+	
+	private final TimeUnit unit;
+	
+	private final boolean synchronizeBuilder;
+	
+	private final Supplier<Supplier<? extends OUT>> builderSupplier;
+	
 	/**
 	 * Instantiates a new building site.
 	 *
@@ -110,11 +118,15 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness, 
 			Consumer<Supplier<? extends OUT>> timeoutAction,
 			long ttl, TimeUnit unit, boolean synchronizeBuilder, boolean saveCarts) {
-		this.initialCart   = cart;
-		this.lastCart      = cart;
-		this.builder       = builderSupplier.get() ;
-		this.timeoutAction = timeoutAction;
-		this.saveCarts     = saveCarts;
+		this.initialCart        = cart;
+		this.lastCart           = cart;
+		this.builder            = builderSupplier.get() ;
+		this.builderSupplier    = builderSupplier;
+		this.timeoutAction      = timeoutAction;
+		this.saveCarts          = saveCarts;
+		this.ttl                = ttl;
+		this.unit               = unit;
+		this.synchronizeBuilder = synchronizeBuilder;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
 		if(synchronizeBuilder) {
 			lock = new ReentrantLock();
@@ -443,5 +455,30 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	public void setLastCart(C lastCart) {
 		this.lastCart = lastCart;
 	}
+	
+	/**
+	 * package access methods
+	 * */
+	Supplier<? extends OUT> getBuilder() {
+		return builder;
+	}
 
+	BuildingSite <K, L, C, OUT> newInstance(long expirationTime) {
+		BuildingSite <K, L, C, OUT> newSite =  new BuildingSite<>(
+				initialCart, 
+				builderSupplier, 
+				valueConsumer , 
+				readiness, 
+				timeoutAction, 
+				ttl, 
+				unit, 
+				synchronizeBuilder, 
+				saveCarts );
+		newSite.builderExpiration = expirationTime;
+		newSite.acceptCount = acceptCount;
+		newSite.eventHistory = eventHistory;
+		newSite.allCarts = allCarts;
+		return newSite;
+	}
+	
 }

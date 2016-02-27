@@ -64,6 +64,13 @@ public class UserBuilderSmart implements Supplier<User> {
 		builder.first = (String) first;
 	}
 
+	public static void copyBuilder(UserBuilderSmart oldBuilder, UserBuilderSmart newBuilder) {
+		newBuilder.first = "NEW_"+oldBuilder.first;
+		newBuilder.last  = "NEW_"+oldBuilder.last;
+		newBuilder.yearOfBirth = oldBuilder.yearOfBirth;
+	}
+
+	
 	/**
 	 * Gets the last.
 	 *

@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.command.RescheduleCommand;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderEvents2;
@@ -106,6 +107,48 @@ public class SmartConveyorTest {
 		conveyor.offer(c2);
 		conveyor.offer(c3);
 		conveyor.offer(c4);
+		Thread.sleep(100);
+		User u1 = outQueue.poll();
+		assertNotNull(u1);
+		System.out.println(u1);
+		User u2 = outQueue.poll();
+		assertNull(u2);
+
+		Thread.sleep(100);
+
+		conveyor.stop();
+	}
+
+	@Test
+	public void testRescheduleSmart() throws InterruptedException {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderSmart::new);
+
+		conveyor.setResultConsumer(res->{
+				    	outQueue.add(res.product);
+				    });
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			System.out.println(state);
+			return state.previouslyAccepted == 3;
+		});
+		conveyor.setName("User Assembler");
+		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST,1,TimeUnit.SECONDS);
+		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
+
+
+		conveyor.offer(c1);
+		User u0 = outQueue.poll();
+		assertNull(u0);
+		conveyor.offer(c2);
+		
+		RescheduleCommand<Integer, UserBuilderSmart> reschedule = 
+				new RescheduleCommand<Integer, UserBuilderSmart>(
+						1, UserBuilderSmart::copyBuilder, 4,TimeUnit.SECONDS);
+		conveyor.addCommand(reschedule);
+		Thread.sleep(1500);
+		conveyor.offer(c3);
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
