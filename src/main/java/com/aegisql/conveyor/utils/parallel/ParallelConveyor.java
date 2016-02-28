@@ -402,5 +402,9 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 		}
 	}
+	
+	public long getExpirationTime(K key) {
+		return getConveyor( key ).getExpirationTime(key);
+	}
 
 }

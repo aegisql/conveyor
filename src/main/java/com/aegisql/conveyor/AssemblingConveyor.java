@@ -775,5 +775,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			this.keyBeforeReschedule = keyBeforeRescheduling.andThen(this.keyBeforeReschedule);
 		}
 	}
+	
+	public long getExpirationTime(K key) {
+		BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> bs = collector.get(key);
+		if( bs == null ) {
+			return -1;
+		} else {
+			return bs.builderExpiration;
+		}
+	}
 
 }
