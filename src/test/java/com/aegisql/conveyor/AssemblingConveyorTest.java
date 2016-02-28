@@ -331,7 +331,7 @@ public class AssemblingConveyorTest {
 		conveyor.addCommand(c9);
 		Thread.sleep(100);
 		conveyor.addCommand( new CancelCommand<Integer>(6));
-		conveyor.addCommand( new TimeoutCommand<Integer, Supplier<?>>(7));
+		conveyor.addCommand( new TimeoutCommand<Integer>(7));
 
 		conveyor.offer(c5);
 		Thread.sleep(2000);
@@ -511,7 +511,7 @@ public class AssemblingConveyorTest {
 		assertNull(u2);
 		Thread.sleep(100);
 		conveyor.addCommand( new CancelCommand<Integer>(6));
-		conveyor.addCommand( new TimeoutCommand<Integer, Supplier<?>>(7));
+		conveyor.addCommand( new TimeoutCommand<Integer>(7));
 
 		Thread.sleep(2000);
 		System.out.println("COL:"+conveyor.getCollectorSize());

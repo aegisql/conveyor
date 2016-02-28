@@ -5,6 +5,7 @@ package com.aegisql.conveyor.utils.parallel;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -390,6 +391,14 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if(keyBeforeEviction != null) {
 			for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
 				conv.addBeforeKeyEvictionAction(keyBeforeEviction);
+			}
+		}
+	}
+
+	public void addBeforeKeyReschedulingAction(BiConsumer<K,Long> keyBeforeRescheduling) {
+		if(keyBeforeRescheduling != null) {
+			for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+				conv.addBeforeKeyReschedulingAction(keyBeforeRescheduling);
 			}
 		}
 	}

@@ -6,6 +6,7 @@ package com.aegisql.conveyor;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
@@ -96,7 +97,24 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		LOG.trace("Key is ready to be evicted {}",key);
 		collector.remove(key);
 	};
-	
+
+	private BiConsumer<K,Long> keyBeforeReschedule = (key,newExpirationTime) -> {
+		Objects.requireNonNull(key, "NULL key cannot be rescheduld");
+		Objects.requireNonNull(newExpirationTime, "NULL newExpirationTime cannot be applied to the schedile");
+		BuildingSite buildingSite = (BuildingSite) collector.get(key);
+		if( buildingSite != null ) {
+			long oldExpirationTime = buildingSite.builderExpiration;
+			delayProvider.getBox(oldExpirationTime).delete(key);
+			buildingSite.updateExpirationTime( newExpirationTime );
+			LOG.trace("Rescheduled {}. added expiration {} msec",key,newExpirationTime - oldExpirationTime);
+			if(newExpirationTime > 0) {
+				delayProvider.getBox(newExpirationTime).add(key);
+			}
+		} else {
+			LOG.trace("Build is not found for the key {}",key);
+		}
+	};
+
 	/** The running. */
 	
 	protected volatile boolean running = true;
@@ -698,22 +716,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	static void rescheduleNow( AssemblingConveyor conveyor, Object cart ) {
 		Cart command = ((Cart)cart);
 		Object key = command.getKey();
-		BuildingSite oldSite = (BuildingSite) conveyor.collector.get(key);
-		if( oldSite != null ) {
-			conveyor.collector.remove(key);
-			conveyor.delayProvider.getBox(oldSite.getExpirationTime()).delete(key);
-			Supplier<?> oldBuilder  = oldSite.getBuilder();
-			BuildingSite newSite = oldSite.newInstance( command.getExpirationTime() );
-			Supplier<?> newBuilder  = newSite.getBuilder();
-			BiConsumer<Supplier<?>, Supplier<?>> method = (BiConsumer<Supplier<?>, Supplier<?>>) command.getValue();
-			method.accept(oldBuilder,newBuilder);
-			conveyor.collector.put(key, newSite);
-			LOG.debug("Rescheduling {} diff expiration {} ",key,oldSite.builderExpiration-newSite.builderExpiration);
-			if(newSite.getExpirationTime() > 0) {
-				conveyor.delayProvider.getBox(newSite.getExpirationTime()).add(key);
-			}
-
-		}
+		long newExpirationTime = command.getExpirationTime();
+		conveyor.keyBeforeReschedule.accept(key, newExpirationTime);
 	}
 
 	/**
@@ -726,12 +730,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	static void timeoutNow( AssemblingConveyor conveyor, Object cart ) {
 		Object key = ((Cart)cart).getKey();
 		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
-		if( bs != null ) {
-			bs.setStatus(Status.TIMED_OUT);
-			conveyor.delayProvider.getBox(System.currentTimeMillis()).add(bs);
-			ShoppingCart to = new ShoppingCart(bs.getCreatingCart().getKey(), Status.TIMED_OUT, null);
-			conveyor.addFirst( to );
-		}
+		conveyor.keyBeforeReschedule.accept(key, System.currentTimeMillis() );
 	}
 
 	/**
@@ -768,6 +767,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction) {
 		if(keyBeforeEviction != null) {
 			this.keyBeforeEviction = keyBeforeEviction.andThen(this.keyBeforeEviction);
+		}
+	}
+
+	public void addBeforeKeyReschedulingAction(BiConsumer<K,Long> keyBeforeRescheduling) {
+		if(keyBeforeRescheduling != null) {
+			this.keyBeforeReschedule = keyBeforeRescheduling.andThen(this.keyBeforeReschedule);
 		}
 	}
 

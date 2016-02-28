@@ -143,9 +143,8 @@ public class SmartConveyorTest {
 		assertNull(u0);
 		conveyor.offer(c2);
 		
-		RescheduleCommand<Integer, UserBuilderSmart> reschedule = 
-				new RescheduleCommand<Integer, UserBuilderSmart>(
-						1, UserBuilderSmart::copyBuilder, 4,TimeUnit.SECONDS);
+		RescheduleCommand<Integer> reschedule = new RescheduleCommand<>(
+						1, 4,TimeUnit.SECONDS);
 		conveyor.addCommand(reschedule);
 		Thread.sleep(1500);
 		conveyor.offer(c3);

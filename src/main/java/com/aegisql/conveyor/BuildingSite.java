@@ -61,7 +61,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	
 	private boolean saveCarts      = false;
 
-	private List<C> allCarts = new ArrayList<>();
+	private final List<C> allCarts = new ArrayList<>();
 	
 	/** The initial cart. */
 	private final  C initialCart;
@@ -84,21 +84,13 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private Throwable lastError;
 	
 	/** The event history. */
-	private Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>();
+	private final Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>();
 	
 	/** The delay keeper. */
 	Delayed delayKeeper;
 	
 	private final Lock lock;
 
-	private final long ttl;
-	
-	private final TimeUnit unit;
-	
-	private final boolean synchronizeBuilder;
-	
-	private final Supplier<Supplier<? extends OUT>> builderSupplier;
-	
 	/**
 	 * Instantiates a new building site.
 	 *
@@ -111,6 +103,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param unit the unit
 	 * @param synchronizeBuilder the synchronizeBuilder
 	 */
+	@SuppressWarnings("unchecked")
 	public BuildingSite( 
 			C cart, 
 			Supplier<Supplier<? extends OUT>> builderSupplier, 
@@ -121,12 +114,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.initialCart        = cart;
 		this.lastCart           = cart;
 		this.builder            = builderSupplier.get() ;
-		this.builderSupplier    = builderSupplier;
 		this.timeoutAction      = timeoutAction;
 		this.saveCarts          = saveCarts;
-		this.ttl                = ttl;
-		this.unit               = unit;
-		this.synchronizeBuilder = synchronizeBuilder;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
 		if(synchronizeBuilder) {
 			lock = new ReentrantLock();
@@ -193,6 +182,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 *
 	 * @param cart the cart
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void accept(C cart) {
 		this.lastCart = cart;
 		if( saveCarts) {
@@ -463,22 +453,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		return builder;
 	}
 
-	BuildingSite <K, L, C, OUT> newInstance(long expirationTime) {
-		BuildingSite <K, L, C, OUT> newSite =  new BuildingSite<>(
-				initialCart, 
-				builderSupplier, 
-				valueConsumer , 
-				readiness, 
-				timeoutAction, 
-				ttl, 
-				unit, 
-				synchronizeBuilder, 
-				saveCarts );
-		newSite.builderExpiration = expirationTime;
-		newSite.acceptCount = acceptCount;
-		newSite.eventHistory = eventHistory;
-		newSite.allCarts = allCarts;
-		return newSite;
+	void updateExpirationTime(long expirationTime) {
+		this.builderExpiration = expirationTime;
 	}
 	
 }

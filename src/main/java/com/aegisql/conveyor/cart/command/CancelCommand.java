@@ -1,12 +1,10 @@
 package com.aegisql.conveyor.cart.command;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import com.aegisql.conveyor.CommandLabel;
 
-public class CancelCommand<K> extends AbstractCommand<K, Consumer<Supplier<?>>> {
+public class CancelCommand<K> extends AbstractCommand<K, String> {
 
 	private static final long serialVersionUID = 4603066172969708346L;
 

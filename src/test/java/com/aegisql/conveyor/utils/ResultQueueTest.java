@@ -132,7 +132,7 @@ public class ResultQueueTest {
 		conveyor.addCommand(c9);
 		Thread.sleep(100);
 		conveyor.addCommand( new CancelCommand<Integer>(6));
-		conveyor.addCommand( new TimeoutCommand<Integer, Supplier<?>>(7));
+		conveyor.addCommand( new TimeoutCommand<Integer>(7));
 
 		conveyor.offer(c5);
 		Thread.sleep(2000);
