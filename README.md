@@ -14,6 +14,11 @@ Maven dependency
 
 ## Release History
 
+### 1.0.8
+* Reschedule command
+* DelayLine utility conveyor
+* Improvement in expiration priority resolution
+
 ### 1.0.7
 * Detailed failure type in the Scrap Bin
 
