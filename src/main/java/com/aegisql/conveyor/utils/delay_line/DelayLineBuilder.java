@@ -1,14 +1,11 @@
 package com.aegisql.conveyor.utils.delay_line;
 
-import java.util.function.Supplier;
-
-import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.TimeoutAction;
+import com.aegisql.conveyor.utils.CommonBuilder;
 
-public class DelayLineBuilder<T> implements TimeoutAction, Supplier<T>, Testing {
+public class DelayLineBuilder<T> extends CommonBuilder<T> implements TimeoutAction {
 	
 	private T scalar;
-	private boolean ready = false;
 	
 	public DelayLineBuilder() {
 		super();

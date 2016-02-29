@@ -72,10 +72,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private int acceptCount = 0;
 	
 	/** The builder created. */
-	private final long builderCreated;
+	private long builderCreated;
 	
 	/** The builder expiration. */
-	long builderExpiration;
+	long builderExpiration = 0;
 	
 	/** The status. */
 	private Status status = Status.WAITING_DATA;
@@ -162,11 +162,13 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			builderCreated    = System.currentTimeMillis();
 			builderExpiration = expireable.getExpirationTime();
 			delayKeeper       = Expireable.toDelayed((Expireable)builder);
-		} else if ( cart.getExpirationTime() > 0 ) {
+		} 
+		if( cart.getExpirationTime() > 0 && builderExpiration == 0) {
 			builderCreated    = cart.getCreationTime();
 			builderExpiration = cart.getExpirationTime();
 			delayKeeper       = Expireable.toDelayed(cart);
-		} else {
+		} 
+		if(builderExpiration == 0) {
 			builderCreated = System.currentTimeMillis();
 			if(ttl == 0) {
 				builderExpiration = 0;
