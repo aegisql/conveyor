@@ -14,6 +14,10 @@ Maven dependency
 
 ## Release History
 
+### 1.0.9
+* Extended the Conveyor interface. added multiple add, offer and addCommand methods to avoid explicit creation of carts. Cart though is still a holder for all input information.
+* Minor refactoring and tests
+
 ### 1.0.8
 * Reschedule command
 * DelayLine utility conveyor
