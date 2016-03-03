@@ -116,7 +116,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public boolean addCommand(AbstractCommand<K, ?> cart) {
+	public <V> boolean addCommand(AbstractCommand<K, V> cart) {
 		return this.getConveyor( cart.getKey() ).addCommand( cart );
 	}
 	
@@ -149,7 +149,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#add(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public boolean add(Cart<K,?,L> cart) {
+	public <V> boolean add(Cart<K,V,L> cart) {
 		return getConveyor( cart.getKey() ).add( cart );
 	}
 	@Override
@@ -181,7 +181,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public boolean offer(Cart<K,?,L> cart) {
+	public <V> boolean offer(Cart<K,V,L> cart) {
 		return getConveyor( cart.getKey() ).offer( cart );
 	}
 

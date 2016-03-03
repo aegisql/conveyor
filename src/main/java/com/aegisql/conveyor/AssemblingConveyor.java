@@ -348,7 +348,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public boolean addCommand(AbstractCommand<K, ?> cart) {
+	public <V> boolean addCommand(AbstractCommand<K, V> cart) {
 		try {
 			commandBeforePlacementValidator.accept(cart);
 			boolean r = mQueue.add(cart);
@@ -390,7 +390,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#add(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public boolean add(Cart<K,?,L> cart) {
+	public <V> boolean add(Cart<K,V,L> cart) {
 		try {
 			cartBeforePlacementValidator.accept(cart);
 			boolean r = inQueue.add(cart);
@@ -432,7 +432,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public boolean offer(Cart<K,?,L> cart) {
+	public <V> boolean offer(Cart<K,V,L> cart) {
 		try {
 			cartBeforePlacementValidator.accept(cart);
 			boolean r = inQueue.add(cart);

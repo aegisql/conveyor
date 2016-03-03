@@ -28,7 +28,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 * @return true, if successful
 	 */
-	public boolean add(Cart<K,?,L> cart);
+	public <V> boolean add(Cart<K,V,L> cart);
 	public <V> boolean add(K key, V value, L label);
 	public <V> boolean add(K key, V value, L label, long expirationTime);
 	public <V> boolean add(K key, V value, L label, long ttl, TimeUnit unit);
@@ -42,7 +42,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 * @return true, if successful
 	 */
-	public boolean offer(Cart<K,?,L> cart);
+	public <V> boolean offer(Cart<K,V,L> cart);
 	public <V> boolean offer(K key, V value, L label);
 	public <V> boolean offer(K key, V value, L label, long expirationTime);
 	public <V> boolean offer(K key, V value, L label, long ttl, TimeUnit unit);
@@ -55,7 +55,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @param command Cart
 	 * @return true, if successful
 	 */
-	public boolean addCommand(AbstractCommand<K, ?> command);
+	public <V> boolean addCommand(AbstractCommand<K, V> command);
 	public <V> boolean addCommand(K key, V value, CommandLabel label);
 	public <V> boolean addCommand(K key, V value, CommandLabel label, long expirationTime);
 	public <V> boolean addCommand(K key, V value, CommandLabel label, long ttl, TimeUnit unit);
