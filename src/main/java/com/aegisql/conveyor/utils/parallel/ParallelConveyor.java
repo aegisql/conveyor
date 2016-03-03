@@ -25,6 +25,7 @@ import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.AbstractCommand;
 
@@ -177,6 +178,57 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
+	@Override
+	public boolean createBuild(K key) {
+		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key) );
+	}
+	
+	@Override
+	public boolean createBuild(K key, long expirationTime) {
+		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,expirationTime) );		
+	}
+	
+	@Override
+	public boolean createBuild(K key, long ttl, TimeUnit unit) {
+		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,ttl,unit) );		
+	}
+	
+	@Override
+	public boolean createBuild(K key, Duration duration) {
+		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,duration) );		
+	}
+	
+	@Override
+	public boolean createBuild(K key, Instant instant) {
+		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,instant) );				
+	}
+	
+	@Override
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value) {
+		return this.add( new CreatingCart<K, OUT, L>(key,value) );		
+	}
+	
+	@Override
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, long expirationTime) {
+		return this.add( new CreatingCart<K, OUT, L>(key,value,expirationTime) );				
+	}
+	
+	@Override
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, long ttl, TimeUnit unit) {
+		return this.add( new CreatingCart<K, OUT, L>(key,value,ttl,unit) );				
+	}
+	
+	@Override
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, Duration duration) {
+		return this.add( new CreatingCart<K, OUT, L>(key,value,duration) );				
+	}
+	
+	@Override
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, Instant instant) {
+		return this.add( new CreatingCart<K, OUT, L>(key,value,instant) );						
+	}
+	
+	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
 	 */

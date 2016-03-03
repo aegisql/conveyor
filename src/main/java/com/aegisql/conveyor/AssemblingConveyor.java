@@ -214,14 +214,28 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			Supplier<Supplier<? extends OUT>> bs;
 			
 			if(cart.getValue() != null && cart instanceof CreatingCart ) {
-				CreatingCart<K,Supplier<? extends OUT>,L> cc = (CreatingCart<K,Supplier<? extends OUT>,L>)cart;
+				CreatingCart<K,OUT,L> cc = (CreatingCart<K,OUT,L>)cart;
 				bs= cc.getValue();
-				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder,saveCarts);
+				if( bs == null ) {
+					bs = builderSupplier;
+				}
+				if(bs != null) {
+					buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder,saveCarts);
+				} else {
+					scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither creating cart nor default builder supplier available",FailureType.BUILD_INITIALIZATION_FAILED) );
+				}
 				returnNull = true;
-			} if(cart.getValue() != null && cart instanceof CreateCommand ) {
+			} else if(cart.getValue() != null && cart instanceof CreateCommand ) {
 				CreateCommand<K, Supplier<? extends OUT>> cc = (CreateCommand<K, Supplier<? extends OUT>>)cart;
 				bs= cc.getValue();
-				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder, saveCarts);
+				if( bs == null ) {
+					bs = builderSupplier;
+				}
+				if(bs != null) {
+					buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder, saveCarts);
+				} else {
+					scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither creating command nor default builder supplier available",FailureType.BUILD_INITIALIZATION_FAILED) );
+				}
 				returnNull = true;
 			} else if(builderSupplier != null) {
 				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, builderSupplier, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder,saveCarts);
@@ -470,6 +484,56 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
+	@Override
+	public boolean createBuild(K key) {
+		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key) );
+	}
+	
+	@Override
+	public boolean createBuild(K key, long expirationTime) {
+		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,expirationTime) );		
+	}
+	
+	@Override
+	public boolean createBuild(K key, long ttl, TimeUnit unit) {
+		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,ttl,unit) );		
+	}
+	
+	@Override
+	public boolean createBuild(K key, Duration duration) {
+		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,duration) );		
+	}
+	
+	@Override
+	public boolean createBuild(K key, Instant instant) {
+		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,instant) );				
+	}
+	
+	@Override
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value) {
+		return this.add( new CreatingCart<K, OUT, L>(key,value) );		
+	}
+	
+	@Override
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, long expirationTime) {
+		return this.add( new CreatingCart<K, OUT, L>(key,value,expirationTime) );				
+	}
+	
+	@Override
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, long ttl, TimeUnit unit) {
+		return this.add( new CreatingCart<K, OUT, L>(key,value,ttl,unit) );				
+	}
+	
+	@Override
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, Duration duration) {
+		return this.add( new CreatingCart<K, OUT, L>(key,value,duration) );				
+	}
+	
+	@Override
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, Instant instant) {
+		return this.add( new CreatingCart<K, OUT, L>(key,value,instant) );						
+	}
+	
 	/**
 	 * Gets the collector size.
 	 *

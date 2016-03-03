@@ -6,6 +6,7 @@ package com.aegisql.conveyor;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.command.AbstractCommand;
@@ -34,6 +35,18 @@ public interface Conveyor<K, L, OUT> {
 	public <V> boolean add(K key, V value, L label, long ttl, TimeUnit unit);
 	public <V> boolean add(K key, V value, L label, Duration duration);
 	public <V> boolean add(K key, V value, L label, Instant instant);
+
+
+	public boolean createBuild(K key);
+	public boolean createBuild(K key, long expirationTime);
+	public boolean createBuild(K key, long ttl, TimeUnit unit);
+	public boolean createBuild(K key, Duration duration);
+	public boolean createBuild(K key, Instant instant);
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value);
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, long expirationTime);
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, long ttl, TimeUnit unit);
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, Duration duration);
+	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, Instant instant);
 
 	
 	/**
