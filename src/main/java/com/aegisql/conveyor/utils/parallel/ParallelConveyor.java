@@ -3,6 +3,8 @@
  */
 package com.aegisql.conveyor.utils.parallel;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -16,12 +18,14 @@ import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuildingSite;
+import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.AbstractCommand;
 
 // TODO: Auto-generated Javadoc
@@ -113,7 +117,32 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public boolean addCommand(AbstractCommand<K, ?> cart) {
-		return getConveyor( cart.getKey() ).addCommand( cart );
+		return this.getConveyor( cart.getKey() ).addCommand( cart );
+	}
+	
+	@Override
+	public <V> boolean addCommand(K key, V value, CommandLabel label) {
+		return this.addCommand( new AbstractCommand<K,V>(key, value, label){ private static final long serialVersionUID = 1L;} );
+	}
+	
+	@Override
+	public <V> boolean addCommand(K key, V value, CommandLabel label, long expirationTime) {
+		return this.addCommand( new AbstractCommand<K,V>(key, value, label, expirationTime ){ private static final long serialVersionUID = 1L;} );
+	}
+
+	@Override
+	public <V> boolean addCommand(K key, V value, CommandLabel label, long ttl, TimeUnit unit) {
+		return this.addCommand( new AbstractCommand<K,V>(key, value, label, ttl, unit){ private static final long serialVersionUID = 1L;} );		
+	}
+
+	@Override
+	public <V> boolean addCommand(K key, V value, CommandLabel label, Duration duration) {
+		return this.addCommand( new AbstractCommand<K,V>(key, value, label, duration){ private static final long serialVersionUID = 1L;} );		
+	}
+
+	@Override
+	public <V> boolean addCommand(K key, V value, CommandLabel label, Instant instant) {		
+		return this.addCommand( new AbstractCommand<K,V>(key, value, label, instant){ private static final long serialVersionUID = 1L;} );
 	}
 	
 	/* (non-Javadoc)
@@ -123,6 +152,30 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public boolean add(Cart<K,?,L> cart) {
 		return getConveyor( cart.getKey() ).add( cart );
 	}
+	@Override
+	public <V> boolean add(K key, V value, L label) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label));
+	}
+
+	@Override
+	public <V> boolean add(K key, V value, L label, long expirationTime) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
+	}
+
+	@Override
+	public <V> boolean add(K key, V value, L label, long ttl, TimeUnit unit) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
+	}
+
+	@Override
+	public <V> boolean add(K key, V value, L label, Duration duration) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
+	}
+
+	@Override
+	public <V> boolean add(K key, V value, L label, Instant instant) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
+	}
 
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
@@ -130,6 +183,31 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public boolean offer(Cart<K,?,L> cart) {
 		return getConveyor( cart.getKey() ).offer( cart );
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, L label) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label));
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, L label, long expirationTime) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, L label, long ttl, TimeUnit unit) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, L label, Duration duration) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, L label, Instant instant) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
 	public int getNumberOfConveyors() {

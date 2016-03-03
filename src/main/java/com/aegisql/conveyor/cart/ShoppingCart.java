@@ -1,5 +1,7 @@
 package com.aegisql.conveyor.cart;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
@@ -16,6 +18,14 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 
 	public ShoppingCart(K k, V v, L label) {
 		super(k, v, label);
+	}
+
+	public ShoppingCart(K key, V value, L label, Duration duration) {
+		super(key,value,label,duration);
+	}
+
+	public ShoppingCart(K key, V value, L label, Instant instant) {
+		super(key,value,label,instant);
 	}
 
 	/**

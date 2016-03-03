@@ -3,6 +3,8 @@
  */
 package com.aegisql.conveyor;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +12,6 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
@@ -367,6 +368,31 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 	
+	@Override
+	public <V> boolean addCommand(K key, V value, CommandLabel label) {
+		return this.addCommand( new AbstractCommand<K,V>(key, value, label){ private static final long serialVersionUID = 1L;} );
+	}
+	
+	@Override
+	public <V> boolean addCommand(K key, V value, CommandLabel label, long expirationTime) {
+		return this.addCommand( new AbstractCommand<K,V>(key, value, label, expirationTime ){ private static final long serialVersionUID = 1L;} );
+	}
+
+	@Override
+	public <V> boolean addCommand(K key, V value, CommandLabel label, long ttl, TimeUnit unit) {
+		return this.addCommand( new AbstractCommand<K,V>(key, value, label, ttl, unit){ private static final long serialVersionUID = 1L;} );		
+	}
+
+	@Override
+	public <V> boolean addCommand(K key, V value, CommandLabel label, Duration duration) {
+		return this.addCommand( new AbstractCommand<K,V>(key, value, label, duration){ private static final long serialVersionUID = 1L;} );		
+	}
+
+	@Override
+	public <V> boolean addCommand(K key, V value, CommandLabel label, Instant instant) {		
+		return this.addCommand( new AbstractCommand<K,V>(key, value, label, instant){ private static final long serialVersionUID = 1L;} );
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#add(com.aegisql.conveyor.Cart)
 	 */
@@ -384,6 +410,31 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 
+	@Override
+	public <V> boolean add(K key, V value, L label) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label));
+	}
+
+	@Override
+	public <V> boolean add(K key, V value, L label, long expirationTime) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
+	}
+
+	@Override
+	public <V> boolean add(K key, V value, L label, long ttl, TimeUnit unit) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
+	}
+
+	@Override
+	public <V> boolean add(K key, V value, L label, Duration duration) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
+	}
+
+	@Override
+	public <V> boolean add(K key, V value, L label, Instant instant) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
+	}
+
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
 	 */
@@ -399,6 +450,31 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			lock.tell();
 			return false;
 		}
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, L label) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label));
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, L label, long expirationTime) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, L label, long ttl, TimeUnit unit) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, L label, Duration duration) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, L label, Instant instant) {
+		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
 	/**
