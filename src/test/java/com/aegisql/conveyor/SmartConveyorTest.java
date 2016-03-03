@@ -199,6 +199,63 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	@Test
+	public void testBasicsTestingWithInternalOfferInterfaces() throws InterruptedException {
+		AssemblingConveyor<Integer, UserBuilderEvents2, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderTesting::new);
+
+		conveyor.setResultConsumer(res->{
+				    	outQueue.add(res.product);
+				    });
+		conveyor.setName("Testing User Assembler");
+		conveyor.offer(1, "John", UserBuilderEvents2.SET_FIRST);
+		User u0 = outQueue.poll();
+		assertNull(u0);
+		conveyor.offer(1,"Doe", UserBuilderEvents2.SET_LAST,System.currentTimeMillis()+10);
+		conveyor.offer(2, "Mike", UserBuilderEvents2.SET_FIRST,10,TimeUnit.MILLISECONDS);
+		conveyor.offer(1,1999, UserBuilderEvents2.SET_YEAR);
+		Thread.sleep(100);
+		User u1 = outQueue.poll();
+		assertNotNull(u1);
+		System.out.println(u1);
+		User u2 = outQueue.poll();
+		assertNull(u2);
+
+		Thread.sleep(100);
+
+		conveyor.stop();
+	}
+
+	@Test
+	public void testBasicsTestingWithInternalAddInterfaces() throws InterruptedException {
+		AssemblingConveyor<Integer, UserBuilderEvents2, User> 
+		conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderTesting::new);
+
+		conveyor.setResultConsumer(res->{
+				    	outQueue.add(res.product);
+				    });
+		conveyor.setName("Testing User Assembler");
+		conveyor.add(1, "John", UserBuilderEvents2.SET_FIRST);
+		User u0 = outQueue.poll();
+		assertNull(u0);
+		conveyor.add(1,"Doe", UserBuilderEvents2.SET_LAST,10,TimeUnit.MILLISECONDS);
+		conveyor.add(2, "Mike", UserBuilderEvents2.SET_FIRST,System.currentTimeMillis()+10);
+		conveyor.add(1,1999, UserBuilderEvents2.SET_YEAR);
+		Thread.sleep(100);
+		User u1 = outQueue.poll();
+		assertNotNull(u1);
+		System.out.println(u1);
+		User u2 = outQueue.poll();
+		assertNull(u2);
+
+		Thread.sleep(100);
+
+		conveyor.stop();
+	}
+
+	
 	/**
 	 * Test basics testing.
 	 *

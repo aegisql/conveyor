@@ -102,7 +102,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private BiConsumer<K,Long> keyBeforeReschedule = (key,newExpirationTime) -> {
 		Objects.requireNonNull(key, "NULL key cannot be rescheduld");
 		Objects.requireNonNull(newExpirationTime, "NULL newExpirationTime cannot be applied to the schedile");
-		BuildingSite buildingSite = (BuildingSite) collector.get(key);
+		BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> buildingSite = collector.get(key);
 		if( buildingSite != null ) {
 			long oldExpirationTime = buildingSite.builderExpiration;
 			delayProvider.getBox(oldExpirationTime).delete(key);
@@ -325,13 +325,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		collector.clear();
 	}
 
-	private void evaluateCart(Cart<K,?,?> cart) {
-		
-		//scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart is too old") );
-		//lock.tell();
-
-	}
-	
 	/**
 	 * Adds the first.
 	 *
@@ -805,7 +798,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static void timeoutNow( AssemblingConveyor conveyor, Object cart ) {
 		Object key = ((Cart)cart).getKey();
-		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
+		conveyor.collector.get(key);
 		conveyor.keyBeforeReschedule.accept(key, System.currentTimeMillis() );
 	}
 
