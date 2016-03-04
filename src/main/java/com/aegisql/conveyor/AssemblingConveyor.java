@@ -29,7 +29,6 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.AbstractCommand;
-import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.delay.DelayProvider;
 
 // TODO: Auto-generated Javadoc
@@ -196,6 +195,22 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return running;
 	}
 	
+	public void forEachKeyAndBuilder( BiConsumer<K, Supplier<? extends OUT>> keyBuilderPairConsumer ) {
+		lock.rLock.lock();
+		try {
+			collector.forEach((key,site)->{
+				try {
+					keyBuilderPairConsumer.accept( key, site.builder );
+				} catch (RuntimeException e) {
+					LOG.error("Error processing key="+key,e);
+				}
+				
+			});
+		} finally {
+			lock.rLock.unlock();
+		}
+	}
+	
 	/**
 	 * Gets the building site.
 	 *
@@ -212,7 +227,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			returnNull = true;
 		} else if ( (buildingSite = collector.get(key)) == null) {
 			BuilderSupplier<OUT> bs;
-			
 			if(cart.getValue() != null && cart.getValue() instanceof BuilderSupplier ) {
 				bs = ((Supplier<BuilderSupplier<OUT>>)cart).get();
 				if( bs == null ) {
