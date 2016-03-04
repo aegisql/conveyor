@@ -14,6 +14,12 @@ Maven dependency
 
 ## Release History
 
+### 1.0.10
+* createBuild interface
+* Improvements for the CreateCart and CreateCommand
+* forEachKeyAndBuilder method provides safe way to apply safe action to all current builds 
+
+
 ### 1.0.9
 * Extended the Conveyor interface. added multiple add, offer and addCommand methods to avoid explicit creation of carts. Cart though is still a holder for all input information.
 * Minor refactoring and tests
