@@ -267,7 +267,9 @@ public class AssemblingConveyorTest {
 	public void testSimpleConveyor() throws InterruptedException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setBuilderSupplier(UserBuilder::new);
+		conveyor.setBuilderSupplier(()->{
+			System.out.println("Default builder supplier called.");
+			return new UserBuilder();});
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
 		conveyor.setExpirationCollectionIdleInterval(500, TimeUnit.MILLISECONDS);
@@ -310,7 +312,9 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c7 = new ShoppingCart<>(7, "Nik", "setLast", 1, TimeUnit.HOURS);
 
 		AbstractCommand<Integer,?> c8 = new CreateCommand<>(8,1,TimeUnit.SECONDS);
-		AbstractCommand<Integer,?> c9 = new CreateCommand<>(8,UserBuilder::new,1,TimeUnit.SECONDS);
+		AbstractCommand<Integer,?> c9 = new CreateCommand<>(9,()->{
+			System.out.println("Command builder supplier called.");
+			return new UserBuilder();},1,TimeUnit.SECONDS);
 
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();

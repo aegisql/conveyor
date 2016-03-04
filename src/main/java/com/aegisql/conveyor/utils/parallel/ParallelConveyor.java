@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.BuildingSite;
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.Conveyor;
@@ -204,27 +205,27 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 	
 	@Override
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value) {
+	public boolean createBuild(K key, BuilderSupplier<OUT> value) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value) );		
 	}
 	
 	@Override
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, long expirationTime) {
+	public boolean createBuild(K key, BuilderSupplier<OUT> value, long expirationTime) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,expirationTime) );				
 	}
 	
 	@Override
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, long ttl, TimeUnit unit) {
+	public boolean createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,ttl,unit) );				
 	}
 	
 	@Override
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, Duration duration) {
+	public boolean createBuild(K key, BuilderSupplier<OUT> value, Duration duration) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,duration) );				
 	}
 	
 	@Override
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, Instant instant) {
+	public boolean createBuild(K key, BuilderSupplier<OUT> value, Instant instant) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,instant) );						
 	}
 	
@@ -462,7 +463,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 *
 	 * @param builderSupplier the new builder supplier
 	 */
-	public void setBuilderSupplier(Supplier<Supplier<? extends OUT>> builderSupplier) {
+	public void setBuilderSupplier(BuilderSupplier<OUT> builderSupplier) {
 		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
 			conv.setBuilderSupplier(builderSupplier);
 		}

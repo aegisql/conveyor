@@ -42,11 +42,11 @@ public interface Conveyor<K, L, OUT> {
 	public boolean createBuild(K key, long ttl, TimeUnit unit);
 	public boolean createBuild(K key, Duration duration);
 	public boolean createBuild(K key, Instant instant);
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value);
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, long expirationTime);
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, long ttl, TimeUnit unit);
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, Duration duration);
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, Instant instant);
+	public boolean createBuild(K key, BuilderSupplier<OUT> value);
+	public boolean createBuild(K key, BuilderSupplier<OUT> value, long expirationTime);
+	public boolean createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit);
+	public boolean createBuild(K key, BuilderSupplier<OUT> value, Duration duration);
+	public boolean createBuild(K key, BuilderSupplier<OUT> value, Instant instant);
 
 	
 	/**

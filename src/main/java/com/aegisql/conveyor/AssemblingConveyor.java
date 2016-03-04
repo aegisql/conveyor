@@ -86,7 +86,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	};
 	
 	/** The builder supplier. */
-	protected Supplier<Supplier<? extends OUT>> builderSupplier = () -> {
+	protected BuilderSupplier<OUT> builderSupplier = () -> {
 		throw new IllegalStateException("Builder Supplier is not set");
 	};
 	
@@ -211,11 +211,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		} else if( Status.TIMED_OUT.equals( cart.getValue() )) {
 			returnNull = true;
 		} else if ( (buildingSite = collector.get(key)) == null) {
-			Supplier<Supplier<? extends OUT>> bs;
+			BuilderSupplier<OUT> bs;
 			
-			if(cart.getValue() != null && cart instanceof CreatingCart ) {
-				CreatingCart<K,OUT,L> cc = (CreatingCart<K,OUT,L>)cart;
-				bs= cc.getValue();
+			if(cart.getValue() != null && cart.getValue() instanceof BuilderSupplier ) {
+				bs = ((Supplier<BuilderSupplier<OUT>>)cart).get();
 				if( bs == null ) {
 					bs = builderSupplier;
 				}
@@ -223,18 +222,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder,saveCarts);
 				} else {
 					scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither creating cart nor default builder supplier available",FailureType.BUILD_INITIALIZATION_FAILED) );
-				}
-				returnNull = true;
-			} else if(cart.getValue() != null && cart instanceof CreateCommand ) {
-				CreateCommand<K, Supplier<? extends OUT>> cc = (CreateCommand<K, Supplier<? extends OUT>>)cart;
-				bs= cc.getValue();
-				if( bs == null ) {
-					bs = builderSupplier;
-				}
-				if(bs != null) {
-					buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder, saveCarts);
-				} else {
-					scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither creating command nor default builder supplier available",FailureType.BUILD_INITIALIZATION_FAILED) );
 				}
 				returnNull = true;
 			} else if(builderSupplier != null) {
@@ -510,27 +497,27 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 	
 	@Override
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value) {
+	public boolean createBuild(K key, BuilderSupplier<OUT> value) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value) );		
 	}
 	
 	@Override
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, long expirationTime) {
+	public boolean createBuild(K key, BuilderSupplier<OUT> value, long expirationTime) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,expirationTime) );				
 	}
 	
 	@Override
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, long ttl, TimeUnit unit) {
+	public boolean createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,ttl,unit) );				
 	}
 	
 	@Override
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, Duration duration) {
+	public boolean createBuild(K key, BuilderSupplier<OUT> value, Duration duration) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,duration) );				
 	}
 	
 	@Override
-	public boolean createBuild(K key, Supplier<Supplier<? extends OUT>> value, Instant instant) {
+	public boolean createBuild(K key, BuilderSupplier<OUT> value, Instant instant) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,instant) );						
 	}
 	
@@ -798,7 +785,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 *
 	 * @param builderSupplier the new builder supplier
 	 */
-	public void setBuilderSupplier(Supplier<Supplier<? extends OUT>> builderSupplier) {
+	public void setBuilderSupplier(BuilderSupplier<OUT> builderSupplier) {
 		this.builderSupplier = builderSupplier;
 	}
 
