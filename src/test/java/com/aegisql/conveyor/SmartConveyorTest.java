@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.cart.command.RescheduleCommand;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
@@ -40,11 +41,12 @@ public class SmartConveyorTest {
 
 	/** The out queue. */
 	Queue<User> outQueue = new ConcurrentLinkedQueue<>();
-	
+
 	/**
 	 * Sets the up before class.
 	 *
-	 * @throws Exception the exception
+	 * @throws Exception
+	 *             the exception
 	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -53,7 +55,8 @@ public class SmartConveyorTest {
 	/**
 	 * Tear down after class.
 	 *
-	 * @throws Exception the exception
+	 * @throws Exception
+	 *             the exception
 	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
@@ -62,7 +65,8 @@ public class SmartConveyorTest {
 	/**
 	 * Sets the up.
 	 *
-	 * @throws Exception the exception
+	 * @throws Exception
+	 *             the exception
 	 */
 	@Before
 	public void setUp() throws Exception {
@@ -71,35 +75,36 @@ public class SmartConveyorTest {
 	/**
 	 * Tear down.
 	 *
-	 * @throws Exception the exception
+	 * @throws Exception
+	 *             the exception
 	 */
 	@After
 	public void tearDown() throws Exception {
 	}
-	
+
 	/**
 	 * Test basics smart.
 	 *
-	 * @throws InterruptedException the interrupted exception
+	 * @throws InterruptedException
+	 *             the interrupted exception
 	 */
 	@Test
 	public void testBasicsSmart() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents, User> 
-		conveyor = new AssemblingConveyor<>();
+		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
 		conveyor.setName("User Assembler");
-		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
+		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
+				UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE);
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
-
 
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
@@ -121,30 +126,28 @@ public class SmartConveyorTest {
 
 	@Test
 	public void testRescheduleSmart() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents, User> 
-		conveyor = new AssemblingConveyor<>();
+		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			System.out.println(state);
 			return state.previouslyAccepted == 3;
 		});
 		conveyor.setName("User Assembler");
-		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST,1,TimeUnit.SECONDS);
+		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST,
+				1, TimeUnit.SECONDS);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
-
+		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1, 1999, UserBuilderEvents.SET_YEAR);
 
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
 		conveyor.offer(c2);
-		
-		RescheduleCommand<Integer> reschedule = new RescheduleCommand<>(
-						1, 4,TimeUnit.SECONDS);
+
+		RescheduleCommand<Integer> reschedule = new RescheduleCommand<>(1, 4, TimeUnit.SECONDS);
 		conveyor.addCommand(reschedule);
 		Thread.sleep(1500);
 		conveyor.offer(c3);
@@ -163,23 +166,23 @@ public class SmartConveyorTest {
 	/**
 	 * Test basics testing.
 	 *
-	 * @throws InterruptedException the interrupted exception
+	 * @throws InterruptedException
+	 *             the interrupted exception
 	 */
 	@Test
 	public void testBasicsTesting() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents2, User> 
-		conveyor = new AssemblingConveyor<>();
+		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTesting::new);
 
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
 		conveyor.setName("Testing User Assembler");
-		ShoppingCart<Integer, String, UserBuilderEvents2> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents2.SET_FIRST);
+		ShoppingCart<Integer, String, UserBuilderEvents2> c1 = new ShoppingCart<>(1, "John",
+				UserBuilderEvents2.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents2> c2 = c1.nextCart("Doe", UserBuilderEvents2.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents2> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents2.SET_FIRST);
 		Cart<Integer, Integer, UserBuilderEvents2> c4 = c1.nextCart(1999, UserBuilderEvents2.SET_YEAR);
-
 
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
@@ -201,20 +204,19 @@ public class SmartConveyorTest {
 
 	@Test
 	public void testBasicsTestingWithInternalOfferInterfaces() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents2, User> 
-		conveyor = new AssemblingConveyor<>();
+		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTesting::new);
 
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
 		conveyor.setName("Testing User Assembler");
 		conveyor.offer(1, "John", UserBuilderEvents2.SET_FIRST);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(1,"Doe", UserBuilderEvents2.SET_LAST,System.currentTimeMillis()+10);
-		conveyor.offer(2, "Mike", UserBuilderEvents2.SET_FIRST,10,TimeUnit.MILLISECONDS);
-		conveyor.offer(1,1999, UserBuilderEvents2.SET_YEAR);
+		conveyor.offer(1, "Doe", UserBuilderEvents2.SET_LAST, System.currentTimeMillis() + 10);
+		conveyor.offer(2, "Mike", UserBuilderEvents2.SET_FIRST, 10, TimeUnit.MILLISECONDS);
+		conveyor.offer(1, 1999, UserBuilderEvents2.SET_YEAR);
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -229,20 +231,19 @@ public class SmartConveyorTest {
 
 	@Test
 	public void testBasicsTestingWithInternalAddInterfaces() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents2, User> 
-		conveyor = new AssemblingConveyor<>();
+		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTesting::new);
 
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
 		conveyor.setName("Testing User Assembler");
 		conveyor.add(1, "John", UserBuilderEvents2.SET_FIRST);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.add(1,"Doe", UserBuilderEvents2.SET_LAST,10,TimeUnit.MILLISECONDS);
-		conveyor.add(2, "Mike", UserBuilderEvents2.SET_FIRST,System.currentTimeMillis()+10);
-		conveyor.add(1,1999, UserBuilderEvents2.SET_YEAR);
+		conveyor.add(1, "Doe", UserBuilderEvents2.SET_LAST, 10, TimeUnit.MILLISECONDS);
+		conveyor.add(2, "Mike", UserBuilderEvents2.SET_FIRST, System.currentTimeMillis() + 10);
+		conveyor.add(1, 1999, UserBuilderEvents2.SET_YEAR);
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -257,31 +258,40 @@ public class SmartConveyorTest {
 
 	@Test
 	public void testBasicsTestingCreatingInterface() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents2, User> 
-		conveyor = new AssemblingConveyor<>();
-		conveyor.setBuilderSupplier(()->{
+		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(() -> {
 			System.out.println("Default Supplier");
-			return new UserBuilderTesting();});
+			return new UserBuilderTesting();
+		});
 
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
-		
-		BuilderSupplier<User> sup = ()->{
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
+
+		BuilderSupplier<User> sup = () -> {
 			System.out.println("Cart Supplier");
-			return new UserBuilderTesting();};
-		
-		conveyor.createBuild(1,sup);
-		conveyor.createBuild(2,sup);
+			return new UserBuilderTesting();
+		};
+
+		BuilderSupplier<User> sup2 = () -> {
+			System.out.println("Cmd Supplier");
+			return new UserBuilderTesting();
+		};
+
+		conveyor.createBuild(1, sup);
+		conveyor.createBuild(2, sup);
 		conveyor.createBuild(3);
-		
+
+		conveyor.addCommand(new CreateCommand<Integer, User>(4));
+		conveyor.addCommand(new CreateCommand<Integer, User>(5, sup2));
+
 		conveyor.setName("Testing User Assembler");
 		conveyor.add(1, "John", UserBuilderEvents2.SET_FIRST);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.add(1,"Doe", UserBuilderEvents2.SET_LAST,10,TimeUnit.MILLISECONDS);
-		conveyor.add(2, "Mike", UserBuilderEvents2.SET_FIRST,System.currentTimeMillis()+10);
-		conveyor.add(1,1999, UserBuilderEvents2.SET_YEAR);
+		conveyor.add(1, "Doe", UserBuilderEvents2.SET_LAST, 10, TimeUnit.MILLISECONDS);
+		conveyor.add(2, "Mike", UserBuilderEvents2.SET_FIRST, System.currentTimeMillis() + 10);
+		conveyor.add(1, 1999, UserBuilderEvents2.SET_YEAR);
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -294,28 +304,26 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
-	
-	
 	/**
 	 * Test basics testing.
 	 *
-	 * @throws InterruptedException the interrupted exception
+	 * @throws InterruptedException
+	 *             the interrupted exception
 	 */
 	@Test
 	public void testBasicsTestingState() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents3, User> 
-		conveyor = new AssemblingConveyor<>();
+		AssemblingConveyor<Integer, UserBuilderEvents3, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTestingState::new);
 
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
 		conveyor.setName("TestingState User Assembler");
-		ShoppingCart<Integer, String, UserBuilderEvents3> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents3.SET_FIRST);
+		ShoppingCart<Integer, String, UserBuilderEvents3> c1 = new ShoppingCart<>(1, "John",
+				UserBuilderEvents3.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents3> c2 = c1.nextCart("Doe", UserBuilderEvents3.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents3> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents3.SET_FIRST);
 		Cart<Integer, Integer, UserBuilderEvents3> c4 = c1.nextCart(1999, UserBuilderEvents3.SET_YEAR);
-
 
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
@@ -338,22 +346,23 @@ public class SmartConveyorTest {
 	/**
 	 * Test rejected start offer.
 	 *
-	 * @throws InterruptedException the interrupted exception
+	 * @throws InterruptedException
+	 *             the interrupted exception
 	 */
 	@Test
 	public void testRejectedStartOffer() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents, User> 
-		conveyor = new AssemblingConveyor<>();
+		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 2;
 		});
 		conveyor.rejectUnexpireableCartsOlderThan(1, TimeUnit.SECONDS);
-		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
+		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
+				UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		assertTrue(conveyor.offer(c1));
 		Thread.sleep(1100);
@@ -364,22 +373,23 @@ public class SmartConveyorTest {
 	/**
 	 * Test rejected start add.
 	 *
-	 * @throws InterruptedException the interrupted exception
+	 * @throws InterruptedException
+	 *             the interrupted exception
 	 */
-	@Test(expected=IllegalStateException.class) //???? Failed
+	@Test(expected = IllegalStateException.class) // ???? Failed
 	public void testRejectedStartAdd() throws InterruptedException {
-		AssemblingConveyor<Integer, UserBuilderEvents, User> 
-		conveyor = new AssemblingConveyor<>();
+		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 2;
 		});
 		conveyor.rejectUnexpireableCartsOlderThan(1, TimeUnit.SECONDS);
-		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
+		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
+				UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		assertTrue(conveyor.add(c1));
 		Thread.sleep(1100);
@@ -393,13 +403,13 @@ public class SmartConveyorTest {
 	@Test
 	public void testSmart() {
 		UserBuilderSmart ub = new UserBuilderSmart();
-		
+
 		UserBuilderEvents.SET_FIRST.get().accept(ub, "first");
 		UserBuilderEvents.SET_LAST.get().accept(ub, "last");
 		UserBuilderEvents.SET_YEAR.get().accept(ub, 1970);
-		
+
 		System.out.println(ub.get());
-		
+
 	}
-		
+
 }
