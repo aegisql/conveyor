@@ -114,12 +114,12 @@ public class SmartConveyorTest {
 		conveyor.offer(c4);
 		
 		conveyor.forEachKeyAndBuilder((key,builder)->{
-			System.out.println("-- key="+key+" builder="+builder);
+			System.out.println("-- key="+key+" builder="+builder.get());
 		});
 		
 		Thread.sleep(100);
 		conveyor.forEachKeyAndBuilder((key,builder)->{
-			System.out.println("-- key="+key+" builder="+builder);
+			System.out.println("-- key="+key+" builder="+builder.get());
 		});
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -302,7 +302,7 @@ public class SmartConveyorTest {
 		conveyor.add(1, 1999, UserBuilderEvents2.SET_YEAR);
 		Thread.sleep(100);
 		conveyor.forEachKeyAndBuilder((key,builder)->{
-			System.out.println("-- key="+key+" builder="+builder);
+			System.out.println("-- key="+key+" builder="+builder.get());
 		});
 
 		User u1 = outQueue.poll();

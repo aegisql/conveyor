@@ -200,7 +200,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		try {
 			collector.forEach((key,site)->{
 				try {
-					keyBuilderPairConsumer.accept( key, site.builder );
+					keyBuilderPairConsumer.accept( key, site.getProductSupplier() );
 				} catch (RuntimeException e) {
 					LOG.error("Error processing key="+key,e);
 				}
