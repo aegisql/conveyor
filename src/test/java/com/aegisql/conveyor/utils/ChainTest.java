@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -12,8 +13,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuulder;
 import com.aegisql.conveyor.utils.batch.BatchCart;
@@ -71,7 +70,7 @@ public class ChainTest {
 		batchConveyor.setExpirationCollectionIdleInterval(100, TimeUnit.MILLISECONDS);		
 				
 		BatchCart<User> protoCart = new BatchCart(new User("A","B",1));
-		ChainResult<String, User> chain = new ChainResult(batchConveyor,protoCart);
+		ChainResult<String, User, String> chain = new ChainResult(batchConveyor,protoCart.getLabel());
 
 		scalarConveyor.setResultConsumer(chain.andThen(u->{
 			System.out.println("RESULT: "+u.product);

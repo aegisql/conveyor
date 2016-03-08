@@ -1,37 +1,45 @@
 package com.aegisql.conveyor.utils;
 
-import java.util.Objects;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.ShoppingCart;
 
-public class ChainResult<K,OUT1> implements Consumer<ProductBin<K,OUT1>> {
+public class ChainResult<K,OUT1,L2> implements Consumer<ProductBin<K,OUT1>> {
 
-	private final Conveyor next;
+	private final Conveyor<K,L2,?> next;
+	private final L2 label;
 	
-	private Function<ProductBin<K,OUT1>,Cart<K,OUT1,?>> cartBuilder;
-
-	public ChainResult(Conveyor<K, ?, ?> next, Function<ProductBin<K,OUT1>,Cart<K,OUT1,?>> cartBuilder) {
-		this.next        = Objects.requireNonNull(next);
-		this.cartBuilder = Objects.requireNonNull(cartBuilder);
+	private long ttlMsec;
+	private boolean useRemaining = false;
+	
+	public ChainResult(Conveyor<K, L2, ?> next,L2 label) {
+		this.next         = next;
+		this.label        = label;
+		this.useRemaining = true;
 	}
 
-	public ChainResult(Conveyor<K, ?, ?> next, Cart<K,OUT1,?> prototype ) {
-		this(next, bin -> new ShoppingCart(prototype.getKey(), bin.product, prototype.getLabel(), bin.remainingDelayMsec,TimeUnit.MILLISECONDS));
+	public ChainResult(Conveyor<K, L2, ?> next,L2 label,long ttl, TimeUnit unit) {
+		this.next    = next;
+		this.label   = label;
+		this.ttlMsec = unit.toMillis(ttl);
 	}
 
-	public ChainResult(Conveyor<K, ?, ?> next, Cart<K,OUT1,?> prototype, long ttl, TimeUnit unit ) {
-		this(next,bin -> new ShoppingCart(prototype.getKey(), bin.product, prototype.getLabel(), ttl, unit));
+	public ChainResult(Conveyor<K, L2, ?> next,L2 label, Duration duration) {
+		this.next    = next;
+		this.label   = label;
+		this.ttlMsec = duration.toMillis();
 	}
 
 	@Override
 	public void accept(ProductBin<K,OUT1> bin) {
-		next.add( cartBuilder.apply(bin) );
+		if(useRemaining) {
+			next.add(bin.key,bin.product,label,bin.remainingDelayMsec,TimeUnit.MILLISECONDS);			
+		} else {
+			next.add(bin.key,bin.product,label,ttlMsec,TimeUnit.MILLISECONDS);
+		}
 	}
 
 }
