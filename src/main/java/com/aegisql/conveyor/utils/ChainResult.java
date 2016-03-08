@@ -12,25 +12,28 @@ public class ChainResult<K,OUT1,L2> implements Consumer<ProductBin<K,OUT1>> {
 	private final Conveyor<K,L2,?> next;
 	private final L2 label;
 	
-	private long ttlMsec;
-	private boolean useRemaining = false;
+	private final long ttlMsec;
+	private final boolean useRemaining;
 	
 	public ChainResult(Conveyor<K, L2, ?> next,L2 label) {
 		this.next         = next;
 		this.label        = label;
+		this.ttlMsec      = 0;
 		this.useRemaining = true;
 	}
 
 	public ChainResult(Conveyor<K, L2, ?> next,L2 label,long ttl, TimeUnit unit) {
-		this.next    = next;
-		this.label   = label;
-		this.ttlMsec = unit.toMillis(ttl);
+		this.next         = next;
+		this.label        = label;
+		this.ttlMsec      = unit.toMillis(ttl);
+		this.useRemaining = false;
 	}
 
 	public ChainResult(Conveyor<K, L2, ?> next,L2 label, Duration duration) {
-		this.next    = next;
-		this.label   = label;
-		this.ttlMsec = duration.toMillis();
+		this.next         = next;
+		this.label        = label;
+		this.ttlMsec      = duration.toMillis();
+		this.useRemaining = false;
 	}
 
 	@Override
