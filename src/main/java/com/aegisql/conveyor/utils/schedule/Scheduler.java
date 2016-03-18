@@ -88,54 +88,20 @@ public class Scheduler<K> extends AssemblingConveyor<K, Schedule, SchedulableClo
 
 	@Override
 	public <V> boolean offer(K key, V value, Schedule label, long ttl, TimeUnit unit) {
-		SchedulableClosure closure = (SchedulableClosure) value;
-		switch (label) {
-		case SCHEDULE_AND_EXECUTE_NOW:
-			final AtomicBoolean firstRun = new AtomicBoolean(true);
-			closure = () -> {
-				if( firstRun.get() ) {
-					((SchedulableClosure) value).apply();
-					firstRun.set( false );
-				} else {
-					add(key, value, Schedule.SCHEDULE_WITH_DELAY, ttl, unit);
-				}
-			};
-			break;
-		case SCHEDULE_WITH_DELAY:
-			closure = closure.andThen(() -> {
-				add(key, value, label, ttl, unit);
-			});
-			break;
-		default:
-			break;
+		try {
+			return add(key,value,label,ttl,unit);
+		} catch(Exception e) {
+			return false;
 		}
-		return super.offer(key, closure, label, ttl, unit);
 	}
 
 	@Override
 	public <V> boolean offer(K key, V value, Schedule label, Duration duration) {
-		SchedulableClosure closure = (SchedulableClosure) value;
-		switch (label) {
-		case SCHEDULE_AND_EXECUTE_NOW:
-			final AtomicBoolean firstRun = new AtomicBoolean(true);
-			closure = () -> {
-				if( firstRun.get() ) {
-					((SchedulableClosure) value).apply();
-					firstRun.set( false );
-				} else {
-					add(key, value, Schedule.SCHEDULE_WITH_DELAY, duration);
-				}
-			};
-			break;
-		case SCHEDULE_WITH_DELAY:
-			closure = closure.andThen(() -> {
-				add(key, value, label, duration);
-			});
-			break;
-		default:
-			break;
+		try {
+			return add(key,value,label,duration);
+		} catch(Exception e) {
+			return false;
 		}
-		return super.offer(key, closure, label, duration);
 	}
 
 }
