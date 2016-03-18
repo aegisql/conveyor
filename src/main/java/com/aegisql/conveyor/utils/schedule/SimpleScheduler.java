@@ -104,4 +104,47 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 		}
 	}
 
+	@Override
+	public <V> boolean add(K key, V value, Schedule label) {
+		throw new UnsupportedOperationException("Scheduler must have execution interval parameter");
+	}
+
+	@Override
+	public <V> boolean add(K key, V value, Schedule label, long expirationTime) {
+		if( ! label.equals(Schedule.EXECUTE_ONCE)) {
+			LOG.warn("Add without TTL or Duration can only be executed once, while you requested {}",label);
+		}
+		return super.add(key, value, Schedule.EXECUTE_ONCE, expirationTime);
+	}
+
+	@Override
+	public <V> boolean add(K key, V value, Schedule label, Instant instant) {
+		if( ! label.equals(Schedule.EXECUTE_ONCE)) {
+			LOG.warn("Add without TTL or Duration can only be executed once, while you requested {}",label);
+		}
+		return super.add(key, value, Schedule.EXECUTE_ONCE, instant);
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, Schedule label) {
+		throw new UnsupportedOperationException("Scheduler must have execution interval parameter");
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, Schedule label, long expirationTime) {
+		if( ! label.equals(Schedule.EXECUTE_ONCE)) {
+			LOG.warn("Offer without TTL or Duration can only be executed once, while you requested {}",label);
+		}
+		return super.offer(key, value, Schedule.EXECUTE_ONCE, expirationTime);
+	}
+
+	@Override
+	public <V> boolean offer(K key, V value, Schedule label, Instant instant) {
+		if( ! label.equals(Schedule.EXECUTE_ONCE)) {
+			LOG.warn("Offer without TTL or Duration can only be executed once, while you requested {}",label);
+		}
+		return super.offer(key, value, Schedule.EXECUTE_ONCE, instant);
+	}
+
+	
 }
