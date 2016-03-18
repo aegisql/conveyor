@@ -14,11 +14,11 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.command.CancelCommand;
 import com.aegisql.conveyor.utils.schedule.SchedulableClosure;
 import com.aegisql.conveyor.utils.schedule.Schedule;
-import com.aegisql.conveyor.utils.schedule.Scheduler;
+import com.aegisql.conveyor.utils.schedule.SimpleScheduler;
 
 public class SchedulerTest {
 
-	Scheduler<String> s = new Scheduler<>();
+	SimpleScheduler<String> s = new SimpleScheduler<>();
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {

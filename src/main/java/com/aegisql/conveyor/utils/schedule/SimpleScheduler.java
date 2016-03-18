@@ -9,9 +9,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.cart.Cart;
 
-public class Scheduler<K> extends AssemblingConveyor<K, Schedule, SchedulableClosure> {
+public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, SchedulableClosure> {
 
-	public Scheduler() {
+	public SimpleScheduler() {
 		super();
 		this.setName("SchedulingConveyor");
 		this.setBuilderSupplier(ScheduleBuilder::new);
