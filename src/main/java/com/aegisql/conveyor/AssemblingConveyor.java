@@ -462,27 +462,27 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public <V> boolean offer(K key, V value, L label) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label));
+		return this.offer( new ShoppingCart<K,V,L>(key,value,label));
 	}
 
 	@Override
 	public <V> boolean offer(K key, V value, L label, long expirationTime) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
+		return this.offer( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
 	}
 
 	@Override
 	public <V> boolean offer(K key, V value, L label, long ttl, TimeUnit unit) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
+		return this.offer( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
 	}
 
 	@Override
 	public <V> boolean offer(K key, V value, L label, Duration duration) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
+		return this.offer( new ShoppingCart<K,V,L>(key,value,label,duration));
 	}
 
 	@Override
 	public <V> boolean offer(K key, V value, L label, Instant instant) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
+		return this.offer( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
 	@Override
