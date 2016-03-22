@@ -261,6 +261,8 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c2 = new ShoppingCart<>(1, "John", "setFirst",System.currentTimeMillis()-1);
 		assertFalse(conveyor.offer(c2));
 
+		assertFalse(conveyor.offer(1,"John","Silver",1));
+		
 	}
 
 	/**

@@ -48,7 +48,7 @@ public class ResultQueueTest {
 		assertEquals(0, q.size());
 		ConcurrentLinkedDeque<User> u = q.<ConcurrentLinkedDeque<User>>unwrap();
 		assertNotNull(u);
-		ProductBin<String, User> b1 = new ProductBin<String, User>("", new User("","",1999), 0, Status.READY);
+		ProductBin<String, User> b1 = new ProductBin<>("", new User("","",1999), 0, Status.READY);
 		q.accept(b1);
 
 		assertEquals(1, q.size());
@@ -57,7 +57,7 @@ public class ResultQueueTest {
 		assertNotNull(u1);
 		assertEquals(0, q.size());
 
-		ProductBin<String, User> b2 = new ProductBin<String, User>("", new User("","",1999), 0, Status.READY);
+		ProductBin<String, User> b2 = new ProductBin<>("", new User("","",1999), 0, Status.READY);
 		q.accept(b2);
 		assertEquals(1, u.size());
 		User u2 = u.poll();
