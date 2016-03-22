@@ -14,6 +14,10 @@ Maven dependency
 
 ## Release History
 
+### 1.0.12
+* Bugfix
+* Re-scheduling.  
+
 ### 1.0.11
 * Chaining refactoring
 * forEachKeyAndBuilder bugfix 
