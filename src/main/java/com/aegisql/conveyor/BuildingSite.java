@@ -37,6 +37,22 @@ import com.aegisql.conveyor.cart.Cart;
 public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expireable, Delayed {
 
 	private final static Logger LOG = LoggerFactory.getLogger(BuildingSite.class);
+	
+	public final static Lock NON_LOCKING_LOCK = new Lock() {
+		public void lock() {}
+		public void lockInterruptibly() throws InterruptedException {}
+		public boolean tryLock() {
+			return true;
+		}
+		public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+			return true;
+		}
+		public void unlock() {}
+		public Condition newCondition() {
+			return null;
+		}
+	};
+	
 	/**
 	 * The Enum Status.
 	 */
@@ -120,20 +136,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		if(synchronizeBuilder) {
 			lock = new ReentrantLock();
 		} else {
-			lock = new Lock() {
-				public void lock() {}
-				public void lockInterruptibly() throws InterruptedException {}
-				public boolean tryLock() {
-					return true;
-				}
-				public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-					return true;
-				}
-				public void unlock() {}
-				public Condition newCondition() {
-					return null;
-				}
-			};
+			lock = BuildingSite.NON_LOCKING_LOCK;
 		}	
 		if(builder instanceof TestingState) {
 			this.readiness = (state,builder) -> {
