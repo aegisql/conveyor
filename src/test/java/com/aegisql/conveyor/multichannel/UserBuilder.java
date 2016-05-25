@@ -1,18 +1,10 @@
-/* 
- * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
- */
-package com.aegisql.conveyor.user;
+package com.aegisql.conveyor.multichannel;
 
 import java.util.function.Supplier;
 
-// TODO: Auto-generated Javadoc
-/**
- * The Class UserBuilderSmart.
- * 
- * @author Mikhail Teplitskiy
- * @version 1.0.0
- */
-public class UserBuilderSmart implements Supplier<User> {
+import com.aegisql.conveyor.user.User;
+
+public class UserBuilder implements Supplier<User> {
 
 	/** The first. */
 	String first;
@@ -41,7 +33,7 @@ public class UserBuilderSmart implements Supplier<User> {
 	 * @param builder the builder
 	 * @param yob the yob
 	 */
-	public static void setYearOfBirth(UserBuilderSmart builder, Integer yob) {
+	public static void setYearOfBirth(UserBuilder builder, Integer yob) {
 		builder.yearOfBirth = yob;
 	}
 
@@ -60,10 +52,20 @@ public class UserBuilderSmart implements Supplier<User> {
 	 * @param builder the builder
 	 * @param first the first
 	 */
-	public static void setFirst(UserBuilderSmart builder, String first) {
+	public static void setFirst(UserBuilder builder, String first) {
 		builder.first = (String) first;
 	}
 
+	public static void mergeChannelA(UserBuilder builder, User user) {
+		builder.first = user.getFirst();
+		builder.last  = user.getLast();
+	}
+
+	public static void mergeChannelB(UserBuilder builder, User user) {
+		builder.yearOfBirth = user.getYearOfBirth();
+	}
+
+	
 	/**
 	 * Gets the last.
 	 *
@@ -79,7 +81,7 @@ public class UserBuilderSmart implements Supplier<User> {
 	 * @param builder the builder
 	 * @param last the last
 	 */
-	public static void setLast(UserBuilderSmart builder, String last) {
+	public static void setLast(UserBuilder builder, String last) {
 		builder.last = last;
 	}
 
@@ -110,3 +112,4 @@ public class UserBuilderSmart implements Supplier<User> {
 	}
 
 }
+

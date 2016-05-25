@@ -7,9 +7,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -79,10 +81,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	};
 	
 	/** The ready. */
-	protected BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness = (l,b) -> {
-		scrapConsumer.accept( new ScrapBin<K, State<K,L>>(l.key,l, "Readiness Evaluator is not set",FailureType.GENERAL_FAILURE));
-		throw new IllegalStateException("Readiness Evaluator is not set");
-	};
+	protected BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness = null;
 	
 	/** The builder supplier. */
 	protected BuilderSupplier<OUT> builderSupplier = () -> {
@@ -180,6 +179,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	private boolean saveCarts;
 
+	private String name;
+
 	/**
 	 * Wait data.
 	 *
@@ -233,13 +234,33 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					bs = builderSupplier;
 				}
 				if(bs != null) {
-					buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, bs, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS,synchronizeBuilder,saveCarts);
+					buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(
+							cart, 
+							bs, 
+							cartConsumer, 
+							readiness, 
+							timeoutAction, 
+							builderTimeout, 
+							TimeUnit.MILLISECONDS,
+							synchronizeBuilder,
+							saveCarts
+						);
 				} else {
 					scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither creating cart nor default builder supplier available",FailureType.BUILD_INITIALIZATION_FAILED) );
 				}
 				returnNull = true;
 			} else if(builderSupplier != null) {
-				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(cart, builderSupplier, cartConsumer, readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder,saveCarts);
+				buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(
+						cart, 
+						builderSupplier, 
+						cartConsumer, 
+						readiness, 
+						timeoutAction, 
+						builderTimeout, 
+						TimeUnit.MILLISECONDS, 
+						synchronizeBuilder,
+						saveCarts
+					);
 			} else {
 				scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither builder nor builder supplier available",FailureType.BUILD_INITIALIZATION_FAILED) );
 				returnNull = true;
@@ -295,7 +316,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					processManagementCommands();
 					Cart<K,?,L> cart = inQueue.poll();
 					if(cart != null) {
-						processSite(cart);
+						processSite(cart,true);
 					}
 					removeExpired();
 				}
@@ -597,7 +618,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 *
 	 * @param cart the cart
 	 */
-	private void processSite(Cart<K,?,L> cart) {
+	private void processSite(Cart<K,?,L> cart, boolean accept) {
 		K key = cart.getKey();
 		if( key == null ) {
 			return;
@@ -615,7 +636,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(Status.TIMED_OUT.equals(cart.getValue())) {
 				failureType = FailureType.ON_TIMEOUT_FAILED;
 				buildingSite.timeout((Cart<K,?,L>) cart);
-			} else {
+			} else if( accept ) {
 				failureType = FailureType.DATA_REJECTED;
 				buildingSite.accept((Cart<K,?,L>) cart);
 			}
@@ -662,7 +683,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if (collector.containsKey(key)) {
 				keyBeforeEviction.accept(key);
 				cnt++;
-				if (timeoutAction != null || buildingSite.builder instanceof TimeoutAction ) {
+				if (timeoutAction != null || buildingSite.getBuilder() instanceof TimeoutAction ) {
 					try {
 						ShoppingCart<K,Object,L> to = new ShoppingCart<K,Object,L>(buildingSite.getCreatingCart().getKey(), Status.TIMED_OUT,null);
 						buildingSite.timeout((Cart<K,?,L>)to);
@@ -809,6 +830,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param name the new name
 	 */
 	public void setName(String name) {
+		this.name= name;
 		innerThread.setName(name);
 	}
 
@@ -867,6 +889,15 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		conveyor.keyBeforeReschedule.accept(key, System.currentTimeMillis() );
 	}
 
+	static void checkBuild( AssemblingConveyor conveyor, Object cart ) {
+		Object key = ((Cart)cart).getKey();
+		if(conveyor.collector.containsKey(key)) {
+			conveyor.processSite((Cart) cart, false);
+		} else {
+			LOG.debug("Key '{}' does not exist. Ignoring check command.",key);
+		}
+	}
+	
 	/**
 	 * Checks if is running.
 	 *
@@ -919,4 +950,51 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 
+	/**
+	 * Method creates a new instance of conveyor 
+	 * @param partialResultLabel - label which is associated with a partial result consumer in the Bulder
+	 * @param name - thread name for the new conveyor
+	 * @param labels - labels acceptable by the instance
+	 * 
+	 * @return AssemblingConveyor
+	 * 
+	 * */
+	public AssemblingConveyor<K,L,OUT> detachConveyor(L partialResultLabel, String name, L... labels) {
+		AssemblingConveyor<K,L,OUT> detached = new AssemblingConveyor<>();
+		detached.setBuilderSupplier(builderSupplier);
+		detached.setDefaultBuilderTimeout(builderTimeout, TimeUnit.MILLISECONDS);
+		detached.setExpirationCollectionIdleInterval(getExpirationCollectionIdleInterval(), getExpirationCollectionIdleTimeUnit());
+		detached.setName(name+"("+this.name+")");
+		//Fails. User must provide new evaluator
+		detached.setReadinessEvaluator(b->{
+			throw new IllegalStateException("Readiness evaluator is not set for detached conveyor '"+name+"'");
+		});
+		detached.setScrapConsumer(scrapConsumer);
+		if(labels != null) {
+			Set<L> detachedLabels = new HashSet<>();
+			for(L label:labels) {
+				detachedLabels.add(label);
+			}
+			this.addCartBeforePlacementValidator(cart->{
+				if(detachedLabels.contains(cart.getLabel())) {
+					throw new IllegalStateException("Conveyor '"+this.name+"' cannot process label '"+cart.getLabel()+"' use '"+name+"' conveyor");					
+				}
+			});
+			detached.addCartBeforePlacementValidator(cart->{
+				if(! detachedLabels.contains(cart.getLabel()) || cart.getLabel().equals(partialResultLabel)) {
+					throw new IllegalStateException("Detached conveyor '"+name+"' cannot process label '"+partialResultLabel+"' use '"+this.name+"' conveyor");
+				}
+			});
+			//add more cart consumer options later
+			//
+			detached.setResultConsumer(bin->{
+				Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partialResultLabel,bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
+				this.add(partialResult);
+			});
+		}
+		
+		return detached;
+	}
+
+	
 }

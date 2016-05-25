@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.cart.Cart;
 
 // TODO: Auto-generated Javadoc
@@ -65,7 +66,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	}
 	
 	/** The builder. */
-	final Supplier<? extends OUT> builder;
+	private final Supplier<? extends OUT> builder;
 	
 	/** The value consumer. */
 	private final LabeledValueConsumer<L, Object, Supplier<? extends OUT>> valueConsumer;
@@ -134,30 +135,36 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.saveCarts          = saveCarts;
 		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
 		if(synchronizeBuilder) {
-			lock = new ReentrantLock();
+			this.lock = new ReentrantLock();
 		} else {
-			lock = BuildingSite.NON_LOCKING_LOCK;
-		}	
-		if(builder instanceof TestingState) {
-			this.readiness = (state,builder) -> {
-				lock.lock();
-				try {
-					return ((TestingState<K,L>)builder).test(state);
-				} finally {
-					lock.unlock();
-				}
-			};
-		}else if(builder instanceof Testing) {
-			this.readiness = (state,builder) -> {
-				lock.lock();
-				try {
-					return ((Testing)builder).test();
-				} finally {
-					lock.unlock();
-				}
-			};
+			this.lock = BuildingSite.NON_LOCKING_LOCK;
+		}
+		if(readiness != null) {
+			this.readiness = readiness;			
 		} else {
-			this.readiness = readiness;
+			if(builder instanceof TestingState) {
+				this.readiness = (state,builder) -> {
+					lock.lock();
+					try {
+						return ((TestingState<K,L>)builder).test(state);
+					} finally {
+						lock.unlock();
+					}
+				};
+			}else if(builder instanceof Testing) {
+				this.readiness = (state,builder) -> {
+					lock.lock();
+					try {
+						return ((Testing)builder).test();
+					} finally {
+						lock.unlock();
+					}
+				};
+			} else {
+				this.readiness = (l,b) -> {
+					throw new IllegalStateException("Readiness Evaluator is not set");
+				};
+			}			
 		}
 		this.eventHistory.put(cart.getLabel(), new AtomicInteger(0));
 		if(builder instanceof Expireable) {
@@ -211,8 +218,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 					lock.unlock();
 				}
 			}
+		acceptCount++;
 		if(label != null) {
-			acceptCount++;
 			if(eventHistory.containsKey(label)) {
 				eventHistory.get(label).incrementAndGet();
 			} else {
@@ -223,21 +230,21 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	public void timeout(C cart) {
 		this.lastCart = cart;
-			if (builder instanceof TimeoutAction ){
-				lock.lock();
-				try {
-					((TimeoutAction)builder).onTimeout();
-				} finally {
-					lock.unlock();
-				}
-			} else if( timeoutAction != null ) {
-				lock.lock();
-				try {
-					timeoutAction.accept(builder);
-				} finally {
-					lock.unlock();
-				}
+		if( timeoutAction != null ) {
+			lock.lock();
+			try {
+				timeoutAction.accept(builder);
+			} finally {
+				lock.unlock();
 			}
+		} else if (builder instanceof TimeoutAction ){ 
+			lock.lock();
+			try {
+				((TimeoutAction)builder).onTimeout();
+			} finally {
+				lock.unlock();
+			}
+		} 
 	}
 
 	/**
@@ -454,8 +461,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	/**
 	 * package access methods
 	 * */
-	Supplier<? extends OUT> getBuilder() {
+	public Supplier<? extends OUT> getBuilder() {
 		return builder;
+	}
+	
+	public Lock getLock() {
+		return lock;
 	}
 
 	void updateExpirationTime(long expirationTime) {
