@@ -5,7 +5,6 @@ package com.aegisql.conveyor.utils.parallel;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -18,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.BuildingSite;
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
@@ -52,14 +50,8 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The builder timeout. */
 	private long builderTimeout = 0;
 	
-	/** The start time reject. */
-	private long startTimeReject = System.currentTimeMillis();
-
 	/** The on timeout action. */
 	private Consumer<Supplier<? extends OUT>> timeoutAction;
-	
-	/** The scrap consumer. */
-	private Consumer<ScrapBin<?, ?>> scrapConsumer = (scrap) -> { LOG.error("{}",scrap); };
 	
 	/** The running. */
 	private volatile boolean running = true;
@@ -80,10 +72,19 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public ParallelConveyor( int pf ) {
 		this(AssemblingConveyor::new,pf);
 	}
+	
+	public ParallelConveyor(AssemblingConveyor<K, L, OUT>[] conveyors) {
+		this.conveyors = conveyors;
+		this.pf = conveyors.length;
+		if( this.pf == 0 ) {
+			throw new IllegalArgumentException("Parallelism Factor must be >=1");
+		}
+		this.balancingFunction = key -> key.hashCode() % this.pf;
+	}
 
 	public ParallelConveyor( Supplier<? extends AssemblingConveyor<K, L, OUT>> cs, int pf ) {
 		if( pf <=0 ) {
-			throw new IllegalArgumentException("");
+			throw new IllegalArgumentException("Parallelism Factor must be >=1");
 		}
 		this.pf = pf;
 		AssemblingConveyor<K, L, OUT>[] conveyors = new AssemblingConveyor[pf];
@@ -315,7 +316,6 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param scrapConsumer the scrap consumer
 	 */
 	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer) {
-		this.scrapConsumer = scrapConsumer;
 		for(AssemblingConveyor<K, L, OUT> conv: conveyors) {
 			conv.setScrapConsumer(scrapConsumer);
 		}
@@ -386,7 +386,6 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param unit the unit
 	 */
 	public void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit) {
-		this.startTimeReject = unit.toMillis(timeout);
 		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
 			conv.rejectUnexpireableCartsOlderThan(timeout,unit);
 		}

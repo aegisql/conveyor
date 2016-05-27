@@ -328,7 +328,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 		});
 		innerThread.setDaemon(false);
-		innerThread.setName("AssemblingConveyor "+innerThread.getId());
+		this.name = "AssemblingConveyor "+innerThread.getId();
+		innerThread.setName( this.name );
 		innerThread.start();
 	}
 
@@ -967,7 +968,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		detached.setName(name+"("+this.name+")");
 		//Fails. User must provide new evaluator
 		detached.setReadinessEvaluator(b->{
-			throw new IllegalStateException("Readiness evaluator is not set for detached conveyor '"+name+"'");
+			throw new IllegalStateException("Readiness evaluator is not set for detached conveyor '"+detached.name+"'");
 		});
 		detached.setScrapConsumer(scrapConsumer);
 		if(labels != null) {
@@ -977,12 +978,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			this.addCartBeforePlacementValidator(cart->{
 				if(detachedLabels.contains(cart.getLabel())) {
-					throw new IllegalStateException("Conveyor '"+this.name+"' cannot process label '"+cart.getLabel()+"' use '"+name+"' conveyor");					
+					throw new IllegalStateException("Conveyor '"+this.name+"' cannot process label '"+cart.getLabel()+"' use '"+detached.name+"' conveyor");					
 				}
 			});
 			detached.addCartBeforePlacementValidator(cart->{
-				if(! detachedLabels.contains(cart.getLabel()) || cart.getLabel().equals(partialResultLabel)) {
-					throw new IllegalStateException("Detached conveyor '"+name+"' cannot process label '"+partialResultLabel+"' use '"+this.name+"' conveyor");
+				if( ! detachedLabels.contains(cart.getLabel()) || cart.getLabel().equals(partialResultLabel)) {
+					throw new IllegalStateException("Detached conveyor '"+detached.name+"' cannot process label '"+partialResultLabel+"' use '"+this.name+"' conveyor");
 				}
 			});
 			//add more cart consumer options later
