@@ -33,7 +33,6 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.AbstractCommand;
 import com.aegisql.conveyor.delay.DelayProvider;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class AssemblingConveyor.
  *
@@ -120,6 +119,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	
 	protected boolean synchronizeBuilder = false;
 
+	//TODO - use for filtering
+	protected final Set<L> detachedLabels = new HashSet<>();
+	protected final Set<L> attachedLabels = new HashSet<>();
+
+	
 	/** The inner thread. */
 	private final Thread innerThread;
 	

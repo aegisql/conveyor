@@ -304,7 +304,6 @@ public class ParallelConveyorTest {
 	public void otherConveyorTest() throws InterruptedException {
 		ParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
 		conveyor = new ParallelConveyor<>(ScalarConvertingConveyor::new,4);
-		StringToUserBuulder qqq;
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		conveyor.setResultConsumer(u->{
@@ -316,6 +315,38 @@ public class ParallelConveyorTest {
 		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow,1990");
 		conveyor.add(c1);
 		conveyor.add(c2);
+		Thread.sleep(20);
+		assertNotNull(usr.get());
+
+	}
+	 
+	@Test
+	public void testArrayConstructor() throws InterruptedException {
+		ScalarConvertingConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User> ac1 = new ScalarConvertingConveyor<>(); 
+		ScalarConvertingConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User> ac2 = new ScalarConvertingConveyor<>(); 
+		ScalarConvertingConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User> ac3 = new ScalarConvertingConveyor<>(); 
+		ScalarConvertingConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User> ac4 = new ScalarConvertingConveyor<>(); 
+		ac1.setBuilderSupplier(StringToUserBuulder::new);
+		ac2.setBuilderSupplier(StringToUserBuulder::new);
+		ac3.setBuilderSupplier(StringToUserBuulder::new);
+		ac4.setBuilderSupplier(StringToUserBuulder::new);
+		ParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
+		conveyor = new ParallelConveyor<>(new ScalarConvertingConveyor[]{ac1,ac2,ac3,ac3});
+		
+		AtomicReference<User> usr = new AtomicReference<User>(null);
+		conveyor.setResultConsumer(u->{
+			System.out.println("RESULT: "+u);
+			usr.set(u.product);
+		});
+
+		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow,1990");
+		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow,1990");
+		ScalarCart<String, String> c3 = new ScalarCart<>("3", "Piter,Pan,1890");
+		ScalarCart<String, String> c4 = new ScalarCart<>("4", "John,Silvers,1890");
+		conveyor.add(c1);
+		conveyor.add(c2);
+		conveyor.add(c3);
+		conveyor.add(c4);
 		Thread.sleep(20);
 		assertNotNull(usr.get());
 

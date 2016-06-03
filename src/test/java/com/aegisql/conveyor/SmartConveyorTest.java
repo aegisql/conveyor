@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -23,6 +24,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.cart.command.RescheduleCommand;
 import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderEvents2;
 import com.aegisql.conveyor.user.UserBuilderEvents3;
@@ -424,4 +426,55 @@ public class SmartConveyorTest {
 
 	}
 
+	@Test
+	public void testSmartLabelBuilder() throws InterruptedException {
+		SmartLabelBuilder<String, UserBuilderSmart> sl = new SmartLabelBuilder<>();
+		sl.addLabel("first", UserBuilderSmart::setFirst);
+		sl.addLabel("last", UserBuilderSmart::setLast);
+		sl.addLabel("year", UserBuilderSmart::setYearOfBirth);
+
+		assertNotNull(sl.label("first"));
+		assertNotNull(sl.label("last"));
+		assertNotNull(sl.label("year"));
+		assertNull(sl.label("foo"));
+
+		AssemblingConveyor<Integer, SmartLabel<UserBuilderSmart>, User> conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderSmart::new);
+
+		conveyor.setReadinessEvaluator(b->{
+			User u = b.get();
+			return u.getFirst() != null && u.getLast() != null && u.getYearOfBirth() > 0;
+		});
+		
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
+		conveyor.setName("TestingState User Assembler");
+		ShoppingCart<Integer, String, SmartLabel<UserBuilderSmart>> c1 = new ShoppingCart<>(1, "John",
+				sl.label("first"));
+		Cart<Integer, String, SmartLabel<UserBuilderSmart>> c2 = c1.nextCart("Doe", sl.label("last"));
+		Cart<Integer, String, SmartLabel<UserBuilderSmart>> c3 = new ShoppingCart<>(2, "Mike", sl.label("first"));
+		Cart<Integer, Integer, SmartLabel<UserBuilderSmart>> c4 = c1.nextCart(1999, sl.label("year"));
+
+		conveyor.offer(c1);
+		User u0 = outQueue.poll();
+		assertNull(u0);
+		conveyor.offer(c2);
+		conveyor.offer(c3);
+		conveyor.offer(c4);
+		Thread.sleep(100);
+		User u1 = outQueue.poll();
+		assertNotNull(u1);
+		System.out.println(u1);
+		User u2 = outQueue.poll();
+		assertNull(u2);
+
+		Thread.sleep(100);
+
+		conveyor.stop();
+
+		
+		
+	}
+	
 }

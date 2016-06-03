@@ -21,7 +21,6 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.cart.Cart;
 
 // TODO: Auto-generated Javadoc
