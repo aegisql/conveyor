@@ -6,12 +6,16 @@ public class SmartWrapper<L,B,U> implements SmartLabel<B> {
 
 	private static final long serialVersionUID = 6276204389815296996L;
 
-	private L label;
-	private BiConsumer<B,U> consumer;
+	private final L label;
+	private final BiConsumer<B,U> consumer;
 
 	public SmartWrapper(L label,BiConsumer<B,U> consumer) {
 		this.label = label;
 		this.consumer = consumer;
+	}
+	
+	public L unwrap() {
+		return label;
 	}
 	
 	@Override
