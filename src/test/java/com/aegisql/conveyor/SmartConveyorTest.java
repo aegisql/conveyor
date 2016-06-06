@@ -429,15 +429,17 @@ public class SmartConveyorTest {
 	@Test
 	public void testSmartLabelBuilder() throws InterruptedException {
 		SmartLabelBuilder<String, UserBuilderSmart> sl = new SmartLabelBuilder<>();
-		sl.addLabel("first", UserBuilderSmart::setFirst);
-		sl.addLabel("last", UserBuilderSmart::setLast);
-		sl.addLabel("year", UserBuilderSmart::setYearOfBirth);
+		sl.wrapLabel("first", UserBuilderSmart::setFirst);
+		sl.wrapLabel("last", UserBuilderSmart::setLast);
+		sl.wrapLabel("year", UserBuilderSmart::setYearOfBirth);
 
 		assertNotNull(sl.label("first"));
 		assertNotNull(sl.label("last"));
 		assertNotNull(sl.label("year"));
 		assertNull(sl.label("foo"));
 
+		System.out.println(sl.label("first"));
+		
 		AssemblingConveyor<Integer, SmartLabel<UserBuilderSmart>, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
