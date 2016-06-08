@@ -5,10 +5,14 @@ package com.aegisql.conveyor.utils.parallel;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -28,7 +32,6 @@ import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.AbstractCommand;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ParallelConveyor.
  *
@@ -57,12 +60,15 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private volatile boolean running = true;
 
 	/** The conveyors. */
-	private final AssemblingConveyor<K, L, OUT>[] conveyors;
+	private final List<Conveyor<K, L, OUT>> conveyors = new ArrayList<>();
 
 	/** The pf. */
 	private final int pf;
 	
-	private BalancingFunction<K> balancingFunction;
+	private Function<AbstractCommand<K,?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand;
+	private Function<Cart<K,?,L>, List<? extends Conveyor<K, L, OUT>>> balancingCart;
+	
+	//private BalancingFunction<K> balancingFunction;
 	
 	/**
 	 * Instantiates a new parallel conveyor.
@@ -73,26 +79,43 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this(AssemblingConveyor::new,pf);
 	}
 	
-	public ParallelConveyor(AssemblingConveyor<K, L, OUT>[] conveyors) {
-		this.conveyors = conveyors;
+	public ParallelConveyor(Conveyor<K, L, OUT>[] conveyors) {
 		this.pf = conveyors.length;
 		if( this.pf == 0 ) {
 			throw new IllegalArgumentException("Parallelism Factor must be >=1");
 		}
-		this.balancingFunction = key -> key.hashCode() % this.pf;
+		//this.balancingFunction = key -> key.hashCode() % this.pf;
+		for(Conveyor<K, L, OUT> c:conveyors) {
+			this.conveyors.add(c);
+		}
+		//here we implement different logic for L and K balanced conveyors
+		this.balancingCart = cart -> { 
+			int index = cart.getKey().hashCode() % pf;
+			return this.conveyors.subList(index, index+1);
+		};
+		this.balancingCommand = command -> { 
+			int index = command.getKey().hashCode() % pf;
+			return this.conveyors.subList(index, index+1);
+		};
 	}
 
-	public ParallelConveyor( Supplier<? extends AssemblingConveyor<K, L, OUT>> cs, int pf ) {
+	public ParallelConveyor( Supplier<? extends Conveyor<K, L, OUT>> cs, int pf ) {
 		if( pf <=0 ) {
 			throw new IllegalArgumentException("Parallelism Factor must be >=1");
 		}
 		this.pf = pf;
-		AssemblingConveyor<K, L, OUT>[] conveyors = new AssemblingConveyor[pf];
 		for(int i = 0; i < pf; i++) {
-			conveyors[i] = cs.get();
+			this.conveyors.add(cs.get());
 		}
-		this.conveyors = conveyors;
-		this.balancingFunction = key -> key.hashCode() % pf;
+		//this.balancingFunction = key -> key.hashCode() % pf;
+		this.balancingCart = cart -> { 
+			int index = cart.getKey().hashCode() % pf;
+			return this.conveyors.subList(index, index+1);
+		};
+		this.balancingCommand = command -> { 
+			int index = command.getKey().hashCode() % pf;
+			return this.conveyors.subList(index, index+1);
+		};
 	}
 
 	/**
@@ -101,9 +124,9 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param key the key
 	 * @return the int
 	 */
-	private int idx(K key) {
-		return balancingFunction.balanceCart(key);
-	}
+//	private int idx(K key) {
+//		return balancingFunction.balanceCart(key);
+//	}
 
 	/**
 	 * Gets the conveyor.
@@ -111,16 +134,22 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param key the key
 	 * @return the conveyor
 	 */
-	private AssemblingConveyor<K, L, OUT> getConveyor(K key) {
-		return conveyors[ idx(key) ];
-	}
+//	private Conveyor<K, L, OUT> getConveyor(K key) {
+//		return conveyors.get( idx(key) );
+//	}
 	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
 	@Override
 	public <V> boolean addCommand(AbstractCommand<K, V> cart) {
-		return this.getConveyor( cart.getKey() ).addCommand( cart );
+		try {
+			this.balancingCommand.apply(cart).forEach(c->c.addCommand(cart));
+			return true;
+		} catch(RuntimeException e) {
+			return false;
+		}
+		//return this.getConveyor( cart.getKey() ).addCommand( cart );
 	}
 	
 	@Override
@@ -153,7 +182,14 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public <V> boolean add(Cart<K,V,L> cart) {
-		return getConveyor( cart.getKey() ).add( cart );
+		Objects.requireNonNull(cart, "Cart is null");
+		try {
+			this.balancingCart.apply(cart).forEach(c->c.add(cart));
+			return true;
+		} catch(RuntimeException e) {
+			return false;
+		}
+		//return getConveyor( cart.getKey() ).add( cart );
 	}
 	@Override
 	public <V> boolean add(K key, V value, L label) {
@@ -236,7 +272,13 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public <V> boolean offer(Cart<K,V,L> cart) {
-		return getConveyor( cart.getKey() ).offer( cart );
+		try {
+			this.balancingCart.apply(cart).forEach(c->c.add(cart));
+			return true;
+		} catch(Exception e) {
+			return false;
+		}
+//		return getConveyor( cart.getKey() ).offer( cart );
 	}
 
 	@Override
@@ -265,7 +307,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	public int getNumberOfConveyors() {
-		return conveyors.length;
+		return conveyors.size();
 	}
 	
 	/**
@@ -278,7 +320,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if(idx < 0 || idx >= pf) {
 			return 0;
 		} else {
-			return conveyors[idx].getCollectorSize();
+			return conveyors.get(idx).getCollectorSize();
 		}
 	}
 
@@ -292,7 +334,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if(idx < 0 || idx >= pf) {
 			return 0;
 		} else {
-			return conveyors[idx].getInputQueueSize();
+			return conveyors.get(idx).getInputQueueSize();
 		}
 	}
 
@@ -306,7 +348,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if(idx < 0 || idx >= pf) {
 			return 0;
 		} else {
-			return conveyors[idx].getDelayedQueueSize();
+			return conveyors.get(idx).getDelayedQueueSize();
 		}
 	}
 
@@ -316,7 +358,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param scrapConsumer the scrap consumer
 	 */
 	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer) {
-		for(AssemblingConveyor<K, L, OUT> conv: conveyors) {
+		for(Conveyor<K, L, OUT> conv: conveyors) {
 			conv.setScrapConsumer(scrapConsumer);
 		}
 	}
@@ -326,7 +368,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void stop() {
 		this.running = false;
-		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.stop();
 		}
 	}
@@ -352,7 +394,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public void setExpirationCollectionIdleInterval(long expirationCollectionInterval, TimeUnit unit) {
 		this.expirationCollectionInterval = expirationCollectionInterval;
 		this.expirationCollectionUnit = unit;
-		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.setExpirationCollectionIdleInterval(expirationCollectionInterval,unit);
 		}
 	}
@@ -374,7 +416,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit) {
 		this.builderTimeout = unit.toMillis(builderTimeout);
-		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.setDefaultBuilderTimeout(builderTimeout,unit);
 		}
 	}
@@ -386,7 +428,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param unit the unit
 	 */
 	public void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit) {
-		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.rejectUnexpireableCartsOlderThan(timeout,unit);
 		}
 	}
@@ -408,7 +450,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction) {
 		this.timeoutAction = timeoutAction;
-		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.setOnTimeoutAction(timeoutAction);
 		}
 	}
@@ -419,7 +461,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param resultConsumer the new result consumer
 	 */
 	public void setResultConsumer(Consumer<ProductBin<K,OUT>> resultConsumer) {
-		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.setResultConsumer(resultConsumer);
 		}
 	}
@@ -430,7 +472,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cartConsumer the cart consumer
 	 */
 	public void setDefaultCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer) {
-		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.setDefaultCartConsumer(cartConsumer);
 		}
 	}
@@ -441,7 +483,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param ready the ready
 	 */
 	public void setReadinessEvaluator(BiPredicate<State<K,L>, Supplier<? extends OUT>> ready) {
-		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.setReadinessEvaluator(ready);
 		}
 	}
@@ -452,7 +494,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param readiness the ready
 	 */
 	public void setReadinessEvaluator(Predicate<Supplier<? extends OUT>> readiness) {
-		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.setReadinessEvaluator(readiness);
 		}
 	}
@@ -463,7 +505,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param builderSupplier the new builder supplier
 	 */
 	public void setBuilderSupplier(BuilderSupplier<OUT> builderSupplier) {
-		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.setBuilderSupplier(builderSupplier);
 		}
 	}
@@ -475,7 +517,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void setName(String name) {
 		int i = 0;
-		for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.setName(name+" ["+i+"]");
 			i++;
 		}
@@ -500,17 +542,17 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if(idx < 0 || idx >= pf) {
 			return false;
 		} else {
-			return conveyors[idx].isRunning();
+			return conveyors.get(idx).isRunning();
 		}
 	}
 
-	public void setBalancingFunction(BalancingFunction<K> balancingFunction) {
-		this.balancingFunction = balancingFunction;
-	}
+//	public void setBalancingFunction(BalancingFunction<K> balancingFunction) {
+//		this.balancingFunction = balancingFunction;
+//	}
 	
 	public void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator) {
 		if(cartBeforePlacementValidator != null) {
-			for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+			for(Conveyor<K,L,OUT> conv: conveyors) {
 				conv.addCartBeforePlacementValidator(cartBeforePlacementValidator);
 			}
 		}
@@ -519,7 +561,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction) {
 		if(keyBeforeEviction != null) {
-			for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+			for(Conveyor<K,L,OUT> conv: conveyors) {
 				conv.addBeforeKeyEvictionAction(keyBeforeEviction);
 			}
 		}
@@ -527,14 +569,30 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	public void addBeforeKeyReschedulingAction(BiConsumer<K,Long> keyBeforeRescheduling) {
 		if(keyBeforeRescheduling != null) {
-			for(AssemblingConveyor<K,L,OUT> conv: conveyors) {
+			for(Conveyor<K,L,OUT> conv: conveyors) {
 				conv.addBeforeKeyReschedulingAction(keyBeforeRescheduling);
 			}
 		}
 	}
 	
 	public long getExpirationTime(K key) {
-		return getConveyor( key ).getExpirationTime(key);
+		//return getConveyor( key ).getExpirationTime(key);
+		return 0;
+	}
+
+	@Override
+	public int getCollectorSize() {
+		return -1;
+	}
+
+	@Override
+	public int getInputQueueSize() {
+		return -1;
+	}
+
+	@Override
+	public int getDelayedQueueSize() {
+		return -1;
 	}
 
 }

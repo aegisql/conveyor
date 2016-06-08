@@ -6,6 +6,11 @@ package com.aegisql.conveyor;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.command.AbstractCommand;
@@ -73,5 +78,27 @@ public interface Conveyor<K, L, OUT> {
 	public <V> boolean addCommand(K key, V value, CommandLabel label, long ttl, TimeUnit unit);
 	public <V> boolean addCommand(K key, V value, CommandLabel label, Duration duration);
 	public <V> boolean addCommand(K key, V value, CommandLabel label, Instant instant);
+	
+	
+	public int getCollectorSize();
+	public int getInputQueueSize();
+	public int getDelayedQueueSize();
+	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer);
+	public void stop();
+	public void setExpirationCollectionIdleInterval(long expirationCollectionInterval, TimeUnit unit);
+	public void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit);
+	public void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit);
+	public void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction);
+	public void setResultConsumer(Consumer<ProductBin<K, OUT>> resultConsumer);
+	public void setDefaultCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer);
+	public void setReadinessEvaluator(BiPredicate<State<K, L>, Supplier<? extends OUT>> ready);
+	public void setReadinessEvaluator(Predicate<Supplier<? extends OUT>> readiness);
+	public void setBuilderSupplier(BuilderSupplier<OUT> builderSupplier);
+	public void setName(String string);
+	public boolean isRunning();
+	public void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator);
+	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction);
+	public void addBeforeKeyReschedulingAction(BiConsumer<K, Long> keyBeforeRescheduling);
+	public long getExpirationTime(K key);
 
 }

@@ -302,7 +302,7 @@ public class ParallelConveyorTest {
 
 	@Test
 	public void otherConveyorTest() throws InterruptedException {
-		ParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
+		Conveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
 		conveyor = new ParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
