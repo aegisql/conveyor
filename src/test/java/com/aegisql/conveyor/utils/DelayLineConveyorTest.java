@@ -46,7 +46,7 @@ public class DelayLineConveyorTest {
 		c.setScrapConsumer(bin->{
 			System.out.println("-- "+bin);
 		});
-		c.setExpirationCollectionIdleInterval(50, TimeUnit.MILLISECONDS);
+		c.setIdleHeartBeat(50, TimeUnit.MILLISECONDS);
 		
 		DelayLineCart<Integer, Integer> c1 = new DelayLineCart<>(1, 1, 10+1, TimeUnit.MILLISECONDS);
 		DelayLineCart<Integer, Integer> c2 = new DelayLineCart<>(2, 2, 10+2, TimeUnit.MILLISECONDS);

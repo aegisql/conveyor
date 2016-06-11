@@ -65,7 +65,7 @@ public class BatchConveyorBuilderTest {
 			System.out.println(list);
 			l.add(list.product);
 		});
-		b.setExpirationCollectionIdleInterval(100, TimeUnit.MILLISECONDS);
+		b.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
 			b.add(new BatchCart<Integer>(i));
 		}
@@ -103,7 +103,7 @@ public class BatchConveyorBuilderTest {
 			ai.incrementAndGet();
 			aii.addAndGet(list.product.size());
 		});
-		b.setExpirationCollectionIdleInterval(100, TimeUnit.MILLISECONDS);
+		b.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
 			if(i % 2 == 0) {
 				b.add(new BatchCart<Integer>("A",i));

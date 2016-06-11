@@ -204,7 +204,7 @@ public class CachingConveyorTest {
 			}
 		});
 		conveyor.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
-		conveyor.setExpirationCollectionIdleInterval(500, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(500, TimeUnit.MILLISECONDS);
 		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
 		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");

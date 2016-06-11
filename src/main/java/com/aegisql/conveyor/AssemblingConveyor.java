@@ -119,9 +119,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	
 	protected boolean synchronizeBuilder = false;
 
-	//TODO - use for filtering
-	protected final Set<L> detachedLabels = new HashSet<>();
-	protected final Set<L> attachedLabels = new HashSet<>();
+	protected final Set<L> acceptedLabels = new HashSet<>();
 
 	
 	/** The inner thread. */
@@ -184,6 +182,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private boolean saveCarts;
 
 	private String name;
+
+	private boolean lBalanced = false;
 
 	/**
 	 * Wait data.
@@ -730,7 +730,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param expirationCollectionInterval the expiration collection interval
 	 * @param unit the unit
 	 */
-	public void setExpirationCollectionIdleInterval(long expirationCollectionInterval, TimeUnit unit) {
+	public void setIdleHeartBeat(long expirationCollectionInterval, TimeUnit unit) {
 		lock.setExpirationCollectionInterval(expirationCollectionInterval);
 		lock.setExpirationCollectionUnit(unit);
 		lock.tell();
@@ -954,6 +954,67 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			return bs.builderExpiration;
 		}
 	}
+	
+	public void acceptLabels(L... labels) {
+		if(labels != null && labels.length > 0) {
+			for(L l:labels) {
+				acceptedLabels.add(l);
+			}
+			this.addCartBeforePlacementValidator(cart->{
+				if( ! acceptedLabels.contains(cart.getLabel())) {
+					throw new IllegalStateException("Conveyor '"+this.name+"' cannot process label '"+cart.getLabel()+"'");					
+				}
+			});
+			
+			lBalanced = true;
+			
+		}
+	}
+	
+	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv) {
+		this.setResultConsumer(bin->{
+			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
+			conv.add( partialResult );
+		});
+	}
+	
+	/**
+	 * Creates a close copy of current conveyor
+	 * set readiness evaluator and result consumer to throw an exception
+	 * acceptedLabels are not copied
+	 * */
+	public AssemblingConveyor<K,L,OUT> clone() {
+		AssemblingConveyor<K,L,OUT> c = new AssemblingConveyor<>();
+		c.setBuilderSupplier( builderSupplier );
+		c.setDefaultBuilderTimeout( builderTimeout, TimeUnit.MILLISECONDS );
+		c.setIdleHeartBeat( getExpirationCollectionIdleInterval(), getExpirationCollectionIdleTimeUnit() );
+		c.setName( "copy of " + name );
+		c.setScrapConsumer( scrapConsumer );
+		c.setReadinessEvaluator(b->{
+			throw new IllegalStateException("Readiness evaluator is not set for copy of conveyor '"+name+"'");
+		});
+		c.setDefaultCartConsumer( cartConsumer );
+		c.setKeepCartsOnSite( saveCarts );
+		c.setOnTimeoutAction( timeoutAction );
+		c.setResultConsumer(bin->{
+			throw new IllegalStateException("Result Consumet is not set for copy of conveyor '"+name+"'");
+		});
+		c.setSynchronizeBuilder( synchronizeBuilder);
+		
+		c.cartBeforePlacementValidator    = this.cartBeforePlacementValidator;
+		c.commandBeforePlacementValidator = this.commandBeforePlacementValidator;
+		c.startTimeReject                 = this.startTimeReject;
+		
+		return c;
+	}
+	
+	public boolean isLBalanced() {
+		return lBalanced;
+	}
+
+	public Set<L> getAcceptedLabels() {
+		return acceptedLabels;
+	}
 
 	/**
 	 * Method creates a new instance of conveyor 
@@ -965,16 +1026,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * 
 	 * */
 	public AssemblingConveyor<K,L,OUT> detachConveyor(L partialResultLabel, String name, L... labels) {
-		AssemblingConveyor<K,L,OUT> detached = new AssemblingConveyor<>();
-		detached.setBuilderSupplier(builderSupplier);
-		detached.setDefaultBuilderTimeout(builderTimeout, TimeUnit.MILLISECONDS);
-		detached.setExpirationCollectionIdleInterval(getExpirationCollectionIdleInterval(), getExpirationCollectionIdleTimeUnit());
-		detached.setName(name+"("+this.name+")");
-		//Fails. User must provide new evaluator
-		detached.setReadinessEvaluator(b->{
-			throw new IllegalStateException("Readiness evaluator is not set for detached conveyor '"+detached.name+"'");
-		});
-		detached.setScrapConsumer(scrapConsumer);
+		AssemblingConveyor<K,L,OUT> detached = this.clone();
 		if(labels != null) {
 			Set<L> detachedLabels = new HashSet<>();
 			for(L label:labels) {

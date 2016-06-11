@@ -279,7 +279,7 @@ public class AssemblingConveyorTest {
 			return new UserBuilder();});
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
-		conveyor.setExpirationCollectionIdleInterval(500, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(500, TimeUnit.MILLISECONDS);
 		assertEquals(500,conveyor.getExpirationCollectionIdleInterval());
 		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
@@ -331,7 +331,7 @@ public class AssemblingConveyorTest {
 		conveyor.offer(c4);
 		conveyor.offer(c6);
 		Thread.sleep(100);
-		conveyor.setExpirationCollectionIdleInterval(1000, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(1000, TimeUnit.MILLISECONDS);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
 		System.out.println(u1);
@@ -360,7 +360,7 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
-		conveyor.setExpirationCollectionIdleInterval(500, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(500, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
 			switch (label) {
@@ -397,7 +397,7 @@ public class AssemblingConveyorTest {
 		conveyor.offer(c2);
 		conveyor.offer(c3);
 		Thread.sleep(100);
-		conveyor.setExpirationCollectionIdleInterval(1000, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(1000, TimeUnit.MILLISECONDS);
 		Thread.sleep(1100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -418,7 +418,7 @@ public class AssemblingConveyorTest {
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(null);
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
-		conveyor.setExpirationCollectionIdleInterval(500, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(500, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
 			switch (label) {
@@ -452,7 +452,7 @@ public class AssemblingConveyorTest {
 		conveyor.offer(c2);
 		conveyor.offer(c3);
 		Thread.sleep(100);
-		conveyor.setExpirationCollectionIdleInterval(1000, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(1000, TimeUnit.MILLISECONDS);
 		User u2 = outQueue.poll();
 		assertNull(u2);
 		Thread.sleep(100);
@@ -476,7 +476,7 @@ public class AssemblingConveyorTest {
 		conveyor.setBuilderSupplier(UserBuilder::new);
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
-		conveyor.setExpirationCollectionIdleInterval(500, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(500, TimeUnit.MILLISECONDS);
 		assertEquals(500,conveyor.getExpirationCollectionIdleInterval());
 		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
@@ -514,7 +514,7 @@ public class AssemblingConveyorTest {
 		conveyor.offer(c3);
 		conveyor.offer(c4);
 		Thread.sleep(100);
-		conveyor.setExpirationCollectionIdleInterval(1000, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(1000, TimeUnit.MILLISECONDS);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
 		System.out.println(u1);
@@ -546,7 +546,7 @@ public class AssemblingConveyorTest {
 		conveyor.setBuilderSupplier(UserBuilder::new);
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
-		conveyor.setExpirationCollectionIdleInterval(500, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(500, TimeUnit.MILLISECONDS);
 		assertEquals(500,conveyor.getExpirationCollectionIdleInterval());
 		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			throw new Error("TEST ERROR");

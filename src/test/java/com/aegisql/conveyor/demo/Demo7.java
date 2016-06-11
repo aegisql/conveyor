@@ -24,7 +24,7 @@ public class Demo7 {
 		conveyor.setResultConsumer( bin-> personRef.set(bin.product) );
 
 		// IV - Set collection interval
-		conveyor.setExpirationCollectionIdleInterval(100, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		
 		// V - Wrap building parts in the Shopping Cart
 		ShoppingCart<Integer, String, PersonBuilderLabel2> firstNameCart = new ShoppingCart<>(1, "John", PersonBuilderLabel2.SET_FIRST);

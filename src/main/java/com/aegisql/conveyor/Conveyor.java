@@ -5,6 +5,7 @@ package com.aegisql.conveyor;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -85,7 +86,7 @@ public interface Conveyor<K, L, OUT> {
 	public int getDelayedQueueSize();
 	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer);
 	public void stop();
-	public void setExpirationCollectionIdleInterval(long expirationCollectionInterval, TimeUnit unit);
+	public void setIdleHeartBeat(long heartbeat, TimeUnit unit);
 	public void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit);
 	public void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit);
 	public void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction);
@@ -100,5 +101,7 @@ public interface Conveyor<K, L, OUT> {
 	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction);
 	public void addBeforeKeyReschedulingAction(BiConsumer<K, Long> keyBeforeRescheduling);
 	public long getExpirationTime(K key);
-
+	public boolean isLBalanced();
+	public Set<L> getAcceptedLabels();
+	public void acceptLabels(L... labels);
 }

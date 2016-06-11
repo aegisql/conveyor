@@ -15,7 +15,7 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 		super();
 		this.setName("SchedulingConveyor");
 		this.setBuilderSupplier(ScheduleBuilder::new);
-		this.setExpirationCollectionIdleInterval(1, TimeUnit.SECONDS);
+		this.setIdleHeartBeat(1, TimeUnit.SECONDS);
 		this.setResultConsumer(bin -> {
 			bin.product.apply();
 		});

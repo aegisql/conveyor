@@ -155,7 +155,7 @@ public class MultiThreadTest {
 	@Test
 	public void test() throws InterruptedException {
 
-	conveyor.setExpirationCollectionIdleInterval(1000, TimeUnit.MILLISECONDS);
+	conveyor.setIdleHeartBeat(1000, TimeUnit.MILLISECONDS);
 	conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 	assertFalse(conveyor.isOnTimeoutAction());
 	conveyor.setOnTimeoutAction((builder)->{

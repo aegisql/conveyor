@@ -28,7 +28,7 @@ public class Demo6 {
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 
 		// V - Set collection interval
-		conveyor.setExpirationCollectionIdleInterval(100, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 
 		// VI - Last chance to finalize build on timeout
 		conveyor.setOnTimeoutAction(builder -> {

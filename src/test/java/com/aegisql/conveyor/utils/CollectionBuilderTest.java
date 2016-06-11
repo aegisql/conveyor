@@ -69,7 +69,7 @@ public class CollectionBuilderTest {
 		b.setOnTimeoutAction((builder)->{
 			System.out.println("TIMEOUT:"+builder.get());
 		});
-		b.setExpirationCollectionIdleInterval(10, TimeUnit.MILLISECONDS);
+		b.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 100; i++) {
 			b.add(new CollectionItemCart<Integer,Integer>(1,i));
 		}
@@ -108,7 +108,7 @@ public class CollectionBuilderTest {
 		b.setOnTimeoutAction((builder)->{
 			System.out.println("TIMEOUT:"+builder.get());
 		});
-		b.setExpirationCollectionIdleInterval(50, TimeUnit.MILLISECONDS);
+		b.setIdleHeartBeat(50, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 100; i++) {
 			b.add(new CollectionItemCart<Integer,Integer>(1,i));
 		}

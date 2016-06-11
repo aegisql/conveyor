@@ -6,8 +6,12 @@ package com.aegisql.conveyor.utils.parallel;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -15,6 +19,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+
+import javax.management.RuntimeErrorException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +73,12 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	
 	private Function<AbstractCommand<K,?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand;
 	private Function<Cart<K,?,L>, List<? extends Conveyor<K, L, OUT>>> balancingCart;
+
+	private String name;
+
+	private boolean lBalanced = false;
+
+	private Set<L> acceptedLabels = new HashSet<>();
 	
 	//private BalancingFunction<K> balancingFunction;
 	
@@ -79,43 +91,86 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this(AssemblingConveyor::new,pf);
 	}
 	
-	public ParallelConveyor(Conveyor<K, L, OUT>[] conveyors) {
+	public ParallelConveyor(Conveyor<K, L, OUT>... conveyors) {
+		init(conveyors);
 		this.pf = conveyors.length;
-		if( this.pf == 0 ) {
-			throw new IllegalArgumentException("Parallelism Factor must be >=1");
-		}
-		//this.balancingFunction = key -> key.hashCode() % this.pf;
-		for(Conveyor<K, L, OUT> c:conveyors) {
-			this.conveyors.add(c);
-		}
-		//here we implement different logic for L and K balanced conveyors
-		this.balancingCart = cart -> { 
-			int index = cart.getKey().hashCode() % pf;
-			return this.conveyors.subList(index, index+1);
-		};
-		this.balancingCommand = command -> { 
-			int index = command.getKey().hashCode() % pf;
-			return this.conveyors.subList(index, index+1);
-		};
 	}
 
 	public ParallelConveyor( Supplier<? extends Conveyor<K, L, OUT>> cs, int pf ) {
 		if( pf <=0 ) {
 			throw new IllegalArgumentException("Parallelism Factor must be >=1");
 		}
-		this.pf = pf;
+		Conveyor<K, L, OUT>[] cArray = new Conveyor[pf];
 		for(int i = 0; i < pf; i++) {
-			this.conveyors.add(cs.get());
+			cArray[i] = cs.get();
 		}
-		//this.balancingFunction = key -> key.hashCode() % pf;
-		this.balancingCart = cart -> { 
-			int index = cart.getKey().hashCode() % pf;
-			return this.conveyors.subList(index, index+1);
-		};
-		this.balancingCommand = command -> { 
-			int index = command.getKey().hashCode() % pf;
-			return this.conveyors.subList(index, index+1);
-		};
+		init(cArray);
+		this.pf = pf;
+	}
+	
+	private void init(Conveyor<K, L, OUT>... conveyors) {
+		int pf = conveyors.length;
+		if( pf == 0 ) {
+			throw new IllegalArgumentException("Parallelism Factor must be >=1");
+		}
+		//this.balancingFunction = key -> key.hashCode() % this.pf;
+		int kBalanced = 0;
+		int lBalanced = 0;
+		List<Conveyor<K, L, OUT>> defaultConv = new ArrayList<>();
+		Map<L,List<Conveyor<K, L, OUT>>> map = new HashMap<>(); 
+		for(Conveyor<K, L, OUT> c:conveyors) {
+			this.conveyors.add(c);
+			if(c.isLBalanced()) {
+				lBalanced++;
+				Set<L> labels = c.getAcceptedLabels();
+				for(L l:labels) {
+					List<Conveyor<K, L, OUT>> convs = map.get(l);
+					if(convs == null) {
+						convs = new ArrayList<>();
+					}
+					convs.add(c);
+					map.put(l, convs);
+				}
+			} else {
+				kBalanced++;
+				defaultConv.add( c );
+			}
+		}
+		//here we implement different logic for L and K balanced conveyors
+		if(lBalanced == 0) {
+			this.balancingCart = cart -> { 
+				int index = cart.getKey().hashCode() % pf;
+				return this.conveyors.subList(index, index+1);
+			};
+			this.balancingCommand = command -> { 
+				int index = command.getKey().hashCode() % pf;
+				return this.conveyors.subList(index, index+1);
+			};
+		} else {
+			if( kBalanced > 1 ) {
+				throw new RuntimeException("L-Balanced parallel conveyor cannot have more than one K-balanced default conveyor");
+			} else if(kBalanced == 1) {
+				this.balancingCart = cart -> { 
+					if(map.containsKey(cart.getLabel())) {
+						return map.get(cart.getLabel());
+					} else {
+						return defaultConv;
+					}
+				};
+			} else {
+				this.balancingCart = cart -> { 
+					if(map.containsKey(cart.getLabel())) {
+						return map.get(cart.getLabel());
+					} else {
+						throw new RuntimeException("L-Balanced parallel conveyor "+this.name+"has no default conveyor for label "+cart.getLabel());
+					}
+				};
+			}
+			this.balancingCommand = command -> { 
+				return this.conveyors;
+			};
+			this.lBalanced = true;
+		}
 	}
 
 	/**
@@ -143,13 +198,8 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public <V> boolean addCommand(AbstractCommand<K, V> cart) {
-		try {
-			this.balancingCommand.apply(cart).forEach(c->c.addCommand(cart));
-			return true;
-		} catch(RuntimeException e) {
-			return false;
-		}
-		//return this.getConveyor( cart.getKey() ).addCommand( cart );
+		this.balancingCommand.apply(cart).forEach(c->c.addCommand(cart));
+		return true;
 	}
 	
 	@Override
@@ -183,13 +233,8 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public <V> boolean add(Cart<K,V,L> cart) {
 		Objects.requireNonNull(cart, "Cart is null");
-		try {
-			this.balancingCart.apply(cart).forEach(c->c.add(cart));
-			return true;
-		} catch(RuntimeException e) {
-			return false;
-		}
-		//return getConveyor( cart.getKey() ).add( cart );
+		this.balancingCart.apply(cart).forEach(c->c.add(cart));
+		return true;
 	}
 	@Override
 	public <V> boolean add(K key, V value, L label) {
@@ -278,7 +323,6 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		} catch(Exception e) {
 			return false;
 		}
-//		return getConveyor( cart.getKey() ).offer( cart );
 	}
 
 	@Override
@@ -358,9 +402,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param scrapConsumer the scrap consumer
 	 */
 	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer) {
-		for(Conveyor<K, L, OUT> conv: conveyors) {
-			conv.setScrapConsumer(scrapConsumer);
-		}
+		this.conveyors.forEach(conv->conv.setScrapConsumer(scrapConsumer));
 	}
 
 	/**
@@ -368,9 +410,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void stop() {
 		this.running = false;
-		for(Conveyor<K,L,OUT> conv: conveyors) {
-			conv.stop();
-		}
+		this.conveyors.forEach(conv->conv.stop());
 	}
 
 	/**
@@ -391,12 +431,10 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param expirationCollectionInterval the expiration collection interval
 	 * @param unit the unit
 	 */
-	public void setExpirationCollectionIdleInterval(long expirationCollectionInterval, TimeUnit unit) {
+	public void setIdleHeartBeat(long expirationCollectionInterval, TimeUnit unit) {
 		this.expirationCollectionInterval = expirationCollectionInterval;
 		this.expirationCollectionUnit = unit;
-		for(Conveyor<K,L,OUT> conv: conveyors) {
-			conv.setExpirationCollectionIdleInterval(expirationCollectionInterval,unit);
-		}
+		this.conveyors.forEach(conv->conv.setIdleHeartBeat(expirationCollectionInterval,unit));
 	}
 
 	/**
@@ -416,9 +454,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit) {
 		this.builderTimeout = unit.toMillis(builderTimeout);
-		for(Conveyor<K,L,OUT> conv: conveyors) {
-			conv.setDefaultBuilderTimeout(builderTimeout,unit);
-		}
+		this.conveyors.forEach(conv->conv.setDefaultBuilderTimeout(builderTimeout,unit));
 	}
 
 	/**
@@ -428,9 +464,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param unit the unit
 	 */
 	public void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit) {
-		for(Conveyor<K,L,OUT> conv: conveyors) {
-			conv.rejectUnexpireableCartsOlderThan(timeout,unit);
-		}
+		this.conveyors.forEach(conv->conv.rejectUnexpireableCartsOlderThan(timeout,unit));
 	}
 
 	
@@ -450,9 +484,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction) {
 		this.timeoutAction = timeoutAction;
-		for(Conveyor<K,L,OUT> conv: conveyors) {
-			conv.setOnTimeoutAction(timeoutAction);
-		}
+		this.conveyors.forEach(conv->conv.setOnTimeoutAction(timeoutAction));
 	}
 
 	/**
@@ -461,9 +493,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param resultConsumer the new result consumer
 	 */
 	public void setResultConsumer(Consumer<ProductBin<K,OUT>> resultConsumer) {
-		for(Conveyor<K,L,OUT> conv: conveyors) {
-			conv.setResultConsumer(resultConsumer);
-		}
+		this.conveyors.forEach(conv->conv.setResultConsumer(resultConsumer));
 	}
 
 	/**
@@ -472,9 +502,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cartConsumer the cart consumer
 	 */
 	public void setDefaultCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer) {
-		for(Conveyor<K,L,OUT> conv: conveyors) {
-			conv.setDefaultCartConsumer(cartConsumer);
-		}
+		this.conveyors.forEach(conv->conv.setDefaultCartConsumer(cartConsumer));
 	}
 
 	/**
@@ -483,9 +511,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param ready the ready
 	 */
 	public void setReadinessEvaluator(BiPredicate<State<K,L>, Supplier<? extends OUT>> ready) {
-		for(Conveyor<K,L,OUT> conv: conveyors) {
-			conv.setReadinessEvaluator(ready);
-		}
+		this.conveyors.forEach(conv->conv.setReadinessEvaluator(ready));
 	}
 
 	/**
@@ -494,9 +520,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param readiness the ready
 	 */
 	public void setReadinessEvaluator(Predicate<Supplier<? extends OUT>> readiness) {
-		for(Conveyor<K,L,OUT> conv: conveyors) {
-			conv.setReadinessEvaluator(readiness);
-		}
+		this.conveyors.forEach(conv->conv.setReadinessEvaluator(readiness));
 	}
 
 	/**
@@ -505,9 +529,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param builderSupplier the new builder supplier
 	 */
 	public void setBuilderSupplier(BuilderSupplier<OUT> builderSupplier) {
-		for(Conveyor<K,L,OUT> conv: conveyors) {
-			conv.setBuilderSupplier(builderSupplier);
-		}
+		this.conveyors.forEach(conv->conv.setBuilderSupplier(builderSupplier));
 	}
 
 	/**
@@ -516,6 +538,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param name the new name
 	 */
 	public void setName(String name) {
+		this.name = name;
 		int i = 0;
 		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.setName(name+" ["+i+"]");
@@ -545,37 +568,36 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			return conveyors.get(idx).isRunning();
 		}
 	}
-
-//	public void setBalancingFunction(BalancingFunction<K> balancingFunction) {
-//		this.balancingFunction = balancingFunction;
-//	}
 	
+	//Think about consequences
 	public void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator) {
 		if(cartBeforePlacementValidator != null) {
-			for(Conveyor<K,L,OUT> conv: conveyors) {
-				conv.addCartBeforePlacementValidator(cartBeforePlacementValidator);
-			}
+			this.conveyors.forEach(conv->conv.addCartBeforePlacementValidator(cartBeforePlacementValidator));
 		}
 	}
 
 
 	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction) {
 		if(keyBeforeEviction != null) {
-			for(Conveyor<K,L,OUT> conv: conveyors) {
-				conv.addBeforeKeyEvictionAction(keyBeforeEviction);
-			}
+			this.conveyors.forEach(conv->conv.addBeforeKeyEvictionAction(keyBeforeEviction));
 		}
 	}
 
 	public void addBeforeKeyReschedulingAction(BiConsumer<K,Long> keyBeforeRescheduling) {
 		if(keyBeforeRescheduling != null) {
-			for(Conveyor<K,L,OUT> conv: conveyors) {
-				conv.addBeforeKeyReschedulingAction(keyBeforeRescheduling);
-			}
+			this.conveyors.forEach(conv->conv.addBeforeKeyReschedulingAction(keyBeforeRescheduling));
 		}
 	}
-	
+	//////////
 	public long getExpirationTime(K key) {
+		if(!lBalanced) {
+			return this.conveyors.get(0).getExpirationTime(key);
+		} else {
+			throw new RuntimeException("Method cannot be called for L-Balanced conveyor '"+name+"'. Use getExpirationTime(K key, L label)");
+		}
+	}
+
+	public long getExpirationTime(K key, L label) {
 		//return getConveyor( key ).getExpirationTime(key);
 		return 0;
 	}
@@ -593,6 +615,41 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public int getDelayedQueueSize() {
 		return -1;
+	}
+	/////
+	public void setBalancingCommandAlgorithm(Function<AbstractCommand<K, ?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand) {
+		this.balancingCommand = balancingCommand;
+	}
+
+	public void setBalancingCartAlgorithm(Function<Cart<K, ?, L>, List<? extends Conveyor<K, L, OUT>>> balancingCart) {
+		this.balancingCart = balancingCart;
+	}
+
+	@Override
+	public boolean isLBalanced() {
+		return lBalanced;
+	}
+
+	@Override
+	public Set<L> getAcceptedLabels() {
+		return acceptedLabels ;
+	}
+
+	@Override
+	public void acceptLabels(L... labels) {
+		if(labels != null && labels.length > 0) {
+			for(L l:labels) {
+				acceptedLabels.add(l);
+			}
+			this.addCartBeforePlacementValidator(cart->{
+				if( ! acceptedLabels.contains(cart.getLabel())) {
+					throw new IllegalStateException("Parallel Conveyor '"+this.name+"' cannot process label '"+cart.getLabel()+"'");					
+				}
+			});
+			
+			lBalanced = true;
+			
+		}		
 	}
 
 }

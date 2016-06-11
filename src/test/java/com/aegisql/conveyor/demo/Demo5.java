@@ -28,7 +28,7 @@ public class Demo5 {
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 
 		// IV - Set collection interval
-		conveyor.setExpirationCollectionIdleInterval(100, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		
 		// V - Wrap building parts in the Shopping Cart
 		ShoppingCart<Integer, String, PersonBuilderLabel1> firstNameCart = new ShoppingCart<>(1, "John", PersonBuilderLabel1.SET_FIRST);

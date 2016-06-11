@@ -77,7 +77,7 @@ public class ResultQueueTest {
 		conveyor.setBuilderSupplier(UserBuilder::new);
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
-		conveyor.setExpirationCollectionIdleInterval(500, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(500, TimeUnit.MILLISECONDS);
 		assertEquals(500,conveyor.getExpirationCollectionIdleInterval());
 		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
@@ -121,7 +121,7 @@ public class ResultQueueTest {
 		conveyor.offer(c4);
 		conveyor.offer(c6);
 		Thread.sleep(100);
-		conveyor.setExpirationCollectionIdleInterval(1000, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(1000, TimeUnit.MILLISECONDS);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
 		System.out.println(u1);
