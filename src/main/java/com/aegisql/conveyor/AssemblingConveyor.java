@@ -973,6 +973,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	
 	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv) {
 		this.setResultConsumer(bin->{
+			LOG.debug("Forward {} from {} to {} {}",partial,this.name,conv.getName(),bin.product);
 			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
 			conv.add( partialResult );
 		});
@@ -1001,8 +1002,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		});
 		c.setSynchronizeBuilder( synchronizeBuilder);
 		
-		c.cartBeforePlacementValidator    = this.cartBeforePlacementValidator;
-		c.commandBeforePlacementValidator = this.commandBeforePlacementValidator;
 		c.startTimeReject                 = this.startTimeReject;
 		
 		return c;
@@ -1053,5 +1052,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return detached;
 	}
 
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public String toString() {
+		return "AssemblingConveyor [name=" + name + ", thread=" + innerThread.getId() + "]";
+	}
+
+	
 	
 }

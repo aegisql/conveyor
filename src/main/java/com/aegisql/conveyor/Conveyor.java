@@ -104,4 +104,5 @@ public interface Conveyor<K, L, OUT> {
 	public boolean isLBalanced();
 	public Set<L> getAcceptedLabels();
 	public void acceptLabels(L... labels);
+	public String getName();
 }

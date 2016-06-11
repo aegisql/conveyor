@@ -74,7 +74,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private Function<AbstractCommand<K,?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand;
 	private Function<Cart<K,?,L>, List<? extends Conveyor<K, L, OUT>>> balancingCart;
 
-	private String name;
+	private String name = "ParallelConveyor";
 
 	private boolean lBalanced = false;
 
@@ -136,8 +136,10 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				defaultConv.add( c );
 			}
 		}
+
 		//here we implement different logic for L and K balanced conveyors
 		if(lBalanced == 0) {
+			LOG.debug("K-Balanced Parallel conveyor parallelism:{}",pf);
 			this.balancingCart = cart -> { 
 				int index = cart.getKey().hashCode() % pf;
 				return this.conveyors.subList(index, index+1);
@@ -150,6 +152,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if( kBalanced > 1 ) {
 				throw new RuntimeException("L-Balanced parallel conveyor cannot have more than one K-balanced default conveyor");
 			} else if(kBalanced == 1) {
+				LOG.debug("L-Balanced Parallel conveyor with default labels. {}",map);
 				this.balancingCart = cart -> { 
 					if(map.containsKey(cart.getLabel())) {
 						return map.get(cart.getLabel());
@@ -158,6 +161,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					}
 				};
 			} else {
+				LOG.debug("L-Balanced Parallel conveyor. {}",map);
 				this.balancingCart = cart -> { 
 					if(map.containsKey(cart.getLabel())) {
 						return map.get(cart.getLabel());
@@ -652,4 +656,14 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}		
 	}
 
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public String toString() {
+		return "ParallelConveyor [name=" + name + ", pf=" + pf + ", lBalanced=" + lBalanced + "]";
+	}
+	
 }
