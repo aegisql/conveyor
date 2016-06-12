@@ -14,6 +14,11 @@ Maven dependency
 
 ## Release History
 
+### 1.0.13
+* Changes in the Conveyor interface. Assembling and Parallel conveyors now share most ofmethods
+* Scaling by label
+* setExpirationCollectionIdleInterval renamed to setIdleHeartBeat
+
 ### 1.0.12
 * Bugfix
 * Re-scheduling.  
