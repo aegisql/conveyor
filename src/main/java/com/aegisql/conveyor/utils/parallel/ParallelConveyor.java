@@ -665,5 +665,13 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public String toString() {
 		return "ParallelConveyor [name=" + name + ", pf=" + pf + ", lBalanced=" + lBalanced + "]";
 	}
-	
+
+	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv) {
+		this.setResultConsumer(bin->{
+			LOG.debug("Forward {} from {} to {} {}",partial,this.name,conv.getName(),bin.product);
+			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
+			conv.add( partialResult );
+		});
+	}
+
 }

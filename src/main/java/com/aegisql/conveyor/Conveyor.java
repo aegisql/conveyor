@@ -105,4 +105,5 @@ public interface Conveyor<K, L, OUT> {
 	public Set<L> getAcceptedLabels();
 	public void acceptLabels(L... labels);
 	public String getName();
+	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv);
 }
