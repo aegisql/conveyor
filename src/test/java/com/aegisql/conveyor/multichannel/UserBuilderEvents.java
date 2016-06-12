@@ -17,7 +17,9 @@ public enum UserBuilderEvents implements SmartLabel<UserBuilder> {
 	
 	MERGE_A(UserBuilder::mergeChannelA),
 
-	MERGE_B(UserBuilder::mergeChannelB)
+	MERGE_B(UserBuilder::mergeChannelB),
+
+	INFO(UserBuilder::setInfo)
 ;
 
 	/** The setter. */

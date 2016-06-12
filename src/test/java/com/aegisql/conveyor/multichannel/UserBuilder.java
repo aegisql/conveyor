@@ -65,6 +65,10 @@ public class UserBuilder implements Supplier<User> {
 		builder.yearOfBirth = user.getYearOfBirth();
 	}
 
+	public static void setInfo(UserBuilder builder, String info) {
+		System.out.println("---INFO---: "+info);
+	}
+
 	
 	/**
 	 * Gets the last.

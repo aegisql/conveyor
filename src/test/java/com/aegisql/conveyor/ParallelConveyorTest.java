@@ -349,6 +349,7 @@ public class ParallelConveyorTest {
 		conveyor.add(c4);
 		Thread.sleep(20);
 		assertNotNull(usr.get());
+		assertFalse(conveyor.isLBalanced());
 
 	}
 	

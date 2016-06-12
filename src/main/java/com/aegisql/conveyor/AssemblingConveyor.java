@@ -984,7 +984,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * set readiness evaluator and result consumer to throw an exception
 	 * acceptedLabels are not copied
 	 * */
-	public AssemblingConveyor<K,L,OUT> clone() {
+	public AssemblingConveyor<K,L,OUT> detach() {
 		AssemblingConveyor<K,L,OUT> c = new AssemblingConveyor<>();
 		c.setBuilderSupplier( builderSupplier );
 		c.setDefaultBuilderTimeout( builderTimeout, TimeUnit.MILLISECONDS );
@@ -1013,43 +1013,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	public Set<L> getAcceptedLabels() {
 		return acceptedLabels;
-	}
-
-	/**
-	 * Method creates a new instance of conveyor 
-	 * @param partialResultLabel - label which is associated with a partial result consumer in the Bulder
-	 * @param name - thread name for the new conveyor
-	 * @param labels - labels acceptable by the instance
-	 * 
-	 * @return AssemblingConveyor
-	 * 
-	 * */
-	public AssemblingConveyor<K,L,OUT> detachConveyor(L partialResultLabel, String name, L... labels) {
-		AssemblingConveyor<K,L,OUT> detached = this.clone();
-		if(labels != null) {
-			Set<L> detachedLabels = new HashSet<>();
-			for(L label:labels) {
-				detachedLabels.add(label);
-			}
-			this.addCartBeforePlacementValidator(cart->{
-				if(detachedLabels.contains(cart.getLabel())) {
-					throw new IllegalStateException("Conveyor '"+this.name+"' cannot process label '"+cart.getLabel()+"' use '"+detached.name+"' conveyor");					
-				}
-			});
-			detached.addCartBeforePlacementValidator(cart->{
-				if( ! detachedLabels.contains(cart.getLabel()) || cart.getLabel().equals(partialResultLabel)) {
-					throw new IllegalStateException("Detached conveyor '"+detached.name+"' cannot process label '"+partialResultLabel+"' use '"+this.name+"' conveyor");
-				}
-			});
-			//add more cart consumer options later
-			//
-			detached.setResultConsumer(bin->{
-				Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partialResultLabel,bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
-				this.add(partialResult);
-			});
-		}
-		
-		return detached;
 	}
 
 	@Override
