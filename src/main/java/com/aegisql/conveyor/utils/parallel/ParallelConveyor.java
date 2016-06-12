@@ -602,8 +602,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	public long getExpirationTime(K key, L label) {
-		//return getConveyor( key ).getExpirationTime(key);
-		return 0;
+		throw new RuntimeException("Unimplemented method");
 	}
 
 	@Override
