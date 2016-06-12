@@ -80,8 +80,6 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	private Set<L> acceptedLabels = new HashSet<>();
 	
-	//private BalancingFunction<K> balancingFunction;
-	
 	/**
 	 * Instantiates a new parallel conveyor.
 	 *
@@ -113,7 +111,6 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if( pf == 0 ) {
 			throw new IllegalArgumentException("Parallelism Factor must be >=1");
 		}
-		//this.balancingFunction = key -> key.hashCode() % this.pf;
 		int kBalanced = 0;
 		int lBalanced = 0;
 		List<Conveyor<K, L, OUT>> defaultConv = new ArrayList<>();
@@ -137,7 +134,6 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 		}
 
-		//here we implement different logic for L and K balanced conveyors
 		if(lBalanced == 0) {
 			LOG.debug("K-Balanced Parallel conveyor parallelism:{}",pf);
 			this.balancingCart = cart -> { 
@@ -177,25 +173,6 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 
-	/**
-	 * Idx.
-	 *
-	 * @param key the key
-	 * @return the int
-	 */
-//	private int idx(K key) {
-//		return balancingFunction.balanceCart(key);
-//	}
-
-	/**
-	 * Gets the conveyor.
-	 *
-	 * @param key the key
-	 * @return the conveyor
-	 */
-//	private Conveyor<K, L, OUT> getConveyor(K key) {
-//		return conveyors.get( idx(key) );
-//	}
 	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
@@ -592,7 +569,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			this.conveyors.forEach(conv->conv.addBeforeKeyReschedulingAction(keyBeforeRescheduling));
 		}
 	}
-	//////////
+
 	public long getExpirationTime(K key) {
 		if(!lBalanced) {
 			return this.conveyors.get(0).getExpirationTime(key);
@@ -619,7 +596,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public int getDelayedQueueSize() {
 		return -1;
 	}
-	/////
+
 	public void setBalancingCommandAlgorithm(Function<AbstractCommand<K, ?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand) {
 		this.balancingCommand = balancingCommand;
 	}
