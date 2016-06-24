@@ -8,15 +8,15 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.0.7</version>
+  <version>1.0.13</version>
 </dependency>
 ```
 
 ## Release History
 
 ### 1.0.13
-* Changes in the Conveyor interface. Assembling and Parallel conveyors now share most ofmethods
-* Scaling by label
+* Changes in the Conveyor interface. Assembling and Parallel conveyors now share most of methods
+* Scaling by labels
 * setExpirationCollectionIdleInterval renamed to setIdleHeartBeat
 
 ### 1.0.12
