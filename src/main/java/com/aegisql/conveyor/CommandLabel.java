@@ -27,7 +27,14 @@ public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 			return AssemblingConveyor::cancelNow;
 		}
 	},
-	
+
+	/** The acknowledge command. */
+	ACK_BUILD {
+		public BiConsumer<AssemblingConveyor, Object> get() {
+			return AssemblingConveyor::acknowledge;
+		}
+	},
+
 	/** The timeout build. */
 	TIMEOUT_BUILD {
 		public BiConsumer<AssemblingConveyor, Object> get() {

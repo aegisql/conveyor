@@ -868,6 +868,18 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	/**
+	 * acknowledge build
+	 *
+	 * @param conveyor the conveyor
+	 * @param cart the cart
+	 */
+	//TODO: add something
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	static void acknowledge( AssemblingConveyor conveyor, Object cart ) {
+		Object key = ((Cart)cart).getKey();
+	}
+
+	/**
 	 * Cancel now.
 	 *
 	 * @param conveyor the conveyor
