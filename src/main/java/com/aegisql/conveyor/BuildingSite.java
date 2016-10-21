@@ -238,11 +238,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		if(postponeExpirationEnabled) {
 			if( builder instanceof Expireable ) {
 				Expireable ex = (Expireable)builder;
-				builderExpiration = ex.getExpirationTime(); //let builder decide
+				builderExpiration = ex.getExpirationTime(); //let builder decide. highest priority
 			} else if( cart.getExpirationTime() > 0 ) {
 				builderExpiration = Math.max(this.builderExpiration, cart.getExpirationTime()); // keep longest TTL
 			} else if( builderExpiration > 0) {
-				builderExpiration += addExpirationTimeMsec; //just add some time, if expireable
+				builderExpiration += addExpirationTimeMsec; //just add some time, if expireable, lowest priority
 			}
 		}
 	}

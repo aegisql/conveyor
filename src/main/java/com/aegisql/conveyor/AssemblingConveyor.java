@@ -692,6 +692,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(buildingSite == null) {
 				continue;
 			}
+			
+			if(postponeExpirationEnabled) {
+				long expirationTime = buildingSite.getExpirationTime();
+				if(  expirationTime > System.currentTimeMillis() ) {
+					LOG.trace("Expiration has bin postponed for key={}",key);
+					delayProvider.getBox(expirationTime).add(key);
+					continue;
+				}
+			}
+			
 			buildingSite.setStatus(Status.TIMED_OUT);
 			if (collector.containsKey(key)) {
 				keyBeforeEviction.accept(key);
