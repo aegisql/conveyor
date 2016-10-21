@@ -93,7 +93,7 @@ public class BatchConveyorBuilderTest {
 		AtomicInteger ai = new AtomicInteger(0);
 		AtomicInteger aii = new AtomicInteger(0);
 		
-		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 10, TimeUnit.MILLISECONDS) );
+		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 20, TimeUnit.MILLISECONDS) );
 		b.setScrapConsumer((obj)->{
 			System.out.println(obj);
 			ai.decrementAndGet();
@@ -111,7 +111,7 @@ public class BatchConveyorBuilderTest {
 				b.add(new BatchCart<Integer>("B",i));
 			}
 		}
-		Thread.sleep(50);
+		Thread.sleep(20);
 		assertEquals(10, ai.get());
 		assertEquals(100, aii.get());
 		Thread.sleep(200);

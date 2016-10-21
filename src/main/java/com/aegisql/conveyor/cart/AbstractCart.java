@@ -176,7 +176,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	 */
 	@Override
 	public String toString() {
-		return "Cart [key=" + k + ", value=" + v + ", label=" + label + ", expirationTime=" + expirationTime + "]";
+		return getClass().getSimpleName()+" [key=" + k + ", value=" + v + ", label=" + label + ", expirationTime=" + expirationTime + "]";
 	}
 
 }

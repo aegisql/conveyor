@@ -82,7 +82,7 @@ public class BuildingSiteTest {
 				(label,value,builder)-> { }, 
 				(state,builder)->{return false;}, 
 				null,
-				100, TimeUnit.MILLISECONDS,false,false);
+				100, TimeUnit.MILLISECONDS,false,false,false,0);
 		assertNull(bs.getLastError());
 		User u = bs.build();
 	}
@@ -103,7 +103,7 @@ public class BuildingSiteTest {
 				(label,value,builder)-> { }, 
 				(state,builder)->{return true;}, 
 				null,
-				100, TimeUnit.MILLISECONDS,false,false);
+				100, TimeUnit.MILLISECONDS,false,false,false,0);
 		assertEquals(0, bs.getAcceptCount());
 		assertEquals(Status.WAITING_DATA, bs.getStatus());
 		bs.accept(c.nextCart("XXX"));
@@ -133,7 +133,7 @@ public class BuildingSiteTest {
 				(label,value,builder)-> { System.out.println(label+" "+value); }, 
 				(state,builder)->{return true;}, 
 				null,
-				100, TimeUnit.MILLISECONDS,true,true);
+				100, TimeUnit.MILLISECONDS,true,true,true,0);
 		assertEquals(0, bs.getAcceptCount());
 		assertEquals(Status.WAITING_DATA, bs.getStatus());
 		bs.accept(c.nextCart("XXX"));

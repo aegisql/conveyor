@@ -106,7 +106,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	Delayed delayKeeper;
 	
 	private final Lock lock;
+	
+	private final boolean postponeExpirationEnabled;
 
+	private final long addExpirationTimeMsec;
+	
 	/**
 	 * Instantiates a new building site.
 	 *
@@ -126,13 +130,16 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer, 
 			BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness, 
 			Consumer<Supplier<? extends OUT>> timeoutAction,
-			long ttl, TimeUnit unit, boolean synchronizeBuilder, boolean saveCarts) {
-		this.initialCart        = cart;
-		this.lastCart           = cart;
-		this.builder            = builderSupplier.get() ;
-		this.timeoutAction      = timeoutAction;
-		this.saveCarts          = saveCarts;
-		this.valueConsumer = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
+			long ttl, TimeUnit unit, boolean synchronizeBuilder, 
+			boolean saveCarts, boolean postponeExpirationEnabled, long addExpirationTimeMsec) {
+		this.initialCart               = cart;
+		this.lastCart                  = cart;
+		this.builder                   = builderSupplier.get() ;
+		this.timeoutAction             = timeoutAction;
+		this.saveCarts                 = saveCarts;
+		this.postponeExpirationEnabled = postponeExpirationEnabled;
+		this.addExpirationTimeMsec     = addExpirationTimeMsec;
+		this.valueConsumer             = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
 		if(synchronizeBuilder) {
 			this.lock = new ReentrantLock();
 		} else {
@@ -201,28 +208,41 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		}
 		L label = cart.getLabel();
 		Object value = cart.getValue();
-		
-			if( (label == null) || ! (label instanceof SmartLabel) ) {
-				lock.lock();
-				try {
-					valueConsumer.accept(label, value, builder);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				lock.lock();
-				try {
-					((SmartLabel)label).get().accept(builder,value);
-				} finally {
-					lock.unlock();
-				}
+
+		if ((label == null) || !(label instanceof SmartLabel)) {
+			lock.lock();
+			try {
+				valueConsumer.accept(label, value, builder);
+			} finally {
+				lock.unlock();
 			}
+		} else {
+			lock.lock();
+			try {
+				((SmartLabel) label).get().accept(builder, value);
+			} finally {
+				lock.unlock();
+			}
+		}
 		acceptCount++;
 		if(label != null) {
 			if(eventHistory.containsKey(label)) {
 				eventHistory.get(label).incrementAndGet();
 			} else {
 				eventHistory.put(label, new AtomicInteger(1));
+			}
+		}
+		// this itself does not affect expiration time
+		// it should be enabled
+		// enabling may affect performance
+		if(postponeExpirationEnabled) {
+			if( builder instanceof Expireable ) {
+				Expireable ex = (Expireable)builder;
+				builderExpiration = ex.getExpirationTime(); //let builder decide
+			} else if( cart.getExpirationTime() > 0 ) {
+				builderExpiration = Math.max(this.builderExpiration, cart.getExpirationTime()); // keep longest TTL
+			} else if( builderExpiration > 0) {
+				builderExpiration += addExpirationTimeMsec; //just add some time, if expireable
 			}
 		}
 	}

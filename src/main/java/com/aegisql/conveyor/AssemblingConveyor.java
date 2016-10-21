@@ -185,6 +185,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	private boolean lBalanced = false;
 
+	private boolean postponeExpirationEnabled = false;
+
+	private long postponeExpirationMills = 0;
+
 	/**
 	 * Wait data.
 	 *
@@ -247,7 +251,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							builderTimeout, 
 							TimeUnit.MILLISECONDS,
 							synchronizeBuilder,
-							saveCarts
+							saveCarts,
+							postponeExpirationEnabled,
+							postponeExpirationMills
 						);
 				} else {
 					scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither creating cart nor default builder supplier available",FailureType.BUILD_INITIALIZATION_FAILED) );
@@ -263,7 +269,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						builderTimeout, 
 						TimeUnit.MILLISECONDS, 
 						synchronizeBuilder,
-						saveCarts
+						saveCarts,
+						postponeExpirationEnabled,
+						postponeExpirationMills
 					);
 			} else {
 				scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither builder nor builder supplier available",FailureType.BUILD_INITIALIZATION_FAILED) );
@@ -1035,6 +1043,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public String toString() {
 		return "AssemblingConveyor [name=" + name + ", thread=" + innerThread.getId() + "]";
+	}
+
+	@Override
+	public void enablePostponeExpiration(boolean flag) {
+		this.postponeExpirationEnabled = flag;
+	}
+
+	@Override
+	public void setExpirationPostponeTime(long time, TimeUnit unit) {
+		this.postponeExpirationMills = unit.toMillis(time);
 	}
 
 	

@@ -106,4 +106,6 @@ public interface Conveyor<K, L, OUT> {
 	public void acceptLabels(L... labels);
 	public String getName();
 	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv);
+	public void enablePostponeExpiration(boolean flag);
+	public void setExpirationPostponeTime(long time, TimeUnit unit);
 }
