@@ -3,9 +3,9 @@
  */
 package com.aegisql.conveyor.user;
 
-import java.util.concurrent.Delayed;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+
+import com.aegisql.conveyor.Expireable;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  */
-public class UserBuilderDelayed implements Supplier<User>, Delayed {
+public class UserBuilderExpireable implements Supplier<User>, Expireable {
 
 	/** The first. */
 	String first;
@@ -40,7 +40,7 @@ public class UserBuilderDelayed implements Supplier<User>, Delayed {
 	 *
 	 * @param delay the delay
 	 */
-	public UserBuilderDelayed(long delay) {
+	public UserBuilderExpireable(long delay) {
 		builderExpiration = builderCreated + delay;
 	}
 	
@@ -60,6 +60,7 @@ public class UserBuilderDelayed implements Supplier<User>, Delayed {
 	 */
 	public void setYearOfBirth(Integer yob) {
 		this.yearOfBirth = yob;
+		this.builderExpiration += 100;
 	}
 
 	/**
@@ -78,6 +79,7 @@ public class UserBuilderDelayed implements Supplier<User>, Delayed {
 	 */
 	public void setFirst(String first) {
 		this.first = first;
+		this.builderExpiration += 100;
 	}
 
 	/**
@@ -96,6 +98,7 @@ public class UserBuilderDelayed implements Supplier<User>, Delayed {
 	 */
 	public void setLast(String last) {
 		this.last = last;
+		this.builderExpiration += 100;
 	}
 
 	/* (non-Javadoc)
@@ -124,26 +127,19 @@ public class UserBuilderDelayed implements Supplier<User>, Delayed {
 		this.ready = ready;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	public int compareTo(Delayed o) {
-		return (int) (builderCreated - ((UserBuilderDelayed)o).builderCreated);
+	@Override
+	public long getExpirationTime() {
+		return builderExpiration;
+	}
+
+	@Override
+	public String toString() {
+		return "UserBuilderExpireable [first=" + first + ", last=" + last + ", yearOfBirth=" + yearOfBirth
+				+ ", builderCreated=" + builderCreated + ", builderExpiration=" + builderExpiration + ", ready=" + ready
+				+ "]";
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.util.concurrent.Delayed#getDelay(java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public long getDelay(TimeUnit unit) {
-        long delta;
-		if( builderExpiration == 0 ) {
-			delta = Long.MAX_VALUE;
-		} else {
-			delta = builderExpiration - System.currentTimeMillis();
-		}
-        return unit.convert(delta, TimeUnit.MILLISECONDS);
-	}
+	
 
 	
 }

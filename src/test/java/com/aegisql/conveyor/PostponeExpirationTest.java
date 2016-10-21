@@ -16,6 +16,7 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
+import com.aegisql.conveyor.user.UserBuilderExpireable;
 import com.aegisql.conveyor.user.UserBuilderSmart;
 
 public class PostponeExpirationTest {
@@ -126,4 +127,62 @@ public class PostponeExpirationTest {
 		conveyor.stop();
 	}
 
+	@Test
+	public void testBuilderExpirationPostpone() throws InterruptedException {
+		AssemblingConveyor<Integer, String, User> conveyor = new AssemblingConveyor<>();
+		outQueue.clear();
+		conveyor.setBuilderSupplier(()->new UserBuilderExpireable(10));
+
+		conveyor.setResultConsumer(res -> {
+			System.out.println("Result " + res);
+			outQueue.add(res.product);
+		});
+		conveyor.setScrapConsumer(bin -> {
+			System.out.println("Error " + bin);
+		});
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			return state.previouslyAccepted == 3;
+		});
+		conveyor.setName("User Assembler");
+
+		conveyor.enablePostponeExpiration(true);
+		conveyor.setIdleHeartBeat(1, TimeUnit.MILLISECONDS);
+		conveyor.setDefaultCartConsumer((l,v,b)->{
+			UserBuilderExpireable ub = (UserBuilderExpireable)b;
+			switch(l) {
+				case "FIRST":
+					ub.setFirst(v.toString());
+					break;
+				case "LAST":
+					ub.setLast(v.toString());
+					break;
+				case "YEAR":
+					ub.setYearOfBirth((Integer)v);
+					break;
+			}
+			System.out.println(""+l+" "+v+" "+b);
+		});
+		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John",
+				"FIRST");
+		Cart<Integer, String, String> c2 = new ShoppingCart<>(1,"Doe", "LAST");
+
+		conveyor.offer(c1);
+		User u0 = outQueue.poll();
+		assertNull(u0);
+		conveyor.offer(c2);
+		Thread.sleep(100); //created with 10, but 100 added by second cart
+		Cart<Integer, Integer, String> c3 = new ShoppingCart<>(1, 1999, "YEAR");
+		conveyor.offer(c3);
+
+		Thread.sleep(10);
+
+		User u1 = outQueue.poll();
+		assertNotNull(u1);
+		System.out.println(u1);
+		User u2 = outQueue.poll();
+		assertNull(u2);
+		conveyor.stop();
+	}
+
+	
 }
