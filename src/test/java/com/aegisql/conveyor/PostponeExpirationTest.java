@@ -160,7 +160,6 @@ public class PostponeExpirationTest {
 					ub.setYearOfBirth((Integer)v);
 					break;
 			}
-			System.out.println(""+l+" "+v+" "+b);
 		});
 		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John",
 				"FIRST");
