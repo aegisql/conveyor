@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -111,6 +112,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	private final long addExpirationTimeMsec;
 	
+	private BiConsumer<BuildingSite <K, L, C, OUT>,C> postponeAlg = (bs,cart)->{/*do nothing*/};
+	
 	/**
 	 * Instantiates a new building site.
 	 *
@@ -178,7 +181,19 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			builderCreated    = System.currentTimeMillis();
 			builderExpiration = expireable.getExpirationTime();
 			delayKeeper       = Expireable.toDelayed((Expireable)builder);
-		} 
+			postponeAlg       = (bs,c) -> {
+				Expireable ex = (Expireable)bs.builder;
+				bs.builderExpiration = ex.getExpirationTime(); //let builder decide. highest priority
+			};			
+		} else {
+			postponeAlg = (bs,c) -> {
+				if( c.getExpirationTime() > 0 ) {
+					bs.builderExpiration = Math.max(this.builderExpiration, c.getExpirationTime()); // keep longest TTL
+				} else if( builderExpiration > 0) {
+					bs.builderExpiration += bs.addExpirationTimeMsec; //just add some time, if expireable, lowest priority
+				}
+			};			
+		}
 		if( cart.getExpirationTime() > 0 && builderExpiration == 0) {
 			builderCreated    = cart.getCreationTime();
 			builderExpiration = cart.getExpirationTime();
@@ -236,14 +251,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		// it should be enabled
 		// enabling may affect performance
 		if(postponeExpirationEnabled) {
-			if( builder instanceof Expireable ) {
-				Expireable ex = (Expireable)builder;
-				builderExpiration = ex.getExpirationTime(); //let builder decide. highest priority
-			} else if( cart.getExpirationTime() > 0 ) {
-				builderExpiration = Math.max(this.builderExpiration, cart.getExpirationTime()); // keep longest TTL
-			} else if( builderExpiration > 0) {
-				builderExpiration += addExpirationTimeMsec; //just add some time, if expireable, lowest priority
-			}
+			postponeAlg.accept(this, cart);
 		}
 	}
 
