@@ -14,6 +14,10 @@ Maven dependency
 
 ## Release History
 
+### 1.0.16
+* bugfix
+* added posponing expiration time when data accessed via caching interface
+
 ### 1.0.15
 * added posponing expiration time
 
