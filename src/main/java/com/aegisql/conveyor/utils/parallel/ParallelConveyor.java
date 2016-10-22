@@ -652,14 +652,12 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public void enablePostponeExpiration(boolean flag) {
-		// TODO Auto-generated method stub
-		
+		this.conveyors.forEach(conv -> conv.enablePostponeExpiration(flag));
 	}
 
 	@Override
 	public void setExpirationPostponeTime(long time, TimeUnit unit) {
-		// TODO Auto-generated method stub
-		
+		this.conveyors.forEach(conv -> conv.setExpirationPostponeTime(time, unit));	
 	}
 
 }
