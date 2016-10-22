@@ -70,12 +70,16 @@ public class PostponeExpirationTest {
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
+		Thread.sleep(50);
+		long et1 = conveyor.getExpirationTime(1);		
 		conveyor.offer(c2);
-		Thread.sleep(200);
+		Thread.sleep(50);
+		long et2 = conveyor.getExpirationTime(1);
 		conveyor.offer(c3);
+		Thread.sleep(50); //over original exp time
 
-		Thread.sleep(10);
-
+		long diff = et2-et1;
+		System.out.println("et1="+et1+" diff="+diff);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
 		System.out.println(u1);

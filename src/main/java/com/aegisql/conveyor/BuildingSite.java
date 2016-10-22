@@ -187,10 +187,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			};			
 		} else {
 			postponeAlg = (bs,c) -> {
-				if( c.getExpirationTime() > 0 ) {
+				if( c != null && c.getExpirationTime() > 0 ) {
 					bs.builderExpiration = Math.max(this.builderExpiration, c.getExpirationTime()); // keep longest TTL
 				} else if( builderExpiration > 0) {
-					bs.builderExpiration += bs.addExpirationTimeMsec; //just add some time, if expireable, lowest priority
+					bs.builderExpiration = System.currentTimeMillis() + bs.addExpirationTimeMsec; //just add some time, if expireable, lowest priority
 				}
 			};			
 		}
@@ -311,6 +311,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	
 	public Supplier<? extends OUT> getProductSupplier() {
 		if(productSupplier == null ) {
+			final BuildingSite <K, L, C, OUT> bs = this;
 			productSupplier = new Supplier<OUT>() {
 				@Override
 				public OUT get() {
@@ -321,6 +322,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 					lock.lock();
 					try {
 						res = builder.get();
+						bs.postponeAlg.accept(bs, null);
 					} finally {
 						lock.unlock();
 					}
