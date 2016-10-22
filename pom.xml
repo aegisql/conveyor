@@ -10,7 +10,7 @@
 
 	<groupId>com.aegisql</groupId>
 	<artifactId>conveyor</artifactId>
-	<version>1.0.15-SNAPSHOT</version>
+	<version>1.0.15</version>
 	<packaging>jar</packaging>
 
 	<name>conveyor</name>
