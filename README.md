@@ -14,6 +14,12 @@ Maven dependency
 
 ## Release History
 
+### 1.0.15
+* added posponing expiration time
+
+### 1.0.14
+* skip
+
 ### 1.0.13
 * Changes in the Conveyor interface. Assembling and Parallel conveyors now share most of methods
 * Scaling by labels
