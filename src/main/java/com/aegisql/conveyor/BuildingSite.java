@@ -69,13 +69,17 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private final Supplier<? extends OUT> builder;
 	
 	/** The value consumer. */
-	private final LabeledValueConsumer<L, Object, Supplier<? extends OUT>> valueConsumer;
-	
+	private final LabeledValueConsumer<L, Object, Supplier<? extends OUT>> defaultValueConsumer;
+
+	private LabeledValueConsumer<L, Object, Supplier<? extends OUT>> valueConsumer = null;
+
 	/** The readiness. */
 	private final BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness;
 	
-	private Consumer<Supplier<? extends OUT>> timeoutAction;
-	
+	private final Consumer<Supplier<? extends OUT>> defaultTimeoutAction;
+
+	private final Consumer<Supplier<? extends OUT>> timeoutAction;
+
 	private boolean saveCarts      = false;
 
 	private final List<C> allCarts = new ArrayList<>();
@@ -138,16 +142,26 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.initialCart               = cart;
 		this.lastCart                  = cart;
 		this.builder                   = builderSupplier.get() ;
-		this.timeoutAction             = timeoutAction;
+		this.defaultTimeoutAction      = timeoutAction;
 		this.saveCarts                 = saveCarts;
 		this.postponeExpirationEnabled = postponeExpirationEnabled;
 		this.addExpirationTimeMsec     = addExpirationTimeMsec;
-		this.valueConsumer             = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
+		this.defaultValueConsumer             = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
 		if(synchronizeBuilder) {
 			this.lock = new ReentrantLock();
 		} else {
 			this.lock = BuildingSite.NON_LOCKING_LOCK;
 		}
+		if (builder instanceof TimeoutAction) {
+			this.timeoutAction = b -> {
+				((TimeoutAction) builder).onTimeout();
+			};
+		} else if (defaultTimeoutAction != null) {
+			this.timeoutAction = defaultTimeoutAction;
+		} else {
+			this.timeoutAction = b -> {/* do nothing */};
+		}
+
 		if(readiness != null) {
 			this.readiness = readiness;			
 		} else {
@@ -215,37 +229,25 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 *
 	 * @param cart the cart
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void accept(C cart) {
 		this.lastCart = cart;
 		if( saveCarts) {
 			allCarts.add(cart);
 		}
-		L label = cart.getLabel();
+		L label      = cart.getLabel();
 		Object value = cart.getValue();
 
-		if ((label == null) || !(label instanceof SmartLabel)) {
-			lock.lock();
-			try {
-				valueConsumer.accept(label, value, builder);
-			} finally {
-				lock.unlock();
-			}
-		} else {
-			lock.lock();
-			try {
-				((SmartLabel) label).get().accept(builder, value);
-			} finally {
-				lock.unlock();
-			}
+		lock.lock();
+		try {
+			getValueConsumer(label, value, builder).accept(label, value, builder);
+		} finally {
+			lock.unlock();
 		}
 		acceptCount++;
-		if(label != null) {
-			if(eventHistory.containsKey(label)) {
-				eventHistory.get(label).incrementAndGet();
-			} else {
-				eventHistory.put(label, new AtomicInteger(1));
-			}
+		if (eventHistory.containsKey(label)) {
+			eventHistory.get(label).incrementAndGet();
+		} else {
+			eventHistory.put(label, new AtomicInteger(1));
 		}
 		// this itself does not affect expiration time
 		// it should be enabled
@@ -257,21 +259,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	public void timeout(C cart) {
 		this.lastCart = cart;
-		if( timeoutAction != null ) {
-			lock.lock();
-			try {
-				timeoutAction.accept(builder);
-			} finally {
-				lock.unlock();
-			}
-		} else if (builder instanceof TimeoutAction ){ 
-			lock.lock();
-			try {
-				((TimeoutAction)builder).onTimeout();
-			} finally {
-				lock.unlock();
-			}
-		} 
+		lock.lock();
+		try {
+			timeoutAction.accept(builder);
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/**
@@ -501,5 +494,21 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	void updateExpirationTime(long expirationTime) {
 		this.builderExpiration = expirationTime;
 	}
-	
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private LabeledValueConsumer<L, Object, Supplier<? extends OUT>> getValueConsumer(L label, Object value, Supplier<? extends OUT> builder) {
+		if(label == null) {
+			return defaultValueConsumer;
+		} else if(valueConsumer == null) {
+			if( label instanceof SmartLabel ) {
+				valueConsumer = (l,v,b) -> {
+					((SmartLabel) l).get().accept(b, v);
+				};
+			} else {
+				valueConsumer = defaultValueConsumer;
+			}
+		}
+		return valueConsumer;
+	}
+		
 }
