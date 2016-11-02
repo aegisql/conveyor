@@ -969,7 +969,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			LOG.debug("Key '{}' does not exist. Ignoring check command.",key);
 		}
 	}
-	
+	//TODO: finish this
+	static void futureBuild( AssemblingConveyor conveyor, Object cart ) {
+		Object key = ((Cart)cart).getKey();
+		if(conveyor.collector.containsKey(key)) {
+			conveyor.processSite((Cart) cart, false);
+		} else {
+			LOG.debug("Key '{}' does not exist. Ignoring check command.",key);
+		}
+	}
+
 	/**
 	 * Checks if is running.
 	 *
