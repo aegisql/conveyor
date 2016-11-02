@@ -6,6 +6,7 @@ package com.aegisql.conveyor;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -80,6 +81,17 @@ public interface Conveyor<K, L, OUT> {
 	public <V> boolean addCommand(K key, V value, CommandLabel label, Duration duration);
 	public <V> boolean addCommand(K key, V value, CommandLabel label, Instant instant);
 	
+	/*
+	 * Creates a CompletableFuture and sends to the Conveyor using standard Cart message
+	 * When processed, Building site will register the Future in its future collection.
+	 * 
+	 * 
+	 * */
+	public CompletableFuture<OUT> getFuture(K key);
+	public CompletableFuture<OUT> getFuture(K key, long expirationTime);
+	public CompletableFuture<OUT> getFuture(K key, long ttl, TimeUnit unit);
+	public CompletableFuture<OUT> getFuture(K key, Duration duration);
+	public CompletableFuture<OUT> getFuture(K key, Instant instant);
 	
 	public int getCollectorSize();
 	public int getInputQueueSize();

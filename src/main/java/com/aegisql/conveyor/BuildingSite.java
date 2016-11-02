@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -83,6 +84,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private boolean saveCarts      = false;
 
 	private final List<C> allCarts = new ArrayList<>();
+	
+	private final List<CompletableFuture<OUT>> futures = new ArrayList<>();
 	
 	/** The initial cart. */
 	private final  C initialCart;
@@ -480,6 +483,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.lastCart = lastCart;
 	}
 	
+	public List<CompletableFuture<OUT>> getFutures() {
+		return futures;
+	}
+	
+	public void addFuture(CompletableFuture<OUT> future) {
+		futures.add(future);
+	}
+
 	/**
 	 * package access methods
 	 * */

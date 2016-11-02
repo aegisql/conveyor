@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -35,6 +36,7 @@ import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
+import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.AbstractCommand;
 
@@ -292,6 +294,40 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,instant) );						
 	}
 	
+	@Override
+	public CompletableFuture<OUT> getFuture(K key) {
+		CompletableFuture<OUT> future = new CompletableFuture<>();
+		this.add( new FutureCart<K,OUT,L>(key) );
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> getFuture(K key, long expirationTime) {
+		CompletableFuture<OUT> future = new CompletableFuture<>();
+		this.add( new FutureCart<K,OUT,L>(key,expirationTime) );
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> getFuture(K key, long ttl, TimeUnit unit) {
+		CompletableFuture<OUT> future = new CompletableFuture<>();
+		this.add( new FutureCart<K,OUT,L>(key,ttl,unit) );
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> getFuture(K key, Duration duration) {
+		CompletableFuture<OUT> future = new CompletableFuture<>();
+		this.add( new FutureCart<K,OUT,L>(key,duration) );
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> getFuture(K key, Instant instant) {
+		CompletableFuture<OUT> future = new CompletableFuture<>();
+		this.add( new FutureCart<K,OUT,L>(key,instant) );
+		return future;
+	}
 	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
