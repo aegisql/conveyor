@@ -9,10 +9,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Queue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 
 import org.junit.After;
@@ -481,8 +483,8 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
-	@Test
-	public void testFutureSmart() throws InterruptedException, ExecutionException {
+	@Test(expected=CancellationException.class)
+	public void testFutureSmart() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
@@ -493,6 +495,8 @@ public class SmartConveyorTest {
 			return state.previouslyAccepted == 3;
 		});
 		conveyor.setName("User Assembler");
+		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
+		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
@@ -500,27 +504,34 @@ public class SmartConveyorTest {
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
 		
-		CompletableFuture<User> f = conveyor.getFuture(1);
+		CompletableFuture<User> f1 = conveyor.getFuture(1);
 		
-		assertNotNull(f);
-		assertFalse(f.isCancelled());
-		assertFalse(f.isCompletedExceptionally());
-		assertFalse(f.isDone());
-		
+		assertNotNull(f1);
+		assertFalse(f1.isCancelled());
+		assertFalse(f1.isCompletedExceptionally());
+		assertFalse(f1.isDone());
+
+
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
 		conveyor.offer(c2);
 		conveyor.offer(c3);
 		conveyor.offer(c4);
-		
+
+		CompletableFuture<User> f2 = conveyor.getFuture(2);
+		assertNotNull(f2);
+		assertFalse(f2.isCancelled());
+		assertFalse(f2.isCompletedExceptionally());
+		assertFalse(f2.isDone());
+
 		conveyor.forEachKeyAndBuilder((key,builder)->{
 			System.out.println("-- key="+key+" builder="+builder.get());
 		});
 		
-		User user = f.get();
-		assertNotNull(user);
-		System.out.println(user);
+		User user1 = f1.get();
+		assertNotNull(user1);
+		System.out.println(user1);
 
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -528,10 +539,12 @@ public class SmartConveyorTest {
 		User u2 = outQueue.poll();
 		assertNull(u2);
 
-		assertFalse(f.isCancelled());
-		assertFalse(f.isCompletedExceptionally());
-		assertTrue(f.isDone());
-		
+		assertFalse(f1.isCancelled());
+		assertFalse(f1.isCompletedExceptionally());
+		assertTrue(f1.isDone());
+
+		User user2 = f2.get(200,TimeUnit.MILLISECONDS);
+
 		conveyor.stop();
 	}
 
