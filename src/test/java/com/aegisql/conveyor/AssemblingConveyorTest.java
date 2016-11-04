@@ -146,7 +146,7 @@ public class AssemblingConveyorTest {
 		});
 		GeneralCommand<Integer,?> c1 = new TimeoutCommand<>(1);
 		conveyor.stop();
-		assertFalse(conveyor.addCommand(c1).get());
+		conveyor.addCommand(c1);
 	}
 
 	/**

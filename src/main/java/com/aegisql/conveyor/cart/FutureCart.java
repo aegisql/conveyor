@@ -22,32 +22,12 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 		super(k, v, null);
 	}
 
-	public FutureCart(K k, CompletableFuture<B> b, Duration duration) {
-		super(k, b,null, duration);
+	public FutureCart(K k, CompletableFuture<B> v, Duration duration) {
+		super(k, v,null, duration);
 	}
 
-	public FutureCart(K k, CompletableFuture<B> b, Instant instant) {
-		super(k, b,null, instant);
-	}
-
-	public FutureCart(K k, long ttl, TimeUnit timeUnit) {
-		super(k, null, null, ttl, timeUnit);
-	}
-
-	public FutureCart(K k, long expiration) {
-		super(k, null, null, expiration);
-	}
-
-	public FutureCart(K k) {
-		super(k, null, null);
-	}
-
-	public FutureCart(K k, Duration duration) {
-		super(k, null,null, duration);
-	}
-
-	public FutureCart(K k, Instant instant) {
-		super(k, null,null, instant);
+	public FutureCart(K k, CompletableFuture<B> v, Instant instant) {
+		super(k, v, null, instant);
 	}
 
 	/**
@@ -69,7 +49,7 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 
 	@Override
 	public Cart<K, CompletableFuture<B>, L> copy() {
-		return new FutureCart<K, B, L>(getKey(), getExpirationTime());
+		return new FutureCart<K, B, L>(getKey(), getValue(), getExpirationTime());
 	}
 	
 }

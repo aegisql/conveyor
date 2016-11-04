@@ -14,15 +14,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
-import javax.management.RuntimeErrorException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -309,35 +306,50 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public CompletableFuture<OUT> getFuture(K key) {
 		CompletableFuture<OUT> future = new CompletableFuture<>();
-		this.add( new FutureCart<K,OUT,L>(key) );
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
 		return future;
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, long expirationTime) {
 		CompletableFuture<OUT> future = new CompletableFuture<>();
-		this.add( new FutureCart<K,OUT,L>(key,expirationTime) );
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,expirationTime) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
 		return future;
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, long ttl, TimeUnit unit) {
 		CompletableFuture<OUT> future = new CompletableFuture<>();
-		this.add( new FutureCart<K,OUT,L>(key,ttl,unit) );
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,ttl,unit) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
 		return future;
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, Duration duration) {
 		CompletableFuture<OUT> future = new CompletableFuture<>();
-		this.add( new FutureCart<K,OUT,L>(key,duration) );
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,duration) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
 		return future;
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, Instant instant) {
 		CompletableFuture<OUT> future = new CompletableFuture<>();
-		this.add( new FutureCart<K,OUT,L>(key,instant) );
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,instant) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
 		return future;
 	}
 	

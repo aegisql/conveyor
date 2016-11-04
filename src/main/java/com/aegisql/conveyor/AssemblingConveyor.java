@@ -259,6 +259,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						);
 				} else {
 					scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither creating cart nor default builder supplier available",FailureType.BUILD_INITIALIZATION_FAILED) );
+					cart.getFuture().complete(Boolean.FALSE);
 				}
 				returnNull = true;
 			} else if(builderSupplier != null) {
@@ -370,35 +371,19 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		while((cart = inQueue.poll()) != null) {
 			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Draining inQueue",FailureType.CONVEYOR_STOPPED) );
 			cart.getFuture().cancel(true);
+			if( cart instanceof FutureCart ) {
+				FutureCart<K,OUT,L> fc = (FutureCart<K,OUT,L>)cart;
+				fc.getValue().cancel(true);
+			}
 		}
 		delayProvider.clear();
 		collector.forEach((k,v)->{
 			scrapConsumer.accept( new ScrapBin<K,Object>(k,v,"Draining collector",FailureType.CONVEYOR_STOPPED) );
+			for(CompletableFuture f:v.getFutures()) {
+				f.cancel(true);
+			}
 		});
 		collector.clear();
-	}
-
-	/**
-	 * Adds the first.
-	 *
-	 * @param cart the cart
-	 * @return true, if successful
-	 */
-	protected CompletableFuture<Boolean> addFirst(Cart<K,?,L> cart) {
-		try {
-			CompletableFuture<Boolean> future = cart.getFuture();
-			cartBeforePlacementValidator.accept(cart);
-			boolean r = inQueue.offerFirst(cart);
-			if( ! r ) {
-				future.cancel(true);
-			}
-			lock.tell();
-			return future;
-		} catch (RuntimeException e ) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,e.getMessage(),FailureType.CART_REJECTED) );
-			lock.tell();
-			throw e;
-		}
 	}
 
 	/* (non-Javadoc)
@@ -594,35 +579,50 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public CompletableFuture<OUT> getFuture(K key) {
 		CompletableFuture<OUT> future = new CompletableFuture<>();
-		this.add( new FutureCart<K,OUT,L>(key) );
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
 		return future;
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, long expirationTime) {
 		CompletableFuture<OUT> future = new CompletableFuture<>();
-		this.add( new FutureCart<K,OUT,L>(key,expirationTime) );
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,expirationTime) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
 		return future;
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, long ttl, TimeUnit unit) {
 		CompletableFuture<OUT> future = new CompletableFuture<>();
-		this.add( new FutureCart<K,OUT,L>(key,ttl,unit) );
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,ttl,unit) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
 		return future;
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, Duration duration) {
 		CompletableFuture<OUT> future = new CompletableFuture<>();
-		this.add( new FutureCart<K,OUT,L>(key,duration) );
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,duration) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
 		return future;
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, Instant instant) {
 		CompletableFuture<OUT> future = new CompletableFuture<>();
-		this.add( new FutureCart<K,OUT,L>(key,instant) );
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,instant) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
 		return future;
 	}
 	
@@ -693,7 +693,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if( key == null ) {
 			return;
 		}
-		BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> buildingSite = null; 
+		BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> buildingSite = null;
+		CompletableFuture resultFuture = null;
+		if( cart instanceof FutureCart ) {
+			FutureCart<K,? extends OUT,L> fc = (FutureCart<K, ? extends OUT, L>) cart;
+			resultFuture = fc.getValue();
+		}
 		FailureType failureType = FailureType.GENERAL_FAILURE;
 		try {
 			if(LOG.isTraceEnabled()) {
@@ -702,6 +707,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			buildingSite = getBuildingSite(cart);
 			if(buildingSite == null) {
 				cart.getFuture().complete(Boolean.FALSE);
+				if( resultFuture != null ) {
+					resultFuture.completeExceptionally(new Exception("No active building site found"));
+				}
+				return;
+			}
+			if( resultFuture != null ) {
+				buildingSite.addFuture(resultFuture);
 				return;
 			}
 			if(Status.TIMED_OUT.equals(cart.getValue())) {
@@ -719,6 +731,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				OUT res = buildingSite.build();
 				failureType = FailureType.RESULT_CONSUMER_FAILED;
 				resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.READY));
+				for(CompletableFuture f: buildingSite.getFutures() ) {
+					f.complete(res);
+				}
 			}
 			cart.getFuture().complete(Boolean.TRUE);
 		} catch (Exception e) {
@@ -727,6 +742,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				buildingSite.setLastError(e);
 				buildingSite.setLastCart(cart);
 				scrapConsumer.accept( new ScrapBin<K,BuildingSite<K,?,?,?>>(cart.getKey(),buildingSite,"Site Processor failed",e,failureType) );
+				for(CompletableFuture f: buildingSite.getFutures() ) {
+					f.completeExceptionally(e);
+				}
 			} else {
 				scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Processor Failed",e,failureType) );
 			}
@@ -776,22 +794,34 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							}
 							OUT res = buildingSite.build();
 							resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.TIMED_OUT));
+							for(CompletableFuture f: buildingSite.getFutures() ) {
+								f.complete(res);
+							}
 						} else {
 							if(LOG.isTraceEnabled()) {
 								LOG.trace("Expired and not finished " + key);
 							}
 							scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Site expired",FailureType.BUILD_EXPIRED) );
+							for(CompletableFuture f: buildingSite.getFutures() ) {
+								f.cancel(true);
+							}
 						}
 					} catch (Exception e) {
 						buildingSite.setStatus(Status.INVALID);
 						buildingSite.setLastError(e);
 						scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Timeout processor failed ",e, FailureType.BUILD_EXPIRED) );
+						for(CompletableFuture f: buildingSite.getFutures() ) {
+							f.completeExceptionally(e);
+						}
 					}
 				} else {
 					if(LOG.isTraceEnabled()) {
 						LOG.trace("Expired and removed " + key);
 					}
 					scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Site expired. No timeout action",FailureType.BUILD_EXPIRED) );
+					for(CompletableFuture f: buildingSite.getFutures() ) {
+						f.cancel(true);
+					}
 				}
 			}
 		}

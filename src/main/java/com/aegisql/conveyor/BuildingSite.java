@@ -85,7 +85,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	private final List<C> allCarts = new ArrayList<>();
 	
-	private final List<CompletableFuture<OUT>> futures = new ArrayList<>();
+	private final List<CompletableFuture<? extends OUT>> futures = new ArrayList<>();
 	
 	/** The initial cart. */
 	private final  C initialCart;
@@ -483,12 +483,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.lastCart = lastCart;
 	}
 	
-	public List<CompletableFuture<OUT>> getFutures() {
+	public List<CompletableFuture<? extends OUT>> getFutures() {
 		return futures;
 	}
 	
-	public void addFuture(CompletableFuture<OUT> future) {
-		futures.add(future);
+	public void addFuture(CompletableFuture<? extends OUT> resultFuture) {
+		futures.add(resultFuture);
 	}
 
 	/**
