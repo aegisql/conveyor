@@ -33,5 +33,9 @@ public class LabeledValueCart<K, V, L> extends AbstractCart<K, LabeledValue<L>, 
 	public LabeledValueCart(Cart<K,V,L> other) {
 		super(other.getKey(),new LabeledValue<L>(other.getLabel(),other.getValue()),null,other.getExpirationTime());
 	}
-	
+
+	@Override
+	public Cart<K, LabeledValue<L>, L> copy() {
+		return new LabeledValueCart<K, LabeledValue<L>, L>(getKey(), getValue(), getLabel(), getExpirationTime());
+	}
 }

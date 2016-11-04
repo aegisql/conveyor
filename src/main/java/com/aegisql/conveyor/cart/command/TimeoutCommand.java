@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.aegisql.conveyor.CommandLabel;
 
-public class TimeoutCommand<K> extends AbstractCommand<K, String> {
+public class TimeoutCommand<K> extends GeneralCommand<K, String> {
 
 	private static final long serialVersionUID = 4603066172969708346L;
 

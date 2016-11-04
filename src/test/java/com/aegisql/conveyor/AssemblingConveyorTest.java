@@ -13,13 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -29,7 +29,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.cart.command.AbstractCommand;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.cart.command.CancelCommand;
 import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.cart.command.TimeoutCommand;
@@ -88,9 +88,10 @@ public class AssemblingConveyorTest {
 	 * Test unconfigured builder supplier.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test
-	public void testUnconfiguredBuilderSupplier() throws InterruptedException {
+	public void testUnconfiguredBuilderSupplier() throws InterruptedException, ExecutionException {
 		AtomicBoolean visited = new AtomicBoolean(false);
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -101,8 +102,10 @@ public class AssemblingConveyorTest {
 			visited.set(true);
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
-		assertTrue(conveyor.offer(c1));
+		CompletableFuture<Boolean> f = conveyor.offer(c1);
+		assertFalse(f.isCompletedExceptionally());
 		Thread.sleep(100);
+		assertTrue(f.isCompletedExceptionally());
 		assertTrue(visited.get());
 	}
 
@@ -110,9 +113,10 @@ public class AssemblingConveyorTest {
 	 * Test offer stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test
-	public void testOfferStopped() throws InterruptedException {
+	public void testOfferStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
@@ -122,16 +126,17 @@ public class AssemblingConveyorTest {
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		conveyor.stop();
-		assertFalse(conveyor.offer(c1));
+		assertTrue(conveyor.offer(c1).isCompletedExceptionally());
 	}
 
 	/**
 	 * Test command stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test(expected=IllegalStateException.class)
-	public void testCommandStopped() throws InterruptedException {
+	public void testCommandStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
@@ -139,9 +144,9 @@ public class AssemblingConveyorTest {
 			assertTrue(o.comment.startsWith("Conveyor is not running"));
 			assertTrue(o.scrap instanceof Cart);
 		});
-		AbstractCommand<Integer,?> c1 = new TimeoutCommand<>(1);
+		GeneralCommand<Integer,?> c1 = new TimeoutCommand<>(1);
 		conveyor.stop();
-		assertFalse(conveyor.addCommand(c1));
+		assertFalse(conveyor.addCommand(c1).get());
 	}
 
 	/**
@@ -158,7 +163,7 @@ public class AssemblingConveyorTest {
 			assertTrue(o.comment.startsWith("Command has already expired"));
 			assertTrue(o.scrap instanceof Cart);
 		});
-		AbstractCommand<Integer,?> c1 = new TimeoutCommand<>(1,1,TimeUnit.MILLISECONDS);
+		GeneralCommand<Integer,?> c1 = new TimeoutCommand<>(1,1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
 		conveyor.addCommand(c1);
 	}
@@ -178,7 +183,7 @@ public class AssemblingConveyorTest {
 			assertTrue(o.comment.startsWith("Command is too old"));
 			assertTrue(o.scrap instanceof Cart);
 		});
-		AbstractCommand<Integer,?> c1 = new TimeoutCommand<>(1,100,TimeUnit.MILLISECONDS);
+		GeneralCommand<Integer,?> c1 = new TimeoutCommand<>(1,100,TimeUnit.MILLISECONDS);
 		Thread.sleep(20);
 		conveyor.addCommand(c1);
 	}
@@ -243,9 +248,10 @@ public class AssemblingConveyorTest {
 	 * Test offer expired stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test()
-	public void testOfferExpiredStopped() throws InterruptedException {
+	public void testOfferExpiredStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
@@ -255,13 +261,13 @@ public class AssemblingConveyorTest {
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
-		assertFalse(conveyor.offer(c1));
+		assertTrue(conveyor.offer(c1).isCompletedExceptionally());
 
 	
 		Cart<Integer, String, String> c2 = new ShoppingCart<>(1, "John", "setFirst",System.currentTimeMillis()-1);
-		assertFalse(conveyor.offer(c2));
+		assertTrue(conveyor.offer(c2).isCompletedExceptionally());
 
-		assertFalse(conveyor.offer(1,"John","Silver",1));
+		assertTrue(conveyor.offer(1,"John","Silver",1).isCompletedExceptionally());
 		
 	}
 
@@ -318,8 +324,8 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c6 = new ShoppingCart<>(6, "Ann", "setFirst");
 		Cart<Integer, String, String> c7 = new ShoppingCart<>(7, "Nik", "setLast", 1, TimeUnit.HOURS);
 
-		AbstractCommand<Integer,?> c8 = new CreateCommand<>(8,1,TimeUnit.SECONDS);
-		AbstractCommand<Integer,?> c9 = new CreateCommand<>(9,()->{
+		GeneralCommand<Integer,?> c8 = new CreateCommand<>(8,1,TimeUnit.SECONDS);
+		GeneralCommand<Integer,?> c9 = new CreateCommand<>(9,()->{
 			System.out.println("Command builder supplier called.");
 			return new UserBuilder();},1,TimeUnit.SECONDS);
 
@@ -388,7 +394,7 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
 		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");
 
-		AbstractCommand<Integer,?> c0 = new CreateCommand<>(1,UserBuilder::new,1,TimeUnit.SECONDS);
+		GeneralCommand<Integer,?> c0 = new CreateCommand<>(1,UserBuilder::new,1,TimeUnit.SECONDS);
 
 		conveyor.addCommand(c0);
 		conveyor.offer(c1);

@@ -6,6 +6,7 @@ package com.aegisql.conveyor.cart;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 // TODO: Auto-generated Javadoc
@@ -39,6 +40,8 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 
 	protected final long expirationTime; 
 
+	protected CompletableFuture<Boolean> future = null;
+	
 	/**
 	 * Instantiates a new cart.
 	 *
@@ -169,6 +172,15 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		return expirationTime > 0 && expirationTime < System.currentTimeMillis();
 	}
 
+	
+	@Override
+	public CompletableFuture<Boolean> getFuture() {
+		if(future == null) {
+			future = new CompletableFuture<Boolean>();
+		}
+		return future;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 

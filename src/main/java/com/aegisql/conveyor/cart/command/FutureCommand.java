@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 
 import com.aegisql.conveyor.CommandLabel;
 
-public class FutureCommand<K, OUT> extends AbstractCommand<K, CompletableFuture<OUT>> implements Supplier<CompletableFuture<OUT>> {
+public class FutureCommand<K, OUT> extends GeneralCommand<K, CompletableFuture<OUT>> implements Supplier<CompletableFuture<OUT>> {
 
 	private static final long serialVersionUID = 4603012172969708346L;
 

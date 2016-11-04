@@ -66,5 +66,10 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 	public CompletableFuture<B> get() {
 		return getValue();
 	}
+
+	@Override
+	public Cart<K, CompletableFuture<B>, L> copy() {
+		return new FutureCart<K, B, L>(getKey(), getExpirationTime());
+	}
 	
 }

@@ -3,6 +3,7 @@ package com.aegisql.conveyor.utils.collection;
 import java.util.concurrent.TimeUnit;
 
 import com.aegisql.conveyor.cart.AbstractCart;
+import com.aegisql.conveyor.cart.Cart;
 
 public class CollectionItemCart <K,V> extends AbstractCart<K, V, CollectionBuilderLabel<V>> {
 
@@ -26,6 +27,11 @@ public class CollectionItemCart <K,V> extends AbstractCart<K, V, CollectionBuild
 	
 	public CollectionCompleteCart<K,V> compelte() {
 		return new CollectionCompleteCart<>(this.getKey(), this.getExpirationTime());		
+	}
+
+	@Override
+	public Cart<K, V, CollectionBuilderLabel<V>> copy() {
+		return new CollectionItemCart<K,V>(getKey(), getValue(), getExpirationTime());
 	}
 
 }

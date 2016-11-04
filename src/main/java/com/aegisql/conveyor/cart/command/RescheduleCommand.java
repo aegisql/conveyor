@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.aegisql.conveyor.CommandLabel;
 
-public class RescheduleCommand<K> extends AbstractCommand<K, String> {
+public class RescheduleCommand<K> extends GeneralCommand<K, String> {
 
 	private static final long serialVersionUID = 4603062972969708346L;
 

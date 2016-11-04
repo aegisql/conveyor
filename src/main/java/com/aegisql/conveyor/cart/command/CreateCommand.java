@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
 
-public class CreateCommand<K, OUT> extends AbstractCommand<K, BuilderSupplier<OUT>> implements Supplier<BuilderSupplier<OUT>> {
+public class CreateCommand<K, OUT> extends GeneralCommand<K, BuilderSupplier<OUT>> implements Supplier<BuilderSupplier<OUT>> {
 
 	private static final long serialVersionUID = 4603066172969708346L;
 

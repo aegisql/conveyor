@@ -68,4 +68,9 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 		return getValue();
 	}
 	
+	@Override
+	public Cart<K,BuilderSupplier<B>,L> copy() {
+		return new CreatingCart<K,B,L>(getKey(),getValue(),getExpirationTime());
+	}
+
 }

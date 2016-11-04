@@ -3,11 +3,11 @@ package com.aegisql.conveyor.utils.schedule;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.cart.Cart;
 
 public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, SchedulableClosure> {
 
@@ -35,7 +35,7 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 	}
 
 	@Override
-	public <V> boolean add(K key, V value, Schedule label, long ttl, TimeUnit unit) {
+	public <V> CompletableFuture<Boolean> add(K key, V value, Schedule label, long ttl, TimeUnit unit) {
 		SchedulableClosure closure = (SchedulableClosure) value;
 		switch (label) {
 		case SCHEDULE_AND_EXECUTE_NOW:
@@ -61,7 +61,7 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 	}
 
 	@Override
-	public <V> boolean add(K key, V value, Schedule label, Duration duration) {
+	public <V> CompletableFuture<Boolean> add(K key, V value, Schedule label, Duration duration) {
 		SchedulableClosure closure = (SchedulableClosure) value;
 		switch (label) {
 		case SCHEDULE_AND_EXECUTE_NOW:
@@ -87,30 +87,22 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 	}
 
 	@Override
-	public <V> boolean offer(K key, V value, Schedule label, long ttl, TimeUnit unit) {
-		try {
-			return add(key,value,label,ttl,unit);
-		} catch(Exception e) {
-			return false;
-		}
+	public <V> CompletableFuture<Boolean> offer(K key, V value, Schedule label, long ttl, TimeUnit unit) {
+		return add(key,value,label,ttl,unit);
 	}
 
 	@Override
-	public <V> boolean offer(K key, V value, Schedule label, Duration duration) {
-		try {
-			return add(key,value,label,duration);
-		} catch(Exception e) {
-			return false;
-		}
+	public <V> CompletableFuture<Boolean> offer(K key, V value, Schedule label, Duration duration) {
+		return add(key,value,label,duration);
 	}
 
 	@Override
-	public <V> boolean add(K key, V value, Schedule label) {
+	public <V> CompletableFuture<Boolean> add(K key, V value, Schedule label) {
 		throw new UnsupportedOperationException("Scheduler must have execution interval parameter");
 	}
 
 	@Override
-	public <V> boolean add(K key, V value, Schedule label, long expirationTime) {
+	public <V> CompletableFuture<Boolean> add(K key, V value, Schedule label, long expirationTime) {
 		if( ! label.equals(Schedule.EXECUTE_ONCE)) {
 			LOG.warn("Add without TTL or Duration can only be executed once, while you requested {}",label);
 		}
@@ -118,7 +110,7 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 	}
 
 	@Override
-	public <V> boolean add(K key, V value, Schedule label, Instant instant) {
+	public <V> CompletableFuture<Boolean> add(K key, V value, Schedule label, Instant instant) {
 		if( ! label.equals(Schedule.EXECUTE_ONCE)) {
 			LOG.warn("Add without TTL or Duration can only be executed once, while you requested {}",label);
 		}
@@ -126,12 +118,12 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 	}
 
 	@Override
-	public <V> boolean offer(K key, V value, Schedule label) {
+	public <V> CompletableFuture<Boolean> offer(K key, V value, Schedule label) {
 		throw new UnsupportedOperationException("Scheduler must have execution interval parameter");
 	}
 
 	@Override
-	public <V> boolean offer(K key, V value, Schedule label, long expirationTime) {
+	public <V> CompletableFuture<Boolean> offer(K key, V value, Schedule label, long expirationTime) {
 		if( ! label.equals(Schedule.EXECUTE_ONCE)) {
 			LOG.warn("Offer without TTL or Duration can only be executed once, while you requested {}",label);
 		}
@@ -139,7 +131,7 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 	}
 
 	@Override
-	public <V> boolean offer(K key, V value, Schedule label, Instant instant) {
+	public <V> CompletableFuture<Boolean> offer(K key, V value, Schedule label, Instant instant) {
 		if( ! label.equals(Schedule.EXECUTE_ONCE)) {
 			LOG.warn("Offer without TTL or Duration can only be executed once, while you requested {}",label);
 		}

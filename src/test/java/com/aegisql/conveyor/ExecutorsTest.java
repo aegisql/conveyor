@@ -3,9 +3,14 @@ package com.aegisql.conveyor;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -61,5 +66,55 @@ public class ExecutorsTest {
 		}
 		
 	}
+	
+	@Test
+	public void testFutureComplete() throws InterruptedException, ExecutionException {
+		CompletableFuture<Boolean> cf = new CompletableFuture<>();
+		assertFalse(cf.isDone());
+		assertFalse(cf.isCancelled());
+		assertFalse(cf.isCompletedExceptionally());
+		cf.complete(true);
+		assertTrue(cf.isDone());
+		assertFalse(cf.isCancelled());
+		assertFalse(cf.isCompletedExceptionally());
+		assertTrue(cf.get());
+	}
 
+	@Test(expected=TimeoutException.class)
+	public void testFutureTimeout() throws InterruptedException, ExecutionException, TimeoutException {
+		CompletableFuture<Boolean> cf = new CompletableFuture<>();
+		assertFalse(cf.isDone());
+		assertFalse(cf.isCancelled());
+		assertFalse(cf.isCompletedExceptionally());
+		assertTrue(cf.get(10,TimeUnit.MILLISECONDS));
+	}
+
+	
+	@Test(expected=CancellationException.class)
+	public void testFutureCancel() throws InterruptedException, ExecutionException {
+		CompletableFuture<Boolean> cf = new CompletableFuture<>();
+		assertFalse(cf.isDone());
+		assertFalse(cf.isCancelled());
+		assertFalse(cf.isCompletedExceptionally());
+		cf.cancel(true);
+		assertTrue(cf.isDone());
+		assertTrue(cf.isCancelled());
+		assertTrue(cf.isCompletedExceptionally());
+		assertTrue(cf.get());
+	}
+
+	@Test(expected=ExecutionException.class)
+	public void testFutureFailed() throws InterruptedException, ExecutionException {
+		CompletableFuture<Boolean> cf = new CompletableFuture<>();
+		assertFalse(cf.isDone());
+		assertFalse(cf.isCancelled());
+		assertFalse(cf.isCompletedExceptionally());
+		cf.completeExceptionally(new RuntimeException());
+		assertTrue(cf.isDone());
+		assertFalse(cf.isCancelled());
+		assertTrue(cf.isCompletedExceptionally());
+		assertTrue(cf.get());
+	}
+
+	
 }

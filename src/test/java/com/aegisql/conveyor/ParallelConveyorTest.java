@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.cart.command.AbstractCommand;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
@@ -177,10 +177,10 @@ public class ParallelConveyorTest {
 	@Test
 	public void testParallelCommand() throws InterruptedException {
 		
-		AbstractCommand<Integer,?> c1 = new CreateCommand<>(1,UserBuilder::new,10,TimeUnit.MILLISECONDS );
-		AbstractCommand<Integer,?> c2 = new CreateCommand<>(2,UserBuilder::new,10,TimeUnit.MILLISECONDS );
-		AbstractCommand<Integer,?> c3 = new CreateCommand<>(3,UserBuilder::new,10,TimeUnit.MILLISECONDS );
-		AbstractCommand<Integer,?> c4 = new CreateCommand<>(4,UserBuilder::new,10,TimeUnit.MILLISECONDS );
+		GeneralCommand<Integer,?> c1 = new CreateCommand<>(1,UserBuilder::new,10,TimeUnit.MILLISECONDS );
+		GeneralCommand<Integer,?> c2 = new CreateCommand<>(2,UserBuilder::new,10,TimeUnit.MILLISECONDS );
+		GeneralCommand<Integer,?> c3 = new CreateCommand<>(3,UserBuilder::new,10,TimeUnit.MILLISECONDS );
+		GeneralCommand<Integer,?> c4 = new CreateCommand<>(4,UserBuilder::new,10,TimeUnit.MILLISECONDS );
 
 		
 		conveyor.addCommand(c1);

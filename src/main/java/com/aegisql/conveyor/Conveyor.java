@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.command.AbstractCommand;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -35,24 +35,24 @@ public interface Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 * @return true, if successful
 	 */
-	public <V> boolean add(Cart<K,V,L> cart);
-	public <V> boolean add(K key, V value, L label);
-	public <V> boolean add(K key, V value, L label, long expirationTime);
-	public <V> boolean add(K key, V value, L label, long ttl, TimeUnit unit);
-	public <V> boolean add(K key, V value, L label, Duration duration);
-	public <V> boolean add(K key, V value, L label, Instant instant);
+	public <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart);
+	public <V> CompletableFuture<Boolean> add(K key, V value, L label);
+	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long expirationTime);
+	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long ttl, TimeUnit unit);
+	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Duration duration);
+	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Instant instant);
 
 
-	public boolean createBuild(K key);
-	public boolean createBuild(K key, long expirationTime);
-	public boolean createBuild(K key, long ttl, TimeUnit unit);
-	public boolean createBuild(K key, Duration duration);
-	public boolean createBuild(K key, Instant instant);
-	public boolean createBuild(K key, BuilderSupplier<OUT> value);
-	public boolean createBuild(K key, BuilderSupplier<OUT> value, long expirationTime);
-	public boolean createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit);
-	public boolean createBuild(K key, BuilderSupplier<OUT> value, Duration duration);
-	public boolean createBuild(K key, BuilderSupplier<OUT> value, Instant instant);
+	public CompletableFuture<Boolean> createBuild(K key);
+	public CompletableFuture<Boolean> createBuild(K key, long expirationTime);
+	public CompletableFuture<Boolean> createBuild(K key, long ttl, TimeUnit unit);
+	public CompletableFuture<Boolean> createBuild(K key, Duration duration);
+	public CompletableFuture<Boolean> createBuild(K key, Instant instant);
+	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value);
+	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long expirationTime);
+	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit);
+	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Duration duration);
+	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Instant instant);
 
 	
 	/**
@@ -61,12 +61,12 @@ public interface Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 * @return true, if successful
 	 */
-	public <V> boolean offer(Cart<K,V,L> cart);
-	public <V> boolean offer(K key, V value, L label);
-	public <V> boolean offer(K key, V value, L label, long expirationTime);
-	public <V> boolean offer(K key, V value, L label, long ttl, TimeUnit unit);
-	public <V> boolean offer(K key, V value, L label, Duration duration);
-	public <V> boolean offer(K key, V value, L label, Instant instant);
+	public <V> CompletableFuture<Boolean> offer(Cart<K,V,L> cart);
+	public <V> CompletableFuture<Boolean> offer(K key, V value, L label);
+	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long expirationTime);
+	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long ttl, TimeUnit unit);
+	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Duration duration);
+	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Instant instant);
 	
 	/**
 	 * Adds the command to the management queue.
@@ -74,12 +74,12 @@ public interface Conveyor<K, L, OUT> {
 	 * @param command Cart
 	 * @return true, if successful
 	 */
-	public <V> boolean addCommand(AbstractCommand<K, V> command);
-	public <V> boolean addCommand(K key, V value, CommandLabel label);
-	public <V> boolean addCommand(K key, V value, CommandLabel label, long expirationTime);
-	public <V> boolean addCommand(K key, V value, CommandLabel label, long ttl, TimeUnit unit);
-	public <V> boolean addCommand(K key, V value, CommandLabel label, Duration duration);
-	public <V> boolean addCommand(K key, V value, CommandLabel label, Instant instant);
+	public <V> CompletableFuture<Boolean> addCommand(GeneralCommand<K, V> command);
+	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label);
+	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, long expirationTime);
+	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, long ttl, TimeUnit unit);
+	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Duration duration);
+	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Instant instant);
 	
 	/*
 	 * Creates a CompletableFuture and sends to the Conveyor using standard Cart message

@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.cart;
 
 import java.io.Serializable;
+import java.util.concurrent.CompletableFuture;
 
 import com.aegisql.conveyor.Expireable;
 
@@ -48,4 +49,17 @@ public interface Cart <K,V,L> extends Expireable, Serializable {
 	 */
 	public boolean expired();
 	
+	
+	/**
+	 * Gets Future for the cart. get() methods return:
+	 * true if were accepted by the builder
+	 * false when offer or add return false
+	 * exception if were rejected by builder 
+	 * */
+	public CompletableFuture<Boolean> getFuture();
+	
+	/**
+	 * copy()
+	 * */
+	public Cart <K,V,L> copy();
 }

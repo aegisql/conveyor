@@ -17,7 +17,7 @@ import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.BuildingSite.Status;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.cart.command.AbstractCommand;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.cart.command.CancelCommand;
 import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.cart.command.TimeoutCommand;
@@ -110,8 +110,8 @@ public class ResultQueueTest {
 		Cart<Integer, String, String> c6 = new ShoppingCart<>(6, "Ann", "setFirst");
 		Cart<Integer, String, String> c7 = new ShoppingCart<>(7, "Nik", "setLast", 1, TimeUnit.HOURS);
 
-		AbstractCommand<Integer,?> c8 = new CreateCommand<>(8,1,TimeUnit.SECONDS);
-		AbstractCommand<Integer,?> c9 = new CreateCommand<>(8,UserBuilder::new,1,TimeUnit.SECONDS);
+		GeneralCommand<Integer,?> c8 = new CreateCommand<>(8,1,TimeUnit.SECONDS);
+		GeneralCommand<Integer,?> c9 = new CreateCommand<>(8,UserBuilder::new,1,TimeUnit.SECONDS);
 
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();

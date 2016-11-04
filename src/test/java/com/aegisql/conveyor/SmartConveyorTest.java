@@ -9,7 +9,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
@@ -362,9 +364,10 @@ public class SmartConveyorTest {
 	 *
 	 * @throws InterruptedException
 	 *             the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test
-	public void testRejectedStartOffer() throws InterruptedException {
+	public void testRejectedStartOffer() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
@@ -378,9 +381,10 @@ public class SmartConveyorTest {
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		assertTrue(conveyor.offer(c1));
+		assertTrue(conveyor.offer(c1).get());
 		Thread.sleep(1100);
-		assertFalse(conveyor.offer(c2));
+		CompletableFuture<Boolean> future = conveyor.offer(c2);
+		assertTrue(future.isCompletedExceptionally());
 		conveyor.stop();
 	}
 
@@ -389,9 +393,10 @@ public class SmartConveyorTest {
 	 *
 	 * @throws InterruptedException
 	 *             the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test(expected = IllegalStateException.class) // ???? Failed
-	public void testRejectedStartAdd() throws InterruptedException {
+	public void testRejectedStartAdd() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
@@ -405,7 +410,7 @@ public class SmartConveyorTest {
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		assertTrue(conveyor.add(c1));
+		assertTrue(conveyor.add(c1).get());
 		Thread.sleep(1100);
 		conveyor.add(c2);
 		conveyor.stop();

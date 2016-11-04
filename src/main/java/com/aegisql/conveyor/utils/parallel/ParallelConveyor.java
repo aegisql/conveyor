@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -38,7 +39,7 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.cart.command.AbstractCommand;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
 
 /**
  * The Class ParallelConveyor.
@@ -73,7 +74,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The pf. */
 	private final int pf;
 	
-	private Function<AbstractCommand<K,?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand;
+	private Function<GeneralCommand<K,?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand;
 	private Function<Cart<K,?,L>, List<? extends Conveyor<K, L, OUT>>> balancingCart;
 
 	private String name = "ParallelConveyor";
@@ -180,117 +181,128 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public <V> boolean addCommand(AbstractCommand<K, V> cart) {
+	public <V> CompletableFuture<Boolean> addCommand(GeneralCommand<K, V> cart) {
+		CompletableFuture<Boolean> allFutures = new CompletableFuture<Boolean>();
+		
 		this.balancingCommand.apply(cart).forEach(c->c.addCommand(cart));
-		return true;
+		return allFutures;
 	}
 	
 	@Override
-	public <V> boolean addCommand(K key, V value, CommandLabel label) {
-		return this.addCommand( new AbstractCommand<K,V>(key, value, label){ private static final long serialVersionUID = 1L;} );
+	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label) {
+		return this.addCommand( new GeneralCommand<K,V>(key, value, label){ private static final long serialVersionUID = 1L;} );
 	}
 	
 	@Override
-	public <V> boolean addCommand(K key, V value, CommandLabel label, long expirationTime) {
-		return this.addCommand( new AbstractCommand<K,V>(key, value, label, expirationTime ){ private static final long serialVersionUID = 1L;} );
+	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, long expirationTime) {
+		return this.addCommand( new GeneralCommand<K,V>(key, value, label, expirationTime ){ private static final long serialVersionUID = 1L;} );
 	}
 
 	@Override
-	public <V> boolean addCommand(K key, V value, CommandLabel label, long ttl, TimeUnit unit) {
-		return this.addCommand( new AbstractCommand<K,V>(key, value, label, ttl, unit){ private static final long serialVersionUID = 1L;} );		
+	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, long ttl, TimeUnit unit) {
+		return this.addCommand( new GeneralCommand<K,V>(key, value, label, ttl, unit){ private static final long serialVersionUID = 1L;} );		
 	}
 
 	@Override
-	public <V> boolean addCommand(K key, V value, CommandLabel label, Duration duration) {
-		return this.addCommand( new AbstractCommand<K,V>(key, value, label, duration){ private static final long serialVersionUID = 1L;} );		
+	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Duration duration) {
+		return this.addCommand( new GeneralCommand<K,V>(key, value, label, duration){ private static final long serialVersionUID = 1L;} );		
 	}
 
 	@Override
-	public <V> boolean addCommand(K key, V value, CommandLabel label, Instant instant) {		
-		return this.addCommand( new AbstractCommand<K,V>(key, value, label, instant){ private static final long serialVersionUID = 1L;} );
+	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Instant instant) {		
+		return this.addCommand( new GeneralCommand<K,V>(key, value, label, instant){ private static final long serialVersionUID = 1L;} );
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#add(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public <V> boolean add(Cart<K,V,L> cart) {
+	public <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart) {
 		Objects.requireNonNull(cart, "Cart is null");
-		this.balancingCart.apply(cart).forEach(c->c.add(cart));
-		return true;
+		CompletableFuture<Boolean> combinedFuture = null;
+		for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
+			Cart<K,V,L> cc = cart.copy();
+			CompletableFuture<Boolean> cartFuture = conv.add(cc);
+			if(combinedFuture == null) {
+				combinedFuture = cartFuture;
+			} else {
+				combinedFuture = combinedFuture.thenCombine(cartFuture, ( a, b ) -> a && b );
+			}
+		}
+		return combinedFuture;
 	}
 	@Override
-	public <V> boolean add(K key, V value, L label) {
+	public <V> CompletableFuture<Boolean> add(K key, V value, L label) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label));
 	}
 
 	@Override
-	public <V> boolean add(K key, V value, L label, long expirationTime) {
+	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long expirationTime) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
 	}
 
 	@Override
-	public <V> boolean add(K key, V value, L label, long ttl, TimeUnit unit) {
+	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long ttl, TimeUnit unit) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
 	}
 
 	@Override
-	public <V> boolean add(K key, V value, L label, Duration duration) {
+	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Duration duration) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
 	}
 
 	@Override
-	public <V> boolean add(K key, V value, L label, Instant instant) {
+	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Instant instant) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
 	@Override
-	public boolean createBuild(K key) {
+	public CompletableFuture<Boolean> createBuild(K key) {
 		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key) );
 	}
 	
 	@Override
-	public boolean createBuild(K key, long expirationTime) {
+	public CompletableFuture<Boolean> createBuild(K key, long expirationTime) {
 		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,expirationTime) );		
 	}
 	
 	@Override
-	public boolean createBuild(K key, long ttl, TimeUnit unit) {
+	public CompletableFuture<Boolean> createBuild(K key, long ttl, TimeUnit unit) {
 		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,ttl,unit) );		
 	}
 	
 	@Override
-	public boolean createBuild(K key, Duration duration) {
+	public CompletableFuture<Boolean> createBuild(K key, Duration duration) {
 		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,duration) );		
 	}
 	
 	@Override
-	public boolean createBuild(K key, Instant instant) {
+	public CompletableFuture<Boolean> createBuild(K key, Instant instant) {
 		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,instant) );				
 	}
 	
 	@Override
-	public boolean createBuild(K key, BuilderSupplier<OUT> value) {
+	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value) );		
 	}
 	
 	@Override
-	public boolean createBuild(K key, BuilderSupplier<OUT> value, long expirationTime) {
+	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long expirationTime) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,expirationTime) );				
 	}
 	
 	@Override
-	public boolean createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
+	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,ttl,unit) );				
 	}
 	
 	@Override
-	public boolean createBuild(K key, BuilderSupplier<OUT> value, Duration duration) {
+	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Duration duration) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,duration) );				
 	}
 	
 	@Override
-	public boolean createBuild(K key, BuilderSupplier<OUT> value, Instant instant) {
+	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Instant instant) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,instant) );						
 	}
 	
@@ -333,37 +345,50 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public <V> boolean offer(Cart<K,V,L> cart) {
+	public <V> CompletableFuture<Boolean> offer(Cart<K,V,L> cart) {
+		CompletableFuture<Boolean> combinedFuture = null;
 		try {
-			this.balancingCart.apply(cart).forEach(c->c.add(cart));
-			return true;
+			for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
+				Cart<K,V,L> cc = cart.copy();
+				CompletableFuture<Boolean> cartFuture = conv.add(cc);
+				if(combinedFuture == null) {
+					combinedFuture = cartFuture;
+				} else {
+					combinedFuture = combinedFuture.thenCombine(cartFuture, ( a, b ) -> a && b );
+				}
+			}
+			return combinedFuture;
 		} catch(Exception e) {
-			return false;
+			if( combinedFuture == null ) {
+				combinedFuture = new CompletableFuture<Boolean>();
+			}
+			combinedFuture.cancel(true);
+			return combinedFuture;
 		}
 	}
 
 	@Override
-	public <V> boolean offer(K key, V value, L label) {
+	public <V> CompletableFuture<Boolean> offer(K key, V value, L label) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label));
 	}
 
 	@Override
-	public <V> boolean offer(K key, V value, L label, long expirationTime) {
+	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long expirationTime) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
 	}
 
 	@Override
-	public <V> boolean offer(K key, V value, L label, long ttl, TimeUnit unit) {
+	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long ttl, TimeUnit unit) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
 	}
 
 	@Override
-	public <V> boolean offer(K key, V value, L label, Duration duration) {
+	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Duration duration) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
 	}
 
 	@Override
-	public <V> boolean offer(K key, V value, L label, Instant instant) {
+	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Instant instant) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
@@ -633,7 +658,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return -1;
 	}
 
-	public void setBalancingCommandAlgorithm(Function<AbstractCommand<K, ?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand) {
+	public void setBalancingCommandAlgorithm(Function<GeneralCommand<K, ?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand) {
 		this.balancingCommand = balancingCommand;
 	}
 
