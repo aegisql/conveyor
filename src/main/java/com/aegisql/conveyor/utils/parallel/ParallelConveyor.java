@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.Conveyor;
@@ -79,6 +80,8 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private boolean lBalanced = false;
 
 	private Set<L> acceptedLabels = new HashSet<>();
+
+	private boolean forwardingResults = false;;
 	
 	/**
 	 * Instantiates a new parallel conveyor.
@@ -111,8 +114,12 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if( pf == 0 ) {
 			throw new IllegalArgumentException("Parallelism Factor must be >=1");
 		}
-		int kBalanced = 0;
-		int lBalanced = 0;
+		int kBalanced     = 0;
+		int lBalanced     = 0;
+		int notForvarding = 0;
+		
+		Conveyor<K, L, OUT> lastNotForwarding = null; 
+		
 		List<Conveyor<K, L, OUT>> defaultConv = new ArrayList<>();
 		Map<L,List<Conveyor<K, L, OUT>>> map = new HashMap<>(); 
 		for(Conveyor<K, L, OUT> c:conveyors) {
@@ -132,8 +139,18 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				kBalanced++;
 				defaultConv.add( c );
 			}
+			if( ! c.isForwardingResults()) {
+				lastNotForwarding = c;
+				notForvarding++;
+			}
 		}
 
+		if(notForvarding == 1 && lBalanced > 0) {
+			List<Conveyor<K, L, OUT>> notForwardingList = new ArrayList<>();
+			notForwardingList.add(lastNotForwarding);
+			map.put(null, notForwardingList); //Creating cart delivered to all, had null in place of Label
+		}
+		
 		if(lBalanced == 0) {
 			LOG.debug("K-Balanced Parallel conveyor parallelism:{}",pf);
 			this.balancingCart = cart -> { 
@@ -253,6 +270,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
+	//TODO: This All done Wrong!!! Send create everywhere for l-balanced builds! and only one for k-balanced
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key) {
 		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key) );
@@ -302,6 +320,87 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Instant instant) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,instant) );						
 	}
+
+	//TODO: This All done Wrong!!! Send create everywhere for l-balanced builds! and only one for k-balanced
+	// send product future only to the final builder. (balancing function will return it)
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key) {
+		CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(key);
+		CompletableFuture<Boolean> combinedFuture = null;
+		CompletableFuture<OUT> combinedProductFuture = null;
+		for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
+			CompletableFuture<OUT> productFuture = new CompletableFuture<OUT>();
+			BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, productFuture);
+			CreatingCart<K, OUT, L> cc = new CreatingCart<K, OUT, L>(key,supplier);
+			CompletableFuture<Boolean> cartFuture = conv.add(cc);
+			if(combinedFuture == null) {
+				combinedFuture = cartFuture;
+			} else {
+				combinedFuture = combinedFuture.thenCombine(cartFuture, ( a, b ) -> a && b );
+			}
+			if(combinedProductFuture == null) {
+				combinedProductFuture = productFuture;
+			} else {
+//				combinedProductFuture = combinedProductFuture.thenCombine(productFuture, ( a, b ) -> a && b );
+			}
+		}
+		return combinedProductFuture;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, long expirationTime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, long ttl, TimeUnit unit) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, Duration duration) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, Instant instant) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long expirationTime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Duration duration) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Instant instant) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	
 	@Override
 	public CompletableFuture<OUT> getFuture(K key) {
@@ -716,6 +815,7 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv) {
+		this.forwardingResults  = true;
 		this.setResultConsumer(bin->{
 			LOG.debug("Forward {} from {} to {} {}",partial,this.name,conv.getName(),bin.product);
 			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
@@ -731,6 +831,11 @@ public class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public void setExpirationPostponeTime(long time, TimeUnit unit) {
 		this.conveyors.forEach(conv -> conv.setExpirationPostponeTime(time, unit));	
+	}
+
+	@Override
+	public boolean isForwardingResults() {
+		return forwardingResults;
 	}
 
 }

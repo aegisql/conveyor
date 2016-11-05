@@ -191,6 +191,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	private long postponeExpirationMills = 0;
 
+	private boolean forwardingResults = false;
+
 	/**
 	 * Wait data.
 	 *
@@ -257,6 +259,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							postponeExpirationEnabled,
 							postponeExpirationMills
 						);
+					if(cart.getValue() instanceof FutureSupplier) {
+						FutureSupplier fs = (FutureSupplier) cart.getValue();
+						buildingSite.addFuture(fs.getFuture());
+					}
 				} else {
 					scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither creating cart nor default builder supplier available",FailureType.BUILD_INITIALIZATION_FAILED) );
 					cart.getFuture().complete(Boolean.FALSE);
@@ -575,6 +581,117 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Instant instant) {
 		return this.add( new CreatingCart<K, OUT, L>(key,value,instant) );						
 	}
+	
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key) {
+		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, future);
+		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier) );		
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, long expirationTime) {
+		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, future);
+		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,expirationTime) );		
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, long ttl, TimeUnit unit) {
+		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, future);
+		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,ttl,unit) );		
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, Duration duration) {
+		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, future);
+		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,duration) );		
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, Instant instant) {
+		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, future);
+		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,instant) );		
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value) {
+		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier(value, future);
+		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier) );		
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long expirationTime) {
+		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier(value, future);
+		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,expirationTime) );		
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
+		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier(value, future);
+		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,ttl,unit) );		
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Duration duration) {
+		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier(value, future);
+		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,duration) );		
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Instant instant) {
+		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier(value, future);
+		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,instant) );		
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
+	}	
+	
 	
 	@Override
 	public CompletableFuture<OUT> getFuture(K key) {
@@ -1101,6 +1218,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 	
 	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv) {
+		this.forwardingResults  = true;
 		this.setResultConsumer(bin->{
 			LOG.debug("Forward {} from {} to {} {}",partial,this.name,conv.getName(),bin.product);
 			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
@@ -1162,6 +1280,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public void setExpirationPostponeTime(long time, TimeUnit unit) {
 		this.postponeExpirationMills = unit.toMillis(time);
-	}	
+	}
 	
+	@Override
+	public boolean isForwardingResults() {
+		return forwardingResults;
+	}
+
 }

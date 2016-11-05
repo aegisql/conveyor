@@ -22,7 +22,7 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
  * The Interface Conveyor.
  *
  * @author Mikhail Teplitskiy
- * @version 1.0.0
+ * @version 1.1.0
  * @param <K> the key type
  * @param <L> the label type
  * @param <OUT> the target class type
@@ -54,6 +54,17 @@ public interface Conveyor<K, L, OUT> {
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Duration duration);
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Instant instant);
 
+	public CompletableFuture<OUT> createBuildFuture(K key);
+	public CompletableFuture<OUT> createBuildFuture(K key, long expirationTime);
+	public CompletableFuture<OUT> createBuildFuture(K key, long ttl, TimeUnit unit);
+	public CompletableFuture<OUT> createBuildFuture(K key, Duration duration);
+	public CompletableFuture<OUT> createBuildFuture(K key, Instant instant);
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value);
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long expirationTime);
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit);
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Duration duration);
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Instant instant);
+
 	
 	/**
 	 * Offers the cart to the input queue.
@@ -81,8 +92,8 @@ public interface Conveyor<K, L, OUT> {
 	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Duration duration);
 	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Instant instant);
 	
-	/*
-	 * Creates a CompletableFuture and sends to the Conveyor using standard Cart message
+	/**
+	 * Creates a CompletableFuture for the OUT product and sends to the Conveyor using standard Cart message
 	 * When processed, Building site will register the Future in its future collection.
 	 * 
 	 * 
@@ -120,4 +131,5 @@ public interface Conveyor<K, L, OUT> {
 	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv);
 	public void enablePostponeExpiration(boolean flag);
 	public void setExpirationPostponeTime(long time, TimeUnit unit);
+	boolean isForwardingResults();
 }
