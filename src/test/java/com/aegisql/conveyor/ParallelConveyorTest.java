@@ -29,6 +29,7 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
+import com.aegisql.conveyor.utils.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.utils.parallel.ParallelConveyor;
 import com.aegisql.conveyor.utils.scalar.ScalarCart;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
@@ -54,7 +55,7 @@ public class ParallelConveyorTest {
 
 	/** The conveyor. */
 	public static 		ParallelConveyor<Integer, String, User> 
-	conveyor = new ParallelConveyor<>(4);
+	conveyor = new KBalancedParallelConveyor<>(4);
 
 	
 	/**
@@ -303,7 +304,7 @@ public class ParallelConveyorTest {
 	@Test
 	public void otherConveyorTest() throws InterruptedException {
 		Conveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
-		conveyor = new ParallelConveyor<>(ScalarConvertingConveyor::new,4);
+		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		conveyor.setResultConsumer(u->{
@@ -317,39 +318,6 @@ public class ParallelConveyorTest {
 		conveyor.add(c2);
 		Thread.sleep(20);
 		assertNotNull(usr.get());
-
-	}
-	 
-	@Test
-	public void testArrayConstructor() throws InterruptedException {
-		ScalarConvertingConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User> ac1 = new ScalarConvertingConveyor<>(); 
-		ScalarConvertingConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User> ac2 = new ScalarConvertingConveyor<>(); 
-		ScalarConvertingConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User> ac3 = new ScalarConvertingConveyor<>(); 
-		ScalarConvertingConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User> ac4 = new ScalarConvertingConveyor<>(); 
-		ac1.setBuilderSupplier(StringToUserBuulder::new);
-		ac2.setBuilderSupplier(StringToUserBuulder::new);
-		ac3.setBuilderSupplier(StringToUserBuulder::new);
-		ac4.setBuilderSupplier(StringToUserBuulder::new);
-		ParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
-		conveyor = new ParallelConveyor<>(new ScalarConvertingConveyor[]{ac1,ac2,ac3,ac3});
-		
-		AtomicReference<User> usr = new AtomicReference<User>(null);
-		conveyor.setResultConsumer(u->{
-			System.out.println("RESULT: "+u);
-			usr.set(u.product);
-		});
-
-		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow,1990");
-		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow,1990");
-		ScalarCart<String, String> c3 = new ScalarCart<>("3", "Piter,Pan,1890");
-		ScalarCart<String, String> c4 = new ScalarCart<>("4", "John,Silvers,1890");
-		conveyor.add(c1);
-		conveyor.add(c2);
-		conveyor.add(c3);
-		conveyor.add(c4);
-		Thread.sleep(20);
-		assertNotNull(usr.get());
-		assertFalse(conveyor.isLBalanced());
 
 	}
 	

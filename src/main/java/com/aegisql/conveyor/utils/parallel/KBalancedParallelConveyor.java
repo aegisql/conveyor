@@ -5,11 +5,7 @@ package com.aegisql.conveyor.utils.parallel;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -27,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ProductBin;
@@ -35,7 +30,6 @@ import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
-import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 
@@ -48,166 +42,68 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
  * @param <L> the label type
  * @param <OUT> the Product type
  */
-public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
+public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L, OUT> {
 
 	/** The Constant LOG. */
-	private final static Logger LOG = LoggerFactory.getLogger(ParallelConveyor.class);
-
-	/** The expiration collection interval. */
-	protected long expirationCollectionInterval = 0;
-	protected TimeUnit expirationCollectionUnit = TimeUnit.MILLISECONDS;
-	
-	/** The builder timeout. */
-	protected long builderTimeout = 0;
-	
-	/** The on timeout action. */
-	protected Consumer<Supplier<? extends OUT>> timeoutAction;
-	
-	/** The running. */
-	protected volatile boolean running = true;
-
-	/** The conveyors. */
-	protected final List<Conveyor<K, L, OUT>> conveyors = new ArrayList<>();
-
-	/** The pf. */
-	protected int pf;
-	
-	protected Function<GeneralCommand<K,?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand;
-	protected Function<Cart<K,?,L>, List<? extends Conveyor<K, L, OUT>>> balancingCart;
-
-	protected String name = "ParallelConveyor";
-
-	//TODO: no need. remove from interface
-	protected boolean lBalanced = false;
-
-	//TODO: move to lbalanced
-	private Set<L> acceptedLabels = new HashSet<>();
-
-	//TODO: no need. remove from interface
-	private boolean forwardingResults = false;
+	private final static Logger LOG = LoggerFactory.getLogger(KBalancedParallelConveyor.class);
 	
 	/**
-	 * Instantiates a new parallel conveyor.
+	 * Instantiates a new k-balanced parallel conveyor with AssemblingConveyors inside.
 	 *
 	 * @param pf the pf
 	 */
+	public KBalancedParallelConveyor( int pf ) {
+		this(AssemblingConveyor::new,pf);
+	}
+	
+	/**
+	 * Instantiates a new k-balanced parallel conveyor with custom Conveyor supplier provided by user.
+	 *
+	 * @param pf the pf
+	 */
+	public KBalancedParallelConveyor( Supplier<? extends Conveyor<K, L, OUT>> cs, int pf ) {
+		if( pf <=0 ) {
+			throw new IllegalArgumentException("Parallelism Factor must be >=1");
+		}
+		Conveyor<K, L, OUT>[] cArray = new Conveyor[pf];
+		for(int i = 0; i < pf; i++) {
+			cArray[i] = cs.get();
+		}
+		init(cArray);
+		this.pf = pf;
+	}
 	
 	private void init(Conveyor<K, L, OUT>... conveyors) {
 		int pf = conveyors.length;
 		if( pf == 0 ) {
 			throw new IllegalArgumentException("Parallelism Factor must be >=1");
 		}
-		int kBalanced     = 0;
-		int lBalanced     = 0;
-		int notForvarding = 0;
-		
-		Conveyor<K, L, OUT> lastNotForwarding = null; 
-		
-		List<Conveyor<K, L, OUT>> defaultConv = new ArrayList<>();
-		Map<L,List<Conveyor<K, L, OUT>>> map = new HashMap<>(); 
 		for(Conveyor<K, L, OUT> c:conveyors) {
 			this.conveyors.add(c);
-			if(c.isLBalanced()) {
-				lBalanced++;
-				Set<L> labels = c.getAcceptedLabels();
-				for(L l:labels) {
-					List<Conveyor<K, L, OUT>> convs = map.get(l);
-					if(convs == null) {
-						convs = new ArrayList<>();
-					}
-					convs.add(c);
-					map.put(l, convs);
-				}
-			} else {
-				kBalanced++;
-				defaultConv.add( c );
-			}
-			if( ! c.isForwardingResults()) {
-				lastNotForwarding = c;
-				notForvarding++;
-			}
 		}
+		this.balancingCart = cart -> { 
+			int index = cart.getKey().hashCode() % pf;
+			return this.conveyors.subList(index, index+1);
+		};
+		this.balancingCommand = command -> { 
+			int index = command.getKey().hashCode() % pf;
+			return this.conveyors.subList(index, index+1);
+		};
 
-		if(notForvarding == 1 && lBalanced > 0) {
-			List<Conveyor<K, L, OUT>> notForwardingList = new ArrayList<>();
-			notForwardingList.add(lastNotForwarding);
-			map.put(null, notForwardingList); //Creating cart delivered to all, had null in place of Label
-		}
-		
-		if(lBalanced == 0) {
-			LOG.debug("K-Balanced Parallel conveyor parallelism:{}",pf);
-			this.balancingCart = cart -> { 
-				int index = cart.getKey().hashCode() % pf;
-				return this.conveyors.subList(index, index+1);
-			};
-			this.balancingCommand = command -> { 
-				int index = command.getKey().hashCode() % pf;
-				return this.conveyors.subList(index, index+1);
-			};
-		} else {
-			if( kBalanced > 1 ) {
-				throw new RuntimeException("L-Balanced parallel conveyor cannot have more than one K-balanced default conveyor");
-			} else if(kBalanced == 1) {
-				LOG.debug("L-Balanced Parallel conveyor with default labels. {}",map);
-				this.balancingCart = cart -> { 
-					if(map.containsKey(cart.getLabel())) {
-						return map.get(cart.getLabel());
-					} else {
-						return defaultConv;
-					}
-				};
-			} else {
-				LOG.debug("L-Balanced Parallel conveyor. {}",map);
-				this.balancingCart = cart -> { 
-					if(map.containsKey(cart.getLabel())) {
-						return map.get(cart.getLabel());
-					} else {
-						throw new RuntimeException("L-Balanced parallel conveyor "+this.name+"has no default conveyor for label "+cart.getLabel());
-					}
-				};
-			}
-			this.balancingCommand = command -> { 
-				return this.conveyors;
-			};
-			this.lBalanced = true;
-		}
+		LOG.debug("K-Balanced Parallel conveyor created with {} threads",pf);
+
 	}
 
-	
+
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
-	 */
+	 */	
 	@Override
-	public <V> CompletableFuture<Boolean> addCommand(GeneralCommand<K, V> cart) {
-		CompletableFuture<Boolean> allFutures = new CompletableFuture<Boolean>();
-		
-		this.balancingCommand.apply(cart).forEach(c->c.addCommand(cart));
-		return allFutures;
-	}
-	
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label) {
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label){ private static final long serialVersionUID = 1L;} );
-	}
-	
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, long expirationTime) {
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label, expirationTime ){ private static final long serialVersionUID = 1L;} );
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, long ttl, TimeUnit unit) {
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label, ttl, unit){ private static final long serialVersionUID = 1L;} );		
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Duration duration) {
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label, duration){ private static final long serialVersionUID = 1L;} );		
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Instant instant) {		
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label, instant){ private static final long serialVersionUID = 1L;} );
+	public <V> CompletableFuture<Boolean> addCommand(GeneralCommand<K, V> command) {
+		for(Conveyor<K, L, OUT> conv : this.balancingCommand.apply(command)) {
+			return conv.addCommand(command); //there is only one for K-balanced
+		}
+		throw new IllegalStateException("K-Balanced Parallel conveyor command balancer has no conveyors to return.");
 	}
 	
 	/* (non-Javadoc)
@@ -227,30 +123,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 			}
 		}
 		return combinedFuture;
-	}
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long expirationTime) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long ttl, TimeUnit unit) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Duration duration) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Instant instant) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
 	//TODO: This All done Wrong!!! Send create everywhere for l-balanced builds! and only one for k-balanced
@@ -382,40 +254,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Instant instant) {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	protected CompletableFuture<OUT> getFuture(FutureCart<K,OUT,L> futureCart) {
-		CompletableFuture<OUT> future = futureCart.getValue();
-		CompletableFuture<Boolean> cartFuture = this.add( futureCart );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;		
-	}
-	
-	@Override
-	public CompletableFuture<OUT> getFuture(K key) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>()) );
-	}
-
-	@Override
-	public CompletableFuture<OUT> getFuture(K key, long expirationTime) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),expirationTime) );
-	}
-
-	@Override
-	public CompletableFuture<OUT> getFuture(K key, long ttl, TimeUnit unit) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),ttl,unit) );
-	}
-
-	@Override
-	public CompletableFuture<OUT> getFuture(K key, Duration duration) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),duration) );
-	}
-
-	@Override
-	public CompletableFuture<OUT> getFuture(K key, Instant instant) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),instant) );
 	}
 	
 	/* (non-Javadoc)
@@ -750,24 +588,11 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 
 	@Override
 	public Set<L> getAcceptedLabels() {
-		return acceptedLabels ;
+		return null ;
 	}
 
 	@Override
 	public void acceptLabels(L... labels) {
-		if(labels != null && labels.length > 0) {
-			for(L l:labels) {
-				acceptedLabels.add(l);
-			}
-			this.addCartBeforePlacementValidator(cart->{
-				if( ! acceptedLabels.contains(cart.getLabel())) {
-					throw new IllegalStateException("Parallel Conveyor '"+this.name+"' cannot process label '"+cart.getLabel()+"'");					
-				}
-			});
-			
-			lBalanced = true;
-			
-		}		
 	}
 
 	@Override
@@ -777,16 +602,10 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 
 	@Override
 	public String toString() {
-		return "ParallelConveyor [name=" + name + ", pf=" + pf + ", lBalanced=" + lBalanced + "]";
+		return "K-BalancedParallelConveyor [name=" + name + ", pf=" + pf + "]";
 	}
 
 	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv) {
-		this.forwardingResults  = true;
-		this.setResultConsumer(bin->{
-			LOG.debug("Forward {} from {} to {} {}",partial,this.name,conv.getName(),bin.product);
-			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
-			conv.add( partialResult );
-		});
 	}
 
 	@Override
@@ -799,9 +618,10 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		this.conveyors.forEach(conv -> conv.setExpirationPostponeTime(time, unit));	
 	}
 
+	//TODO: may be not true.
 	@Override
 	public boolean isForwardingResults() {
-		return forwardingResults;
+		return false;
 	}
 
 }

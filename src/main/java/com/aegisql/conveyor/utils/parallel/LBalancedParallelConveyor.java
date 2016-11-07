@@ -48,49 +48,66 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
  * @param <L> the label type
  * @param <OUT> the Product type
  */
-public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
+public class LBalancedParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The Constant LOG. */
-	private final static Logger LOG = LoggerFactory.getLogger(ParallelConveyor.class);
+	private final static Logger LOG = LoggerFactory.getLogger(LBalancedParallelConveyor.class);
 
 	/** The expiration collection interval. */
-	protected long expirationCollectionInterval = 0;
-	protected TimeUnit expirationCollectionUnit = TimeUnit.MILLISECONDS;
+	private long expirationCollectionInterval = 0;
+	private TimeUnit expirationCollectionUnit = TimeUnit.MILLISECONDS;
 	
 	/** The builder timeout. */
-	protected long builderTimeout = 0;
+	private long builderTimeout = 0;
 	
 	/** The on timeout action. */
-	protected Consumer<Supplier<? extends OUT>> timeoutAction;
+	private Consumer<Supplier<? extends OUT>> timeoutAction;
 	
 	/** The running. */
-	protected volatile boolean running = true;
+	private volatile boolean running = true;
 
 	/** The conveyors. */
-	protected final List<Conveyor<K, L, OUT>> conveyors = new ArrayList<>();
+	private final List<Conveyor<K, L, OUT>> conveyors = new ArrayList<>();
 
 	/** The pf. */
-	protected int pf;
+	private final int pf;
 	
-	protected Function<GeneralCommand<K,?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand;
-	protected Function<Cart<K,?,L>, List<? extends Conveyor<K, L, OUT>>> balancingCart;
+	private Function<GeneralCommand<K,?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand;
+	private Function<Cart<K,?,L>, List<? extends Conveyor<K, L, OUT>>> balancingCart;
 
-	protected String name = "ParallelConveyor";
+	private String name = "ParallelConveyor";
 
-	//TODO: no need. remove from interface
-	protected boolean lBalanced = false;
+	private boolean lBalanced = false;
 
-	//TODO: move to lbalanced
 	private Set<L> acceptedLabels = new HashSet<>();
 
-	//TODO: no need. remove from interface
-	private boolean forwardingResults = false;
+	private boolean forwardingResults = false;;
 	
 	/**
 	 * Instantiates a new parallel conveyor.
 	 *
 	 * @param pf the pf
 	 */
+	public LBalancedParallelConveyor( int pf ) {
+		this(AssemblingConveyor::new,pf);
+	}
+	
+	public LBalancedParallelConveyor(Conveyor<K, L, OUT>... conveyors) {
+		init(conveyors);
+		this.pf = conveyors.length;
+	}
+
+	public LBalancedParallelConveyor( Supplier<? extends Conveyor<K, L, OUT>> cs, int pf ) {
+		if( pf <=0 ) {
+			throw new IllegalArgumentException("Parallelism Factor must be >=1");
+		}
+		Conveyor<K, L, OUT>[] cArray = new Conveyor[pf];
+		for(int i = 0; i < pf; i++) {
+			cArray[i] = cs.get();
+		}
+		init(cArray);
+		this.pf = pf;
+	}
 	
 	private void init(Conveyor<K, L, OUT>... conveyors) {
 		int pf = conveyors.length;
@@ -384,38 +401,55 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return null;
 	}
 
-	protected CompletableFuture<OUT> getFuture(FutureCart<K,OUT,L> futureCart) {
-		CompletableFuture<OUT> future = futureCart.getValue();
-		CompletableFuture<Boolean> cartFuture = this.add( futureCart );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;		
-	}
 	
 	@Override
 	public CompletableFuture<OUT> getFuture(K key) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>()) );
+		CompletableFuture<OUT> future = new CompletableFuture<>();
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, long expirationTime) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),expirationTime) );
+		CompletableFuture<OUT> future = new CompletableFuture<>();
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,expirationTime) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, long ttl, TimeUnit unit) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),ttl,unit) );
+		CompletableFuture<OUT> future = new CompletableFuture<>();
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,ttl,unit) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, Duration duration) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),duration) );
+		CompletableFuture<OUT> future = new CompletableFuture<>();
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,duration) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, Instant instant) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),instant) );
+		CompletableFuture<OUT> future = new CompletableFuture<>();
+		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,instant) );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;
 	}
 	
 	/* (non-Javadoc)

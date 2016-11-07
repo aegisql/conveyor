@@ -15,6 +15,7 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.utils.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.utils.parallel.ParallelConveyor;
 
 public class MultichannelTest {
@@ -82,7 +83,7 @@ public class MultichannelTest {
 		ch2.setName("CH2");
 		assertTrue(ch2.isLBalanced());
 		
-		Conveyor<Integer, UserBuilderEvents, User> pc = new ParallelConveyor<>(ac,ch1,ch2);
+		Conveyor<Integer, UserBuilderEvents, User> pc = new LBalancedParallelConveyor<>(ac,ch1,ch2);
 		assertTrue(pc.isLBalanced());
 	
 		ShoppingCart<Integer, String, UserBuilderEvents> cartA1 = new ShoppingCart<>(1,"John", UserBuilderEvents.SET_FIRST,100,TimeUnit.MILLISECONDS);
@@ -144,7 +145,7 @@ public class MultichannelTest {
 		ch2.setName("CH2");
 		assertTrue(ch2.isLBalanced());
 		
-		Conveyor<Integer, UserBuilderEvents, User> pc = new ParallelConveyor<>(ac,ch1,ch2);
+		Conveyor<Integer, UserBuilderEvents, User> pc = new LBalancedParallelConveyor<>(ac,ch1,ch2);
 		assertTrue(pc.isLBalanced());
 	
 		ShoppingCart<Integer, String, UserBuilderEvents> cartA1 = new ShoppingCart<>(1,"John", UserBuilderEvents.SET_FIRST,100,TimeUnit.MILLISECONDS);
@@ -210,7 +211,7 @@ public class MultichannelTest {
 		ch2.setName("CH2");
 		assertTrue(ch2.isLBalanced());
 		
-		Conveyor<Integer, UserBuilderEvents, User> pc = new ParallelConveyor<>(ac,ch1,ch2);
+		Conveyor<Integer, UserBuilderEvents, User> pc = new LBalancedParallelConveyor<>(ac,ch1,ch2);
 		assertTrue(pc.isLBalanced());
 	
 		ShoppingCart<Integer, String, UserBuilderEvents> cartA1 = new ShoppingCart<>(1,"John", UserBuilderEvents.SET_FIRST,100,TimeUnit.MILLISECONDS);
@@ -269,7 +270,7 @@ public class MultichannelTest {
 
 		assertTrue(ch1.isLBalanced());
 
-		Conveyor<Integer, UserBuilderEvents, User> ch2 = new ParallelConveyor<>(3);
+		Conveyor<Integer, UserBuilderEvents, User> ch2 = new LBalancedParallelConveyor<>(3);
 		ch2.setBuilderSupplier(UserBuilder::new);
 		ch2.setScrapConsumer(bin->{
 			System.out.println("rejected: "+bin);
@@ -284,7 +285,7 @@ public class MultichannelTest {
 		ch2.setName("CH2");
 		assertTrue(ch2.isLBalanced());
 		
-		Conveyor<Integer, UserBuilderEvents, User> pc = new ParallelConveyor<>(ac,ch1,ch2);
+		Conveyor<Integer, UserBuilderEvents, User> pc = new LBalancedParallelConveyor<>(ac,ch1,ch2);
 		assertTrue(pc.isLBalanced());
 	
 		ShoppingCart<Integer, String, UserBuilderEvents> cartA1 = new ShoppingCart<>(1,"John", UserBuilderEvents.SET_FIRST,100,TimeUnit.MILLISECONDS);
