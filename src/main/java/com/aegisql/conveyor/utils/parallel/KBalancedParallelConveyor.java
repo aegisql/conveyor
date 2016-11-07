@@ -3,8 +3,6 @@
  */
 package com.aegisql.conveyor.utils.parallel;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -30,7 +28,6 @@ import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
-import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 
 /**
@@ -53,7 +50,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 * @param pf the pf
 	 */
 	public KBalancedParallelConveyor( int pf ) {
-		this(AssemblingConveyor::new,pf);
+		this(AssemblingConveyor::new, pf);
 	}
 	
 	/**
@@ -65,36 +62,26 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		if( pf <=0 ) {
 			throw new IllegalArgumentException("Parallelism Factor must be >=1");
 		}
-		Conveyor<K, L, OUT>[] cArray = new Conveyor[pf];
-		for(int i = 0; i < pf; i++) {
-			cArray[i] = cs.get();
-		}
-		init(cArray);
 		this.pf = pf;
-	}
-	
-	private void init(Conveyor<K, L, OUT>... conveyors) {
-		int pf = conveyors.length;
-		if( pf == 0 ) {
-			throw new IllegalArgumentException("Parallelism Factor must be >=1");
+		for(int i = 0; i < pf; i++) {
+			this.conveyors.add(cs.get());
 		}
-		for(Conveyor<K, L, OUT> c:conveyors) {
-			this.conveyors.add(c);
-		}
+
 		this.balancingCart = cart -> { 
 			int index = cart.getKey().hashCode() % pf;
 			return this.conveyors.subList(index, index+1);
 		};
+
 		this.balancingCommand = command -> { 
 			int index = command.getKey().hashCode() % pf;
 			return this.conveyors.subList(index, index+1);
 		};
 
 		LOG.debug("K-Balanced Parallel conveyor created with {} threads",pf);
-
+	
 	}
-
-
+	
+	//TODO: UNIMPLEMENTED!!!!
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */	
@@ -112,199 +99,46 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	@Override
 	public <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart) {
 		Objects.requireNonNull(cart, "Cart is null");
-		CompletableFuture<Boolean> combinedFuture = null;
-		for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
-			Cart<K,V,L> cc = cart.copy();
-			CompletableFuture<Boolean> cartFuture = conv.add(cc);
-			if(combinedFuture == null) {
-				combinedFuture = cartFuture;
-			} else {
-				combinedFuture = combinedFuture.thenCombine(cartFuture, ( a, b ) -> a && b );
-			}
+		Conveyor<K,L,OUT> balancedCobveyor    = this.balancingCart.apply(cart).get(0);
+		CompletableFuture<Boolean> cartFuture = balancedCobveyor.add(cart);
+		return cartFuture;
+	}
+
+	protected CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier) {
+		return createBuildFuture(cartSupplier,null);
+	}
+
+	protected CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier) {
+		CompletableFuture<OUT> productFuture   = new CompletableFuture<OUT>();
+		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(builderSupplier, productFuture);
+		CreatingCart<K, OUT, L> cart           = cartSupplier.apply( supplier );
+		Conveyor<K,L,OUT> balancedCobveyor     = this.balancingCart.apply(cart).get(0);
+		CompletableFuture<Boolean> cartFuture  = balancedCobveyor.add(cart);
+		if( cartFuture.isCancelled()) {
+			productFuture.cancel(true);
 		}
-		return combinedFuture;
+		return productFuture;
 	}
 
-	//TODO: This All done Wrong!!! Send create everywhere for l-balanced builds! and only one for k-balanced
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key) );
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, long expirationTime) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,expirationTime) );		
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, long ttl, TimeUnit unit) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,ttl,unit) );		
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, Duration duration) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,duration) );		
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, Instant instant) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,instant) );				
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value) );		
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long expirationTime) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,expirationTime) );				
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,ttl,unit) );				
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Duration duration) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,duration) );				
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Instant instant) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,instant) );						
-	}
 
-	//TODO: This All done Wrong!!! Send create everywhere for l-balanced builds! and only one for k-balanced
-	// send product future only to the final builder. (balancing function will return it)
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key) {
-		CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(key);
-		CompletableFuture<Boolean> combinedFuture = null;
-		CompletableFuture<OUT> combinedProductFuture = null;
-		for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
-			CompletableFuture<OUT> productFuture = new CompletableFuture<OUT>();
-			BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, productFuture);
-			CreatingCart<K, OUT, L> cc = new CreatingCart<K, OUT, L>(key,supplier);
-			CompletableFuture<Boolean> cartFuture = conv.add(cc);
-			if(combinedFuture == null) {
-				combinedFuture = cartFuture;
-			} else {
-				combinedFuture = combinedFuture.thenCombine(cartFuture, ( a, b ) -> a && b );
-			}
-			if(combinedProductFuture == null) {
-				combinedProductFuture = productFuture;
-			} else {
-//				combinedProductFuture = combinedProductFuture.thenCombine(productFuture, ( a, b ) -> a && b );
-			}
-		}
-		return combinedProductFuture;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, long expirationTime) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, long ttl, TimeUnit unit) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, Duration duration) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, Instant instant) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long expirationTime) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Duration duration) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Instant instant) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
 	 */
 	@Override
 	public <V> CompletableFuture<Boolean> offer(Cart<K,V,L> cart) {
-		CompletableFuture<Boolean> combinedFuture = null;
+		Objects.requireNonNull(cart, "Cart is null");
+		CompletableFuture<Boolean> cartFuture = null;
 		try {
-			for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
-				Cart<K,V,L> cc = cart.copy();
-				CompletableFuture<Boolean> cartFuture = conv.add(cc);
-				if(combinedFuture == null) {
-					combinedFuture = cartFuture;
-				} else {
-					combinedFuture = combinedFuture.thenCombine(cartFuture, ( a, b ) -> a && b );
-				}
+			Conveyor<K,L,OUT> balancedCobveyor    = this.balancingCart.apply(cart).get(0);
+			cartFuture = balancedCobveyor.add(cart);
+			return cartFuture;
+		} catch (Exception e) {
+			if(cartFuture == null) {
+				cartFuture = new CompletableFuture<Boolean>();
 			}
-			return combinedFuture;
-		} catch(Exception e) {
-			if( combinedFuture == null ) {
-				combinedFuture = new CompletableFuture<Boolean>();
-			}
-			combinedFuture.cancel(true);
-			return combinedFuture;
+			cartFuture.completeExceptionally(e);
 		}
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long expirationTime) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long ttl, TimeUnit unit) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Duration duration) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Instant instant) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
+		return cartFuture;
 	}
 
 	public int getNumberOfConveyors() {
@@ -558,21 +392,6 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		throw new RuntimeException("Unimplemented method");
 	}
 
-	@Override
-	public int getCollectorSize() {
-		return -1;
-	}
-
-	@Override
-	public int getInputQueueSize() {
-		return -1;
-	}
-
-	@Override
-	public int getDelayedQueueSize() {
-		return -1;
-	}
-
 	public void setBalancingCommandAlgorithm(Function<GeneralCommand<K, ?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand) {
 		this.balancingCommand = balancingCommand;
 	}
@@ -588,11 +407,13 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 
 	@Override
 	public Set<L> getAcceptedLabels() {
+		//TODO: remove from interface
 		return null ;
 	}
 
 	@Override
 	public void acceptLabels(L... labels) {
+		//TODO: remove from interface
 	}
 
 	@Override
@@ -606,16 +427,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	}
 
 	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv) {
-	}
-
-	@Override
-	public void enablePostponeExpiration(boolean flag) {
-		this.conveyors.forEach(conv -> conv.enablePostponeExpiration(flag));
-	}
-
-	@Override
-	public void setExpirationPostponeTime(long time, TimeUnit unit) {
-		this.conveyors.forEach(conv -> conv.setExpirationPostponeTime(time, unit));	
+		//TODO:??? 
 	}
 
 	//TODO: may be not true.

@@ -5,10 +5,10 @@ import java.util.function.Supplier;
 
 public class BuilderAndFutureSupplier<T> implements BuilderSupplier<T>, FutureSupplier<T> {
 
-	private final CompletableFuture<? extends T> future;
-	private final Supplier<? extends T> builderSupplier;
+	private final CompletableFuture<T> future;
+	private final BuilderSupplier<? extends T> builderSupplier;
 	
-	public BuilderAndFutureSupplier(Supplier<? extends T> builderSupplier, CompletableFuture<? extends T> future) {
+	public BuilderAndFutureSupplier(BuilderSupplier<T> builderSupplier, CompletableFuture<T> future) {
 		super();
 		this.builderSupplier = builderSupplier;
 		this.future = future;
@@ -16,11 +16,11 @@ public class BuilderAndFutureSupplier<T> implements BuilderSupplier<T>, FutureSu
 
 	@Override
 	public Supplier<? extends T> get() {
-		return builderSupplier;
+		return builderSupplier.get();
 	}
 
 	@Override
-	public CompletableFuture<? extends T> getFuture() {
+	public CompletableFuture<T> getFuture() {
 		return future;
 	}
 

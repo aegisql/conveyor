@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +23,6 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
@@ -174,6 +172,8 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	}
 
 	
+	//TODO: UNIMPLEMENTED!!!!
+	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
@@ -214,20 +214,8 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 * @see com.aegisql.conveyor.Conveyor#add(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart) {
-		Objects.requireNonNull(cart, "Cart is null");
-		CompletableFuture<Boolean> combinedFuture = null;
-		for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
-			Cart<K,V,L> cc = cart.copy();
-			CompletableFuture<Boolean> cartFuture = conv.add(cc);
-			if(combinedFuture == null) {
-				combinedFuture = cartFuture;
-			} else {
-				combinedFuture = combinedFuture.thenCombine(cartFuture, ( a, b ) -> a && b );
-			}
-		}
-		return combinedFuture;
-	}
+	public abstract <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart);
+	
 	@Override
 	public <V> CompletableFuture<Boolean> add(K key, V value, L label) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label));
@@ -253,7 +241,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
-	//TODO: This All done Wrong!!! Send create everywhere for l-balanced builds! and only one for k-balanced
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key) {
 		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key) );
@@ -306,84 +293,62 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 
 	//TODO: This All done Wrong!!! Send create everywhere for l-balanced builds! and only one for k-balanced
 	// send product future only to the final builder. (balancing function will return it)
+
+	protected abstract CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier);
+
+	protected abstract CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier);
+
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key) {
-		CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(key);
-		CompletableFuture<Boolean> combinedFuture = null;
-		CompletableFuture<OUT> combinedProductFuture = null;
-		for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
-			CompletableFuture<OUT> productFuture = new CompletableFuture<OUT>();
-			BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, productFuture);
-			CreatingCart<K, OUT, L> cc = new CreatingCart<K, OUT, L>(key,supplier);
-			CompletableFuture<Boolean> cartFuture = conv.add(cc);
-			if(combinedFuture == null) {
-				combinedFuture = cartFuture;
-			} else {
-				combinedFuture = combinedFuture.thenCombine(cartFuture, ( a, b ) -> a && b );
-			}
-			if(combinedProductFuture == null) {
-				combinedProductFuture = productFuture;
-			} else {
-//				combinedProductFuture = combinedProductFuture.thenCombine(productFuture, ( a, b ) -> a && b );
-			}
-		}
-		return combinedProductFuture;
+		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier));
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, long expirationTime) {
-		// TODO Auto-generated method stub
-		return null;
+		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier,expirationTime));
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, long ttl, TimeUnit unit) {
-		// TODO Auto-generated method stub
-		return null;
+		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier,ttl,unit));
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, Duration duration) {
-		// TODO Auto-generated method stub
-		return null;
+		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier,duration));
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, Instant instant) {
-		// TODO Auto-generated method stub
-		return null;
+		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier,instant));
 	}
 
 	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value) {
-		// TODO Auto-generated method stub
-		return null;
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> builderSupplier) {
+		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier),builderSupplier);
 	}
 
 	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long expirationTime) {
-		// TODO Auto-generated method stub
-		return null;
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> builderSupplier, long expirationTime) {
+		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier,expirationTime),builderSupplier);
 	}
 
 	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
-		// TODO Auto-generated method stub
-		return null;
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> builderSupplier, long ttl, TimeUnit unit) {
+		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier,ttl,unit),builderSupplier);
 	}
 
 	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Duration duration) {
-		// TODO Auto-generated method stub
-		return null;
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> builderSupplier, Duration duration) {
+		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier,duration),builderSupplier);
 	}
 
 	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Instant instant) {
-		// TODO Auto-generated method stub
-		return null;
+	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> builderSupplier, Instant instant) {
+		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier,instant),builderSupplier);
 	}
 
+	
 	protected CompletableFuture<OUT> getFuture(FutureCart<K,OUT,L> futureCart) {
 		CompletableFuture<OUT> future = futureCart.getValue();
 		CompletableFuture<Boolean> cartFuture = this.add( futureCart );
@@ -422,28 +387,8 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public <V> CompletableFuture<Boolean> offer(Cart<K,V,L> cart) {
-		CompletableFuture<Boolean> combinedFuture = null;
-		try {
-			for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
-				Cart<K,V,L> cc = cart.copy();
-				CompletableFuture<Boolean> cartFuture = conv.add(cc);
-				if(combinedFuture == null) {
-					combinedFuture = cartFuture;
-				} else {
-					combinedFuture = combinedFuture.thenCombine(cartFuture, ( a, b ) -> a && b );
-				}
-			}
-			return combinedFuture;
-		} catch(Exception e) {
-			if( combinedFuture == null ) {
-				combinedFuture = new CompletableFuture<Boolean>();
-			}
-			combinedFuture.cancel(true);
-			return combinedFuture;
-		}
-	}
-
+	public abstract <V> CompletableFuture<Boolean> offer(Cart<K,V,L> cart);
+	
 	@Override
 	public <V> CompletableFuture<Boolean> offer(K key, V value, L label) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label));

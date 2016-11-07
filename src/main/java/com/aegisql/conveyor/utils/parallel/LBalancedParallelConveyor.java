@@ -48,7 +48,7 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
  * @param <L> the label type
  * @param <OUT> the Product type
  */
-public class LBalancedParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
+public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L, OUT> {
 
 	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(LBalancedParallelConveyor.class);
@@ -191,6 +191,7 @@ public class LBalancedParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	}
 
 	
+	//TODO: UNIMPLEMENTED!!!!
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
@@ -347,60 +348,6 @@ public class LBalancedParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return combinedProductFuture;
 	}
 
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, long expirationTime) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, long ttl, TimeUnit unit) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, Duration duration) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, Instant instant) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long expirationTime) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Duration duration) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Instant instant) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	
 	@Override
 	public CompletableFuture<OUT> getFuture(K key) {
@@ -452,6 +399,7 @@ public class LBalancedParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return future;
 	}
 	
+	//TODO: UNIMPLEMENTED!!!
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
 	 */
@@ -476,31 +424,6 @@ public class LBalancedParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 			combinedFuture.cancel(true);
 			return combinedFuture;
 		}
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long expirationTime) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long ttl, TimeUnit unit) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Duration duration) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Instant instant) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
 	public int getNumberOfConveyors() {
@@ -836,6 +759,21 @@ public class LBalancedParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	@Override
 	public boolean isForwardingResults() {
 		return forwardingResults;
+	}
+
+	@Override
+	protected CompletableFuture<OUT> createBuildFuture(
+			Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected CompletableFuture<OUT> createBuildFuture(
+			Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier,
+			BuilderSupplier<OUT> builderSupplier) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
