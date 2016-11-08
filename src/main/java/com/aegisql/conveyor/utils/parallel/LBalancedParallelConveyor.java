@@ -241,7 +241,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	}
 
 	public long getExpirationTime(K key,L label) {
-		return this.balancingCart.apply( new ShoppingCart(key, null, label)).get(0).getExpirationTime(key);
+		return ((ParallelConveyor<K, L, OUT>) this.balancingCart.apply( new ShoppingCart(key, null, label)).get(0)).getExpirationTime(key);
 	}
 
 	@Override
