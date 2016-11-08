@@ -329,7 +329,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}}).andThen(cmd->{if( cmd.getCreationTime() < (System.currentTimeMillis() - startTimeReject) ) {
 				throw new IllegalStateException("Command is too old " + cmd);
 		}});
-		
+		acceptedLabels.add(null);
 		this.innerThread = new Thread(() -> {
 			try {
 				while (running) {

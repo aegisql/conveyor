@@ -25,8 +25,8 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.cart.command.CreateCommand;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.utils.parallel.KBalancedParallelConveyor;
@@ -269,7 +269,7 @@ public class ParallelConveyorTest {
 		Thread.sleep(1000);
 	}
 
-	System.out.println("Good data");
+	System.out.println("Good data "+outQueue.size());
 	while(!outQueue.isEmpty()) {
 		System.out.println(outQueue.poll());
 	}
@@ -278,7 +278,7 @@ public class ParallelConveyorTest {
 	System.out.println("Left: "+conveyor.getCollectorSize(0));
 	Thread.sleep(3000);
 
-	System.out.println("Incomplete data");
+	System.out.println("Incomplete data "+outQueue.size());
 	while(!outQueue.isEmpty()) {
 		System.out.println(outQueue.poll());
 	}
@@ -303,7 +303,7 @@ public class ParallelConveyorTest {
 
 	@Test
 	public void otherConveyorTest() throws InterruptedException {
-		Conveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
+		KBalancedParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
@@ -312,10 +312,15 @@ public class ParallelConveyorTest {
 			usr.set(u.product);
 		});
 
-		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow,1990");
-		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow,1990");
+		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");
+		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow2,1991");
+		ScalarCart<String, String> c3 = new ScalarCart<>("2", "Jane,Dow3,1992");
+		ScalarCart<String, String> c4 = new ScalarCart<>("2", "Jane,Dow4,1993");
 		conveyor.add(c1);
 		conveyor.add(c2);
+		conveyor.add(c3);
+		conveyor.add(c4);
+		
 		Thread.sleep(20);
 		assertNotNull(usr.get());
 

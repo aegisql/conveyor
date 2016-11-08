@@ -7,32 +7,22 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.LabeledValueConsumer;
-import com.aegisql.conveyor.ProductBin;
-import com.aegisql.conveyor.ScrapBin;
-import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
@@ -51,67 +41,18 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
 public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L, OUT> {
 
 	/** The Constant LOG. */
-	private final static Logger LOG = LoggerFactory.getLogger(LBalancedParallelConveyor.class);
+	private final static Logger LOG   = LoggerFactory.getLogger(LBalancedParallelConveyor.class);
 
-	/** The expiration collection interval. */
-	private long expirationCollectionInterval = 0;
-	private TimeUnit expirationCollectionUnit = TimeUnit.MILLISECONDS;
-	
-	/** The builder timeout. */
-	private long builderTimeout = 0;
-	
-	/** The on timeout action. */
-	private Consumer<Supplier<? extends OUT>> timeoutAction;
-	
-	/** The running. */
-	private volatile boolean running = true;
-
-	/** The conveyors. */
-	private final List<Conveyor<K, L, OUT>> conveyors = new ArrayList<>();
-
-	/** The pf. */
-	private final int pf;
-	
-	private Function<GeneralCommand<K,?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand;
-	private Function<Cart<K,?,L>, List<? extends Conveyor<K, L, OUT>>> balancingCart;
-
-	private String name = "ParallelConveyor";
-
-	private boolean lBalanced = false;
-
-	private Set<L> acceptedLabels = new HashSet<>();
-
-	private boolean forwardingResults = false;;
+	protected Conveyor<K, L, OUT> finalConsumer = null;
 	
 	/**
 	 * Instantiates a new parallel conveyor.
 	 *
 	 * @param pf the pf
 	 */
-	public LBalancedParallelConveyor( int pf ) {
-		this(AssemblingConveyor::new,pf);
-	}
-	
 	public LBalancedParallelConveyor(Conveyor<K, L, OUT>... conveyors) {
-		init(conveyors);
 		this.pf = conveyors.length;
-	}
-
-	public LBalancedParallelConveyor( Supplier<? extends Conveyor<K, L, OUT>> cs, int pf ) {
-		if( pf <=0 ) {
-			throw new IllegalArgumentException("Parallelism Factor must be >=1");
-		}
-		Conveyor<K, L, OUT>[] cArray = new Conveyor[pf];
-		for(int i = 0; i < pf; i++) {
-			cArray[i] = cs.get();
-		}
-		init(cArray);
-		this.pf = pf;
-	}
-	
-	private void init(Conveyor<K, L, OUT>... conveyors) {
-		int pf = conveyors.length;
-		if( pf == 0 ) {
+		if( this.pf == 0 ) {
 			throw new IllegalArgumentException("Parallelism Factor must be >=1");
 		}
 		int kBalanced     = 0;
@@ -148,22 +89,15 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		if(notForvarding == 1 && lBalanced > 0) {
 			List<Conveyor<K, L, OUT>> notForwardingList = new ArrayList<>();
 			notForwardingList.add(lastNotForwarding);
+			finalConsumer = lastNotForwarding;
 			map.put(null, notForwardingList); //Creating cart delivered to all, had null in place of Label
 		}
 		
 		if(lBalanced == 0) {
-			LOG.debug("K-Balanced Parallel conveyor parallelism:{}",pf);
-			this.balancingCart = cart -> { 
-				int index = cart.getKey().hashCode() % pf;
-				return this.conveyors.subList(index, index+1);
-			};
-			this.balancingCommand = command -> { 
-				int index = command.getKey().hashCode() % pf;
-				return this.conveyors.subList(index, index+1);
-			};
+			throw new RuntimeException("L-Balanced parallel conveyor must have at least one L-balanced assembling conveyor");
 		} else {
 			if( kBalanced > 1 ) {
-				throw new RuntimeException("L-Balanced parallel conveyor cannot have more than one K-balanced default conveyor");
+				throw new RuntimeException("L-Balanced parallel conveyor cannot have more than one K-balanced default assembling conveyor");
 			} else if(kBalanced == 1) {
 				LOG.debug("L-Balanced Parallel conveyor with default labels. {}",map);
 				this.balancingCart = cart -> { 
@@ -189,7 +123,6 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			this.lBalanced = true;
 		}
 	}
-
 	
 	//TODO: UNIMPLEMENTED!!!!
 	/* (non-Javadoc)
@@ -197,35 +130,16 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 */
 	@Override
 	public <V> CompletableFuture<Boolean> addCommand(GeneralCommand<K, V> cart) {
-		CompletableFuture<Boolean> allFutures = new CompletableFuture<Boolean>();
-		
-		this.balancingCommand.apply(cart).forEach(c->c.addCommand(cart));
-		return allFutures;
-	}
-	
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label) {
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label){ private static final long serialVersionUID = 1L;} );
-	}
-	
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, long expirationTime) {
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label, expirationTime ){ private static final long serialVersionUID = 1L;} );
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, long ttl, TimeUnit unit) {
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label, ttl, unit){ private static final long serialVersionUID = 1L;} );		
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Duration duration) {
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label, duration){ private static final long serialVersionUID = 1L;} );		
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Instant instant) {		
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label, instant){ private static final long serialVersionUID = 1L;} );
+		Objects.requireNonNull(cart, "Command is null");
+		CompletableFuture<Boolean> combinedFutures = null;
+		for(Conveyor<K, L, OUT> conv: this.balancingCommand.apply(cart)) {
+			if(combinedFutures == null) {
+				combinedFutures = conv.addCommand((GeneralCommand<K, V>) cart.copy());
+			} else {
+				combinedFutures = combinedFutures.thenCombine(conv.addCommand((GeneralCommand<K, V>) cart.copy()), (a,b) -> a && b );
+			}
+		}
+		return combinedFutures;
 	}
 	
 	/* (non-Javadoc)
@@ -236,168 +150,68 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		Objects.requireNonNull(cart, "Cart is null");
 		CompletableFuture<Boolean> combinedFuture = null;
 		for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
-			Cart<K,V,L> cc = cart.copy();
-			CompletableFuture<Boolean> cartFuture = conv.add(cc);
 			if(combinedFuture == null) {
-				combinedFuture = cartFuture;
+				combinedFuture = conv.add(cart.copy());
 			} else {
-				combinedFuture = combinedFuture.thenCombine(cartFuture, ( a, b ) -> a && b );
+				combinedFuture = combinedFuture.thenCombine(conv.add(cart.copy()), ( a, b ) -> a && b );
 			}
 		}
 		return combinedFuture;
 	}
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label));
-	}
 
 	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long expirationTime) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long ttl, TimeUnit unit) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Duration duration) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
-	}
-
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Instant instant) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
-	}
-
-	//TODO: This All done Wrong!!! Send create everywhere for l-balanced builds! and only one for k-balanced
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key) );
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, long expirationTime) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,expirationTime) );		
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, long ttl, TimeUnit unit) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,ttl,unit) );		
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, Duration duration) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,duration) );		
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, Instant instant) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,instant) );				
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value) );		
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long expirationTime) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,expirationTime) );				
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,ttl,unit) );				
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Duration duration) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,duration) );				
-	}
-	
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Instant instant) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,instant) );						
-	}
-
-	//TODO: This All done Wrong!!! Send create everywhere for l-balanced builds! and only one for k-balanced
-	// send product future only to the final builder. (balancing function will return it)
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key) {
-		CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(key);
+	protected <V> CompletableFuture<Boolean> createBuild(Cart<K, V, L> cart) {
+		Objects.requireNonNull(cart, "Cart is null");
 		CompletableFuture<Boolean> combinedFuture = null;
-		CompletableFuture<OUT> combinedProductFuture = null;
-		for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
-			CompletableFuture<OUT> productFuture = new CompletableFuture<OUT>();
-			BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, productFuture);
-			CreatingCart<K, OUT, L> cc = new CreatingCart<K, OUT, L>(key,supplier);
-			CompletableFuture<Boolean> cartFuture = conv.add(cc);
+		for(Conveyor<K,L,OUT> conv : this.conveyors) {
 			if(combinedFuture == null) {
-				combinedFuture = cartFuture;
+				combinedFuture = conv.add(cart.copy());
 			} else {
-				combinedFuture = combinedFuture.thenCombine(cartFuture, ( a, b ) -> a && b );
-			}
-			if(combinedProductFuture == null) {
-				combinedProductFuture = productFuture;
-			} else {
-//				combinedProductFuture = combinedProductFuture.thenCombine(productFuture, ( a, b ) -> a && b );
+				combinedFuture = combinedFuture.thenCombine(conv.add(cart.copy()), ( a, b ) -> a && b );
 			}
 		}
-		return combinedProductFuture;
+		return combinedFuture;
 	}
 
+	protected CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier) {
+		Objects.requireNonNull(cartSupplier, "Cart supplier is null");
+		CompletableFuture<Boolean> combinedCreateFuture = null;
+		CompletableFuture<OUT> productFuture   = new CompletableFuture<OUT>();
+		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(builderSupplier, productFuture);
+		CreatingCart<K, OUT, L> cart           = cartSupplier.apply( supplier );
+		
+		for(Conveyor<K,L,OUT> conv : this.conveyors) {
+			if(conv.isForwardingResults()) {
+				if(combinedCreateFuture == null) {
+					combinedCreateFuture = conv.add(new CreatingCart<K, OUT, L>(cart.getKey(),supplier,cart.getExpirationTime()));
+				} else {
+					combinedCreateFuture = combinedCreateFuture.thenCombine(conv.add(new CreatingCart<K, OUT, L>(cart.getKey(),supplier,cart.getExpirationTime())), ( a, b ) -> a && b );
+				}
+			} else {
+				//this conv will finally create the product
+				if(combinedCreateFuture == null) {
+					combinedCreateFuture = conv.add(cart);
+				} else {
+					combinedCreateFuture = combinedCreateFuture.thenCombine(conv.add(cart), ( a, b ) -> a && b );
+				}
+			}
+		}
+		Objects.requireNonNull(combinedCreateFuture, "Create future is empty");
+		if( combinedCreateFuture.isCancelled()) {
+			productFuture.cancel(true);
+		}
+		return productFuture;
+	}
+
+	protected CompletableFuture<OUT> getFuture(FutureCart<K,OUT,L> futureCart) {
+		CompletableFuture<OUT> future = futureCart.getValue();
+		CompletableFuture<Boolean> cartFuture = this.finalConsumer.add( futureCart );
+		if(cartFuture.isCancelled()) {
+			future.cancel(true);
+		}
+		return future;		
+	}
 	
-	@Override
-	public CompletableFuture<OUT> getFuture(K key) {
-		CompletableFuture<OUT> future = new CompletableFuture<>();
-		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future) );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
-	}
-
-	@Override
-	public CompletableFuture<OUT> getFuture(K key, long expirationTime) {
-		CompletableFuture<OUT> future = new CompletableFuture<>();
-		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,expirationTime) );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
-	}
-
-	@Override
-	public CompletableFuture<OUT> getFuture(K key, long ttl, TimeUnit unit) {
-		CompletableFuture<OUT> future = new CompletableFuture<>();
-		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,ttl,unit) );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
-	}
-
-	@Override
-	public CompletableFuture<OUT> getFuture(K key, Duration duration) {
-		CompletableFuture<OUT> future = new CompletableFuture<>();
-		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,duration) );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
-	}
-
-	@Override
-	public CompletableFuture<OUT> getFuture(K key, Instant instant) {
-		CompletableFuture<OUT> future = new CompletableFuture<>();
-		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,instant) );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
-	}
 	
 	//TODO: UNIMPLEMENTED!!!
 	/* (non-Javadoc)
@@ -426,354 +240,27 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		}
 	}
 
-	public int getNumberOfConveyors() {
-		return conveyors.size();
-	}
-	
-	/**
-	 * Gets the collector size.
-	 *
-	 * @param idx the idx
-	 * @return the collector size
-	 */
-	public int getCollectorSize(int idx) {
-		if(idx < 0 || idx >= pf) {
-			return 0;
-		} else {
-			return conveyors.get(idx).getCollectorSize();
-		}
-	}
-
-	/**
-	 * Gets the input queue size.
-	 *
-	 * @param idx the idx
-	 * @return the input queue size
-	 */
-	public int getInputQueueSize(int idx) {
-		if(idx < 0 || idx >= pf) {
-			return 0;
-		} else {
-			return conveyors.get(idx).getInputQueueSize();
-		}
-	}
-
-	/**
-	 * Gets the delayed queue size.
-	 *
-	 * @param idx the idx
-	 * @return the delayed queue size
-	 */
-	public int getDelayedQueueSize(int idx) {
-		if(idx < 0 || idx >= pf) {
-			return 0;
-		} else {
-			return conveyors.get(idx).getDelayedQueueSize();
-		}
-	}
-
-	/**
-	 * Sets the scrap consumer.
-	 *
-	 * @param scrapConsumer the scrap consumer
-	 */
-	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer) {
-		this.conveyors.forEach(conv->conv.setScrapConsumer(scrapConsumer));
-	}
-
-	/**
-	 * Stop.
-	 */
-	public void stop() {
-		this.running = false;
-		this.conveyors.forEach(conv->conv.stop());
-	}
-
-	/**
-	 * Gets the expiration collection interval.
-	 *
-	 * @return the expiration collection interval
-	 */
-	public long getExpirationCollectionIdleInterval() {
-		return expirationCollectionInterval;
-	}
-	public TimeUnit getExpirationCollectionIdleTimeUnit() {
-		return expirationCollectionUnit;
-	}
-
-	/**
-	 * Sets the expiration collection interval.
-	 *
-	 * @param expirationCollectionInterval the expiration collection interval
-	 * @param unit the unit
-	 */
-	public void setIdleHeartBeat(long expirationCollectionInterval, TimeUnit unit) {
-		this.expirationCollectionInterval = expirationCollectionInterval;
-		this.expirationCollectionUnit = unit;
-		this.conveyors.forEach(conv->conv.setIdleHeartBeat(expirationCollectionInterval,unit));
-	}
-
-	/**
-	 * Gets the builder timeout.
-	 *
-	 * @return the builder timeout
-	 */
-	public long getDefaultBuilderTimeout() {
-		return builderTimeout;
-	}
-
-	/**
-	 * Sets the builder timeout.
-	 *
-	 * @param builderTimeout the builder timeout
-	 * @param unit the unit
-	 */
-	public void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit) {
-		this.builderTimeout = unit.toMillis(builderTimeout);
-		this.conveyors.forEach(conv->conv.setDefaultBuilderTimeout(builderTimeout,unit));
-	}
-
-	/**
-	 * Reject unexpireable carts older than.
-	 *
-	 * @param timeout the timeout
-	 * @param unit the unit
-	 */
-	public void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit) {
-		this.conveyors.forEach(conv->conv.rejectUnexpireableCartsOlderThan(timeout,unit));
-	}
-
-	
-	/**
-	 * Checks if is on timeout action.
-	 *
-	 * @return true, if is on timeout action
-	 */
-	public boolean isOnTimeoutAction() {
-		return timeoutAction != null;
-	}
-
-	/**
-	 * Sets the on timeout action.
-	 *
-	 * @param timeoutAction the new on timeout action
-	 */
-	public void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction) {
-		this.timeoutAction = timeoutAction;
-		this.conveyors.forEach(conv->conv.setOnTimeoutAction(timeoutAction));
-	}
-
-	/**
-	 * Sets the result consumer.
-	 *
-	 * @param resultConsumer the new result consumer
-	 */
-	public void setResultConsumer(Consumer<ProductBin<K,OUT>> resultConsumer) {
-		this.conveyors.forEach(conv->conv.setResultConsumer(resultConsumer));
-	}
-
-	/**
-	 * Sets the cart consumer.
-	 *
-	 * @param cartConsumer the cart consumer
-	 */
-	public void setDefaultCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer) {
-		this.conveyors.forEach(conv->conv.setDefaultCartConsumer(cartConsumer));
-	}
-
-	/**
-	 * Sets the readiness evaluator.
-	 *
-	 * @param ready the ready
-	 */
-	public void setReadinessEvaluator(BiPredicate<State<K,L>, Supplier<? extends OUT>> ready) {
-		this.conveyors.forEach(conv->conv.setReadinessEvaluator(ready));
-	}
-
-	/**
-	 * Sets the readiness evaluator.
-	 *
-	 * @param readiness the ready
-	 */
-	public void setReadinessEvaluator(Predicate<Supplier<? extends OUT>> readiness) {
-		this.conveyors.forEach(conv->conv.setReadinessEvaluator(readiness));
-	}
-
-	/**
-	 * Sets the builder supplier.
-	 *
-	 * @param builderSupplier the new builder supplier
-	 */
-	public void setBuilderSupplier(BuilderSupplier<OUT> builderSupplier) {
-		this.conveyors.forEach(conv->conv.setBuilderSupplier(builderSupplier));
-	}
-
-	/**
-	 * Sets the name.
-	 *
-	 * @param name the new name
-	 */
-	public void setName(String name) {
-		this.name = name;
-		int i = 0;
-		for(Conveyor<K,L,OUT> conv: conveyors) {
-			conv.setName(name+" ["+i+"]");
-			i++;
-		}
-	}
-	
-	/**
-	 * Checks if is running.
-	 *
-	 * @return true, if is running
-	 */
-	public boolean isRunning() {
-		return running;
-	}
-
-	/**
-	 * Checks if is running.
-	 *
-	 * @param idx the idx
-	 * @return true, if is running
-	 */
-	public boolean isRunning(int idx) {
-		if(idx < 0 || idx >= pf) {
-			return false;
-		} else {
-			return conveyors.get(idx).isRunning();
-		}
-	}
-	
-	//Think about consequences
-	public void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator) {
-		if(cartBeforePlacementValidator != null) {
-			this.conveyors.forEach(conv->conv.addCartBeforePlacementValidator(cartBeforePlacementValidator));
-		}
-	}
-
-
-	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction) {
-		if(keyBeforeEviction != null) {
-			this.conveyors.forEach(conv->conv.addBeforeKeyEvictionAction(keyBeforeEviction));
-		}
-	}
-
-	public void addBeforeKeyReschedulingAction(BiConsumer<K,Long> keyBeforeRescheduling) {
-		if(keyBeforeRescheduling != null) {
-			this.conveyors.forEach(conv->conv.addBeforeKeyReschedulingAction(keyBeforeRescheduling));
-		}
-	}
-
-	public long getExpirationTime(K key) {
-		if(!lBalanced) {
-			return this.conveyors.get(0).getExpirationTime(key);
-		} else {
-			throw new RuntimeException("Method cannot be called for L-Balanced conveyor '"+name+"'. Use getExpirationTime(K key, L label)");
-		}
-	}
-
-	public long getExpirationTime(K key, L label) {
-		throw new RuntimeException("Unimplemented method");
-	}
-
-	@Override
-	public int getCollectorSize() {
-		return -1;
-	}
-
-	@Override
-	public int getInputQueueSize() {
-		return -1;
-	}
-
-	@Override
-	public int getDelayedQueueSize() {
-		return -1;
-	}
-
-	public void setBalancingCommandAlgorithm(Function<GeneralCommand<K, ?>, List<? extends Conveyor<K, L, OUT>>> balancingCommand) {
-		this.balancingCommand = balancingCommand;
-	}
-
-	public void setBalancingCartAlgorithm(Function<Cart<K, ?, L>, List<? extends Conveyor<K, L, OUT>>> balancingCart) {
-		this.balancingCart = balancingCart;
+	public long getExpirationTime(K key,L label) {
+		return this.balancingCart.apply( new ShoppingCart(key, null, label)).get(0).getExpirationTime(key);
 	}
 
 	@Override
 	public boolean isLBalanced() {
-		return lBalanced;
-	}
-
-	@Override
-	public Set<L> getAcceptedLabels() {
-		return acceptedLabels ;
-	}
-
-	@Override
-	public void acceptLabels(L... labels) {
-		if(labels != null && labels.length > 0) {
-			for(L l:labels) {
-				acceptedLabels.add(l);
-			}
-			this.addCartBeforePlacementValidator(cart->{
-				if( ! acceptedLabels.contains(cart.getLabel())) {
-					throw new IllegalStateException("Parallel Conveyor '"+this.name+"' cannot process label '"+cart.getLabel()+"'");					
-				}
-			});
-			
-			lBalanced = true;
-			
-		}		
-	}
-
-	@Override
-	public String getName() {
-		return name;
+		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "ParallelConveyor [name=" + name + ", pf=" + pf + ", lBalanced=" + lBalanced + "]";
+		return "L-Balanced ParallelConveyor [name=" + name + ", pf=" + pf + ", lBalanced=" + lBalanced + "]";
 	}
 
 	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv) {
-		this.forwardingResults  = true;
+		this.forwardingResults   = true;
 		this.setResultConsumer(bin->{
 			LOG.debug("Forward {} from {} to {} {}",partial,this.name,conv.getName(),bin.product);
 			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
 			conv.add( partialResult );
 		});
-	}
-
-	@Override
-	public void enablePostponeExpiration(boolean flag) {
-		this.conveyors.forEach(conv -> conv.enablePostponeExpiration(flag));
-	}
-
-	@Override
-	public void setExpirationPostponeTime(long time, TimeUnit unit) {
-		this.conveyors.forEach(conv -> conv.setExpirationPostponeTime(time, unit));	
-	}
-
-	@Override
-	public boolean isForwardingResults() {
-		return forwardingResults;
-	}
-
-	@Override
-	protected CompletableFuture<OUT> createBuildFuture(
-			Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	protected CompletableFuture<OUT> createBuildFuture(
-			Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier,
-			BuilderSupplier<OUT> builderSupplier) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

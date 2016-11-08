@@ -82,7 +82,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	private Set<L> acceptedLabels = new HashSet<>();
 
 	//TODO: no need. remove from interface
-	private boolean forwardingResults = false;
+	protected boolean forwardingResults = false;
 	
 	/**
 	 * Instantiates a new parallel conveyor.
@@ -178,12 +178,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public <V> CompletableFuture<Boolean> addCommand(GeneralCommand<K, V> cart) {
-		CompletableFuture<Boolean> allFutures = new CompletableFuture<Boolean>();
-		
-		this.balancingCommand.apply(cart).forEach(c->c.addCommand(cart));
-		return allFutures;
-	}
+	public abstract <V> CompletableFuture<Boolean> addCommand(GeneralCommand<K, V> cart);
 	
 	@Override
 	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label) {
@@ -215,7 +210,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 */
 	@Override
 	public abstract <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart);
-	
+
 	@Override
 	public <V> CompletableFuture<Boolean> add(K key, V value, L label) {
 		return this.add( new ShoppingCart<K,V,L>(key,value,label));
@@ -241,62 +236,66 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
+	protected abstract <V> CompletableFuture<Boolean> createBuild(Cart<K,V,L> cart);
+
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key) );
+		return this.createBuild( new CreatingCart<K, Supplier<OUT>, L>(key) );
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, long expirationTime) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,expirationTime) );		
+		return this.createBuild( new CreatingCart<K, Supplier<OUT>, L>(key,expirationTime) );		
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, long ttl, TimeUnit unit) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,ttl,unit) );		
+		return this.createBuild( new CreatingCart<K, Supplier<OUT>, L>(key,ttl,unit) );		
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, Duration duration) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,duration) );		
+		return this.createBuild( new CreatingCart<K, Supplier<OUT>, L>(key,duration) );		
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, Instant instant) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,instant) );				
+		return this.createBuild( new CreatingCart<K, Supplier<OUT>, L>(key,instant) );				
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value) );		
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,value) );		
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long expirationTime) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,expirationTime) );				
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,expirationTime) );				
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,ttl,unit) );				
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,ttl,unit) );				
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Duration duration) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,duration) );				
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,duration) );				
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Instant instant) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,instant) );						
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,instant) );						
 	}
 
 	//TODO: This All done Wrong!!! Send create everywhere for l-balanced builds! and only one for k-balanced
 	// send product future only to the final builder. (balancing function will return it)
 
-	protected abstract CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier);
-
 	protected abstract CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier);
+
+	protected CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier) {
+		return createBuildFuture(cartSupplier,null);
+	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key) {
@@ -349,14 +348,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	}
 
 	
-	protected CompletableFuture<OUT> getFuture(FutureCart<K,OUT,L> futureCart) {
-		CompletableFuture<OUT> future = futureCart.getValue();
-		CompletableFuture<Boolean> cartFuture = this.add( futureCart );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;		
-	}
+	protected abstract CompletableFuture<OUT> getFuture(FutureCart<K,OUT,L> futureCart);
 	
 	@Override
 	public CompletableFuture<OUT> getFuture(K key) {
@@ -659,10 +651,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		} else {
 			throw new RuntimeException("Method cannot be called for L-Balanced conveyor '"+name+"'. Use getExpirationTime(K key, L label)");
 		}
-	}
-
-	public long getExpirationTime(K key, L label) {
-		throw new RuntimeException("Unimplemented method");
 	}
 
 	@Override

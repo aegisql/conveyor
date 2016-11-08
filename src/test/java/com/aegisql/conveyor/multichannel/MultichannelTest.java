@@ -1,7 +1,11 @@
 package com.aegisql.conveyor.multichannel;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -15,8 +19,8 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.utils.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.utils.parallel.LBalancedParallelConveyor;
-import com.aegisql.conveyor.utils.parallel.ParallelConveyor;
 
 public class MultichannelTest {
 
@@ -237,7 +241,7 @@ public class MultichannelTest {
 
 
 	@Test
-	public void testWithDoubleParallelConveyor() throws InterruptedException {
+	public void testWithDoubleParallelConveyor() throws InterruptedException, ExecutionException {
 		AtomicReference<User> user = new AtomicReference<User>(null);
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ac = new AssemblingConveyor<>();
 		ac.setName("main");
@@ -270,7 +274,7 @@ public class MultichannelTest {
 
 		assertTrue(ch1.isLBalanced());
 
-		Conveyor<Integer, UserBuilderEvents, User> ch2 = new LBalancedParallelConveyor<>(3);
+		Conveyor<Integer, UserBuilderEvents, User> ch2 = new KBalancedParallelConveyor<>(3);
 		ch2.setBuilderSupplier(UserBuilder::new);
 		ch2.setScrapConsumer(bin->{
 			System.out.println("rejected: "+bin);
@@ -283,7 +287,6 @@ public class MultichannelTest {
 			return ub.yearOfBirth != null;
 		});
 		ch2.setName("CH2");
-		assertTrue(ch2.isLBalanced());
 		
 		Conveyor<Integer, UserBuilderEvents, User> pc = new LBalancedParallelConveyor<>(ac,ch1,ch2);
 		assertTrue(pc.isLBalanced());
@@ -297,6 +300,11 @@ public class MultichannelTest {
 		System.out.println("CH2 "+ch2);
 		System.out.println("PC  "+pc);
 		
+		CompletableFuture<User> f = pc.getFuture(1);
+		assertNotNull(f);
+		assertFalse(f.isCancelled());
+		assertFalse(f.isCompletedExceptionally());
+		assertFalse(f.isDone());
 		pc.add(cartA1);
 		pc.add(cartA2);
 		pc.add(cartB1);
@@ -304,6 +312,13 @@ public class MultichannelTest {
 		Thread.sleep(100);
 
 		assertNotNull(user.get());
+		assertFalse(f.isCancelled());
+		assertFalse(f.isCompletedExceptionally());
+		assertTrue(f.isDone());
+		
+		User u = f.get();
+		assertNotNull(u);
+		System.out.println(u);
 	}
 
 	
