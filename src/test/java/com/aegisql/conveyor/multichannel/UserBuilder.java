@@ -115,5 +115,13 @@ public class UserBuilder implements Supplier<User> {
 		this.ready = ready;
 	}
 
+	@Override
+	public String toString() {
+		return "UserBuilder [first=" + first + ", last=" + last + ", yearOfBirth=" + yearOfBirth + ", ready=" + ready
+				+ "]";
+	}
+
+	
+	
 }
 
