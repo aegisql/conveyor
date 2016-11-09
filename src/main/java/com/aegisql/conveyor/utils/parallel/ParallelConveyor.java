@@ -79,6 +79,10 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 
 	protected boolean forwardingResults = false;
 	
+	protected BuilderSupplier<OUT> builderSupplier = () -> {
+		throw new IllegalStateException("Builder Supplier is not set");
+	};
+	
 	/**
 	 * Instantiates a new parallel conveyor.
 	 *
@@ -212,7 +216,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	}
 
 	protected CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier) {
-		return createBuildFutureWithCart(cartSupplier,null);
+		return createBuildFutureWithCart(cartSupplier,builderSupplier);
 	}
 
 	@Override
@@ -508,6 +512,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 * @param builderSupplier the new builder supplier
 	 */
 	public void setBuilderSupplier(BuilderSupplier<OUT> builderSupplier) {
+		this.builderSupplier = builderSupplier;
 		this.conveyors.forEach(conv->conv.setBuilderSupplier(builderSupplier));
 	}
 

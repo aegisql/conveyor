@@ -402,5 +402,32 @@ public class ParallelConveyorTest {
 
 	}
 
+	@Test
+	public void createFutureConveyorTest2() throws InterruptedException, ExecutionException, TimeoutException {
+		KBalancedParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
+		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
+		AtomicReference<User> usr = new AtomicReference<User>(null);
+		conveyor.setBuilderSupplier(StringToUserBuulder::new);
+		conveyor.setResultConsumer(u->{
+			System.out.println("RESULT: "+u);
+			usr.set(u.product);
+		});
+		CompletableFuture<User> uf1 = conveyor.createBuildFuture("1");
+		CompletableFuture<User> uf2 = conveyor.createBuildFuture("2");
+
+		
+		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");
+		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow2,1991");
+		CompletableFuture<Boolean> f1 = conveyor.add(c1);
+		CompletableFuture<Boolean> f2 = conveyor.add(c2);
+		
+		assertTrue(f1.get());
+		assertTrue(f2.get());
+		assertNotNull(usr.get());
+		assertNotNull(uf1.get());
+		assertNotNull(uf2.get());
+
+	}
+
 	
 }
