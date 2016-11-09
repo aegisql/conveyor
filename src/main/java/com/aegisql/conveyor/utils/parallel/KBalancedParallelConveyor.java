@@ -111,9 +111,9 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		}
 		return cartFuture;
 	}
-
+	
 	@Override
-	protected CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier) {
+	protected CompletableFuture<OUT> createBuildFutureWithCart(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier) {
 		CompletableFuture<OUT> productFuture   = new CompletableFuture<OUT>();
 		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(builderSupplier, productFuture);
 		CreatingCart<K, OUT, L> cart           = cartSupplier.apply( supplier );
@@ -126,7 +126,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	}
 
 	@Override
-	protected CompletableFuture<OUT> getFuture(FutureCart<K,OUT,L> futureCart) {
+	protected CompletableFuture<OUT> getFutureByCart(FutureCart<K,OUT,L> futureCart) {
 		CompletableFuture<OUT> future = futureCart.getValue();
 		CompletableFuture<Boolean> cartFuture = this.add( futureCart );
 		if(cartFuture.isCancelled()) {
@@ -150,20 +150,8 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	}
 
 	@Override
-	protected <V> CompletableFuture<Boolean> createBuild(Cart<K, V, L> cart) {
+	protected <V> CompletableFuture<Boolean> createBuildWithCart(Cart<K, V, L> cart) {
 		return add(cart);
-	}
-
-	@Override
-	public CompletableFuture<Boolean> createBuild(CreatingCart<K, OUT, L> cart) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(CreatingCart<K, OUT, L> cart) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

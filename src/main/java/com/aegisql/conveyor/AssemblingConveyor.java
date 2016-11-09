@@ -652,53 +652,38 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}	
 	
 	@Override
-	public CompletableFuture<OUT> getFuture(K key) {
-		CompletableFuture<OUT> future = new CompletableFuture<>();
-		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future) );
+	public <V> CompletableFuture<OUT> getFuture(Cart<K, V, L> cart) {
+		CompletableFuture<OUT> future = ((FutureCart<K,OUT,L>)cart).getValue();
+		CompletableFuture<Boolean> cartFuture = this.add( cart );
 		if(cartFuture.isCancelled()) {
 			future.cancel(true);
 		}
 		return future;
+	}
+	
+	@Override
+	public CompletableFuture<OUT> getFuture(K key) {
+		return getFuture(new FutureCart<K,OUT,L>(key,new CompletableFuture<>()));
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, long expirationTime) {
-		CompletableFuture<OUT> future = new CompletableFuture<>();
-		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,expirationTime) );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return getFuture(new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),expirationTime));
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, long ttl, TimeUnit unit) {
-		CompletableFuture<OUT> future = new CompletableFuture<>();
-		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,ttl,unit) );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return getFuture(new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),ttl,unit));
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, Duration duration) {
-		CompletableFuture<OUT> future = new CompletableFuture<>();
-		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,duration) );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return getFuture(new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),duration));
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, Instant instant) {
-		CompletableFuture<OUT> future = new CompletableFuture<>();
-		CompletableFuture<Boolean> cartFuture = this.add( new FutureCart<K,OUT,L>(key,future,instant) );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return getFuture(new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),instant));
 	}
 	
 	/**

@@ -6,10 +6,8 @@ package com.aegisql.conveyor.utils.parallel;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -75,13 +73,10 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 
 	protected String name = "ParallelConveyor";
 
-	//TODO: no need. remove from interface
 	protected boolean lBalanced = false;
 
-	//TODO: move to lbalanced
 	private Set<L> acceptedLabels = new HashSet<>();
 
-	//TODO: no need. remove from interface
 	protected boolean forwardingResults = false;
 	
 	/**
@@ -89,90 +84,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 *
 	 * @param pf the pf
 	 */
-	
-	private void init(Conveyor<K, L, OUT>... conveyors) {
-		int pf = conveyors.length;
-		if( pf == 0 ) {
-			throw new IllegalArgumentException("Parallelism Factor must be >=1");
-		}
-		int kBalanced     = 0;
-		int lBalanced     = 0;
-		int notForvarding = 0;
-		
-		Conveyor<K, L, OUT> lastNotForwarding = null; 
-		
-		List<Conveyor<K, L, OUT>> defaultConv = new ArrayList<>();
-		Map<L,List<Conveyor<K, L, OUT>>> map = new HashMap<>(); 
-		for(Conveyor<K, L, OUT> c:conveyors) {
-			this.conveyors.add(c);
-			if(c.isLBalanced()) {
-				lBalanced++;
-				Set<L> labels = c.getAcceptedLabels();
-				for(L l:labels) {
-					List<Conveyor<K, L, OUT>> convs = map.get(l);
-					if(convs == null) {
-						convs = new ArrayList<>();
-					}
-					convs.add(c);
-					map.put(l, convs);
-				}
-			} else {
-				kBalanced++;
-				defaultConv.add( c );
-			}
-			if( ! c.isForwardingResults()) {
-				lastNotForwarding = c;
-				notForvarding++;
-			}
-		}
-
-		if(notForvarding == 1 && lBalanced > 0) {
-			List<Conveyor<K, L, OUT>> notForwardingList = new ArrayList<>();
-			notForwardingList.add(lastNotForwarding);
-			map.put(null, notForwardingList); //Creating cart delivered to all, had null in place of Label
-		}
-		
-		if(lBalanced == 0) {
-			LOG.debug("K-Balanced Parallel conveyor parallelism:{}",pf);
-			this.balancingCart = cart -> { 
-				int index = cart.getKey().hashCode() % pf;
-				return this.conveyors.subList(index, index+1);
-			};
-			this.balancingCommand = command -> { 
-				int index = command.getKey().hashCode() % pf;
-				return this.conveyors.subList(index, index+1);
-			};
-		} else {
-			if( kBalanced > 1 ) {
-				throw new RuntimeException("L-Balanced parallel conveyor cannot have more than one K-balanced default conveyor");
-			} else if(kBalanced == 1) {
-				LOG.debug("L-Balanced Parallel conveyor with default labels. {}",map);
-				this.balancingCart = cart -> { 
-					if(map.containsKey(cart.getLabel())) {
-						return map.get(cart.getLabel());
-					} else {
-						return defaultConv;
-					}
-				};
-			} else {
-				LOG.debug("L-Balanced Parallel conveyor. {}",map);
-				this.balancingCart = cart -> { 
-					if(map.containsKey(cart.getLabel())) {
-						return map.get(cart.getLabel());
-					} else {
-						throw new RuntimeException("L-Balanced parallel conveyor "+this.name+"has no default conveyor for label "+cart.getLabel());
-					}
-				};
-			}
-			this.balancingCommand = command -> { 
-				return this.conveyors;
-			};
-			this.lBalanced = true;
-		}
-	}
-
-	
-	//TODO: UNIMPLEMENTED!!!!
 	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
@@ -236,31 +147,36 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
 	}
 
-	protected abstract <V> CompletableFuture<Boolean> createBuild(Cart<K,V,L> cart);
+	protected abstract <V> CompletableFuture<Boolean> createBuildWithCart(Cart<K,V,L> cart);
 
 	@Override
+	public CompletableFuture<Boolean> createBuild(CreatingCart<K, OUT, L> cart) {
+		return this.createBuildWithCart(cart);
+	}
+	
+	@Override
 	public CompletableFuture<Boolean> createBuild(K key) {
-		return this.createBuild( new CreatingCart<K, Supplier<OUT>, L>(key) );
+		return this.createBuildWithCart( new CreatingCart<K, Supplier<OUT>, L>(key) );
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, long expirationTime) {
-		return this.createBuild( new CreatingCart<K, Supplier<OUT>, L>(key,expirationTime) );		
+		return this.createBuildWithCart( new CreatingCart<K, Supplier<OUT>, L>(key,expirationTime) );		
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, long ttl, TimeUnit unit) {
-		return this.createBuild( new CreatingCart<K, Supplier<OUT>, L>(key,ttl,unit) );		
+		return this.createBuildWithCart( new CreatingCart<K, Supplier<OUT>, L>(key,ttl,unit) );		
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, Duration duration) {
-		return this.createBuild( new CreatingCart<K, Supplier<OUT>, L>(key,duration) );		
+		return this.createBuildWithCart( new CreatingCart<K, Supplier<OUT>, L>(key,duration) );		
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, Instant instant) {
-		return this.createBuild( new CreatingCart<K, Supplier<OUT>, L>(key,instant) );				
+		return this.createBuildWithCart( new CreatingCart<K, Supplier<OUT>, L>(key,instant) );				
 	}
 	
 	@Override
@@ -288,13 +204,15 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,instant) );						
 	}
 
-	//TODO: This All done Wrong!!! Send create everywhere for l-balanced builds! and only one for k-balanced
-	// send product future only to the final builder. (balancing function will return it)
+	protected abstract CompletableFuture<OUT> createBuildFutureWithCart(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier);
 
-	protected abstract CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier);
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(CreatingCart<K, OUT, L> cart) {
+		return this.createBuildFutureWithCart(s->cart,null);
+	}
 
 	protected CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier) {
-		return createBuildFuture(cartSupplier,null);
+		return createBuildFutureWithCart(cartSupplier,null);
 	}
 
 	@Override
@@ -324,55 +242,60 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> builderSupplier) {
-		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier),builderSupplier);
+		return createBuildFutureWithCart(supplier -> new CreatingCart<K, OUT, L>(key,supplier),builderSupplier);
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> builderSupplier, long expirationTime) {
-		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier,expirationTime),builderSupplier);
+		return createBuildFutureWithCart(supplier -> new CreatingCart<K, OUT, L>(key,supplier,expirationTime),builderSupplier);
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> builderSupplier, long ttl, TimeUnit unit) {
-		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier,ttl,unit),builderSupplier);
+		return createBuildFutureWithCart(supplier -> new CreatingCart<K, OUT, L>(key,supplier,ttl,unit),builderSupplier);
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> builderSupplier, Duration duration) {
-		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier,duration),builderSupplier);
+		return createBuildFutureWithCart(supplier -> new CreatingCart<K, OUT, L>(key,supplier,duration),builderSupplier);
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> builderSupplier, Instant instant) {
-		return createBuildFuture(supplier -> new CreatingCart<K, OUT, L>(key,supplier,instant),builderSupplier);
+		return createBuildFutureWithCart(supplier -> new CreatingCart<K, OUT, L>(key,supplier,instant),builderSupplier);
 	}
 
 	
-	protected abstract CompletableFuture<OUT> getFuture(FutureCart<K,OUT,L> futureCart);
+	protected abstract CompletableFuture<OUT> getFutureByCart(FutureCart<K,OUT,L> futureCart);
+	
+	@Override
+	public <V> CompletableFuture<OUT> getFuture(Cart<K, V, L> cart) {
+		return getFutureByCart((FutureCart<K, OUT, L>) cart);
+	}
 	
 	@Override
 	public CompletableFuture<OUT> getFuture(K key) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>()) );
+		return getFutureByCart( new FutureCart<K,OUT,L>(key,new CompletableFuture<>()) );
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, long expirationTime) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),expirationTime) );
+		return getFutureByCart( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),expirationTime) );
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, long ttl, TimeUnit unit) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),ttl,unit) );
+		return getFutureByCart( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),ttl,unit) );
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, Duration duration) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),duration) );
+		return getFutureByCart( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),duration) );
 	}
 
 	@Override
 	public CompletableFuture<OUT> getFuture(K key, Instant instant) {
-		return getFuture( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),instant) );
+		return getFutureByCart( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),instant) );
 	}
 	
 	/* (non-Javadoc)

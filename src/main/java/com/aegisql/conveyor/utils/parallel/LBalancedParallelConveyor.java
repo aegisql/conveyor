@@ -3,8 +3,6 @@
  */
 package com.aegisql.conveyor.utils.parallel;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,14 +12,12 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
@@ -160,7 +156,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	}
 
 	@Override
-	protected <V> CompletableFuture<Boolean> createBuild(Cart<K, V, L> cart) {
+	protected <V> CompletableFuture<Boolean> createBuildWithCart(Cart<K, V, L> cart) {
 		Objects.requireNonNull(cart, "Cart is null");
 		CompletableFuture<Boolean> combinedFuture = null;
 		for(Conveyor<K,L,OUT> conv : this.conveyors) {
@@ -173,7 +169,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		return combinedFuture;
 	}
 
-	protected CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier) {
+	protected CompletableFuture<OUT> createBuildFutureWithCart(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier) {
 		Objects.requireNonNull(cartSupplier, "Cart supplier is null");
 		CompletableFuture<Boolean> combinedCreateFuture = null;
 		CompletableFuture<OUT> productFuture   = new CompletableFuture<OUT>();
@@ -205,7 +201,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		return productFuture;
 	}
 
-	protected CompletableFuture<OUT> getFuture(FutureCart<K,OUT,L> futureCart) {
+	protected CompletableFuture<OUT> getFutureByCart(FutureCart<K,OUT,L> futureCart) {
 		CompletableFuture<OUT> future = futureCart.getValue();
 		CompletableFuture<Boolean> cartFuture = this.finalConsumer.add( futureCart );
 		if(cartFuture.isCancelled()) {
@@ -263,18 +259,6 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
 			conv.add( partialResult );
 		});
-	}
-
-	@Override
-	public CompletableFuture<Boolean> createBuild(CreatingCart<K, OUT, L> cart) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(CreatingCart<K, OUT, L> cart) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

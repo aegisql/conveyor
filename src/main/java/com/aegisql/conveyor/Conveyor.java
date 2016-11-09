@@ -100,6 +100,7 @@ public interface Conveyor<K, L, OUT> {
 	 * 
 	 * 
 	 * */
+	public <V> CompletableFuture<OUT> getFuture(Cart<K,V,L> cart);
 	public CompletableFuture<OUT> getFuture(K key);
 	public CompletableFuture<OUT> getFuture(K key, long expirationTime);
 	public CompletableFuture<OUT> getFuture(K key, long ttl, TimeUnit unit);
