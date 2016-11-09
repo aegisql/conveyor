@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -80,6 +81,47 @@ public class CartFutureTests {
 		User u3 = uf3.get();
 		
 		conveyor.stop();
+	}
+	
+	@Test(expected=ExecutionException.class)
+	public void testExpiredSmart() throws InterruptedException, Exception {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderSmart::new);
+		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
+		conveyor.setDefaultBuilderTimeout(10, TimeUnit.MILLISECONDS);
+		conveyor.setResultConsumer(res -> {
+			System.out.println("Result:"+res);
+		});
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			return state.previouslyAccepted == 3;
+		});
+		conveyor.setName("User Assembler");
+		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST,10,TimeUnit.MILLISECONDS);
+		Thread.sleep(20);
+		CompletableFuture<Boolean> cf1 = conveyor.offer(c1);
+		
+		assertTrue(cf1.isDone());
+
+		assertFalse(cf1.get());
+		conveyor.stop();
+	}
+	
+	@Test(expected=IllegalStateException.class)
+	public void testExpiredSmart2() throws InterruptedException, Exception {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderSmart::new);
+		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
+		conveyor.setDefaultBuilderTimeout(10, TimeUnit.MILLISECONDS);
+		conveyor.setResultConsumer(res -> {
+			System.out.println("Result:"+res);
+		});
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			return state.previouslyAccepted == 3;
+		});
+		conveyor.setName("User Assembler");
+		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST,10,TimeUnit.MILLISECONDS);
+		Thread.sleep(20);
+		CompletableFuture<Boolean> cf1 = conveyor.add(c1);
 	}
 
 	@Test(expected=CancellationException.class)
