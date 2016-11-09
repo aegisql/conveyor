@@ -154,4 +154,16 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		return add(cart);
 	}
 
+	@Override
+	public CompletableFuture<Boolean> createBuild(CreatingCart<K, OUT, L> cart) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(CreatingCart<K, OUT, L> cart) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

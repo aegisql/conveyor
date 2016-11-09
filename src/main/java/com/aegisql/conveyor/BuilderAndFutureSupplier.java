@@ -24,4 +24,11 @@ public class BuilderAndFutureSupplier<T> implements BuilderSupplier<T>, FutureSu
 		return future;
 	}
 
+	@Override
+	public String toString() {
+		return "BuilderAndFutureSupplier [builderSupplier=" + builderSupplier + ", future=" + future + "]";
+	}
+	
+	
+
 }

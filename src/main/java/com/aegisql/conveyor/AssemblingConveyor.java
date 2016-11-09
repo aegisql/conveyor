@@ -245,6 +245,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				if( bs == null ) {
 					bs = builderSupplier;
 				}
+				
 				if(bs != null) {
 					buildingSite = new BuildingSite<K, L, Cart<K,?,L>, OUT>(
 							cart, 
@@ -390,9 +391,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		delayProvider.clear();
 		collector.forEach((k,v)->{
 			scrapConsumer.accept( new ScrapBin<K,Object>(k,v,"Draining collector",FailureType.CONVEYOR_STOPPED) );
-			for(CompletableFuture f:v.getFutures()) {
-				f.cancel(true);
-			}
+			v.cancelFutures();
 		});
 		collector.clear();
 	}
@@ -538,165 +537,119 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	@Override
+	public CompletableFuture<Boolean> createBuild(CreatingCart<K, OUT, L> cart) {
+		return this.add( cart );
+	}
+	
+	@Override
 	public CompletableFuture<Boolean> createBuild(K key) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key) );
+		return this.createBuild( new CreatingCart<K, OUT, L>(key) );
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, long expirationTime) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,expirationTime) );		
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,expirationTime) );		
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, long ttl, TimeUnit unit) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,ttl,unit) );		
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,ttl,unit) );		
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, Duration duration) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,duration) );		
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,duration) );		
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, Instant instant) {
-		return this.add( new CreatingCart<K, Supplier<OUT>, L>(key,instant) );				
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,instant) );				
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value) );		
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,value) );		
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long expirationTime) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,expirationTime) );				
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,expirationTime) );				
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,ttl,unit) );				
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,ttl,unit) );				
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Duration duration) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,duration) );				
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,duration) );				
 	}
 	
 	@Override
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Instant instant) {
-		return this.add( new CreatingCart<K, OUT, L>(key,value,instant) );						
+		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,instant) );						
 	}
 	
 	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key) {
-		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, future);
-		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier) );		
+	public CompletableFuture<OUT> createBuildFuture(CreatingCart<K, OUT, L> cart) {
+		BuilderAndFutureSupplier<OUT> supplier = (BuilderAndFutureSupplier<OUT>) cart.getValue();
+		CompletableFuture<Boolean> cartFuture = this.add(  cart );		
 		if(cartFuture.isCancelled()) {
-			future.cancel(true);
+			supplier.getFuture().cancel(true);
 		}
-		return future;
+		return supplier.getFuture();
+	}
+
+	@Override
+	public CompletableFuture<OUT> createBuildFuture(K key) {
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(this.builderSupplier, new CompletableFuture<OUT>())) );		
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, long expirationTime) {
-		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, future);
-		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,expirationTime) );		
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(this.builderSupplier, new CompletableFuture<OUT>()),expirationTime) );		
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, long ttl, TimeUnit unit) {
-		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, future);
-		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,ttl,unit) );		
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(this.builderSupplier, new CompletableFuture<OUT>()),ttl,unit) );		
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, Duration duration) {
-		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, future);
-		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,duration) );		
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(this.builderSupplier, new CompletableFuture<OUT>()),duration) );		
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, Instant instant) {
-		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(null, future);
-		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,instant) );		
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(this.builderSupplier, new CompletableFuture<OUT>()),instant) );		
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value) {
-		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier(value, future);
-		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier) );		
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(value, new CompletableFuture<OUT>())) );		
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long expirationTime) {
-		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier(value, future);
-		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,expirationTime) );		
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(value, new CompletableFuture<OUT>()),expirationTime) );		
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
-		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier(value, future);
-		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,ttl,unit) );		
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(value, new CompletableFuture<OUT>()),ttl,unit) );		
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Duration duration) {
-		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier(value, future);
-		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,duration) );		
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(value, new CompletableFuture<OUT>()),duration) );		
 	}
 
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Instant instant) {
-		CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier(value, future);
-		CompletableFuture<Boolean> cartFuture = this.add( new CreatingCart<K, OUT, L>(key,supplier,instant) );		
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(value, new CompletableFuture<OUT>()),instant) );		
 	}	
-	
 	
 	@Override
 	public CompletableFuture<OUT> getFuture(K key) {
@@ -853,9 +806,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				OUT res = buildingSite.build();
 				failureType = FailureType.RESULT_CONSUMER_FAILED;
 				resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.READY));
-				for(CompletableFuture f: buildingSite.getFutures() ) {
-					f.complete(res);
-				}
+				buildingSite.completeFuturesWithValue(res);
 			}
 			cart.getFuture().complete(Boolean.TRUE);
 		} catch (Exception e) {
@@ -864,9 +815,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				buildingSite.setLastError(e);
 				buildingSite.setLastCart(cart);
 				scrapConsumer.accept( new ScrapBin<K,BuildingSite<K,?,?,?>>(cart.getKey(),buildingSite,"Site Processor failed",e,failureType) );
-				for(CompletableFuture f: buildingSite.getFutures() ) {
-					f.completeExceptionally(e);
-				}
+				buildingSite.completeFuturesExceptionaly(e);
 			} else {
 				scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Cart Processor Failed",e,failureType) );
 			}
@@ -916,34 +865,26 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							}
 							OUT res = buildingSite.build();
 							resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.TIMED_OUT));
-							for(CompletableFuture f: buildingSite.getFutures() ) {
-								f.complete(res);
-							}
+							buildingSite.completeFuturesWithValue(res);
 						} else {
 							if(LOG.isTraceEnabled()) {
 								LOG.trace("Expired and not finished " + key);
 							}
 							scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Site expired",FailureType.BUILD_EXPIRED) );
-							for(CompletableFuture f: buildingSite.getFutures() ) {
-								f.cancel(true);
-							}
+							buildingSite.cancelFutures();
 						}
 					} catch (Exception e) {
 						buildingSite.setStatus(Status.INVALID);
 						buildingSite.setLastError(e);
 						scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Timeout processor failed ",e, FailureType.BUILD_EXPIRED) );
-						for(CompletableFuture f: buildingSite.getFutures() ) {
-							f.completeExceptionally(e);
-						}
+						buildingSite.completeFuturesExceptionaly(e);
 					}
 				} else {
 					if(LOG.isTraceEnabled()) {
 						LOG.trace("Expired and removed " + key);
 					}
 					scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Site expired. No timeout action",FailureType.BUILD_EXPIRED) );
-					for(CompletableFuture f: buildingSite.getFutures() ) {
-						f.cancel(true);
-					}
+					buildingSite.cancelFutures();
 				}
 			}
 		}

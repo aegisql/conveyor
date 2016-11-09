@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.BiConsumer;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -28,7 +27,6 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.cart.command.RescheduleCommand;
 import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderEvents2;
 import com.aegisql.conveyor.user.UserBuilderEvents3;

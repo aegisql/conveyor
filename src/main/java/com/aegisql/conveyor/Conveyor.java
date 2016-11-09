@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 
 // TODO: Auto-generated Javadoc
@@ -42,7 +43,7 @@ public interface Conveyor<K, L, OUT> {
 	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Duration duration);
 	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Instant instant);
 
-
+	public CompletableFuture<Boolean> createBuild(CreatingCart<K, OUT, L> cart);
 	public CompletableFuture<Boolean> createBuild(K key);
 	public CompletableFuture<Boolean> createBuild(K key, long expirationTime);
 	public CompletableFuture<Boolean> createBuild(K key, long ttl, TimeUnit unit);
@@ -54,6 +55,7 @@ public interface Conveyor<K, L, OUT> {
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Duration duration);
 	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Instant instant);
 
+	public CompletableFuture<OUT> createBuildFuture(CreatingCart<K, OUT, L> cart);
 	public CompletableFuture<OUT> createBuildFuture(K key);
 	public CompletableFuture<OUT> createBuildFuture(K key, long expirationTime);
 	public CompletableFuture<OUT> createBuildFuture(K key, long ttl, TimeUnit unit);

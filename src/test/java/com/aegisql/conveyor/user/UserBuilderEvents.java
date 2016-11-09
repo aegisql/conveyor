@@ -18,7 +18,7 @@ public enum UserBuilderEvents implements SmartLabel<UserBuilderSmart> {
 	
 	/** The create. */
 	CREATE((a,b)->{}), /** The set first. */
- //Just create and do not doo anything
+ //Just create and do not do anything
 	SET_FIRST(UserBuilderSmart::setFirst),
 	
 	/** The set last. */

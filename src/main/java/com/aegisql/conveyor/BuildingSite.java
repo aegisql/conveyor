@@ -483,9 +483,24 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.lastCart = lastCart;
 	}
 	
-	public List<CompletableFuture<? extends OUT>> getFutures() {
-		return futures;
+	void completeFuturesWithValue(Object value) {
+		for(CompletableFuture f : futures ) {
+			f.complete(value);
+		}
 	}
+
+	void cancelFutures() {
+		for(CompletableFuture<? extends OUT> f : futures ) {
+			f.cancel(true);
+		}
+	}
+
+	void completeFuturesExceptionaly(Throwable value) {
+		for(CompletableFuture<? extends OUT> f : futures ) {
+			f.completeExceptionally(value);
+		}
+	}
+
 	
 	public void addFuture(CompletableFuture<? extends OUT> resultFuture) {
 		futures.add(resultFuture);
