@@ -13,7 +13,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -174,9 +176,10 @@ public class ParallelConveyorTest {
 	 * Test parallel command.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test
-	public void testParallelCommand() throws InterruptedException {
+	public void testParallelCommand() throws InterruptedException, ExecutionException {
 		
 		GeneralCommand<Integer,?> c1 = new CreateCommand<>(1,UserBuilder::new,10,TimeUnit.MILLISECONDS );
 		GeneralCommand<Integer,?> c2 = new CreateCommand<>(2,UserBuilder::new,10,TimeUnit.MILLISECONDS );
@@ -184,14 +187,23 @@ public class ParallelConveyorTest {
 		GeneralCommand<Integer,?> c4 = new CreateCommand<>(4,UserBuilder::new,10,TimeUnit.MILLISECONDS );
 
 		
-		conveyor.addCommand(c1);
-		conveyor.addCommand(c2);
-		conveyor.addCommand(c3);
-		conveyor.addCommand(c4);
-		
-		Thread.sleep(50);
-		
-		
+		CompletableFuture<Boolean> f1 = conveyor.addCommand(c1);
+		CompletableFuture<Boolean> f2 = conveyor.addCommand(c2);
+		CompletableFuture<Boolean> f3 = conveyor.addCommand(c3);
+		CompletableFuture<Boolean> f4 = conveyor.addCommand(c4);
+
+		System.out.println("F1 "+f1);
+		System.out.println("F2 "+f2);
+		System.out.println("F3 "+f3);
+		System.out.println("F4 "+f4);
+		assertTrue(f1.get());
+		assertTrue(f2.get());
+		assertTrue(f3.get());
+		assertTrue(f4.get());
+		System.out.println("F1 "+f1);
+		System.out.println("F2 "+f2);
+		System.out.println("F3 "+f3);
+		System.out.println("F4 "+f4);
 	}
 	
 	/**
