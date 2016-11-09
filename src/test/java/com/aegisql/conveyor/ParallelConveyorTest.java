@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
@@ -337,5 +338,69 @@ public class ParallelConveyorTest {
 		assertNotNull(usr.get());
 
 	}
+
+	@Test(expected=TimeoutException.class)
+	public void futureConveyorTest() throws InterruptedException, ExecutionException, TimeoutException {
+		KBalancedParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
+		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
+		conveyor.setBuilderSupplier(StringToUserBuulder::new);
+		AtomicReference<User> usr = new AtomicReference<User>(null);
+		conveyor.setResultConsumer(u->{
+			System.out.println("RESULT: "+u);
+			usr.set(u.product);
+		});
+
+		CompletableFuture<User> uf1 = conveyor.getFuture("1");
+		CompletableFuture<User> uf2 = conveyor.getFuture("2");
+		CompletableFuture<User> uf3 = conveyor.getFuture("3");
+
+		
+		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");
+		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow2,1991");
+		ScalarCart<String, String> c3 = new ScalarCart<>("2", "Jane,Dow3,1992");
+		ScalarCart<String, String> c4 = new ScalarCart<>("2", "Jane,Dow4,1993");
+		CompletableFuture<Boolean> f1 = conveyor.add(c1);
+		CompletableFuture<Boolean> f2 = conveyor.add(c2);
+		CompletableFuture<Boolean> f3 = conveyor.add(c3);
+		CompletableFuture<Boolean> f4 = conveyor.add(c4);
+		
+		assertTrue(f1.get());
+		assertTrue(f2.get());
+		assertTrue(f3.get());
+		assertTrue(f4.get());
+		assertNotNull(usr.get());
+		assertNotNull(uf1.get());
+		assertNotNull(uf2.get());
+		assertNotNull(uf3.get(1,TimeUnit.SECONDS));
+
+	}
+
+	@Test
+	public void createFutureConveyorTest() throws InterruptedException, ExecutionException, TimeoutException {
+		KBalancedParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
+		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
+		AtomicReference<User> usr = new AtomicReference<User>(null);
+		conveyor.setResultConsumer(u->{
+			System.out.println("RESULT: "+u);
+			usr.set(u.product);
+		});
+
+		CompletableFuture<User> uf1 = conveyor.createBuildFuture("1",StringToUserBuulder::new);
+		CompletableFuture<User> uf2 = conveyor.createBuildFuture("2",StringToUserBuulder::new);
+
+		
+		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");
+		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow2,1991");
+		CompletableFuture<Boolean> f1 = conveyor.add(c1);
+		CompletableFuture<Boolean> f2 = conveyor.add(c2);
+		
+		assertTrue(f1.get());
+		assertTrue(f2.get());
+		assertNotNull(usr.get());
+		assertNotNull(uf1.get());
+		assertNotNull(uf2.get());
+
+	}
+
 	
 }
