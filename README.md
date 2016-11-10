@@ -8,11 +8,19 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.0.13</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 
 ## Release History
+
+### 1.1.0
+* First and unstable release of the new version
+* CompletableFuture on carts and commands
+* CompletableFuture for the product
+* Interface improvements
+* ParallelConveyor becomes abstract and replaced by a pair of K and L balanced conveyors 
+* Bugfixes for 1.0.x
 
 ### 1.0.16
 * bugfix
