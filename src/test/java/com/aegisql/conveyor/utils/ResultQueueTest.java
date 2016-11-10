@@ -24,24 +24,51 @@ import com.aegisql.conveyor.cart.command.TimeoutCommand;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ResultQueueTest.
+ */
 public class ResultQueueTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test queue.
+	 */
 	@Test
 	public void testQueue() {
 		ResultQueue<String,User> q = new ResultQueue<>();
@@ -67,6 +94,11 @@ public class ResultQueueTest {
 		
 	}
 	
+	/**
+	 * Test simple conveyor.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testSimpleConveyor() throws InterruptedException {
 		

@@ -16,27 +16,57 @@ import com.aegisql.conveyor.utils.schedule.SchedulableClosure;
 import com.aegisql.conveyor.utils.schedule.Schedule;
 import com.aegisql.conveyor.utils.schedule.SimpleScheduler;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SchedulerTest.
+ */
 public class SchedulerTest {
 
+	/** The s. */
 	SimpleScheduler<String> s = new SimpleScheduler<>();
 	
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 		
 	}
 
+	/**
+	 * Test execute once.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testExecuteOnce() throws InterruptedException {
 		SchedulableClosure c = ()->{
@@ -47,6 +77,11 @@ public class SchedulerTest {
 		assertEquals(0,s.getCollectorSize());
 	}
 
+	/**
+	 * Test execute once2.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testExecuteOnce2() throws InterruptedException {
 		SchedulableClosure c = ()->{
@@ -58,6 +93,11 @@ public class SchedulerTest {
 	}
 
 	
+	/**
+	 * Test execute with delay.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testExecuteWithDelay() throws InterruptedException {
 		SchedulableClosure c = ()->{
@@ -71,6 +111,11 @@ public class SchedulerTest {
 		assertEquals(0,s.getCollectorSize());
 	}
 
+	/**
+	 * Test execute now and with delay.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testExecuteNowAndWithDelay() throws InterruptedException {
 		SchedulableClosure c = ()->{
@@ -85,6 +130,11 @@ public class SchedulerTest {
 	}
 
 
+	/**
+	 * Test execute now and with delay duration.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testExecuteNowAndWithDelayDuration() throws InterruptedException {
 		SchedulableClosure c = ()->{
@@ -98,6 +148,11 @@ public class SchedulerTest {
 		assertEquals(0,s.getCollectorSize());
 	}
 
+	/**
+	 * Test execute once error.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test(expected=NullPointerException.class)
 	public void testExecuteOnceError() throws InterruptedException {
 		s.add("test1", null , Schedule.EXECUTE_ONCE, 1, TimeUnit.SECONDS);
@@ -105,6 +160,11 @@ public class SchedulerTest {
 		assertEquals(0,s.getCollectorSize());
 	}
 
+	/**
+	 * Test execute once error2.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test(expected=ClassCastException.class)
 	public void testExecuteOnceError2() throws InterruptedException {
 		s.add("test1", "value" , Schedule.EXECUTE_ONCE, 1, TimeUnit.SECONDS);

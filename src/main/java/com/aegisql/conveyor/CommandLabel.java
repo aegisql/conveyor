@@ -49,21 +49,25 @@ public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 		}
 	},
 	
-	/** Check build readiness */
+	/**  Check build readiness. */
 	CHECK_BUILD {
 		public BiConsumer<AssemblingConveyor, Object> get() {
 			return AssemblingConveyor::checkBuild;
 		}
 	},
 	
-	/** Check build readiness */
+	/**  Check build readiness. */
 	FUTURE_BUILD {
 		public BiConsumer<AssemblingConveyor, Object> get() {
 			return AssemblingConveyor::futureBuild;
 		}
 	};
 
-	/** The setter. */
+	/**
+	 *  The setter.
+	 *
+	 * @return the bi consumer
+	 */
 	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.SmartLabel#getSetter()

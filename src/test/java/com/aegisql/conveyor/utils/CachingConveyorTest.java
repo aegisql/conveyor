@@ -22,24 +22,53 @@ import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.utils.caching.CachingConveyor;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class CachingConveyorTest.
+ */
 public class CachingConveyorTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test big cache.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testBigCache() throws InterruptedException {
 		
@@ -128,6 +157,11 @@ public class CachingConveyorTest {
 	}
 
 	
+	/**
+	 * Test simple cache.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testSimpleCache() throws InterruptedException {
 		CachingConveyor<Integer, String, User> conveyor = new CachingConveyor<>();
@@ -183,6 +217,11 @@ public class CachingConveyorTest {
 		
 	}
 	
+	/**
+	 * Test timing out cache.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test(expected=IllegalStateException.class)
 	public void testTimingOutCache() throws InterruptedException {
 		CachingConveyor<Integer, String, User> conveyor = new CachingConveyor<>();
@@ -241,6 +280,11 @@ public class CachingConveyorTest {
 		
 	}
 
+	/**
+	 * Test timing out cache with ttl extension.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test // NOT EXPECTED (expected=IllegalStateException.class)
 	public void testTimingOutCacheWithTTLExtension() throws InterruptedException {
 		CachingConveyor<Integer, String, User> conveyor = new CachingConveyor<>();

@@ -21,24 +21,54 @@ import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderSmart;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class CartFutureTests.
+ */
 public class CartFutureTests {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test basics smart.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsSmart() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -83,6 +113,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 	
+	/**
+	 * Test expired smart.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=ExecutionException.class)
 	public void testExpiredSmart() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -106,6 +142,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 	
+	/**
+	 * Test expired smart2.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=IllegalStateException.class)
 	public void testExpiredSmart2() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -124,6 +166,12 @@ public class CartFutureTests {
 		CompletableFuture<Boolean> cf1 = conveyor.add(c1);
 	}
 
+	/**
+	 * Test basics build future smart.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsBuildFutureSmart() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -157,6 +205,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test basics future smart1.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsFutureSmart1() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -193,6 +247,12 @@ public class CartFutureTests {
 	}
 
 	
+	/**
+	 * Test basics future smart2.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsFutureSmart2() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -227,6 +287,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 	
+	/**
+	 * Test basics future smart3.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsFutureSmart3() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -262,6 +328,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 	
+	/**
+	 * Test basics future smart4.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsFutureSmart4() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -301,6 +373,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 	
+	/**
+	 * Test basics future smart5.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsFutureSmart5() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -340,6 +418,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 	
+	/**
+	 * Test basics build future smart2.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsBuildFutureSmart2() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -372,6 +456,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test basics build future smart3.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsBuildFutureSmart3() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -403,6 +493,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test basics build future smart4.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsBuildFutureSmart4() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -435,6 +531,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 	
+	/**
+	 * Test basics build future smart5.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsBuildFutureSmart5() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -467,6 +569,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test basics build future smart6.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsBuildFutureSmart6() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -498,6 +606,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test basics build future smart7.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsBuildFutureSmart7() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -528,6 +642,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 	
+	/**
+	 * Test basics build future smart8.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsBuildFutureSmart8() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -558,6 +678,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test basics build future smart9.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsBuildFutureSmart9() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -588,6 +714,12 @@ public class CartFutureTests {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test basics build future smart10.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws Exception the exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testBasicsBuildFutureSmart10() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();

@@ -12,37 +12,70 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SomeDelayTests.
+ */
 public class SomeDelayTests {
 	
 	
+	/**
+	 * The Class D.
+	 */
 	public static class D implements Delayed {
 
+		/** The d. */
 		String d;
+		
+		/** The c. */
 		int c = -1;
+		
+		/** The e. */
 		long e = 1;
 		
+		/**
+		 * Instantiates a new d.
+		 *
+		 * @param d the d
+		 */
 		public D(String d) {
 			this.d = d;
 		}
 
+		/**
+		 * Instantiates a new d.
+		 *
+		 * @param d the d
+		 * @param c the c
+		 * @param e the e
+		 */
 		public D(String d,int c, long e) {
 			this.d = d;
 			this.c = c;
 			this.e = e;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Comparable#compareTo(java.lang.Object)
+		 */
 		@Override
 		public int compareTo(Delayed o) {
 			System.out.println("compareTo "+d);
 			return c;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.util.concurrent.Delayed#getDelay(java.util.concurrent.TimeUnit)
+		 */
 		@Override
 		public long getDelay(TimeUnit unit) {
 			System.out.println("getDelay "+d);
 			return e;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
 		@Override
 		public String toString() {
 			return "D [" + d + "]";
@@ -50,22 +83,47 @@ public class SomeDelayTests {
 		
 	}
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void test() throws InterruptedException {
 		

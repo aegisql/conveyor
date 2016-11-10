@@ -36,10 +36,13 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	/** The label. */
 	protected final L label;
 	
+	/** The creation time. */
 	protected final long creationTime = System.currentTimeMillis(); 
 
+	/** The expiration time. */
 	protected final long expirationTime; 
 
+	/** The future. */
 	protected CompletableFuture<Boolean> future = null;
 	
 	/**
@@ -102,6 +105,14 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		this.expirationTime = expiration;
 	}
 
+	/**
+	 * Instantiates a new abstract cart.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @param label the label
+	 * @param duration the duration
+	 */
 	public AbstractCart(K k, V v, L label, Duration duration) {
 		Objects.requireNonNull(k);
 		this.k = k;
@@ -110,6 +121,14 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		this.expirationTime = creationTime + duration.toMillis();
 	}
 
+	/**
+	 * Instantiates a new abstract cart.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @param label the label
+	 * @param instant the instant
+	 */
 	public AbstractCart(K k, V v, L label, Instant instant) {
 		Objects.requireNonNull(k);
 		this.k = k;
@@ -173,6 +192,9 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	}
 
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.cart.Cart#getFuture()
+	 */
 	@Override
 	public CompletableFuture<Boolean> getFuture() {
 		if(future == null) {

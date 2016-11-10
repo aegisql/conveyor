@@ -15,24 +15,53 @@ import org.junit.Test;
 import com.aegisql.conveyor.utils.delay_line.DelayLineCart;
 import com.aegisql.conveyor.utils.delay_line.DelayLineConveyor;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class DelayLineConveyorTest.
+ */
 public class DelayLineConveyorTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void test() throws InterruptedException {
 		

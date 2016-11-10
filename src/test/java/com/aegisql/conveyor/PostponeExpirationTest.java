@@ -19,26 +19,56 @@ import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderExpireable;
 import com.aegisql.conveyor.user.UserBuilderSmart;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class PostponeExpirationTest.
+ */
 public class PostponeExpirationTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/** The out queue. */
 	Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 
+	/**
+	 * Test default expiration postpone.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testDefaultExpirationPostpone() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -88,6 +118,11 @@ public class PostponeExpirationTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test cart expiration postpone.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testCartExpirationPostpone() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -131,6 +166,11 @@ public class PostponeExpirationTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test builder expiration postpone.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testBuilderExpirationPostpone() throws InterruptedException {
 		AssemblingConveyor<Integer, String, User> conveyor = new AssemblingConveyor<>();

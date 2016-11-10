@@ -127,11 +127,17 @@ public class UserBuilderExpireable implements Supplier<User>, Expireable {
 		this.ready = ready;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Expireable#getExpirationTime()
+	 */
 	@Override
 	public long getExpirationTime() {
 		return builderExpiration;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "UserBuilderExpireable [first=" + first + ", last=" + last + ", yearOfBirth=" + yearOfBirth

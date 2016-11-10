@@ -177,7 +177,7 @@ public class ParallelConveyorTest {
 	 * Test parallel command.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException the execution exception
 	 */
 	@Test
 	public void testParallelCommand() throws InterruptedException, ExecutionException {
@@ -305,7 +305,14 @@ public class ParallelConveyorTest {
 
 	}
 
+	/**
+	 * The Class StringToUserBuulder.
+	 */
 	static class StringToUserBuulder extends ScalarConvertingBuilder<String,User> {
+		
+		/* (non-Javadoc)
+		 * @see java.util.function.Supplier#get()
+		 */
 		@Override
 		public User get() {
 			String[] fields = scalar.split(",");
@@ -314,6 +321,11 @@ public class ParallelConveyorTest {
 		
 	}
 
+	/**
+	 * Other conveyor test.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void otherConveyorTest() throws InterruptedException {
 		KBalancedParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
@@ -339,6 +351,13 @@ public class ParallelConveyorTest {
 
 	}
 
+	/**
+	 * Future conveyor test.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException the timeout exception
+	 */
 	@Test(expected=TimeoutException.class)
 	public void futureConveyorTest() throws InterruptedException, ExecutionException, TimeoutException {
 		KBalancedParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
@@ -375,6 +394,13 @@ public class ParallelConveyorTest {
 
 	}
 
+	/**
+	 * Creates the future conveyor test.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException the timeout exception
+	 */
 	@Test
 	public void createFutureConveyorTest() throws InterruptedException, ExecutionException, TimeoutException {
 		KBalancedParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
@@ -402,6 +428,13 @@ public class ParallelConveyorTest {
 
 	}
 
+	/**
+	 * Creates the future conveyor test2.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException the timeout exception
+	 */
 	@Test
 	public void createFutureConveyorTest2() throws InterruptedException, ExecutionException, TimeoutException {
 		KBalancedParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>

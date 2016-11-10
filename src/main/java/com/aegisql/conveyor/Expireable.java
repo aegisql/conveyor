@@ -3,9 +3,25 @@ package com.aegisql.conveyor;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Interface Expireable.
+ */
 public interface Expireable {
+	
+	/**
+	 * Gets the expiration time.
+	 *
+	 * @return the expiration time
+	 */
 	public long getExpirationTime();
 
+	/**
+	 * To delayed.
+	 *
+	 * @param e the e
+	 * @return the delayed
+	 */
 	public static Delayed toDelayed(Expireable e) {
 		return new Delayed() {
 			

@@ -9,8 +9,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SimpleScheduler.
+ *
+ * @param <K> the key type
+ */
 public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, SchedulableClosure> {
 
+	/**
+	 * Instantiates a new simple scheduler.
+	 */
 	public SimpleScheduler() {
 		super();
 		this.setName("SchedulingConveyor");
@@ -34,6 +43,9 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 		});
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.AssemblingConveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
 	@Override
 	public <V> CompletableFuture<Boolean> add(K key, V value, Schedule label, long ttl, TimeUnit unit) {
 		SchedulableClosure closure = (SchedulableClosure) value;
@@ -60,6 +72,9 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 		return super.add(key, closure, label, ttl, unit);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.AssemblingConveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, java.time.Duration)
+	 */
 	@Override
 	public <V> CompletableFuture<Boolean> add(K key, V value, Schedule label, Duration duration) {
 		SchedulableClosure closure = (SchedulableClosure) value;
@@ -86,21 +101,33 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 		return super.add(key, closure, label, duration);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.AssemblingConveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
 	@Override
 	public <V> CompletableFuture<Boolean> offer(K key, V value, Schedule label, long ttl, TimeUnit unit) {
 		return add(key,value,label,ttl,unit);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.AssemblingConveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object, java.time.Duration)
+	 */
 	@Override
 	public <V> CompletableFuture<Boolean> offer(K key, V value, Schedule label, Duration duration) {
 		return add(key,value,label,duration);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.AssemblingConveyor#add(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
 	@Override
 	public <V> CompletableFuture<Boolean> add(K key, V value, Schedule label) {
 		throw new UnsupportedOperationException("Scheduler must have execution interval parameter");
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.AssemblingConveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, long)
+	 */
 	@Override
 	public <V> CompletableFuture<Boolean> add(K key, V value, Schedule label, long expirationTime) {
 		if( ! label.equals(Schedule.EXECUTE_ONCE)) {
@@ -109,6 +136,9 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 		return super.add(key, value, Schedule.EXECUTE_ONCE, expirationTime);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.AssemblingConveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, java.time.Instant)
+	 */
 	@Override
 	public <V> CompletableFuture<Boolean> add(K key, V value, Schedule label, Instant instant) {
 		if( ! label.equals(Schedule.EXECUTE_ONCE)) {
@@ -117,11 +147,17 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 		return super.add(key, value, Schedule.EXECUTE_ONCE, instant);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.AssemblingConveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
 	@Override
 	public <V> CompletableFuture<Boolean> offer(K key, V value, Schedule label) {
 		throw new UnsupportedOperationException("Scheduler must have execution interval parameter");
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.AssemblingConveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object, long)
+	 */
 	@Override
 	public <V> CompletableFuture<Boolean> offer(K key, V value, Schedule label, long expirationTime) {
 		if( ! label.equals(Schedule.EXECUTE_ONCE)) {
@@ -130,6 +166,9 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 		return super.offer(key, value, Schedule.EXECUTE_ONCE, expirationTime);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.AssemblingConveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object, java.time.Instant)
+	 */
 	@Override
 	public <V> CompletableFuture<Boolean> offer(K key, V value, Schedule label, Instant instant) {
 		if( ! label.equals(Schedule.EXECUTE_ONCE)) {

@@ -38,8 +38,10 @@ import com.aegisql.conveyor.cart.Cart;
  */
 public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expireable, Delayed {
 
+	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(BuildingSite.class);
 	
+	/** The Constant NON_LOCKING_LOCK. */
 	public final static Lock NON_LOCKING_LOCK = new Lock() {
 		public void lock() {}
 		public void lockInterruptibly() throws InterruptedException {}
@@ -59,10 +61,20 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * The Enum Status.
 	 */
 	public static enum Status{
+		
+		/** The waiting data. */
 		WAITING_DATA,
+		
+		/** The timed out. */
 		TIMED_OUT,
+		
+		/** The ready. */
 		READY,
+		
+		/** The canceled. */
 		CANCELED,
+		
+		/** The invalid. */
 		INVALID;
 	}
 	
@@ -72,24 +84,31 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	/** The value consumer. */
 	private final LabeledValueConsumer<L, Object, Supplier<? extends OUT>> defaultValueConsumer;
 
+	/** The value consumer. */
 	private LabeledValueConsumer<L, Object, Supplier<? extends OUT>> valueConsumer = null;
 
 	/** The readiness. */
 	private final BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness;
 	
+	/** The default timeout action. */
 	private final Consumer<Supplier<? extends OUT>> defaultTimeoutAction;
 
+	/** The timeout action. */
 	private final Consumer<Supplier<? extends OUT>> timeoutAction;
 
+	/** The save carts. */
 	private boolean saveCarts      = false;
 
+	/** The all carts. */
 	private final List<C> allCarts = new ArrayList<>();
 	
+	/** The futures. */
 	private final List<CompletableFuture<? extends OUT>> futures = new ArrayList<>();
 	
 	/** The initial cart. */
 	private final  C initialCart;
 
+	/** The last cart. */
 	private  C lastCart = null;
 
 	/** The accept count. */
@@ -113,12 +132,16 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	/** The delay keeper. */
 	Delayed delayKeeper;
 	
+	/** The lock. */
 	private final Lock lock;
 	
+	/** The postpone expiration enabled. */
 	private final boolean postponeExpirationEnabled;
 
+	/** The add expiration time msec. */
 	private final long addExpirationTimeMsec;
 	
+	/** The postpone alg. */
 	private BiConsumer<BuildingSite <K, L, C, OUT>,C> postponeAlg = (bs,cart)->{/*do nothing*/};
 	
 	/**
@@ -132,6 +155,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param ttl the ttl
 	 * @param unit the unit
 	 * @param synchronizeBuilder the synchronizeBuilder
+	 * @param saveCarts the save carts
+	 * @param postponeExpirationEnabled the postpone expiration enabled
+	 * @param addExpirationTimeMsec the add expiration time msec
 	 */
 	@SuppressWarnings("unchecked")
 	public BuildingSite( 
@@ -260,6 +286,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		}
 	}
 
+	/**
+	 * Timeout.
+	 *
+	 * @param cart the cart
+	 */
 	public void timeout(C cart) {
 		this.lastCart = cart;
 		lock.lock();
@@ -303,8 +334,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		}
 	}
 
+	/** The product supplier. */
 	private Supplier<? extends OUT> productSupplier = null;
 	
+	/**
+	 * Gets the product supplier.
+	 *
+	 * @return the product supplier
+	 */
 	public Supplier<? extends OUT> getProductSupplier() {
 		if(productSupplier == null ) {
 			final BuildingSite <K, L, C, OUT> bs = this;
@@ -412,6 +449,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		return initialCart;
 	}
 
+	/**
+	 * Gets the accepted carts.
+	 *
+	 * @return the accepted carts
+	 */
 	public List<C> getAcceptedCarts() {
 		return Collections.unmodifiableList( allCarts );
 	}
@@ -475,26 +517,49 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.status = status;
 	}
 
+	/**
+	 * Gets the last cart.
+	 *
+	 * @return the last cart
+	 */
 	public C getLastCart() {
 		return lastCart;
 	}
 
+	/**
+	 * Sets the last cart.
+	 *
+	 * @param lastCart the new last cart
+	 */
 	public void setLastCart(C lastCart) {
 		this.lastCart = lastCart;
 	}
 	
+	/**
+	 * Complete futures with value.
+	 *
+	 * @param value the value
+	 */
 	void completeFuturesWithValue(Object value) {
 		for(CompletableFuture f : futures ) {
 			f.complete(value);
 		}
 	}
 
+	/**
+	 * Cancel futures.
+	 */
 	void cancelFutures() {
 		for(CompletableFuture<? extends OUT> f : futures ) {
 			f.cancel(true);
 		}
 	}
 
+	/**
+	 * Complete futures exceptionaly.
+	 *
+	 * @param value the value
+	 */
 	void completeFuturesExceptionaly(Throwable value) {
 		for(CompletableFuture<? extends OUT> f : futures ) {
 			f.completeExceptionally(value);
@@ -502,25 +567,50 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	}
 
 	
+	/**
+	 * Adds the future.
+	 *
+	 * @param resultFuture the result future
+	 */
 	public void addFuture(CompletableFuture<? extends OUT> resultFuture) {
 		futures.add(resultFuture);
 	}
 
 	/**
-	 * package access methods
-	 * */
+	 * package access methods.
+	 *
+	 * @return the builder
+	 */
 	public Supplier<? extends OUT> getBuilder() {
 		return builder;
 	}
 	
+	/**
+	 * Gets the lock.
+	 *
+	 * @return the lock
+	 */
 	public Lock getLock() {
 		return lock;
 	}
 
+	/**
+	 * Update expiration time.
+	 *
+	 * @param expirationTime the expiration time
+	 */
 	void updateExpirationTime(long expirationTime) {
 		this.builderExpiration = expirationTime;
 	}
 
+	/**
+	 * Gets the value consumer.
+	 *
+	 * @param label the label
+	 * @param value the value
+	 * @param builder the builder
+	 * @return the value consumer
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private LabeledValueConsumer<L, Object, Supplier<? extends OUT>> getValueConsumer(L label, Object value, Supplier<? extends OUT> builder) {
 		if(label == null) {

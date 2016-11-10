@@ -88,7 +88,7 @@ public class AssemblingConveyorTest {
 	 * Test unconfigured builder supplier.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException the execution exception
 	 */
 	@Test
 	public void testUnconfiguredBuilderSupplier() throws InterruptedException, ExecutionException {
@@ -113,7 +113,7 @@ public class AssemblingConveyorTest {
 	 * Test offer stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException the execution exception
 	 */
 	@Test
 	public void testOfferStopped() throws InterruptedException, ExecutionException {
@@ -133,7 +133,7 @@ public class AssemblingConveyorTest {
 	 * Test command stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException the execution exception
 	 */
 	@Test(expected=IllegalStateException.class)
 	public void testCommandStopped() throws InterruptedException, ExecutionException {
@@ -207,6 +207,11 @@ public class AssemblingConveyorTest {
 		conveyor.add(c1);
 	}
 
+	/**
+	 * Test null cart content stopped.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test(expected=NullPointerException.class)
 	public void testNullCartContentStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, User> 
@@ -248,7 +253,7 @@ public class AssemblingConveyorTest {
 	 * Test offer expired stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException the execution exception
 	 */
 	@Test()
 	public void testOfferExpiredStopped() throws InterruptedException, ExecutionException {
@@ -361,6 +366,11 @@ public class AssemblingConveyorTest {
 		System.out.println("Evicted :"+evictedKeys);
 	}
 
+	/**
+	 * Test simple conveyor created by message.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testSimpleConveyorCreatedByMessage() throws InterruptedException {
 		AssemblingConveyor<Integer, String, User> 
@@ -418,6 +428,11 @@ public class AssemblingConveyorTest {
 		Thread.sleep(1000);
 	}
 
+	/**
+	 * Test simple conveyor not created by message.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testSimpleConveyorNotCreatedByMessage() throws InterruptedException {
 		AssemblingConveyor<Integer, String, User> 

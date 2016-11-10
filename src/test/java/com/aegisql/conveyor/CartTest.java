@@ -29,6 +29,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
  */
 public class CartTest {
 
+	/** The running. */
 	private boolean running = true;
 	
 	/**
@@ -120,6 +121,9 @@ public class CartTest {
 
 	}
 
+	/**
+	 * Test closure.
+	 */
 	@Test
 	public void testClosure() {
 		Consumer<String> c = s->{

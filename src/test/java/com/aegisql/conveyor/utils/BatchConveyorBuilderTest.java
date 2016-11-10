@@ -18,24 +18,53 @@ import com.aegisql.conveyor.utils.batch.BatchCart;
 import com.aegisql.conveyor.utils.batch.BatchCollectingBuilder;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class BatchConveyorBuilderTest.
+ */
 public class BatchConveyorBuilderTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test batch collecting builder.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testBatchCollectingBuilder() throws InterruptedException {
 		BatchCollectingBuilder<Integer> b = new BatchCollectingBuilder<>(10, 100, TimeUnit.MILLISECONDS);
@@ -49,6 +78,11 @@ public class BatchConveyorBuilderTest {
 		
 	}
 	
+	/**
+	 * Test batch conveyor.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testBatchConveyor() throws InterruptedException {
 
@@ -85,6 +119,11 @@ public class BatchConveyorBuilderTest {
 		assertEquals(0,b.getInputQueueSize());
 	}
 
+	/**
+	 * Test batch conveyor with named cart.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testBatchConveyorWithNamedCart() throws InterruptedException {
 

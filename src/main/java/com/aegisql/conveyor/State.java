@@ -15,6 +15,7 @@ import com.aegisql.conveyor.cart.Cart;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  * @param <K> the key type
+ * @param <L> the generic type
  */
 public class State<K,L> {
 	
@@ -36,8 +37,10 @@ public class State<K,L> {
 	/** The previously accepted. */
 	public final int previouslyAccepted;
 	
+	/** The event history. */
 	public final Map<L,Integer> eventHistory;
 	
+	/** The carts. */
 	public final List<Cart<K,?,L>> carts;
 	
 	/**
@@ -50,6 +53,7 @@ public class State<K,L> {
 	 * @param cartExpiration the cart expiration
 	 * @param previouslyAccepted the previously accepted
 	 * @param eventHistory the eventHistory Map
+	 * @param carts the carts
 	 */
 	public State(
 			K k 
@@ -71,6 +75,9 @@ public class State<K,L> {
 		this.carts              = carts;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "State [" + (key != null ? "key=" + key + ", " : "") + "builderCreated=" + builderCreated

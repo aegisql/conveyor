@@ -4,6 +4,10 @@ import java.util.function.BiConsumer;
 
 import com.aegisql.conveyor.SmartLabel;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Enum UserBuilderEvents.
+ */
 public enum UserBuilderEvents implements SmartLabel<UserBuilder> {
 
 	/** The set first. */
@@ -15,10 +19,13 @@ public enum UserBuilderEvents implements SmartLabel<UserBuilder> {
 	/** The set year. */
 	SET_YEAR(UserBuilder::setYearOfBirth),
 	
+	/** The merge a. */
 	MERGE_A(UserBuilder::mergeChannelA),
 
+	/** The merge b. */
 	MERGE_B(UserBuilder::mergeChannelB),
 
+	/** The info. */
 	INFO(UserBuilder::setInfo)
 ;
 

@@ -6,12 +6,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.DelayQueue;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class DelayProvider.
+ *
+ * @param <K> the key type
+ */
 public class DelayProvider <K> {
 
+	/** The boxes. */
 	private final Map<Long,DelayBox<K>> boxes = new HashMap<>();
 	
+	/** The queue. */
 	private final DelayQueue<DelayBox<K>> queue = new DelayQueue<>();
 	
+	/**
+	 * Gets the box.
+	 *
+	 * @param expirationTime the expiration time
+	 * @return the box
+	 */
 	public DelayBox<K> getBox(Long expirationTime) {
 		DelayBox<K> box = boxes.get(expirationTime);
 		if(box == null) {
@@ -22,6 +36,11 @@ public class DelayProvider <K> {
 		return box;
 	}
 	
+	/**
+	 * Gets the all expired keys.
+	 *
+	 * @return the all expired keys
+	 */
 	public List<K> getAllExpiredKeys() {
 		List<K> expired = new LinkedList<>();
 		DelayBox<K> box = null;
@@ -32,10 +51,18 @@ public class DelayProvider <K> {
 		return expired;
 	}
 
+	/**
+	 * Delayed size.
+	 *
+	 * @return the int
+	 */
 	public int delayedSize() {
 		return queue.size();
 	}
 	
+	/**
+	 * Clear.
+	 */
 	public void clear() {
 		boxes.clear();
 		queue.clear();

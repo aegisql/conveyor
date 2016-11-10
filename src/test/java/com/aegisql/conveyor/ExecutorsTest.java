@@ -18,24 +18,53 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ExecutorsTest.
+ */
 public class ExecutorsTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void test() throws InterruptedException {
 		ExecutorService es = Executors.newSingleThreadExecutor();
@@ -67,6 +96,12 @@ public class ExecutorsTest {
 		
 	}
 	
+	/**
+	 * Test future complete.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test
 	public void testFutureComplete() throws InterruptedException, ExecutionException {
 		CompletableFuture<Boolean> cf = new CompletableFuture<>();
@@ -80,6 +115,13 @@ public class ExecutorsTest {
 		assertTrue(cf.get());
 	}
 
+	/**
+	 * Test future timeout.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException the timeout exception
+	 */
 	@Test(expected=TimeoutException.class)
 	public void testFutureTimeout() throws InterruptedException, ExecutionException, TimeoutException {
 		CompletableFuture<Boolean> cf = new CompletableFuture<>();
@@ -90,6 +132,12 @@ public class ExecutorsTest {
 	}
 
 	
+	/**
+	 * Test future cancel.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testFutureCancel() throws InterruptedException, ExecutionException {
 		CompletableFuture<Boolean> cf = new CompletableFuture<>();
@@ -103,6 +151,12 @@ public class ExecutorsTest {
 		assertTrue(cf.get());
 	}
 
+	/**
+	 * Test future failed.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test(expected=ExecutionException.class)
 	public void testFutureFailed() throws InterruptedException, ExecutionException {
 		CompletableFuture<Boolean> cf = new CompletableFuture<>();

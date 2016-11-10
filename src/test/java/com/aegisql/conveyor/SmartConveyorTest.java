@@ -136,6 +136,11 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test reschedule smart.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testRescheduleSmart() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -214,6 +219,11 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test basics testing with internal offer interfaces.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testBasicsTestingWithInternalOfferInterfaces() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
@@ -241,6 +251,11 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test basics testing with internal add interfaces.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testBasicsTestingWithInternalAddInterfaces() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
@@ -268,6 +283,11 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test basics testing creating interface.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testBasicsTestingCreatingInterface() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
@@ -362,9 +382,8 @@ public class SmartConveyorTest {
 	/**
 	 * Test rejected start offer.
 	 *
-	 * @throws InterruptedException
-	 *             the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws InterruptedException             the interrupted exception
+	 * @throws ExecutionException the execution exception
 	 */
 	@Test
 	public void testRejectedStartOffer() throws InterruptedException, ExecutionException {
@@ -391,9 +410,8 @@ public class SmartConveyorTest {
 	/**
 	 * Test rejected start add.
 	 *
-	 * @throws InterruptedException
-	 *             the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws InterruptedException             the interrupted exception
+	 * @throws ExecutionException the execution exception
 	 */
 	@Test(expected = IllegalStateException.class) // ???? Failed
 	public void testRejectedStartAdd() throws InterruptedException, ExecutionException {
@@ -431,6 +449,11 @@ public class SmartConveyorTest {
 
 	}
 
+	/**
+	 * Test smart label builder.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testSmartLabelBuilder() throws InterruptedException {
 		SmartLabelBuilder<String, UserBuilderSmart> sl = new SmartLabelBuilder<>();
@@ -481,6 +504,13 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test future smart.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException the timeout exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testFutureSmart() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();

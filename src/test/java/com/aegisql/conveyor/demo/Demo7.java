@@ -8,8 +8,19 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.cart.ShoppingCart;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class Demo7.
+ */
 public class Demo7 {
 	
+	/**
+	 * The main method.
+	 *
+	 * @param args the arguments
+	 * @throws ParseException the parse exception
+	 * @throws InterruptedException the interrupted exception
+	 */
 	public static void main(String[] args) throws ParseException, InterruptedException {
 		final SimpleDateFormat format     = new SimpleDateFormat("yyyy-MM-dd");
 		AtomicReference<Person> personRef = new AtomicReference<>();

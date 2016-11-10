@@ -17,24 +17,53 @@ import com.aegisql.conveyor.utils.collection.CollectionCompleteCart;
 import com.aegisql.conveyor.utils.collection.CollectionConveyor;
 import com.aegisql.conveyor.utils.collection.CollectionItemCart;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class CollectionBuilderTest.
+ */
 public class CollectionBuilderTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test collection builder.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testCollectionBuilder() throws InterruptedException {
 		CollectionBuilder<Integer> b = new CollectionBuilder<>(100, TimeUnit.MILLISECONDS);
@@ -48,6 +77,11 @@ public class CollectionBuilderTest {
 		
 	}
 	
+	/**
+	 * Test collection conveyor.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testCollectionConveyor() throws InterruptedException {
 
@@ -87,6 +121,11 @@ public class CollectionBuilderTest {
 		assertEquals(0,b.getInputQueueSize());
 	}
 
+	/**
+	 * Test collection conveyor expire.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testCollectionConveyorExpire() throws InterruptedException {
 

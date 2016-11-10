@@ -2,32 +2,64 @@ package com.aegisql.conveyor;
 
 import java.util.function.BiConsumer;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SmartWrapper.
+ *
+ * @param <L> the generic type
+ * @param <B> the generic type
+ * @param <U> the generic type
+ */
 public class SmartWrapper<L,B,U> implements SmartLabel<B> {
 
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 6276204389815296996L;
 
+	/** The label. */
 	private final L label;
+	
+	/** The consumer. */
 	private final BiConsumer<B,U> consumer;
 
+	/**
+	 * Instantiates a new smart wrapper.
+	 *
+	 * @param label the label
+	 * @param consumer the consumer
+	 */
 	public SmartWrapper(L label,BiConsumer<B,U> consumer) {
 		this.label = label;
 		this.consumer = consumer;
 	}
 	
+	/**
+	 * Unwrap.
+	 *
+	 * @return the l
+	 */
 	public L unwrap() {
 		return label;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.SmartLabel#get()
+	 */
 	@Override
 	public BiConsumer<B, Object> get() {
 		return (BiConsumer<B, Object>) consumer;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "SmartLabel[" + label + "]";
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -36,6 +68,9 @@ public class SmartWrapper<L,B,U> implements SmartLabel<B> {
 		return result;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

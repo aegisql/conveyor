@@ -21,6 +21,7 @@ import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class ParallelConveyor.
  *
@@ -47,6 +48,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	/**
 	 * Instantiates a new k-balanced parallel conveyor with custom Conveyor supplier provided by user.
 	 *
+	 * @param cs the cs
 	 * @param pf the pf
 	 */
 	public KBalancedParallelConveyor( Supplier<? extends Conveyor<K, L, OUT>> cs, int pf ) {
@@ -112,6 +114,9 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		return cartFuture;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#createBuildFutureWithCart(java.util.function.Function, com.aegisql.conveyor.BuilderSupplier)
+	 */
 	@Override
 	protected CompletableFuture<OUT> createBuildFutureWithCart(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier) {
 		CompletableFuture<OUT> productFuture   = new CompletableFuture<OUT>();
@@ -125,6 +130,9 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		return productFuture;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#getFutureByCart(com.aegisql.conveyor.cart.FutureCart)
+	 */
 	@Override
 	protected CompletableFuture<OUT> getFutureByCart(FutureCart<K,OUT,L> futureCart) {
 		CompletableFuture<OUT> future = futureCart.getValue();
@@ -135,20 +143,32 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		return future;		
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#getExpirationTime(java.lang.Object)
+	 */
 	public long getExpirationTime(K key) {
 		return ((ParallelConveyor<K, L, OUT>) this.balancingCart.apply( new ShoppingCart(key, null, null)).get(0)).getExpirationTime(key);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#isLBalanced()
+	 */
 	@Override
 	public boolean isLBalanced() {
 		return false;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#toString()
+	 */
 	@Override
 	public String toString() {
 		return "K-BalancedParallelConveyor [name=" + name + ", pf=" + pf + "]";
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#createBuildWithCart(com.aegisql.conveyor.cart.Cart)
+	 */
 	@Override
 	protected <V> CompletableFuture<Boolean> createBuildWithCart(Cart<K, V, L> cart) {
 		return add(cart);

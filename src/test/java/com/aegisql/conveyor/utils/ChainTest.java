@@ -22,24 +22,53 @@ import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.conveyor.utils.scalar.ScalarCart;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ChainTest.
+ */
 public class ChainTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test chain.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testChain() throws InterruptedException {
 		ScalarConvertingConveyor<String, String, User> scalarConveyor = new ScalarConvertingConveyor<>();

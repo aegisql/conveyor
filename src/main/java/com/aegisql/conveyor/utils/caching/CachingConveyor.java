@@ -9,10 +9,22 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuildingSite;
 import com.aegisql.conveyor.cart.Cart;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class CachingConveyor.
+ *
+ * @param <K> the key type
+ * @param <L> the generic type
+ * @param <OUT> the generic type
+ */
 public class CachingConveyor<K, L, OUT> extends AssemblingConveyor<K, L, OUT> {
 	
+	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(CachingConveyor.class);
 	
+	/**
+	 * Instantiates a new caching conveyor.
+	 */
 	public CachingConveyor() {
 		super();
 		this.setReadinessEvaluator( (k,l) -> false);
@@ -25,6 +37,12 @@ public class CachingConveyor<K, L, OUT> extends AssemblingConveyor<K, L, OUT> {
 		});
 	}
 
+	/**
+	 * Gets the product supplier.
+	 *
+	 * @param key the key
+	 * @return the product supplier
+	 */
 	public Supplier<? extends OUT> getProductSupplier(K key) {
 		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> site = collector.get(key);
 		if(site == null) {

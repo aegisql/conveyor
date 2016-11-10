@@ -25,6 +25,7 @@ import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class ParallelConveyor.
  *
@@ -39,12 +40,13 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	/** The Constant LOG. */
 	private final static Logger LOG   = LoggerFactory.getLogger(LBalancedParallelConveyor.class);
 
+	/** The final consumer. */
 	protected Conveyor<K, L, OUT> finalConsumer = null;
 	
 	/**
 	 * Instantiates a new parallel conveyor.
 	 *
-	 * @param pf the pf
+	 * @param conveyors the conveyors
 	 */
 	public LBalancedParallelConveyor(Conveyor<K, L, OUT>... conveyors) {
 		this.pf = conveyors.length;
@@ -155,6 +157,9 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		return combinedFuture;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#createBuildWithCart(com.aegisql.conveyor.cart.Cart)
+	 */
 	@Override
 	protected <V> CompletableFuture<Boolean> createBuildWithCart(Cart<K, V, L> cart) {
 		Objects.requireNonNull(cart, "Cart is null");
@@ -169,6 +174,9 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		return combinedFuture;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#createBuildFutureWithCart(java.util.function.Function, com.aegisql.conveyor.BuilderSupplier)
+	 */
 	protected CompletableFuture<OUT> createBuildFutureWithCart(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier) {
 		Objects.requireNonNull(cartSupplier, "Cart supplier is null");
 		CompletableFuture<Boolean> combinedCreateFuture = null;
@@ -201,6 +209,9 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		return productFuture;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#getFutureByCart(com.aegisql.conveyor.cart.FutureCart)
+	 */
 	protected CompletableFuture<OUT> getFutureByCart(FutureCart<K,OUT,L> futureCart) {
 		CompletableFuture<OUT> future = futureCart.getValue();
 		CompletableFuture<Boolean> cartFuture = this.finalConsumer.add( futureCart );
@@ -238,20 +249,36 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		}
 	}
 
+	/**
+	 * Gets the expiration time.
+	 *
+	 * @param key the key
+	 * @param label the label
+	 * @return the expiration time
+	 */
 	public long getExpirationTime(K key,L label) {
 		return ((ParallelConveyor<K, L, OUT>) this.balancingCart.apply( new ShoppingCart(key, null, label)).get(0)).getExpirationTime(key);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#isLBalanced()
+	 */
 	@Override
 	public boolean isLBalanced() {
 		return true;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#toString()
+	 */
 	@Override
 	public String toString() {
 		return "L-Balanced ParallelConveyor [name=" + name + ", pf=" + pf + ", lBalanced=" + lBalanced + "]";
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#forwardPartialResultTo(java.lang.Object, com.aegisql.conveyor.Conveyor)
+	 */
 	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv) {
 		this.forwardingResults   = true;
 		this.setResultConsumer(bin->{

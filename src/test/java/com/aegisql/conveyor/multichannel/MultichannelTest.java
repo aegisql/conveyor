@@ -20,20 +20,44 @@ import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.utils.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.utils.parallel.LBalancedParallelConveyor;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class MultichannelTest.
+ */
 public class MultichannelTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
@@ -41,6 +65,11 @@ public class MultichannelTest {
 
 
 	
+	/**
+	 * Test with parallel conveyor.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testWithParallelConveyor() throws InterruptedException {
 		AtomicReference<User> user = new AtomicReference<User>(null);
@@ -106,6 +135,11 @@ public class MultichannelTest {
 		assertNotNull(user.get());
 	}
 
+	/**
+	 * Test with parallel conveyor and default.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testWithParallelConveyorAndDefault() throws InterruptedException {
 		AtomicReference<User> user = new AtomicReference<User>(null);
@@ -169,6 +203,11 @@ public class MultichannelTest {
 	}
 
 	
+	/**
+	 * Test with parallel conveyor common labels.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testWithParallelConveyorCommonLabels() throws InterruptedException {
 		AtomicReference<User> user = new AtomicReference<User>(null);
@@ -238,6 +277,12 @@ public class MultichannelTest {
 	}
 
 
+	/**
+	 * Test with double parallel conveyor.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test
 	public void testWithDoubleParallelConveyor() throws InterruptedException, ExecutionException {
 		AtomicReference<User> user = new AtomicReference<User>(null);
@@ -320,6 +365,12 @@ public class MultichannelTest {
 	}
 
 	
+	/**
+	 * Test with parallel conveyor build future.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test
 	public void testWithParallelConveyorBuildFuture() throws InterruptedException, ExecutionException {
 		AtomicReference<User> user = new AtomicReference<User>(null);

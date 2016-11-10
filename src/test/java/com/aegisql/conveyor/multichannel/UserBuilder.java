@@ -4,6 +4,10 @@ import java.util.function.Supplier;
 
 import com.aegisql.conveyor.user.User;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class UserBuilder.
+ */
 public class UserBuilder implements Supplier<User> {
 
 	/** The first. */
@@ -56,15 +60,33 @@ public class UserBuilder implements Supplier<User> {
 		builder.first = (String) first;
 	}
 
+	/**
+	 * Merge channel a.
+	 *
+	 * @param builder the builder
+	 * @param user the user
+	 */
 	public static void mergeChannelA(UserBuilder builder, User user) {
 		builder.first = user.getFirst();
 		builder.last  = user.getLast();
 	}
 
+	/**
+	 * Merge channel b.
+	 *
+	 * @param builder the builder
+	 * @param user the user
+	 */
 	public static void mergeChannelB(UserBuilder builder, User user) {
 		builder.yearOfBirth = user.getYearOfBirth();
 	}
 
+	/**
+	 * Sets the info.
+	 *
+	 * @param builder the builder
+	 * @param info the info
+	 */
 	public static void setInfo(UserBuilder builder, String info) {
 		System.out.println("---INFO---: "+info);
 	}
@@ -115,6 +137,9 @@ public class UserBuilder implements Supplier<User> {
 		this.ready = ready;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "UserBuilder [first=" + first + ", last=" + last + ", yearOfBirth=" + yearOfBirth + ", ready=" + ready
