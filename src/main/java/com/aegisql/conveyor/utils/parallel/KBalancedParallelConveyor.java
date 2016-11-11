@@ -61,12 +61,12 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		}
 
 		this.balancingCart = cart -> { 
-			int index = cart.getKey().hashCode() % pf;
+			int index = (cart.getKey().hashCode() & 0x0fffffff) % pf;
 			return this.conveyors.subList(index, index+1);
 		};
 
 		this.balancingCommand = command -> { 
-			int index = command.getKey().hashCode() % pf;
+			int index = (command.getKey().hashCode() & 0x0fffffff) % pf;
 			return this.conveyors.subList(index, index+1);
 		};
 

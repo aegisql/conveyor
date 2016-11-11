@@ -57,7 +57,7 @@ public class ParallelConveyorTest {
 	public static User[] outUser = new User[SIZE];
 
 	/** The conveyor. */
-	public static 		ParallelConveyor<Integer, String, User> 
+	public static 		ParallelConveyor<String, String, User> 
 	conveyor = new KBalancedParallelConveyor<>(4);
 
 	
@@ -182,10 +182,10 @@ public class ParallelConveyorTest {
 	@Test
 	public void testParallelCommand() throws InterruptedException, ExecutionException {
 		
-		GeneralCommand<Integer,?> c1 = new CreateCommand<>(1,UserBuilder::new,10,TimeUnit.MILLISECONDS );
-		GeneralCommand<Integer,?> c2 = new CreateCommand<>(2,UserBuilder::new,10,TimeUnit.MILLISECONDS );
-		GeneralCommand<Integer,?> c3 = new CreateCommand<>(3,UserBuilder::new,10,TimeUnit.MILLISECONDS );
-		GeneralCommand<Integer,?> c4 = new CreateCommand<>(4,UserBuilder::new,10,TimeUnit.MILLISECONDS );
+		GeneralCommand<String,?> c1 = new CreateCommand<>(""+1,UserBuilder::new,10,TimeUnit.MILLISECONDS );
+		GeneralCommand<String,?> c2 = new CreateCommand<>(""+2,UserBuilder::new,10,TimeUnit.MILLISECONDS );
+		GeneralCommand<String,?> c3 = new CreateCommand<>(""+3,UserBuilder::new,10,TimeUnit.MILLISECONDS );
+		GeneralCommand<String,?> c4 = new CreateCommand<>(""+4,UserBuilder::new,10,TimeUnit.MILLISECONDS );
 
 		
 		CompletableFuture<Boolean> f1 = conveyor.addCommand(c1);
@@ -231,7 +231,7 @@ public class ParallelConveyorTest {
 		int[] ids = getRandomInts();
 		for(int i = 0; i < SIZE; i++) {
 			User u = inUser[ids[i]];
-			Cart<Integer, String, String> cart = new ShoppingCart<>(ids[i], "First_"+ids[i], "setFirst",1,TimeUnit.SECONDS);
+			Cart<String, String, String> cart = new ShoppingCart<>(""+ids[i], "First_"+ids[i], "setFirst",1,TimeUnit.SECONDS);
 			if(r.nextInt(100) == 22) continue;
 			try {
 				Thread.sleep(1);
@@ -247,7 +247,7 @@ public class ParallelConveyorTest {
 		int[] ids = getRandomInts();
 		for(int i = 0; i < SIZE; i++) {
 			User u = inUser[ids[i]];
-			Cart<Integer, String, String> cart = new ShoppingCart<>(ids[i], "Last_"+ids[i], "setLast",1,TimeUnit.SECONDS);
+			Cart<String, String, String> cart = new ShoppingCart<>(""+ids[i], "Last_"+ids[i], "setLast",1,TimeUnit.SECONDS);
 			if(r.nextInt(100) == 22) continue;
 			try {
 				Thread.sleep(1);
@@ -263,7 +263,7 @@ public class ParallelConveyorTest {
 		int[] ids = getRandomInts();
 		for(int i = 0; i < SIZE; i++) {
 			User u = inUser[ids[i]];
-			Cart<Integer, Integer, String> cart = new ShoppingCart<>(ids[i], 1900+r.nextInt(100), "setYearOfBirth",1,TimeUnit.SECONDS);
+			Cart<String, Integer, String> cart = new ShoppingCart<>(""+ids[i], 1900+r.nextInt(100), "setYearOfBirth",1,TimeUnit.SECONDS);
 			if(r.nextInt(100) == 22) continue;
 			try {
 				Thread.sleep(1);
