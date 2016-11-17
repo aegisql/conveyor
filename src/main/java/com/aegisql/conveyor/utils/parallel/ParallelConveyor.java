@@ -26,7 +26,6 @@ import javax.management.StandardMBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.aegisql.conveyor.AssemblingConveyorMBean;
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
@@ -104,6 +103,10 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	protected BuilderSupplier<OUT> builderSupplier = () -> {
 		throw new IllegalStateException("Builder Supplier is not set");
 	};
+	
+	protected ParallelConveyor() {
+		this.setMbean(name);
+	}
 	
 	/**
 	 * Instantiates a new parallel conveyor.
@@ -916,18 +919,41 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 
 	protected void setMbean(String name) {
 		try {
-			this.objectName = new ObjectName("com.aegisql.conveyor:type="+name);
+			final ParallelConveyor<K,L,OUT> thisConv = this;
+
 			Object mbean = new StandardMBean(new ParallelConveyorMBean() {
 				@Override
 				public String getName() {
 					return name;
 				}
-			},ParallelConveyorMBean.class);
-			if(! mBeanServer.isRegistered(objectName)) {
-				mBeanServer.registerMBean(mbean,objectName);
-			} else {
-				mBeanServer.unregisterMBean(objectName);
-				mBeanServer.registerMBean(mbean, objectName);
+				@Override
+				public String getType() {
+					return thisConv.getClass().getSimpleName();
+				}
+				@Override
+				public int getInnerConveyorsCount() {
+					return conveyors.size();
+				}
+				@Override
+				public boolean isRunning() {
+					return thisConv.running;
+				}
+			}, ParallelConveyorMBean.class, false);
+			
+			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type="+name);
+			synchronized(mBeanServer) {
+				if(this.objectName == null) {
+					this.objectName = newObjectName;
+					this.setMbean(name);
+				}
+				if(mBeanServer.isRegistered(this.objectName)) {
+					mBeanServer.unregisterMBean(objectName);
+					this.objectName = newObjectName;
+					this.setMbean(name);
+				} else {
+					mBeanServer.registerMBean(mbean, newObjectName);
+					this.objectName = newObjectName;
+				}
 			}
 		} catch (Exception e) {
 			LOG.error("MBEAN error",e);

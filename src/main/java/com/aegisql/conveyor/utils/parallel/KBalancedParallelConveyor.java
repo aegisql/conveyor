@@ -52,6 +52,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 * @param pf the pf
 	 */
 	public KBalancedParallelConveyor( Supplier<? extends Conveyor<K, L, OUT>> cs, int pf ) {
+		super();
 		if( pf <=0 ) {
 			throw new IllegalArgumentException("Parallelism Factor must be >=1");
 		}

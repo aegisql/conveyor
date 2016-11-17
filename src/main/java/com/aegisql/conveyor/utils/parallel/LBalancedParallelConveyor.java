@@ -49,6 +49,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 * @param conveyors the conveyors
 	 */
 	public LBalancedParallelConveyor(Conveyor<K, L, OUT>... conveyors) {
+		super();
 		this.pf = conveyors.length;
 		if( this.pf == 0 ) {
 			throw new IllegalArgumentException("Parallelism Factor must be >=1");
