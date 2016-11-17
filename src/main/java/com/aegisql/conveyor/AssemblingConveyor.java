@@ -25,7 +25,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
@@ -46,7 +45,7 @@ import com.aegisql.conveyor.delay.DelayProvider;
  * The Class AssemblingConveyor.
  *
  * @author Mikhail Teplitskiy
- * @version 1.0.0
+ * @version 1.1.0
  * @param <K> the key type
  * @param <L> the generic type
  * @param <OUT> the generic type
@@ -68,6 +67,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The collector. */
 	protected final Map<K, BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>> collector = new HashMap<>();
 
+	protected long cartCounter = 0;
+	
+	protected long commandCounter = 0;
+	
 	/** The builder timeout. */
 	protected long builderTimeout = 0;
 	
@@ -217,8 +220,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The name. */
 	private String name;
 	
-	private ObjectName objectName;
-	
 	private final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer(); 
 
 	/** The l balanced. */
@@ -232,6 +233,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The forwarding results. */
 	private boolean forwardingResults = false;
+
+	protected ObjectName objectName;
+
+	private String forwardingTo = "not forwarding";
 
 	/**
 	 * Wait data.
@@ -384,6 +389,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					processManagementCommands();
 					Cart<K,?,L> cart = inQueue.poll();
 					if(cart != null) {
+						cartCounter++;
 						processSite(cart,true);
 					}
 					removeExpired();
@@ -404,18 +410,89 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	protected void setMbean(String name) {
 		try {
-			this.objectName = new ObjectName("com.aegisql.conveyor:type="+name);
-			Object mbean = new StandardMBean(new ConveyorMBean() {
+			final AssemblingConveyor<K,L,OUT> thisConv = this;
+			Object mbean = new StandardMBean(new AssemblingConveyorMBean() {
 				@Override
 				public String getName() {
-					return name;
+					return thisConv.name;
 				}
-			},ConveyorMBean.class);
-			if(! mBeanServer.isRegistered(objectName)) {
+				@Override
+				public long getThreadId() {
+					return thisConv.innerThread.getId();
+				}
+				@Override
+				public int getInputQueueSize() {
+					return thisConv.inQueue.size();
+				}
+				@Override
+				public int getCollectorSize() {
+					return thisConv.collector.size();
+				}
+				@Override
+				public int getCommandQueueSize() {
+					return thisConv.mQueue.size();
+				}
+				@Override
+				public String getType() {
+					return thisConv.getClass().getSimpleName();
+				}
+				@Override
+				public boolean isRunning() {
+					return thisConv.running;
+				}
+				@Override
+				public long getDefaultBuilderTimeoutMsec() {
+					return thisConv.builderTimeout;
+				}
+				@Override
+				public long getIdleHeartBeatMsec() {
+					return thisConv.lock.expirationCollectionUnit.toMillis(thisConv.lock.expirationCollectionInterval);
+				}
+				@Override
+				public String getExpirationPosponeTimeMsec() {
+					if(thisConv.postponeExpirationEnabled) {
+						return ""+thisConv.postponeExpirationMills;
+					} else {
+						return "not enabled";
+					}
+				}
+				@Override
+				public String getForwardingResultsTo() {
+					return thisConv.forwardingTo;
+				}
+				@Override
+				public boolean isLBalanced() {
+					return thisConv.lBalanced;
+				}
+				@Override
+				public String getAcceptedLabels() {
+					if(acceptedLabels.size() == 0 || acceptedLabels.contains(null) ) {
+						return "accepts all labels";
+					} else {
+						return acceptedLabels.toString();
+					}
+				}
+				@Override
+				public long getCartCounter() {
+					return thisConv.cartCounter;
+				}
+				@Override
+				public long getCommandCounter() {
+					return thisConv.commandCounter;
+				}
+			}, AssemblingConveyorMBean.class, false);
+			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type="+name);
+			if(this.objectName == null) {
+				this.objectName = newObjectName;
 				mBeanServer.registerMBean(mbean,objectName);
 			} else {
-				mBeanServer.unregisterMBean(objectName);
-				mBeanServer.registerMBean(mbean, objectName);
+				if(! mBeanServer.isRegistered(this.objectName)) {
+					mBeanServer.registerMBean(mbean,objectName);
+				} else {
+					mBeanServer.unregisterMBean(objectName);
+					mBeanServer.registerMBean(mbean, newObjectName);
+				}
+				this.objectName = newObjectName;
 			}
 		} catch (Exception e) {
 			LOG.error("MBEAN error",e);
@@ -429,6 +506,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private void processManagementCommands() {
 		Cart<K,?,CommandLabel> cmd = null;
 		while((cmd = mQueue.poll()) != null) {
+			commandCounter++;
 			if(LOG.isDebugEnabled()) {
 				LOG.debug("processing command "+cmd);
 			}
@@ -1412,6 +1490,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv) {
 		this.forwardingResults  = true;
+		this.forwardingTo  = conv.toString();
 		this.setResultConsumer(bin->{
 			LOG.debug("Forward {} from {} to {} {}",partial,this.name,conv.getName(),bin.product);
 			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
@@ -1444,7 +1523,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		});
 		c.setSynchronizeBuilder( synchronizeBuilder);
 		
-		c.startTimeReject                 = this.startTimeReject;
+		c.startTimeReject = this.startTimeReject;
 		
 		return c;
 	}
@@ -1501,6 +1580,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public boolean isForwardingResults() {
 		return forwardingResults;
+	}
+
+	public long getCartCounter() {
+		return cartCounter;
+	}
+
+	public long getCommandCounter() {
+		return commandCounter;
 	}
 
 }

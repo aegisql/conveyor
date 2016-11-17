@@ -26,12 +26,13 @@ import javax.management.StandardMBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.AssemblingConveyorMBean;
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ConveyorMBean;
 import com.aegisql.conveyor.LabeledValueConsumer;
+import com.aegisql.conveyor.ParallelConveyorMBean;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.State;
@@ -916,12 +917,12 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	protected void setMbean(String name) {
 		try {
 			this.objectName = new ObjectName("com.aegisql.conveyor:type="+name);
-			Object mbean = new StandardMBean(new ConveyorMBean() {
+			Object mbean = new StandardMBean(new ParallelConveyorMBean() {
 				@Override
 				public String getName() {
 					return name;
 				}
-			},ConveyorMBean.class);
+			},ParallelConveyorMBean.class);
 			if(! mBeanServer.isRegistered(objectName)) {
 				mBeanServer.registerMBean(mbean,objectName);
 			} else {

@@ -1,5 +1,5 @@
 package com.aegisql.conveyor;
 
-public interface ConveyorMBean {
+public interface ParallelConveyorMBean {
 	public String getName();
 }

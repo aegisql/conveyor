@@ -303,6 +303,8 @@ public class ParallelConveyorTest {
 	assertEquals(0,conveyor.getCollectorSize(1));
 	assertEquals(0,conveyor.getDelayedQueueSize(1));
 
+	//Thread.sleep(10000000);
+	
 	}
 
 	/**
