@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor;
 
+import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Deque;
@@ -22,6 +23,11 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -210,6 +216,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The name. */
 	private String name;
+	
+	private ObjectName objectName;
+	
+	private final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer(); 
 
 	/** The l balanced. */
 	private boolean lBalanced = false;
@@ -388,9 +398,31 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		innerThread.setDaemon(false);
 		this.name = "AssemblingConveyor "+innerThread.getId();
 		innerThread.setName( this.name );
+		this.setMbean(this.name);
 		innerThread.start();
 	}
 
+	protected void setMbean(String name) {
+		try {
+			this.objectName = new ObjectName("com.aegisql.conveyor:type="+name);
+			Object mbean = new StandardMBean(new ConveyorMBean() {
+				@Override
+				public String getName() {
+					return name;
+				}
+			},ConveyorMBean.class);
+			if(! mBeanServer.isRegistered(objectName)) {
+				mBeanServer.registerMBean(mbean,objectName);
+			} else {
+				mBeanServer.unregisterMBean(objectName);
+				mBeanServer.registerMBean(mbean, objectName);
+			}
+		} catch (Exception e) {
+			LOG.error("MBEAN error",e);
+			throw new RuntimeException(e);
+		}
+	}
+	
 	/**
 	 * Process management commands.
 	 */
@@ -1162,7 +1194,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void setName(String name) {
 		this.name= name;
-		innerThread.setName(name);
+		this.innerThread.setName(name);
+		this.setMbean(this.name);
 	}
 
 	/*

@@ -120,6 +120,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			};
 			this.lBalanced = true;
 		}
+		this.setMbean(this.name);
 	}
 	
 	//TODO: UNIMPLEMENTED!!!!

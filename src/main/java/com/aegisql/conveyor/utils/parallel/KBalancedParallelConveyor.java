@@ -70,6 +70,8 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			return this.conveyors.subList(index, index+1);
 		};
 
+		this.setMbean(this.name);
+		
 		LOG.debug("K-Balanced Parallel conveyor created with {} threads",pf);
 	
 	}
