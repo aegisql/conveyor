@@ -482,20 +482,22 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 			}, AssemblingConveyorMBean.class, false);
 			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type="+name);
-			if(this.objectName == null) {
-				this.objectName = newObjectName;
-				mBeanServer.registerMBean(mbean,objectName);
-			} else {
-				if(! mBeanServer.isRegistered(this.objectName)) {
-					mBeanServer.registerMBean(mbean,objectName);
-				} else {
-					mBeanServer.unregisterMBean(objectName);
-					mBeanServer.registerMBean(mbean, newObjectName);
+			synchronized(mBeanServer) {
+				if(this.objectName == null) {
+					this.objectName = newObjectName;
+					this.setMbean(name);
 				}
-				this.objectName = newObjectName;
+				if(mBeanServer.isRegistered(this.objectName)) {
+					mBeanServer.unregisterMBean(objectName);
+					this.objectName = newObjectName;
+					this.setMbean(name);
+				} else {
+					mBeanServer.registerMBean(mbean, newObjectName);
+					this.objectName = newObjectName;
+				}
 			}
 		} catch (Exception e) {
-			LOG.error("MBEAN error",e);
+			LOG.error("MBEAN error "+name,e);
 			throw new RuntimeException(e);
 		}
 	}
