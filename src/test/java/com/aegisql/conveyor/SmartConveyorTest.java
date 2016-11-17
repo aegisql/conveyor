@@ -620,7 +620,7 @@ public class SmartConveyorTest {
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
-		conveyor.setName("User Upper Assembler");
+		conveyor.setName("User Lower Assembler");
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 		
@@ -641,6 +641,5 @@ public class SmartConveyorTest {
 		assertEquals(user1,new LowerUser("john","doe",1999));
 		conveyor.stop();
 	}
-
 	
 }
