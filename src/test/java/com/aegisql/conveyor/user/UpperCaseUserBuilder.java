@@ -4,7 +4,7 @@ public class UpperCaseUserBuilder extends AbstractSmartUserBuilder {
 
 	@Override
 	public User get() {
-		return new User(first, last, yearOfBirth);
+		return new UpperUser(first, last, yearOfBirth);
 	}
 
 	@Override

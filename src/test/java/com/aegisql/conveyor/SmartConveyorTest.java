@@ -25,7 +25,9 @@ import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.cart.command.RescheduleCommand;
 import com.aegisql.conveyor.user.AbstractBuilderEvents;
 import com.aegisql.conveyor.user.LowerCaseUserBuilder;
+import com.aegisql.conveyor.user.LowerUser;
 import com.aegisql.conveyor.user.UpperCaseUserBuilder;
+import com.aegisql.conveyor.user.UpperUser;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderEvents2;
@@ -590,11 +592,6 @@ public class SmartConveyorTest {
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 		
-		ShoppingCart<Integer, String, AbstractBuilderEvents> c1 = new ShoppingCart<>(1, "John",
-				AbstractBuilderEvents.SET_FIRST);
-		Cart<Integer, String, AbstractBuilderEvents> c2 = c1.nextCart("Doe", AbstractBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, AbstractBuilderEvents> c4 = c1.nextCart(1999, AbstractBuilderEvents.SET_YEAR);
-
 		CompletableFuture<User> f1 = conveyor.createBuildFuture(1,UpperCaseUserBuilder::new);
 		
 		assertNotNull(f1);
@@ -602,16 +599,14 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCompletedExceptionally());
 		assertFalse(f1.isDone());
 
-		conveyor.offer(c1);
-		User u0 = outQueue.poll();
-		assertNull(u0);
-		conveyor.offer(c2);
-		conveyor.offer(c4);
+		conveyor.offer(1, "John", AbstractBuilderEvents.SET_FIRST);
+		conveyor.offer(1, "Doe", AbstractBuilderEvents.SET_LAST);
+		conveyor.offer(1, 1999, AbstractBuilderEvents.SET_YEAR);
 
 		User user1 = f1.get();
 		assertNotNull(user1);
 		System.out.println(user1);
-		assertEquals(user1,new User("JOHN","DOE",1999));
+		assertEquals(user1,new UpperUser("JOHN","DOE",1999));
 		conveyor.stop();
 	}
 	
@@ -629,11 +624,6 @@ public class SmartConveyorTest {
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 		
-		ShoppingCart<Integer, String, AbstractBuilderEvents> c1 = new ShoppingCart<>(1, "John",
-				AbstractBuilderEvents.SET_FIRST);
-		Cart<Integer, String, AbstractBuilderEvents> c2 = c1.nextCart("Doe", AbstractBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, AbstractBuilderEvents> c4 = c1.nextCart(1999, AbstractBuilderEvents.SET_YEAR);
-
 		CompletableFuture<User> f1 = conveyor.createBuildFuture(1,LowerCaseUserBuilder::new);
 		
 		assertNotNull(f1);
@@ -641,16 +631,14 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCompletedExceptionally());
 		assertFalse(f1.isDone());
 
-		conveyor.offer(c1);
-		User u0 = outQueue.poll();
-		assertNull(u0);
-		conveyor.offer(c2);
-		conveyor.offer(c4);
+		conveyor.offer(1, "John", AbstractBuilderEvents.SET_FIRST);
+		conveyor.offer(1, "Doe", AbstractBuilderEvents.SET_LAST);
+		conveyor.offer(1, 1999, AbstractBuilderEvents.SET_YEAR);
 
 		User user1 = f1.get();
 		assertNotNull(user1);
 		System.out.println(user1);
-		assertEquals(user1,new User("john","doe",1999));
+		assertEquals(user1,new LowerUser("john","doe",1999));
 		conveyor.stop();
 	}
 
