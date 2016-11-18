@@ -578,6 +578,13 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test upper case.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException the timeout exception
+	 */
 	@Test
 	public void testUpperCase() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -610,6 +617,13 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 	
+	/**
+	 * Test lower case.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException the timeout exception
+	 */
 	@Test
 	public void testLowerCase() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();

@@ -35,6 +35,11 @@ public abstract class AbstractSmartUserBuilder implements Supplier<User> {
 		return yearOfBirth;
 	}
 
+	/**
+	 * Accept year of birth.
+	 *
+	 * @param yob the yob
+	 */
 	public abstract void acceptYearOfBirth(Integer yob);
 	/**
 	 * Sets the year of birth.
@@ -56,6 +61,11 @@ public abstract class AbstractSmartUserBuilder implements Supplier<User> {
 		return first;
 	}
 
+	/**
+	 * Accept first.
+	 *
+	 * @param first the first
+	 */
 	public abstract void acceptFirst(String first);
 	/**
 	 * Sets the first.
@@ -76,6 +86,11 @@ public abstract class AbstractSmartUserBuilder implements Supplier<User> {
 		return last;
 	}
 
+	/**
+	 * Accept last.
+	 *
+	 * @param last the last
+	 */
 	public abstract void acceptLast(String last);
 	/**
 	 * Sets the last.

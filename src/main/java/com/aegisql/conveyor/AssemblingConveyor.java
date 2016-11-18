@@ -67,8 +67,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The collector. */
 	protected final Map<K, BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>> collector = new HashMap<>();
 
+	/** The cart counter. */
 	protected long cartCounter = 0;
 	
+	/** The command counter. */
 	protected long commandCounter = 0;
 	
 	/** The builder timeout. */
@@ -220,6 +222,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The name. */
 	private String name;
 	
+	/** The Constant mBeanServer. */
 	private final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer(); 
 
 	/** The l balanced. */
@@ -234,8 +237,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The forwarding results. */
 	private boolean forwardingResults = false;
 
+	/** The object name. */
 	protected ObjectName objectName;
 
+	/** The forwarding to. */
 	private String forwardingTo = "not forwarding";
 
 	/**
@@ -408,6 +413,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		innerThread.start();
 	}
 
+	/**
+	 * Sets the mbean.
+	 *
+	 * @param name the new mbean
+	 */
 	protected void setMbean(String name) {
 		try {
 			final AssemblingConveyor<K,L,OUT> thisConv = this;
@@ -1584,10 +1594,20 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return forwardingResults;
 	}
 
+	/**
+	 * Gets the cart counter.
+	 *
+	 * @return the cart counter
+	 */
 	public long getCartCounter() {
 		return cartCounter;
 	}
 
+	/**
+	 * Gets the command counter.
+	 *
+	 * @return the command counter
+	 */
 	public long getCommandCounter() {
 		return commandCounter;
 	}

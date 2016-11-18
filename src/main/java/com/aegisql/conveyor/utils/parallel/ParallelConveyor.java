@@ -95,8 +95,10 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	/** The forwarding results. */
 	protected boolean forwardingResults = false;
 	
+	/** The object name. */
 	private ObjectName objectName;
 	
+	/** The Constant mBeanServer. */
 	private final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 	
 	/** The builder supplier. */
@@ -104,6 +106,9 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		throw new IllegalStateException("Builder Supplier is not set");
 	};
 	
+	/**
+	 * Instantiates a new parallel conveyor.
+	 */
 	protected ParallelConveyor() {
 		this.setMbean(name);
 	}
@@ -917,6 +922,11 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return forwardingResults;
 	}
 
+	/**
+	 * Sets the mbean.
+	 *
+	 * @param name the new mbean
+	 */
 	protected void setMbean(String name) {
 		try {
 			final ParallelConveyor<K,L,OUT> thisConv = this;
