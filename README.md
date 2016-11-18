@@ -14,6 +14,9 @@ Maven dependency
 
 ## Release History
 
+### 1.1.2
+* MBeans support 
+
 ### 1.1.1
 * Bugfix in balancing functions. Also exists in 1.0.x 
 
