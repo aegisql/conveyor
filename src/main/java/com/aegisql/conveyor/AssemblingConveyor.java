@@ -1058,7 +1058,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			buildingSite = getBuildingSite(cart);
 			if(buildingSite == null) {
-				cart.getFuture().complete(Boolean.FALSE);
+				if(cart instanceof CreatingCart) {
+					cart.getFuture().complete(Boolean.TRUE);
+				} else {
+					cart.getFuture().complete(Boolean.FALSE);
+				}
 				if( resultFuture != null ) {
 					resultFuture.completeExceptionally(new Exception("No active building site found"));
 				}
