@@ -25,7 +25,10 @@ public enum UserBuilderEvents implements SmartLabel<UserBuilderSmart> {
 	SET_LAST(UserBuilderSmart::setLast),
 	
 	/** The set year. */
-	SET_YEAR(UserBuilderSmart::setYearOfBirth)
+	SET_YEAR(UserBuilderSmart::setYearOfBirth),
+	
+	/** The failure. */
+	FAILURE((UserBuilderSmart builder,RuntimeException error) -> { throw error; } )
 	;
 
 	/** The setter. */

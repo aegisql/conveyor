@@ -1,12 +1,12 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -21,6 +21,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.utils.caching.CachingConveyor;
+import com.aegisql.conveyor.utils.caching.ImmutableReference;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -342,6 +343,32 @@ public class CachingConveyorTest {
 		Thread.sleep(500);
 		
 		u = supplier.get(); //should be still there
+		
+	}
+
+
+	/**
+	 * Test simple cache.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
+	@Test(expected=IllegalStateException.class)
+	public void testScalarCache() throws InterruptedException, ExecutionException {
+		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
+		conveyor.setDefaultCartConsumer((label, value, builder) -> {
+		});
+		
+		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
+		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
+		CompletableFuture<Boolean> cf = conveyor.createBuild(1,new ImmutableReference<String>("TEST"));
+		assertTrue(cf.get());
+		
+		Supplier<? extends String> s = conveyor.getProductSupplier(1);
+		assertEquals("TEST", s.get());
+		
+		Thread.sleep(1200);
+		s.get();
 		
 	}
 

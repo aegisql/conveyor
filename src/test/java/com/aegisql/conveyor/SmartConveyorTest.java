@@ -289,9 +289,10 @@ public class SmartConveyorTest {
 	 * Test basics testing creating interface.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
 	 */
 	@Test
-	public void testBasicsTestingCreatingInterface() throws InterruptedException {
+	public void testBasicsTestingCreatingInterface() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(() -> {
 			System.out.println("Default Supplier");
@@ -312,10 +313,14 @@ public class SmartConveyorTest {
 			return new UserBuilderTesting();
 		};
 
-		conveyor.createBuild(1, sup);
-		conveyor.createBuild(2, sup);
-		conveyor.createBuild(3);
+		CompletableFuture<Boolean> cf1 = conveyor.createBuild(1, sup);
+		CompletableFuture<Boolean> cf2 = conveyor.createBuild(2, sup);
+		CompletableFuture<Boolean> cf3 = conveyor.createBuild(3);
 
+		assertTrue(cf1.get());
+		assertTrue(cf2.get());
+//		assertFalse(cf3.get()); //this fails - no supplier;
+		
 		conveyor.addCommand(new CreateCommand<Integer, User>(4));
 		conveyor.addCommand(new CreateCommand<Integer, User>(5, sup2));
 
@@ -655,5 +660,44 @@ public class SmartConveyorTest {
 		assertEquals(user1,new LowerUser("john","doe",1999));
 		conveyor.stop();
 	}
-	
+
+	/**
+	 * Test object.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException the timeout exception
+	 */
+	@Test
+	public void testObject() throws InterruptedException, ExecutionException, TimeoutException {
+		AssemblingConveyor<Integer, AbstractBuilderEvents, Object> conveyor = new AssemblingConveyor<>();
+
+		conveyor.setResultConsumer(res -> {
+			System.out.println(res.product);
+		});
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			return state.previouslyAccepted == 3;
+		});
+		conveyor.setName("Object Assembler");
+		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
+		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
+		
+		CompletableFuture<Object> f1 = conveyor.createBuildFuture(1,LowerCaseUserBuilder::new);
+		
+		assertNotNull(f1);
+		assertFalse(f1.isCancelled());
+		assertFalse(f1.isCompletedExceptionally());
+		assertFalse(f1.isDone());
+
+		conveyor.offer(1, "John", AbstractBuilderEvents.SET_FIRST);
+		conveyor.offer(1, "Doe", AbstractBuilderEvents.SET_LAST);
+		conveyor.offer(1, 1999, AbstractBuilderEvents.SET_YEAR);
+
+		User user1 = (User) f1.get();
+		assertNotNull(user1);
+		System.out.println(user1);
+		assertEquals(user1,new LowerUser("john","doe",1999));
+		conveyor.stop();
+	}
+
 }
