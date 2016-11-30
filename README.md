@@ -8,11 +8,15 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.1.2</version>
+  <version>1.1.3</version>
 </dependency>
 ```
 
 ## Release History
+
+### 1.1.3
+* ImmutableReference for simple scalar caches
+* Bugfix in createBuild returned future 
 
 ### 1.1.2
 * MBeans support 
