@@ -1,6 +1,9 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -354,7 +357,7 @@ public class CachingConveyorTest {
 	 * @throws ExecutionException the execution exception
 	 */
 	@Test(expected=IllegalStateException.class)
-	public void testScalarCache() throws InterruptedException, ExecutionException {
+	public void testImmutableScalarCache() throws InterruptedException, ExecutionException {
 		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
 		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 		});
@@ -371,7 +374,5 @@ public class CachingConveyorTest {
 		s.get();
 		
 	}
-
-	
 	
 }
