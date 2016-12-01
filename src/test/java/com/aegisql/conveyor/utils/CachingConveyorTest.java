@@ -19,12 +19,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.utils.caching.CachingConveyor;
 import com.aegisql.conveyor.utils.caching.ImmutableReference;
+import com.aegisql.conveyor.utils.caching.ScalarReference;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -375,4 +377,32 @@ public class CachingConveyorTest {
 		
 	}
 	
+	@Test(expected=IllegalStateException.class)
+	public void testMutableScalarCache() throws InterruptedException, ExecutionException {
+		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
+		conveyor.setDefaultCartConsumer((label, value, builder) -> {
+			System.out.println("consumer: "+label+" "+value+""+builder);
+			((ScalarReference<String>)builder).set(((BuilderSupplier<String>)value).get().get());
+		});
+		
+		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
+		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
+		CompletableFuture<Boolean> cf = conveyor.createBuild(1,ScalarReference.newInstance("TEST"));
+		CompletableFuture<Boolean> cf2 = conveyor.createBuild(1,ScalarReference.newInstance("BEST"));
+		assertTrue(cf.get());
+		assertTrue(cf2.get());
+		Supplier<? extends String> s = conveyor.getProductSupplier(1);
+		assertEquals("BEST", s.get());
+
+		CompletableFuture<Boolean> cf3 = conveyor.add(1,ScalarReference.newInstance("GUEST"),"update");
+		assertTrue(cf3.get());
+		s = conveyor.getProductSupplier(1);
+		assertEquals("GUEST", s.get());
+
+		
+		Thread.sleep(1200);
+		s.get();
+		
+	}
+
 }
