@@ -11,6 +11,7 @@ import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.junit.After;
@@ -382,7 +383,7 @@ public class CachingConveyorTest {
 		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
 		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			System.out.println("consumer: "+label+" "+value+""+builder);
-			((ScalarReference<String>)builder).set(((BuilderSupplier<String>)value).get().get());
+			((Consumer<String>)builder).accept(((BuilderSupplier<String>)value).get().get());
 		});
 		
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
