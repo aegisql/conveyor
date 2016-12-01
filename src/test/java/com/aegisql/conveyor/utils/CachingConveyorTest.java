@@ -27,7 +27,7 @@ import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.utils.caching.CachingConveyor;
 import com.aegisql.conveyor.utils.caching.ImmutableReference;
-import com.aegisql.conveyor.utils.caching.ScalarReference;
+import com.aegisql.conveyor.utils.caching.MutableReference;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -367,7 +367,7 @@ public class CachingConveyorTest {
 		
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		CompletableFuture<Boolean> cf = conveyor.createBuild(1,new ImmutableReference<String>("TEST"));
+		CompletableFuture<Boolean> cf = conveyor.createBuild(1,ImmutableReference.newInstance("TEST"));
 		assertTrue(cf.get());
 		
 		Supplier<? extends String> s = conveyor.getProductSupplier(1);
@@ -388,14 +388,14 @@ public class CachingConveyorTest {
 		
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		CompletableFuture<Boolean> cf = conveyor.createBuild(1,ScalarReference.newInstance("TEST"));
-		CompletableFuture<Boolean> cf2 = conveyor.createBuild(1,ScalarReference.newInstance("BEST"));
+		CompletableFuture<Boolean> cf = conveyor.createBuild(1,MutableReference.newInstance("TEST"));
+		CompletableFuture<Boolean> cf2 = conveyor.createBuild(1,MutableReference.newInstance("BEST"));
 		assertTrue(cf.get());
 		assertTrue(cf2.get());
 		Supplier<? extends String> s = conveyor.getProductSupplier(1);
 		assertEquals("BEST", s.get());
 
-		CompletableFuture<Boolean> cf3 = conveyor.add(1,ScalarReference.newInstance("GUEST"),"update");
+		CompletableFuture<Boolean> cf3 = conveyor.add(1,MutableReference.newInstance("GUEST"),"update");
 		assertTrue(cf3.get());
 		s = conveyor.getProductSupplier(1);
 		assertEquals("GUEST", s.get());

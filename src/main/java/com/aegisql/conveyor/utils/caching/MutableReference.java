@@ -11,7 +11,7 @@ import com.aegisql.conveyor.BuilderSupplier;
  *
  * @param <T> the generic type
  */
-public class ScalarReference<T> implements Supplier<T>, Consumer<T> {
+public class MutableReference<T> implements Supplier<T>, Consumer<T> {
 
 	/** The reference. */
 	private T reference;
@@ -21,7 +21,7 @@ public class ScalarReference<T> implements Supplier<T>, Consumer<T> {
 	 *
 	 * @param ref the ref
 	 */
-	private ScalarReference(T ref) {
+	private MutableReference(T ref) {
 		this.reference = ref;
 	}
 	
@@ -35,7 +35,7 @@ public class ScalarReference<T> implements Supplier<T>, Consumer<T> {
 	}
 	
 	public static <T> BuilderSupplier<T> newInstance(T ref) {
-		return () -> new ScalarReference<>(ref);
+		return () -> new MutableReference<>(ref);
 	}
 
 

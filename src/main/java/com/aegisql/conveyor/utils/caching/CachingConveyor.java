@@ -33,7 +33,7 @@ public class CachingConveyor<K, L, OUT> extends AssemblingConveyor<K, L, OUT> {
 			LOG.debug("Cache Timeout {}", builder);			
 		});
 		this.setScrapConsumer(bin->{
-			LOG.debug("Evicting on {}: {}", bin.failureType, bin);
+			LOG.debug("Evicted on {}: {}", bin.failureType, bin);
 		});
 	}
 

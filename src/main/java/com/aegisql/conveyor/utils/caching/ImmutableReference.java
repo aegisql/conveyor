@@ -10,7 +10,7 @@ import com.aegisql.conveyor.BuilderSupplier;
  *
  * @param <T> the generic type
  */
-public class ImmutableReference<T> implements BuilderSupplier<T> {
+public class ImmutableReference<T> implements Supplier<T> {
 
 	/** The reference. */
 	private final T reference;
@@ -20,7 +20,7 @@ public class ImmutableReference<T> implements BuilderSupplier<T> {
 	 *
 	 * @param ref the ref
 	 */
-	public ImmutableReference(T ref) {
+	private ImmutableReference(T ref) {
 		this.reference = ref;
 	}
 	
@@ -28,8 +28,11 @@ public class ImmutableReference<T> implements BuilderSupplier<T> {
 	 * @see java.util.function.Supplier#get()
 	 */
 	@Override
-	public Supplier<? extends T> get() {
-		return () -> reference;
+	public T get() {
+		return reference;
 	}
 
+	public static <T> BuilderSupplier<T> newInstance(T ref) {
+		return () -> new ImmutableReference<>(ref);
+	}
 }
