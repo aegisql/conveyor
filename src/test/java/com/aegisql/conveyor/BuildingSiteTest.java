@@ -129,16 +129,17 @@ public class BuildingSiteTest {
 		BuildingSite<Integer, String, Cart<Integer,?,String>, User> bs = new BuildingSite<>
 		(
 				c, 
-				() -> { return new UserBuilderDelayed(100);},
+				() -> { return new UserBuilderDelayed(1000);},
 				(label,value,builder)-> { System.out.println(label+" "+value); }, 
 				(state,builder)->{return true;}, 
 				null,
-				100, TimeUnit.MILLISECONDS,true,true,true,0);
+				100, TimeUnit.MILLISECONDS,true,true,true,50);
 		assertEquals(0, bs.getAcceptCount());
 		assertEquals(Status.WAITING_DATA, bs.getStatus());
 		bs.accept(c.nextCart("XXX"));
 		User u = bs.build();
 		assertNotNull(u);
+		System.out.println(bs);
 		assertEquals(1, bs.getAcceptCount());
 		assertFalse(bs.expired());
 		Thread.sleep(110);

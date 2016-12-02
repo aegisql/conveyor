@@ -495,6 +495,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				+ (initialCart != null ? "initialCart=" + initialCart + ", " : "") + "acceptCount=" + acceptCount
 				+ ", builderCreated=" + builderCreated + ", builderExpiration=" + builderExpiration + ", "
 				+ (status != null ? "status=" + status + ", " : "")
+				+"delay="+getDelay(TimeUnit.MILLISECONDS) + ", "
 				+ (lastError != null ? "lastError=" + lastError + ", " : "")
 				+ (eventHistory != null ? "eventHistory=" + eventHistory : "") + "]";
 	}

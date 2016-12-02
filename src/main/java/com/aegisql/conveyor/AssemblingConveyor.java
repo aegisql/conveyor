@@ -15,6 +15,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -56,7 +57,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
 
 	/** The in queue. */
-	protected final Deque<Cart<K,?,L>> inQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
+	protected final Queue<Cart<K,?,L>> inQueue; // this class does not permit the use of null elements.
 
 	/** The m queue. */
 	protected final Queue<GeneralCommand<K, ?>> mQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
@@ -357,11 +358,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 		
+	
+	public AssemblingConveyor() {
+		this(ConcurrentLinkedQueue<Cart<K,?,L>>::new);
+	}
+	
 	/**
 	 * Instantiates a new assembling conveyor.
 	 */
-	public AssemblingConveyor() {
-		
+	public AssemblingConveyor(Supplier<Queue<Cart<K,?,L>>> inerQueueSupplier) {
+		this.inQueue = inerQueueSupplier.get();
 		this.addCartBeforePlacementValidator(cart->{
 			if( ! running ) {
 				throw new IllegalStateException("Conveyor is not running");
