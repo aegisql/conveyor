@@ -60,7 +60,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected final Queue<Cart<K,?,L>> inQueue; // this class does not permit the use of null elements.
 
 	/** The m queue. */
-	protected final Queue<GeneralCommand<K, ?>> mQueue = new ConcurrentLinkedDeque<>(); // this class does not permit the use of null elements.
+	protected final Queue<GeneralCommand<K, ?>> mQueue; // this class does not permit the use of null elements.
 
 	/** The delay provider. */
 	private final DelayProvider<K> delayProvider = new DelayProvider<>();
@@ -366,8 +366,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/**
 	 * Instantiates a new assembling conveyor.
 	 */
-	public AssemblingConveyor(Supplier<Queue<Cart<K,?,L>>> inerQueueSupplier) {
-		this.inQueue = inerQueueSupplier.get();
+	public AssemblingConveyor(Supplier<Queue<? extends Cart<K,?,?>>> cartQueueSupplier) {
+		this.inQueue = (Queue<Cart<K, ?, L>>) cartQueueSupplier.get();
+		this.mQueue  = (Queue<GeneralCommand<K, ?>>) cartQueueSupplier.get();
 		this.addCartBeforePlacementValidator(cart->{
 			if( ! running ) {
 				throw new IllegalStateException("Conveyor is not running");
@@ -571,13 +572,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if( ! r ) {
 				future.cancel(true);
 			}
-			lock.tell();
 			return future;
 		} catch (RuntimeException e ) {
 			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,e.getMessage(), FailureType.COMMAND_REJECTED) );
 			cart.getFuture().cancel(true);
-			lock.tell();
 			throw e;
+		} finally {
+			lock.tell();
 		}
 	}
 	
@@ -633,12 +634,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if( ! r ) {
 				future.cancel(true);
 			}
-			lock.tell();
 			return future;
 		} catch (RuntimeException e ) {
 			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,e.getMessage(),FailureType.CART_REJECTED) );
-			lock.tell();
 			throw e;
+		} finally {
+			lock.tell();
 		}
 	}
 
@@ -694,13 +695,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if( ! r ) {
 				future.cancel(true);
 			}
-			lock.tell();
 			return future;
 		} catch (RuntimeException e ) {
 			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,e.getMessage(),FailureType.CART_REJECTED) );
 			future.completeExceptionally(e);
-			lock.tell();
 			return future;
+		} finally {
+			lock.tell();
 		}
 	}
 

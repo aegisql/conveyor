@@ -21,7 +21,6 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
-import com.aegisql.conveyor.user.UserBuilderDelayed;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -115,37 +114,6 @@ public class BuildingSiteTest {
 		assertTrue(bs.expired());
 		assertEquals(Status.READY, bs.getStatus());
 		assertEquals(0, bs.getAcceptedCarts().size());
-	}
-
-	/**
-	 * Test ready delayed.
-	 *
-	 * @throws InterruptedException the interrupted exception
-	 */
-	@Test()
-	public void testReadyDelayed() throws InterruptedException {
-		ShoppingCart<Integer,String,String> c = new ShoppingCart<>(1,"v1","l",100,TimeUnit.MILLISECONDS);
-
-		BuildingSite<Integer, String, Cart<Integer,?,String>, User> bs = new BuildingSite<>
-		(
-				c, 
-				() -> { return new UserBuilderDelayed(1000);},
-				(label,value,builder)-> { System.out.println(label+" "+value); }, 
-				(state,builder)->{return true;}, 
-				null,
-				100, TimeUnit.MILLISECONDS,true,true,true,50);
-		assertEquals(0, bs.getAcceptCount());
-		assertEquals(Status.WAITING_DATA, bs.getStatus());
-		bs.accept(c.nextCart("XXX"));
-		User u = bs.build();
-		assertNotNull(u);
-		System.out.println(bs);
-		assertEquals(1, bs.getAcceptCount());
-		assertFalse(bs.expired());
-		Thread.sleep(110);
-		assertTrue(bs.expired());
-		assertEquals(Status.READY, bs.getStatus());
-		assertEquals(1, bs.getAcceptedCarts().size());
 	}
 
 }

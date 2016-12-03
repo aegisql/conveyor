@@ -12,12 +12,14 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -551,6 +553,53 @@ public class AssemblingConveyorTest {
 		System.out.println("IN :"+conveyor.getInputQueueSize());
 		conveyor.stop();
 		Thread.sleep(1000);
+	}
+	
+	@Test(expected=ExecutionException.class)
+	public void testSimpleConveyorBlocking() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, String, User> 
+		conveyor = new AssemblingConveyor<>( ()->new ArrayBlockingQueue(3) );
+		conveyor.setBuilderSupplier(UserBuilder::new);
+		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
+		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
+		conveyor.setIdleHeartBeat(500, TimeUnit.MILLISECONDS);
+		assertEquals(500,conveyor.getExpirationCollectionIdleInterval());
+		conveyor.setDefaultCartConsumer((label, value, builder) -> {
+			UserBuilder userBuilder = (UserBuilder) builder;
+			switch (label) {
+			case "setFirst":
+				userBuilder.setFirst((String) value);
+				break;
+			case "setLast":
+				userBuilder.setLast((String) value);
+				break;
+			case "setYearOfBirth":
+				userBuilder.setYearOfBirth((Integer) value);
+				break;
+			default:
+				throw new RuntimeException("Unknown label " + label);
+			}
+		});
+		conveyor.setResultConsumer(res->{
+				    	outQueue.add(res.product);
+				    });
+		conveyor.setReadinessEvaluator((builder) -> {
+			UserBuilder ub = (UserBuilder)builder;
+			return ub.getFirst() != null && ub.getLast() != null && ub.getYearOfBirth() != null;
+		});
+		
+		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
+		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
+		Cart<Integer, String, String> c3 = new ShoppingCart<>(2, "Mike", "setFirst");
+		Cart<Integer, Integer, String> c4 = c1.nextCart(1999, "setYearOfBirth");
+
+		conveyor.offer(c1);
+		User u0 = outQueue.poll();
+		assertNull(u0);
+		conveyor.offer(c2);
+		conveyor.offer(c3);
+		CompletableFuture<Boolean> f4 = conveyor.offer(c4);
+		f4.get();
 	}
 
 	

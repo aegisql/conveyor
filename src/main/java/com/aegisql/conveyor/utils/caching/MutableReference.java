@@ -1,9 +1,11 @@
 package com.aegisql.conveyor.utils.caching;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.SmartLabel;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -32,6 +34,10 @@ public class MutableReference<T> implements Supplier<T>, Consumer<T> {
 	@Override
 	public void accept(T ref) {
 		this.reference = ref;
+	}
+	
+	public static <T> void update(MutableReference<T> builder, T object) {
+		builder.accept(object);
 	}
 	
 	public static <T> BuilderSupplier<T> newInstance(T ref) {
