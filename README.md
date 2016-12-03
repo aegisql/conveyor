@@ -14,6 +14,10 @@ Maven dependency
 
 ## Release History
 
+### 1.1.4
+* New constructor for AssemblingConveyor allows to define Supplier for alternative implementation of internal Queues.  
+* Helping classes for simple scalar caches
+
 ### 1.1.3
 * ImmutableReference for simple scalar caches
 * Bugfix in createBuild returned future 
