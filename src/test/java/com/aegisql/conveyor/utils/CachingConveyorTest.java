@@ -27,7 +27,9 @@ import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.utils.caching.CachingConveyor;
 import com.aegisql.conveyor.utils.caching.ImmutableReference;
+import com.aegisql.conveyor.utils.caching.ImmutableValueConsumer;
 import com.aegisql.conveyor.utils.caching.MutableReference;
+import com.aegisql.conveyor.utils.caching.MutableValueConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -362,8 +364,7 @@ public class CachingConveyorTest {
 	@Test(expected=IllegalStateException.class)
 	public void testImmutableScalarCache() throws InterruptedException, ExecutionException {
 		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
-		conveyor.setDefaultCartConsumer((label, value, builder) -> {
-		});
+		conveyor.setDefaultCartConsumer(new ImmutableValueConsumer());
 		
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -372,19 +373,16 @@ public class CachingConveyorTest {
 		
 		Supplier<? extends String> s = conveyor.getProductSupplier(1);
 		assertEquals("TEST", s.get());
+		conveyor.createBuild(1,ImmutableReference.newInstance("TEST"));
 		
 		Thread.sleep(1200);
 		s.get();
-		
 	}
 	
 	@Test(expected=IllegalStateException.class)
 	public void testMutableScalarCache() throws InterruptedException, ExecutionException {
 		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
-		conveyor.setDefaultCartConsumer((label, value, builder) -> {
-			System.out.println("consumer: "+label+" "+value+""+builder);
-			((Consumer<String>)builder).accept(((BuilderSupplier<String>)value).get().get());
-		});
+		conveyor.setDefaultCartConsumer(new MutableValueConsumer());
 		
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -395,7 +393,7 @@ public class CachingConveyorTest {
 		Supplier<? extends String> s = conveyor.getProductSupplier(1);
 		assertEquals("BEST", s.get());
 
-		CompletableFuture<Boolean> cf3 = conveyor.add(1,MutableReference.newInstance("GUEST"),"update");
+		CompletableFuture<Boolean> cf3 = conveyor.add(1,"GUEST","update");
 		assertTrue(cf3.get());
 		s = conveyor.getProductSupplier(1);
 		assertEquals("GUEST", s.get());
