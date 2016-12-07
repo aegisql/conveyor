@@ -16,8 +16,8 @@ public class  CollectionBuilderLabel<T> implements SmartLabel<CollectionBuilder<
 	private static final long serialVersionUID = 145340944929861103L;
 	
 	/** The setter. */
-	private BiConsumer<CollectionBuilder<T>, T> setter;
-	
+	private final BiConsumer<CollectionBuilder<T>, T> setter;
+
 	/**
 	 * Instantiates a new collection builder label.
 	 *

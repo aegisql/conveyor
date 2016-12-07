@@ -28,10 +28,10 @@ public class SmartWrapper<L,B,U> implements SmartLabel<B> {
 	 * @param consumer the consumer
 	 */
 	public SmartWrapper(L label,BiConsumer<B,U> consumer) {
-		this.label = label;
+		this.label    = label;
 		this.consumer = consumer;
 	}
-	
+
 	/**
 	 * Unwrap.
 	 *
@@ -57,20 +57,15 @@ public class SmartWrapper<L,B,U> implements SmartLabel<B> {
 		return "SmartLabel[" + label + "]";
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((consumer == null) ? 0 : consumer.hashCode());
 		result = prime * result + ((label == null) ? 0 : label.hashCode());
 		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -80,6 +75,11 @@ public class SmartWrapper<L,B,U> implements SmartLabel<B> {
 		if (getClass() != obj.getClass())
 			return false;
 		SmartWrapper other = (SmartWrapper) obj;
+		if (consumer == null) {
+			if (other.consumer != null)
+				return false;
+		} else if (!consumer.equals(other.consumer))
+			return false;
 		if (label == null) {
 			if (other.label != null)
 				return false;
@@ -87,5 +87,7 @@ public class SmartWrapper<L,B,U> implements SmartLabel<B> {
 			return false;
 		return true;
 	}
+
+	
 	
 }
