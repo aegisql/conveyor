@@ -171,4 +171,52 @@ public class ExecutorsTest {
 	}
 
 	
+	@Test()
+	public void testFutureTimeoutStart() throws InterruptedException, ExecutionException, TimeoutException {
+		
+		ExecutorService es = Executors.newFixedThreadPool(4);
+		
+		CompletableFuture<Boolean> cf = new CompletableFuture<>();
+		
+		
+		assertFalse(cf.isDone());
+		assertFalse(cf.isCancelled());
+		assertFalse(cf.isCompletedExceptionally());
+		Thread.sleep(1000);
+		es.submit(()->{
+			try {
+				assertTrue(cf.get(100,TimeUnit.MILLISECONDS));
+				System.out.println("1");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		es.submit(()->{
+			try {
+				assertTrue(cf.get(100,TimeUnit.MILLISECONDS));
+				System.out.println("2");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		es.submit(()->{
+			try {
+				assertTrue(cf.get(100,TimeUnit.MILLISECONDS));
+				System.out.println("3");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		es.submit(()->{
+			try {
+				Thread.sleep(10);
+				cf.complete(true);
+			} catch(Exception e) {
+				
+			}
+		});
+		cf.get();
+	}
+
+	
 }
