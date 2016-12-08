@@ -27,7 +27,7 @@ public class BuildTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplier<? 
 		} ) );
 		if(more != null) {
 			for(L l:more) {
-				f = f.and(new BuildTester<K,L,OUT>((s,b) -> {
+				f = f.andThen(new BuildTester<K,L,OUT>((s,b) -> {
 					return s.eventHistory.containsKey(l);
 				} ) );
 			}
@@ -46,7 +46,7 @@ public class BuildTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplier<? 
 		} ) );
 	}
 	
-	public BuildTester<K,L,OUT> and(BuildTester<K,L,OUT> other) {
+	public BuildTester<K,L,OUT> andThen(BiPredicate<State<K,L>, Supplier<? extends OUT>> other) {
 		return new BuildTester<K,L,OUT>(  (s,b)->{
 			return this.test(s, b) && other.test(s, b);
 		}  );

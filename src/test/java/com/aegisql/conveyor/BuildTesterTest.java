@@ -70,7 +70,7 @@ public class BuildTesterTest {
 	@Test
 	public void testAcceptedLabelComplex() {
 		BuildTester<String, String, String> bt1 = new BuildTester<String, String, String>().accepted("A")
-				.and( new BuildTester<String, String, String>().accepted("C") )
+				.andThen( new BuildTester<String, String, String>().accepted("C") )
 				.andNot(new BuildTester<String, String, String>().accepted("X"));
 		BuildTester<String, String, String> bt2 = new BuildTester<String, String, String>().accepted("B");
 		BuildTester<String, String, String> bt3 = new BuildTester<String, String, String>().accepted("E")
@@ -155,13 +155,17 @@ public class BuildTesterTest {
 		conveyor.setResultConsumer(res -> {
 			System.out.println(res);
 		});
-		conveyor.setReadinessEvaluator(new BuildTester<Integer, UserBuilderEvents3, User>().usingBuilderTest(UserBuilderTestingState.class));
+		conveyor.setReadinessEvaluator(new BuildTester<Integer, UserBuilderEvents3, User>().andThen((s,b)->{
+			System.out.println("--- test state called ---");
+			return true;
+		} ).usingBuilderTest(UserBuilderTestingState.class));
 		conveyor.setName("User Assembler");
 
 		CompletableFuture<User> f = conveyor.createBuildFuture(1);
 		conveyor.add(1,"John",UserBuilderEvents3.SET_FIRST);
 		conveyor.add(1,"Doe",UserBuilderEvents3.SET_LAST);
 		conveyor.add(1,2000,UserBuilderEvents3.SET_YEAR);
+		Thread.sleep(100);
 		User u = f.get();
 		assertNotNull(u);
 	}

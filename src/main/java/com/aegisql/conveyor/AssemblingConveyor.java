@@ -1089,7 +1089,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				failureType = FailureType.BEFORE_EVICTION_FAILED;
 				keyBeforeEviction.accept(key);
 				failureType = FailureType.BUILD_FAILED;
-				OUT res = buildingSite.build();
+				OUT res = buildingSite.unsafeBuild();
 				failureType = FailureType.RESULT_CONSUMER_FAILED;
 				resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.READY));
 				buildingSite.completeFuturesWithValue(res);
