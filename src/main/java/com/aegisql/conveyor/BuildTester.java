@@ -21,10 +21,18 @@ public class BuildTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplier<? 
 		} ) );
 	}
 
-	public BuildTester<K,L,OUT> accepted(L label) {
-		return new BuildTester<K,L,OUT>( p.and( (s,b) -> {
+	public BuildTester<K,L,OUT> accepted(L label, L... more) {
+		BuildTester<K,L,OUT> f = new BuildTester<K,L,OUT>( p.and( (s,b) -> {
 			return s.eventHistory.containsKey(label);
 		} ) );
+		if(more != null) {
+			for(L l:more) {
+				f = f.and(new BuildTester<K,L,OUT>((s,b) -> {
+					return s.eventHistory.containsKey(l);
+				} ) );
+			}
+		}
+		return f;
 	}
 
 	public BuildTester<K,L,OUT> accepted(L label, int times) {
@@ -55,6 +63,26 @@ public class BuildTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplier<? 
 			return this.test(s, b) || other.test(s, b);
 		}  );
 	}
+
+	public BuildTester<K,L,OUT> usingBuilderTest(Class<? extends Supplier<OUT>> cls) {
+		BuildTester<K,L,OUT> tester;
+		if( Testing.class.isAssignableFrom(cls) ) {
+			tester = new BuildTester<K,L,OUT>(  (s,b)->{
+				Testing t = (Testing)b;
+				return t.test();
+			}  );
+		} else if(TestingState.class.isAssignableFrom(cls)) {
+			tester = new BuildTester<K,L,OUT>(  (s,b)->{
+				TestingState<K,L> t = (TestingState<K,L>)b;
+				return t.test(s);
+			}  );
+		} else {
+			throw new RuntimeException("Builder is not implementing Testing or TestingState interface");
+		}
+		
+		return new BuildTester<K,L,OUT>(  p.and(tester) );
+	}
+
 	
 	@Override
 	public boolean test(State<K, L> s, Supplier<? extends OUT> b) {
