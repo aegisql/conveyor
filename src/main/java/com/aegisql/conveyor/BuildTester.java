@@ -52,7 +52,7 @@ public class BuildTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplier<? 
 		}  );
 	}
 
-	public BuildTester<K,L,OUT> andNot(BuildTester<K,L,OUT> other) {
+	public BuildTester<K,L,OUT> andNot(BiPredicate<State<K,L>, Supplier<? extends OUT>> other) {
 		return new BuildTester<K,L,OUT>(  (s,b)->{
 			return this.test(s, b) && ! other.test(s, b);
 		}  );
