@@ -65,7 +65,6 @@ public class ScalarCart<K, V> extends ShoppingCart<K, V, SmartLabel<ScalarConver
 				BiConsumer<ScalarConvertingBuilder<T, ?>, T> bc = ScalarConvertingBuilder::add;
 				return (BiConsumer<ScalarConvertingBuilder<T, ?>, Object>) bc;
 			}
-		
 		};
 	}
 	
