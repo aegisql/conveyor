@@ -77,7 +77,7 @@ public class BuildTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplier<? 
 				return t.test(s);
 			}  );
 		} else {
-			throw new RuntimeException("Builder is not implementing Testing or TestingState interface");
+			throw new ClassCastException("Builder is not implementing Testing or TestingState interface");
 		}
 		
 		return new BuildTester<K,L,OUT>(  p.and(tester) );
