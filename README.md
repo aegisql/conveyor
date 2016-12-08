@@ -8,11 +8,16 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.1.4</version>
+  <version>1.1.5</version>
 </dependency>
 ```
 
 ## Release History
+
+### 1.1.5
+* Added BuildTested - helping class to build readiness evaluator.  
+* minor bugfix - double call of the ready() method
+
 
 ### 1.1.4
 * New constructor for AssemblingConveyor allows to define Supplier for alternative implementation of internal Queues.  
