@@ -15,7 +15,7 @@ Maven dependency
 ## Release History
 
 ### 1.1.5
-* Added BuildTested - helping class to build readiness evaluator.  
+* Added BuildTester - helping class to build readiness evaluator.  
 * minor bugfix - double call of the ready() method
 
 
