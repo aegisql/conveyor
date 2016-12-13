@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -224,6 +225,59 @@ public class PostponeExpirationTest {
 		System.out.println(u1);
 		User u2 = outQueue.poll();
 		assertNull(u2);
+		conveyor.stop();
+	}
+
+
+	@Test
+	public void testTimeoutExpirationPostpone() throws InterruptedException {
+		AssemblingConveyor<Integer, String, User> conveyor = new AssemblingConveyor<>();
+		outQueue.clear();
+		conveyor.setBuilderSupplier(()-> new UserBuilderExpireable(1000));
+
+		conveyor.setResultConsumer(res -> {
+			System.out.println("Result " + res);
+			outQueue.add(res.product);
+		});
+		conveyor.setScrapConsumer(bin -> {
+			System.out.println("Error " + bin);
+		});
+		conveyor.setReadinessEvaluator((state, builder) -> {
+			UserBuilderExpireable be = (UserBuilderExpireable)builder;
+			return be.ready();
+		});
+		conveyor.setDefaultCartConsumer((l,v,b)->{
+			System.out.println("Cart " + l + " " +v);
+			UserBuilderExpireable be = (UserBuilderExpireable)b;
+			if("FIRST".equals(l)) be.setFirst(v.toString());
+		});
+		conveyor.setName("User Assembler");
+
+		conveyor.enablePostponeExpiration(true);
+		conveyor.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+		AtomicBoolean timeouted = new AtomicBoolean(false);
+		conveyor.setOnTimeoutAction((b)->{
+			UserBuilderExpireable be = (UserBuilderExpireable)b;
+			if(!timeouted.get()) {
+				System.out.println("timeout added");
+				be.addExpirationTime(1000);
+				timeouted.set(true);
+			} else {
+				System.out.println("timeout now");
+				be.setReady(true);
+			}
+		});
+		
+		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John",
+				"FIRST");
+		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "LAST");
+		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "YEAR");
+
+		conveyor.offer(c1);
+		User u0 = outQueue.poll();
+		assertNull(u0);
+
+		Thread.sleep(3000);
 		conveyor.stop();
 	}
 

@@ -296,6 +296,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		lock.lock();
 		try {
 			timeoutAction.accept(builder);
+			if(postponeExpirationEnabled) {
+				postponeAlg.accept(this, cart);
+			}
 		} finally {
 			lock.unlock();
 		}
