@@ -1117,6 +1117,21 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 	
+	private boolean postponeTimeout(BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> bs) {
+		if(postponeExpirationEnabled) {
+			long expirationTime = bs.getExpirationTime();
+			if(  expirationTime > System.currentTimeMillis() ) {
+				if (LOG.isTraceEnabled()) {
+					LOG.trace("Expiration will bin postponed for key={}",bs.getKey());
+				}
+				delayProvider.getBox(expirationTime).add(bs.getKey());
+				return true;
+			} 
+		}
+		bs.setStatus(Status.TIMED_OUT);
+		return false;
+	}
+	
 	/**
 	 * Removes the expired.
 	 */
@@ -1128,51 +1143,52 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				continue;
 			}
 			
-			if(postponeExpirationEnabled) {
-				long expirationTime = buildingSite.getExpirationTime();
-				if(  expirationTime > System.currentTimeMillis() ) {
-					LOG.trace("Expiration has bin postponed for key={}",key);
-					delayProvider.getBox(expirationTime).add(key);
+			if (timeoutAction != null || buildingSite.getBuilder() instanceof TimeoutAction) {
+				try {
+					ShoppingCart<K, Object, L> to = new ShoppingCart<K, Object, L>(
+							buildingSite.getKey(), Status.TIMED_OUT, null);
+					buildingSite.timeout((Cart<K, ?, L>) to);
+
+					if(postponeTimeout(buildingSite)) {
+						continue;
+					}
+					
+					if (buildingSite.ready()) {
+						if (LOG.isTraceEnabled()) {
+							LOG.trace("Expired and finished " + key);
+						}
+						OUT res = buildingSite.build();
+						resultConsumer.accept(new ProductBin<K, OUT>(key, res,
+								buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.TIMED_OUT));
+						buildingSite.completeFuturesWithValue(res);
+					} else {
+						if (LOG.isTraceEnabled()) {
+							LOG.trace("Expired and not finished " + key);
+						}
+						scrapConsumer.accept(new ScrapBin<K, BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT>>(key,
+								buildingSite, "Site expired", FailureType.BUILD_EXPIRED));
+						buildingSite.cancelFutures();
+					}
+				} catch (Exception e) {
+					buildingSite.setStatus(Status.INVALID);
+					buildingSite.setLastError(e);
+					scrapConsumer.accept(new ScrapBin<K, BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT>>(key,
+							buildingSite, "Timeout processor failed ", e, FailureType.BUILD_EXPIRED));
+					buildingSite.completeFuturesExceptionaly(e);
+				}
+			} else {
+				if(postponeTimeout(buildingSite)) {
 					continue;
 				}
-			}
-			
-			buildingSite.setStatus(Status.TIMED_OUT);
-			if (collector.containsKey(key)) {
-				keyBeforeEviction.accept(key);
-				cnt++;
-				if (timeoutAction != null || buildingSite.getBuilder() instanceof TimeoutAction ) {
-					try {
-						ShoppingCart<K,Object,L> to = new ShoppingCart<K,Object,L>(buildingSite.getCreatingCart().getKey(), Status.TIMED_OUT,null);
-						buildingSite.timeout((Cart<K,?,L>)to);
-						if (buildingSite.ready()) {
-							if(LOG.isTraceEnabled()) {
-								LOG.trace("Expired and finished " + key);
-							}
-							OUT res = buildingSite.build();
-							resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.TIMED_OUT));
-							buildingSite.completeFuturesWithValue(res);
-						} else {
-							if(LOG.isTraceEnabled()) {
-								LOG.trace("Expired and not finished " + key);
-							}
-							scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Site expired",FailureType.BUILD_EXPIRED) );
-							buildingSite.cancelFutures();
-						}
-					} catch (Exception e) {
-						buildingSite.setStatus(Status.INVALID);
-						buildingSite.setLastError(e);
-						scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Timeout processor failed ",e, FailureType.BUILD_EXPIRED) );
-						buildingSite.completeFuturesExceptionaly(e);
-					}
-				} else {
-					if(LOG.isTraceEnabled()) {
-						LOG.trace("Expired and removed " + key);
-					}
-					scrapConsumer.accept( new ScrapBin<K,BuildingSite<K, L, Cart<K,?,L>, ? extends OUT>>(key,buildingSite,"Site expired. No timeout action",FailureType.BUILD_EXPIRED) );
-					buildingSite.cancelFutures();
+				if (LOG.isTraceEnabled()) {
+					LOG.trace("Expired and removed " + key);
 				}
+				scrapConsumer.accept(new ScrapBin<K, BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT>>(key,
+						buildingSite, "Site expired. No timeout action", FailureType.BUILD_EXPIRED));
+				buildingSite.cancelFutures();
 			}
+			keyBeforeEviction.accept(key);
+			cnt++;
 		}
 		if(cnt > 0) {
 			if(LOG.isTraceEnabled()) {

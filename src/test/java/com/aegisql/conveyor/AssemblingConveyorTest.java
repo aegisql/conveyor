@@ -566,6 +566,12 @@ public class AssemblingConveyorTest {
 		assertEquals(500,conveyor.getExpirationCollectionIdleInterval());
 		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			switch (label) {
 			case "setFirst":
 				userBuilder.setFirst((String) value);
@@ -598,8 +604,10 @@ public class AssemblingConveyorTest {
 		assertNull(u0);
 		conveyor.offer(c2);
 		conveyor.offer(c3);
+		conveyor.offer(c4);
 		CompletableFuture<Boolean> f4 = conveyor.offer(c4);
-		f4.get();
+		Boolean res = f4.get();
+		System.out.println("Unexpected: "+res);
 	}
 
 	
