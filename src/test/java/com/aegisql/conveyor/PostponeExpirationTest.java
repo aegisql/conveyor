@@ -278,6 +278,9 @@ public class PostponeExpirationTest {
 		assertNull(u0);
 
 		Thread.sleep(3000);
+		u0 = outQueue.poll();
+		assertNotNull(u0);
+		assertTrue(timeouted.get());
 		conveyor.stop();
 	}
 
