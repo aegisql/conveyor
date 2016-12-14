@@ -8,11 +8,16 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.1.5</version>
+  <version>1.1.6</version>
 </dependency>
 ```
 
 ## Release History
+
+### 1.1.6
+* Added timeout postpone from TimeoutAction (if postpone enabled)  
+* minor bugfixes
+* refactoring
 
 ### 1.1.5
 * Added BuildTester - helping class to build readiness evaluator.  
