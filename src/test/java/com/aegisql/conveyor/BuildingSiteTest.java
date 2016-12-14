@@ -109,9 +109,7 @@ public class BuildingSiteTest {
 		User u = bs.build();
 		assertNotNull(u);
 		assertEquals(1, bs.getAcceptCount());
-		assertFalse(bs.expired());
 		Thread.sleep(110);
-		assertTrue(bs.expired());
 		assertEquals(Status.READY, bs.getStatus());
 		assertEquals(0, bs.getAcceptedCarts().size());
 	}

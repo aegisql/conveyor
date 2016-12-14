@@ -9,7 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
@@ -36,7 +35,7 @@ import com.aegisql.conveyor.cart.Cart;
  * @param <C> the generic type
  * @param <OUT> the generic type
  */
-public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expireable, Delayed {
+public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expireable {
 
 	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(BuildingSite.class);
@@ -118,7 +117,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private long builderCreated;
 	
 	/** The builder expiration. */
-	long builderExpiration = 0;
+	
+	Expireable expireableSource = () -> 0;
 	
 	/** The status. */
 	private Status status = Status.WAITING_DATA;
@@ -130,7 +130,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private final Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>();
 	
 	/** The delay keeper. */
-	Delayed delayKeeper;
+	//Delayed delayKeeper;
 	
 	/** The lock. */
 	private final Lock lock;
@@ -222,34 +222,25 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		if(builder instanceof Expireable) {
 			Expireable expireable = (Expireable)builder;
 			builderCreated    = System.currentTimeMillis();
-			builderExpiration = expireable.getExpirationTime();
-			delayKeeper       = Expireable.toDelayed((Expireable)builder);
-			postponeAlg       = (bs,c) -> {
-				Expireable ex = (Expireable)bs.builder;
-				bs.builderExpiration = ex.getExpirationTime(); //let builder decide. highest priority
-			};			
+			expireableSource  = expireable;
 		} else {
 			postponeAlg = (bs,c) -> {
 				if( c != null && c.getExpirationTime() > 0 ) {
-					bs.builderExpiration = Math.max(this.builderExpiration, c.getExpirationTime()); // keep longest TTL
-				} else if( builderExpiration > 0) {
-					bs.builderExpiration = System.currentTimeMillis() + bs.addExpirationTimeMsec; //just add some time, if expireable, lowest priority
+					bs.expireableSource = () -> c.getExpirationTime();
+				} else if( expireableSource.getExpirationTime() > 0) {
+					bs.expireableSource = ()->System.currentTimeMillis() + bs.addExpirationTimeMsec; //just add some time, if expireable, lowest priority
 				}
 			};			
 		}
-		if( cart.getExpirationTime() > 0 && builderExpiration == 0) {
+		if( cart.getExpirationTime() > 0 && expireableSource.getExpirationTime() == 0) {
 			builderCreated    = cart.getCreationTime();
-			builderExpiration = cart.getExpirationTime();
-			delayKeeper       = Expireable.toDelayed(cart);
+			expireableSource = cart::getExpirationTime;
 		} 
-		if(builderExpiration == 0) {
+		if(expireableSource.getExpirationTime() == 0) {
 			builderCreated = System.currentTimeMillis();
-			if(ttl == 0) {
-				builderExpiration = 0;
-			} else {
-				builderExpiration = builderCreated + TimeUnit.MILLISECONDS.convert(ttl, unit);
+			if(ttl > 0) {
+				expireableSource = () -> builderCreated + TimeUnit.MILLISECONDS.convert(ttl, unit);
 			}
-			delayKeeper = Expireable.toDelayed(this);
 		}
 	}
 
@@ -381,7 +372,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		State<K,L> state = new State<>(
 				initialCart.getKey(),
 				builderCreated,
-				builderExpiration,
+				expireableSource.getExpirationTime(),
 				initialCart.getCreationTime(),
 				initialCart.getExpirationTime(),
 				acceptCount,
@@ -409,28 +400,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		return acceptCount;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	@Override
-	public int compareTo(Delayed o) {
-		return delayKeeper.compareTo(o);
-	}
-
-	/* (non-Javadoc)
-	 * @see java.util.concurrent.Delayed#getDelay(java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public long getDelay(TimeUnit unit) {
-		return delayKeeper.getDelay(unit);	}
-
-	/**
-	 * Expired.
-	 *
-	 * @return true, if successful
-	 */
-	public boolean expired() {
-		return getDelay(TimeUnit.MILLISECONDS) < 0;
+	public long getDelayMsec() {
+		return expireableSource.getExpirationTime()  -System.currentTimeMillis();	
 	}
 
 	/**
@@ -440,7 +411,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 */
 	@Override
 	public long getExpirationTime() {
-		return builderExpiration;
+		return expireableSource.getExpirationTime();
 	}
 
 	/**
@@ -496,9 +467,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	public String toString() {
 		return "BuildingSite [" + (builder != null ? "builder=" + builder + ", " : "")
 				+ (initialCart != null ? "initialCart=" + initialCart + ", " : "") + "acceptCount=" + acceptCount
-				+ ", builderCreated=" + builderCreated + ", builderExpiration=" + builderExpiration + ", "
+				+ ", builderCreated=" + builderCreated + ", builderExpiration=" + expireableSource.getExpirationTime() + ", "
 				+ (status != null ? "status=" + status + ", " : "")
-				+"delay="+getDelay(TimeUnit.MILLISECONDS) + ", "
+				+"delay="+getDelayMsec() + ", "
 				+ (lastError != null ? "lastError=" + lastError + ", " : "")
 				+ (eventHistory != null ? "eventHistory=" + eventHistory : "") + "]";
 	}
@@ -604,7 +575,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param expirationTime the expiration time
 	 */
 	void updateExpirationTime(long expirationTime) {
-		this.builderExpiration = expirationTime;
+		this.expireableSource = () -> expirationTime;
 	}
 
 	/**

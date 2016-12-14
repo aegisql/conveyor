@@ -119,7 +119,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		Objects.requireNonNull(newExpirationTime, "NULL newExpirationTime cannot be applied to the schedile");
 		BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> buildingSite = collector.get(key);
 		if( buildingSite != null ) {
-			long oldExpirationTime = buildingSite.builderExpiration;
+			long oldExpirationTime = buildingSite.expireableSource.getExpirationTime();
 			delayProvider.getBox(oldExpirationTime).delete(key);
 			buildingSite.updateExpirationTime( newExpirationTime );
 			LOG.trace("Rescheduled {}. added expiration {} msec",key,newExpirationTime - oldExpirationTime);
@@ -1091,7 +1091,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				failureType = FailureType.BUILD_FAILED;
 				OUT res = buildingSite.unsafeBuild();
 				failureType = FailureType.RESULT_CONSUMER_FAILED;
-				resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.READY));
+				resultConsumer.accept(new ProductBin<K,OUT>(key, res, buildingSite.getDelayMsec(), Status.READY));
 				buildingSite.completeFuturesWithValue(res);
 			}
 			cart.getFuture().complete(Boolean.TRUE);
@@ -1159,7 +1159,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						}
 						OUT res = buildingSite.build();
 						resultConsumer.accept(new ProductBin<K, OUT>(key, res,
-								buildingSite.getDelay(TimeUnit.MILLISECONDS), Status.TIMED_OUT));
+								buildingSite.getDelayMsec(), Status.TIMED_OUT));
 						buildingSite.completeFuturesWithValue(res);
 					} else {
 						if (LOG.isTraceEnabled()) {
@@ -1499,7 +1499,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if( bs == null ) {
 			return -1;
 		} else {
-			return bs.builderExpiration;
+			return bs.expireableSource.getExpirationTime();
 		}
 	}
 	
