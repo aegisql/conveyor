@@ -295,7 +295,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				postponeAlg.accept(this, cart);
 			} else {
 				long expTimestamp = this.expireableSource.getExpirationTime();
-				LOG.debug("-- delay {}",(expTimestamp-System.currentTimeMillis()));
 				this.expireableSource = () -> expTimestamp;				
 				timeoutAction.accept(builder);
 			}
