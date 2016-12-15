@@ -8,13 +8,17 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.1.6</version>
+  <version>1.1.7</version>
 </dependency>
 ```
 
 ## Release History
 
+### 1.1.7
+* Added explicit timeout postpone for TimeoutAction (if postpone enabled) to resolve possible conflicts with cache implementations  
+
 ### 1.1.6
+* NOTE: This release contains a bug that affects caches with extendable TTL and builders that do not implement Expireable interface.
 * Added timeout postpone from TimeoutAction (if postpone enabled)  
 * minor bugfixes
 * refactoring
