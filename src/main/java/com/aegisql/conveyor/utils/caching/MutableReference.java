@@ -1,11 +1,10 @@
 package com.aegisql.conveyor.utils.caching;
 
-import java.util.function.BiConsumer;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.SmartLabel;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -14,9 +13,11 @@ import com.aegisql.conveyor.SmartLabel;
  * @param <T> the generic type
  */
 public class MutableReference<T> implements Supplier<T>, Consumer<T> {
+	
+	protected long version = 1;
 
 	/** The reference. */
-	private T reference;
+	protected T reference;
 	
 	/**
 	 * Instantiates a new immutable reference.
@@ -34,6 +35,11 @@ public class MutableReference<T> implements Supplier<T>, Consumer<T> {
 	@Override
 	public void accept(T ref) {
 		this.reference = ref;
+		this.version++;
+	}
+	
+	public long getVersion() {
+		return version;
 	}
 	
 	public static <T> void update(MutableReference<T> builder, T object) {
@@ -44,5 +50,9 @@ public class MutableReference<T> implements Supplier<T>, Consumer<T> {
 		return () -> new MutableReference<>(ref);
 	}
 
-
+	@Override
+	public String toString() {
+		return "Ref ver("+version+"): "+reference;
+	}
+	
 }

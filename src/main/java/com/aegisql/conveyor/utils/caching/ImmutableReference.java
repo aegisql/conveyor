@@ -13,7 +13,7 @@ import com.aegisql.conveyor.BuilderSupplier;
 public class ImmutableReference<T> implements Supplier<T> {
 
 	/** The reference. */
-	private final T reference;
+	protected final T reference;
 	
 	/**
 	 * Instantiates a new immutable reference.
@@ -35,4 +35,10 @@ public class ImmutableReference<T> implements Supplier<T> {
 	public static <T> BuilderSupplier<T> newInstance(T ref) {
 		return () -> new ImmutableReference<>(ref);
 	}
+
+	@Override
+	public String toString() {
+		return "Ref: "+reference;
+	}
+	
 }
