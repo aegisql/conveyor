@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.utils.caching;
 
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -24,7 +23,7 @@ public class MutableReference<T> implements Supplier<T>, Consumer<T> {
 	 *
 	 * @param ref the ref
 	 */
-	private MutableReference(T ref) {
+	protected MutableReference(T ref) {
 		this.reference = ref;
 	}
 	

@@ -20,7 +20,7 @@ public class ImmutableReference<T> implements Supplier<T> {
 	 *
 	 * @param ref the ref
 	 */
-	private ImmutableReference(T ref) {
+	protected ImmutableReference(T ref) {
 		this.reference = ref;
 	}
 	
