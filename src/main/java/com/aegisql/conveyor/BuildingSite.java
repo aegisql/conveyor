@@ -137,6 +137,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	
 	/** The postpone expiration enabled. */
 	private final boolean postponeExpirationEnabled;
+	private final boolean postponeExpirationOnTimeoutEnabled;
 
 	/** The add expiration time msec. */
 	private final long addExpirationTimeMsec;
@@ -167,13 +168,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness, 
 			Consumer<Supplier<? extends OUT>> timeoutAction,
 			long ttl, TimeUnit unit, boolean synchronizeBuilder, 
-			boolean saveCarts, boolean postponeExpirationEnabled, long addExpirationTimeMsec) {
+			boolean saveCarts, boolean postponeExpirationEnabled, long addExpirationTimeMsec, boolean postponeExpirationOnTimeoutEnabled) {
 		this.initialCart               = cart;
 		this.lastCart                  = cart;
 		this.builder                   = builderSupplier.get() ;
 		this.defaultTimeoutAction      = timeoutAction;
 		this.saveCarts                 = saveCarts;
 		this.postponeExpirationEnabled = postponeExpirationEnabled;
+		this.postponeExpirationOnTimeoutEnabled = postponeExpirationOnTimeoutEnabled;
 		this.addExpirationTimeMsec     = addExpirationTimeMsec;
 		this.defaultValueConsumer             = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
 		if(synchronizeBuilder) {
@@ -224,13 +226,15 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			builderCreated    = System.currentTimeMillis();
 			expireableSource  = expireable;
 		} else {
-			postponeAlg = (bs,c) -> {
-				if( c != null && c.getExpirationTime() > 0 ) {
-					bs.expireableSource = () -> c.getExpirationTime();
-				} else if( expireableSource.getExpirationTime() > 0) {
-					bs.expireableSource = ()->System.currentTimeMillis() + bs.addExpirationTimeMsec; //just add some time, if expireable, lowest priority
-				}
-			};			
+			if(postponeExpirationEnabled) {
+				postponeAlg = (bs,c) -> {
+					if( c != null && c.getExpirationTime() > 0 ) {
+						bs.expireableSource = () -> c.getExpirationTime();
+					} else if( expireableSource.getExpirationTime() > 0) {
+						bs.expireableSource = ()->System.currentTimeMillis() + bs.addExpirationTimeMsec; //just add some time, if expireable, lowest priority
+					}
+				};			
+			}
 		}
 		if( cart.getExpirationTime() > 0 && expireableSource.getExpirationTime() == 0) {
 			builderCreated    = cart.getCreationTime();
@@ -272,7 +276,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		// this itself does not affect expiration time
 		// it should be enabled
 		// enabling may affect performance
-		if(postponeExpirationEnabled) {
+		if(acceptCount > 1) {
 			postponeAlg.accept(this, cart);
 		}
 	}
@@ -286,9 +290,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.lastCart = cart;
 		lock.lock();
 		try {
-			timeoutAction.accept(builder);
-			if(postponeExpirationEnabled) {
+			if(postponeExpirationOnTimeoutEnabled) {
+				timeoutAction.accept(builder);
 				postponeAlg.accept(this, cart);
+			} else {
+				long expTimestamp = this.expireableSource.getExpirationTime();
+				LOG.debug("-- delay {}",(expTimestamp-System.currentTimeMillis()));
+				this.expireableSource = () -> expTimestamp;				
+				timeoutAction.accept(builder);
 			}
 		} finally {
 			lock.unlock();

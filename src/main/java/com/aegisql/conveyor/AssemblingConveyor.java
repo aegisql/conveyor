@@ -242,6 +242,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The forwarding to. */
 	private String forwardingTo = "not forwarding";
 
+	private boolean postponeExpirationOnTimeoutEnabled;
+
 	/**
 	 * Wait data.
 	 *
@@ -312,7 +314,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							synchronizeBuilder,
 							saveCarts,
 							postponeExpirationEnabled,
-							postponeExpirationMills
+							postponeExpirationMills,
+							postponeExpirationOnTimeoutEnabled
 						);
 					if(cart.getValue() instanceof FutureSupplier) {
 						FutureSupplier fs = (FutureSupplier) cart.getValue();
@@ -335,7 +338,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						synchronizeBuilder,
 						saveCarts,
 						postponeExpirationEnabled,
-						postponeExpirationMills
+						postponeExpirationMills,
+						postponeExpirationOnTimeoutEnabled
 					);
 			} else {
 				scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,"Ignore cart. Neither builder nor builder supplier available",FailureType.BUILD_INITIALIZATION_FAILED) );
@@ -1148,10 +1152,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					ShoppingCart<K, Object, L> to = new ShoppingCart<K, Object, L>(
 							buildingSite.getKey(), Status.TIMED_OUT, null);
 					buildingSite.timeout((Cart<K, ?, L>) to);
-
-					if(postponeTimeout(buildingSite)) {
-						continue;
-					}
 					
 					if (buildingSite.ready()) {
 						if (LOG.isTraceEnabled()) {
@@ -1162,6 +1162,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 								buildingSite.getDelayMsec(), Status.TIMED_OUT));
 						buildingSite.completeFuturesWithValue(res);
 					} else {
+						if(postponeTimeout(buildingSite)) {
+							continue;
+						}
 						if (LOG.isTraceEnabled()) {
 							LOG.trace("Expired and not finished " + key);
 						}
@@ -1602,6 +1605,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public void enablePostponeExpiration(boolean flag) {
 		this.postponeExpirationEnabled = flag;
 	}
+	
+	@Override
+	public void enablePostponeExpirationOnTimeout(boolean flag) {
+		this.postponeExpirationOnTimeoutEnabled = flag;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#setExpirationPostponeTime(long, java.util.concurrent.TimeUnit)
@@ -1636,5 +1644,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public long getCommandCounter() {
 		return commandCounter;
 	}
+
 
 }

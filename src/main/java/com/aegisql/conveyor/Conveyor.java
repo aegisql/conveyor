@@ -683,6 +683,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @param flag the flag
 	 */
 	public void enablePostponeExpiration(boolean flag);
+	public void enablePostponeExpirationOnTimeout(boolean flag);
 	
 	/**
 	 * Sets the expiration postpone time.
