@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  *
  * @param <T> the generic type
  */
-public interface BuilderSupplier <T> extends Supplier<Supplier<? extends T>> {
+public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 	
 	interface ExpireableBuilderSupplier<T> extends Supplier<T>, Expireable {};
 	interface TestingBuilderSupplier<T> extends Supplier<T>, Testing {};
@@ -22,10 +22,12 @@ public interface BuilderSupplier <T> extends Supplier<Supplier<? extends T>> {
 	interface TimingOutBuilderSupplier<T> extends Supplier<T>, TimeoutAction {};
 	interface BuilderFutureSupplier<T> extends BuilderSupplier<T>, FutureSupplier<T> {};
 
+	static <T> BuilderSupplier<T> of(BuilderSupplier<T> instance) {
+		return instance;
+	}
 	default BuilderSupplier <T> identity() {
 		return this;
 	}
-	
 	default BuilderSupplier <T> expire(long expTime) {
 		return expire( () -> expTime );
 	}
