@@ -26,6 +26,11 @@ public class UserBuilder implements Supplier<User> {
 	/** The ready. */
 	private boolean ready = false;
 
+	public UserBuilder() {
+		Exception e = new Exception();
+		System.out.println("UserBuilder called");
+	}
+	
 	/**
 	 * Gets the year of birth.
 	 *
