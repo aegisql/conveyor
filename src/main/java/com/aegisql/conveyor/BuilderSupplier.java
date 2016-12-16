@@ -77,6 +77,9 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 
 					@Override
 					public boolean test() {
+						if(builder == null) {
+							builder = bs.get();
+						}
 						return tester.test( builder );
 					}
 				};
@@ -100,6 +103,9 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 					}
 					@Override
 					public boolean test(State<K,L> state) {
+						if(builder == null) {
+							builder = bs.get();
+						}
 						return false;
 					}
 
@@ -124,6 +130,9 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 					}
 					@Override
 					public void onTimeout() {
+						if(builder == null) {
+							builder = bs.get();
+						}
 						consumer.accept(builder);
 					}
 				};
