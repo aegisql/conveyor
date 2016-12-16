@@ -3,6 +3,8 @@ package com.aegisql.conveyor.utils;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -68,9 +70,10 @@ public class ChainTest {
 	 * Test chain.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test
-	public void testChain() throws InterruptedException {
+	public void testChain() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> scalarConveyor = new ScalarConvertingConveyor<>();
 		scalarConveyor.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
@@ -107,9 +110,9 @@ public class ChainTest {
 		}));
 		
 		scalarConveyor.add(scalarCart1);
-		scalarConveyor.add(scalarCart2);
+		CompletableFuture<Boolean> f = scalarConveyor.add(scalarCart2);
 
-		Thread.sleep(20);
+		f.get();
 		assertNotNull(usr.get());
 	}
 

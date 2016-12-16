@@ -15,6 +15,7 @@ import java.util.function.Supplier;
  * @version 1.0.0
  * @param <B> the generic type
  */
+@FunctionalInterface
 public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Object>> {
 	
 	/**
@@ -24,4 +25,9 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 */
 	@Override
 	BiConsumer<B, Object> get();
+	
+	default SmartLabel<B> identity() {
+		return this;
+	}
+	
 }

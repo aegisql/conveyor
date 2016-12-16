@@ -840,7 +840,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(CreatingCart<K, OUT, L> cart) {
-		BuilderAndFutureSupplier<OUT> supplier = (BuilderAndFutureSupplier<OUT>) cart.getValue();
+		FutureSupplier supplier = (FutureSupplier<OUT>) cart.getValue();
 		CompletableFuture<Boolean> cartFuture = this.add(  cart );		
 		if(cartFuture.isCancelled()) {
 			supplier.getFuture().cancel(true);
@@ -853,7 +853,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(this.builderSupplier, new CompletableFuture<OUT>())) );		
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,this.builderSupplier.withFuture( new CompletableFuture<OUT>() )));		
 	}
 
 	/* (non-Javadoc)
@@ -861,7 +861,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, long expirationTime) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(this.builderSupplier, new CompletableFuture<OUT>()),expirationTime) );		
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,this.builderSupplier.withFuture( new CompletableFuture<OUT>() ),expirationTime) );		
 	}
 
 	/* (non-Javadoc)
@@ -869,7 +869,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, long ttl, TimeUnit unit) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(this.builderSupplier, new CompletableFuture<OUT>()),ttl,unit) );		
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,this.builderSupplier.withFuture( new CompletableFuture<OUT>() ),ttl,unit) );		
 	}
 
 	/* (non-Javadoc)
@@ -877,7 +877,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, Duration duration) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(this.builderSupplier, new CompletableFuture<OUT>()),duration) );		
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,this.builderSupplier.withFuture( new CompletableFuture<OUT>() ),duration) );		
 	}
 
 	/* (non-Javadoc)
@@ -885,7 +885,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, Instant instant) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(this.builderSupplier, new CompletableFuture<OUT>()),instant) );		
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,this.builderSupplier.withFuture( new CompletableFuture<OUT>() ),instant) );		
 	}
 
 	/* (non-Javadoc)
@@ -893,7 +893,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(value, new CompletableFuture<OUT>())) );		
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,value.withFuture( new CompletableFuture<OUT>() )) );		
 	}
 
 	/* (non-Javadoc)
@@ -901,7 +901,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long expirationTime) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(value, new CompletableFuture<OUT>()),expirationTime) );		
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,value.withFuture( new CompletableFuture<OUT>() ),expirationTime) );		
 	}
 
 	/* (non-Javadoc)
@@ -909,7 +909,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(value, new CompletableFuture<OUT>()),ttl,unit) );		
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,value.withFuture( new CompletableFuture<OUT>() ),ttl,unit) );		
 	}
 
 	/* (non-Javadoc)
@@ -917,7 +917,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Duration duration) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(value, new CompletableFuture<OUT>()),duration) );		
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,value.withFuture( new CompletableFuture<OUT>() ),duration) );		
 	}
 
 	/* (non-Javadoc)
@@ -925,7 +925,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Instant instant) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,new BuilderAndFutureSupplier<>(value, new CompletableFuture<OUT>()),instant) );		
+		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,value.withFuture( new CompletableFuture<OUT>() ),instant) );		
 	}	
 	
 	/* (non-Javadoc)
