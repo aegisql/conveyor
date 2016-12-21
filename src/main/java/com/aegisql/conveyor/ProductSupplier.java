@@ -42,7 +42,7 @@ public interface ProductSupplier<T> extends Supplier<T> {
 	}
 	
 // EXPIRE //	
-	default <K,L> ProductSupplier<T> expire(final Expireable other) {
+	default <K,L> ProductSupplier<T> expires(final Expireable other) {
 		final ProductSupplier<T> ps = this;
 		
 		boolean isT = ps instanceof Testing;
@@ -150,7 +150,7 @@ public interface ProductSupplier<T> extends Supplier<T> {
 		};
 	}	
 // TIMEOUT //
-	default <K,L> ProductSupplier<T> timeout(final Consumer<Supplier<T>> toAction) {
+	default <K,L> ProductSupplier<T> onTimeout(final Consumer<Supplier<T>> toAction) {
 		final ProductSupplier<T> ps = this;
 		
 		boolean isE = ps instanceof Expireable;
@@ -258,7 +258,7 @@ public interface ProductSupplier<T> extends Supplier<T> {
 		};
 	}	
 // TESTING //
-	default <K,L> ProductSupplier<T> testing(final Predicate<Supplier<T>> tester) {
+	default <K,L> ProductSupplier<T> readyAlgorithm(final Predicate<Supplier<T>> tester) {
 		final ProductSupplier<T> ps = this;
 		
 		boolean isE = ps instanceof Expireable;
@@ -329,7 +329,7 @@ public interface ProductSupplier<T> extends Supplier<T> {
 	}	
 
 	// TESTING STATE//
-		default <K,L> ProductSupplier<T> testingState(final BiPredicate<State<K,L>,ProductSupplier<? extends T>> tester) {
+		default <K,L> ProductSupplier<T> readyAlgorithm(final BiPredicate<State<K,L>,ProductSupplier<? extends T>> tester) {
 			final ProductSupplier<T> ps = this;
 			
 			boolean isE = ps instanceof Expireable;

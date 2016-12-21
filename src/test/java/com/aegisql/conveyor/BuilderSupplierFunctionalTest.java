@@ -120,21 +120,20 @@ public class BuilderSupplierFunctionalTest {
 		assertTrue(ex.getExpirationTime()-System.currentTimeMillis() > 500);
 	}
 
-	
-//	@Test
-//	public void testDoubleExpireable() {
-//		BuilderSupplier<User> bs = UserBuilder::new;
-//		bs = bs.expire(1000).expire(2000);
-//		assertNotNull(bs);
-//		assertTrue(bs instanceof BuilderSupplier);
-//		Supplier<? extends User> s = bs.get();
-//		assertNotNull(s);
-//		assertTrue(s instanceof Expireable);
-//		User u = bs.get().get();
-//		assertNotNull(u);
-//		Expireable ex = (Expireable)s;
-//		assertEquals(2000, ex.getExpirationTime());
-//	}
+	@Test
+	public void testDoubleExpireable() {
+		BuilderSupplier<User> bs = UserBuilder::new;
+		bs = bs.expire(1000).expire(2000);
+		assertNotNull(bs);
+		assertTrue(bs instanceof BuilderSupplier);
+		Supplier<? extends User> s = bs.get();
+		assertNotNull(s);
+		assertTrue(s instanceof Expireable);
+		User u = bs.get().get();
+		assertNotNull(u);
+		Expireable ex = (Expireable)s;
+		assertEquals(2000, ex.getExpirationTime());
+	}
 	
 	@Test(expected=CancellationException.class)
 	public void testConvWithExpire() throws InterruptedException, ExecutionException {

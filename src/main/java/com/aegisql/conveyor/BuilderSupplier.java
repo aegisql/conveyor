@@ -45,7 +45,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		return new BuilderSupplier<T>() {
 			@Override
 			public Supplier<? extends T> get() {
-				return ProductSupplier.of(bs.get()).expire(other);
+				return ProductSupplier.of(bs.get()).expires(other);
 			}
 		};
 	}	
@@ -55,7 +55,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		return new BuilderSupplier<T>() {
 			@Override
 			public Supplier<? extends T> get() {
-				return ProductSupplier.of(bs.get()).testing((Predicate)tester);
+				return ProductSupplier.of(bs.get()).readyAlgorithm((Predicate)tester);
 			}
 		};
 	}
@@ -65,7 +65,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		return new BuilderSupplier<T>() {
 			@Override
 			public Supplier<? extends T> get() {
-				return ProductSupplier.of(bs.get()).testingState((BiPredicate)tester);
+				return ProductSupplier.of(bs.get()).readyAlgorithm((BiPredicate)tester);
 			}
 		};
 	}
@@ -75,7 +75,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		return new BuilderSupplier<T>() {
 			@Override
 			public Supplier<? extends T> get() {
-				return ProductSupplier.of(bs.get()).timeout((Consumer)consumer);
+				return ProductSupplier.of(bs.get()).onTimeout((Consumer)consumer);
 
 			}
 		};
