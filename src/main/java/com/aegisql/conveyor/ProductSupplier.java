@@ -24,8 +24,18 @@ public interface ProductSupplier<T> extends Supplier<T> {
 	interface PETO<T>     extends PET<T>, TimeoutAction {};
 	interface PESO<T,K,L> extends PES<T,K,L>, TimeoutAction {};
 	
-	static <T> ProductSupplier<T> of(ProductSupplier<T> instance) {
-		return instance;
+	static <T> ProductSupplier<T> of(Supplier<T> instance) {
+		
+		boolean isP = instance instanceof ProductSupplier;
+		if(isP) {
+			return (ProductSupplier<T>) instance;
+		}
+		return new ProductSupplier<T>() {
+			@Override
+			public T get() {
+				return instance.get();
+			}
+		};
 	}
 	default ProductSupplier<T> identity() {
 		return this;
@@ -145,7 +155,7 @@ public interface ProductSupplier<T> extends Supplier<T> {
 		};
 	}	
 // TIMEOUT //
-	default <K,L> ProductSupplier<T> timeout(final Consumer<ProductSupplier<T>> toAction) {
+	default <K,L> ProductSupplier<T> timeout(final Consumer<Supplier<T>> toAction) {
 		final ProductSupplier<T> ps = this;
 		
 		boolean isE = ps instanceof Expireable;
@@ -258,7 +268,7 @@ public interface ProductSupplier<T> extends Supplier<T> {
 		};
 	}	
 // TESTING //
-	default <K,L> ProductSupplier<T> testing(final Predicate<ProductSupplier<T>> tester) {
+	default <K,L> ProductSupplier<T> testing(final Predicate<Supplier<T>> tester) {
 		final ProductSupplier<T> ps = this;
 		
 		boolean isE = ps instanceof Expireable;
@@ -338,7 +348,7 @@ public interface ProductSupplier<T> extends Supplier<T> {
 	}	
 
 	// TESTING STATE//
-		default <K,L> ProductSupplier<T> testingState(final BiPredicate<State<K,L>,ProductSupplier<T>> tester) {
+		default <K,L> ProductSupplier<T> testingState(final BiPredicate<State<K,L>,ProductSupplier<? extends T>> tester) {
 			final ProductSupplier<T> ps = this;
 			
 			boolean isE = ps instanceof Expireable;

@@ -37,6 +37,7 @@ public class BuilderSupplierFunctionalTest {
 	public void tearDown() throws Exception {
 	}
 
+	
 	@Test
 	public void testExpireableTimestamp() {
 		BuilderSupplier<User> bs = UserBuilder::new;
@@ -120,20 +121,20 @@ public class BuilderSupplierFunctionalTest {
 	}
 
 	
-	@Test
-	public void testDoubleExpireable() {
-		BuilderSupplier<User> bs = UserBuilder::new;
-		bs = bs.expire(1000).expire(2000);
-		assertNotNull(bs);
-		assertTrue(bs instanceof BuilderSupplier);
-		Supplier<? extends User> s = bs.get();
-		assertNotNull(s);
-		assertTrue(s instanceof Expireable);
-		User u = bs.get().get();
-		assertNotNull(u);
-		Expireable ex = (Expireable)s;
-		assertEquals(2000, ex.getExpirationTime());
-	}
+//	@Test
+//	public void testDoubleExpireable() {
+//		BuilderSupplier<User> bs = UserBuilder::new;
+//		bs = bs.expire(1000).expire(2000);
+//		assertNotNull(bs);
+//		assertTrue(bs instanceof BuilderSupplier);
+//		Supplier<? extends User> s = bs.get();
+//		assertNotNull(s);
+//		assertTrue(s instanceof Expireable);
+//		User u = bs.get().get();
+//		assertNotNull(u);
+//		Expireable ex = (Expireable)s;
+//		assertEquals(2000, ex.getExpirationTime());
+//	}
 	
 	@Test(expected=CancellationException.class)
 	public void testConvWithExpire() throws InterruptedException, ExecutionException {
@@ -177,5 +178,40 @@ public class BuilderSupplierFunctionalTest {
 		assertTrue(t.test());
 	}
 
+	@Test
+	public void testTestExpireablePredicate() {
+		BuilderSupplier<User> bs = UserBuilder::new;
+		assertFalse(bs instanceof Testing);
+		bs = bs.test(b->{
+			return true;
+		}).expire(1000);
+		assertNotNull(bs);
+		assertTrue(bs instanceof BuilderSupplier);
+		Supplier<? extends User> s = bs.get();
+		assertNotNull(s);
+		assertTrue(s instanceof Expireable);
+		assertTrue(s instanceof Testing);
+		User u = bs.get().get();
+		assertNotNull(u);
+		Testing t = (Testing)s;
+		assertTrue(t.test());
+	}
+
 	
+	@Test
+	public void test() {
+		BuilderSupplier<User> bs = BuilderSupplier
+				.of(UserBuilder::new)
+				.expire(1000)
+				//.test((b)->true)
+				.withFuture(new CompletableFuture<User>());
+		assertNotNull(bs);
+		Expireable ex = (Expireable)bs.get();
+		assertEquals(1000, ex.getExpirationTime());
+		FutureSupplier<User> fs = (FutureSupplier<User>)bs;
+		assertNotNull(fs.getFuture());
+		bs.get();
+		User u = bs.get().get();
+		bs.get().get();
+	}
 }

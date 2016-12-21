@@ -45,17 +45,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		return new BuilderSupplier<T>() {
 			@Override
 			public Supplier<? extends T> get() {
-				return new ExpireableBuilderSupplier<T>() {
-					@Override
-					public T get() {
-						return bs.get().get();
-					}
-
-					@Override
-					public long getExpirationTime() {
-						return other.getExpirationTime();
-					}
-				};
+				return ProductSupplier.of(bs.get()).expire(other);
 			}
 		};
 	}	
@@ -65,24 +55,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		return new BuilderSupplier<T>() {
 			@Override
 			public Supplier<? extends T> get() {
-				return new TestingBuilderSupplier<T>() {
-					Supplier<? extends T> builder = null;
-					@Override
-					public T get() {
-						if(builder == null) {
-							builder = bs.get();
-						}
-						return builder.get();
-					}
-
-					@Override
-					public boolean test() {
-						if(builder == null) {
-							builder = bs.get();
-						}
-						return tester.test( builder );
-					}
-				};
+				return ProductSupplier.of(bs.get()).testing((Predicate)tester);
 			}
 		};
 	}
@@ -92,24 +65,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		return new BuilderSupplier<T>() {
 			@Override
 			public Supplier<? extends T> get() {
-				return new TestingStateBuilderSupplier<T,K,L>() {
-					Supplier<? extends T> builder = null;
-					@Override
-					public T get() {
-						if(builder == null) {
-							builder = bs.get();
-						}
-						return builder.get();
-					}
-					@Override
-					public boolean test(State<K,L> state) {
-						if(builder == null) {
-							builder = bs.get();
-						}
-						return false;
-					}
-
-				};
+				return ProductSupplier.of(bs.get()).testingState((BiPredicate)tester);
 			}
 		};
 	}
@@ -119,23 +75,8 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		return new BuilderSupplier<T>() {
 			@Override
 			public Supplier<? extends T> get() {
-				return new TimingOutBuilderSupplier<T>() {
-					Supplier<? extends T> builder = null;
-					@Override
-					public T get() {
-						if(builder == null) {
-							builder = bs.get();
-						}
-						return builder.get();
-					}
-					@Override
-					public void onTimeout() {
-						if(builder == null) {
-							builder = bs.get();
-						}
-						consumer.accept(builder);
-					}
-				};
+				return ProductSupplier.of(bs.get()).timeout((Consumer)consumer);
+
 			}
 		};
 	}

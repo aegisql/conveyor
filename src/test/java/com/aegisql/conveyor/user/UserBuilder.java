@@ -28,7 +28,6 @@ public class UserBuilder implements Supplier<User> {
 
 	public UserBuilder() {
 		Exception e = new Exception();
-		System.out.println("UserBuilder called");
 	}
 	
 	/**

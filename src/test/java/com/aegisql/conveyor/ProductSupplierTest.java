@@ -27,6 +27,23 @@ public class ProductSupplierTest {
 	}
 
 	@Test
+	public void testOf() {
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST OE");
+		assertFalse(ps instanceof Expireable);
+		assertFalse(ps instanceof TimeoutAction);
+		ps = ps.timeout((b)->{System.out.println(b.get());}).expire(()->1000);
+		assertTrue(ps instanceof Expireable);
+		assertTrue(ps instanceof TimeoutAction);
+		assertEquals(1000,((Expireable)ps).getExpirationTime());
+		assertEquals("TEST OE",ps.get());
+		((TimeoutAction)ps).onTimeout();
+		ps = ProductSupplier.of(ps);
+		assertTrue(ps instanceof Expireable);
+		assertTrue(ps instanceof TimeoutAction);
+	}
+
+	
+	@Test
 	public void testOE() {
 		ProductSupplier<String> ps = ()->"TEST OE";
 		assertFalse(ps instanceof Expireable);
