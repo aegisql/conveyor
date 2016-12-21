@@ -42,14 +42,14 @@ public class BuildTesterTest {
 
 	@Test
 	public void testTrivialCase() {
-		BuildTester<String, String, String> bt = new BuildTester<>();
+		ReadinessTester<String, String, String> bt = new ReadinessTester<>();
 		assertTrue(bt.test(null,null));
 	}
 
 	@Test
 	public void testAcceptedTimes() {
-		BuildTester<String, String, String> bt1 = new BuildTester<String, String, String>().accepted(2);
-		BuildTester<String, String, String> bt2 = new BuildTester<String, String, String>().accepted(3);
+		ReadinessTester<String, String, String> bt1 = new ReadinessTester<String, String, String>().accepted(2);
+		ReadinessTester<String, String, String> bt2 = new ReadinessTester<String, String, String>().accepted(3);
 		State<String, String> st = new State<String, String>("1", 0, 0, 0, 0, 2, null, null);
 		assertTrue(bt1.test(st,null));
 		assertFalse(bt2.test(st,null));
@@ -57,8 +57,8 @@ public class BuildTesterTest {
 
 	@Test
 	public void testAcceptedLabel() {
-		BuildTester<String, String, String> bt1 = new BuildTester<String, String, String>().accepted("A");
-		BuildTester<String, String, String> bt2 = new BuildTester<String, String, String>().accepted("B");
+		ReadinessTester<String, String, String> bt1 = new ReadinessTester<String, String, String>().accepted("A");
+		ReadinessTester<String, String, String> bt2 = new ReadinessTester<String, String, String>().accepted("B");
 		State<String, String> st = new State<String, String>("1", 0, 0, 0, 0, 2, new HashMap<String,Integer>(){{
 			put("A",1);
 			put("C",2);
@@ -69,12 +69,12 @@ public class BuildTesterTest {
 
 	@Test
 	public void testAcceptedLabelComplex() {
-		BuildTester<String, String, String> bt1 = new BuildTester<String, String, String>().accepted("A")
-				.andThen( new BuildTester<String, String, String>().accepted("C") )
-				.andNot(new BuildTester<String, String, String>().accepted("X"));
-		BuildTester<String, String, String> bt2 = new BuildTester<String, String, String>().accepted("B");
-		BuildTester<String, String, String> bt3 = new BuildTester<String, String, String>().accepted("E")
-				.or(new BuildTester<String, String, String>().accepted("A"));
+		ReadinessTester<String, String, String> bt1 = new ReadinessTester<String, String, String>().accepted("A")
+				.andThen( new ReadinessTester<String, String, String>().accepted("C") )
+				.andNot(new ReadinessTester<String, String, String>().accepted("X"));
+		ReadinessTester<String, String, String> bt2 = new ReadinessTester<String, String, String>().accepted("B");
+		ReadinessTester<String, String, String> bt3 = new ReadinessTester<String, String, String>().accepted("E")
+				.or(new ReadinessTester<String, String, String>().accepted("A"));
 		State<String, String> st = new State<String, String>("1", 0, 0, 0, 0, 2, new HashMap<String,Integer>(){{
 			put("A",1);
 			put("C",2);
@@ -87,8 +87,8 @@ public class BuildTesterTest {
 
 	@Test
 	public void testAcceptedLabel2() {
-		BuildTester<String, String, String> bt1 = new BuildTester<String, String, String>().accepted("A","C");
-		BuildTester<String, String, String> bt2 = new BuildTester<String, String, String>().accepted("A","B");
+		ReadinessTester<String, String, String> bt1 = new ReadinessTester<String, String, String>().accepted("A","C");
+		ReadinessTester<String, String, String> bt2 = new ReadinessTester<String, String, String>().accepted("A","B");
 		State<String, String> st = new State<String, String>("1", 0, 0, 0, 0, 2, new HashMap<String,Integer>(){{
 			put("A",1);
 			put("C",2);
@@ -100,8 +100,8 @@ public class BuildTesterTest {
 	
 	@Test
 	public void testAcceptedLabelTimes() {
-		BuildTester<String, String, String> bt1 = new BuildTester<String, String, String>().accepted("A",1).accepted("C") ;
-		BuildTester<String, String, String> bt2 = new BuildTester<String, String, String>().accepted("C",1);
+		ReadinessTester<String, String, String> bt1 = new ReadinessTester<String, String, String>().accepted("A",1).accepted("C") ;
+		ReadinessTester<String, String, String> bt2 = new ReadinessTester<String, String, String>().accepted("C",1);
 		State<String, String> st = new State<String, String>("1", 0, 0, 0, 0, 2, new HashMap<String,Integer>(){{
 			put("A",1);
 			put("C",2);
@@ -118,7 +118,7 @@ public class BuildTesterTest {
 		conveyor.setResultConsumer(res -> {
 			System.out.println(res);
 		});
-		conveyor.setReadinessEvaluator(new BuildTester<Integer, UserBuilderEvents, User>().accepted(3));
+		conveyor.setReadinessEvaluator(new ReadinessTester<Integer, UserBuilderEvents, User>().accepted(3));
 		conveyor.setName("User Assembler");
 
 		CompletableFuture<User> f = conveyor.createBuildFuture(1);
@@ -137,7 +137,7 @@ public class BuildTesterTest {
 		conveyor.setResultConsumer(res -> {
 			System.out.println(res);
 		});
-		conveyor.setReadinessEvaluator(new BuildTester<Integer, UserBuilderEvents2, User>().usingBuilderTest(UserBuilderTesting.class));
+		conveyor.setReadinessEvaluator(new ReadinessTester<Integer, UserBuilderEvents2, User>().usingBuilderTest(UserBuilderTesting.class));
 		conveyor.setName("User Assembler");
 
 		CompletableFuture<User> f = conveyor.createBuildFuture(1);
@@ -155,7 +155,7 @@ public class BuildTesterTest {
 		conveyor.setResultConsumer(res -> {
 			System.out.println(res);
 		});
-		conveyor.setReadinessEvaluator(new BuildTester<Integer, UserBuilderEvents3, User>().andThen((s,b)->{
+		conveyor.setReadinessEvaluator(new ReadinessTester<Integer, UserBuilderEvents3, User>().andThen((s,b)->{
 			System.out.println("--- test state called ---");
 			return true;
 		} ).usingBuilderTest(UserBuilderTestingState.class));

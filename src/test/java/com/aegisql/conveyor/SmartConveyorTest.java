@@ -713,9 +713,7 @@ public class SmartConveyorTest {
 		CompletableFuture<User> f1 = conveyor.createBuildFuture(1,
 				BuilderSupplier.of(UpperCaseUserBuilder::new)
 				.expire(100,TimeUnit.MILLISECONDS)
-				.readyAlgorithm((state, builder) -> {
-			return state.previouslyAccepted == 3;
-		}));
+				.readyAlgorithm(new ReadinessTester().accepted(3)));
 		
 		assertNotNull(f1);
 		assertFalse(f1.isCancelled());
