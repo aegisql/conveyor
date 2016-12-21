@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.ProductSupplier;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -11,8 +12,8 @@ import com.aegisql.conveyor.BuilderSupplier;
  *
  * @param <T> the generic type
  */
-public class MutableReference<T> implements Supplier<T>, Consumer<T> {
 	
+public class MutableReference<T> implements ProductSupplier<T>, Consumer<T> {
 	protected long version = 1;
 
 	/** The reference. */
@@ -52,6 +53,11 @@ public class MutableReference<T> implements Supplier<T>, Consumer<T> {
 	@Override
 	public String toString() {
 		return "Ref ver("+version+"): "+reference;
+	}
+
+	@Override
+	public Supplier<T> getSupplier() {
+		return this;
 	}
 	
 }

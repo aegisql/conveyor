@@ -3,7 +3,9 @@ package com.aegisql.conveyor;
 import static org.junit.Assert.*;
 
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -63,7 +65,7 @@ public class PostponeExpirationTest {
 	}
 
 	/** The out queue. */
-	Queue<User> outQueue = new ConcurrentLinkedQueue<>();
+	
 
 	/**
 	 * Test default expiration postpone.
@@ -72,6 +74,7 @@ public class PostponeExpirationTest {
 	 */
 	@Test
 	public void testDefaultExpirationPostpone() throws InterruptedException {
+		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		outQueue.clear();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -127,6 +130,7 @@ public class PostponeExpirationTest {
 	@Test
 	public void testCartExpirationPostpone() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
+		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 		outQueue.clear();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
@@ -146,18 +150,18 @@ public class PostponeExpirationTest {
 		conveyor.setIdleHeartBeat(1, TimeUnit.MILLISECONDS);
 
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
-				UserBuilderEvents.SET_FIRST,10, TimeUnit.MILLISECONDS);
+				UserBuilderEvents.SET_FIRST,100, TimeUnit.MILLISECONDS);
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST,150, TimeUnit.MILLISECONDS);
 
 		conveyor.offer(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
 		conveyor.offer(c2);
-		Thread.sleep(100); //created with 10, but 100 added by second cart
+		Thread.sleep(110); //created with 10, but 100 added by second cart
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1, 1999, UserBuilderEvents.SET_YEAR,100, TimeUnit.MILLISECONDS);
 		conveyor.offer(c3);
 
-		Thread.sleep(10);
+		Thread.sleep(100);
 
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -171,12 +175,14 @@ public class PostponeExpirationTest {
 	 * Test builder expiration postpone.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test
-	public void testBuilderExpirationPostpone() throws InterruptedException {
+	public void testBuilderExpirationPostpone() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> conveyor = new AssemblingConveyor<>();
+		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 		outQueue.clear();
-		conveyor.setBuilderSupplier(()->new UserBuilderExpireable(10));
+		conveyor.setBuilderSupplier(()->new UserBuilderExpireable(100));
 
 		conveyor.setResultConsumer(res -> {
 			System.out.println("Result " + res);
@@ -214,11 +220,12 @@ public class PostponeExpirationTest {
 		User u0 = outQueue.poll();
 		assertNull(u0);
 		conveyor.offer(c2);
-		Thread.sleep(100); //created with 10, but 100 added by second cart
+		Thread.sleep(110); //created with 10, but 100 added by second cart
 		Cart<Integer, Integer, String> c3 = new ShoppingCart<>(1, 1999, "YEAR");
+		CompletableFuture<User> f = conveyor.getFuture(1); 
 		conveyor.offer(c3);
 
-		Thread.sleep(10);
+		f.get();
 
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -231,6 +238,7 @@ public class PostponeExpirationTest {
 
 	@Test
 	public void testTimeoutExpirationPostpone() throws InterruptedException {
+		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 		AssemblingConveyor<Integer, String, User> conveyor = new AssemblingConveyor<>();
 		outQueue.clear();
 		conveyor.setBuilderSupplier(()-> new UserBuilderExpireable(1000));

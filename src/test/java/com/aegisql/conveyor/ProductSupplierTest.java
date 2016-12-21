@@ -2,6 +2,8 @@ package com.aegisql.conveyor;
 
 import static org.junit.Assert.*;
 
+import java.util.function.Supplier;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -117,7 +119,7 @@ public class ProductSupplierTest {
 	
 	@Test
 	public void testOE() {
-		ProductSupplier<String> ps = ()->"TEST OE";
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST OE");
 		assertFalse(ps instanceof Expireable);
 		assertFalse(ps instanceof TimeoutAction);
 		ps = ps.onTimeout((b)->{System.out.println(b.get());}).expires(()->1000);
@@ -130,7 +132,7 @@ public class ProductSupplierTest {
 
 	@Test
 	public void testEO() {
-		ProductSupplier<String> ps = ()->"TEST EO";
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST EO");
 		assertFalse(ps instanceof Expireable);
 		assertFalse(ps instanceof TimeoutAction);
 		ps = ps.expires(()->1000).onTimeout((b)->{System.out.println(b.get());});
@@ -143,7 +145,7 @@ public class ProductSupplierTest {
 
 	@Test
 	public void testET() {
-		ProductSupplier<String> ps = ()->"TEST ET";
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST ET");
 		assertFalse(ps instanceof Expireable);
 		assertFalse(ps instanceof Testing);
 		ps = ps.expires(()->1000).readyAlgorithm(b->true);
@@ -155,7 +157,7 @@ public class ProductSupplierTest {
 
 	@Test
 	public void testTE() {
-		ProductSupplier<String> ps = ()->"TEST TE";
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST TE");
 		assertFalse(ps instanceof Expireable);
 		assertFalse(ps instanceof Testing);
 		ps = ps.readyAlgorithm(b->true).expires(()->1000);
@@ -167,7 +169,7 @@ public class ProductSupplierTest {
 
 	@Test
 	public void testOT() {
-		ProductSupplier<String> ps = ()->"TEST OT";
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST OT");
 		assertFalse(ps instanceof Testing);
 		assertFalse(ps instanceof TimeoutAction);
 		ps = ps.onTimeout((b)->{System.out.println(b.get());}).readyAlgorithm((b)->true);
@@ -180,7 +182,7 @@ public class ProductSupplierTest {
 
 	@Test
 	public void testTO() {
-		ProductSupplier<String> ps = ()->"TEST TO";
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST TO");
 		assertFalse(ps instanceof Testing);
 		assertFalse(ps instanceof TimeoutAction);
 		ps = ps.readyAlgorithm((b)->true).onTimeout((b)->{System.out.println(b.get());});
@@ -193,7 +195,7 @@ public class ProductSupplierTest {
 
 	@Test
 	public void testES() {
-		ProductSupplier<String> ps = ()->"TEST ES";
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST ES");
 		assertFalse(ps instanceof Expireable);
 		assertFalse(ps instanceof TestingState);
 		ps = ps.expires(()->1000).readyAlgorithm((s,b)->true);
@@ -205,7 +207,7 @@ public class ProductSupplierTest {
 
 	@Test
 	public void testSE() {
-		ProductSupplier<String> ps = ()->"TEST SE";
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST SE");
 		assertFalse(ps instanceof Expireable);
 		assertFalse(ps instanceof TestingState);
 		ps = ps.readyAlgorithm((s,b)->true).expires(()->1000);
@@ -217,7 +219,7 @@ public class ProductSupplierTest {
 
 	@Test
 	public void testOS() {
-		ProductSupplier<String> ps = ()->"TEST OS";
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST OS");
 		assertFalse(ps instanceof TestingState);
 		assertFalse(ps instanceof TimeoutAction);
 		ps = ps.onTimeout((b)->{System.out.println(b.get());}).readyAlgorithm((s,b)->true);
@@ -230,7 +232,7 @@ public class ProductSupplierTest {
 
 	@Test
 	public void testSO() {
-		ProductSupplier<String> ps = ()->"TEST SO";
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST SO");
 		assertFalse(ps instanceof TestingState);
 		assertFalse(ps instanceof TimeoutAction);
 		ps = ps.readyAlgorithm((s,b)->true).onTimeout((b)->{System.out.println(b.get());});
@@ -244,7 +246,7 @@ public class ProductSupplierTest {
 	
 	@Test
 	public void testETO() {
-		ProductSupplier<String> ps = ()->"TEST ETO";
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST ETO");
 		assertFalse(ps instanceof Testing);
 		assertFalse(ps instanceof TimeoutAction);
 		assertFalse(ps instanceof Expireable);
@@ -260,7 +262,8 @@ public class ProductSupplierTest {
 
 	@Test
 	public void testESO() {
-		ProductSupplier<String> ps = ()->"TEST ESO";
+		Supplier<String> ss = ()->"TEST ESO";
+		ProductSupplier<String> ps = ProductSupplier.of(ss);
 		assertFalse(ps instanceof TestingState);
 		assertFalse(ps instanceof TimeoutAction);
 		assertFalse(ps instanceof Expireable);
@@ -272,6 +275,7 @@ public class ProductSupplierTest {
 		assertEquals(1000,((Expireable)ps).getExpirationTime());
 		assertEquals("TEST ESO",ps.get());
 		((TimeoutAction)ps).onTimeout();
+		assertTrue(ss == ps.getSupplier());
 	}
 
 	

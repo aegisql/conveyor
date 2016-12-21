@@ -378,6 +378,24 @@ public class CachingConveyorTest {
 		Thread.sleep(1200);
 		s.get();
 	}
+
+	@Test(expected=IllegalStateException.class)
+	public void testImmutableScalarExpireableCache() throws InterruptedException, ExecutionException {
+		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
+		conveyor.setDefaultCartConsumer(new ImmutableValueConsumer());
+		
+		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
+		CompletableFuture<Boolean> cf = conveyor.createBuild(1,ImmutableReference.newInstance("TEST").expire(1,TimeUnit.SECONDS));
+		assertTrue(cf.get());
+		
+		Supplier<? extends String> s = conveyor.getProductSupplier(1);
+		assertEquals("TEST", s.get());
+		conveyor.createBuild(1,ImmutableReference.newInstance("TEST"));
+		
+		Thread.sleep(1200);
+		s.get();
+	}
+
 	
 	@Test(expected=IllegalStateException.class)
 	public void testMutableScalarCache() throws InterruptedException, ExecutionException {
@@ -404,4 +422,29 @@ public class CachingConveyorTest {
 		
 	}
 
+	@Test(expected=IllegalStateException.class)
+	public void testMutableExpireableScalarCache() throws InterruptedException, ExecutionException {
+		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
+		conveyor.setDefaultCartConsumer(new MutableValueConsumer());
+		//conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
+		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
+		CompletableFuture<Boolean> cf  = conveyor.createBuild(1,MutableReference.newInstance("TEST").expire(1,TimeUnit.SECONDS));
+		CompletableFuture<Boolean> cf2 = conveyor.createBuild(1,MutableReference.newInstance("BEST"));
+		assertTrue(cf.get());
+		assertTrue(cf2.get());
+		Supplier<? extends String> s = conveyor.getProductSupplier(1);
+		assertEquals("BEST", s.get());
+
+		CompletableFuture<Boolean> cf3 = conveyor.add(1,"GUEST","update");
+		assertTrue(cf3.get());
+		s = conveyor.getProductSupplier(1);
+		assertEquals("GUEST", s.get());
+
+		
+		Thread.sleep(1200);
+		s.get();
+		
+	}
+
+	
 }

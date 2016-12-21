@@ -6,7 +6,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 
-@FunctionalInterface
 public interface ProductSupplier<T> extends Supplier<T> {
 	//all possible permutations 
 	interface PE<T>       extends ProductSupplier<T>, Expireable {};
@@ -24,6 +23,8 @@ public interface ProductSupplier<T> extends Supplier<T> {
 	interface PETO<T>     extends PET<T>, TimeoutAction {};
 	interface PESO<T,K,L> extends PES<T,K,L>, TimeoutAction {};
 	
+	public Supplier<T> getSupplier();
+	
 	static <T> ProductSupplier<T> of(Supplier<T> instance) {
 		
 		boolean isP = instance instanceof ProductSupplier;
@@ -34,6 +35,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 			@Override
 			public T get() {
 				return instance.get();
+			}
+			@Override
+			public Supplier<T> getSupplier() {
+				return instance;
 			}
 		};
 	}
@@ -56,6 +61,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 					return ps.get();
 				}
 				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
+				}
+				@Override
 				public long getExpirationTime() {
 					return other.getExpirationTime();
 				}
@@ -74,6 +83,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 				@Override
 				public T get() {
 					return ps.get();
+				}
+				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
 				}
 				@Override
 				public long getExpirationTime() {
@@ -96,6 +109,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 					return ps.get();
 				}
 				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
+				}
+				@Override
 				public long getExpirationTime() {
 					return other.getExpirationTime();
 				}
@@ -110,6 +127,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 				@Override
 				public T get() {
 					return ps.get();
+				}
+				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
 				}
 				@Override
 				public long getExpirationTime() {
@@ -129,6 +150,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 					return ps.get();
 				}
 				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
+				}
+				@Override
 				public long getExpirationTime() {
 					return other.getExpirationTime();
 				}
@@ -142,6 +167,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 			@Override
 			public T get() {
 				return ps.get();
+			}
+			@Override
+			public Supplier<T> getSupplier() {
+				return ps.getSupplier();
 			}
 			@Override
 			public long getExpirationTime() {
@@ -164,6 +193,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 					return ps.get();
 				}
 				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
+				}
+				@Override
 				public long getExpirationTime() {
 					return ((Expireable)ps).getExpirationTime();
 				}
@@ -182,6 +215,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 				@Override
 				public T get() {
 					return ps.get();
+				}
+				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
 				}
 				@Override
 				public long getExpirationTime() {
@@ -204,6 +241,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 					return ps.get();
 				}
 				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
+				}
+				@Override
 				public boolean test() {
 					return ((Testing)ps).test();
 				}
@@ -218,6 +259,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 				@Override
 				public T get() {
 					return ps.get();
+				}
+				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
 				}
 				@Override
 				public boolean test(State<K, L> t) {
@@ -237,6 +282,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 					return ps.get();
 				}
 				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
+				}
+				@Override
 				public long getExpirationTime() {
 					return ((Expireable)ps).getExpirationTime();
 				}
@@ -250,6 +299,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 			@Override
 			public T get() {
 				return ps.get();
+			}
+			@Override
+			public Supplier<T> getSupplier() {
+				return ps.getSupplier();
 			}
 			@Override
 			public void onTimeout() {
@@ -269,6 +322,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 				@Override
 				public T get() {
 					return ps.get();
+				}
+				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
 				}
 				@Override
 				public long getExpirationTime() {
@@ -291,6 +348,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 					return ps.get();
 				}
 				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
+				}
+				@Override
 				public boolean test() {
 					return tester.test(ps);
 				}
@@ -307,6 +368,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 					return ps.get();
 				}
 				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
+				}
+				@Override
 				public long getExpirationTime() {
 					return ((Expireable)ps).getExpirationTime();
 				}
@@ -320,6 +385,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 			@Override
 			public T get() {
 				return ps.get();
+			}
+			@Override
+			public Supplier<T> getSupplier() {
+				return ps.getSupplier();
 			}
 			@Override
 			public boolean test() {
@@ -342,6 +411,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 						return ps.get();
 					}
 					@Override
+					public Supplier<T> getSupplier() {
+						return ps.getSupplier();
+					}
+					@Override
 					public long getExpirationTime() {
 						return ((Expireable)ps).getExpirationTime();
 					}
@@ -362,6 +435,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 						return ps.get();
 					}
 					@Override
+					public Supplier<T> getSupplier() {
+						return ps.getSupplier();
+					}
+					@Override
 					public boolean test(State<K,L> t) {
 						return tester.test(t, ps);
 					}
@@ -378,6 +455,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 						return ps.get();
 					}
 					@Override
+					public Supplier<T> getSupplier() {
+						return ps.getSupplier();
+					}
+					@Override
 					public long getExpirationTime() {
 						return ((Expireable)ps).getExpirationTime();
 					}
@@ -391,6 +472,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 				@Override
 				public T get() {
 					return ps.get();
+				}
+				@Override
+				public Supplier<T> getSupplier() {
+					return ps.getSupplier();
 				}
 				@Override
 				public boolean test(State<K,L> t) {

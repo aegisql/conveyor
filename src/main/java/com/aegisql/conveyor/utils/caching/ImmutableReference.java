@@ -3,6 +3,7 @@ package com.aegisql.conveyor.utils.caching;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.ProductSupplier;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -10,7 +11,7 @@ import com.aegisql.conveyor.BuilderSupplier;
  *
  * @param <T> the generic type
  */
-public class ImmutableReference<T> implements Supplier<T> {
+public class ImmutableReference<T> implements ProductSupplier<T> {
 
 	/** The reference. */
 	protected final T reference;
@@ -39,6 +40,11 @@ public class ImmutableReference<T> implements Supplier<T> {
 	@Override
 	public String toString() {
 		return "Ref: "+reference;
+	}
+
+	@Override
+	public Supplier<T> getSupplier() {
+		return this;
 	}
 	
 }

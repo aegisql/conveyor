@@ -171,21 +171,28 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			boolean saveCarts, boolean postponeExpirationEnabled, long addExpirationTimeMsec, boolean postponeExpirationOnTimeoutEnabled) {
 		this.initialCart               = cart;
 		this.lastCart                  = cart;
-		this.builder                   = builderSupplier.get() ;
 		this.defaultTimeoutAction      = timeoutAction;
 		this.saveCarts                 = saveCarts;
 		this.postponeExpirationEnabled = postponeExpirationEnabled;
 		this.postponeExpirationOnTimeoutEnabled = postponeExpirationOnTimeoutEnabled;
 		this.addExpirationTimeMsec     = addExpirationTimeMsec;
 		this.defaultValueConsumer             = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
+
+		Supplier<? extends OUT> productSupplier = builderSupplier.get();
+		if( productSupplier instanceof ProductSupplier && ((ProductSupplier)productSupplier).getSupplier() != null) {
+			this.builder = ((ProductSupplier)productSupplier).getSupplier();
+		} else {
+			this.builder = productSupplier;
+		}
+		
 		if(synchronizeBuilder) {
 			this.lock = new ReentrantLock();
 		} else {
 			this.lock = BuildingSite.NON_LOCKING_LOCK;
 		}
-		if (builder instanceof TimeoutAction) {
+		if (productSupplier instanceof TimeoutAction) {
 			this.timeoutAction = b -> {
-				((TimeoutAction) builder).onTimeout();
+				((TimeoutAction) productSupplier).onTimeout();
 			};
 		} else if (defaultTimeoutAction != null) {
 			this.timeoutAction = defaultTimeoutAction;
@@ -196,7 +203,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		if(readiness != null) {
 			this.readiness = readiness;			
 		} else {
-			if(builder instanceof TestingState) {
+			if(productSupplier instanceof TestingState) {
 				this.readiness = (state,builder) -> {
 					lock.lock();
 					try {
@@ -205,7 +212,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 						lock.unlock();
 					}
 				};
-			}else if(builder instanceof Testing) {
+			}else if(productSupplier instanceof Testing) {
 				this.readiness = (state,builder) -> {
 					lock.lock();
 					try {
@@ -221,8 +228,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			}			
 		}
 		this.eventHistory.put(cart.getLabel(), new AtomicInteger(0));
-		if(builder instanceof Expireable) {
-			Expireable expireable = (Expireable)builder;
+		if(productSupplier instanceof Expireable) {
+			Expireable expireable = (Expireable)productSupplier;
 			builderCreated    = System.currentTimeMillis();
 			expireableSource  = expireable;
 		} else {
