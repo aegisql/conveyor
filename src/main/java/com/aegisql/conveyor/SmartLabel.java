@@ -27,8 +27,8 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	@Override
 	BiConsumer<B, Object> get();
 	
-	static <B> SmartLabel<B> of(BiConsumer<B, Object> method) {
-		return ()->method;
+	static <B,T> SmartLabel<B> of(BiConsumer<B, T> method) {
+		return ()->(b,t)->method.accept(b,(T)t);
 	}
 	static <B> SmartLabel<B> of(Consumer<B> method) {
 		return () -> {
