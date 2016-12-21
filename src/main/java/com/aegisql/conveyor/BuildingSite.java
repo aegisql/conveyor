@@ -204,19 +204,20 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			this.readiness = readiness;			
 		} else {
 			if(productSupplier instanceof TestingState) {
-				this.readiness = (state,builder) -> {
+				LOG.debug("----- TS ready");
+				this.readiness = (state,b) -> {
 					lock.lock();
 					try {
-						return ((TestingState<K,L>)builder).test(state);
+						return ((TestingState<K,L>)productSupplier).test(state);
 					} finally {
 						lock.unlock();
 					}
 				};
 			}else if(productSupplier instanceof Testing) {
-				this.readiness = (state,builder) -> {
+				this.readiness = (state,b) -> {
 					lock.lock();
 					try {
-						return ((Testing)builder).test();
+						return ((Testing)productSupplier).test();
 					} finally {
 						lock.unlock();
 					}
