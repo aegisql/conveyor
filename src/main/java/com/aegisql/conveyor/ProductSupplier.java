@@ -45,15 +45,10 @@ public interface ProductSupplier<T> extends Supplier<T> {
 	default <K,L> ProductSupplier<T> expire(final Expireable other) {
 		final ProductSupplier<T> ps = this;
 		
-		boolean isE = ps instanceof Expireable;
 		boolean isT = ps instanceof Testing;
 		boolean isS = ps instanceof TestingState;
 		boolean isO = ps instanceof TimeoutAction;
 
-		if(isE) {
-			throw new RuntimeException("Already instance of expireable");
-		}
-			
 		if(isT && isO) {
 			return new PETO<T>(){
 				@Override
@@ -161,12 +156,7 @@ public interface ProductSupplier<T> extends Supplier<T> {
 		boolean isE = ps instanceof Expireable;
 		boolean isT = ps instanceof Testing;
 		boolean isS = ps instanceof TestingState;
-		boolean isO = ps instanceof TimeoutAction;
 
-		if(isO) {
-			throw new RuntimeException("Already instance of TimeoutAction");
-		}
-		
 		if(isT && isE) {
 			return new PETO<T>(){
 				@Override
@@ -272,17 +262,8 @@ public interface ProductSupplier<T> extends Supplier<T> {
 		final ProductSupplier<T> ps = this;
 		
 		boolean isE = ps instanceof Expireable;
-		boolean isT = ps instanceof Testing;
-		boolean isS = ps instanceof TestingState;
 		boolean isO = ps instanceof TimeoutAction;
 
-		if(isT) {
-			throw new RuntimeException("Already instance of Testing");
-		}
-		if(isS) {
-			throw new RuntimeException("Already instance of TestingState");
-		}
-		
 		if(isO && isE) {
 			return new PETO<T>(){
 				@Override
@@ -352,17 +333,8 @@ public interface ProductSupplier<T> extends Supplier<T> {
 			final ProductSupplier<T> ps = this;
 			
 			boolean isE = ps instanceof Expireable;
-			boolean isT = ps instanceof Testing;
-			boolean isS = ps instanceof TestingState;
 			boolean isO = ps instanceof TimeoutAction;
 
-			if(isT) {
-				throw new RuntimeException("Already instance of Testing");
-			}
-			if(isS) {
-				throw new RuntimeException("Already instance of TestingState");
-			}
-			
 			if(isO && isE) {
 				return new PESO<T,K,L>(){
 					@Override

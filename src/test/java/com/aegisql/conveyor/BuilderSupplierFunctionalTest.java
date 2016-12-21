@@ -151,7 +151,7 @@ public class BuilderSupplierFunctionalTest {
 		});
 		c.setReadinessEvaluator((b)->false);
 		
-		BuilderSupplier<User> bs = ((BuilderSupplier<User>)UserBuilder::new).expire(1, TimeUnit.SECONDS);
+		BuilderSupplier<User> bs = ((BuilderSupplier<User>)UserBuilder::new).expire(200, TimeUnit.MILLISECONDS);
 		System.out.println("BS="+bs.get());						
 		
 		CompletableFuture<User> f = c.createBuildFuture(1,bs);

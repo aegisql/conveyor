@@ -27,6 +27,78 @@ public class ProductSupplierTest {
 	}
 
 	@Test
+	public void testE() {
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST E");
+		assertFalse(ps instanceof Expireable);
+		ps = ps.expire(()->1000);
+		assertTrue(ps instanceof Expireable);
+		assertEquals(1000,((Expireable)ps).getExpirationTime());
+		ps = ps.expire(()->2000);
+		assertTrue(ps instanceof Expireable);
+		assertEquals(2000,((Expireable)ps).getExpirationTime());
+	}
+
+	@Test
+	public void testO() {
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST O");
+		assertFalse(ps instanceof TimeoutAction);
+		ps = ps.timeout(b->{System.out.println(b.get());});
+		assertTrue(ps instanceof TimeoutAction);
+		((TimeoutAction)ps).onTimeout();
+		ps = ps.timeout(b->{System.out.println("TEST OTHER");});
+		assertTrue(ps instanceof TimeoutAction);
+		((TimeoutAction)ps).onTimeout();
+	}
+
+	@Test
+	public void testT() {
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST T");
+		assertFalse(ps instanceof Testing);
+		ps = ps.testing(b->true);
+		assertTrue(ps instanceof Testing);
+		assertTrue(((Testing)ps).test());
+		ps = ps.testing(b->false);
+		assertTrue(ps instanceof Testing);
+		assertFalse(((Testing)ps).test());
+	}
+
+	@Test
+	public void testS() {
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST S");
+		assertFalse(ps instanceof TestingState);
+		ps = ps.testingState((s,b)->true);
+		assertTrue(ps instanceof TestingState);
+		assertTrue(((TestingState)ps).test(null));
+		ps = ps.testingState((s,b)->false);
+		assertTrue(ps instanceof TestingState);
+		assertFalse(((TestingState)ps).test(null));
+	}
+
+	@Test
+	public void testTS() {
+		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST S");
+		assertFalse(ps instanceof Testing);
+		assertFalse(ps instanceof TestingState);
+		//first state
+		ps = ps.testingState((s,b)->true);
+		assertFalse(ps instanceof Testing);
+		assertTrue(ps instanceof TestingState);
+		assertTrue(((TestingState)ps).test(null));
+		//to testing
+		ps = ps.testing(b->false);
+		assertTrue(ps instanceof Testing);
+		assertFalse(ps instanceof TestingState);
+		assertFalse(((Testing)ps).test());
+		//and back
+		ps = ps.testingState((s,b)->true);
+		assertFalse(ps instanceof Testing);
+		assertTrue(ps instanceof TestingState);
+		assertTrue(((TestingState)ps).test(null));
+
+	}
+
+	
+	@Test
 	public void testOf() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST OE");
 		assertFalse(ps instanceof Expireable);
