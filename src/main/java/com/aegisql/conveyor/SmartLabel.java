@@ -32,7 +32,12 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	}
 	static <B> SmartLabel<B> of(Consumer<B> method) {
 		return () -> {
-			return (b,phony) -> method.accept(b);
+			return (b,oPhony) -> method.accept(b);
+		};
+	}
+	static <B> SmartLabel<B> of(Runnable method) {
+		return () -> {
+			return (bPhoby,oPhony) -> method.run();
 		};
 	}
 	default SmartLabel<B> identity() {
