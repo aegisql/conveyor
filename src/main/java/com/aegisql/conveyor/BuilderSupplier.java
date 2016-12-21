@@ -15,11 +15,7 @@ import java.util.function.Supplier;
  * @param <T> the generic type
  */
 public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
-	
-	interface ExpireableBuilderSupplier<T> extends Supplier<T>, Expireable {};
-	interface TestingBuilderSupplier<T> extends Supplier<T>, Testing {};
-	interface TestingStateBuilderSupplier<T,K,L> extends Supplier<T>, TestingState<K,L> {};
-	interface TimingOutBuilderSupplier<T> extends Supplier<T>, TimeoutAction {};
+
 	interface BuilderFutureSupplier<T> extends BuilderSupplier<T>, FutureSupplier<T> {};
 
 	static <T> BuilderSupplier<T> of(BuilderSupplier<T> instance) {
@@ -50,7 +46,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		};
 	}	
 
-	default BuilderSupplier<T> test(Predicate<Supplier<? extends T>> tester) {
+	default BuilderSupplier<T> readyAlgorithm(Predicate<Supplier<? extends T>> tester) {
 		BuilderSupplier <T> bs = this;
 		return new BuilderSupplier<T>() {
 			@Override
@@ -60,7 +56,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		};
 	}
 
-	default <K,L> BuilderSupplier<T> testState(BiPredicate<State<K,L>, Supplier<? extends T>> tester) {
+	default <K,L> BuilderSupplier<T> readyAlgorithm(BiPredicate<State<K,L>, Supplier<? extends T>> tester) {
 		BuilderSupplier <T> bs = this;
 		return new BuilderSupplier<T>() {
 			@Override
@@ -70,7 +66,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		};
 	}
 
-	default BuilderSupplier<T> timeout(Consumer<Supplier<? extends T>> consumer) {
+	default BuilderSupplier<T> onTimeout(Consumer<Supplier<? extends T>> consumer) {
 		BuilderSupplier <T> bs = this;
 		return new BuilderSupplier<T>() {
 			@Override

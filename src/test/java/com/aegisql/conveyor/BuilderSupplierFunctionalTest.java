@@ -163,7 +163,7 @@ public class BuilderSupplierFunctionalTest {
 	public void testTestPredicate() {
 		BuilderSupplier<User> bs = UserBuilder::new;
 		assertFalse(bs instanceof Testing);
-		bs = bs.test(b->{
+		bs = bs.readyAlgorithm(b->{
 			return true;
 		});
 		assertNotNull(bs);
@@ -181,7 +181,7 @@ public class BuilderSupplierFunctionalTest {
 	public void testTestExpireablePredicate() {
 		BuilderSupplier<User> bs = UserBuilder::new;
 		assertFalse(bs instanceof Testing);
-		bs = bs.test(b->{
+		bs = bs.readyAlgorithm(b->{
 			return true;
 		}).expire(1000);
 		assertNotNull(bs);
