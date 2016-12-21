@@ -701,7 +701,7 @@ public class SmartConveyorTest {
 	}
 
 	@Test
-	public void testUpperCaseWithAddedExpiration() throws InterruptedException, ExecutionException, TimeoutException {
+	public void testUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 
 		conveyor.setResultConsumer(res -> {
@@ -730,4 +730,38 @@ public class SmartConveyorTest {
 		assertEquals(user1,new UpperUser("JOHN","DOE",1999));
 		conveyor.stop();
 	}
+
+	@Test(expected=CancellationException.class)
+	public void testFailingUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException, TimeoutException {
+		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
+
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
+		conveyor.setName("User Upper Assembler");
+		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
+		
+		CompletableFuture<User> f1 = conveyor.createBuildFuture(1,
+				BuilderSupplier.of(UpperCaseUserBuilder::new)
+				.expire(100,TimeUnit.MILLISECONDS)
+				.readyAlgorithm(new ReadinessTester<Integer, AbstractBuilderEvents, User>().accepted(4))
+				.onTimeout((b)->{System.out.println("--- TIMEOUT--- "+b.get());})
+				);
+		
+		assertNotNull(f1);
+		assertFalse(f1.isCancelled());
+		assertFalse(f1.isCompletedExceptionally());
+		assertFalse(f1.isDone());
+
+		conveyor.offer(1, "John", AbstractBuilderEvents.SET_FIRST);
+		conveyor.offer(1, "Doe", AbstractBuilderEvents.SET_LAST);
+		conveyor.offer(1, 1999, AbstractBuilderEvents.SET_YEAR);
+
+		User user1 = f1.get();
+		assertNotNull(user1);
+		System.out.println(user1);
+		assertEquals(user1,new UpperUser("JOHN","DOE",1999));
+		conveyor.stop();
+	}
+
 }

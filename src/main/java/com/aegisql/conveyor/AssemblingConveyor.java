@@ -1147,7 +1147,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				continue;
 			}
 			
-			if (timeoutAction != null || buildingSite.getBuilder() instanceof TimeoutAction) {
+			if (timeoutAction != null || buildingSite.getTimeoutAction() != null) {
 				try {
 					ShoppingCart<K, Object, L> to = new ShoppingCart<K, Object, L>(
 							buildingSite.getKey(), Status.TIMED_OUT, null);

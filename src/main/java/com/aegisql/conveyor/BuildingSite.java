@@ -197,14 +197,13 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		} else if (defaultTimeoutAction != null) {
 			this.timeoutAction = defaultTimeoutAction;
 		} else {
-			this.timeoutAction = b -> {/* do nothing */};
+			this.timeoutAction = null;
 		}
 
 		if(readiness != null) {
 			this.readiness = readiness;			
 		} else {
 			if(productSupplier instanceof TestingState) {
-				LOG.debug("----- TS ready");
 				this.readiness = (state,b) -> {
 					lock.lock();
 					try {
@@ -616,6 +615,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			}
 		}
 		return valueConsumer;
+	}
+
+	public Consumer<Supplier<? extends OUT>> getTimeoutAction() {
+		return timeoutAction;
 	}
 		
 }
