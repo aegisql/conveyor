@@ -45,15 +45,15 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	}
 	default <T> SmartLabel<B> intercept(Class<T> clas, Consumer<T> interceptor) {
 		SmartLabel<B> sl = this;
-		return ()->(b,o)->{
+		return ()->(bPhony,o)->{
 			if( o != null ) {
 				if( clas.isAssignableFrom(o.getClass())) {
 					interceptor.accept((T)o);
 				} else {
-					sl.get().accept(b,o);					
+					sl.get().accept(bPhony,o);					
 				}
 			} else {
-				sl.get().accept(b,o);
+				sl.get().accept(bPhony,o);
 			}
 		};
 	}
@@ -68,6 +68,20 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 				}
 			} else {
 				sl.get().accept(b,o);
+			}
+		};
+	}
+	default <T> SmartLabel<B> intercept(Class<T> clas, Runnable interceptor) {
+		SmartLabel<B> sl = this;
+		return ()->(bPhony,oPhony)->{
+			if( oPhony != null ) {
+				if( clas.isAssignableFrom(oPhony.getClass())) {
+					interceptor.run();
+				} else {
+					sl.get().accept(bPhony,oPhony);					
+				}
+			} else {
+				sl.get().accept(bPhony,oPhony);
 			}
 		};
 	}
