@@ -2,6 +2,9 @@ package com.aegisql.conveyor;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -125,4 +128,82 @@ public class SmartLabelFunctionalTest {
 		assertEquals(1, u.getYearOfBirth());
 	}
 
+	@Test
+	public void testBeforeAfterBiConsumer() {
+		UserBuilderSmart b = new UserBuilderSmart();
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
+		assertNotNull(l1);
+		l1 = l1.before((builder,value)->{
+			System.out.println("Before "+value);
+		});
+		assertNotNull(l1);
+		l1 = l1.andThen((builder,value)->{
+			System.out.println("After "+value);			
+		});
+		assertNotNull(l1);
+		l1.get().accept(b, "TEST");	
+		User u = b.get();
+		assertEquals("TEST",u.getFirst());
+	}
+
+	@Test
+	public void testBeforeAfterConsumer() {
+		UserBuilderSmart b = new UserBuilderSmart();
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
+		assertNotNull(l1);
+		l1 = l1.before((value)->{
+			System.out.println("Before "+value);
+		});
+		assertNotNull(l1);
+		l1 = l1.andThen((value)->{
+			System.out.println("After "+value);			
+		});
+		assertNotNull(l1);
+		l1.get().accept(b, "TEST");	
+		User u = b.get();
+		assertEquals("TEST",u.getFirst());
+	}
+
+	@Test
+	public void testBeforeAfterRunnable() {
+		UserBuilderSmart b = new UserBuilderSmart();
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
+		assertNotNull(l1);
+		l1 = l1.before(()->{
+			System.out.println("Before");
+		});
+		assertNotNull(l1);
+		l1 = l1.andThen(()->{
+			System.out.println("After");			
+		});
+		assertNotNull(l1);
+		l1.get().accept(b, "TEST");	
+		User u = b.get();
+		assertEquals("TEST",u.getFirst());
+	}
+
+	
+	@Test
+	public void testBiConsumerConv() throws InterruptedException, ExecutionException {
+		
+		AssemblingConveyor<Integer, SmartLabel<UserBuilderSmart>, User> c = new AssemblingConveyor<>();
+		
+		CompletableFuture<User> f = c.createBuildFuture(1,BuilderSupplier.of(UserBuilderSmart::new).readyAlgorithm(new ReadinessTester().accepted(3)));
+		UserBuilderSmart b = new UserBuilderSmart();
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
+		SmartLabel<UserBuilderSmart> l2 = SmartLabel.of(UserBuilderSmart::setLast);
+		SmartLabel<UserBuilderSmart> l3 = SmartLabel.of(UserBuilderSmart::setYearOfBirth);
+		c.add(1,"FIRST",l1);
+		c.add(1,"LAST",l2);
+		c.add(1,1999,l3);
+		assertNotNull(l1);
+		assertNotNull(l2);
+		assertNotNull(l3);
+		User u = f.get();
+		assertEquals("FIRST",u.getFirst());
+		assertEquals("LAST",u.getLast());
+		assertEquals(1999,u.getYearOfBirth());
+	}
+
+	
 }

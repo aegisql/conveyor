@@ -85,5 +85,49 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 			}
 		};
 	}
+	default <T> SmartLabel<B> andThen(BiConsumer<B,T> after) {
+		SmartLabel<B> sl = this;
+		return ()->(b,o) -> {
+			sl.get().accept(b, o);
+			after.accept(b, (T)o);
+		};
+	}
+	default <T> SmartLabel<B> before(BiConsumer<B,T> before) {
+		SmartLabel<B> sl = this;
+		return ()->(b,o) -> {
+			before.accept(b, (T)o);
+			sl.get().accept(b, o);
+		};
+	}
+	default <T> SmartLabel<B> andThen(Consumer<T> after) {
+		SmartLabel<B> sl = this;
+		return ()->(bPhony,o) -> {
+			sl.get().accept(bPhony, o);
+			after.accept((T)o);
+		};
+	}
+	default <T> SmartLabel<B> before(Consumer<T> before) {
+		SmartLabel<B> sl = this;
+		return ()->(bPhony,o) -> {
+			before.accept((T)o);
+			sl.get().accept(bPhony, o);
+		};
+	}
+	default SmartLabel<B> andThen(Runnable after) {
+		SmartLabel<B> sl = this;
+		return ()->(bPhony,o) -> {
+			sl.get().accept(bPhony, o);
+			after.run();
+		};
+	}
+	default SmartLabel<B> before(Runnable before) {
+		SmartLabel<B> sl = this;
+		return ()->(bPhony,o) -> {
+			before.run();
+			sl.get().accept(bPhony, o);
+		};
+	}
+
+	
 	
 }
