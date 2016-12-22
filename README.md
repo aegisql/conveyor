@@ -8,11 +8,14 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.1.7</version>
+  <version>1.1.8</version>
 </dependency>
 ```
 
 ## Release History
+
+### 1.1.8
+* Added default methods on basic functional interfaces: ProductSupplier, SmartLabel and LabeledValueConsumer. This allows to construct very flexible builders and data consumers
 
 ### 1.1.7
 * Added explicit timeout postpone for TimeoutAction (if postpone enabled) to resolve possible conflicts with cache implementations  
