@@ -161,4 +161,35 @@ public class ValueConsumerTest {
 	}
 
 
+	@Test
+	public void testAcceptBiCon() {
+		LabeledValueConsumer<Integer, String, StringBuilder> lvc = (l,v,b) -> {
+			b.append(v.toUpperCase());
+		};
+
+		StringBuilder sb = new StringBuilder();
+
+		lvc = lvc.filter(l -> l < 5 , (b,v)->{
+			b.append(v.toLowerCase());			
+		});
+
+		lvc = lvc.ignore(l->l>10);
+		
+		System.out.println(sb);
+		
+		lvc.accept(1, "A", sb);
+		lvc.accept(2, "B", sb);
+		lvc.accept(3, "C", sb);
+		lvc.accept(4, "D", sb);
+		lvc.accept(5, "e", sb);
+		lvc.accept(6, "f", sb);
+		lvc.accept(7, "g", sb);
+
+		lvc.accept(11, "x", sb);
+		lvc.accept(12, "y", sb);
+
+		
+		assertEquals("abcdEFG", sb.toString());
+	}
+
 }

@@ -5,6 +5,7 @@ package com.aegisql.conveyor;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -55,9 +56,21 @@ public interface LabeledValueConsumer<L,V,B> {
 	}
 
 	default LabeledValueConsumer<L,V,B> when(L label, BiConsumer<B,V> consumer) {
+		return filter(l->l.equals(label),consumer);
+	}
+
+	default LabeledValueConsumer<L,V,B> when(L label, Consumer<V> consumer) {
+		return filter(l->l.equals(label),consumer);
+	}
+
+	default LabeledValueConsumer<L,V,B> when(L label, Runnable runnable) {
+		return filter(l->l.equals(label),runnable);
+	}
+
+	default LabeledValueConsumer<L,V,B> filter(Predicate<L> label, BiConsumer<B,V> consumer) {
 		LabeledValueConsumer<L,V,B> lvc = this;
 		return (l,v,b)->{
-			if( l.equals(label) ) {
+			if( label.test(l) ) {
 				consumer.accept(b, v);
 			} else {
 				lvc.accept(l, v, b);
@@ -65,10 +78,10 @@ public interface LabeledValueConsumer<L,V,B> {
 		};
 	}
 
-	default LabeledValueConsumer<L,V,B> when(L label, Consumer<V> consumer) {
+	default LabeledValueConsumer<L,V,B> filter(Predicate<L> label, Consumer<V> consumer) {
 		LabeledValueConsumer<L,V,B> lvc = this;
 		return (l,v,b)->{
-			if( l.equals(label) ) {
+			if( label.test(l) ) {
 				consumer.accept(v);
 			} else {
 				lvc.accept(l, v, b);
@@ -76,11 +89,11 @@ public interface LabeledValueConsumer<L,V,B> {
 		};
 	}
 
-	default LabeledValueConsumer<L,V,B> when(L label, Runnable consumer) {
+	default LabeledValueConsumer<L,V,B> filter(Predicate<L> label, Runnable runnable) {
 		LabeledValueConsumer<L,V,B> lvc = this;
 		return (l,v,b)->{
-			if( l.equals(label) ) {
-				consumer.run();
+			if( label.test(l) ) {
+				runnable.run();
 			} else {
 				lvc.accept(l, v, b);
 			}
@@ -88,9 +101,13 @@ public interface LabeledValueConsumer<L,V,B> {
 	}
 
 	default LabeledValueConsumer<L,V,B> ignore(L label) {
+		return ignore(l->l.equals(label));
+	}
+
+	default LabeledValueConsumer<L,V,B> ignore(Predicate<L> label) {
 		LabeledValueConsumer<L,V,B> lvc = this;
 		return (l,v,b)->{
-			if( ! l.equals(label) ) {
+			if( ! label.test(l) ) {
 				lvc.accept(l, v, b);
 			}
 		};
