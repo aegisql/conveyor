@@ -19,25 +19,52 @@ import org.junit.Test;
 import com.aegisql.conveyor.multichannel.UserBuilder;
 import com.aegisql.conveyor.user.User;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class BuilderSupplierFunctionalTest.
+ */
 public class BuilderSupplierFunctionalTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
 	
+	/**
+	 * Test expireable timestamp.
+	 */
 	@Test
 	public void testExpireableTimestamp() {
 		BuilderSupplier<User> bs = UserBuilder::new;
@@ -55,6 +82,9 @@ public class BuilderSupplierFunctionalTest {
 		assertEquals(1000, ex.getExpirationTime());
 	}
 
+	/**
+	 * Test expireable other.
+	 */
 	@Test
 	public void testExpireableOther() {
 		BuilderSupplier<User> bs = UserBuilder::new;
@@ -72,6 +102,9 @@ public class BuilderSupplierFunctionalTest {
 	}
 
 	
+	/**
+	 * Test expireable time unit.
+	 */
 	@Test
 	public void testExpireableTimeUnit() {
 		BuilderSupplier<User> bs = UserBuilder::new;
@@ -88,6 +121,9 @@ public class BuilderSupplierFunctionalTest {
 		assertTrue(ex.getExpirationTime()-System.currentTimeMillis() > 500);
 	}
 
+	/**
+	 * Test expireable duration.
+	 */
 	@Test
 	public void testExpireableDuration() {
 		BuilderSupplier<User> bs = UserBuilder::new;
@@ -104,6 +140,9 @@ public class BuilderSupplierFunctionalTest {
 		assertTrue(ex.getExpirationTime()-System.currentTimeMillis() > 500);
 	}
 
+	/**
+	 * Test expireable instant.
+	 */
 	@Test
 	public void testExpireableInstant() {
 		BuilderSupplier<User> bs = UserBuilder::new;
@@ -120,6 +159,9 @@ public class BuilderSupplierFunctionalTest {
 		assertTrue(ex.getExpirationTime()-System.currentTimeMillis() > 500);
 	}
 
+	/**
+	 * Test double expireable.
+	 */
 	@Test
 	public void testDoubleExpireable() {
 		BuilderSupplier<User> bs = UserBuilder::new;
@@ -135,6 +177,12 @@ public class BuilderSupplierFunctionalTest {
 		assertEquals(2000, ex.getExpirationTime());
 	}
 	
+	/**
+	 * Test conv with expire.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testConvWithExpire() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> c = new AssemblingConveyor<>();
@@ -159,6 +207,9 @@ public class BuilderSupplierFunctionalTest {
 		
 	}
 
+	/**
+	 * Test test predicate.
+	 */
 	@Test
 	public void testTestPredicate() {
 		BuilderSupplier<User> bs = UserBuilder::new;
@@ -177,6 +228,9 @@ public class BuilderSupplierFunctionalTest {
 		assertTrue(t.test());
 	}
 
+	/**
+	 * Test test expireable predicate.
+	 */
 	@Test
 	public void testTestExpireablePredicate() {
 		BuilderSupplier<User> bs = UserBuilder::new;
@@ -197,6 +251,9 @@ public class BuilderSupplierFunctionalTest {
 	}
 
 	
+	/**
+	 * Test.
+	 */
 	@Test
 	public void test() {
 		BuilderSupplier<User> bs = BuilderSupplier

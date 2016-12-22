@@ -242,6 +242,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The forwarding to. */
 	private String forwardingTo = "not forwarding";
 
+	/** The postpone expiration on timeout enabled. */
 	private boolean postponeExpirationOnTimeoutEnabled;
 
 	/**
@@ -361,12 +362,17 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 		
 	
+	/**
+	 * Instantiates a new assembling conveyor.
+	 */
 	public AssemblingConveyor() {
 		this(ConcurrentLinkedQueue<Cart<K,?,L>>::new);
 	}
 	
 	/**
 	 * Instantiates a new assembling conveyor.
+	 *
+	 * @param cartQueueSupplier the cart queue supplier
 	 */
 	public AssemblingConveyor(Supplier<Queue<? extends Cart<K,?,?>>> cartQueueSupplier) {
 		this.inQueue = (Queue<Cart<K, ?, L>>) cartQueueSupplier.get();
@@ -1121,6 +1127,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 	
+	/**
+	 * Postpone timeout.
+	 *
+	 * @param bs the bs
+	 * @return true, if successful
+	 */
 	private boolean postponeTimeout(BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> bs) {
 		if(postponeExpirationEnabled) {
 			long expirationTime = bs.getExpirationTime();
@@ -1606,6 +1618,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.postponeExpirationEnabled = flag;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#enablePostponeExpirationOnTimeout(boolean)
+	 */
 	@Override
 	public void enablePostponeExpirationOnTimeout(boolean flag) {
 		this.postponeExpirationOnTimeoutEnabled = flag;

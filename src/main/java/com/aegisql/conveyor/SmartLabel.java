@@ -27,22 +27,61 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	@Override
 	BiConsumer<B, Object> get();
 	
+	/**
+	 * Of.
+	 *
+	 * @param <B> the generic type
+	 * @param <T> the generic type
+	 * @param method the method
+	 * @return the smart label
+	 */
 	static <B,T> SmartLabel<B> of(BiConsumer<B, T> method) {
 		return ()->(b,t)->method.accept(b,(T)t);
 	}
+	
+	/**
+	 * Of.
+	 *
+	 * @param <B> the generic type
+	 * @param method the method
+	 * @return the smart label
+	 */
 	static <B> SmartLabel<B> of(Consumer<B> method) {
 		return () -> {
 			return (b,oPhony) -> method.accept(b);
 		};
 	}
+	
+	/**
+	 * Of.
+	 *
+	 * @param <B> the generic type
+	 * @param method the method
+	 * @return the smart label
+	 */
 	static <B> SmartLabel<B> of(Runnable method) {
 		return () -> {
 			return (bPhoby,oPhony) -> method.run();
 		};
 	}
+	
+	/**
+	 * Identity.
+	 *
+	 * @return the smart label
+	 */
 	default SmartLabel<B> identity() {
 		return this;
 	}
+	
+	/**
+	 * Intercept.
+	 *
+	 * @param <T> the generic type
+	 * @param clas the clas
+	 * @param interceptor the interceptor
+	 * @return the smart label
+	 */
 	default <T> SmartLabel<B> intercept(Class<T> clas, Consumer<T> interceptor) {
 		SmartLabel<B> sl = this;
 		return ()->(bPhony,o)->{
@@ -57,6 +96,15 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 			}
 		};
 	}
+	
+	/**
+	 * Intercept.
+	 *
+	 * @param <T> the generic type
+	 * @param clas the clas
+	 * @param interceptor the interceptor
+	 * @return the smart label
+	 */
 	default <T> SmartLabel<B> intercept(Class<T> clas, BiConsumer<B,T> interceptor) {
 		SmartLabel<B> sl = this;
 		return ()->(b,o)->{
@@ -71,6 +119,15 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 			}
 		};
 	}
+	
+	/**
+	 * Intercept.
+	 *
+	 * @param <T> the generic type
+	 * @param clas the clas
+	 * @param interceptor the interceptor
+	 * @return the smart label
+	 */
 	default <T> SmartLabel<B> intercept(Class<T> clas, Runnable interceptor) {
 		SmartLabel<B> sl = this;
 		return ()->(bPhony,oPhony)->{
@@ -85,6 +142,14 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 			}
 		};
 	}
+	
+	/**
+	 * And then.
+	 *
+	 * @param <T> the generic type
+	 * @param after the after
+	 * @return the smart label
+	 */
 	default <T> SmartLabel<B> andThen(BiConsumer<B,T> after) {
 		SmartLabel<B> sl = this;
 		return ()->(b,o) -> {
@@ -92,6 +157,14 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 			after.accept(b, (T)o);
 		};
 	}
+	
+	/**
+	 * Before.
+	 *
+	 * @param <T> the generic type
+	 * @param before the before
+	 * @return the smart label
+	 */
 	default <T> SmartLabel<B> before(BiConsumer<B,T> before) {
 		SmartLabel<B> sl = this;
 		return ()->(b,o) -> {
@@ -99,6 +172,14 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 			sl.get().accept(b, o);
 		};
 	}
+	
+	/**
+	 * And then.
+	 *
+	 * @param <T> the generic type
+	 * @param after the after
+	 * @return the smart label
+	 */
 	default <T> SmartLabel<B> andThen(Consumer<T> after) {
 		SmartLabel<B> sl = this;
 		return ()->(bPhony,o) -> {
@@ -106,6 +187,14 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 			after.accept((T)o);
 		};
 	}
+	
+	/**
+	 * Before.
+	 *
+	 * @param <T> the generic type
+	 * @param before the before
+	 * @return the smart label
+	 */
 	default <T> SmartLabel<B> before(Consumer<T> before) {
 		SmartLabel<B> sl = this;
 		return ()->(bPhony,o) -> {
@@ -113,6 +202,13 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 			sl.get().accept(bPhony, o);
 		};
 	}
+	
+	/**
+	 * And then.
+	 *
+	 * @param after the after
+	 * @return the smart label
+	 */
 	default SmartLabel<B> andThen(Runnable after) {
 		SmartLabel<B> sl = this;
 		return ()->(bPhony,o) -> {
@@ -120,6 +216,13 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 			after.run();
 		};
 	}
+	
+	/**
+	 * Before.
+	 *
+	 * @param before the before
+	 * @return the smart label
+	 */
 	default SmartLabel<B> before(Runnable before) {
 		SmartLabel<B> sl = this;
 		return ()->(bPhony,o) -> {

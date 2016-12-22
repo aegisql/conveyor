@@ -135,6 +135,11 @@ public class UserBuilderExpireable implements Supplier<User>, Expireable {
 		return builderExpiration;
 	}
 
+	/**
+	 * Adds the expiration time.
+	 *
+	 * @param time the time
+	 */
 	public void addExpirationTime(long time) {
 		builderExpiration = System.currentTimeMillis()+time;
 	}

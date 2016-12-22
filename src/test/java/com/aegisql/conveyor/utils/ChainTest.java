@@ -70,7 +70,7 @@ public class ChainTest {
 	 * Test chain.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException the execution exception
 	 */
 	@Test
 	public void testChain() throws InterruptedException, ExecutionException {

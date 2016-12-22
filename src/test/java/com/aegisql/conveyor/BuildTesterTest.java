@@ -22,30 +22,60 @@ import com.aegisql.conveyor.user.UserBuilderSmart;
 import com.aegisql.conveyor.user.UserBuilderTesting;
 import com.aegisql.conveyor.user.UserBuilderTestingState;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class BuildTesterTest.
+ */
 public class BuildTesterTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test trivial case.
+	 */
 	@Test
 	public void testTrivialCase() {
 		ReadinessTester<String, String, String> bt = new ReadinessTester<>();
 		assertTrue(bt.test(null,null));
 	}
 
+	/**
+	 * Test accepted times.
+	 */
 	@Test
 	public void testAcceptedTimes() {
 		ReadinessTester<String, String, String> bt1 = new ReadinessTester<String, String, String>().accepted(2);
@@ -55,6 +85,9 @@ public class BuildTesterTest {
 		assertFalse(bt2.test(st,null));
 	}
 
+	/**
+	 * Test accepted label.
+	 */
 	@Test
 	public void testAcceptedLabel() {
 		ReadinessTester<String, String, String> bt1 = new ReadinessTester<String, String, String>().accepted("A");
@@ -67,6 +100,9 @@ public class BuildTesterTest {
 		assertFalse(bt2.test(st,null));
 	}
 
+	/**
+	 * Test accepted label complex.
+	 */
 	@Test
 	public void testAcceptedLabelComplex() {
 		ReadinessTester<String, String, String> bt1 = new ReadinessTester<String, String, String>().accepted("A")
@@ -85,6 +121,9 @@ public class BuildTesterTest {
 		assertTrue(bt3.test(st,null));
 	}
 
+	/**
+	 * Test accepted label 2.
+	 */
 	@Test
 	public void testAcceptedLabel2() {
 		ReadinessTester<String, String, String> bt1 = new ReadinessTester<String, String, String>().accepted("A","C");
@@ -98,6 +137,9 @@ public class BuildTesterTest {
 	}
 
 	
+	/**
+	 * Test accepted label times.
+	 */
 	@Test
 	public void testAcceptedLabelTimes() {
 		ReadinessTester<String, String, String> bt1 = new ReadinessTester<String, String, String>().accepted("A",1).accepted("C") ;
@@ -110,6 +152,12 @@ public class BuildTesterTest {
 		assertFalse(bt2.test(st,null));
 	}
 	
+	/**
+	 * Test basics simple accept.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test
 	public void testBasicsSimpleAccept() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -129,6 +177,12 @@ public class BuildTesterTest {
 		assertNotNull(u);
 	}
 
+	/**
+	 * Test basics testing accept.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test
 	public void testBasicsTestingAccept() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
@@ -147,6 +201,13 @@ public class BuildTesterTest {
 		User u = f.get();
 		assertNotNull(u);
 	}
+	
+	/**
+	 * Test basics testing state accept.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test
 	public void testBasicsTestingStateAccept() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents3, User> conveyor = new AssemblingConveyor<>();

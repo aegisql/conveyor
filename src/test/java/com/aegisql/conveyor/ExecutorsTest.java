@@ -171,6 +171,13 @@ public class ExecutorsTest {
 	}
 
 	
+	/**
+	 * Test future timeout start.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException the timeout exception
+	 */
 	@Test()
 	public void testFutureTimeoutStart() throws InterruptedException, ExecutionException, TimeoutException {
 		

@@ -10,24 +10,51 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ProductSupplierTest.
+ */
 public class ProductSupplierTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test E.
+	 */
 	@Test
 	public void testE() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST E");
@@ -40,6 +67,9 @@ public class ProductSupplierTest {
 		assertEquals(2000,((Expireable)ps).getExpirationTime());
 	}
 
+	/**
+	 * Test O.
+	 */
 	@Test
 	public void testO() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST O");
@@ -52,6 +82,9 @@ public class ProductSupplierTest {
 		((TimeoutAction)ps).onTimeout();
 	}
 
+	/**
+	 * Test T.
+	 */
 	@Test
 	public void testT() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST T");
@@ -64,6 +97,9 @@ public class ProductSupplierTest {
 		assertFalse(((Testing)ps).test());
 	}
 
+	/**
+	 * Test S.
+	 */
 	@Test
 	public void testS() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST S");
@@ -76,6 +112,9 @@ public class ProductSupplierTest {
 		assertFalse(((TestingState)ps).test(null));
 	}
 
+	/**
+	 * Test TS.
+	 */
 	@Test
 	public void testTS() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST S");
@@ -100,6 +139,9 @@ public class ProductSupplierTest {
 	}
 
 	
+	/**
+	 * Test of.
+	 */
 	@Test
 	public void testOf() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST OE");
@@ -117,6 +159,9 @@ public class ProductSupplierTest {
 	}
 
 	
+	/**
+	 * Test OE.
+	 */
 	@Test
 	public void testOE() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST OE");
@@ -130,6 +175,9 @@ public class ProductSupplierTest {
 		((TimeoutAction)ps).onTimeout();
 	}
 
+	/**
+	 * Test EO.
+	 */
 	@Test
 	public void testEO() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST EO");
@@ -143,6 +191,9 @@ public class ProductSupplierTest {
 		((TimeoutAction)ps).onTimeout();
 	}
 
+	/**
+	 * Test ET.
+	 */
 	@Test
 	public void testET() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST ET");
@@ -155,6 +206,9 @@ public class ProductSupplierTest {
 		assertEquals(true,((Testing)ps).test());
 	}
 
+	/**
+	 * Test TE.
+	 */
 	@Test
 	public void testTE() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST TE");
@@ -167,6 +221,9 @@ public class ProductSupplierTest {
 		assertEquals(true,((Testing)ps).test());
 	}
 
+	/**
+	 * Test OT.
+	 */
 	@Test
 	public void testOT() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST OT");
@@ -180,6 +237,9 @@ public class ProductSupplierTest {
 		((TimeoutAction)ps).onTimeout();
 	}
 
+	/**
+	 * Test TO.
+	 */
 	@Test
 	public void testTO() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST TO");
@@ -193,6 +253,9 @@ public class ProductSupplierTest {
 		((TimeoutAction)ps).onTimeout();
 	}
 
+	/**
+	 * Test ES.
+	 */
 	@Test
 	public void testES() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST ES");
@@ -205,6 +268,9 @@ public class ProductSupplierTest {
 		assertEquals(true,((TestingState)ps).test(null));
 	}
 
+	/**
+	 * Test SE.
+	 */
 	@Test
 	public void testSE() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST SE");
@@ -217,6 +283,9 @@ public class ProductSupplierTest {
 		assertEquals(true,((TestingState)ps).test(null));
 	}
 
+	/**
+	 * Test OS.
+	 */
 	@Test
 	public void testOS() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST OS");
@@ -230,6 +299,9 @@ public class ProductSupplierTest {
 		((TimeoutAction)ps).onTimeout();
 	}
 
+	/**
+	 * Test SO.
+	 */
 	@Test
 	public void testSO() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST SO");
@@ -244,6 +316,9 @@ public class ProductSupplierTest {
 	}
 
 	
+	/**
+	 * Test ETO.
+	 */
 	@Test
 	public void testETO() {
 		ProductSupplier<String> ps = ProductSupplier.of(()->"TEST ETO");
@@ -260,6 +335,9 @@ public class ProductSupplierTest {
 		((TimeoutAction)ps).onTimeout();
 	}
 
+	/**
+	 * Test ESO.
+	 */
 	@Test
 	public void testESO() {
 		Supplier<String> ss = ()->"TEST ESO";

@@ -6,25 +6,114 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Interface ProductSupplier.
+ *
+ * @param <T> the generic type
+ */
 public interface ProductSupplier<T> extends Supplier<T> {
+	
+	/**
+	 * The Interface PE.
+	 *
+	 * @param <T> the generic type
+	 */
 	//all possible permutations 
 	interface PE<T>       extends ProductSupplier<T>, Expireable {};
+	
+	/**
+	 * The Interface PT.
+	 *
+	 * @param <T> the generic type
+	 */
 	interface PT<T>       extends ProductSupplier<T>, Testing {};
+	
+	/**
+	 * The Interface PS.
+	 *
+	 * @param <T> the generic type
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 */
 	interface PS<T,K,L>   extends ProductSupplier<T>, TestingState<K,L> {};
+	
+	/**
+	 * The Interface PO.
+	 *
+	 * @param <T> the generic type
+	 */
 	interface PO<T>       extends ProductSupplier<T>, TimeoutAction {};
 
+	/**
+	 * The Interface PET.
+	 *
+	 * @param <T> the generic type
+	 */
 	interface PET<T>      extends PE<T>, Testing {};
+	
+	/**
+	 * The Interface PES.
+	 *
+	 * @param <T> the generic type
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 */
 	interface PES<T,K,L>  extends PE<T>, TestingState<K,L> {};
+	
+	/**
+	 * The Interface PEO.
+	 *
+	 * @param <T> the generic type
+	 */
 	interface PEO<T>      extends PE<T>, TimeoutAction {};
 
+	/**
+	 * The Interface PTO.
+	 *
+	 * @param <T> the generic type
+	 */
 	interface PTO<T>      extends PT<T>, TimeoutAction {};
+	
+	/**
+	 * The Interface PSO.
+	 *
+	 * @param <T> the generic type
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 */
 	interface PSO<T,K,L>  extends PS<T,K,L>, TimeoutAction {};
 
+	/**
+	 * The Interface PETO.
+	 *
+	 * @param <T> the generic type
+	 */
 	interface PETO<T>     extends PET<T>, TimeoutAction {};
+	
+	/**
+	 * The Interface PESO.
+	 *
+	 * @param <T> the generic type
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 */
 	interface PESO<T,K,L> extends PES<T,K,L>, TimeoutAction {};
 	
+	/**
+	 * Gets the supplier.
+	 *
+	 * @return the supplier
+	 */
 	public Supplier<T> getSupplier();
 	
+	/**
+	 * Of.
+	 *
+	 * @param <T> the generic type
+	 * @param instance the instance
+	 * @return the product supplier
+	 */
 	static <T> ProductSupplier<T> of(Supplier<T> instance) {
 		
 		boolean isP = instance instanceof ProductSupplier;
@@ -42,10 +131,24 @@ public interface ProductSupplier<T> extends Supplier<T> {
 			}
 		};
 	}
+	
+	/**
+	 * Identity.
+	 *
+	 * @return the product supplier
+	 */
 	default ProductSupplier<T> identity() {
 		return this;
 	}
 	
+/**
+ * Expires.
+ *
+ * @param <K> the key type
+ * @param <L> the generic type
+ * @param other the other
+ * @return the product supplier
+ */
 // EXPIRE //	
 	default <K,L> ProductSupplier<T> expires(final Expireable other) {
 		final ProductSupplier<T> ps = this;
@@ -178,6 +281,15 @@ public interface ProductSupplier<T> extends Supplier<T> {
 			}
 		};
 	}	
+
+/**
+ * On timeout.
+ *
+ * @param <K> the key type
+ * @param <L> the generic type
+ * @param toAction the to action
+ * @return the product supplier
+ */
 // TIMEOUT //
 	default <K,L> ProductSupplier<T> onTimeout(final Consumer<Supplier<T>> toAction) {
 		final ProductSupplier<T> ps = this;
@@ -310,6 +422,15 @@ public interface ProductSupplier<T> extends Supplier<T> {
 			}
 		};
 	}	
+
+/**
+ * Ready algorithm.
+ *
+ * @param <K> the key type
+ * @param <L> the generic type
+ * @param tester the tester
+ * @return the product supplier
+ */
 // TESTING //
 	default <K,L> ProductSupplier<T> readyAlgorithm(final Predicate<Supplier<T>> tester) {
 		final ProductSupplier<T> ps = this;
@@ -397,6 +518,14 @@ public interface ProductSupplier<T> extends Supplier<T> {
 		};
 	}	
 
+	/**
+	 * Ready algorithm.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param tester the tester
+	 * @return the product supplier
+	 */
 	// TESTING STATE//
 		default <K,L> ProductSupplier<T> readyAlgorithm(final BiPredicate<State<K,L>,ProductSupplier<? extends T>> tester) {
 			final ProductSupplier<T> ps = this;

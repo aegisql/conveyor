@@ -908,6 +908,9 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 
 	
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#enablePostponeExpirationOnTimeout(boolean)
+	 */
 	@Override
 	public void enablePostponeExpirationOnTimeout(boolean flag) {
 		this.conveyors.forEach(conv -> conv.enablePostponeExpirationOnTimeout(flag));

@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Interface BuilderSupplier.
  *
@@ -16,26 +17,80 @@ import java.util.function.Supplier;
  */
 public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 
+	/**
+	 * The Interface BuilderFutureSupplier.
+	 *
+	 * @param <T> the generic type
+	 */
 	interface BuilderFutureSupplier<T> extends BuilderSupplier<T>, FutureSupplier<T> {};
 
+	/**
+	 * Of.
+	 *
+	 * @param <T> the generic type
+	 * @param instance the instance
+	 * @return the builder supplier
+	 */
 	static <T> BuilderSupplier<T> of(BuilderSupplier<T> instance) {
 		return instance;
 	}
+	
+	/**
+	 * Identity.
+	 *
+	 * @return the builder supplier
+	 */
 	default BuilderSupplier <T> identity() {
 		return this;
 	}
+	
+	/**
+	 * Expire.
+	 *
+	 * @param expTime the exp time
+	 * @return the builder supplier
+	 */
 	default BuilderSupplier <T> expire(long expTime) {
 		return expire( () -> expTime );
 	}
+	
+	/**
+	 * Expire.
+	 *
+	 * @param ttl the ttl
+	 * @param unit the unit
+	 * @return the builder supplier
+	 */
 	default BuilderSupplier <T> expire(long ttl, TimeUnit unit) {
 		return expire(System.currentTimeMillis() + unit.toMillis(ttl));
 	}	
+	
+	/**
+	 * Expire.
+	 *
+	 * @param duration the duration
+	 * @return the builder supplier
+	 */
 	default BuilderSupplier <T> expire(Duration duration) {
 		return expire(System.currentTimeMillis() + duration.toMillis());
 	}	
+	
+	/**
+	 * Expire.
+	 *
+	 * @param instant the instant
+	 * @return the builder supplier
+	 */
 	default BuilderSupplier <T> expire(Instant instant) {
 		return expire(instant::toEpochMilli);
 	}	
+	
+	/**
+	 * Expire.
+	 *
+	 * @param other the other
+	 * @return the builder supplier
+	 */
 	default BuilderSupplier <T> expire(Expireable other) {
 		BuilderSupplier <T> bs = this;
 		return new BuilderSupplier<T>() {
@@ -46,6 +101,12 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		};
 	}	
 
+	/**
+	 * Ready algorithm.
+	 *
+	 * @param tester the tester
+	 * @return the builder supplier
+	 */
 	default BuilderSupplier<T> readyAlgorithm(Predicate<Supplier<? extends T>> tester) {
 		BuilderSupplier <T> bs = this;
 		return new BuilderSupplier<T>() {
@@ -56,6 +117,14 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		};
 	}
 
+	/**
+	 * Ready algorithm.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param tester the tester
+	 * @return the builder supplier
+	 */
 	default <K,L> BuilderSupplier<T> readyAlgorithm(BiPredicate<State<K,L>, Supplier<? extends T>> tester) {
 		BuilderSupplier <T> bs = this;
 		return new BuilderSupplier<T>() {
@@ -66,6 +135,12 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		};
 	}
 
+	/**
+	 * On timeout.
+	 *
+	 * @param consumer the consumer
+	 * @return the builder supplier
+	 */
 	default BuilderSupplier<T> onTimeout(Consumer<Supplier<? extends T>> consumer) {
 		BuilderSupplier <T> bs = this;
 		return new BuilderSupplier<T>() {
@@ -77,6 +152,12 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		};
 	}
 	
+	/**
+	 * With future.
+	 *
+	 * @param future the future
+	 * @return the builder supplier
+	 */
 	default BuilderSupplier<T> withFuture(CompletableFuture<T> future) {
 		BuilderSupplier <T> bs = this;
 		return new BuilderFutureSupplier<T>() {

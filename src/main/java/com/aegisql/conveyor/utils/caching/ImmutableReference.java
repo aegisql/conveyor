@@ -33,15 +33,28 @@ public class ImmutableReference<T> implements ProductSupplier<T> {
 		return reference;
 	}
 
+	/**
+	 * New instance.
+	 *
+	 * @param <T> the generic type
+	 * @param ref the ref
+	 * @return the builder supplier
+	 */
 	public static <T> BuilderSupplier<T> newInstance(T ref) {
 		return () -> new ImmutableReference<>(ref);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "Ref: "+reference;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.ProductSupplier#getSupplier()
+	 */
 	@Override
 	public Supplier<T> getSupplier() {
 		return this;

@@ -14,24 +14,51 @@ import org.junit.Test;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderSmart;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SmartLabelFunctionalTest.
+ */
 public class SmartLabelFunctionalTest {
 
+	/**
+	 * Sets the up before class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
 
+	/**
+	 * Tear down after class.
+	 *
+	 * @throws Exception the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets the up.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 	}
 
+	/**
+	 * Tear down.
+	 *
+	 * @throws Exception the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Test runnable.
+	 */
 	@Test
 	public void testRunnable() {
 		UserBuilderSmart b = new UserBuilderSmart();
@@ -42,6 +69,9 @@ public class SmartLabelFunctionalTest {
 		l1.get().accept(b, "TEST");		
 	}
 
+	/**
+	 * Test consumer.
+	 */
 	@Test
 	public void testConsumer() {
 		UserBuilderSmart b = new UserBuilderSmart();
@@ -55,6 +85,9 @@ public class SmartLabelFunctionalTest {
 		assertEquals("FIRST",u.getFirst());
 	}
 
+	/**
+	 * Test bi consumer.
+	 */
 	@Test
 	public void testBiConsumer() {
 		UserBuilderSmart b = new UserBuilderSmart();
@@ -65,6 +98,9 @@ public class SmartLabelFunctionalTest {
 		assertEquals("TEST",u.getFirst());
 	}
 
+	/**
+	 * Test intercept runnable.
+	 */
 	@Test
 	public void testInterceptRunnable() {
 		UserBuilderSmart b = new UserBuilderSmart();
@@ -85,6 +121,9 @@ public class SmartLabelFunctionalTest {
 		assertEquals("TEST",u.getFirst());
 	}
 
+	/**
+	 * Test intercept consumer.
+	 */
 	@Test
 	public void testInterceptConsumer() {
 		UserBuilderSmart b = new UserBuilderSmart();
@@ -106,6 +145,9 @@ public class SmartLabelFunctionalTest {
 		assertEquals("TEST",u.getFirst());
 	}
 
+	/**
+	 * Test intercept bi consumer.
+	 */
 	@Test
 	public void testInterceptBiConsumer() {
 		UserBuilderSmart b = new UserBuilderSmart();
@@ -128,6 +170,9 @@ public class SmartLabelFunctionalTest {
 		assertEquals(1, u.getYearOfBirth());
 	}
 
+	/**
+	 * Test before after bi consumer.
+	 */
 	@Test
 	public void testBeforeAfterBiConsumer() {
 		UserBuilderSmart b = new UserBuilderSmart();
@@ -146,6 +191,9 @@ public class SmartLabelFunctionalTest {
 		assertEquals("TEST",u.getFirst());
 	}
 
+	/**
+	 * Test before after consumer.
+	 */
 	@Test
 	public void testBeforeAfterConsumer() {
 		UserBuilderSmart b = new UserBuilderSmart();
@@ -164,6 +212,9 @@ public class SmartLabelFunctionalTest {
 		assertEquals("TEST",u.getFirst());
 	}
 
+	/**
+	 * Test before after runnable.
+	 */
 	@Test
 	public void testBeforeAfterRunnable() {
 		UserBuilderSmart b = new UserBuilderSmart();
@@ -183,6 +234,12 @@ public class SmartLabelFunctionalTest {
 	}
 
 	
+	/**
+	 * Test bi consumer conv.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test
 	public void testBiConsumerConv() throws InterruptedException, ExecutionException {
 		
@@ -206,6 +263,9 @@ public class SmartLabelFunctionalTest {
 	}
 
 
+	/**
+	 * Test before after bi consumer wrapped.
+	 */
 	@Test
 	public void testBeforeAfterBiConsumerWrapped() {
 		UserBuilderSmart b = new UserBuilderSmart();

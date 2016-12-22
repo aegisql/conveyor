@@ -555,6 +555,12 @@ public class AssemblingConveyorTest {
 		Thread.sleep(1000);
 	}
 	
+	/**
+	 * Test simple conveyor blocking.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test(expected=ExecutionException.class)
 	public void testSimpleConveyorBlocking() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 

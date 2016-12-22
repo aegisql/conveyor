@@ -64,7 +64,11 @@ public class PostponeExpirationTest {
 	public void tearDown() throws Exception {
 	}
 
-	/** The out queue. */
+	/**
+	 *  The out queue.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	
 
 	/**
@@ -175,7 +179,7 @@ public class PostponeExpirationTest {
 	 * Test builder expiration postpone.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException the execution exception
 	 */
 	@Test
 	public void testBuilderExpirationPostpone() throws InterruptedException, ExecutionException {
@@ -236,6 +240,11 @@ public class PostponeExpirationTest {
 	}
 
 
+	/**
+	 * Test timeout expiration postpone.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Test
 	public void testTimeoutExpirationPostpone() throws InterruptedException {
 		Queue<User> outQueue = new ConcurrentLinkedQueue<>();

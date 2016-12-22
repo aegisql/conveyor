@@ -379,6 +379,12 @@ public class CachingConveyorTest {
 		s.get();
 	}
 
+	/**
+	 * Test immutable scalar expireable cache.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test(expected=IllegalStateException.class)
 	public void testImmutableScalarExpireableCache() throws InterruptedException, ExecutionException {
 		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
@@ -397,6 +403,12 @@ public class CachingConveyorTest {
 	}
 
 	
+	/**
+	 * Test mutable scalar cache.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test(expected=IllegalStateException.class)
 	public void testMutableScalarCache() throws InterruptedException, ExecutionException {
 		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
@@ -422,6 +434,12 @@ public class CachingConveyorTest {
 		
 	}
 
+	/**
+	 * Test mutable expireable scalar cache.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 */
 	@Test(expected=IllegalStateException.class)
 	public void testMutableExpireableScalarCache() throws InterruptedException, ExecutionException {
 		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();

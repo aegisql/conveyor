@@ -85,6 +85,9 @@ public class ValueConsumerTest {
 	}
 
 	
+	/**
+	 * Test when bi con.
+	 */
 	@Test
 	public void testWhenBiCon() {
 		LabeledValueConsumer<String, String, StringBuilder> lvc = (l,v,b) -> {
@@ -109,6 +112,9 @@ public class ValueConsumerTest {
 		assertEquals("XYz", sb.toString());
 	}
 
+	/**
+	 * Test when con.
+	 */
 	@Test
 	public void testWhenCon() {
 		LabeledValueConsumer<String, String, StringBuilder> lvc = (l,v,b) -> {
@@ -134,6 +140,9 @@ public class ValueConsumerTest {
 		assertEquals("XYz", sb.toString());
 	}
 
+	/**
+	 * Test when run ignore.
+	 */
 	@Test
 	public void testWhenRunIgnore() {
 		LabeledValueConsumer<String, String, StringBuilder> lvc = (l,v,b) -> {
@@ -161,6 +170,9 @@ public class ValueConsumerTest {
 	}
 
 
+	/**
+	 * Test accept bi con.
+	 */
 	@Test
 	public void testAcceptBiCon() {
 		LabeledValueConsumer<Integer, String, StringBuilder> lvc = (l,v,b) -> {

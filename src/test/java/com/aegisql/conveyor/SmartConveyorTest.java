@@ -700,6 +700,13 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test upper case with added expiration and testing.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException the timeout exception
+	 */
 	@Test
 	public void testUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -731,6 +738,13 @@ public class SmartConveyorTest {
 		conveyor.stop();
 	}
 
+	/**
+	 * Test failing upper case with added expiration and testing.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException the timeout exception
+	 */
 	@Test(expected=CancellationException.class)
 	public void testFailingUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();

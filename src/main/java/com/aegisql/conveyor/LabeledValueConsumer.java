@@ -55,18 +55,46 @@ public interface LabeledValueConsumer<L,V,B> {
 		};
 	}
 
+	/**
+	 * When.
+	 *
+	 * @param label the label
+	 * @param consumer the consumer
+	 * @return the labeled value consumer
+	 */
 	default LabeledValueConsumer<L,V,B> when(L label, BiConsumer<B,V> consumer) {
 		return filter(l->l.equals(label),consumer);
 	}
 
+	/**
+	 * When.
+	 *
+	 * @param label the label
+	 * @param consumer the consumer
+	 * @return the labeled value consumer
+	 */
 	default LabeledValueConsumer<L,V,B> when(L label, Consumer<V> consumer) {
 		return filter(l->l.equals(label),consumer);
 	}
 
+	/**
+	 * When.
+	 *
+	 * @param label the label
+	 * @param runnable the runnable
+	 * @return the labeled value consumer
+	 */
 	default LabeledValueConsumer<L,V,B> when(L label, Runnable runnable) {
 		return filter(l->l.equals(label),runnable);
 	}
 
+	/**
+	 * Filter.
+	 *
+	 * @param label the label
+	 * @param consumer the consumer
+	 * @return the labeled value consumer
+	 */
 	default LabeledValueConsumer<L,V,B> filter(Predicate<L> label, BiConsumer<B,V> consumer) {
 		LabeledValueConsumer<L,V,B> lvc = this;
 		return (l,v,b)->{
@@ -78,6 +106,13 @@ public interface LabeledValueConsumer<L,V,B> {
 		};
 	}
 
+	/**
+	 * Filter.
+	 *
+	 * @param label the label
+	 * @param consumer the consumer
+	 * @return the labeled value consumer
+	 */
 	default LabeledValueConsumer<L,V,B> filter(Predicate<L> label, Consumer<V> consumer) {
 		LabeledValueConsumer<L,V,B> lvc = this;
 		return (l,v,b)->{
@@ -89,6 +124,13 @@ public interface LabeledValueConsumer<L,V,B> {
 		};
 	}
 
+	/**
+	 * Filter.
+	 *
+	 * @param label the label
+	 * @param runnable the runnable
+	 * @return the labeled value consumer
+	 */
 	default LabeledValueConsumer<L,V,B> filter(Predicate<L> label, Runnable runnable) {
 		LabeledValueConsumer<L,V,B> lvc = this;
 		return (l,v,b)->{
@@ -100,10 +142,22 @@ public interface LabeledValueConsumer<L,V,B> {
 		};
 	}
 
+	/**
+	 * Ignore.
+	 *
+	 * @param label the label
+	 * @return the labeled value consumer
+	 */
 	default LabeledValueConsumer<L,V,B> ignore(L label) {
 		return ignore(l->l.equals(label));
 	}
 
+	/**
+	 * Ignore.
+	 *
+	 * @param label the label
+	 * @return the labeled value consumer
+	 */
 	default LabeledValueConsumer<L,V,B> ignore(Predicate<L> label) {
 		LabeledValueConsumer<L,V,B> lvc = this;
 		return (l,v,b)->{

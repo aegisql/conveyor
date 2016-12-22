@@ -137,6 +137,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	
 	/** The postpone expiration enabled. */
 	private final boolean postponeExpirationEnabled;
+	
+	/** The postpone expiration on timeout enabled. */
 	private final boolean postponeExpirationOnTimeoutEnabled;
 
 	/** The add expiration time msec. */
@@ -159,6 +161,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param saveCarts the save carts
 	 * @param postponeExpirationEnabled the postpone expiration enabled
 	 * @param addExpirationTimeMsec the add expiration time msec
+	 * @param postponeExpirationOnTimeoutEnabled the postpone expiration on timeout enabled
 	 */
 	@SuppressWarnings("unchecked")
 	public BuildingSite( 
@@ -415,6 +418,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		return acceptCount;
 	}
 
+	/**
+	 * Gets the delay msec.
+	 *
+	 * @return the delay msec
+	 */
 	public long getDelayMsec() {
 		return expireableSource.getExpirationTime()  -System.currentTimeMillis();	
 	}
@@ -617,6 +625,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		return valueConsumer;
 	}
 
+	/**
+	 * Gets the timeout action.
+	 *
+	 * @return the timeout action
+	 */
 	public Consumer<Supplier<? extends OUT>> getTimeoutAction() {
 		return timeoutAction;
 	}

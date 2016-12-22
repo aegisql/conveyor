@@ -26,6 +26,9 @@ public class UserBuilder implements Supplier<User> {
 	/** The ready. */
 	private boolean ready = false;
 
+	/**
+	 * Instantiates a new user builder.
+	 */
 	public UserBuilder() {
 		Exception e = new Exception();
 	}
