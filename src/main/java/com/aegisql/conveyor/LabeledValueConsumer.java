@@ -3,6 +3,9 @@
  */
 package com.aegisql.conveyor;
 
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Interface LabeledValueConsumer.
@@ -48,6 +51,48 @@ public interface LabeledValueConsumer<L,V,B> {
 		return (L l, V v, B b) -> {
 			before.accept(l, v, b);
 			accept(l, v, b);
+		};
+	}
+
+	default LabeledValueConsumer<L,V,B> when(L label, BiConsumer<B,V> consumer) {
+		LabeledValueConsumer<L,V,B> lvc = this;
+		return (l,v,b)->{
+			if( l.equals(label) ) {
+				consumer.accept(b, v);
+			} else {
+				lvc.accept(l, v, b);
+			}
+		};
+	}
+
+	default LabeledValueConsumer<L,V,B> when(L label, Consumer<V> consumer) {
+		LabeledValueConsumer<L,V,B> lvc = this;
+		return (l,v,b)->{
+			if( l.equals(label) ) {
+				consumer.accept(v);
+			} else {
+				lvc.accept(l, v, b);
+			}
+		};
+	}
+
+	default LabeledValueConsumer<L,V,B> when(L label, Runnable consumer) {
+		LabeledValueConsumer<L,V,B> lvc = this;
+		return (l,v,b)->{
+			if( l.equals(label) ) {
+				consumer.run();
+			} else {
+				lvc.accept(l, v, b);
+			}
+		};
+	}
+
+	default LabeledValueConsumer<L,V,B> ignore(L label) {
+		LabeledValueConsumer<L,V,B> lvc = this;
+		return (l,v,b)->{
+			if( ! l.equals(label) ) {
+				lvc.accept(l, v, b);
+			}
 		};
 	}
 
