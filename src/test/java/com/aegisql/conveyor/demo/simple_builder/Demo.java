@@ -2,6 +2,7 @@ package com.aegisql.conveyor.demo.simple_builder;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import org.junit.Test;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -29,6 +30,11 @@ public class Demo {
 		
 		System.out.println( person );
 				
+	}
+	
+	@Test
+	public void test() throws Exception {
+		main(null);
 	}
 
 }

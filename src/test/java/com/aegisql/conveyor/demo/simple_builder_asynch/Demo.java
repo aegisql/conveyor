@@ -2,8 +2,8 @@ package com.aegisql.conveyor.demo.simple_builder_asynch;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
+import org.junit.Test;
 
 import com.aegisql.conveyor.demo.ThreadPool;
 
@@ -57,6 +57,11 @@ public class Demo {
 		
 		pool.shutdown();
 		
+	}
+
+	@Test
+	public void test() throws Exception {
+		main(null);
 	}
 
 }

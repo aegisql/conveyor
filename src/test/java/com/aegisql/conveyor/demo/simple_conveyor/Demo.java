@@ -5,9 +5,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.junit.Test;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
@@ -35,7 +35,7 @@ public class Demo {
 		AtomicReference<Person> personRef = new AtomicReference<>();
 		
 		// I - Create conveyor
-		AssemblingConveyor<Integer, String, Person> conveyor = new AssemblingConveyor<>();
+		Conveyor<Integer, String, Person> conveyor = new AssemblingConveyor<>();
 		
 		// II - Tell it how to create the Builder
 		conveyor.setBuilderSupplier(PersonBuilder::new);
@@ -93,5 +93,11 @@ public class Demo {
 		pool.shutdown();
 		conveyor.stop();
 	}
+	
+	@Test
+	public void test() throws Exception {
+		main(null);
+	}
+
 
 }

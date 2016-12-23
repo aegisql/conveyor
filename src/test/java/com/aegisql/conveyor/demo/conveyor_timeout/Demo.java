@@ -1,9 +1,12 @@
-package com.aegisql.conveyor.demo.smart_conveyor;
+package com.aegisql.conveyor.demo.conveyor_timeout;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
@@ -11,6 +14,7 @@ import org.junit.Test;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.SmartWrapper;
 import com.aegisql.conveyor.demo.ThreadPool;
 
 // TODO: Auto-generated Javadoc
@@ -35,9 +39,9 @@ public class Demo {
 		AtomicReference<Person> personRef = new AtomicReference<>();
 		
 		// I - Create labels describing building steps
-		final SmartLabel<PersonBuilder> FIRST_NAME    = SmartLabel.of(PersonBuilder::setFirstName);
-		final SmartLabel<PersonBuilder> LAST_NAME     = SmartLabel.of(PersonBuilder::setLastName);
-		final SmartLabel<PersonBuilder> DATE_OF_BIRTH = SmartLabel.of(PersonBuilder::setDateOfBirth);
+		final SmartLabel<PersonBuilder> FIRST_NAME    = new SmartWrapper<String, PersonBuilder, String>("FirtsName",PersonBuilder::setFirstName);
+		final SmartLabel<PersonBuilder> LAST_NAME     = new SmartWrapper<String, PersonBuilder, String>("LastName",PersonBuilder::setLastName);
+		final SmartLabel<PersonBuilder> DATE_OF_BIRTH = new SmartWrapper<String, PersonBuilder, Date>("DateOfBirth",PersonBuilder::setDateOfBirth);
 		
 		// II - Create conveyor
 		Conveyor<Integer, SmartLabel<PersonBuilder>, Person> conveyor = new AssemblingConveyor<>();
@@ -48,6 +52,10 @@ public class Demo {
 		// IV - Tell it where to put the Product (asynchronously)
 		conveyor.setResultConsumer( bin-> personRef.set(bin.product) );
 		
+		// V - Set default timeout and heartbeat intervals
+		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+		
 		// IV - Add data to conveyor queue 
 		pool.runAsynchWithDelay(10,()->{
 			conveyor.add(1, "John", FIRST_NAME);
@@ -57,7 +65,7 @@ public class Demo {
 			conveyor.add(1, "Silver", LAST_NAME);
 			}
 		);
-		pool.runAsynchWithDelay(50,()->{
+		pool.runAsynchWithDelay(500,()->{
 			try {
 				conveyor.add(1, format.parse("1695-11-10"), DATE_OF_BIRTH);
 			} catch (Exception e) {}
@@ -66,18 +74,22 @@ public class Demo {
 		
 		// V - Optionally - get future of existing build
 		CompletableFuture<Person> future = conveyor.getFuture(1);
-		
-		Person person = future.get();
-		
-		System.out.println( person );
-		
+		try {
+			Person person = future.get();
+			System.out.println( person );
+		} catch(CancellationException e) {
+			e.printStackTrace();
+		}
+
+		Thread.sleep(1000);
+
 		pool.shutdown();
 		conveyor.stop();
 		
 		
 	}
 
-	@Test
+	@Test(expected=CancellationException.class)
 	public void test() throws Exception {
 		main(null);
 	}
