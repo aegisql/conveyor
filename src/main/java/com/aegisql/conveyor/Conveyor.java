@@ -705,4 +705,14 @@ public interface Conveyor<K, L, OUT> {
 	 * @return true, if is forwarding results
 	 */
 	boolean isForwardingResults();
+	
+	
+	static <K, L,OUT> ReadinessTester<K, L,OUT> getTesterFor(Conveyor<K, L, OUT> conveyor) {
+		return new ReadinessTester<>();
+	}
+	static <L,OUT> LabeledValueConsumer<L, ?, Supplier<? extends OUT>> getConsumerFor(Conveyor<?, L, OUT> conveyor) {
+		return (l,v,b)->{
+			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
+		};
+	}
 }

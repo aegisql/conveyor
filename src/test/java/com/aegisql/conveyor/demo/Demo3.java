@@ -3,9 +3,17 @@ package com.aegisql.conveyor.demo;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.sql.PooledConnection;
+
 import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ReadinessTester;
 import com.aegisql.conveyor.cart.ShoppingCart;
 
 // TODO: Auto-generated Javadoc
@@ -14,14 +22,17 @@ import com.aegisql.conveyor.cart.ShoppingCart;
  */
 public class Demo3 {
 	
+	private static ExecutorService pool = Executors.newFixedThreadPool(3);
+	
 	/**
 	 * The main method.
 	 *
 	 * @param args the arguments
 	 * @throws ParseException the parse exception
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
-	public static void main(String[] args) throws ParseException, InterruptedException {
+	public static void main(String[] args) throws ParseException, InterruptedException, ExecutionException {
 		final SimpleDateFormat format     = new SimpleDateFormat("yyyy-MM-dd");
 		AtomicReference<Person> personRef = new AtomicReference<>();
 		
@@ -32,47 +43,38 @@ public class Demo3 {
 		conveyor.setBuilderSupplier(PersonBuilder1::new);
 		
 		// III - Explain how to process Building Parts
-		conveyor.setDefaultCartConsumer((label, value, builder) -> {
-			PersonBuilder1 personBuilder = (PersonBuilder1) builder;
-			switch (label) {
-			case "FirstName":
-				personBuilder.setFirstName((String) value);
-				break;
-			case "LastName":
-				personBuilder.setLastName((String) value);
-				break;
-			case "DateOfBirth":
-				personBuilder.setDateOfBirth((Date) value);
-				break;
-			default:
-				throw new RuntimeException("Unknown label " + label);
-			}
-		});
+		conveyor.setDefaultCartConsumer(Conveyor.getConsumerFor(conveyor)
+				.when("FirstName", (builder,value)->{
+					((PersonBuilder1) builder).setFirstName((String)value);
+				})
+				.when("LastName", (builder,value)->{
+					((PersonBuilder1) builder).setLastName((String)value);
+				})
+				.filter((l)->"dateofbirth".equalsIgnoreCase(l), (builder,value)->{
+					((PersonBuilder1) builder).setDateOfBirth((Date) value);
+				})
+			);
 		
 		// IV - How to evaluate readiness
-		conveyor.setReadinessEvaluator((state,builder)->{
-			return state.previouslyAccepted == 3;
-		});
+		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(3));
 		
 		// V - Tell it where to send the Product
 		conveyor.setResultConsumer( bin-> personRef.set(bin.product) );
 		
-		// VI - Wrap building parts in the Shopping Cart
-		ShoppingCart<Integer, String, String> firstNameCart = new ShoppingCart<>(1, "John", "FirstName");
-		ShoppingCart<Integer, String, String> lastNameCart = new ShoppingCart<>(1, "Silver", "LastName");
-		ShoppingCart<Integer, Date, String>   dateOfBirthNameCart = new ShoppingCart<>(1, format.parse("1695-11-10"), "DateOfBirth");
+		// VI - Optionally: retrieve completable future of the build
+		CompletableFuture<Person> future = conveyor.createBuildFuture(1);
 		
-		// VII - Add carts to conveyor queue 
-		conveyor.add(firstNameCart);
-		conveyor.add(lastNameCart);
-		conveyor.add(dateOfBirthNameCart);
+		// VII - Send data to conveyor queue
+		pool.submit(()->conveyor.add(1, "John", "FirstName"));
+		pool.submit(()->conveyor.add(1, "Silver", "LastName"));
+		pool.submit(()->conveyor.add(1, format.parse("1695-11-10"), "DateOfBirth"));
 		
-		Thread.sleep(100);
+		Person person = future.get();
 		
-		System.out.println( personRef.get() );
-		
-		
-		
+		System.out.println( "Person from asynchronous source: "+personRef.get() );
+		System.out.println( "Person synchronized: "+person );
+		pool.shutdown();
+		conveyor.stop();
 	}
 
 }
