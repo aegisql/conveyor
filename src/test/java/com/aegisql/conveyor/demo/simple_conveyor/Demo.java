@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.demo.ThreadPool;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -29,7 +30,7 @@ public class Demo {
 	 */
 	public static void main(String[] args) throws ParseException, InterruptedException, ExecutionException {
 
-		ExecutorService pool              = Executors.newFixedThreadPool(3);
+		ThreadPool pool                   = new ThreadPool();
 		SimpleDateFormat format           = new SimpleDateFormat("yyyy-MM-dd");
 		AtomicReference<Person> personRef = new AtomicReference<>();
 		
@@ -62,21 +63,21 @@ public class Demo {
 		CompletableFuture<Person> future = conveyor.createBuildFuture(1);
 		
 		// VII - Send data to conveyor queue (asynchronously)
-		pool.submit(()->{
+		pool.runAsynchWithDelay(10,()->{
 			try {
 				Thread.sleep(10);
 			} catch (Exception e) {}
 			conveyor.add(1, "John", "FirstName");
 			}
 		);
-		pool.submit(()->{
+		pool.runAsynchWithDelay(10,()->{
 			try {
 				Thread.sleep(100);
 			} catch (Exception e) {}
 			conveyor.add(1, "Silver", "LastName");
 			}
 		);
-		pool.submit(()->{
+		pool.runAsynchWithDelay(10,()->{
 			try {
 				Thread.sleep(50);
 				conveyor.add(1, format.parse("1695-11-10"), "DateOfBirth");

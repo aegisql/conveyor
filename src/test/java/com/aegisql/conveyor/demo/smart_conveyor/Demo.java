@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.demo.ThreadPool;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -28,14 +29,14 @@ public class Demo {
 	 * @throws ExecutionException 
 	 */
 	public static void main(String[] args) throws ParseException, InterruptedException, ExecutionException {
-		ExecutorService pool              = Executors.newFixedThreadPool(3);
+		ThreadPool pool                   = new ThreadPool();
 		SimpleDateFormat format           = new SimpleDateFormat("yyyy-MM-dd");
 		AtomicReference<Person> personRef = new AtomicReference<>();
 		
 		// I - Create labels describing building steps
-		SmartLabel<PersonBuilder> FIRST_NAME    = SmartLabel.of(PersonBuilder::setFirstName);
-		SmartLabel<PersonBuilder> LAST_NAME     = SmartLabel.of(PersonBuilder::setLastName);
-		SmartLabel<PersonBuilder> DATE_OF_BIRTH = SmartLabel.of(PersonBuilder::setDateOfBirth);
+		final SmartLabel<PersonBuilder> FIRST_NAME    = SmartLabel.of(PersonBuilder::setFirstName);
+		final SmartLabel<PersonBuilder> LAST_NAME     = SmartLabel.of(PersonBuilder::setLastName);
+		final SmartLabel<PersonBuilder> DATE_OF_BIRTH = SmartLabel.of(PersonBuilder::setDateOfBirth);
 		
 		// II - Create conveyor
 		AssemblingConveyor<Integer, SmartLabel<PersonBuilder>, Person> conveyor = new AssemblingConveyor<>();
@@ -47,23 +48,16 @@ public class Demo {
 		conveyor.setResultConsumer( bin-> personRef.set(bin.product) );
 		
 		// IV - Add data to conveyor queue 
-		pool.submit(()->{
-			try {
-				Thread.sleep(10);
-			} catch (Exception e) {}
+		pool.runAsynchWithDelay(10,()->{
 			conveyor.add(1, "John", FIRST_NAME);
 			}
 		);
-		pool.submit(()->{
-			try {
-				Thread.sleep(20);
-			} catch (Exception e) {}
+		pool.runAsynchWithDelay(20,()->{
 			conveyor.add(1, "Silver", LAST_NAME);
 			}
 		);
-		pool.submit(()->{
+		pool.runAsynchWithDelay(50,()->{
 			try {
-				Thread.sleep(50);
 				conveyor.add(1, format.parse("1695-11-10"), DATE_OF_BIRTH);
 			} catch (Exception e) {}
 			}

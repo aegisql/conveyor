@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.aegisql.conveyor.demo.ThreadPool;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class Demo1.
@@ -20,29 +22,22 @@ public class Demo {
 	 */
 	public static void main(String[] args) throws ParseException, InterruptedException {
 		
-		ExecutorService pool    = Executors.newFixedThreadPool(3);
+		ThreadPool pool         = new ThreadPool();
 		
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 		
 		PersonBuilder builder   = new PersonBuilder();
 		
-		pool.submit(()->{
-			try {
-				Thread.sleep(10);
-			} catch (Exception e) {}
+		pool.runAsynchWithDelay(10,()->{
 			builder.setFirstName("John");
 			}
 		);
-		pool.submit(()->{
-			try {
-				Thread.sleep(100);
-			} catch (Exception e) {}
+		pool.runAsynchWithDelay(100,()->{
 			builder.setLastName("Silver");
 			}
 		);
-		pool.submit(()->{
+		pool.runAsynchWithDelay(1000,()->{
 			try {
-				Thread.sleep(1000);
 				builder.setDateOfBirth( format.parse("1695-11-10") );
 			} catch (Exception e) {}
 			}
