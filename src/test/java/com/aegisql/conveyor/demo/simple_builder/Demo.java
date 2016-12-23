@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.demo;
+package com.aegisql.conveyor.demo.simple_builder;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -7,7 +7,7 @@ import java.text.SimpleDateFormat;
 /**
  * The Class Demo1.
  */
-public class Demo1 {
+public class Demo {
 	
 	/**
 	 * The main method.
@@ -19,8 +19,7 @@ public class Demo1 {
 		
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
-		
-		PersonBuilder1 builder = new PersonBuilder1();
+		PersonBuilder builder   = new PersonBuilder();
 		
 		builder.setFirstName("John");
 		builder.setLastName("Silver");
@@ -29,9 +28,7 @@ public class Demo1 {
 		Person person = builder.get();
 		
 		System.out.println( person );
-		
-		
-		
+				
 	}
 
 }
