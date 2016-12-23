@@ -78,7 +78,7 @@ public class Demo {
 			Person person = future.get();
 			System.out.println( person );
 		} catch(CancellationException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 
 		Thread.sleep(1000);
@@ -89,7 +89,7 @@ public class Demo {
 		
 	}
 
-	@Test(expected=CancellationException.class)
+	@Test(expected=RuntimeException.class)
 	public void test() throws Exception {
 		main(null);
 	}
