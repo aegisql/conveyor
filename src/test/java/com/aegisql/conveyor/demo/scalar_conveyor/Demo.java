@@ -1,11 +1,10 @@
-package com.aegisql.conveyor.demo.simple_conveyor;
+package com.aegisql.conveyor.demo.scalar_conveyor;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
@@ -32,7 +31,6 @@ public class Demo {
 
 		ThreadPool pool                   = new ThreadPool();
 		SimpleDateFormat format           = new SimpleDateFormat("yyyy-MM-dd");
-		AtomicReference<Person> personRef = new AtomicReference<>();
 		
 		// I - Create conveyor
 		Conveyor<Integer, String, Person> conveyor = new AssemblingConveyor<>();
@@ -42,46 +40,39 @@ public class Demo {
 		
 		// III - Explain conveyor how to process Building Parts
 		conveyor.setDefaultCartConsumer(Conveyor.getConsumerFor(conveyor)
-				.when("FirstName", (builder,value)->{
-					((PersonBuilder) builder).setFirstName((String)value);
-				})
-				.when("LastName", (builder,value)->{
-					((PersonBuilder) builder).setLastName((String)value);
-				})
-				.filter((l)->"dateofbirth".equalsIgnoreCase(l), (builder,value)->{
-					((PersonBuilder) builder).setDateOfBirth((Date) value);
+				.filter((l)->true, (builder,value)->{
+					try {
+						PersonBuilder personBuilder = (PersonBuilder)builder;
+						String[] parts = value.toString().split("\\|");
+						personBuilder.setFirstName(parts[0]);
+						personBuilder.setLastName(parts[1]);
+						personBuilder.setDateOfBirth((Date) format.parse(parts[2]));
+					} catch (Exception e) {
+						throw new RuntimeException();
+					}
 				})
 			);
 		
 		// IV - How to evaluate readiness - accepted three different pieces of data
-		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(3));
+		conveyor.setReadinessEvaluator((state,builder)->{
+			return true;
+		});
 		
 		// V - Tell it where to send the Product
-		conveyor.setResultConsumer( bin-> personRef.set(bin.product) );
+		conveyor.setResultConsumer( bin-> {/*nowhere. we'll call future.get()*/} );
 		
-		// VI - Optionally: retrieve completable future of the build
+		// VI - Retrieve completable future of the build
 		CompletableFuture<Person> future = conveyor.createBuildFuture(1);
 		
 		// VII - Send data to conveyor queue (asynchronously)
 		pool.runAsynchWithDelay(10,()->{
-			conveyor.add(1, "John", "FirstName");
-			}
-		);
-		pool.runAsynchWithDelay(10,()->{
-			conveyor.add(1, "Silver", "LastName");
-			}
-		);
-		pool.runAsynchWithDelay(10,()->{
-			try {
-				conveyor.add(1, format.parse("1695-11-10"), "DateOfBirth");
-			} catch (Exception e) {}
+			conveyor.add(1, "John|Silver|1695-11-10", "CSV");
 			}
 		);
 		
 		Person person = future.get();
 		
-		System.out.println( "Person from asynchronous source: "+personRef.get() );
-		System.out.println( "Person synchronized: "+person );
+		System.out.println( person );
 		
 		pool.shutdown();
 		conveyor.stop();
