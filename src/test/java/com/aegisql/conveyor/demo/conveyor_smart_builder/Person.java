@@ -1,7 +1,7 @@
 /* 
  * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
  */
-package com.aegisql.conveyor.demo;
+package com.aegisql.conveyor.demo.conveyor_smart_builder;
 
 import java.util.Date;
 

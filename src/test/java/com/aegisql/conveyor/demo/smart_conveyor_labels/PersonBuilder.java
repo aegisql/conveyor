@@ -1,16 +1,21 @@
 /* 
  * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
  */
-package com.aegisql.conveyor.demo;
+package com.aegisql.conveyor.demo.smart_conveyor_labels;
 
 import java.util.Date;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.State;
+import com.aegisql.conveyor.Testing;
+import com.aegisql.conveyor.TestingState;
+
 // TODO: Auto-generated Javadoc
 /**
- * The Class ReactivePersonBuilder3.
+ * The Class ReactivePersonBuilder1.
  */
-public class ReactivePersonBuilder3 implements Supplier<Person> {
+public class PersonBuilder implements Supplier<Person>, Testing {
 	
 	/** The first name. */
 	private String firstName;
@@ -22,9 +27,9 @@ public class ReactivePersonBuilder3 implements Supplier<Person> {
 	private Date dateOfBirth;
 	
 	/**
-	 * Instantiates a new reactive person builder3.
+	 * Instantiates a new reactive person builder1.
 	 */
-	public ReactivePersonBuilder3() {
+	public PersonBuilder() {
 
 	}
 
@@ -61,7 +66,7 @@ public class ReactivePersonBuilder3 implements Supplier<Person> {
 	 * @param builder the builder
 	 * @param firstName the first name
 	 */
-	public static void setFirstName(ReactivePersonBuilder3 builder, String firstName) {
+	public static void setFirstName(PersonBuilder builder, String firstName) {
 		builder.firstName = firstName;
 	}
 
@@ -71,7 +76,7 @@ public class ReactivePersonBuilder3 implements Supplier<Person> {
 	 * @param builder the builder
 	 * @param lastName the last name
 	 */
-	public static void setLastName(ReactivePersonBuilder3 builder, String lastName) {
+	public static void setLastName(PersonBuilder builder, String lastName) {
 		builder.lastName = lastName;
 	}
 
@@ -81,7 +86,7 @@ public class ReactivePersonBuilder3 implements Supplier<Person> {
 	 * @param builder the builder
 	 * @param dateOfBirth the date of birth
 	 */
-	public static void setDateOfBirth(ReactivePersonBuilder3 builder, Date dateOfBirth) {
+	public static void setDateOfBirth(PersonBuilder builder, Date dateOfBirth) {
 		builder.dateOfBirth = dateOfBirth;
 	}
 
@@ -93,6 +98,8 @@ public class ReactivePersonBuilder3 implements Supplier<Person> {
 		return new Person(firstName,lastName,dateOfBirth);
 	}
 
-
-	
+	@Override
+	public boolean test() {
+		return firstName!=null && lastName != null && dateOfBirth != null;
+	}
 }

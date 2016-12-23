@@ -1,20 +1,20 @@
 /* 
  * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
  */
-package com.aegisql.conveyor.demo;
+package com.aegisql.conveyor.demo.conveyor_smart_builder;
 
 import java.util.Date;
 import java.util.function.Supplier;
 
-import com.aegisql.conveyor.State;
-import com.aegisql.conveyor.TestingState;
+import com.aegisql.conveyor.Expireable;
+import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.TimeoutAction;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class ReactivePersonBuilder2.
+ * The Class ReactivePersonBuilder1.
  */
-public class ReactivePersonBuilder2 implements Supplier<Person>, TestingState<Integer, PersonBuilderLabel2>, TimeoutAction {
+public class PersonBuilder implements Supplier<Person>, Testing, Expireable, TimeoutAction {
 	
 	/** The first name. */
 	private String firstName;
@@ -25,13 +25,12 @@ public class ReactivePersonBuilder2 implements Supplier<Person>, TestingState<In
 	/** The date of birth. */
 	private Date dateOfBirth;
 	
-	/** The force ready. */
 	private boolean forceReady = false;
 	
 	/**
-	 * Instantiates a new reactive person builder2.
+	 * Instantiates a new reactive person builder1.
 	 */
-	public ReactivePersonBuilder2() {
+	public PersonBuilder() {
 
 	}
 
@@ -68,7 +67,7 @@ public class ReactivePersonBuilder2 implements Supplier<Person>, TestingState<In
 	 * @param builder the builder
 	 * @param firstName the first name
 	 */
-	public static void setFirstName(ReactivePersonBuilder2 builder, String firstName) {
+	public static void setFirstName(PersonBuilder builder, String firstName) {
 		builder.firstName = firstName;
 	}
 
@@ -78,7 +77,7 @@ public class ReactivePersonBuilder2 implements Supplier<Person>, TestingState<In
 	 * @param builder the builder
 	 * @param lastName the last name
 	 */
-	public static void setLastName(ReactivePersonBuilder2 builder, String lastName) {
+	public static void setLastName(PersonBuilder builder, String lastName) {
 		builder.lastName = lastName;
 	}
 
@@ -88,7 +87,7 @@ public class ReactivePersonBuilder2 implements Supplier<Person>, TestingState<In
 	 * @param builder the builder
 	 * @param dateOfBirth the date of birth
 	 */
-	public static void setDateOfBirth(ReactivePersonBuilder2 builder, Date dateOfBirth) {
+	public static void setDateOfBirth(PersonBuilder builder, Date dateOfBirth) {
 		builder.dateOfBirth = dateOfBirth;
 	}
 
@@ -100,31 +99,24 @@ public class ReactivePersonBuilder2 implements Supplier<Person>, TestingState<In
 		return new Person(firstName,lastName,dateOfBirth);
 	}
 
-	/* (non-Javadoc)
-	 * @see java.util.function.Predicate#test(java.lang.Object)
-	 */
 	@Override
-	public boolean test(State<Integer, PersonBuilderLabel2> state) {
-		return state.previouslyAccepted == 3 || forceReady;
+	public boolean test() {
+		return (firstName!=null && lastName != null && dateOfBirth != null) || forceReady;
+	}
+	
+	public void forceReady() {
+		forceReady = true;
 	}
 
-	/**
-	 * Sets the force ready.
-	 *
-	 * @param forceReady the new force ready
-	 */
-	public void setForceReady(boolean forceReady) {
-		this.forceReady = forceReady;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.TimeoutAction#onTimeout()
-	 */
 	@Override
 	public void onTimeout() {
-		if(firstName != null && lastName != null) {
-			forceReady = true;
+		if((firstName != null) && (lastName != null)) {
+			forceReady();
 		}
 	}
 
+	@Override
+	public long getExpirationTime() {
+		return System.currentTimeMillis()+100;
+	}
 }
