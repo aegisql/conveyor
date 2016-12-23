@@ -62,7 +62,7 @@ public class Demo8 {
 		
 		System.out.println( personRef.get() );
 		
-		
+		conveyor.stop();		
 		
 	}
 

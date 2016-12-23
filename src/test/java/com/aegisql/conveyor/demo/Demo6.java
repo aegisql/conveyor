@@ -2,7 +2,6 @@ package com.aegisql.conveyor.demo;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -23,7 +22,6 @@ public class Demo6 {
 	 * @throws InterruptedException the interrupted exception
 	 */
 	public static void main(String[] args) throws ParseException, InterruptedException {
-		final SimpleDateFormat format     = new SimpleDateFormat("yyyy-MM-dd");
 		AtomicReference<Person> personRef = new AtomicReference<>();
 		
 		// I - Create conveyor
@@ -49,16 +47,14 @@ public class Demo6 {
 			}
 		});
 		
-		// VII - Wrap building parts in the Shopping Cart
-		ShoppingCart<Integer, String, PersonBuilderLabel1> firstNameCart = new ShoppingCart<>(1, "John", PersonBuilderLabel1.SET_FIRST);
-		ShoppingCart<Integer, String, PersonBuilderLabel1> lastNameCart = new ShoppingCart<>(1, "Silver", PersonBuilderLabel1.SET_LAST);
-		
+		// VII - Wrap building parts in the Shopping Cart		
 		// VIII - Add carts to conveyor queue 
-		conveyor.add(firstNameCart);
-		conveyor.add(lastNameCart);
+		conveyor.add(1, "John", PersonBuilderLabel1.SET_FIRST);
+		conveyor.add(1, "Silver", PersonBuilderLabel1.SET_LAST);
 		
 		Thread.sleep(200);
 		
+		conveyor.stop();
 		System.out.println( personRef.get() );
 		
 	}
