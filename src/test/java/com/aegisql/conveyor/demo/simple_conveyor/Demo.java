@@ -48,6 +48,7 @@ public class Demo {
 				.when("LastName", (builder,value)->{
 					((PersonBuilder) builder).setLastName((String)value);
 				})
+				//note how we tell the filter to ignore label case
 				.filter((l)->"dateofbirth".equalsIgnoreCase(l), (builder,value)->{
 					((PersonBuilder) builder).setDateOfBirth((Date) value);
 				})
