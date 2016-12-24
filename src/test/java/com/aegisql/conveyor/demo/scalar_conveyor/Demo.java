@@ -1,3 +1,6 @@
+/* 
+ * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
+ */
 package com.aegisql.conveyor.demo.scalar_conveyor;
 
 import java.text.ParseException;
@@ -12,21 +15,8 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.demo.ThreadPool;
 
-// TODO: Auto-generated Javadoc
-/**
- * The Class Demo3.
- */
 public class Demo {
 	
-	
-	/**
-	 * The main method.
-	 *
-	 * @param args the arguments
-	 * @throws ParseException the parse exception
-	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
-	 */
 	public static void main(String[] args) throws ParseException, InterruptedException, ExecutionException {
 
 		ThreadPool pool                   = new ThreadPool();
@@ -82,6 +72,4 @@ public class Demo {
 	public void test() throws Exception {
 		main(null);
 	}
-
-
 }

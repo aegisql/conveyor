@@ -1,3 +1,6 @@
+/* 
+ * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
+ */
 package com.aegisql.conveyor.demo.conveyor_smart_builder;
 
 import java.text.ParseException;
@@ -6,7 +9,6 @@ import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
@@ -16,22 +18,8 @@ import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.SmartWrapper;
 import com.aegisql.conveyor.demo.ThreadPool;
 
-// TODO: Auto-generated Javadoc
-/**
- * The Class Demo4.
- */
 public class Demo {
 	
-
-	
-	/**
-	 * The main method.
-	 *
-	 * @param args the arguments
-	 * @throws ParseException the parse exception
-	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
-	 */
 	public static void main(String[] args) throws ParseException, InterruptedException, ExecutionException {
 		ThreadPool pool                   = new ThreadPool();
 		SimpleDateFormat format           = new SimpleDateFormat("yyyy-MM-dd");
@@ -78,8 +66,6 @@ public class Demo {
 
 		pool.shutdown();
 		conveyor.stop();
-		
-		
 	}
 
 	@Test

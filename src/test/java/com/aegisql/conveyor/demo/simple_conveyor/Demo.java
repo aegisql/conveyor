@@ -1,3 +1,6 @@
+/* 
+ * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
+ */
 package com.aegisql.conveyor.demo.simple_conveyor;
 
 import java.text.ParseException;
@@ -13,21 +16,8 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.demo.ThreadPool;
 
-// TODO: Auto-generated Javadoc
-/**
- * The Class Demo3.
- */
 public class Demo {
-	
-	
-	/**
-	 * The main method.
-	 *
-	 * @param args the arguments
-	 * @throws ParseException the parse exception
-	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
-	 */
+
 	public static void main(String[] args) throws ParseException, InterruptedException, ExecutionException {
 
 		ThreadPool pool                   = new ThreadPool();
@@ -35,9 +25,13 @@ public class Demo {
 		AtomicReference<Person> personRef = new AtomicReference<>();
 		
 		// I - Create conveyor
+		// Generic types:
+		// Integer - type of the unique build ID
+		// String  - type of the message labels
+		// Person  - type of the Product
 		Conveyor<Integer, String, Person> conveyor = new AssemblingConveyor<>();
 		
-		// II - Tell it how to create the Builder
+		// II - Tell conveyor how to create the Builder
 		conveyor.setBuilderSupplier(PersonBuilder::new);
 		
 		// III - Explain conveyor how to process Building Parts
@@ -54,16 +48,17 @@ public class Demo {
 				})
 			);
 		
-		// IV - How to evaluate readiness - accepted three different pieces of data
+		// IV - Build is ready when builder accepted three different pieces of data
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(3));
 		
-		// V - Tell it where to send the Product
+		// V - Tell conveyor where to put created Person object
+		//     Product receiver should not block the thread 
 		conveyor.setResultConsumer( bin-> personRef.set(bin.product) );
 		
 		// VI - Optionally: retrieve completable future of the build
 		CompletableFuture<Person> future = conveyor.createBuildFuture(1);
 		
-		// VII - Send data to conveyor queue (asynchronously)
+		// VII - Send data to conveyor asynchronously
 		pool.runAsynchWithDelay(10,()->{
 			conveyor.add(1, "John", "FirstName");
 			}
@@ -78,7 +73,9 @@ public class Demo {
 			} catch (Exception e) {}
 			}
 		);
-		
+		// No guess work. Method get() of the future
+		// Will return result as soon as its built
+		// and sent to the consumer
 		Person person = future.get();
 		
 		System.out.println( "Person from asynchronous source: "+personRef.get() );
