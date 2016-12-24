@@ -15,6 +15,7 @@ public class Demo {
 		PersonBuilder builder   = new PersonBuilder();
 		// << Builder is created, but it is empty. 
 		//    Needs three pieces of data to build the person
+		//    Adding building parts in the same thread
 		builder.setFirstName("John");
 		builder.setLastName("Silver");
 		builder.setDateOfBirth( format.parse("1695-11-10") );
