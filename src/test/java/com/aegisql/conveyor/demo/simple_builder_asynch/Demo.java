@@ -5,6 +5,8 @@ package com.aegisql.conveyor.demo.simple_builder_asynch;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.junit.Test;
 
@@ -12,7 +14,7 @@ import com.aegisql.conveyor.demo.ThreadPool;
 
 public class Demo {
 	
-	public static void main(String[] args) throws ParseException, InterruptedException {
+	public static void main(String[] args) throws ParseException, InterruptedException, ExecutionException {
 		
 		ThreadPool pool         = new ThreadPool();
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
@@ -20,15 +22,15 @@ public class Demo {
 		// << Builder is created, but it is empty. 
 		//    Needs three pieces of data to build the person
 		//    Adding building parts asynchronously in three separate threads
-		pool.runAsynchWithDelay(10,()->{
+		Future<?> f1 = pool.runAsynchWithDelay(10,()->{
 			builder.setFirstName("John");
 			}
 		);
-		pool.runAsynchWithDelay(100,()->{
+		Future<?> f2 = pool.runAsynchWithDelay(100,()->{
 			builder.setLastName("Silver");
 			}
 		);
-		pool.runAsynchWithDelay(1000,()->{
+		Future<?> f3 = pool.runAsynchWithDelay(1000,()->{
 			try {
 				builder.setDateOfBirth( format.parse("1695-11-10") );
 			} catch (Exception e) {}
@@ -37,18 +39,18 @@ public class Demo {
 		// Most likely not ready
 		Person person = builder.get();
 		System.out.println( "0\t"+ person );
-		Thread.sleep(20);
+		f1.get();
 		// not ready
 		person = builder.get();
-		System.out.println( "20\t"+ person );
-		Thread.sleep(100);
+		System.out.println( "10\t"+ person );
+		f2.get();
 		// still not ready
 		person = builder.get();
-		System.out.println( "120\t"+ person );
-		Thread.sleep(1000);
+		System.out.println( "110\t"+ person );
+		f3.get();
 		// Hopefully ready now
 		person = builder.get();
-		System.out.println( "1120\t"+ person );
+		System.out.println( "1110\t"+ person );
 		
 		pool.shutdown();
 		
