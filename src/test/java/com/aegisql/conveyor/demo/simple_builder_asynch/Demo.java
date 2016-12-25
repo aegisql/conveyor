@@ -46,11 +46,11 @@ public class Demo {
 		f2.get();
 		// still not ready
 		person = builder.get();
-		System.out.println( "110\t"+ person );
+		System.out.println( "100\t"+ person );
 		f3.get();
 		// Hopefully ready now
 		person = builder.get();
-		System.out.println( "1110\t"+ person );
+		System.out.println( "1000\t"+ person );
 		
 		pool.shutdown();
 		
