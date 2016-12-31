@@ -54,7 +54,7 @@ public class SmartWrapper<L,B,U> implements SmartLabel<B> {
 	 */
 	@Override
 	public String toString() {
-		return "SmartLabel[" + label + "]";
+		return label.toString();
 	}
 
 	/* (non-Javadoc)

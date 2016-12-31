@@ -69,6 +69,17 @@ public class SmartLabelFunctionalTest {
 		l1.get().accept(b, "TEST");		
 	}
 
+	@Test
+	public void testRunnableWithName() {
+		UserBuilderSmart b = new UserBuilderSmart();
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of("TEST_LABEL",()->{
+			System.out.println("SL RUNNABLE");
+		});
+		assertNotNull(l1);
+		l1.get().accept(b, "TEST");		
+		assertEquals("TEST_LABEL",l1.toString());
+	}
+
 	/**
 	 * Test consumer.
 	 */
@@ -85,6 +96,20 @@ public class SmartLabelFunctionalTest {
 		assertEquals("FIRST",u.getFirst());
 	}
 
+	@Test
+	public void testConsumerWithName() {
+		UserBuilderSmart b = new UserBuilderSmart();
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of("TEST_LABEL",(builder)->{
+			System.out.println("SL CONSUMER");
+			UserBuilderSmart.setFirst(builder, "FIRST");
+		});
+		assertNotNull(l1);
+		l1.get().accept(b, "TEST");	
+		User u = b.get();
+		assertEquals("FIRST",u.getFirst());
+		assertEquals("TEST_LABEL",l1.toString());
+	}
+
 	/**
 	 * Test bi consumer.
 	 */
@@ -96,6 +121,18 @@ public class SmartLabelFunctionalTest {
 		l1.get().accept(b, "TEST");	
 		User u = b.get();
 		assertEquals("TEST",u.getFirst());
+	}
+
+	@Test
+	public void testBiConsumerWithName() {
+		UserBuilderSmart b = new UserBuilderSmart();
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of("TEST_LABEL",UserBuilderSmart::setFirst);
+		assertNotNull(l1);
+		l1.get().accept(b, "TEST");	
+		User u = b.get();
+		assertEquals("TEST",u.getFirst());
+		assertEquals("TEST_LABEL",l1.toString());
+		System.out.println(l1);
 	}
 
 	/**

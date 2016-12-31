@@ -38,7 +38,30 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	static <B,T> SmartLabel<B> of(BiConsumer<B, T> method) {
 		return ()->(b,t)->method.accept(b,(T)t);
 	}
-	
+
+	/**
+	 * Of.
+	 *
+	 * @param <B> the generic type
+	 * @param <T> the generic type
+	 * @param labelName the method
+	 * @param method the method
+	 * @return the smart label
+	 */
+	static <B,T> SmartLabel<B> of(final String labelName, BiConsumer<B, T> method) {
+		return new SmartLabel<B>() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public BiConsumer<B, Object> get() {
+				return (BiConsumer<B, Object>) method;
+			}
+			@Override
+			public String toString() {
+				return labelName;
+			}
+		};
+	}
+
 	/**
 	 * Of.
 	 *
@@ -47,11 +70,21 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @return the smart label
 	 */
 	static <B> SmartLabel<B> of(Consumer<B> method) {
-		return () -> {
-			return (b,oPhony) -> method.accept(b);
-		};
+		return of( (b,oPhony) -> method.accept(b) );
 	}
-	
+
+	/**
+	 * Of.
+	 *
+	 * @param <B> the generic type
+	 * @param labelName the method
+	 * @param method the method
+	 * @return the smart label
+	 */
+	static <B> SmartLabel<B> of(final String labelName, Consumer<B> method) {
+		return of( labelName, (b,oPhony) -> method.accept(b) );
+	}
+
 	/**
 	 * Of.
 	 *
@@ -60,11 +93,21 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @return the smart label
 	 */
 	static <B> SmartLabel<B> of(Runnable method) {
-		return () -> {
-			return (bPhoby,oPhony) -> method.run();
-		};
+		return of( (bPhoby,oPhony) -> method.run() );
 	}
-	
+
+	/**
+	 * Of.
+	 *
+	 * @param <B> the generic type
+	 * @param labelName the method
+	 * @param method the method
+	 * @return the smart label
+	 */
+	static <B> SmartLabel<B> of(final String labelName, Runnable method) {
+		return of( labelName, (bPhoby,oPhony) -> method.run() );
+	}
+
 	/**
 	 * Identity.
 	 *
