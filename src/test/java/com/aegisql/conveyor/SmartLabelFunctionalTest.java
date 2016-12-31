@@ -300,27 +300,4 @@ public class SmartLabelFunctionalTest {
 	}
 
 
-	/**
-	 * Test before after bi consumer wrapped.
-	 */
-	@Test
-	public void testBeforeAfterBiConsumerWrapped() {
-		UserBuilderSmart b = new UserBuilderSmart();
-		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
-		assertNotNull(l1);
-		l1 = l1.before((builder,value)->{
-			System.out.println("Before "+value);
-		});
-		assertNotNull(l1);
-		l1 = l1.andThen((builder,value)->{
-			System.out.println("After "+value);			
-		});
-		assertNotNull(l1);
-		SmartWrapper<String, UserBuilderSmart, ?> w1 = new SmartWrapper<>("LABEL", l1.get());
-		w1.get().accept(b, "TEST");	
-		User u = b.get();
-		assertEquals("TEST",u.getFirst());
-		System.out.println(w1);
-	}
-
 }

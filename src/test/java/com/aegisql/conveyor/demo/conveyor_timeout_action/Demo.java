@@ -5,7 +5,6 @@ package com.aegisql.conveyor.demo.conveyor_timeout_action;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -16,7 +15,6 @@ import org.junit.Test;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
-import com.aegisql.conveyor.SmartWrapper;
 import com.aegisql.conveyor.demo.ThreadPool;
 
 public class Demo {
@@ -27,9 +25,9 @@ public class Demo {
 		AtomicReference<Person> personRef = new AtomicReference<>();
 		
 		// I - Create labels describing building steps
-		final SmartLabel<PersonBuilder> FIRST_NAME    = new SmartWrapper<String, PersonBuilder, String>("FirtsName",PersonBuilder::setFirstName);
-		final SmartLabel<PersonBuilder> LAST_NAME     = new SmartWrapper<String, PersonBuilder, String>("LastName",PersonBuilder::setLastName);
-		final SmartLabel<PersonBuilder> DATE_OF_BIRTH = new SmartWrapper<String, PersonBuilder, Date>("DateOfBirth",PersonBuilder::setDateOfBirth);
+		final SmartLabel<PersonBuilder> FIRST_NAME    = SmartLabel.of("FirtsName",PersonBuilder::setFirstName);
+		final SmartLabel<PersonBuilder> LAST_NAME     = SmartLabel.of("LastName",PersonBuilder::setLastName);
+		final SmartLabel<PersonBuilder> DATE_OF_BIRTH = SmartLabel.of("DateOfBirth",PersonBuilder::setDateOfBirth);
 		
 		// II - Create conveyor
 		Conveyor<Integer, SmartLabel<PersonBuilder>, Person> conveyor = new AssemblingConveyor<>();
