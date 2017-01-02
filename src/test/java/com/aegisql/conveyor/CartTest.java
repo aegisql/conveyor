@@ -91,7 +91,7 @@ public class CartTest {
 		assertNotEquals(c.getLabel(),c3.getLabel());
 		assertNotEquals(c.getValue(), c3.getValue());
 		
-		long delay = Expireable.toDelayed(c).getDelay(TimeUnit.MILLISECONDS);
+		long delay = c.toDelayed().getDelay(TimeUnit.MILLISECONDS);
 		
 		assertTrue(delay > 0);
 		assertTrue(delay <= 100);

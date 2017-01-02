@@ -59,7 +59,7 @@ public class DelayBox <K> implements Delayed, Expireable {
 	 */
 	DelayBox(long expirationTime) {
 		this.expirationTime = expirationTime;
-		this.delayed        = Expireable.toDelayed(this);
+		this.delayed        = toDelayed();
 	}
 	
 	/* (non-Javadoc)

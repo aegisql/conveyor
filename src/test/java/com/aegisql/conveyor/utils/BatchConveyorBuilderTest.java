@@ -70,11 +70,11 @@ public class BatchConveyorBuilderTest {
 		BatchCollectingBuilder<Integer> b = new BatchCollectingBuilder<>(10, 100, TimeUnit.MILLISECONDS);
 		
 		assertFalse(b.test());
-		assertTrue(Expireable.toDelayed(b).getDelay(TimeUnit.MILLISECONDS) > 0);
-		System.out.println(Expireable.toDelayed(b).getDelay(TimeUnit.MILLISECONDS));
+		assertTrue(b.toDelayed().getDelay(TimeUnit.MILLISECONDS) > 0);
+		System.out.println(b.toDelayed().getDelay(TimeUnit.MILLISECONDS));
 		Thread.sleep(101);
-		System.out.println(Expireable.toDelayed(b).getDelay(TimeUnit.MILLISECONDS));
-		assertTrue(Expireable.toDelayed(b).getDelay(TimeUnit.MILLISECONDS) < 0);
+		System.out.println(b.toDelayed().getDelay(TimeUnit.MILLISECONDS));
+		assertTrue(b.toDelayed().getDelay(TimeUnit.MILLISECONDS) < 0);
 		
 	}
 	

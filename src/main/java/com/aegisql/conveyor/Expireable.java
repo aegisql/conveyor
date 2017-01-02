@@ -17,6 +17,24 @@ public interface Expireable {
 	public long getExpirationTime();
 
 	/**
+	 * Expired.
+	 *
+	 * @return true, if less then current timestamp
+	 */
+	default boolean expired() {
+		return getExpirationTime() < System.currentTimeMillis();
+	}
+	
+	/**
+	 * To delayed.
+	 *
+	 * @return the delayed
+	 */
+	default Delayed toDelayed() {
+		return toDelayed(this);
+	}
+	
+	/**
 	 * To delayed.
 	 *
 	 * @param e the e
