@@ -8,11 +8,15 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.1.8</version>
+  <version>1.1.9</version>
 </dependency>
 ```
 
 ## Release History
+
+### 1.1.9
+* More interface extensions
+* Code re-factoring and cleaning
 
 ### 1.1.8
 * Added default methods on basic functional interfaces: ProductSupplier, SmartLabel and LabeledValueConsumer. This allows to construct very flexible builders and data consumers
