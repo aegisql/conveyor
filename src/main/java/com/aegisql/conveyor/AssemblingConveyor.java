@@ -265,6 +265,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 *
 	 * @param keyBuilderPairConsumer the key builder pair consumer
 	 */
+	//BUG: not safe, concurrent modification possible
 	public void forEachKeyAndBuilder( BiConsumer<K, Supplier<? extends OUT>> keyBuilderPairConsumer ) {
 		lock.rLock.lock();
 		try {

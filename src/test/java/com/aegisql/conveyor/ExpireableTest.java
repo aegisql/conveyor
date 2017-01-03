@@ -86,4 +86,33 @@ public class ExpireableTest {
 		assertTrue(e.toDelayed().getDelay(TimeUnit.MILLISECONDS) < 0);
 	}
 
+	@Test
+	public void test5() throws InterruptedException {
+		long expireAt = System.currentTimeMillis() + 100;
+		Expireable e1 = new Expireable() {
+			@Override
+			public long getExpirationTime() {
+				return expireAt;
+			}
+		};
+		assertEquals(expireAt, e1.getExpirationTime());
+		assertTrue(e1.isExpireable());
+		assertFalse(e1.expired());
+		
+		Expireable e2 = e1.addTime(200,TimeUnit.MILLISECONDS);
+		
+		Thread.sleep(101);
+		assertTrue(e1.expired());
+		assertNotNull(e1.toDelayed());
+		assertTrue(e1.toDelayed().getDelay(TimeUnit.MILLISECONDS) < 0);
+
+		assertEquals(expireAt+200, e2.getExpirationTime());
+		assertFalse(e2.expired());
+		assertNotNull(e2.toDelayed());
+		assertFalse(e2.toDelayed().getDelay(TimeUnit.MILLISECONDS) < 0);
+
+	}
+
+	
+	
 }

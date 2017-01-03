@@ -1,5 +1,6 @@
 package com.aegisql.conveyor;
 
+import java.time.Duration;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
@@ -14,7 +15,25 @@ public interface Expireable {
 	 * @return the expiration time
 	 */
 	public long getExpirationTime();
+	
+	default Expireable addTime(long time) {
+		Expireable e = this;
+		return new Expireable() {
+			@Override
+			public long getExpirationTime() {
+				return e.getExpirationTime() + time;
+			}
+		};
+	}
 
+	default Expireable addTime(long time, TimeUnit unit) {
+		return addTime(unit.toMillis(time));
+	}
+
+	default Expireable addTime(Duration time) {
+		return addTime(time.toMillis());
+	}
+	
 	/**
 	 * Expired.
 	 *
