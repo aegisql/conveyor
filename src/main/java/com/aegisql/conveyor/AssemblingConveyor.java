@@ -1435,6 +1435,25 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	/**
+	 * foreachBuild.
+	 *
+	 * @param conveyor the conveyor
+	 * @param cart the cart
+	 */
+	//TODO: finish this
+	static void foreachBuild( AssemblingConveyor conveyor, Object cart ) {
+		Object key = ((Cart)cart).getKey();
+		if(conveyor.collector.containsKey(key)) {
+			conveyor.processSite((Cart) cart, false);
+			((Cart)cart).getFuture().complete(true);
+
+		} else {
+			LOG.debug("Key '{}' does not exist. Ignoring check command.",key);
+			((Cart)cart).getFuture().complete(false);
+		}
+	}
+
+	/**
 	 * Checks if is running.
 	 *
 	 * @return true, if is running

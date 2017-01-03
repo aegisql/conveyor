@@ -55,7 +55,14 @@ public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 			return AssemblingConveyor::checkBuild;
 		}
 	},
-	
+
+	/**  iterate foreach build in the queue. */
+	FOREACH_BUILD {
+		public BiConsumer<AssemblingConveyor, Object> get() {
+			return AssemblingConveyor::foreachBuild;
+		}
+	},
+
 	/**  Check build readiness. */
 	FUTURE_BUILD {
 		public BiConsumer<AssemblingConveyor, Object> get() {

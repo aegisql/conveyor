@@ -67,7 +67,7 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	public GeneralCommand(K k, V v, CommandLabel label, Duration duration) {
 		super(k, v, label, duration);
 	}
-	
+
 	/**
 	 * Instantiates a new general command.
 	 *
