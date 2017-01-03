@@ -238,19 +238,19 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		} else {
 			if(postponeExpirationEnabled) {
 				postponeAlg = (bs,c) -> {
-					if( c != null && c.getExpirationTime() > 0 ) {
-						bs.expireableSource = () -> c.getExpirationTime();
-					} else if( expireableSource.getExpirationTime() > 0) {
+					if( c != null && c.isExpireable() ) {
+						bs.expireableSource = c::getExpirationTime;
+					} else if( expireableSource.isExpireable() ) {
 						bs.expireableSource = ()->System.currentTimeMillis() + bs.addExpirationTimeMsec; //just add some time, if expireable, lowest priority
 					}
 				};			
 			}
 		}
-		if( cart.getExpirationTime() > 0 && expireableSource.getExpirationTime() == 0) {
+		if( cart.isExpireable() && ! expireableSource.isExpireable() ) {
 			builderCreated    = cart.getCreationTime();
 			expireableSource = cart::getExpirationTime;
 		} 
-		if(expireableSource.getExpirationTime() == 0) {
+		if( ! expireableSource.isExpireable() ) {
 			builderCreated = System.currentTimeMillis();
 			if(ttl > 0) {
 				expireableSource = () -> builderCreated + TimeUnit.MILLISECONDS.convert(ttl, unit);
@@ -424,7 +424,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @return the delay msec
 	 */
 	public long getDelayMsec() {
-		return expireableSource.getExpirationTime()  -System.currentTimeMillis();	
+		return expireableSource.getExpirationTime() - System.currentTimeMillis();	
 	}
 
 	/**

@@ -24,7 +24,11 @@ public interface Expireable {
 	default boolean expired() {
 		return getExpirationTime() < System.currentTimeMillis();
 	}
-	
+
+	default boolean isExpireable() {
+		return getExpirationTime() > 0;
+	}
+
 	/**
 	 * To delayed.
 	 *

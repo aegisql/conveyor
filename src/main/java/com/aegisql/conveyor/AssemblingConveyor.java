@@ -349,7 +349,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			if(buildingSite != null) {
 				collector.put(key, buildingSite);
-				if(buildingSite.getExpirationTime() > 0) {
+				if( buildingSite.isExpireable() ) {
 					delayProvider.getBox(buildingSite.getExpirationTime()).add(key);
 				}
 			}
@@ -1135,12 +1135,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	private boolean postponeTimeout(BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> bs) {
 		if(postponeExpirationEnabled) {
-			long expirationTime = bs.getExpirationTime();
-			if(  expirationTime > System.currentTimeMillis() ) {
+			if( ! bs.expired() ) {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace("Expiration will bin postponed for key={}",bs.getKey());
 				}
-				delayProvider.getBox(expirationTime).add(bs.getKey());
+				delayProvider.getBox(bs.getExpirationTime()).add(bs.getKey());
 				return true;
 			} 
 		}

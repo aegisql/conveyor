@@ -43,14 +43,6 @@ public interface Cart <K,V,L> extends Expireable, Serializable {
 	public long getCreationTime();
 	
 	/**
-	 * Gets the expiration time.
-	 *
-	 * @return the expiration time
-	 */
-	@Override
-	public long getExpirationTime();
-	
-	/**
 	 * Gets Future for the cart. get() methods return:
 	 * true if were accepted by the builder
 	 * false when offer or add return false
