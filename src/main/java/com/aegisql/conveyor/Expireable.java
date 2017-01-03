@@ -22,7 +22,7 @@ public interface Expireable {
 	 * @return true, if less then current timestamp
 	 */
 	default boolean expired() {
-		return getExpirationTime() < System.currentTimeMillis();
+		return isExpireable() && getExpirationTime() < System.currentTimeMillis();
 	}
 
 	default boolean isExpireable() {
