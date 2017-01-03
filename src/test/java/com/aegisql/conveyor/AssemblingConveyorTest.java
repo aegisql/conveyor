@@ -670,10 +670,10 @@ public class AssemblingConveyorTest {
 		System.out.println(c1);
 		System.out.println(c2);
 		assertEquals(1000, c1.getExpirationTime() - c1.getCreationTime());
-		System.out.println(Expireable.toDelayed(c1).getDelay(TimeUnit.MILLISECONDS));
+		System.out.println(c1.toDelayed().getDelay(TimeUnit.MILLISECONDS));
 		
 		BlockingQueue q = new DelayQueue();
-		q.add(Expireable.toDelayed(c1));
+		q.add(c1.toDelayed());
 		assertNull(q.poll());
 		Thread.sleep(1000);
 		assertNotNull(q.poll());

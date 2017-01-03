@@ -102,7 +102,7 @@ public class CartTest {
 		assertTrue(c2.expired());
 		assertTrue(c3.expired());
 		
-		delay = Expireable.toDelayed(c).getDelay(TimeUnit.MILLISECONDS);
+		delay = c.toDelayed().getDelay(TimeUnit.MILLISECONDS);
 		
 		assertTrue(delay < 0);
 
@@ -116,7 +116,7 @@ public class CartTest {
 		Cart<String,String,String> c = new ShoppingCart<>("k","v1","l");
 		
 		assertFalse(c.expired());
-		long delay = Expireable.toDelayed(c).getDelay(TimeUnit.MILLISECONDS);
+		long delay = c.toDelayed().getDelay(TimeUnit.MILLISECONDS);
 		assertTrue(delay > 0);
 
 	}
