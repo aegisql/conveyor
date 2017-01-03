@@ -16,6 +16,12 @@ public interface Expireable {
 	 */
 	public long getExpirationTime();
 	
+	/**
+	 * addTime.
+	 * 
+	 * @param time, in milliseconds
+	 * @return new instance of Expireable with added time
+	 * */
 	default Expireable addTime(long time) {
 		Expireable e = this;
 		return new Expireable() {
@@ -26,10 +32,23 @@ public interface Expireable {
 		};
 	}
 
+	/**
+	 * addTime.
+	 * 
+	 * @param time
+	 * @param unit
+	 * @return new instance of Expireable with added time
+	 * */
 	default Expireable addTime(long time, TimeUnit unit) {
 		return addTime(unit.toMillis(time));
 	}
 
+	/**
+	 * addTime.
+	 * 
+	 * @param time, Duration
+	 * @return new instance of Expireable with added time
+	 * */
 	default Expireable addTime(Duration time) {
 		return addTime(time.toMillis());
 	}
