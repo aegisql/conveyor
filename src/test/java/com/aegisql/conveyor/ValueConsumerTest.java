@@ -94,10 +94,10 @@ public class ValueConsumerTest {
 			b.append(v);
 		};
 
-		lvc = lvc.when("a", (b,v)->{
+		lvc = lvc.<String>when("a", (b,v)->{
 			b.append(v.toUpperCase());
 		});
-		lvc = lvc.when("b", (b,v)->{
+		lvc = lvc.<String>when("b", (b,v)->{
 			b.append(v.toUpperCase());
 		});
 
@@ -181,7 +181,7 @@ public class ValueConsumerTest {
 
 		StringBuilder sb = new StringBuilder();
 
-		lvc = lvc.filter(l -> l < 5 , (b,v)->{
+		lvc = lvc.<String>filter(l -> l < 5 , (b,v)->{
 			b.append(v.toLowerCase());			
 		});
 

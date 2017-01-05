@@ -6,6 +6,7 @@ package com.aegisql.conveyor;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -62,7 +63,7 @@ public interface LabeledValueConsumer<L,V,B> {
 	 * @param consumer the consumer
 	 * @return the labeled value consumer
 	 */
-	default LabeledValueConsumer<L,V,B> when(L label, BiConsumer<B,V> consumer) {
+	default <T> LabeledValueConsumer<L,V,B> when(L label, BiConsumer<B,T> consumer) {
 		return filter(l->l.equals(label),consumer);
 	}
 
@@ -95,11 +96,11 @@ public interface LabeledValueConsumer<L,V,B> {
 	 * @param consumer the consumer
 	 * @return the labeled value consumer
 	 */
-	default LabeledValueConsumer<L,V,B> filter(Predicate<L> label, BiConsumer<B,V> consumer) {
+	default <T> LabeledValueConsumer<L,V,B> filter(Predicate<L> label, BiConsumer<B,T> consumer) {
 		LabeledValueConsumer<L,V,B> lvc = this;
 		return (l,v,b)->{
 			if( label.test(l) ) {
-				consumer.accept(b, v);
+				consumer.accept(b, (T)v);
 			} else {
 				lvc.accept(l, v, b);
 			}
@@ -166,5 +167,5 @@ public interface LabeledValueConsumer<L,V,B> {
 			}
 		};
 	}
-
+	
 }

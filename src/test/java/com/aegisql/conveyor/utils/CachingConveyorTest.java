@@ -92,15 +92,15 @@ public class CachingConveyorTest {
 		conveyor.setBuilderSupplier(BuilderSupplier.of(UserBuilder::new).expire(exp));
 		conveyor.setDefaultCartConsumer(
 				Conveyor.getConsumerFor(conveyor)
-				.when("setFirst", (b,v)->{
+				.<String>when("setFirst", (b,v)->{
 					UserBuilder userBuilder = (UserBuilder) b;
-					userBuilder.setFirst((String) v);
-				}).when("setLast", (b,v)->{
+					userBuilder.setFirst(v);
+				}).<String>when("setLast", (b,v)->{
 					UserBuilder userBuilder = (UserBuilder) b;
-					userBuilder.setFirst((String) v);
-				}).when("setYearOfBirth", (b,v)->{
+					userBuilder.setLast(v);
+				}).<Integer>when("setYearOfBirth", (b,v)->{
 					UserBuilder userBuilder = (UserBuilder) b;
-					userBuilder.setYearOfBirth((Integer) v);
+					userBuilder.setYearOfBirth(v);
 				})
 				);
 
@@ -118,15 +118,17 @@ public class CachingConveyorTest {
 		assertEquals("Expected that all keys expire at the same time",1, conveyor.getDelayedQueueSize());
 		long ac1 = 0;
 		Random r = new Random();
+		User last = null;
 		for(int i = 1; i<=BIG;i++) {
 			long t1 = System.nanoTime();
 			
-			conveyor.getProductSupplier(r.nextInt(BIG)+1).get();
+			last = conveyor.getProductSupplier(r.nextInt(BIG)+1).get();
 			long t2 = System.nanoTime();
 			ac1 += t2-t1;
 		}
 		double av1 = ac1/BIG;
 		System.out.println("Supplier access time: "+av1);
+		System.out.println("Supplier sample: "+last);
 
 		long ac2 = 0;
 		
