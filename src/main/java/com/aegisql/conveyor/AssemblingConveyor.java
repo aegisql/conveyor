@@ -55,10 +55,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected final static Logger LOG = LoggerFactory.getLogger(AssemblingConveyor.class);
 
 	/** The in queue. */
-	protected final Queue<Cart<K,?,L>> inQueue; // this class does not permit the use of null elements.
+	protected final Queue<Cart<K,?,L>> inQueue; 
 
 	/** The m queue. */
-	protected final Queue<GeneralCommand<K, ?>> mQueue; // this class does not permit the use of null elements.
+	protected final Queue<GeneralCommand<K, ?>> mQueue;
 
 	/** The delay provider. */
 	private final DelayProvider<K> delayProvider = new DelayProvider<>();
@@ -367,7 +367,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * Instantiates a new assembling conveyor.
 	 */
 	public AssemblingConveyor() {
-		this(ConcurrentLinkedQueue<Cart<K,?,L>>::new);
+		this(ConcurrentLinkedQueue<Cart<K,?,L>>::new);  // this class does not permit null elements.
 	}
 	
 	/**
