@@ -22,6 +22,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
@@ -84,41 +85,35 @@ public class CachingConveyorTest {
 	public void testBigCache() throws InterruptedException, ExecutionException {
 		
 		int BIG = 1000000;
-		
+		long exp = System.currentTimeMillis() + BIG;
+
 		CachingConveyor<Integer, String, User> conveyor = new CachingConveyor<>();
 		conveyor.setSynchronizeBuilder(true);
-		conveyor.setBuilderSupplier(UserBuilder::new);
-		conveyor.setDefaultCartConsumer((label, value, builder) -> {
-			UserBuilder userBuilder = (UserBuilder) builder;
-			switch (label) {
-			case "setFirst":
-				userBuilder.setFirst((String) value);
-				break;
-			case "setLast":
-				userBuilder.setLast((String) value);
-				break;
-			case "setYearOfBirth":
-				userBuilder.setYearOfBirth((Integer) value);
-				break;
-			default:
-				throw new RuntimeException("Unknown label " + label);
-			}
-		});
+		conveyor.setBuilderSupplier(BuilderSupplier.of(UserBuilder::new).expire(exp));
+		conveyor.setDefaultCartConsumer(
+				Conveyor.getConsumerFor(conveyor)
+				.when("setFirst", (b,v)->{
+					UserBuilder userBuilder = (UserBuilder) b;
+					userBuilder.setFirst((String) v);
+				}).when("setLast", (b,v)->{
+					UserBuilder userBuilder = (UserBuilder) b;
+					userBuilder.setFirst((String) v);
+				}).when("setYearOfBirth", (b,v)->{
+					UserBuilder userBuilder = (UserBuilder) b;
+					userBuilder.setYearOfBirth((Integer) v);
+				})
+				);
 
-		long exp = System.currentTimeMillis() + BIG;
 		CompletableFuture<Boolean> lastFuture = null;
 		long tBefore = System.nanoTime();
 		for(int i = 1; i<=BIG;i++) {
-			ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(i, "TestFirst"+i, "setFirst", exp);
-			Cart<Integer, String, String> c2 = c1.nextCart("TestLast"+i, "setLast");
-			Cart<Integer, Integer, String> c3 = c1.nextCart(1900+i%100, "setYearOfBirth");
-			conveyor.add(c1);
-			conveyor.add(c2);
-			lastFuture = conveyor.add(c3);
+			conveyor.add(i, "TestFirst"+i, "setFirst");
+			conveyor.add(i,"TestLast"+i, "setLast");
+			lastFuture = conveyor.add(i,1900+i%100, "setYearOfBirth");
 		}
 		assertTrue("Expected that all messages successfully delivered",lastFuture.get());
 		long tAfter = System.nanoTime();
-		System.out.println("Loaded all in: "+(tAfter-tBefore)/1E9);
+		System.out.println("Loaded 3x1,000,000 in: "+(tAfter-tBefore)/1E9);
 
 		assertEquals("Expected that all keys expire at the same time",1, conveyor.getDelayedQueueSize());
 		long ac1 = 0;
