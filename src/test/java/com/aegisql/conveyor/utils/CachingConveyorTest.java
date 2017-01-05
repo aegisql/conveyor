@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -77,9 +78,10 @@ public class CachingConveyorTest {
 	 * Test big cache.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test
-	public void testBigCache() throws InterruptedException {
+	public void testBigCache() throws InterruptedException, ExecutionException {
 		
 		int BIG = 1000000;
 		
@@ -104,19 +106,21 @@ public class CachingConveyorTest {
 		});
 
 		long exp = System.currentTimeMillis() + BIG;
+		CompletableFuture<Boolean> lastFuture = null;
+		long tBefore = System.nanoTime();
 		for(int i = 1; i<=BIG;i++) {
 			ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(i, "TestFirst"+i, "setFirst", exp);
 			Cart<Integer, String, String> c2 = c1.nextCart("TestLast"+i, "setLast");
 			Cart<Integer, Integer, String> c3 = c1.nextCart(1900+i%100, "setYearOfBirth");
 			conveyor.add(c1);
 			conveyor.add(c2);
-			conveyor.add(c3);
+			lastFuture = conveyor.add(c3);
 		}
-		while( conveyor.getCollectorSize() < BIG) {
-			Thread.sleep(100);
-		}
-		System.out.println("DelayQueue after adding 1 mln: "+conveyor.getDelayedQueueSize());
-		
+		assertTrue("Expected that all messages successfully delivered",lastFuture.get());
+		long tAfter = System.nanoTime();
+		System.out.println("Loaded all in: "+(tAfter-tBefore)/1E9);
+
+		assertEquals("Expected that all keys expire at the same time",1, conveyor.getDelayedQueueSize());
 		long ac1 = 0;
 		Random r = new Random();
 		for(int i = 1; i<=BIG;i++) {
@@ -149,7 +153,7 @@ public class CachingConveyorTest {
 		double av2 = ac2/BIG;
 		System.out.println("Builder array access time: "+av2);
 
-		Map<Integer,UserBuilder> m = new HashMap<>();
+		Map<Integer,UserBuilder> m = new ConcurrentHashMap<>();
 		for(int i = 0; i < BIG; i++) {
 			m.put(i+1, uba[i]);
 		}
