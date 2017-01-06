@@ -2,6 +2,7 @@ package com.aegisql.conveyor.cart;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 // TODO: Auto-generated Javadoc
@@ -28,6 +29,7 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	 */
 	public ShoppingCart(K k, V v, L label, long ttl, TimeUnit timeUnit) {
 		super(k, v, label, ttl, timeUnit);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -40,6 +42,7 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	 */
 	public ShoppingCart(K k, V v, L label, long expiration) {
 		super(k, v, label, expiration);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -51,6 +54,7 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	 */
 	public ShoppingCart(K k, V v, L label) {
 		super(k, v, label);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -63,6 +67,7 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	 */
 	public ShoppingCart(K key, V value, L label, Duration duration) {
 		super(key,value,label,duration);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -75,6 +80,7 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	 */
 	public ShoppingCart(K key, V value, L label, Instant instant) {
 		super(key,value,label,instant);
+		Objects.requireNonNull(k);
 	}
 
 	/**

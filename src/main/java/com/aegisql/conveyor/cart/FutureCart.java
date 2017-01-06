@@ -2,6 +2,7 @@ package com.aegisql.conveyor.cart;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -29,6 +30,7 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 	 */
 	public FutureCart(K k, CompletableFuture<B> v, long ttl, TimeUnit timeUnit) {
 		super(k, v, null, ttl, timeUnit);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -40,6 +42,7 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 	 */
 	public FutureCart(K k, CompletableFuture<B> v, long expiration) {
 		super(k, v, null, expiration);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -50,6 +53,7 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 	 */
 	public FutureCart(K k, CompletableFuture<B> v) {
 		super(k, v, null);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -61,6 +65,7 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 	 */
 	public FutureCart(K k, CompletableFuture<B> v, Duration duration) {
 		super(k, v,null, duration);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -72,6 +77,7 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 	 */
 	public FutureCart(K k, CompletableFuture<B> v, Instant instant) {
 		super(k, v, null, instant);
+		Objects.requireNonNull(k);
 	}
 
 	/**

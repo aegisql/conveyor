@@ -2,6 +2,7 @@ package com.aegisql.conveyor.cart.command;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import com.aegisql.conveyor.CommandLabel;
@@ -31,6 +32,7 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	 */
 	public GeneralCommand(K k, V v, CommandLabel label, long ttl, TimeUnit timeUnit) {
 		super(k, v, label, ttl, timeUnit);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -43,6 +45,7 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	 */
 	public GeneralCommand(K k, V v, CommandLabel label, long expiration) {
 		super(k, v, label, expiration);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -54,6 +57,7 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	 */
 	public GeneralCommand(K k, V v, CommandLabel label) {
 		super(k, v, label);
+		Objects.requireNonNull(k);
 	}
 	
 	/**
@@ -66,6 +70,7 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	 */
 	public GeneralCommand(K k, V v, CommandLabel label, Duration duration) {
 		super(k, v, label, duration);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -78,6 +83,7 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	 */
 	public GeneralCommand(K k, V v, CommandLabel label, Instant instant) {
 		super(k, v, label, instant);
+		Objects.requireNonNull(k);
 	}
 
 	/* (non-Javadoc)

@@ -2,6 +2,7 @@ package com.aegisql.conveyor.cart;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -30,6 +31,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	public CreatingCart(K k, BuilderSupplier<B> v, long ttl, TimeUnit timeUnit) {
 		super(k, v, null, ttl, timeUnit);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -41,6 +43,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	public CreatingCart(K k, BuilderSupplier<B> v, long expiration) {
 		super(k, v, null, expiration);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -51,6 +54,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	public CreatingCart(K k, BuilderSupplier<B> v) {
 		super(k, v, null);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -62,6 +66,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	public CreatingCart(K k, BuilderSupplier<B> b, Duration duration) {
 		super(k, b,null, duration);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -73,6 +78,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	public CreatingCart(K k, BuilderSupplier<B> b, Instant instant) {
 		super(k, b,null, instant);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -84,6 +90,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	public CreatingCart(K k, long ttl, TimeUnit timeUnit) {
 		super(k, null, null, ttl, timeUnit);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -94,6 +101,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	public CreatingCart(K k, long expiration) {
 		super(k, null, null, expiration);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -103,6 +111,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	public CreatingCart(K k) {
 		super(k, null, null);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -113,6 +122,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	public CreatingCart(K k, Duration duration) {
 		super(k, null,null, duration);
+		Objects.requireNonNull(k);
 	}
 
 	/**
@@ -123,6 +133,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	public CreatingCart(K k, Instant instant) {
 		super(k, null,null, instant);
+		Objects.requireNonNull(k);
 	}
 
 	/**

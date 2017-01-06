@@ -60,7 +60,6 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	 *            the time unit
 	 */
 	public AbstractCart(K k, V v, L label, long ttl, TimeUnit timeUnit) {
-		Objects.requireNonNull(k);
 		this.k = k;
 		this.v = v;
 		this.label = label;
@@ -78,7 +77,6 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	 *            the label
 	 */
 	public AbstractCart(K k, V v, L label) {
-		Objects.requireNonNull(k);
 		this.k = k;
 		this.v = v;
 		this.label = label;
@@ -98,7 +96,6 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	 *            the expiration
 	 */
 	public AbstractCart(K k, V v, L label, long expiration) {
-		Objects.requireNonNull(k);
 		this.k = k;
 		this.v = v;
 		this.label = label;
@@ -114,7 +111,6 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	 * @param duration the duration
 	 */
 	public AbstractCart(K k, V v, L label, Duration duration) {
-		Objects.requireNonNull(k);
 		this.k = k;
 		this.v = v;
 		this.label = label;
@@ -130,7 +126,6 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	 * @param instant the instant
 	 */
 	public AbstractCart(K k, V v, L label, Instant instant) {
-		Objects.requireNonNull(k);
 		this.k = k;
 		this.v = v;
 		this.label = label;
