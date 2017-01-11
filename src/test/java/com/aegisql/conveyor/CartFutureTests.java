@@ -87,13 +87,12 @@ public class CartFutureTests {
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<Boolean> cf1 = conveyor.offer(c1);
-		CompletableFuture<Boolean> cf2 = conveyor.offer(c2);
-		CompletableFuture<Boolean> cf3 = conveyor.offer(c3);
-		CompletableFuture<Boolean> cf4 = conveyor.offer(c4);
-		
 		assertFalse(cf1.isDone());
+		CompletableFuture<Boolean> cf2 = conveyor.offer(c2);
 		assertFalse(cf2.isDone());
+		CompletableFuture<Boolean> cf3 = conveyor.offer(c3);
 		assertFalse(cf3.isDone());
+		CompletableFuture<Boolean> cf4 = conveyor.offer(c4);
 		assertFalse(cf4.isDone());
 
 		assertTrue(cf1.get());

@@ -6,8 +6,10 @@ package com.aegisql.conveyor;
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -22,6 +24,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -1064,8 +1067,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				CompletableFuture<Boolean> multiFuture = cart.getFuture();
 				MultiKeyCart<K,?,L> mCart = (MultiKeyCart<K,?,L>)cart;
 				try {
-					collector.entrySet().stream().filter(entry->mCart.test(entry.getKey())).forEach(entry->{
-						processSite(mCart.toShoppingCart(entry.getKey()),accept);
+					collector
+					.entrySet()
+					.stream()
+					.map(entry->entry.getKey())
+					.filter(mCart::test)
+					.collect(Collectors.toList())
+					.forEach(k->{
+						processSite(mCart.toShoppingCart(k),accept);
 					});
 					multiFuture.complete(true);
 				} catch(Exception e) {
