@@ -1363,9 +1363,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	static void createNow( AssemblingConveyor conveyor, Object cart ) {
-		BuildingSite bs = conveyor.getBuildingSite((Cart) cart);
-		((Cart)cart).getFuture().complete(true);
+	static void createNow( AssemblingConveyor conveyor, Cart cart ) {
+		conveyor.getBuildingSite(cart);
+		cart.getFuture().complete(true);
 	}
 
 	/**
@@ -1375,10 +1375,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	static void cancelNow( AssemblingConveyor conveyor, Object cart ) {
-		Object key = ((Cart)cart).getKey();
+	static <K> void cancelNow( AssemblingConveyor conveyor, Cart<K,?,?> cart ) {
+		K key = cart.getKey();
 		conveyor.keyBeforeEviction.accept(key);
-		((Cart)cart).getFuture().complete(true);
+		cart.getFuture().complete(true);
 	}
 
 	/**
@@ -1389,9 +1389,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	//TODO: add something
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	static void acknowledge( AssemblingConveyor conveyor, Object cart ) {
-		Object key = ((Cart)cart).getKey();
-		((Cart)cart).getFuture().complete(true);
+	static <K> void acknowledge( AssemblingConveyor conveyor, Cart<K,?,?> cart ) {
+		K key = cart.getKey();
+		cart.getFuture().complete(true);
 	}
 
 	/**
@@ -1401,12 +1401,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	static void rescheduleNow( AssemblingConveyor conveyor, Object cart ) {
-		Cart command = ((Cart)cart);
-		Object key = command.getKey();
-		long newExpirationTime = command.getExpirationTime();
+	static <K> void rescheduleNow( AssemblingConveyor conveyor, Cart<K,?,?> cart ) {
+		K key = cart.getKey();
+		long newExpirationTime = cart.getExpirationTime();
 		conveyor.keyBeforeReschedule.accept(key, newExpirationTime);
-		((Cart)cart).getFuture().complete(true);
+		cart.getFuture().complete(true);
 	}
 
 	/**
@@ -1416,11 +1415,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	static void timeoutNow( AssemblingConveyor conveyor, Object cart ) {
-		Object key = ((Cart)cart).getKey();
+	static <K> void timeoutNow( AssemblingConveyor conveyor, Cart<K,?,?> cart ) {
+		K key = cart.getKey();
 		conveyor.collector.get(key);
 		conveyor.keyBeforeReschedule.accept(key, System.currentTimeMillis() );
-		((Cart)cart).getFuture().complete(true);
+		cart.getFuture().complete(true);
 	}
 
 	/**
@@ -1429,12 +1428,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param conveyor the conveyor
 	 * @param cart the cart
 	 */
-	static void checkBuild( AssemblingConveyor conveyor, Object cart ) {
-		Object key = ((Cart)cart).getKey();
+	static <K> void checkBuild( AssemblingConveyor conveyor, Cart<K,?,?> cart ) {
+		K key = cart.getKey();
 		if(conveyor.collector.containsKey(key)) {
-			conveyor.processSite((Cart) cart, false);
+			conveyor.processSite(cart, false);
+			cart.getFuture().complete(true);
 		} else {
 			LOG.debug("Key '{}' does not exist. Ignoring check command.",key);
+			cart.getFuture().complete(false);
 		}
 	}
 	
@@ -1445,15 +1446,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 */
 	//TODO: finish this
-	static void futureBuild( AssemblingConveyor conveyor, Object cart ) {
-		Object key = ((Cart)cart).getKey();
+	static <K> void futureBuild( AssemblingConveyor conveyor, Cart<K,?,?> cart ) {
+		K key = cart.getKey();
 		if(conveyor.collector.containsKey(key)) {
 			conveyor.processSite((Cart) cart, false);
-			((Cart)cart).getFuture().complete(true);
-
+			cart.getFuture().complete(true);
 		} else {
 			LOG.debug("Key '{}' does not exist. Ignoring check command.",key);
-			((Cart)cart).getFuture().complete(false);
+			cart.getFuture().complete(false);
 		}
 	}
 
@@ -1464,15 +1464,15 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 */
 	//TODO: finish this
-	static void foreachBuild( AssemblingConveyor conveyor, Object cart ) {
-		Object key = ((Cart)cart).getKey();
+	static <K> void foreachBuild( AssemblingConveyor conveyor, Cart<K,?,?> cart ) {
+		K key = cart.getKey();
 		if(conveyor.collector.containsKey(key)) {
 			conveyor.processSite((Cart) cart, false);
-			((Cart)cart).getFuture().complete(true);
+			cart.getFuture().complete(true);
 
 		} else {
 			LOG.debug("Key '{}' does not exist. Ignoring check command.",key);
-			((Cart)cart).getFuture().complete(false);
+			cart.getFuture().complete(false);
 		}
 	}
 
