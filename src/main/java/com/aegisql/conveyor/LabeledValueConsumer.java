@@ -6,7 +6,6 @@ package com.aegisql.conveyor;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**

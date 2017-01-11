@@ -115,15 +115,19 @@ public class ResultQueueTest {
 			UserBuilder userBuilder = (UserBuilder) builder;
 			switch (label) {
 			case "setFirst":
+//				System.out.println("1---- "+value);
 				userBuilder.setFirst((String) value);
 				break;
 			case "setLast":
+//				System.out.println("2---- "+value);
 				userBuilder.setLast((String) value);
 				break;
 			case "setYearOfBirth":
+//				System.out.println("3---- "+value);
 				userBuilder.setYearOfBirth((Integer) value);
 				break;
 			default:
+//				System.out.println("E---- "+value);
 				throw new RuntimeException("Unknown label " + label);
 			}
 		});

@@ -35,6 +35,7 @@ import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
+import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.delay.DelayProvider;
@@ -1059,6 +1060,19 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private void processSite(Cart<K,?,L> cart, boolean accept) {
 		K key = cart.getKey();
 		if( key == null ) {
+			if( cart instanceof MultiKeyCart ) {
+				CompletableFuture<Boolean> multiFuture = cart.getFuture();
+				MultiKeyCart<K,?,L> mCart = (MultiKeyCart<K,?,L>)cart;
+				try {
+					collector.entrySet().stream().filter(entry->mCart.test(entry.getKey())).forEach(entry->{
+						processSite(mCart.toShoppingCart(entry.getKey()),accept);
+					});
+					multiFuture.complete(true);
+				} catch(Exception e) {
+					multiFuture.completeExceptionally(e);
+					throw e;
+				}
+			}
 			return;
 		}
 		BuildingSite<K, L, Cart<K,?,L>, ? extends OUT> buildingSite = null;
