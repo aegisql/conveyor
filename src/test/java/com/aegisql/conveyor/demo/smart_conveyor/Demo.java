@@ -24,9 +24,9 @@ public class Demo {
 		AtomicReference<Person> personRef = new AtomicReference<>();
 		
 		// I - Create labels describing building steps
-		final SmartLabel<PersonBuilder> FIRST_NAME    = SmartLabel.of(PersonBuilder::setFirstName);
-		final SmartLabel<PersonBuilder> LAST_NAME     = SmartLabel.of(PersonBuilder::setLastName);
-		final SmartLabel<PersonBuilder> DATE_OF_BIRTH = SmartLabel.of(PersonBuilder::setDateOfBirth);
+		final SmartLabel<PersonBuilder> FIRST_NAME    = SmartLabel.of("FIRST_NAME",PersonBuilder::setFirstName);
+		final SmartLabel<PersonBuilder> LAST_NAME     = SmartLabel.of("LAST_NAME",PersonBuilder::setLastName);
+		final SmartLabel<PersonBuilder> DATE_OF_BIRTH = SmartLabel.of("DATE_OF_BIRTH",PersonBuilder::setDateOfBirth);
 		
 		// II - Create conveyor
 		Conveyor<Integer, SmartLabel<PersonBuilder>, Person> conveyor = new AssemblingConveyor<>();
