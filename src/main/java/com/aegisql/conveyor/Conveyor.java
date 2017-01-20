@@ -30,6 +30,11 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
  */
 public interface Conveyor<K, L, OUT> {
 
+	public CartLoader<K,L,?,OUT,Boolean> id(K key);
+	
+	public <V> CartLoader<K,L,V,OUT,Boolean> part(V value);
+	
+
 	/**
 	 * Adds the cart to the input queue.
 	 *
@@ -39,16 +44,6 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	public <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart);
 	
-	/**
-	 * Adds the.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label);
 	
 	/**
 	 * Adds the.

@@ -170,9 +170,10 @@ public class BuildTesterTest {
 		conveyor.setName("User Assembler");
 
 		CompletableFuture<User> f = conveyor.createBuildFuture(1);
-		conveyor.add(1,"John",UserBuilderEvents.SET_FIRST);
-		conveyor.add(1,"Doe",UserBuilderEvents.SET_LAST);
-		conveyor.add(1,2000,UserBuilderEvents.SET_YEAR);
+		CartLoader<Integer,UserBuilderEvents,?,?,?> loader = conveyor.id(1);
+		loader.part("John").label(UserBuilderEvents.SET_FIRST).place();
+		loader.part("Doe").label(UserBuilderEvents.SET_LAST).place();
+		loader.part(2000).label(UserBuilderEvents.SET_YEAR).place();
 		User u = f.get();
 		assertNotNull(u);
 	}
@@ -195,9 +196,10 @@ public class BuildTesterTest {
 		conveyor.setName("User Assembler");
 
 		CompletableFuture<User> f = conveyor.createBuildFuture(1);
-		conveyor.add(1,"John",UserBuilderEvents2.SET_FIRST);
-		conveyor.add(1,"Doe",UserBuilderEvents2.SET_LAST);
-		conveyor.add(1,2000,UserBuilderEvents2.SET_YEAR);
+		CartLoader<Integer,UserBuilderEvents2,?,?,?> loader = conveyor.id(1);
+		loader.part("John").label(UserBuilderEvents2.SET_FIRST).place();
+		loader.part("Doe").label(UserBuilderEvents2.SET_LAST).place();
+		loader.part(2000).label(UserBuilderEvents2.SET_YEAR).place();
 		User u = f.get();
 		assertNotNull(u);
 	}
@@ -223,9 +225,12 @@ public class BuildTesterTest {
 		conveyor.setName("User Assembler");
 
 		CompletableFuture<User> f = conveyor.createBuildFuture(1);
-		conveyor.add(1,"John",UserBuilderEvents3.SET_FIRST);
-		conveyor.add(1,"Doe",UserBuilderEvents3.SET_LAST);
-		conveyor.add(1,2000,UserBuilderEvents3.SET_YEAR);
+		
+		CartLoader<Integer,UserBuilderEvents3,?,?,?> loader = conveyor.id(1);
+		loader.part("John").label(UserBuilderEvents3.SET_FIRST).place();
+		loader.part("Doe").label(UserBuilderEvents3.SET_LAST).place();
+		loader.part(2000).label(UserBuilderEvents3.SET_YEAR).place();
+
 		Thread.sleep(100);
 		User u = f.get();
 		assertNotNull(u);

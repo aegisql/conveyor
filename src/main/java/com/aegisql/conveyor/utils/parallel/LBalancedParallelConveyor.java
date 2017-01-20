@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.CartLoader;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
@@ -288,6 +289,18 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
 			conv.add( partialResult );
 		});
+	}
+
+	@Override
+	public <V> CartLoader<K, L, V, OUT, Boolean> part(V value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CartLoader<K, L, ?, OUT, Boolean> id(K key) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

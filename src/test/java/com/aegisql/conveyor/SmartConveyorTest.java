@@ -267,12 +267,12 @@ public class SmartConveyorTest {
 			outQueue.add(res.product);
 		});
 		conveyor.setName("Testing User Assembler");
-		conveyor.add(1, "John", UserBuilderEvents2.SET_FIRST);
+		conveyor.part("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
 		assertNull(u0);
 		conveyor.add(1, "Doe", UserBuilderEvents2.SET_LAST, 10, TimeUnit.MILLISECONDS);
 		conveyor.add(2, "Mike", UserBuilderEvents2.SET_FIRST, System.currentTimeMillis() + 10);
-		conveyor.add(1, 1999, UserBuilderEvents2.SET_YEAR);
+		conveyor.part(1999).id(1).label(UserBuilderEvents2.SET_YEAR).place();
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -325,12 +325,12 @@ public class SmartConveyorTest {
 		conveyor.addCommand(new CreateCommand<Integer, User>(5, sup2));
 
 		conveyor.setName("Testing User Assembler");
-		conveyor.add(1, "John", UserBuilderEvents2.SET_FIRST);
+		conveyor.part("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
 		assertNull(u0);
 		conveyor.add(1, "Doe", UserBuilderEvents2.SET_LAST, 10, TimeUnit.MILLISECONDS);
 		conveyor.add(2, "Mike", UserBuilderEvents2.SET_FIRST, System.currentTimeMillis() + 10);
-		conveyor.add(1, 1999, UserBuilderEvents2.SET_YEAR);
+		conveyor.part(1999).id(1).label(UserBuilderEvents2.SET_YEAR).place();
 		Thread.sleep(100);
 		conveyor.forEachKeyAndBuilder((key,builder)->{
 			System.out.println("-- key="+key+" builder="+builder.get());

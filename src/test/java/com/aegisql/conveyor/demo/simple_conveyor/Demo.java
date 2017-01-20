@@ -60,16 +60,28 @@ public class Demo {
 		
 		// VII - Send data to conveyor asynchronously
 		pool.runAsynchWithDelay(10,()->{
-			conveyor.add(1, "John", "FirstName");
+			conveyor
+				.part("John")
+				.id(1)
+				.label("FirstName")
+				.place();
 			}
 		);
 		pool.runAsynchWithDelay(10,()->{
-			conveyor.add(1, "Silver", "LastName");
+			conveyor
+				.part("Silver")
+				.id(1)
+				.label("LastName")
+				.place();
 			}
 		);
 		pool.runAsynchWithDelay(10,()->{
 			try {
-				conveyor.add(1, format.parse("1695-11-10"), "DateOfBirth");
+				conveyor
+					.id(1)
+					.part(format.parse("1695-11-10"))
+					.label("DateOfBirth")
+					.place();
 			} catch (Exception e) {}
 			}
 		);

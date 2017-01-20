@@ -55,15 +55,16 @@ public class MultiKeyTest {
 			counter.incrementAndGet();
 		});
 
-		
-		c.add(1,"FIRST",l1);
-		c.add(1,"LAST",l2);
-		c.add(2,"SECOND",l1);
+		CartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader1 = c.id(1);
+		CartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader2 = c.id(2);
+		loader1.part("FIRST").label(l1).place();
+		loader1.part("LAST").label(l2).place();
+		loader2.part("SECOND").label(l1).place();
 		c.add(new MultiKeyCart<Integer, String, SmartLabel<UserBuilderSmart>>("TEST", multi));
-		c.add(2,"LAST",l2);
+		loader2.part("LAST").label(l2).place();
 		
-		c.add(1,1999,l3);
-		c.add(2,2001,l3);
+		loader1.part(1999).label(l3).place();
+		loader2.part(2001).label(l3).place();
 		User u = f1.get();
 		assertEquals("FIRST",u.getFirst());
 		assertEquals("LAST",u.getLast());
@@ -91,17 +92,19 @@ public class MultiKeyTest {
 			counter.incrementAndGet();
 		});
 
-		
-		c.add(1,"FIRST",l1);
-		c.add(1,"LAST",l2);
-		c.add(2,"SECOND",l1);
+		CartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader1 = c.id(1);
+		CartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader2 = c.id(2);
+		loader1.part("FIRST").label(l1).place();
+		loader1.part("LAST").label(l2).place();
+		loader2.part("SECOND").label(l1).place();
+
 		c.add(new MultiKeyCart<Integer, String, SmartLabel<UserBuilderSmart>>((key)->{
 			return key % 2 == 0;
 					},"TEST", multi));
-		c.add(2,"LAST",l2);
+		loader2.part("LAST").label(l2).place();
 		
-		c.add(1,1999,l3);
-		c.add(2,2001,l3);
+		loader1.part(1999).label(l3).place();
+		loader2.part(2001).label(l3).place();
 		User u = f1.get();
 		assertEquals("FIRST",u.getFirst());
 		assertEquals("LAST",u.getLast());

@@ -174,14 +174,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public abstract <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart);
 
 	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#add(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label));
-	}
-
-	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, long)
 	 */
 	@Override

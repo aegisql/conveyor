@@ -56,7 +56,7 @@ public class Demo {
 		
 		// VII - Send data to conveyor queue (asynchronously)
 		pool.runAsynchWithDelay(10,()->{
-			conveyor.add(1, "John|Silver|1695-11-10", "CSV");
+			conveyor.id(1).part("John|Silver|1695-11-10").label("CSV").place();
 			}
 		);
 		

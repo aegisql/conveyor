@@ -202,7 +202,7 @@ public class BuilderSupplierFunctionalTest {
 		System.out.println("BS="+bs.get());						
 		
 		CompletableFuture<User> f = c.createBuildFuture(1,bs);
-		c.add(1, "VALUE", "LABEL");
+		c.id(1).part("VALUE").label("LABEL");
 		f.get();
 		
 	}

@@ -118,14 +118,6 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 	}
 
 	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.AssemblingConveyor#add(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, Schedule label) {
-		throw new UnsupportedOperationException("Scheduler must have execution interval parameter");
-	}
-
-	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.AssemblingConveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, long)
 	 */
 	@Override

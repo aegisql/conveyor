@@ -573,6 +573,22 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		collector.clear();
 	}
 
+	@Override
+	public CartLoader<K, L, ?, OUT, Boolean> id(K key) {
+		CartLoader<K,L,Object,OUT,Boolean> loader = new CartLoader<K,L,Object,OUT,Boolean>(cl -> {
+			return add(new ShoppingCart<K,Object,L>(cl.key, cl.value, cl.label, cl.expirationTime));
+		});
+		return loader.id(key) ;
+	}
+	
+	@Override
+	public <V> CartLoader<K, L, V, OUT, Boolean> part(V value) {
+		CartLoader<K,L,Object,OUT,Boolean> loader = new CartLoader<K,L,Object,OUT,Boolean>(cl -> {
+			return add(new ShoppingCart<K,Object,L>(cl.key, cl.value, cl.label, cl.expirationTime));
+		});
+		return loader.part(value);
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
@@ -654,14 +670,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		} finally {
 			lock.tell();
 		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#add(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label));
 	}
 
 	/* (non-Javadoc)
@@ -1701,6 +1709,5 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public long getCommandCounter() {
 		return commandCounter;
 	}
-
 
 }
