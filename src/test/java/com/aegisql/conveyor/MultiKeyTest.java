@@ -55,8 +55,8 @@ public class MultiKeyTest {
 			counter.incrementAndGet();
 		});
 
-		PartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader1 = c.id(1);
-		PartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader2 = c.id(2);
+		PartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader1 = c.part().id(1);
+		PartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader2 = c.part().id(2);
 		loader1.value("FIRST").label(l1).place();
 		loader1.value("LAST").label(l2).place();
 		loader2.value("SECOND").label(l1).place();
@@ -92,8 +92,8 @@ public class MultiKeyTest {
 			counter.incrementAndGet();
 		});
 
-		PartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader1 = c.id(1);
-		PartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader2 = c.id(2);
+		PartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader1 = c.part().id(1);
+		PartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader2 = c.part().id(2);
 		loader1.value("FIRST").label(l1).place();
 		loader1.value("LAST").label(l2).place();
 		loader2.value("SECOND").label(l1).place();

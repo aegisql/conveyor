@@ -37,7 +37,7 @@ public final class BuilderLoader<K,OUT,F> {
 		return new BuilderLoader<K,OUT,F>(placer,expirationTime,k,value);
 	}
 
-	public BuilderLoader<K,OUT,F> builder(BuilderSupplier<OUT> v) {
+	public BuilderLoader<K,OUT,F> supplier(BuilderSupplier<OUT> v) {
 		return new BuilderLoader<K,OUT,F>(placer,expirationTime,key,v);
 	}
 
@@ -57,7 +57,7 @@ public final class BuilderLoader<K,OUT,F> {
 		return new BuilderLoader<K,OUT,F>(placer,duration.toMillis(),key,value,true);
 	}
 	
-	public CompletableFuture<F> place() {
+	public CompletableFuture<F> create() {
 		return placer.apply(this);
 	}
 

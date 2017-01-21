@@ -287,9 +287,9 @@ public class SmartLabelFunctionalTest {
 		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
 		SmartLabel<UserBuilderSmart> l2 = SmartLabel.of(UserBuilderSmart::setLast);
 		SmartLabel<UserBuilderSmart> l3 = SmartLabel.of(UserBuilderSmart::setYearOfBirth);
-		c.part("FIRST").id(1).label(l1).place();
-		c.part("LAST").id(1).label(l2).place();
-		c.part(1999).id(1).label(l3).place();
+		c.part().value("FIRST").id(1).label(l1).place();
+		c.part().value("LAST").id(1).label(l2).place();
+		c.part().value(1999).id(1).label(l3).place();
 		assertNotNull(l1);
 		assertNotNull(l2);
 		assertNotNull(l3);

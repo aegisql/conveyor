@@ -235,12 +235,12 @@ public class SmartConveyorTest {
 			outQueue.add(res.product);
 		});
 		conveyor.setName("Testing User Assembler");
-		conveyor.id(1).value("John").label(UserBuilderEvents2.SET_FIRST).place();
+		conveyor.part().id(1).value("John").label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.id(1).value("Doe").label(UserBuilderEvents2.SET_LAST).expirationTime(System.currentTimeMillis() + 10).place();
-		conveyor.id(2).value("Mike").label(UserBuilderEvents2.SET_FIRST).ttl(10, TimeUnit.MILLISECONDS).place();
-		conveyor.id(1).value(1999).label(UserBuilderEvents2.SET_YEAR).place();
+		conveyor.part().id(1).value("Doe").label(UserBuilderEvents2.SET_LAST).expirationTime(System.currentTimeMillis() + 10).place();
+		conveyor.part().id(2).value("Mike").label(UserBuilderEvents2.SET_FIRST).ttl(10, TimeUnit.MILLISECONDS).place();
+		conveyor.part().id(1).value(1999).label(UserBuilderEvents2.SET_YEAR).place();
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -267,12 +267,12 @@ public class SmartConveyorTest {
 			outQueue.add(res.product);
 		});
 		conveyor.setName("Testing User Assembler");
-		conveyor.part("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();
+		conveyor.part().value("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.id(1).value("Doe").label(UserBuilderEvents2.SET_LAST).ttl(10, TimeUnit.MILLISECONDS).place();
-		conveyor.id(2).value("Mike").label(UserBuilderEvents2.SET_FIRST).expirationTime(System.currentTimeMillis() + 10).place();
-		conveyor.part(1999).id(1).label(UserBuilderEvents2.SET_YEAR).place();
+		conveyor.part().id(1).value("Doe").label(UserBuilderEvents2.SET_LAST).ttl(10, TimeUnit.MILLISECONDS).place();
+		conveyor.part().id(2).value("Mike").label(UserBuilderEvents2.SET_FIRST).expirationTime(System.currentTimeMillis() + 10).place();
+		conveyor.part().value(1999).id(1).label(UserBuilderEvents2.SET_YEAR).place();
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -325,12 +325,12 @@ public class SmartConveyorTest {
 		conveyor.addCommand(new CreateCommand<Integer, User>(5, sup2));
 
 		conveyor.setName("Testing User Assembler");
-		conveyor.part("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();
+		conveyor.part().value("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.id(1).value("Doe").label(UserBuilderEvents2.SET_LAST).ttl(10, TimeUnit.MILLISECONDS).place();
-		conveyor.id(2).value("Mike").label(UserBuilderEvents2.SET_FIRST).expirationTime(System.currentTimeMillis() + 10).place();
-		conveyor.part(1999).id(1).label(UserBuilderEvents2.SET_YEAR).place();
+		conveyor.part().id(1).value("Doe").label(UserBuilderEvents2.SET_LAST).ttl(10, TimeUnit.MILLISECONDS).place();
+		conveyor.part().id(2).value("Mike").label(UserBuilderEvents2.SET_FIRST).expirationTime(System.currentTimeMillis() + 10).place();
+		conveyor.part().value(1999).id(1).label(UserBuilderEvents2.SET_YEAR).place();
 		Thread.sleep(100);
 		conveyor.forEachKeyAndBuilder((key,builder)->{
 			System.out.println("-- key="+key+" builder="+builder.get());
@@ -555,9 +555,9 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCancelled());
 		assertFalse(f1.isCompletedExceptionally());
 		assertFalse(f1.isDone());
-		conveyor.id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
-		conveyor.id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
-		conveyor.id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
+		conveyor.part().id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
+		conveyor.part().id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
+		conveyor.part().id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
 
 		User user1 = f1.get();
 		assertNotNull(user1);
@@ -594,9 +594,9 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCompletedExceptionally());
 		assertFalse(f1.isDone());
 
-		conveyor.id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
-		conveyor.id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
-		conveyor.id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
+		conveyor.part().id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
+		conveyor.part().id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
+		conveyor.part().id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
 
 		User user1 = f1.get();
 		assertNotNull(user1);
@@ -633,9 +633,9 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCompletedExceptionally());
 		assertFalse(f1.isDone());
 
-		conveyor.id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
-		conveyor.id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
-		conveyor.id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
+		conveyor.part().id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
+		conveyor.part().id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
+		conveyor.part().id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
 
 		User user1 = (User) f1.get();
 		assertNotNull(user1);
@@ -671,9 +671,9 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCompletedExceptionally());
 		assertFalse(f1.isDone());
 
-		conveyor.id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
-		conveyor.id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
-		conveyor.id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
+		conveyor.part().id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
+		conveyor.part().id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
+		conveyor.part().id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
 
 		User user1 = f1.get();
 		assertNotNull(user1);
@@ -711,9 +711,9 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCompletedExceptionally());
 		assertFalse(f1.isDone());
 
-		conveyor.id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
-		conveyor.id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
-		conveyor.id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
+		conveyor.part().id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
+		conveyor.part().id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
+		conveyor.part().id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
 
 		User user1 = f1.get();
 		assertNotNull(user1);

@@ -61,7 +61,8 @@ public class Demo {
 		// VII - Send data to conveyor asynchronously
 		pool.runAsynchWithDelay(10,()->{
 			conveyor
-				.part("John")
+				.part()
+				.value("John")
 				.id(1)
 				.label("FirstName")
 				.place();
@@ -69,7 +70,8 @@ public class Demo {
 		);
 		pool.runAsynchWithDelay(10,()->{
 			conveyor
-				.part("Silver")
+				.part()
+				.value("Silver")
 				.id(1)
 				.label("LastName")
 				.place();
@@ -78,6 +80,7 @@ public class Demo {
 		pool.runAsynchWithDelay(10,()->{
 			try {
 				conveyor
+					.part()
 					.id(1)
 					.value(format.parse("1695-11-10"))
 					.label("DateOfBirth")

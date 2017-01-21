@@ -573,27 +573,18 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		collector.clear();
 	}
 
+	@Override
 	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
 		return new PartLoader<K,L,X,OUT,Boolean>(cl -> {
 			return place(new ShoppingCart<K,Object,L>(cl.key, cl.partValue, cl.label, cl.expirationTime));
 		});
 	}
 
-	public BuilderLoader<K, OUT, Boolean> builderLoader() {
+	public BuilderLoader<K, OUT, Boolean> builder() {
 		return new BuilderLoader<K, OUT, Boolean> (cl -> {
 			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key,cl.value,cl.expirationTime);
 			return place(cart);
 		});
-	}
-
-	@Override
-	public PartLoader<K, L, ?, OUT, Boolean> id(K key) {
-		return part().id(key) ;
-	}
-	
-	@Override
-	public <V> PartLoader<K, L, V, OUT, Boolean> part(V value) {
-		return part().value(value);
 	}
 	
 	/* (non-Javadoc)

@@ -159,13 +159,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	}
 
 	@Override
-	public <V> PartLoader<K, L, V, OUT, Boolean> part(V value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public PartLoader<K, L, ?, OUT, Boolean> id(K key) {
+	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -77,9 +77,21 @@ public class ChainResult<K,OUT1,L2> implements Consumer<ProductBin<K,OUT1>> {
 	@Override
 	public void accept(ProductBin<K,OUT1> bin) {
 		if(useRemaining) {
-			next.id(bin.key).value(bin.product).label(label).ttl(bin.remainingDelayMsec,TimeUnit.MILLISECONDS).place();			
+			next
+			.part()
+			.id(bin.key)
+			.value(bin.product)
+			.label(label)
+			.ttl(bin.remainingDelayMsec,TimeUnit.MILLISECONDS)
+			.place();			
 		} else {
-			next.id(bin.key).value(bin.product).label(label).ttl(ttlMsec,TimeUnit.MILLISECONDS).place();			
+			next
+			.part()
+			.id(bin.key)
+			.value(bin.product)
+			.label(label)
+			.ttl(ttlMsec,TimeUnit.MILLISECONDS)
+			.place();			
 		}
 	}
 

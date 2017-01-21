@@ -170,7 +170,7 @@ public class BuildTesterTest {
 		conveyor.setName("User Assembler");
 
 		CompletableFuture<User> f = conveyor.createBuildFuture(1);
-		PartLoader<Integer,UserBuilderEvents,?,?,?> loader = conveyor.id(1);
+		PartLoader<Integer,UserBuilderEvents,?,?,?> loader = conveyor.part().id(1);
 		loader.value("John").label(UserBuilderEvents.SET_FIRST).place();
 		loader.value("Doe").label(UserBuilderEvents.SET_LAST).place();
 		loader.value(2000).label(UserBuilderEvents.SET_YEAR).place();
@@ -196,7 +196,7 @@ public class BuildTesterTest {
 		conveyor.setName("User Assembler");
 
 		CompletableFuture<User> f = conveyor.createBuildFuture(1);
-		PartLoader<Integer,UserBuilderEvents2,?,?,?> loader = conveyor.id(1);
+		PartLoader<Integer,UserBuilderEvents2,?,?,?> loader = conveyor.part().id(1);
 		loader.value("John").label(UserBuilderEvents2.SET_FIRST).place();
 		loader.value("Doe").label(UserBuilderEvents2.SET_LAST).place();
 		loader.value(2000).label(UserBuilderEvents2.SET_YEAR).place();
@@ -226,7 +226,7 @@ public class BuildTesterTest {
 
 		CompletableFuture<User> f = conveyor.createBuildFuture(1);
 		
-		PartLoader<Integer,UserBuilderEvents3,?,?,?> loader = conveyor.id(1);
+		PartLoader<Integer,UserBuilderEvents3,?,?,?> loader = conveyor.part().id(1);
 		loader.value("John").label(UserBuilderEvents3.SET_FIRST).place();
 		loader.value("Doe").label(UserBuilderEvents3.SET_LAST).place();
 		loader.value(2000).label(UserBuilderEvents3.SET_YEAR).place();

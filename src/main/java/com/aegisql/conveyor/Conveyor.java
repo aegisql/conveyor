@@ -30,11 +30,8 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
  */
 public interface Conveyor<K, L, OUT> {
 
-	public PartLoader<K,L,?,OUT,Boolean> id(K key);
+	public <X> PartLoader<K, L, X, OUT, Boolean> part();
 	
-	public <V> PartLoader<K,L,V,OUT,Boolean> part(V value);
-	
-
 	/**
 	 * Adds the cart to the input queue.
 	 *

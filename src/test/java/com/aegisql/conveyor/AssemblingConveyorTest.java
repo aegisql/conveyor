@@ -277,7 +277,7 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c2 = new ShoppingCart<>(1, "John", "setFirst",System.currentTimeMillis()-1);
 		assertTrue(conveyor.place(c2).isCompletedExceptionally());
 
-		assertTrue(conveyor.id(1).value("John").label("Silver").expirationTime(1).place().isCompletedExceptionally());
+		assertTrue(conveyor.part().id(1).value("John").label("Silver").expirationTime(1).place().isCompletedExceptionally());
 		
 	}
 

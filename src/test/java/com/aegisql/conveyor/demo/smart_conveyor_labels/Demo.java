@@ -33,16 +33,16 @@ public class Demo {
 		
 		// IV - Add data to conveyor queue 
 		pool.runAsynchWithDelay(10,()->{
-			conveyor.id(1).value("John").label(PersonBuilderLabel.SET_FIRST).place();
+			conveyor.part().id(1).value("John").label(PersonBuilderLabel.SET_FIRST).place();
 			}
 		);
 		pool.runAsynchWithDelay(20,()->{
-			conveyor.id(1).value("Silver").label(PersonBuilderLabel.SET_LAST).place();
+			conveyor.part().id(1).value("Silver").label(PersonBuilderLabel.SET_LAST).place();
 			}
 		);
 		pool.runAsynchWithDelay(50,()->{
 			try {
-				conveyor.id(1).value(format.parse("1695-11-10")).label(PersonBuilderLabel.SET_YEAR).place();
+				conveyor.part().id(1).value(format.parse("1695-11-10")).label(PersonBuilderLabel.SET_YEAR).place();
 			} catch (Exception e) {}
 			}
 		);

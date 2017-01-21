@@ -107,9 +107,9 @@ public class CachingConveyorTest {
 		CompletableFuture<Boolean> lastFuture = null;
 		long tBefore = System.nanoTime();
 		for(int i = 1; i<=BIG;i++) {
-			conveyor.id(i).value("TestFirst"+i).label("setFirst").place();
-			conveyor.id(i).value("TestLast"+i).label("setLast").place();
-			lastFuture = conveyor.id(i).value(1900+i%100).label("setYearOfBirth").place();
+			conveyor.part().id(i).value("TestFirst"+i).label("setFirst").place();
+			conveyor.part().id(i).value("TestLast"+i).label("setLast").place();
+			lastFuture = conveyor.part().id(i).value(1900+i%100).label("setYearOfBirth").place();
 		}
 		assertTrue("Expected that all messages successfully delivered",lastFuture.get());
 		long tAfter = System.nanoTime();
@@ -424,7 +424,7 @@ public class CachingConveyorTest {
 		Supplier<? extends String> s = conveyor.getProductSupplier(1);
 		assertEquals("BEST", s.get());
 
-		CompletableFuture<Boolean> cf3 = conveyor.id(1).value("GUEST").label("update").place();
+		CompletableFuture<Boolean> cf3 = conveyor.part().id(1).value("GUEST").label("update").place();
 		assertTrue(cf3.get());
 		s = conveyor.getProductSupplier(1);
 		assertEquals("GUEST", s.get());
@@ -454,7 +454,7 @@ public class CachingConveyorTest {
 		Supplier<? extends String> s = conveyor.getProductSupplier(1);
 		assertEquals("BEST", s.get());
 
-		CompletableFuture<Boolean> cf3 = conveyor.id(1).value("GUEST").label("update").place();
+		CompletableFuture<Boolean> cf3 = conveyor.part().id(1).value("GUEST").label("update").place();
 		assertTrue(cf3.get());
 		s = conveyor.getProductSupplier(1);
 		assertEquals("GUEST", s.get());
