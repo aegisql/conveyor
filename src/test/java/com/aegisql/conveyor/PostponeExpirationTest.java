@@ -105,15 +105,15 @@ public class PostponeExpirationTest {
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
 		Thread.sleep(50);
 		long et1 = conveyor.getExpirationTime(1);		
-		conveyor.offer(c2);
+		conveyor.place(c2);
 		Thread.sleep(50);
 		long et2 = conveyor.getExpirationTime(1);
-		conveyor.offer(c3);
+		conveyor.place(c3);
 		Thread.sleep(50); //over original exp time
 
 		long diff = et2-et1;
@@ -157,13 +157,13 @@ public class PostponeExpirationTest {
 				UserBuilderEvents.SET_FIRST,100, TimeUnit.MILLISECONDS);
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST,150, TimeUnit.MILLISECONDS);
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
+		conveyor.place(c2);
 		Thread.sleep(110); //created with 10, but 100 added by second cart
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1, 1999, UserBuilderEvents.SET_YEAR,100, TimeUnit.MILLISECONDS);
-		conveyor.offer(c3);
+		conveyor.place(c3);
 
 		Thread.sleep(100);
 
@@ -220,14 +220,14 @@ public class PostponeExpirationTest {
 				"FIRST");
 		Cart<Integer, String, String> c2 = new ShoppingCart<>(1,"Doe", "LAST");
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
+		conveyor.place(c2);
 		Thread.sleep(110); //created with 10, but 100 added by second cart
 		Cart<Integer, Integer, String> c3 = new ShoppingCart<>(1, 1999, "YEAR");
 		CompletableFuture<User> f = conveyor.getFuture(1); 
-		conveyor.offer(c3);
+		conveyor.place(c3);
 
 		f.get();
 
@@ -290,7 +290,7 @@ public class PostponeExpirationTest {
 				"FIRST");
 
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
 

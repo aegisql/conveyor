@@ -171,39 +171,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 * @see com.aegisql.conveyor.Conveyor#add(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public abstract <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart);
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, long)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long expirationTime) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long ttl, TimeUnit unit) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, java.time.Duration)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Duration duration) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, java.time.Instant)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Instant instant) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
-	}
+	public abstract <V> CompletableFuture<Boolean> place(Cart<K,V,L> cart);
 
 	/**
 	 * Creates the build with cart.
@@ -466,52 +434,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return getFutureByCart( new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),instant) );
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
-	 */
-	@Override
-	public abstract <V> CompletableFuture<Boolean> offer(Cart<K,V,L> cart);
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object, long)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long expirationTime) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long ttl, TimeUnit unit) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object, java.time.Duration)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Duration duration) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object, java.time.Instant)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Instant instant) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
-	}
-
 	/**
 	 * Gets the number of conveyors.
 	 *
@@ -886,7 +808,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		this.setResultConsumer(bin->{
 			LOG.debug("Forward {} from {} to {} {}",partial,this.name,conv.getName(),bin.product);
 			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
-			conv.add( partialResult );
+			conv.place( partialResult );
 		});
 	}
 

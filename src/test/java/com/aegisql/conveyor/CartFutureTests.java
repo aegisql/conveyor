@@ -86,13 +86,13 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<Boolean> cf1 = conveyor.offer(c1);
+		CompletableFuture<Boolean> cf1 = conveyor.place(c1);
 		assertFalse(cf1.isDone());
-		CompletableFuture<Boolean> cf2 = conveyor.offer(c2);
+		CompletableFuture<Boolean> cf2 = conveyor.place(c2);
 		assertFalse(cf2.isDone());
-		CompletableFuture<Boolean> cf3 = conveyor.offer(c3);
+		CompletableFuture<Boolean> cf3 = conveyor.place(c3);
 		assertFalse(cf3.isDone());
-		CompletableFuture<Boolean> cf4 = conveyor.offer(c4);
+		CompletableFuture<Boolean> cf4 = conveyor.place(c4);
 		assertFalse(cf4.isDone());
 
 		assertTrue(cf1.get());
@@ -133,7 +133,7 @@ public class CartFutureTests {
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST,10,TimeUnit.MILLISECONDS);
 		Thread.sleep(20);
-		CompletableFuture<Boolean> cf1 = conveyor.offer(c1);
+		CompletableFuture<Boolean> cf1 = conveyor.place(c1);
 		
 		assertTrue(cf1.isDone());
 
@@ -147,7 +147,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=IllegalStateException.class)
+	@Test(expected=ExecutionException.class)
 	public void testExpiredSmart2() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -162,7 +162,8 @@ public class CartFutureTests {
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST,10,TimeUnit.MILLISECONDS);
 		Thread.sleep(20);
-		CompletableFuture<Boolean> cf1 = conveyor.add(c1);
+		CompletableFuture<Boolean> cf1 = conveyor.place(c1);
+		cf1.get();
 	}
 
 	/**
@@ -194,10 +195,10 @@ public class CartFutureTests {
 		assertFalse(cf1.isDone());
 		assertFalse(cf2.isDone());
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
 
 		User u1 = cf1.get();
 		cf2.get();
@@ -228,10 +229,10 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
 		CompletableFuture<User> cf1 = conveyor.getFuture(1);
 		CompletableFuture<User> cf2 = conveyor.getFuture(2);
 
@@ -269,10 +270,10 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
 		CompletableFuture<User> cf1 = conveyor.getFuture(1,100,TimeUnit.MILLISECONDS);
 		CompletableFuture<User> cf2 = conveyor.getFuture(2,100,TimeUnit.MILLISECONDS);
 
@@ -309,11 +310,11 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		CompletableFuture<User> cf1 = conveyor.getFuture(1,System.currentTimeMillis()+100);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
 
 		CompletableFuture<User> cf2 = conveyor.getFuture(2,System.currentTimeMillis()+100);
 
@@ -353,10 +354,10 @@ public class CartFutureTests {
 		CompletableFuture<User> cf1 = conveyor.getFuture(1,Duration.ofMillis(100));
 		CompletableFuture<User> cf2 = conveyor.getFuture(2,Duration.ofMillis(100));
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
 
 		assertFalse(cf1.isDone());
 		assertFalse(cf2.isDone());
@@ -398,10 +399,10 @@ public class CartFutureTests {
 		CompletableFuture<User> cf1 = conveyor.getFuture(1,Instant.now().plusMillis(100));
 		CompletableFuture<User> cf2 = conveyor.getFuture(2,Instant.now().plusMillis(100));
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
 
 		assertFalse(cf1.isDone());
 		assertFalse(cf2.isDone());
@@ -445,9 +446,9 @@ public class CartFutureTests {
 
 		assertFalse(cf1.isDone());
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
@@ -482,9 +483,9 @@ public class CartFutureTests {
 
 		assertFalse(cf1.isDone());
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
@@ -519,9 +520,9 @@ public class CartFutureTests {
 
 		assertFalse(cf1.isDone());
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
@@ -557,9 +558,9 @@ public class CartFutureTests {
 
 		assertFalse(cf1.isDone());
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
@@ -595,9 +596,9 @@ public class CartFutureTests {
 
 		assertFalse(cf1.isDone());
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
@@ -631,9 +632,9 @@ public class CartFutureTests {
 
 		assertFalse(cf1.isDone());
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
@@ -667,9 +668,9 @@ public class CartFutureTests {
 
 		assertFalse(cf1.isDone());
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
@@ -703,9 +704,9 @@ public class CartFutureTests {
 
 		assertFalse(cf1.isDone());
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
@@ -739,9 +740,9 @@ public class CartFutureTests {
 
 		assertFalse(cf1.isDone());
 
-		conveyor.offer(c1);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
 
 		User u1 = cf1.get();
 		assertNotNull(u1);

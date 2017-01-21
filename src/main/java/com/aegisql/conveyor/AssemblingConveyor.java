@@ -573,20 +573,27 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		collector.clear();
 	}
 
-	@Override
-	public CartLoader<K, L, ?, OUT, Boolean> id(K key) {
-		CartLoader<K,L,Object,OUT,Boolean> loader = new CartLoader<K,L,Object,OUT,Boolean>(cl -> {
-			return add(new ShoppingCart<K,Object,L>(cl.key, cl.value, cl.label, cl.expirationTime));
+	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
+		return new PartLoader<K,L,X,OUT,Boolean>(cl -> {
+			return place(new ShoppingCart<K,Object,L>(cl.key, cl.partValue, cl.label, cl.expirationTime));
 		});
-		return loader.id(key) ;
+	}
+
+	public BuilderLoader<K, OUT, Boolean> builderLoader() {
+		return new BuilderLoader<K, OUT, Boolean> (cl -> {
+			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key,cl.value,cl.expirationTime);
+			return place(cart);
+		});
+	}
+
+	@Override
+	public PartLoader<K, L, ?, OUT, Boolean> id(K key) {
+		return part().id(key) ;
 	}
 	
 	@Override
-	public <V> CartLoader<K, L, V, OUT, Boolean> part(V value) {
-		CartLoader<K,L,Object,OUT,Boolean> loader = new CartLoader<K,L,Object,OUT,Boolean>(cl -> {
-			return add(new ShoppingCart<K,Object,L>(cl.key, cl.value, cl.label, cl.expirationTime));
-		});
-		return loader.part(value);
+	public <V> PartLoader<K, L, V, OUT, Boolean> part(V value) {
+		return part().value(value);
 	}
 	
 	/* (non-Javadoc)
@@ -655,60 +662,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#add(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart) {
-		try {
-			CompletableFuture<Boolean> future = cart.getFuture();
-			cartBeforePlacementValidator.accept(cart);
-			boolean r = inQueue.add(cart);
-			if( ! r ) {
-				future.cancel(true);
-			}
-			return future;
-		} catch (RuntimeException e ) {
-			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,e.getMessage(),FailureType.CART_REJECTED) );
-			throw e;
-		} finally {
-			lock.tell();
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, long)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long expirationTime) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long ttl, TimeUnit unit) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, java.time.Duration)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Duration duration) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,duration));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#add(java.lang.Object, java.lang.Object, java.lang.Object, java.time.Instant)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Instant instant) {
-		return this.add( new ShoppingCart<K,V,L>(key,value,label,instant));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(Cart<K,V,L> cart) {
+	public <V> CompletableFuture<Boolean> place(Cart<K,V,L> cart) {
 		CompletableFuture<Boolean> future = cart.getFuture();
 		try {
 			cartBeforePlacementValidator.accept(cart);
@@ -716,54 +670,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if( ! r ) {
 				future.cancel(true);
 			}
-			return future;
 		} catch (RuntimeException e ) {
 			scrapConsumer.accept( new ScrapBin<K,Cart<K,?,?>>(cart.getKey(),cart,e.getMessage(),FailureType.CART_REJECTED) );
 			future.completeExceptionally(e);
-			return future;
 		} finally {
 			lock.tell();
 		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label) {
-		return this.offer( new ShoppingCart<K,V,L>(key,value,label));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object, long)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long expirationTime) {
-		return this.offer( new ShoppingCart<K,V,L>(key,value,label,expirationTime));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long ttl, TimeUnit unit) {
-		return this.offer( new ShoppingCart<K,V,L>(key,value,label,ttl, unit));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object, java.time.Duration)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Duration duration) {
-		return this.offer( new ShoppingCart<K,V,L>(key,value,label,duration));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(java.lang.Object, java.lang.Object, java.lang.Object, java.time.Instant)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Instant instant) {
-		return this.offer( new ShoppingCart<K,V,L>(key,value,label,instant));
+		return future;
 	}
 
 	/* (non-Javadoc)
@@ -771,7 +684,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<Boolean> createBuild(CreatingCart<K, OUT, L> cart) {
-		return this.add( cart );
+		return this.place( cart );
 	}
 	
 	/* (non-Javadoc)
@@ -860,7 +773,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public CompletableFuture<OUT> createBuildFuture(CreatingCart<K, OUT, L> cart) {
 		FutureSupplier supplier = (FutureSupplier<OUT>) cart.getValue();
-		CompletableFuture<Boolean> cartFuture = this.add(  cart );		
+		CompletableFuture<Boolean> cartFuture = this.place(  cart );		
 		if(cartFuture.isCancelled()) {
 			supplier.getFuture().cancel(true);
 		}
@@ -953,7 +866,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public <V> CompletableFuture<OUT> getFuture(Cart<K, V, L> cart) {
 		CompletableFuture<OUT> future = ((FutureCart<K,OUT,L>)cart).getValue();
-		CompletableFuture<Boolean> cartFuture = this.add( cart );
+		CompletableFuture<Boolean> cartFuture = this.place( cart );
 		if(cartFuture.isCancelled()) {
 			future.cancel(true);
 		}
@@ -1596,7 +1509,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.setResultConsumer(bin->{
 			LOG.debug("Forward {} from {} to {} {}",partial,this.name,conv.getName(),bin.product);
 			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
-			conv.add( partialResult );
+			conv.place( partialResult );
 		});
 	}
 	

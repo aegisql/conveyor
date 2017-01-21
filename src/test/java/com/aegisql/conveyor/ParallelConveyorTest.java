@@ -170,7 +170,7 @@ public class ParallelConveyorTest {
 	 */
 	@Test(expected=NullPointerException.class)
 	public void testException() {
-		conveyor.add(null);
+		conveyor.place(null);
 	}
 
 	/**
@@ -238,7 +238,7 @@ public class ParallelConveyorTest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			conveyor.offer(cart);
+			conveyor.place(cart);
 		}
 	});	
 
@@ -254,7 +254,7 @@ public class ParallelConveyorTest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			conveyor.offer(cart);
+			conveyor.place(cart);
 		}
 	});	
 
@@ -270,7 +270,7 @@ public class ParallelConveyorTest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			conveyor.offer(cart);
+			conveyor.place(cart);
 		}
 	});	
 	
@@ -343,10 +343,10 @@ public class ParallelConveyorTest {
 		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow2,1991");
 		ScalarCart<String, String> c3 = new ScalarCart<>("2", "Jane,Dow3,1992");
 		ScalarCart<String, String> c4 = new ScalarCart<>("2", "Jane,Dow4,1993");
-		conveyor.add(c1);
-		conveyor.add(c2);
-		conveyor.add(c3);
-		conveyor.add(c4);
+		conveyor.place(c1);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
 		
 		Thread.sleep(20);
 		assertNotNull(usr.get());
@@ -380,10 +380,10 @@ public class ParallelConveyorTest {
 		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow2,1991");
 		ScalarCart<String, String> c3 = new ScalarCart<>("2", "Jane,Dow3,1992");
 		ScalarCart<String, String> c4 = new ScalarCart<>("2", "Jane,Dow4,1993");
-		CompletableFuture<Boolean> f1 = conveyor.add(c1);
-		CompletableFuture<Boolean> f2 = conveyor.add(c2);
-		CompletableFuture<Boolean> f3 = conveyor.add(c3);
-		CompletableFuture<Boolean> f4 = conveyor.add(c4);
+		CompletableFuture<Boolean> f1 = conveyor.place(c1);
+		CompletableFuture<Boolean> f2 = conveyor.place(c2);
+		CompletableFuture<Boolean> f3 = conveyor.place(c3);
+		CompletableFuture<Boolean> f4 = conveyor.place(c4);
 		
 		assertTrue(f1.get());
 		assertTrue(f2.get());
@@ -419,8 +419,8 @@ public class ParallelConveyorTest {
 		
 		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");
 		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow2,1991");
-		CompletableFuture<Boolean> f1 = conveyor.add(c1);
-		CompletableFuture<Boolean> f2 = conveyor.add(c2);
+		CompletableFuture<Boolean> f1 = conveyor.place(c1);
+		CompletableFuture<Boolean> f2 = conveyor.place(c2);
 		
 		assertTrue(f1.get());
 		assertTrue(f2.get());
@@ -453,8 +453,8 @@ public class ParallelConveyorTest {
 		
 		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");
 		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow2,1991");
-		CompletableFuture<Boolean> f1 = conveyor.add(c1);
-		CompletableFuture<Boolean> f2 = conveyor.add(c2);
+		CompletableFuture<Boolean> f1 = conveyor.place(c1);
+		CompletableFuture<Boolean> f2 = conveyor.place(c2);
 		
 		assertTrue(f1.get());
 		assertTrue(f2.get());

@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.CartLoader;
+import com.aegisql.conveyor.PartLoader;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
@@ -147,14 +147,14 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 * @see com.aegisql.conveyor.Conveyor#add(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart) {
+	public <V> CompletableFuture<Boolean> place(Cart<K,V,L> cart) {
 		Objects.requireNonNull(cart, "Cart is null");
 		CompletableFuture<Boolean> combinedFuture = null;
 		for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
 			if(combinedFuture == null) {
-				combinedFuture = conv.add(cart.copy());
+				combinedFuture = conv.place(cart.copy());
 			} else {
-				combinedFuture = combinedFuture.thenCombine(conv.add(cart.copy()), ( a, b ) -> a && b );
+				combinedFuture = combinedFuture.thenCombine(conv.place(cart.copy()), ( a, b ) -> a && b );
 			}
 		}
 		return combinedFuture;
@@ -169,9 +169,9 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		CompletableFuture<Boolean> combinedFuture = null;
 		for(Conveyor<K,L,OUT> conv : this.conveyors) {
 			if(combinedFuture == null) {
-				combinedFuture = conv.add(cart.copy());
+				combinedFuture = conv.place(cart.copy());
 			} else {
-				combinedFuture = combinedFuture.thenCombine(conv.add(cart.copy()), ( a, b ) -> a && b );
+				combinedFuture = combinedFuture.thenCombine(conv.place(cart.copy()), ( a, b ) -> a && b );
 			}
 		}
 		return combinedFuture;
@@ -191,17 +191,17 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			if(conv.isForwardingResults()) {
 				LOG.debug("Create in conveyor {} {}",conv,cart);
 				if(combinedCreateFuture == null) {
-					combinedCreateFuture = conv.add(new CreatingCart<K, OUT, L>(cart.getKey(),builderSupplier,cart.getExpirationTime()));
+					combinedCreateFuture = conv.place(new CreatingCart<K, OUT, L>(cart.getKey(),builderSupplier,cart.getExpirationTime()));
 				} else {
-					combinedCreateFuture = combinedCreateFuture.thenCombine(conv.add(new CreatingCart<K, OUT, L>(cart.getKey(),builderSupplier,cart.getExpirationTime())), ( a, b ) -> a && b );
+					combinedCreateFuture = combinedCreateFuture.thenCombine(conv.place(new CreatingCart<K, OUT, L>(cart.getKey(),builderSupplier,cart.getExpirationTime())), ( a, b ) -> a && b );
 				}
 			} else {
 				//this conv will finally create the product
 				LOG.debug("Final conveyor {} {}",conv,cart);
 				if(combinedCreateFuture == null) {
-					combinedCreateFuture = conv.add(cart);
+					combinedCreateFuture = conv.place(cart);
 				} else {
-					combinedCreateFuture = combinedCreateFuture.thenCombine(conv.add(cart), ( a, b ) -> a && b );
+					combinedCreateFuture = combinedCreateFuture.thenCombine(conv.place(cart), ( a, b ) -> a && b );
 				}
 			}
 		}
@@ -217,7 +217,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 */
 	protected CompletableFuture<OUT> getFutureByCart(FutureCart<K,OUT,L> futureCart) {
 		CompletableFuture<OUT> future = futureCart.getValue();
-		CompletableFuture<Boolean> cartFuture = this.finalConsumer.add( futureCart );
+		CompletableFuture<Boolean> cartFuture = this.finalConsumer.place( futureCart );
 		if(cartFuture.isCancelled()) {
 			future.cancel(true);
 		}
@@ -225,33 +225,6 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	}
 	
 	
-	//TODO: UNIMPLEMENTED!!!
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(Cart<K,V,L> cart) {
-		CompletableFuture<Boolean> combinedFuture = null;
-		try {
-			for(Conveyor<K,L,OUT> conv : this.balancingCart.apply(cart)) {
-				Cart<K,V,L> cc = cart.copy();
-				CompletableFuture<Boolean> cartFuture = conv.add(cc);
-				if(combinedFuture == null) {
-					combinedFuture = cartFuture;
-				} else {
-					combinedFuture = combinedFuture.thenCombine(cartFuture, ( a, b ) -> a && b );
-				}
-			}
-			return combinedFuture;
-		} catch(Exception e) {
-			if( combinedFuture == null ) {
-				combinedFuture = new CompletableFuture<Boolean>();
-			}
-			combinedFuture.cancel(true);
-			return combinedFuture;
-		}
-	}
-
 	/**
 	 * Gets the expiration time.
 	 *
@@ -287,18 +260,18 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		this.setResultConsumer(bin->{
 			LOG.debug("Forward {} from {} to {} {}",partial,this.name,conv.getName(),bin.product);
 			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
-			conv.add( partialResult );
+			conv.place( partialResult );
 		});
 	}
 
 	@Override
-	public <V> CartLoader<K, L, V, OUT, Boolean> part(V value) {
+	public <V> PartLoader<K, L, V, OUT, Boolean> part(V value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public CartLoader<K, L, ?, OUT, Boolean> id(K key) {
+	public PartLoader<K, L, ?, OUT, Boolean> id(K key) {
 		// TODO Auto-generated method stub
 		return null;
 	}

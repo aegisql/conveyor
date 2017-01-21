@@ -120,7 +120,7 @@ public class CommandTest {
 		
 		CheckBuildCommand<Integer> check = new CheckBuildCommand<Integer>(1);
 		
-		ac.add(c);
+		ac.place(c);
 		
 		Thread.sleep(100);
 		ac.addCommand(check);

@@ -112,12 +112,12 @@ public class SmartConveyorTest {
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE);
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
 		
 		conveyor.forEachKeyAndBuilder((key,builder)->{
 			System.out.println("-- key="+key+" builder="+builder.get());
@@ -161,15 +161,15 @@ public class SmartConveyorTest {
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1, 1999, UserBuilderEvents.SET_YEAR);
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
+		conveyor.place(c2);
 
 		RescheduleCommand<Integer> reschedule = new RescheduleCommand<>(1, 4, TimeUnit.SECONDS);
 		conveyor.addCommand(reschedule);
 		Thread.sleep(1500);
-		conveyor.offer(c3);
+		conveyor.place(c3);
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -203,12 +203,12 @@ public class SmartConveyorTest {
 		Cart<Integer, String, UserBuilderEvents2> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents2.SET_FIRST);
 		Cart<Integer, Integer, UserBuilderEvents2> c4 = c1.nextCart(1999, UserBuilderEvents2.SET_YEAR);
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -235,12 +235,12 @@ public class SmartConveyorTest {
 			outQueue.add(res.product);
 		});
 		conveyor.setName("Testing User Assembler");
-		conveyor.offer(1, "John", UserBuilderEvents2.SET_FIRST);
+		conveyor.id(1).value("John").label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(1, "Doe", UserBuilderEvents2.SET_LAST, System.currentTimeMillis() + 10);
-		conveyor.offer(2, "Mike", UserBuilderEvents2.SET_FIRST, 10, TimeUnit.MILLISECONDS);
-		conveyor.offer(1, 1999, UserBuilderEvents2.SET_YEAR);
+		conveyor.id(1).value("Doe").label(UserBuilderEvents2.SET_LAST).expirationTime(System.currentTimeMillis() + 10).place();
+		conveyor.id(2).value("Mike").label(UserBuilderEvents2.SET_FIRST).ttl(10, TimeUnit.MILLISECONDS).place();
+		conveyor.id(1).value(1999).label(UserBuilderEvents2.SET_YEAR).place();
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -270,8 +270,8 @@ public class SmartConveyorTest {
 		conveyor.part("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.add(1, "Doe", UserBuilderEvents2.SET_LAST, 10, TimeUnit.MILLISECONDS);
-		conveyor.add(2, "Mike", UserBuilderEvents2.SET_FIRST, System.currentTimeMillis() + 10);
+		conveyor.id(1).value("Doe").label(UserBuilderEvents2.SET_LAST).ttl(10, TimeUnit.MILLISECONDS).place();
+		conveyor.id(2).value("Mike").label(UserBuilderEvents2.SET_FIRST).expirationTime(System.currentTimeMillis() + 10).place();
 		conveyor.part(1999).id(1).label(UserBuilderEvents2.SET_YEAR).place();
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
@@ -328,8 +328,8 @@ public class SmartConveyorTest {
 		conveyor.part("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.add(1, "Doe", UserBuilderEvents2.SET_LAST, 10, TimeUnit.MILLISECONDS);
-		conveyor.add(2, "Mike", UserBuilderEvents2.SET_FIRST, System.currentTimeMillis() + 10);
+		conveyor.id(1).value("Doe").label(UserBuilderEvents2.SET_LAST).ttl(10, TimeUnit.MILLISECONDS).place();
+		conveyor.id(2).value("Mike").label(UserBuilderEvents2.SET_FIRST).expirationTime(System.currentTimeMillis() + 10).place();
 		conveyor.part(1999).id(1).label(UserBuilderEvents2.SET_YEAR).place();
 		Thread.sleep(100);
 		conveyor.forEachKeyAndBuilder((key,builder)->{
@@ -368,12 +368,12 @@ public class SmartConveyorTest {
 		Cart<Integer, String, UserBuilderEvents3> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents3.SET_FIRST);
 		Cart<Integer, Integer, UserBuilderEvents3> c4 = c1.nextCart(1999, UserBuilderEvents3.SET_YEAR);
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -407,9 +407,9 @@ public class SmartConveyorTest {
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		assertTrue(conveyor.offer(c1).get());
+		assertTrue(conveyor.place(c1).get());
 		Thread.sleep(1100);
-		CompletableFuture<Boolean> future = conveyor.offer(c2);
+		CompletableFuture<Boolean> future = conveyor.place(c2);
 		assertTrue(future.isCompletedExceptionally());
 		conveyor.stop();
 	}
@@ -420,7 +420,7 @@ public class SmartConveyorTest {
 	 * @throws InterruptedException             the interrupted exception
 	 * @throws ExecutionException the execution exception
 	 */
-	@Test(expected = IllegalStateException.class) // ???? Failed
+	@Test(expected = ExecutionException.class) // ???? Failed
 	public void testRejectedStartAdd() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -435,9 +435,9 @@ public class SmartConveyorTest {
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		assertTrue(conveyor.add(c1).get());
+		assertTrue(conveyor.place(c1).get());
 		Thread.sleep(1100);
-		conveyor.add(c2);
+		conveyor.place(c2).get();
 		conveyor.stop();
 	}
 
@@ -492,12 +492,12 @@ public class SmartConveyorTest {
 		assertFalse(f1.isDone());
 
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
 
 		CompletableFuture<User> f2 = conveyor.getFuture(2);
 		assertNotNull(f2);
@@ -555,10 +555,9 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCancelled());
 		assertFalse(f1.isCompletedExceptionally());
 		assertFalse(f1.isDone());
-
-		conveyor.offer(1, "John", AbstractBuilderEvents.SET_FIRST);
-		conveyor.offer(1, "Doe", AbstractBuilderEvents.SET_LAST);
-		conveyor.offer(1, 1999, AbstractBuilderEvents.SET_YEAR);
+		conveyor.id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
+		conveyor.id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
+		conveyor.id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
 
 		User user1 = f1.get();
 		assertNotNull(user1);
@@ -595,9 +594,9 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCompletedExceptionally());
 		assertFalse(f1.isDone());
 
-		conveyor.offer(1, "John", AbstractBuilderEvents.SET_FIRST);
-		conveyor.offer(1, "Doe", AbstractBuilderEvents.SET_LAST);
-		conveyor.offer(1, 1999, AbstractBuilderEvents.SET_YEAR);
+		conveyor.id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
+		conveyor.id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
+		conveyor.id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
 
 		User user1 = f1.get();
 		assertNotNull(user1);
@@ -634,9 +633,9 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCompletedExceptionally());
 		assertFalse(f1.isDone());
 
-		conveyor.offer(1, "John", AbstractBuilderEvents.SET_FIRST);
-		conveyor.offer(1, "Doe", AbstractBuilderEvents.SET_LAST);
-		conveyor.offer(1, 1999, AbstractBuilderEvents.SET_YEAR);
+		conveyor.id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
+		conveyor.id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
+		conveyor.id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
 
 		User user1 = (User) f1.get();
 		assertNotNull(user1);
@@ -672,9 +671,9 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCompletedExceptionally());
 		assertFalse(f1.isDone());
 
-		conveyor.offer(1, "John", AbstractBuilderEvents.SET_FIRST);
-		conveyor.offer(1, "Doe", AbstractBuilderEvents.SET_LAST);
-		conveyor.offer(1, 1999, AbstractBuilderEvents.SET_YEAR);
+		conveyor.id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
+		conveyor.id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
+		conveyor.id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
 
 		User user1 = f1.get();
 		assertNotNull(user1);
@@ -712,9 +711,9 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCompletedExceptionally());
 		assertFalse(f1.isDone());
 
-		conveyor.offer(1, "John", AbstractBuilderEvents.SET_FIRST);
-		conveyor.offer(1, "Doe", AbstractBuilderEvents.SET_LAST);
-		conveyor.offer(1, 1999, AbstractBuilderEvents.SET_YEAR);
+		conveyor.id(1).value("John").label(AbstractBuilderEvents.SET_FIRST).place();
+		conveyor.id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
+		conveyor.id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
 
 		User user1 = f1.get();
 		assertNotNull(user1);

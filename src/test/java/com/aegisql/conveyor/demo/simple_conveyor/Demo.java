@@ -79,7 +79,7 @@ public class Demo {
 			try {
 				conveyor
 					.id(1)
-					.part(format.parse("1695-11-10"))
+					.value(format.parse("1695-11-10"))
 					.label("DateOfBirth")
 					.place();
 			} catch (Exception e) {}

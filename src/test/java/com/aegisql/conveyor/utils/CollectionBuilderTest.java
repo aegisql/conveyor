@@ -105,10 +105,10 @@ public class CollectionBuilderTest {
 		});
 		b.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 100; i++) {
-			b.add(new CollectionItemCart<Integer,Integer>(1,i));
+			b.place(new CollectionItemCart<Integer,Integer>(1,i));
 		}
 
-		b.add(new CollectionCompleteCart<Integer,Integer>(1));
+		b.place(new CollectionCompleteCart<Integer,Integer>(1));
 
 		Thread.sleep(110);
 		assertEquals(1, ai.get());
@@ -149,7 +149,7 @@ public class CollectionBuilderTest {
 		});
 		b.setIdleHeartBeat(50, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 100; i++) {
-			b.add(new CollectionItemCart<Integer,Integer>(1,i));
+			b.place(new CollectionItemCart<Integer,Integer>(1,i));
 		}
 
 		Thread.sleep(150);

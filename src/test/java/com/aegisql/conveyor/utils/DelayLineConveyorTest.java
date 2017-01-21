@@ -83,11 +83,11 @@ public class DelayLineConveyorTest {
 		DelayLineCart<Integer, Integer> c4 = new DelayLineCart<>(4, 4, 10+4, TimeUnit.MILLISECONDS);
 		DelayLineCart<Integer, Integer> c5 = new DelayLineCart<>(5, 5, 10+5, TimeUnit.MILLISECONDS);
 		
-		c.add(c1);
-		c.add(c4);
-		c.add(c2);
-		c.add(c3);
-		c.add(c5);
+		c.place(c1);
+		c.place(c4);
+		c.place(c2);
+		c.place(c3);
+		c.place(c5);
 		
 		Thread.sleep(100);
 		

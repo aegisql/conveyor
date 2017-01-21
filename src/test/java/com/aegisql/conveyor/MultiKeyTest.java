@@ -55,16 +55,16 @@ public class MultiKeyTest {
 			counter.incrementAndGet();
 		});
 
-		CartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader1 = c.id(1);
-		CartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader2 = c.id(2);
-		loader1.part("FIRST").label(l1).place();
-		loader1.part("LAST").label(l2).place();
-		loader2.part("SECOND").label(l1).place();
-		c.add(new MultiKeyCart<Integer, String, SmartLabel<UserBuilderSmart>>("TEST", multi));
-		loader2.part("LAST").label(l2).place();
+		PartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader1 = c.id(1);
+		PartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader2 = c.id(2);
+		loader1.value("FIRST").label(l1).place();
+		loader1.value("LAST").label(l2).place();
+		loader2.value("SECOND").label(l1).place();
+		c.place(new MultiKeyCart<Integer, String, SmartLabel<UserBuilderSmart>>("TEST", multi));
+		loader2.value("LAST").label(l2).place();
 		
-		loader1.part(1999).label(l3).place();
-		loader2.part(2001).label(l3).place();
+		loader1.value(1999).label(l3).place();
+		loader2.value(2001).label(l3).place();
 		User u = f1.get();
 		assertEquals("FIRST",u.getFirst());
 		assertEquals("LAST",u.getLast());
@@ -92,19 +92,19 @@ public class MultiKeyTest {
 			counter.incrementAndGet();
 		});
 
-		CartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader1 = c.id(1);
-		CartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader2 = c.id(2);
-		loader1.part("FIRST").label(l1).place();
-		loader1.part("LAST").label(l2).place();
-		loader2.part("SECOND").label(l1).place();
+		PartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader1 = c.id(1);
+		PartLoader<Integer, SmartLabel<UserBuilderSmart>, ?, ?, ?> loader2 = c.id(2);
+		loader1.value("FIRST").label(l1).place();
+		loader1.value("LAST").label(l2).place();
+		loader2.value("SECOND").label(l1).place();
 
-		c.add(new MultiKeyCart<Integer, String, SmartLabel<UserBuilderSmart>>((key)->{
+		c.place(new MultiKeyCart<Integer, String, SmartLabel<UserBuilderSmart>>((key)->{
 			return key % 2 == 0;
 					},"TEST", multi));
-		loader2.part("LAST").label(l2).place();
+		loader2.value("LAST").label(l2).place();
 		
-		loader1.part(1999).label(l3).place();
-		loader2.part(2001).label(l3).place();
+		loader1.value(1999).label(l3).place();
+		loader2.value(2001).label(l3).place();
 		User u = f1.get();
 		assertEquals("FIRST",u.getFirst());
 		assertEquals("LAST",u.getLast());

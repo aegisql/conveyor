@@ -101,7 +101,7 @@ public class BatchConveyorBuilderTest {
 		});
 		b.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
-			b.add(new BatchCart<Integer>(i));
+			b.place(new BatchCart<Integer>(i));
 		}
 		
 		Thread.sleep(40);
@@ -145,9 +145,9 @@ public class BatchConveyorBuilderTest {
 		b.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
 			if(i % 2 == 0) {
-				b.add(new BatchCart<Integer>("A",i));
+				b.place(new BatchCart<Integer>("A",i));
 			} else {
-				b.add(new BatchCart<Integer>("B",i));
+				b.place(new BatchCart<Integer>("B",i));
 			}
 		}
 		Thread.sleep(20);

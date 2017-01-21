@@ -74,10 +74,10 @@ public class MapBuillderTest {
 		ShoppingCart<Integer, String, String> c3 = new ShoppingCart<Integer, String, String>(1, "THIRD", "THREE");
 		ShoppingCart<Integer, String, String> c4 = new ShoppingCart<Integer, String, String>(1, null, null);
 
-		mc.add(c1);
-		mc.add(c2);
-		mc.add(c3);
-		mc.add(c4);
+		mc.place(c1);
+		mc.place(c2);
+		mc.place(c3);
+		mc.place(c4);
 		
 		Thread.sleep(100);
 	}

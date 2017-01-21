@@ -104,7 +104,7 @@ public class AssemblingConveyorTest {
 			visited.set(true);
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
-		CompletableFuture<Boolean> f = conveyor.offer(c1);
+		CompletableFuture<Boolean> f = conveyor.place(c1);
 		assertFalse(f.isCompletedExceptionally());
 		Thread.sleep(100);
 		assertTrue(f.isCompletedExceptionally());
@@ -128,7 +128,7 @@ public class AssemblingConveyorTest {
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		conveyor.stop();
-		assertTrue(conveyor.offer(c1).isCompletedExceptionally());
+		assertTrue(conveyor.place(c1).isCompletedExceptionally());
 	}
 
 	/**
@@ -194,9 +194,10 @@ public class AssemblingConveyorTest {
 	 * Test add stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
-	@Test(expected=IllegalStateException.class)
-	public void testAddStopped() throws InterruptedException {
+	@Test(expected=ExecutionException.class)
+	public void testAddStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
@@ -206,16 +207,17 @@ public class AssemblingConveyorTest {
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		conveyor.stop();
-		conveyor.add(c1);
+		conveyor.place(c1).get();
 	}
 
 	/**
 	 * Test null cart content stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
-	@Test(expected=NullPointerException.class)
-	public void testNullCartContentStopped() throws InterruptedException {
+	@Test(expected=ExecutionException.class)
+	public void testNullCartContentStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
@@ -229,16 +231,17 @@ public class AssemblingConveyorTest {
 			}
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, null, "setFirst");
-		conveyor.add(c1);
+		conveyor.place(c1).get();
 	}
 
 	/**
 	 * Test add expired stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
-	@Test(expected=IllegalStateException.class)
-	public void testAddExpiredStopped() throws InterruptedException {
+	@Test(expected=ExecutionException.class)
+	public void testAddExpiredStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setScrapConsumer((o)->{
@@ -248,7 +251,7 @@ public class AssemblingConveyorTest {
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
-		conveyor.add(c1);
+		conveyor.place(c1).get();
 	}
 
 	/**
@@ -268,13 +271,13 @@ public class AssemblingConveyorTest {
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
-		assertTrue(conveyor.offer(c1).isCompletedExceptionally());
+		assertTrue(conveyor.place(c1).isCompletedExceptionally());
 
 	
 		Cart<Integer, String, String> c2 = new ShoppingCart<>(1, "John", "setFirst",System.currentTimeMillis()-1);
-		assertTrue(conveyor.offer(c2).isCompletedExceptionally());
+		assertTrue(conveyor.place(c2).isCompletedExceptionally());
 
-		assertTrue(conveyor.offer(1,"John","Silver",1).isCompletedExceptionally());
+		assertTrue(conveyor.id(1).value("John").label("Silver").expirationTime(1).place().isCompletedExceptionally());
 		
 	}
 
@@ -336,13 +339,13 @@ public class AssemblingConveyorTest {
 			System.out.println("Command builder supplier called.");
 			return new UserBuilder();},1,TimeUnit.SECONDS);
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
-		conveyor.offer(c6);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
+		conveyor.place(c6);
 		Thread.sleep(100);
 		conveyor.setIdleHeartBeat(1000, TimeUnit.MILLISECONDS);
 		User u1 = outQueue.poll();
@@ -350,14 +353,14 @@ public class AssemblingConveyorTest {
 		System.out.println(u1);
 		User u2 = outQueue.poll();
 		assertNull(u2);
-		conveyor.offer(c7);
+		conveyor.place(c7);
 		conveyor.addCommand(c8);
 		conveyor.addCommand(c9);
 		Thread.sleep(100);
 		conveyor.addCommand( new CancelCommand<Integer>(6));
 		conveyor.addCommand( new TimeoutCommand<Integer>(7));
 
-		conveyor.offer(c5);
+		conveyor.place(c5);
 		Thread.sleep(2000);
 		System.out.println("COL:"+conveyor.getCollectorSize());
 		System.out.println("DEL:"+conveyor.getDelayedQueueSize());
@@ -409,11 +412,11 @@ public class AssemblingConveyorTest {
 		GeneralCommand<Integer,?> c0 = new CreateCommand<>(1,UserBuilder::new,1,TimeUnit.SECONDS);
 
 		conveyor.addCommand(c0);
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
+		conveyor.place(c2);
+		conveyor.place(c3);
 		Thread.sleep(100);
 		conveyor.setIdleHeartBeat(1000, TimeUnit.MILLISECONDS);
 		Thread.sleep(1100);
@@ -469,11 +472,11 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
 		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
+		conveyor.place(c2);
+		conveyor.place(c3);
 		Thread.sleep(100);
 		conveyor.setIdleHeartBeat(1000, TimeUnit.MILLISECONDS);
 		User u2 = outQueue.poll();
@@ -530,12 +533,12 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c3 = new ShoppingCart<>(2, "Mike", "setFirst");
 		Cart<Integer, Integer, String> c4 = c1.nextCart(1999, "setYearOfBirth");
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
 		Thread.sleep(100);
 		conveyor.setIdleHeartBeat(1000, TimeUnit.MILLISECONDS);
 		User u1 = outQueue.poll();
@@ -605,13 +608,13 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c3 = new ShoppingCart<>(2, "Mike", "setFirst");
 		Cart<Integer, Integer, String> c4 = c1.nextCart(1999, "setYearOfBirth");
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
-		CompletableFuture<Boolean> f4 = conveyor.offer(c4);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
+		CompletableFuture<Boolean> f4 = conveyor.place(c4);
 		Boolean res = f4.get();
 		System.out.println("Unexpected: "+res);
 	}
@@ -649,7 +652,7 @@ public class AssemblingConveyorTest {
 
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		assertTrue(conveyor.isRunning());
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		Thread.sleep(100);
 		assertFalse(conveyor.isRunning());
 	}

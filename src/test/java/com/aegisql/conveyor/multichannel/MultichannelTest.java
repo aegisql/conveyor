@@ -126,9 +126,9 @@ public class MultichannelTest {
 		System.out.println("CH2 "+ch2);
 		System.out.println("PC  "+pc);
 		
-		pc.add(cartA1);
-		pc.add(cartA2);
-		pc.add(cartB1);
+		pc.place(cartA1);
+		pc.place(cartA2);
+		pc.place(cartB1);
 		
 		Thread.sleep(100);
 
@@ -193,9 +193,9 @@ public class MultichannelTest {
 		System.out.println("CH2 "+ch2);
 		System.out.println("PC  "+pc);
 		
-		pc.add(cartA1);
-		pc.add(cartA2);
-		pc.add(cartB1);
+		pc.place(cartA1);
+		pc.place(cartA2);
+		pc.place(cartB1);
 		
 		Thread.sleep(100);
 		assertNotNull(user.get());
@@ -266,10 +266,10 @@ public class MultichannelTest {
 		System.out.println("CH2 "+ch2);
 		System.out.println("PC  "+pc);
 		
-		pc.add(cartA1);
-		pc.add(cartA2);
-		pc.add(info);
-		pc.add(cartB1);
+		pc.place(cartA1);
+		pc.place(cartA2);
+		pc.place(info);
+		pc.place(cartB1);
 		
 		Thread.sleep(100);
 
@@ -348,9 +348,9 @@ public class MultichannelTest {
 		assertFalse(f.isCancelled());
 		assertFalse(f.isCompletedExceptionally());
 		assertFalse(f.isDone());
-		pc.add(cartA1);
-		pc.add(cartA2);
-		pc.add(cartB1);
+		pc.place(cartA1);
+		pc.place(cartA2);
+		pc.place(cartB1);
 		
 		Thread.sleep(100);
 
@@ -431,9 +431,9 @@ public class MultichannelTest {
 		assertFalse(f.isCompletedExceptionally());
 		assertFalse(f.isDone());
 		
-		pc.add(cartA1);
-		pc.add(cartA2);
-		pc.add(cartB1);
+		pc.place(cartA1);
+		pc.place(cartA2);
+		pc.place(cartB1);
 		
 		User u = f.get();
 		

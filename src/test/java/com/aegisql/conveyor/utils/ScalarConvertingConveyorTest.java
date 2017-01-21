@@ -92,7 +92,7 @@ public class ScalarConvertingConveyorTest {
 		
 		ScalarCart<String,String> c = new ScalarCart<String, String>("test", csv);
 		
-		sc.add(c);
+		sc.place(c);
 		Thread.sleep(20);
 		assertNotNull(usr.get());
 	}

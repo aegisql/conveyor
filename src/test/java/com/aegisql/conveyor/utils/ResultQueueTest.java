@@ -149,13 +149,13 @@ public class ResultQueueTest {
 		GeneralCommand<Integer,?> c8 = new CreateCommand<>(8,1,TimeUnit.SECONDS);
 		GeneralCommand<Integer,?> c9 = new CreateCommand<>(8,UserBuilder::new,1,TimeUnit.SECONDS);
 
-		conveyor.offer(c1);
+		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
-		conveyor.offer(c2);
-		conveyor.offer(c3);
-		conveyor.offer(c4);
-		conveyor.offer(c6);
+		conveyor.place(c2);
+		conveyor.place(c3);
+		conveyor.place(c4);
+		conveyor.place(c6);
 		Thread.sleep(100);
 		conveyor.setIdleHeartBeat(1000, TimeUnit.MILLISECONDS);
 		User u1 = outQueue.poll();
@@ -163,14 +163,14 @@ public class ResultQueueTest {
 		System.out.println(u1);
 		User u2 = outQueue.poll();
 		assertNull(u2);
-		conveyor.offer(c7);
+		conveyor.place(c7);
 		conveyor.addCommand(c8);
 		conveyor.addCommand(c9);
 		Thread.sleep(100);
 		conveyor.addCommand( new CancelCommand<Integer>(6));
 		conveyor.addCommand( new TimeoutCommand<Integer>(7));
 
-		conveyor.offer(c5);
+		conveyor.place(c5);
 		Thread.sleep(2000);
 		System.out.println("COL:"+conveyor.getCollectorSize());
 		System.out.println("DEL:"+conveyor.getDelayedQueueSize());

@@ -30,9 +30,9 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
  */
 public interface Conveyor<K, L, OUT> {
 
-	public CartLoader<K,L,?,OUT,Boolean> id(K key);
+	public PartLoader<K,L,?,OUT,Boolean> id(K key);
 	
-	public <V> CartLoader<K,L,V,OUT,Boolean> part(V value);
+	public <V> PartLoader<K,L,V,OUT,Boolean> part(V value);
 	
 
 	/**
@@ -42,58 +42,8 @@ public interface Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 * @return true, if successful
 	 */
-	public <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart);
+	public <V> CompletableFuture<Boolean> place(Cart<K,V,L> cart);
 	
-	
-	/**
-	 * Adds the.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param expirationTime the expiration time
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long expirationTime);
-	
-	/**
-	 * Adds the.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param ttl the ttl
-	 * @param unit the unit
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, long ttl, TimeUnit unit);
-	
-	/**
-	 * Adds the.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param duration the duration
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Duration duration);
-	
-	/**
-	 * Adds the.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param instant the instant
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> add(K key, V value, L label, Instant instant);
-
 	/**
 	 * Creates the build.
 	 *
@@ -300,75 +250,6 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Instant instant);
 
-	
-	/**
-	 * Offers the cart to the input queue.
-	 *
-	 * @param <V> the value type
-	 * @param cart the cart
-	 * @return true, if successful
-	 */
-	public <V> CompletableFuture<Boolean> offer(Cart<K,V,L> cart);
-	
-	/**
-	 * Offer.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label);
-	
-	/**
-	 * Offer.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param expirationTime the expiration time
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long expirationTime);
-	
-	/**
-	 * Offer.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param ttl the ttl
-	 * @param unit the unit
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, long ttl, TimeUnit unit);
-	
-	/**
-	 * Offer.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param duration the duration
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Duration duration);
-	
-	/**
-	 * Offer.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param instant the instant
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> offer(K key, V value, L label, Instant instant);
 	
 	/**
 	 * Adds the command to the management queue.

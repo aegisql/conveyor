@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.CartLoader;
+import com.aegisql.conveyor.PartLoader;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
@@ -91,33 +91,13 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 * @see com.aegisql.conveyor.Conveyor#add(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public <V> CompletableFuture<Boolean> add(Cart<K,V,L> cart) {
+	public <V> CompletableFuture<Boolean> place(Cart<K,V,L> cart) {
 		Objects.requireNonNull(cart, "Cart is null");
 		Conveyor<K,L,OUT> balancedCobveyor    = this.balancingCart.apply(cart).get(0);
-		CompletableFuture<Boolean> cartFuture = balancedCobveyor.add(cart);
+		CompletableFuture<Boolean> cartFuture = balancedCobveyor.place(cart);
 		return cartFuture;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#offer(com.aegisql.conveyor.Cart)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> offer(Cart<K,V,L> cart) {
-		Objects.requireNonNull(cart, "Cart is null");
-		CompletableFuture<Boolean> cartFuture = null;
-		try {
-			Conveyor<K,L,OUT> balancedCobveyor    = this.balancingCart.apply(cart).get(0);
-			cartFuture = balancedCobveyor.add(cart);
-			return cartFuture;
-		} catch (Exception e) {
-			if(cartFuture == null) {
-				cartFuture = new CompletableFuture<Boolean>();
-			}
-			cartFuture.completeExceptionally(e);
-		}
-		return cartFuture;
-	}
-	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#createBuildFutureWithCart(java.util.function.Function, com.aegisql.conveyor.BuilderSupplier)
 	 */
@@ -127,7 +107,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(builderSupplier, productFuture);
 		CreatingCart<K, OUT, L> cart           = cartSupplier.apply( supplier );
 		Conveyor<K,L,OUT> balancedCobveyor     = this.balancingCart.apply(cart).get(0);
-		CompletableFuture<Boolean> cartFuture  = balancedCobveyor.add(cart);
+		CompletableFuture<Boolean> cartFuture  = balancedCobveyor.place(cart);
 		if( cartFuture.isCancelled()) {
 			productFuture.cancel(true);
 		}
@@ -140,7 +120,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	@Override
 	protected CompletableFuture<OUT> getFutureByCart(FutureCart<K,OUT,L> futureCart) {
 		CompletableFuture<OUT> future = futureCart.getValue();
-		CompletableFuture<Boolean> cartFuture = this.add( futureCart );
+		CompletableFuture<Boolean> cartFuture = this.place( futureCart );
 		if(cartFuture.isCancelled()) {
 			future.cancel(true);
 		}
@@ -175,17 +155,17 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 */
 	@Override
 	protected <V> CompletableFuture<Boolean> createBuildWithCart(Cart<K, V, L> cart) {
-		return add(cart);
+		return place(cart);
 	}
 
 	@Override
-	public <V> CartLoader<K, L, V, OUT, Boolean> part(V value) {
+	public <V> PartLoader<K, L, V, OUT, Boolean> part(V value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public CartLoader<K, L, ?, OUT, Boolean> id(K key) {
+	public PartLoader<K, L, ?, OUT, Boolean> id(K key) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -144,7 +144,7 @@ public class MultiThreadTest {
 	 */
 	@Test(expected=NullPointerException.class)
 	public void testException() {
-		conveyor.add(null);
+		conveyor.place(null);
 	}
 	
 	/**
@@ -178,7 +178,7 @@ public class MultiThreadTest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			conveyor.offer(cart);
+			conveyor.place(cart);
 		}
 	});	
 
@@ -194,7 +194,7 @@ public class MultiThreadTest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			conveyor.offer(cart);
+			conveyor.place(cart);
 		}
 	});	
 
@@ -210,7 +210,7 @@ public class MultiThreadTest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			conveyor.offer(cart);
+			conveyor.place(cart);
 		}
 	});	
 	

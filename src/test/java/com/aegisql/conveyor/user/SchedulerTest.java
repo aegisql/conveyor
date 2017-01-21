@@ -72,7 +72,7 @@ public class SchedulerTest {
 		SchedulableClosure c = ()->{
 			System.out.println("EXECUTED ONCE");
 		};
-		s.add("test1", c , Schedule.EXECUTE_ONCE, 1, TimeUnit.SECONDS);
+		s.id("test1").value(c).label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place();
 		Thread.sleep(1300);
 		assertEquals(0,s.getCollectorSize());
 	}
@@ -87,7 +87,7 @@ public class SchedulerTest {
 		SchedulableClosure c = ()->{
 			System.out.println("EXECUTED ONCE 2");
 		};
-		s.add("test1", c , Schedule.EXECUTE_ONCE, System.currentTimeMillis()+1000);
+		s.id("test1").value(c).label(Schedule.EXECUTE_ONCE).expirationTime(System.currentTimeMillis()+1000).place();
 		Thread.sleep(1300);
 		assertEquals(0,s.getCollectorSize());
 	}
@@ -103,7 +103,7 @@ public class SchedulerTest {
 		SchedulableClosure c = ()->{
 			System.out.println("EXECUTED WITH DELAY");
 		};
-		s.add("test2", c , Schedule.SCHEDULE_WITH_DELAY, 1, TimeUnit.SECONDS);
+		s.id("test2").value(c).label(Schedule.SCHEDULE_WITH_DELAY).ttl(1, TimeUnit.SECONDS).place();
 		Thread.sleep(2100);
 		assertEquals(1,s.getCollectorSize());
 		s.addCommand(new CancelCommand<String>("test2"));
@@ -121,7 +121,7 @@ public class SchedulerTest {
 		SchedulableClosure c = ()->{
 			System.out.println("EXECUTED NOW AND WITH DELAY");
 		};
-		s.add("test3", c , Schedule.SCHEDULE_AND_EXECUTE_NOW, 1, TimeUnit.SECONDS);
+		s.id("test3").value(c).label(Schedule.SCHEDULE_AND_EXECUTE_NOW).ttl(1, TimeUnit.SECONDS).place();
 		Thread.sleep(3500);
 		assertEquals(1,s.getCollectorSize());
 		s.addCommand(new CancelCommand<String>("test3"));
@@ -140,7 +140,7 @@ public class SchedulerTest {
 		SchedulableClosure c = ()->{
 			System.out.println("EXECUTED NOW AND WITH DELAY DURATION");
 		};
-		s.add("test4", c , Schedule.SCHEDULE_AND_EXECUTE_NOW, Duration.ofSeconds(1));
+		s.id("test4").value(c).label(Schedule.SCHEDULE_AND_EXECUTE_NOW).ttl(Duration.ofSeconds(1)).place();
 		Thread.sleep(3500);
 		assertEquals(1,s.getCollectorSize());
 		s.addCommand(new CancelCommand<String>("test4"));
@@ -155,7 +155,7 @@ public class SchedulerTest {
 	 */
 	@Test(expected=NullPointerException.class)
 	public void testExecuteOnceError() throws InterruptedException {
-		s.add("test1", null , Schedule.EXECUTE_ONCE, 1, TimeUnit.SECONDS);
+		s.id("test1").label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place();
 		Thread.sleep(1300);
 		assertEquals(0,s.getCollectorSize());
 	}
@@ -167,7 +167,7 @@ public class SchedulerTest {
 	 */
 	@Test(expected=ClassCastException.class)
 	public void testExecuteOnceError2() throws InterruptedException {
-		s.add("test1", "value" , Schedule.EXECUTE_ONCE, 1, TimeUnit.SECONDS);
+		s.id("test1").value("value").label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place();
 		Thread.sleep(1300);
 		assertEquals(0,s.getCollectorSize());
 	}

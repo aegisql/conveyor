@@ -109,8 +109,8 @@ public class ChainTest {
 			usr.set(u.product);
 		}));
 		
-		scalarConveyor.add(scalarCart1);
-		CompletableFuture<Boolean> f = scalarConveyor.add(scalarCart2);
+		scalarConveyor.place(scalarCart1);
+		CompletableFuture<Boolean> f = scalarConveyor.place(scalarCart2);
 
 		f.get();
 		assertNotNull(usr.get());

@@ -107,9 +107,9 @@ public class CachingConveyorTest {
 		CompletableFuture<Boolean> lastFuture = null;
 		long tBefore = System.nanoTime();
 		for(int i = 1; i<=BIG;i++) {
-			conveyor.id(i).part("TestFirst"+i).label("setFirst").place();
-			conveyor.id(i).part("TestLast"+i).label("setLast").place();
-			lastFuture = conveyor.id(i).part(1900+i%100).label("setYearOfBirth").place();
+			conveyor.id(i).value("TestFirst"+i).label("setFirst").place();
+			conveyor.id(i).value("TestLast"+i).label("setLast").place();
+			lastFuture = conveyor.id(i).value(1900+i%100).label("setYearOfBirth").place();
 		}
 		assertTrue("Expected that all messages successfully delivered",lastFuture.get());
 		long tAfter = System.nanoTime();
@@ -200,7 +200,7 @@ public class CachingConveyorTest {
 		Supplier<? extends User> supplier = conveyor.getProductSupplier(1);
 		assertNull(supplier);
 		
-		conveyor.add(c1);
+		conveyor.place(c1);
 		Thread.sleep(50);
 		supplier = conveyor.getProductSupplier(1);
 		assertNotNull(supplier);
@@ -208,8 +208,8 @@ public class CachingConveyorTest {
 		User u = supplier.get();
 		assertNotNull(u);
 		System.out.println(u);
-		conveyor.add(c2);
-		conveyor.add(c3);
+		conveyor.place(c2);
+		conveyor.place(c3);
 		Thread.sleep(50);
 		
 		u = supplier.get();
@@ -217,7 +217,7 @@ public class CachingConveyorTest {
 		System.out.println(u);
 		assertEquals(1999,u.getYearOfBirth());
 		Cart<Integer, Integer, String> c4 = c1.nextCart(2001, "setYearOfBirth");
-		conveyor.add(c4);
+		conveyor.place(c4);
 		Thread.sleep(50);
 		u = supplier.get();
 		assertNotNull(u);
@@ -261,7 +261,7 @@ public class CachingConveyorTest {
 		Supplier<? extends User> supplier = conveyor.getProductSupplier(1);
 		assertNull(supplier);
 		
-		conveyor.add(c1);
+		conveyor.place(c1);
 		Thread.sleep(50);
 		supplier = conveyor.getProductSupplier(1);
 		assertNotNull(supplier);
@@ -269,8 +269,8 @@ public class CachingConveyorTest {
 		User u = supplier.get();
 		assertNotNull(u);
 		System.out.println(u);
-		conveyor.add(c2);
-		conveyor.add(c3);
+		conveyor.place(c2);
+		conveyor.place(c3);
 		Thread.sleep(50);
 		
 		u = supplier.get();
@@ -278,7 +278,7 @@ public class CachingConveyorTest {
 		System.out.println(u);
 		assertEquals(1999,u.getYearOfBirth());
 		Cart<Integer, Integer, String> c4 = c1.nextCart(2001, "setYearOfBirth");
-		conveyor.add(c4);
+		conveyor.place(c4);
 		Thread.sleep(50);
 		u = supplier.get();
 		assertNotNull(u);
@@ -326,7 +326,7 @@ public class CachingConveyorTest {
 		Supplier<? extends User> supplier = conveyor.getProductSupplier(1);
 		assertNull(supplier);
 		
-		conveyor.add(c1);
+		conveyor.place(c1);
 		Thread.sleep(50);
 		supplier = conveyor.getProductSupplier(1);
 		assertNotNull(supplier);
@@ -334,8 +334,8 @@ public class CachingConveyorTest {
 		User u = supplier.get();
 		assertNotNull(u);
 		System.out.println(u);
-		conveyor.add(c2);
-		conveyor.add(c3);
+		conveyor.place(c2);
+		conveyor.place(c3);
 		Thread.sleep(50);
 		
 		u = supplier.get();
@@ -343,7 +343,7 @@ public class CachingConveyorTest {
 		System.out.println(u);
 		assertEquals(1999,u.getYearOfBirth());
 		Cart<Integer, Integer, String> c4 = c1.nextCart(2001, "setYearOfBirth");
-		conveyor.add(c4);
+		conveyor.place(c4);
 		Thread.sleep(50);
 		u = supplier.get();
 		assertNotNull(u);
@@ -424,7 +424,7 @@ public class CachingConveyorTest {
 		Supplier<? extends String> s = conveyor.getProductSupplier(1);
 		assertEquals("BEST", s.get());
 
-		CompletableFuture<Boolean> cf3 = conveyor.id(1).part("GUEST").label("update").place();
+		CompletableFuture<Boolean> cf3 = conveyor.id(1).value("GUEST").label("update").place();
 		assertTrue(cf3.get());
 		s = conveyor.getProductSupplier(1);
 		assertEquals("GUEST", s.get());
@@ -454,7 +454,7 @@ public class CachingConveyorTest {
 		Supplier<? extends String> s = conveyor.getProductSupplier(1);
 		assertEquals("BEST", s.get());
 
-		CompletableFuture<Boolean> cf3 = conveyor.id(1).part("GUEST").label("update").place();
+		CompletableFuture<Boolean> cf3 = conveyor.id(1).value("GUEST").label("update").place();
 		assertTrue(cf3.get());
 		s = conveyor.getProductSupplier(1);
 		assertEquals("GUEST", s.get());

@@ -102,7 +102,7 @@ public class MultichannelConceptTest {
 		});
 		ch1.setResultConsumer(bin->{
 			ShoppingCart<Integer, User, UserBuilderEvents> cart = new ShoppingCart<>(bin.key, bin.product, UserBuilderEvents.MERGE_A,bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
-			merge.add(cart);
+			merge.place(cart);
 			System.out.println("A sent "+bin.product);
 		});
 
@@ -115,7 +115,7 @@ public class MultichannelConceptTest {
 		});
 		ch2.setResultConsumer(bin->{
 			ShoppingCart<Integer, User, UserBuilderEvents> cart = new ShoppingCart<>(bin.key, bin.product, UserBuilderEvents.MERGE_B,bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
-			merge.add(cart);
+			merge.place(cart);
 			System.out.println("B sent "+bin.product);
 		});
 
@@ -124,9 +124,9 @@ public class MultichannelConceptTest {
 		
 		ShoppingCart<Integer, Integer, UserBuilderEvents> cartB1 = new ShoppingCart<>(1,1695, UserBuilderEvents.SET_YEAR,100,TimeUnit.MILLISECONDS);
 
-		ch1.add(cartA1);
-		ch1.add(cartA2);
-		ch2.add(cartB1);
+		ch1.place(cartA1);
+		ch1.place(cartA2);
+		ch2.place(cartB1);
 		
 		Thread.sleep(20);
 		
