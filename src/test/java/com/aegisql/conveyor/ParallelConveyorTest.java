@@ -371,9 +371,9 @@ public class ParallelConveyorTest {
 			usr.set(u.product);
 		});
 
-		CompletableFuture<User> uf1 = conveyor.getFuture("1");
-		CompletableFuture<User> uf2 = conveyor.getFuture("2");
-		CompletableFuture<User> uf3 = conveyor.getFuture("3");
+		CompletableFuture<User> uf1 = conveyor.future().id("1").get();
+		CompletableFuture<User> uf2 = conveyor.future().id("2").get();
+		CompletableFuture<User> uf3 = conveyor.future().id("3").get();
 
 		
 		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");
@@ -413,8 +413,8 @@ public class ParallelConveyorTest {
 			usr.set(u.product);
 		});
 
-		CompletableFuture<User> uf1 = conveyor.createBuildFuture("1",StringToUserBuulder::new);
-		CompletableFuture<User> uf2 = conveyor.createBuildFuture("2",StringToUserBuulder::new);
+		CompletableFuture<User> uf1 = conveyor.buildFuture().id("1").supplier(StringToUserBuulder::new).create();
+		CompletableFuture<User> uf2 = conveyor.buildFuture().id("2").supplier(StringToUserBuulder::new).create();
 
 		
 		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");
@@ -447,8 +447,8 @@ public class ParallelConveyorTest {
 			System.out.println("RESULT: "+u);
 			usr.set(u.product);
 		});
-		CompletableFuture<User> uf1 = conveyor.createBuildFuture("1");
-		CompletableFuture<User> uf2 = conveyor.createBuildFuture("2");
+		CompletableFuture<User> uf1 = conveyor.buildFuture().id("1").create();
+		CompletableFuture<User> uf2 = conveyor.buildFuture().id("2").create();
 
 		
 		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");

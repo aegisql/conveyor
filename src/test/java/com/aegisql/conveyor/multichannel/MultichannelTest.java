@@ -343,7 +343,7 @@ public class MultichannelTest {
 		System.out.println("CH2 "+ch2);
 		System.out.println("PC  "+pc);
 		
-		CompletableFuture<User> f = pc.getFuture(1);
+		CompletableFuture<User> f = pc.future().id(1).get();
 		assertNotNull(f);
 		assertFalse(f.isCancelled());
 		assertFalse(f.isCompletedExceptionally());
@@ -426,7 +426,7 @@ public class MultichannelTest {
 		System.out.println("CH2 "+ch2);
 		System.out.println("PC  "+pc);
 		
-		CompletableFuture<User> f = pc.createBuildFuture(1, UserBuilder::new);
+		CompletableFuture<User> f = pc.buildFuture().id(1).supplier(UserBuilder::new).create();
 		assertFalse(f.isCancelled());
 		assertFalse(f.isCompletedExceptionally());
 		assertFalse(f.isDone());

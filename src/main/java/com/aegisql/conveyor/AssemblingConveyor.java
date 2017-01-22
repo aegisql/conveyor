@@ -580,13 +580,47 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		});
 	}
 
-	public BuilderLoader<K, OUT, Boolean> builder() {
+	@Override
+	public BuilderLoader<K, OUT, Boolean> build() {
 		return new BuilderLoader<K, OUT, Boolean> (cl -> {
 			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key,cl.value,cl.expirationTime);
 			return place(cart);
 		});
 	}
-	
+
+	@Override
+	public BuilderLoader<K, OUT, OUT> buildFuture() {
+		return new BuilderLoader<K, OUT, OUT> (cl -> {
+			BuilderSupplier<OUT> bs = cl.value;
+			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+			if(bs == null) {
+				bs = builderSupplier.withFuture(future);
+			} else {
+				bs = bs.withFuture(future);
+			}
+			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs ,cl.expirationTime);
+			FutureSupplier supplier = (FutureSupplier<OUT>) cart.getValue();
+			CompletableFuture<Boolean> cartFuture = place(  cart );		
+			if(cartFuture.isCancelled()) {
+				supplier.getFuture().cancel(true);
+			}
+			return supplier.getFuture();
+		});
+	}
+
+	@Override
+	public FutureLoader<K, OUT> future() {
+		return new FutureLoader<K, OUT> (cl -> {
+			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+			FutureCart<K, OUT, L> cart = new FutureCart<K, OUT, L>(cl.key,future,cl.expirationTime);
+			CompletableFuture<Boolean> cartFuture = this.place( cart );
+			if(cartFuture.isCancelled()) {
+				future.cancel(true);
+			}
+			return future;
+		});
+	}
+
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
@@ -670,240 +704,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return future;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuild(com.aegisql.conveyor.cart.CreatingCart)
-	 */
-	@Override
-	public CompletableFuture<Boolean> createBuild(CreatingCart<K, OUT, L> cart) {
-		return this.place( cart );
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuild(java.lang.Object)
-	 */
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key) {
-		return this.createBuild( new CreatingCart<K, OUT, L>(key) );
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuild(java.lang.Object, long)
-	 */
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, long expirationTime) {
-		return this.createBuild( new CreatingCart<K, OUT, L>(key,expirationTime) );		
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuild(java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, long ttl, TimeUnit unit) {
-		return this.createBuild( new CreatingCart<K, OUT, L>(key,ttl,unit) );		
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuild(java.lang.Object, java.time.Duration)
-	 */
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, Duration duration) {
-		return this.createBuild( new CreatingCart<K, OUT, L>(key,duration) );		
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuild(java.lang.Object, java.time.Instant)
-	 */
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, Instant instant) {
-		return this.createBuild( new CreatingCart<K, OUT, L>(key,instant) );				
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuild(java.lang.Object, com.aegisql.conveyor.BuilderSupplier)
-	 */
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value) {
-		return this.createBuild( new CreatingCart<K, OUT, L>(key,value) );		
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuild(java.lang.Object, com.aegisql.conveyor.BuilderSupplier, long)
-	 */
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long expirationTime) {
-		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,expirationTime) );				
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuild(java.lang.Object, com.aegisql.conveyor.BuilderSupplier, long, java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
-		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,ttl,unit) );				
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuild(java.lang.Object, com.aegisql.conveyor.BuilderSupplier, java.time.Duration)
-	 */
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Duration duration) {
-		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,duration) );				
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuild(java.lang.Object, com.aegisql.conveyor.BuilderSupplier, java.time.Instant)
-	 */
-	@Override
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Instant instant) {
-		return this.createBuild( new CreatingCart<K, OUT, L>(key,value,instant) );						
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuildFuture(com.aegisql.conveyor.cart.CreatingCart)
-	 */
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(CreatingCart<K, OUT, L> cart) {
-		FutureSupplier supplier = (FutureSupplier<OUT>) cart.getValue();
-		CompletableFuture<Boolean> cartFuture = this.place(  cart );		
-		if(cartFuture.isCancelled()) {
-			supplier.getFuture().cancel(true);
-		}
-		return supplier.getFuture();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuildFuture(java.lang.Object)
-	 */
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,this.builderSupplier.withFuture( new CompletableFuture<OUT>() )));		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuildFuture(java.lang.Object, long)
-	 */
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, long expirationTime) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,this.builderSupplier.withFuture( new CompletableFuture<OUT>() ),expirationTime) );		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuildFuture(java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, long ttl, TimeUnit unit) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,this.builderSupplier.withFuture( new CompletableFuture<OUT>() ),ttl,unit) );		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuildFuture(java.lang.Object, java.time.Duration)
-	 */
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, Duration duration) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,this.builderSupplier.withFuture( new CompletableFuture<OUT>() ),duration) );		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuildFuture(java.lang.Object, java.time.Instant)
-	 */
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, Instant instant) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,this.builderSupplier.withFuture( new CompletableFuture<OUT>() ),instant) );		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuildFuture(java.lang.Object, com.aegisql.conveyor.BuilderSupplier)
-	 */
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,value.withFuture( new CompletableFuture<OUT>() )) );		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuildFuture(java.lang.Object, com.aegisql.conveyor.BuilderSupplier, long)
-	 */
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long expirationTime) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,value.withFuture( new CompletableFuture<OUT>() ),expirationTime) );		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuildFuture(java.lang.Object, com.aegisql.conveyor.BuilderSupplier, long, java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,value.withFuture( new CompletableFuture<OUT>() ),ttl,unit) );		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuildFuture(java.lang.Object, com.aegisql.conveyor.BuilderSupplier, java.time.Duration)
-	 */
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Duration duration) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,value.withFuture( new CompletableFuture<OUT>() ),duration) );		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#createBuildFuture(java.lang.Object, com.aegisql.conveyor.BuilderSupplier, java.time.Instant)
-	 */
-	@Override
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Instant instant) {
-		return this.createBuildFuture( new CreatingCart<K, OUT, L>(key,value.withFuture( new CompletableFuture<OUT>() ),instant) );		
-	}	
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#getFuture(com.aegisql.conveyor.cart.Cart)
-	 */
-	@Override
-	public <V> CompletableFuture<OUT> getFuture(Cart<K, V, L> cart) {
-		CompletableFuture<OUT> future = ((FutureCart<K,OUT,L>)cart).getValue();
-		CompletableFuture<Boolean> cartFuture = this.place( cart );
-		if(cartFuture.isCancelled()) {
-			future.cancel(true);
-		}
-		return future;
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#getFuture(java.lang.Object)
-	 */
-	@Override
-	public CompletableFuture<OUT> getFuture(K key) {
-		return getFuture(new FutureCart<K,OUT,L>(key,new CompletableFuture<>()));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#getFuture(java.lang.Object, long)
-	 */
-	@Override
-	public CompletableFuture<OUT> getFuture(K key, long expirationTime) {
-		return getFuture(new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),expirationTime));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#getFuture(java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public CompletableFuture<OUT> getFuture(K key, long ttl, TimeUnit unit) {
-		return getFuture(new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),ttl,unit));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#getFuture(java.lang.Object, java.time.Duration)
-	 */
-	@Override
-	public CompletableFuture<OUT> getFuture(K key, Duration duration) {
-		return getFuture(new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),duration));
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#getFuture(java.lang.Object, java.time.Instant)
-	 */
-	@Override
-	public CompletableFuture<OUT> getFuture(K key, Instant instant) {
-		return getFuture(new FutureCart<K,OUT,L>(key,new CompletableFuture<>(),instant));
-	}
-	
 	/**
 	 * Gets the collector size.
 	 *

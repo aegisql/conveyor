@@ -56,7 +56,7 @@ public class Demo {
 		);
 		
 		// V - Optionally - get future of existing build
-		CompletableFuture<Person> future = conveyor.getFuture(1);
+		CompletableFuture<Person> future = conveyor.future().id(1).get();
 		Person person = future.get();
 		System.out.println( person );
 

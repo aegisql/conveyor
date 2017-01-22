@@ -105,7 +105,7 @@ public class CartFutureTests {
 		assertTrue(cf3.isDone());
 		assertTrue(cf4.isDone());
 
-		CompletableFuture<User> uf3 = conveyor.getFuture(2);
+		CompletableFuture<User> uf3 = conveyor.future().id(2).get();
 		
 		User u3 = uf3.get();
 		
@@ -189,8 +189,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.createBuildFuture(1,100,TimeUnit.MILLISECONDS);
-		CompletableFuture<User> cf2 = conveyor.createBuildFuture(2,100,TimeUnit.MILLISECONDS);
+		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).ttl(100,TimeUnit.MILLISECONDS).create();
+		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).ttl(100,TimeUnit.MILLISECONDS).create();
 
 		assertFalse(cf1.isDone());
 		assertFalse(cf2.isDone());
@@ -233,8 +233,8 @@ public class CartFutureTests {
 		conveyor.place(c2);
 		conveyor.place(c3);
 		conveyor.place(c4);
-		CompletableFuture<User> cf1 = conveyor.getFuture(1);
-		CompletableFuture<User> cf2 = conveyor.getFuture(2);
+		CompletableFuture<User> cf1 = conveyor.future().id(1).get();
+		CompletableFuture<User> cf2 = conveyor.future().id(2).get();
 
 		assertFalse(cf1.isDone());
 		assertFalse(cf2.isDone());
@@ -274,8 +274,8 @@ public class CartFutureTests {
 		conveyor.place(c2);
 		conveyor.place(c3);
 		conveyor.place(c4);
-		CompletableFuture<User> cf1 = conveyor.getFuture(1,100,TimeUnit.MILLISECONDS);
-		CompletableFuture<User> cf2 = conveyor.getFuture(2,100,TimeUnit.MILLISECONDS);
+		CompletableFuture<User> cf1 = conveyor.future().id(1).ttl(100,TimeUnit.MILLISECONDS).get();
+		CompletableFuture<User> cf2 = conveyor.future().id(2).ttl(100,TimeUnit.MILLISECONDS).get();
 
 		assertFalse(cf1.isDone());
 		assertFalse(cf2.isDone());
@@ -311,12 +311,12 @@ public class CartFutureTests {
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
 		conveyor.place(c1);
-		CompletableFuture<User> cf1 = conveyor.getFuture(1,System.currentTimeMillis()+100);
+		CompletableFuture<User> cf1 = conveyor.future().id(1).expirationTime(System.currentTimeMillis()+100).get();
 		conveyor.place(c2);
 		conveyor.place(c3);
 		conveyor.place(c4);
 
-		CompletableFuture<User> cf2 = conveyor.getFuture(2,System.currentTimeMillis()+100);
+		CompletableFuture<User> cf2 = conveyor.future().id(2).expirationTime(System.currentTimeMillis()+100).get();
 
 		assertFalse(cf1.isDone());
 		assertFalse(cf2.isDone());
@@ -351,8 +351,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.getFuture(1,Duration.ofMillis(100));
-		CompletableFuture<User> cf2 = conveyor.getFuture(2,Duration.ofMillis(100));
+		CompletableFuture<User> cf1 = conveyor.future().id(1).ttl(Duration.ofMillis(100)).get();
+		CompletableFuture<User> cf2 = conveyor.future().id(2).ttl(Duration.ofMillis(100)).get();
 
 		conveyor.place(c1);
 		conveyor.place(c2);
@@ -396,8 +396,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.getFuture(1,Instant.now().plusMillis(100));
-		CompletableFuture<User> cf2 = conveyor.getFuture(2,Instant.now().plusMillis(100));
+		CompletableFuture<User> cf1 = conveyor.future().id(1).expirationTime(Instant.now().plusMillis(100)).get();
+		CompletableFuture<User> cf2 = conveyor.future().id(2).expirationTime(Instant.now().plusMillis(100)).get();
 
 		conveyor.place(c1);
 		conveyor.place(c2);
@@ -441,8 +441,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.createBuildFuture(1);
-		CompletableFuture<User> cf2 = conveyor.createBuildFuture(2);
+		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).create();
+		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).create();
 
 		assertFalse(cf1.isDone());
 
@@ -478,8 +478,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.createBuildFuture(1,System.currentTimeMillis()+100);
-		CompletableFuture<User> cf2 = conveyor.createBuildFuture(2,System.currentTimeMillis()+100);
+		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).expirationTime(System.currentTimeMillis()+100).create();
+		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).expirationTime(System.currentTimeMillis()+100).create();
 
 		assertFalse(cf1.isDone());
 
@@ -515,8 +515,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.createBuildFuture(1,Duration.ofMillis(100));
-		CompletableFuture<User> cf2 = conveyor.createBuildFuture(2,Duration.ofMillis(100));
+		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).ttl(Duration.ofMillis(100)).create();
+		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).ttl(Duration.ofMillis(100)).create();
 
 		assertFalse(cf1.isDone());
 
@@ -553,8 +553,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.createBuildFuture(1,Instant.now().plusMillis(100));
-		CompletableFuture<User> cf2 = conveyor.createBuildFuture(2,Instant.now().plusMillis(100));
+		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).expirationTime(Instant.now().plusMillis(100)).create();
+		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).expirationTime(Instant.now().plusMillis(100)).create();
 
 		assertFalse(cf1.isDone());
 
@@ -591,8 +591,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.createBuildFuture(1,UserBuilderSmart::new);
-		CompletableFuture<User> cf2 = conveyor.createBuildFuture(2,UserBuilderSmart::new);
+		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).create();
+		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).create();
 
 		assertFalse(cf1.isDone());
 
@@ -627,8 +627,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.createBuildFuture(1,UserBuilderSmart::new,System.currentTimeMillis()+100);
-		CompletableFuture<User> cf2 = conveyor.createBuildFuture(2,UserBuilderSmart::new,System.currentTimeMillis()+100);
+		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).expirationTime(System.currentTimeMillis()+100).create();
+		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).expirationTime(System.currentTimeMillis()+100).create();
 
 		assertFalse(cf1.isDone());
 
@@ -663,8 +663,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.createBuildFuture(1,UserBuilderSmart::new,100,TimeUnit.MILLISECONDS);
-		CompletableFuture<User> cf2 = conveyor.createBuildFuture(2,UserBuilderSmart::new,100,TimeUnit.MILLISECONDS);
+		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).ttl(100,TimeUnit.MILLISECONDS).create();
+		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).ttl(100,TimeUnit.MILLISECONDS).create();
 
 		assertFalse(cf1.isDone());
 
@@ -699,8 +699,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.createBuildFuture(1,UserBuilderSmart::new,Duration.ofMillis(100));
-		CompletableFuture<User> cf2 = conveyor.createBuildFuture(2,UserBuilderSmart::new,Duration.ofMillis(100));
+		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).ttl(Duration.ofMillis(100)).create();
+		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).ttl(Duration.ofMillis(100)).create();
 
 		assertFalse(cf1.isDone());
 
@@ -735,8 +735,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.createBuildFuture(1,UserBuilderSmart::new,Instant.now().plusMillis(100));
-		CompletableFuture<User> cf2 = conveyor.createBuildFuture(2,UserBuilderSmart::new,Instant.now().plusMillis(100));
+		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).expirationTime(Instant.now().plusMillis(100)).create();
+		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).expirationTime(Instant.now().plusMillis(100)).create();
 
 		assertFalse(cf1.isDone());
 

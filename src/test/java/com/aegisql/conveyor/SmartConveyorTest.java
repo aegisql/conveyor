@@ -313,9 +313,9 @@ public class SmartConveyorTest {
 			return new UserBuilderTesting();
 		};
 
-		CompletableFuture<Boolean> cf1 = conveyor.createBuild(1, sup);
-		CompletableFuture<Boolean> cf2 = conveyor.createBuild(2, sup);
-		CompletableFuture<Boolean> cf3 = conveyor.createBuild(3);
+		CompletableFuture<Boolean> cf1 = conveyor.build().id(1).supplier(sup).create();
+		CompletableFuture<Boolean> cf2 = conveyor.build().id(2).supplier(sup).create();
+		CompletableFuture<Boolean> cf3 = conveyor.build().id(3).create();
 
 		assertTrue(cf1.get());
 		assertTrue(cf2.get());
@@ -484,7 +484,7 @@ public class SmartConveyorTest {
 		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
 
 		
-		CompletableFuture<User> f1 = conveyor.getFuture(1);
+		CompletableFuture<User> f1 = conveyor.future().id(1).get();
 		
 		assertNotNull(f1);
 		assertFalse(f1.isCancelled());
@@ -499,7 +499,7 @@ public class SmartConveyorTest {
 		conveyor.place(c3);
 		conveyor.place(c4);
 
-		CompletableFuture<User> f2 = conveyor.getFuture(2);
+		CompletableFuture<User> f2 = conveyor.future().id(2).get();
 		assertNotNull(f2);
 		assertFalse(f2.isCancelled());
 		assertFalse(f2.isCompletedExceptionally());
@@ -549,7 +549,7 @@ public class SmartConveyorTest {
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 		
-		CompletableFuture<User> f1 = conveyor.createBuildFuture(1,UpperCaseUserBuilder::new);
+		CompletableFuture<User> f1 = conveyor.buildFuture().id(1).supplier(UpperCaseUserBuilder::new).create();
 		
 		assertNotNull(f1);
 		assertFalse(f1.isCancelled());
@@ -587,7 +587,7 @@ public class SmartConveyorTest {
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 		
-		CompletableFuture<User> f1 = conveyor.createBuildFuture(1,LowerCaseUserBuilder::new);
+		CompletableFuture<User> f1 = conveyor.buildFuture().id(1).supplier(LowerCaseUserBuilder::new).create();
 		
 		assertNotNull(f1);
 		assertFalse(f1.isCancelled());
@@ -626,7 +626,7 @@ public class SmartConveyorTest {
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 		
-		CompletableFuture<Object> f1 = conveyor.createBuildFuture(1,LowerCaseUserBuilder::new);
+		CompletableFuture<Object> f1 = conveyor.buildFuture().id(1).supplier(LowerCaseUserBuilder::new).create();
 		
 		assertNotNull(f1);
 		assertFalse(f1.isCancelled());
@@ -661,10 +661,10 @@ public class SmartConveyorTest {
 		conveyor.setName("User Upper Assembler");
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		
-		CompletableFuture<User> f1 = conveyor.createBuildFuture(1,
+		CompletableFuture<User> f1 = conveyor.buildFuture().id(1).supplier(
 				BuilderSupplier.of(UpperCaseUserBuilder::new)
 				.expire(100,TimeUnit.MILLISECONDS)
-				.readyAlgorithm(new ReadinessTester().accepted(3)));
+				.readyAlgorithm(new ReadinessTester().accepted(3))).create();
 		
 		assertNotNull(f1);
 		assertFalse(f1.isCancelled());
@@ -699,12 +699,12 @@ public class SmartConveyorTest {
 		conveyor.setName("User Upper Assembler");
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		
-		CompletableFuture<User> f1 = conveyor.createBuildFuture(1,
+		CompletableFuture<User> f1 = conveyor.buildFuture().id(1).supplier(
 				BuilderSupplier.of(UpperCaseUserBuilder::new)
 				.expire(100,TimeUnit.MILLISECONDS)
 				.readyAlgorithm(new ReadinessTester<Integer, AbstractBuilderEvents, User>().accepted(4))
 				.onTimeout((b)->{System.out.println("--- TIMEOUT--- "+b.get());})
-				);
+				).create();
 		
 		assertNotNull(f1);
 		assertFalse(f1.isCancelled());

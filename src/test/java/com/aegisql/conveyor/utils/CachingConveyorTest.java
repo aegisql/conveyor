@@ -369,12 +369,12 @@ public class CachingConveyorTest {
 		
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		CompletableFuture<Boolean> cf = conveyor.createBuild(1,ImmutableReference.newInstance("TEST"));
+		CompletableFuture<Boolean> cf = conveyor.build().id(1).supplier(ImmutableReference.newInstance("TEST")).create();
 		assertTrue(cf.get());
 		
 		Supplier<? extends String> s = conveyor.getProductSupplier(1);
 		assertEquals("TEST", s.get());
-		conveyor.createBuild(1,ImmutableReference.newInstance("TEST"));
+		conveyor.build().id(1).supplier(ImmutableReference.newInstance("TEST")).create();
 		
 		Thread.sleep(1200);
 		s.get();
@@ -392,12 +392,12 @@ public class CachingConveyorTest {
 		conveyor.setDefaultCartConsumer(new ImmutableValueConsumer());
 		
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		CompletableFuture<Boolean> cf = conveyor.createBuild(1,ImmutableReference.newInstance("TEST").expire(1,TimeUnit.SECONDS));
+		CompletableFuture<Boolean> cf = conveyor.build().id(1).supplier(ImmutableReference.newInstance("TEST").expire(1,TimeUnit.SECONDS)).create();
 		assertTrue(cf.get());
 		
 		Supplier<? extends String> s = conveyor.getProductSupplier(1);
 		assertEquals("TEST", s.get());
-		conveyor.createBuild(1,ImmutableReference.newInstance("TEST"));
+		conveyor.build().id(1).supplier(ImmutableReference.newInstance("TEST")).create();
 		
 		Thread.sleep(1200);
 		s.get();
@@ -417,8 +417,8 @@ public class CachingConveyorTest {
 		
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		CompletableFuture<Boolean> cf = conveyor.createBuild(1,MutableReference.newInstance("TEST"));
-		CompletableFuture<Boolean> cf2 = conveyor.createBuild(1,MutableReference.newInstance("BEST"));
+		CompletableFuture<Boolean> cf = conveyor.build().id(1).supplier(MutableReference.newInstance("TEST")).create();
+		CompletableFuture<Boolean> cf2 = conveyor.build().id(1).supplier(MutableReference.newInstance("BEST")).create();
 		assertTrue(cf.get());
 		assertTrue(cf2.get());
 		Supplier<? extends String> s = conveyor.getProductSupplier(1);
@@ -447,8 +447,8 @@ public class CachingConveyorTest {
 		conveyor.setDefaultCartConsumer(new MutableValueConsumer());
 		//conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		CompletableFuture<Boolean> cf  = conveyor.createBuild(1,MutableReference.newInstance("TEST").expire(1,TimeUnit.SECONDS));
-		CompletableFuture<Boolean> cf2 = conveyor.createBuild(1,MutableReference.newInstance("BEST"));
+		CompletableFuture<Boolean> cf  = conveyor.build().id(1).supplier(MutableReference.newInstance("TEST").expire(1,TimeUnit.SECONDS)).create();
+		CompletableFuture<Boolean> cf2 = conveyor.build().id(1).supplier(MutableReference.newInstance("BEST")).create();
 		assertTrue(cf.get());
 		assertTrue(cf2.get());
 		Supplier<? extends String> s = conveyor.getProductSupplier(1);

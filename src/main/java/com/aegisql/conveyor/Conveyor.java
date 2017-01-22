@@ -31,7 +31,10 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
 public interface Conveyor<K, L, OUT> {
 
 	public <X> PartLoader<K, L, X, OUT, Boolean> part();
-	
+	public BuilderLoader<K, OUT, Boolean> build();
+	public FutureLoader<K, OUT> future();
+	public BuilderLoader<K, OUT, OUT> buildFuture();
+
 	/**
 	 * Adds the cart to the input queue.
 	 *
@@ -40,213 +43,6 @@ public interface Conveyor<K, L, OUT> {
 	 * @return true, if successful
 	 */
 	public <V> CompletableFuture<Boolean> place(Cart<K,V,L> cart);
-	
-	/**
-	 * Creates the build.
-	 *
-	 * @param cart the cart
-	 * @return the completable future
-	 */
-	public CompletableFuture<Boolean> createBuild(CreatingCart<K, OUT, L> cart);
-	
-	/**
-	 * Creates the build.
-	 *
-	 * @param key the key
-	 * @return the completable future
-	 */
-	public CompletableFuture<Boolean> createBuild(K key);
-	
-	/**
-	 * Creates the build.
-	 *
-	 * @param key the key
-	 * @param expirationTime the expiration time
-	 * @return the completable future
-	 */
-	public CompletableFuture<Boolean> createBuild(K key, long expirationTime);
-	
-	/**
-	 * Creates the build.
-	 *
-	 * @param key the key
-	 * @param ttl the ttl
-	 * @param unit the unit
-	 * @return the completable future
-	 */
-	public CompletableFuture<Boolean> createBuild(K key, long ttl, TimeUnit unit);
-	
-	/**
-	 * Creates the build.
-	 *
-	 * @param key the key
-	 * @param duration the duration
-	 * @return the completable future
-	 */
-	public CompletableFuture<Boolean> createBuild(K key, Duration duration);
-	
-	/**
-	 * Creates the build.
-	 *
-	 * @param key the key
-	 * @param instant the instant
-	 * @return the completable future
-	 */
-	public CompletableFuture<Boolean> createBuild(K key, Instant instant);
-	
-	/**
-	 * Creates the build.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @return the completable future
-	 */
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value);
-	
-	/**
-	 * Creates the build.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @param expirationTime the expiration time
-	 * @return the completable future
-	 */
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long expirationTime);
-	
-	/**
-	 * Creates the build.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @param ttl the ttl
-	 * @param unit the unit
-	 * @return the completable future
-	 */
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit);
-	
-	/**
-	 * Creates the build.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @param duration the duration
-	 * @return the completable future
-	 */
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Duration duration);
-	
-	/**
-	 * Creates the build.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @param instant the instant
-	 * @return the completable future
-	 */
-	public CompletableFuture<Boolean> createBuild(K key, BuilderSupplier<OUT> value, Instant instant);
-
-	/**
-	 * Creates the build future.
-	 *
-	 * @param cart the cart
-	 * @return the completable future
-	 */
-	public CompletableFuture<OUT> createBuildFuture(CreatingCart<K, OUT, L> cart);
-	
-	/**
-	 * Creates the build future.
-	 *
-	 * @param key the key
-	 * @return the completable future
-	 */
-	public CompletableFuture<OUT> createBuildFuture(K key);
-	
-	/**
-	 * Creates the build future.
-	 *
-	 * @param key the key
-	 * @param expirationTime the expiration time
-	 * @return the completable future
-	 */
-	public CompletableFuture<OUT> createBuildFuture(K key, long expirationTime);
-	
-	/**
-	 * Creates the build future.
-	 *
-	 * @param key the key
-	 * @param ttl the ttl
-	 * @param unit the unit
-	 * @return the completable future
-	 */
-	public CompletableFuture<OUT> createBuildFuture(K key, long ttl, TimeUnit unit);
-	
-	/**
-	 * Creates the build future.
-	 *
-	 * @param key the key
-	 * @param duration the duration
-	 * @return the completable future
-	 */
-	public CompletableFuture<OUT> createBuildFuture(K key, Duration duration);
-	
-	/**
-	 * Creates the build future.
-	 *
-	 * @param key the key
-	 * @param instant the instant
-	 * @return the completable future
-	 */
-	public CompletableFuture<OUT> createBuildFuture(K key, Instant instant);
-	
-	/**
-	 * Creates the build future.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @return the completable future
-	 */
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value);
-	
-	/**
-	 * Creates the build future.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @param expirationTime the expiration time
-	 * @return the completable future
-	 */
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long expirationTime);
-	
-	/**
-	 * Creates the build future.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @param ttl the ttl
-	 * @param unit the unit
-	 * @return the completable future
-	 */
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, long ttl, TimeUnit unit);
-	
-	/**
-	 * Creates the build future.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @param duration the duration
-	 * @return the completable future
-	 */
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Duration duration);
-	
-	/**
-	 * Creates the build future.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @param instant the instant
-	 * @return the completable future
-	 */
-	public CompletableFuture<OUT> createBuildFuture(K key, BuilderSupplier<OUT> value, Instant instant);
-
 	
 	/**
 	 * Adds the command to the management queue.
@@ -315,62 +111,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @param instant the instant
 	 * @return the completable future
 	 */
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Instant instant);
-	
-	/**
-	 * Creates a CompletableFuture for the OUT product and sends to the Conveyor using standard Cart message
-	 * When processed, Building site will register the Future in its future collection.
-	 *
-	 * @param <V> the value type
-	 * @param cart the cart
-	 * @return the future
-	 */
-	public <V> CompletableFuture<OUT> getFuture(Cart<K,V,L> cart);
-	
-	/**
-	 * Gets the future.
-	 *
-	 * @param key the key
-	 * @return the future
-	 */
-	public CompletableFuture<OUT> getFuture(K key);
-	
-	/**
-	 * Gets the future.
-	 *
-	 * @param key the key
-	 * @param expirationTime the expiration time
-	 * @return the future
-	 */
-	public CompletableFuture<OUT> getFuture(K key, long expirationTime);
-	
-	/**
-	 * Gets the future.
-	 *
-	 * @param key the key
-	 * @param ttl the ttl
-	 * @param unit the unit
-	 * @return the future
-	 */
-	public CompletableFuture<OUT> getFuture(K key, long ttl, TimeUnit unit);
-	
-	/**
-	 * Gets the future.
-	 *
-	 * @param key the key
-	 * @param duration the duration
-	 * @return the future
-	 */
-	public CompletableFuture<OUT> getFuture(K key, Duration duration);
-	
-	/**
-	 * Gets the future.
-	 *
-	 * @param key the key
-	 * @param instant the instant
-	 * @return the future
-	 */
-	public CompletableFuture<OUT> getFuture(K key, Instant instant);
+	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Instant instant);	
 	
 	/**
 	 * Gets the collector size.
@@ -588,4 +329,5 @@ public interface Conveyor<K, L, OUT> {
 			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
 		};
 	}
+
 }

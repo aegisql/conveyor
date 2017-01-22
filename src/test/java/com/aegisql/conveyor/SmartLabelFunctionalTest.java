@@ -282,7 +282,7 @@ public class SmartLabelFunctionalTest {
 		
 		AssemblingConveyor<Integer, SmartLabel<UserBuilderSmart>, User> c = new AssemblingConveyor<>();
 		
-		CompletableFuture<User> f = c.createBuildFuture(1,BuilderSupplier.of(UserBuilderSmart::new).readyAlgorithm(new ReadinessTester().accepted(3)));
+		CompletableFuture<User> f = c.buildFuture().id(1).supplier(BuilderSupplier.of(UserBuilderSmart::new).readyAlgorithm(new ReadinessTester().accepted(3))).create();
 		UserBuilderSmart b = new UserBuilderSmart();
 		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
 		SmartLabel<UserBuilderSmart> l2 = SmartLabel.of(UserBuilderSmart::setLast);

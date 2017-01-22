@@ -17,9 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
+import com.aegisql.conveyor.BuilderLoader;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.PartLoader;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.FutureLoader;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
@@ -266,6 +268,24 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 
 	@Override
 	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public BuilderLoader<K, OUT, Boolean> build() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public FutureLoader<K, OUT> future() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public BuilderLoader<K, OUT, OUT> buildFuture() {
 		// TODO Auto-generated method stub
 		return null;
 	}

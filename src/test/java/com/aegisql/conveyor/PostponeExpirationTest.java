@@ -226,7 +226,7 @@ public class PostponeExpirationTest {
 		conveyor.place(c2);
 		Thread.sleep(110); //created with 10, but 100 added by second cart
 		Cart<Integer, Integer, String> c3 = new ShoppingCart<>(1, 1999, "YEAR");
-		CompletableFuture<User> f = conveyor.getFuture(1); 
+		CompletableFuture<User> f = conveyor.future().id(1).get(); 
 		conveyor.place(c3);
 
 		f.get();
