@@ -29,7 +29,7 @@ public final class BuilderLoader<K,OUT,F> {
 		this.value = value;
 	}
 
-	BuilderLoader(Function<BuilderLoader<K,OUT,F>, CompletableFuture<F>> placer) {
+	public BuilderLoader(Function<BuilderLoader<K,OUT,F>, CompletableFuture<F>> placer) {
 		this(placer,0,null,null);
 	}
 	

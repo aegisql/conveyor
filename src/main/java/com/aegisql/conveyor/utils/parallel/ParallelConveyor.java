@@ -27,11 +27,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
+import com.aegisql.conveyor.BuilderLoader;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.FutureLoader;
+import com.aegisql.conveyor.FutureSupplier;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ParallelConveyorMBean;
+import com.aegisql.conveyor.PartLoader;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.State;
@@ -112,6 +116,56 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	protected ParallelConveyor() {
 		this.setMbean(name);
 	}
+	
+	
+	@Override
+	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
+		return new PartLoader<K,L,X,OUT,Boolean>(cl -> {
+			return place(new ShoppingCart<K,Object,L>(cl.key, cl.partValue, cl.label, cl.expirationTime));
+		});
+	}
+
+	@Override
+	public BuilderLoader<K, OUT, Boolean> build() {
+		return new BuilderLoader<K, OUT, Boolean> (cl -> {
+			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key,cl.value,cl.expirationTime);
+			return place(cart);
+		});
+	}
+
+	@Override
+	public BuilderLoader<K, OUT, OUT> buildFuture() {
+		return new BuilderLoader<K, OUT, OUT> (cl -> {
+			BuilderSupplier<OUT> bs = cl.value;
+			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+			if(bs == null) {
+				bs = builderSupplier.withFuture(future);
+			} else {
+				bs = bs.withFuture(future);
+			}
+			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs ,cl.expirationTime);
+			FutureSupplier supplier = (FutureSupplier<OUT>) cart.getValue();
+			CompletableFuture<Boolean> cartFuture = place(  cart );		
+			if(cartFuture.isCancelled()) {
+				supplier.getFuture().cancel(true);
+			}
+			return supplier.getFuture();
+		});
+	}
+
+	@Override
+	public FutureLoader<K, OUT> future() {
+		return new FutureLoader<K, OUT> (cl -> {
+			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+			FutureCart<K, OUT, L> cart = new FutureCart<K, OUT, L>(cl.key,future,cl.expirationTime);
+			CompletableFuture<Boolean> cartFuture = this.place( cart );
+			if(cartFuture.isCancelled()) {
+				future.cancel(true);
+			}
+			return future;
+		});
+	}
+
 	
 	/**
 	 * Instantiates a new parallel conveyor.
@@ -659,5 +713,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 			throw new RuntimeException(e);
 		}
 	}
+	
 
 }

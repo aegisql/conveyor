@@ -26,7 +26,7 @@ public final class FutureLoader<K,OUT> {
 		this.key = key;
 	}
 
-	FutureLoader(Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer) {
+	public FutureLoader(Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer) {
 		this(placer,0,null);
 	}
 	

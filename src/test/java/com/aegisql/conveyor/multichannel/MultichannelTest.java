@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
@@ -370,9 +371,10 @@ public class MultichannelTest {
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException 
 	 */
 	@Test
-	public void testWithParallelConveyorBuildFuture() throws InterruptedException, ExecutionException {
+	public void testWithParallelConveyorBuildFuture() throws InterruptedException, ExecutionException, TimeoutException {
 		AtomicReference<User> user = new AtomicReference<User>(null);
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ac = new AssemblingConveyor<>();
 		ac.setName("MAIN");
@@ -435,7 +437,7 @@ public class MultichannelTest {
 		pc.place(cartA2);
 		pc.place(cartB1);
 		
-		User u = f.get();
+		User u = f.get(1,TimeUnit.SECONDS);
 		
 		assertNotNull(u);
 		System.out.println("Future user: "+u);

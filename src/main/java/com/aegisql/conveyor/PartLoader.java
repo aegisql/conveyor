@@ -32,7 +32,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 		this.partValue = value;
 	}
 
-	PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer) {
+	public PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer) {
 		this(placer,0,null,null,null);
 	}
 	

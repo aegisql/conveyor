@@ -22,6 +22,7 @@ import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.PartLoader;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.FutureLoader;
+import com.aegisql.conveyor.FutureSupplier;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
@@ -265,29 +266,26 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			conv.place( partialResult );
 		});
 	}
-
-	@Override
-	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public BuilderLoader<K, OUT, Boolean> build() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public FutureLoader<K, OUT> future() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	
 	@Override
 	public BuilderLoader<K, OUT, OUT> buildFuture() {
-		// TODO Auto-generated method stub
-		return null;
+		return new BuilderLoader<K, OUT, OUT> (cl -> {
+			BuilderSupplier<OUT> bs = cl.value;
+			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+			if(bs == null) {
+				bs = builderSupplier.withFuture(future);
+			} else {
+				bs = bs.withFuture(future);
+			}
+			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs ,cl.expirationTime);
+			FutureSupplier supplier = (FutureSupplier<OUT>) cart.getValue();
+			CompletableFuture<Boolean> cartFuture = createBuildWithCart(cart);		
+			if(cartFuture.isCancelled()) {
+				supplier.getFuture().cancel(true);
+			}
+			return supplier.getFuture();
+		});
 	}
+
 
 }

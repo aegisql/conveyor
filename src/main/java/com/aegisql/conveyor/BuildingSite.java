@@ -424,7 +424,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @return the delay msec
 	 */
 	public long getDelayMsec() {
-		return expireableSource.getExpirationTime() - System.currentTimeMillis();	
+		long expirationTime = expireableSource.getExpirationTime() ;
+		if(expirationTime == 0 ) {
+			return 0;
+		} else {
+			return expireableSource.getExpirationTime() - System.currentTimeMillis();
+		}
 	}
 
 	/**
