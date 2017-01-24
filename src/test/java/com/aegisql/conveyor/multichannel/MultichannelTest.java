@@ -427,8 +427,8 @@ public class MultichannelTest {
 		System.out.println("CH1 "+ch1);
 		System.out.println("CH2 "+ch2);
 		System.out.println("PC  "+pc);
-		
-		CompletableFuture<User> f = pc.buildFuture().id(1).supplier(UserBuilder::new).create();
+		//pc.setBuilderSupplier(UserBuilder::new);
+		CompletableFuture<User> f = pc.buildFuture().id(1).supplier(UserBuilder::new).create();//.supplier(UserBuilder::new)
 		assertFalse(f.isCancelled());
 		assertFalse(f.isCompletedExceptionally());
 		assertFalse(f.isDone());

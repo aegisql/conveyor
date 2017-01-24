@@ -270,20 +270,10 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	@Override
 	public BuilderLoader<K, OUT, OUT> buildFuture() {
 		return new BuilderLoader<K, OUT, OUT> (cl -> {
-			BuilderSupplier<OUT> bs = cl.value;
-			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-			if(bs == null) {
-				bs = builderSupplier.withFuture(future);
-			} else {
-				bs = bs.withFuture(future);
-			}
-			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs ,cl.expirationTime);
-			FutureSupplier supplier = (FutureSupplier<OUT>) cart.getValue();
-			CompletableFuture<Boolean> cartFuture = createBuildWithCart(cart);		
-			if(cartFuture.isCancelled()) {
-				supplier.getFuture().cancel(true);
-			}
-			return supplier.getFuture();
+			BuilderSupplier<OUT> bs = cl.value != null ? cl.value:builderSupplier;
+			
+			return createBuildFutureWithCart(supplier -> new CreatingCart<K, OUT, L>(cl.key,supplier),bs);//builderSupplier);
+					//createBuildFuture(supplier -> new CreatingCart<K,OUT,L>(cl.key,cl.value,cl.expirationTime));
 		});
 	}
 

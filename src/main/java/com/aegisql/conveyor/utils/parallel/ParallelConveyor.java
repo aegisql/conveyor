@@ -228,6 +228,17 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public abstract <V> CompletableFuture<Boolean> place(Cart<K,V,L> cart);
 
 	/**
+	 * Creates the build future.
+	 *
+	 * @param cartSupplier the cart supplier
+	 * @return the completable future
+	 */
+	protected CompletableFuture<OUT> createBuildFuture(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier) {
+		return createBuildFutureWithCart(cartSupplier,builderSupplier);
+	}
+	
+	
+	/**
 	 * Creates the build with cart.
 	 *
 	 * @param <V> the value type
