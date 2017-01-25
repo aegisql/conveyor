@@ -1401,6 +1401,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 *
 	 * @return the cart counter
 	 */
+	@Override
 	public long getCartCounter() {
 		return cartCounter;
 	}

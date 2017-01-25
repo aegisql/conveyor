@@ -329,5 +329,6 @@ public interface Conveyor<K, L, OUT> {
 			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
 		};
 	}
+	long getCartCounter();
 
 }

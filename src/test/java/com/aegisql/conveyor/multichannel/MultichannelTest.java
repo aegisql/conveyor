@@ -442,6 +442,9 @@ public class MultichannelTest {
 		assertNotNull(u);
 		System.out.println("Future user: "+u);
 		assertEquals(u,user.get());
+		assertEquals(3, ac.getCartCounter());
+		assertEquals(3, ch1.getCartCounter());
+		assertEquals(2, ch2.getCartCounter());
 	}
 
 	/**
@@ -520,6 +523,13 @@ public class MultichannelTest {
 		assertNotNull(u);
 		System.out.println("Future user: "+u);
 		assertEquals(u,user.get());
+		System.out.println("AC  "+ac.getCartCounter()+" "+ac.getAcceptedLabels());
+		System.out.println("CH1 "+ch1.getCartCounter()+" "+ch1.getAcceptedLabels());
+		System.out.println("CH2 "+ch2.getCartCounter()+" "+ch2.getAcceptedLabels());
+		System.out.println("PC  "+pc.getAcceptedLabels());
+		assertEquals(3, ac.getCartCounter());
+		assertEquals(3, ch1.getCartCounter());
+		assertEquals(2, ch2.getCartCounter());
 	}
 	
 	

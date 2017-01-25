@@ -104,7 +104,7 @@ public class ParallelConveyorTest {
 		assertTrue(conveyor.isRunning(3));
 		assertFalse(conveyor.isRunning(-1));
 		assertFalse(conveyor.isRunning(4));
-
+		
 	}
 
 	/**
@@ -303,6 +303,15 @@ public class ParallelConveyorTest {
 	assertEquals(0,conveyor.getCollectorSize(1));
 	assertEquals(0,conveyor.getDelayedQueueSize(1));
 
+	System.out.println("total "+conveyor.getCartCounter());
+	System.out.println("1 "+conveyor.getCartCounter(0));
+	System.out.println("2 "+conveyor.getCartCounter(1));
+	System.out.println("3 "+conveyor.getCartCounter(2));
+	System.out.println("4 "+conveyor.getCartCounter(3));
+	assertTrue(conveyor.getCartCounter(0) > 100);
+	assertTrue(conveyor.getCartCounter(1) > 100);
+	assertTrue(conveyor.getCartCounter(2) > 100);
+	assertTrue(conveyor.getCartCounter(3) > 100);
 	//Thread.sleep(10000000);
 	
 	}

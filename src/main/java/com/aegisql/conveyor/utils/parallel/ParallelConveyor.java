@@ -32,7 +32,6 @@ import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.FutureLoader;
-import com.aegisql.conveyor.FutureSupplier;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ParallelConveyorMBean;
 import com.aegisql.conveyor.PartLoader;
@@ -104,7 +103,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	
 	/** The Constant mBeanServer. */
 	private final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-	
+
 	/** The builder supplier. */
 	protected BuilderSupplier<OUT> builderSupplier = () -> {
 		throw new IllegalStateException("Builder Supplier is not set");
@@ -129,7 +128,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public BuilderLoader<K, OUT, Boolean> build() {
 		return new BuilderLoader<K, OUT, Boolean> (cl -> {
 			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key,cl.value,cl.expirationTime);
-			return place(cart);
+			return createBuildWithCart(cart);
 		});
 	}
 
@@ -707,5 +706,21 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		}
 	}
 	
+	@Override
+	public long getCartCounter() {
+		long counter = 0;
+		for(Conveyor<K, L, OUT> c: conveyors) {
+			counter += c.getCartCounter();
+		}
+		return counter;
+	}
+
+	public long getCartCounter(int idx) {
+		if(idx < 0 || idx >= pf) {
+			return 0;
+		} else {
+			return conveyors.get(idx).getCartCounter();
+		}
+	}
 
 }
