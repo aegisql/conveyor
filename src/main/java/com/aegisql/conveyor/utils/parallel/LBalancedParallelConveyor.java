@@ -267,15 +267,6 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		});
 	}
 	
-	@Override
-	public BuilderLoader<K, OUT, OUT> buildFuture() {
-		return new BuilderLoader<K, OUT, OUT> (cl -> {
-			BuilderSupplier<OUT> bs = cl.value != null ? cl.value:builderSupplier;
-			
-			return createBuildFutureWithCart(supplier -> new CreatingCart<K, OUT, L>(cl.key,supplier),bs);//builderSupplier);
-					//createBuildFuture(supplier -> new CreatingCart<K,OUT,L>(cl.key,cl.value,cl.expirationTime));
-		});
-	}
 
 
 }

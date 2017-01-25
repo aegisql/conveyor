@@ -136,33 +136,15 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	@Override
 	public BuilderLoader<K, OUT, OUT> buildFuture() {
 		return new BuilderLoader<K, OUT, OUT> (cl -> {
-			BuilderSupplier<OUT> bs = cl.value;
-			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-			if(bs == null) {
-				bs = builderSupplier.withFuture(future);
-			} else {
-				bs = bs.withFuture(future);
-			}
-			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs ,cl.expirationTime);
-			FutureSupplier supplier = (FutureSupplier<OUT>) cart.getValue();
-			CompletableFuture<Boolean> cartFuture = place(  cart );		
-			if(cartFuture.isCancelled()) {
-				supplier.getFuture().cancel(true);
-			}
-			return supplier.getFuture();
+			BuilderSupplier<OUT> bs = cl.value != null ? cl.value:builderSupplier;
+			return createBuildFutureWithCart(supplier -> new CreatingCart<K, OUT, L>(cl.key,supplier),bs);//builderSupplier);
 		});
 	}
 
 	@Override
 	public FutureLoader<K, OUT> future() {
 		return new FutureLoader<K, OUT> (cl -> {
-			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-			FutureCart<K, OUT, L> cart = new FutureCart<K, OUT, L>(cl.key,future,cl.expirationTime);
-			CompletableFuture<Boolean> cartFuture = this.place( cart );
-			if(cartFuture.isCancelled()) {
-				future.cancel(true);
-			}
-			return future;
+			return getFutureByCart( new FutureCart<K,OUT,L>(cl.key,new CompletableFuture<>(),cl.expirationTime) );
 		});
 	}
 

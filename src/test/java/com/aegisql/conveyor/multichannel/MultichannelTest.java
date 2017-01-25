@@ -367,14 +367,14 @@ public class MultichannelTest {
 
 	
 	/**
-	 * Test with parallel conveyor build future.
+	 * Test with parallel conveyor build future and supplier.
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException the execution exception
 	 * @throws TimeoutException 
 	 */
 	@Test
-	public void testWithParallelConveyorBuildFuture() throws InterruptedException, ExecutionException, TimeoutException {
+	public void testWithParallelConveyorBuildFutureAndSupplier() throws InterruptedException, ExecutionException, TimeoutException {
 		AtomicReference<User> user = new AtomicReference<User>(null);
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ac = new AssemblingConveyor<>();
 		ac.setName("MAIN");
@@ -444,6 +444,83 @@ public class MultichannelTest {
 		assertEquals(u,user.get());
 	}
 
+	/**
+	 * Test with parallel conveyor build future and default supplier.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException the execution exception
+	 * @throws TimeoutException 
+	 */
+	@Test
+	public void testWithParallelConveyorBuildFutureAndDefaultSupplier() throws InterruptedException, ExecutionException, TimeoutException {
+		AtomicReference<User> user = new AtomicReference<User>(null);
+		AssemblingConveyor<Integer, UserBuilderEvents, User> ac = new AssemblingConveyor<>();
+		ac.setName("MAIN");
+		ac.setDefaultBuilderTimeout(50, TimeUnit.MILLISECONDS);
+		ac.setScrapConsumer(bin->{
+			System.out.println("rejected: "+bin);
+		});
+		ac.setResultConsumer(bin->{
+			System.out.println("MAIN result: "+bin);
+			user.set(bin.product);
+		});
+		ac.setReadinessEvaluator(b->{
+			UserBuilder ub = (UserBuilder)b;
+			return ub.first != null && ub.last != null && ub.yearOfBirth != null && ub.yearOfBirth > 0;
+		});
+
+		assertFalse(ac.isLBalanced());
+		ac.acceptLabels(UserBuilderEvents.MERGE_A,UserBuilderEvents.MERGE_B);
+		assertTrue(ac.isLBalanced());
+		
+		AssemblingConveyor<Integer, UserBuilderEvents, User> ch1 = ac.detach();
+		ch1.acceptLabels(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST);
+		ch1.forwardPartialResultTo(UserBuilderEvents.MERGE_A, ac);
+		ch1.setReadinessEvaluator(b->{
+			UserBuilder ub = (UserBuilder)b;
+			return ub.first != null && ub.last != null;
+		});
+		ch1.setName("CH1");
+
+		assertTrue(ch1.isLBalanced());
+
+		AssemblingConveyor<Integer, UserBuilderEvents, User> ch2 = ac.detach();
+		ch2.acceptLabels(UserBuilderEvents.SET_YEAR);
+		ch2.forwardPartialResultTo(UserBuilderEvents.MERGE_B, ac);
+		ch2.setReadinessEvaluator(b->{
+			UserBuilder ub = (UserBuilder)b;
+			return ub.yearOfBirth != null;
+		});
+		ch2.setName("CH2");
+		assertTrue(ch2.isLBalanced());
+		
+		LBalancedParallelConveyor<Integer, UserBuilderEvents, User> pc = new LBalancedParallelConveyor<>(ac,ch1,ch2);
+		assertTrue(pc.isLBalanced());
+	
+		ShoppingCart<Integer, String, UserBuilderEvents> cartA1 = new ShoppingCart<>(1,"John", UserBuilderEvents.SET_FIRST,100,TimeUnit.MILLISECONDS);
+		ShoppingCart<Integer, String, UserBuilderEvents> cartA2 = new ShoppingCart<>(1,"Silver", UserBuilderEvents.SET_LAST,100,TimeUnit.MILLISECONDS);
+		ShoppingCart<Integer, Integer, UserBuilderEvents> cartB1 = new ShoppingCart<>(1,1695, UserBuilderEvents.SET_YEAR,100,TimeUnit.MILLISECONDS);
+
+		System.out.println("AC  "+ac);
+		System.out.println("CH1 "+ch1);
+		System.out.println("CH2 "+ch2);
+		System.out.println("PC  "+pc);
+		pc.setBuilderSupplier(UserBuilder::new);
+		CompletableFuture<User> f = pc.buildFuture().id(1).create();//.supplier(UserBuilder::new)
+		assertFalse(f.isCancelled());
+		assertFalse(f.isCompletedExceptionally());
+		assertFalse(f.isDone());
+		
+		pc.place(cartA1);
+		pc.place(cartA2);
+		pc.place(cartB1);
+		
+		User u = f.get(1,TimeUnit.SECONDS);
+		
+		assertNotNull(u);
+		System.out.println("Future user: "+u);
+		assertEquals(u,user.get());
+	}
 	
 	
 }
