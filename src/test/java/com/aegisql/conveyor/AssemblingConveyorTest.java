@@ -148,7 +148,7 @@ public class AssemblingConveyorTest {
 		});
 		GeneralCommand<Integer,?> c1 = new TimeoutCommand<>(1);
 		conveyor.stop();
-		conveyor.addCommand(c1);
+		conveyor.placeCommand(c1);
 	}
 
 	/**
@@ -167,7 +167,7 @@ public class AssemblingConveyorTest {
 		});
 		GeneralCommand<Integer,?> c1 = new TimeoutCommand<>(1,1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
-		conveyor.addCommand(c1);
+		conveyor.placeCommand(c1);
 	}
 
 	/**
@@ -187,7 +187,7 @@ public class AssemblingConveyorTest {
 		});
 		GeneralCommand<Integer,?> c1 = new TimeoutCommand<>(1,100,TimeUnit.MILLISECONDS);
 		Thread.sleep(20);
-		conveyor.addCommand(c1);
+		conveyor.placeCommand(c1);
 	}
 
 	/**
@@ -354,11 +354,11 @@ public class AssemblingConveyorTest {
 		User u2 = outQueue.poll();
 		assertNull(u2);
 		conveyor.place(c7);
-		conveyor.addCommand(c8);
-		conveyor.addCommand(c9);
+		conveyor.placeCommand(c8);
+		conveyor.placeCommand(c9);
 		Thread.sleep(100);
-		conveyor.addCommand( new CancelCommand<Integer>(6));
-		conveyor.addCommand( new TimeoutCommand<Integer>(7));
+		conveyor.placeCommand( new CancelCommand<Integer>(6));
+		conveyor.placeCommand( new TimeoutCommand<Integer>(7));
 
 		conveyor.place(c5);
 		Thread.sleep(2000);
@@ -411,7 +411,7 @@ public class AssemblingConveyorTest {
 
 		GeneralCommand<Integer,?> c0 = new CreateCommand<>(1,UserBuilder::new,1,TimeUnit.SECONDS);
 
-		conveyor.addCommand(c0);
+		conveyor.placeCommand(c0);
 		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
@@ -547,8 +547,8 @@ public class AssemblingConveyorTest {
 		User u2 = outQueue.poll();
 		assertNull(u2);
 		Thread.sleep(100);
-		conveyor.addCommand( new CancelCommand<Integer>(6));
-		conveyor.addCommand( new TimeoutCommand<Integer>(7));
+		conveyor.placeCommand( new CancelCommand<Integer>(6));
+		conveyor.placeCommand( new TimeoutCommand<Integer>(7));
 
 		Thread.sleep(2000);
 		System.out.println("COL:"+conveyor.getCollectorSize());

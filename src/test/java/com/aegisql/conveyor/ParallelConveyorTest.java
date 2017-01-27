@@ -188,10 +188,10 @@ public class ParallelConveyorTest {
 		GeneralCommand<String,?> c4 = new CreateCommand<>(""+4,UserBuilder::new,10,TimeUnit.MILLISECONDS );
 
 		
-		CompletableFuture<Boolean> f1 = conveyor.addCommand(c1);
-		CompletableFuture<Boolean> f2 = conveyor.addCommand(c2);
-		CompletableFuture<Boolean> f3 = conveyor.addCommand(c3);
-		CompletableFuture<Boolean> f4 = conveyor.addCommand(c4);
+		CompletableFuture<Boolean> f1 = conveyor.placeCommand(c1);
+		CompletableFuture<Boolean> f2 = conveyor.placeCommand(c2);
+		CompletableFuture<Boolean> f3 = conveyor.placeCommand(c3);
+		CompletableFuture<Boolean> f4 = conveyor.placeCommand(c4);
 
 		System.out.println("F1 "+f1);
 		System.out.println("F2 "+f2);

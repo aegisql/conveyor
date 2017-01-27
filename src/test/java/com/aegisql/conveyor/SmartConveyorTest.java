@@ -167,7 +167,7 @@ public class SmartConveyorTest {
 		conveyor.place(c2);
 
 		RescheduleCommand<Integer> reschedule = new RescheduleCommand<>(1, 4, TimeUnit.SECONDS);
-		conveyor.addCommand(reschedule);
+		conveyor.placeCommand(reschedule);
 		Thread.sleep(1500);
 		conveyor.place(c3);
 		Thread.sleep(100);
@@ -321,8 +321,8 @@ public class SmartConveyorTest {
 		assertTrue(cf2.get());
 //		assertFalse(cf3.get()); //this fails - no supplier;
 		
-		conveyor.addCommand(new CreateCommand<Integer, User>(4));
-		conveyor.addCommand(new CreateCommand<Integer, User>(5, sup2));
+		conveyor.placeCommand(new CreateCommand<Integer, User>(4));
+		conveyor.placeCommand(new CreateCommand<Integer, User>(5, sup2));
 
 		conveyor.setName("Testing User Assembler");
 		conveyor.part().value("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();

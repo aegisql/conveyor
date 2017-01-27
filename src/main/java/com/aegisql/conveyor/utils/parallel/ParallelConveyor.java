@@ -30,6 +30,7 @@ import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderLoader;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
+import com.aegisql.conveyor.CommandLoader;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.FutureLoader;
 import com.aegisql.conveyor.LabeledValueConsumer;
@@ -160,46 +161,11 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public abstract <V> CompletableFuture<Boolean> addCommand(GeneralCommand<K, V> cart);
+	public abstract <V> CompletableFuture<Boolean> placeCommand(GeneralCommand<K, V> cart);
 	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#addCommand(java.lang.Object, java.lang.Object, com.aegisql.conveyor.CommandLabel)
-	 */
 	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label) {
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label){ private static final long serialVersionUID = 1L;} );
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#addCommand(java.lang.Object, java.lang.Object, com.aegisql.conveyor.CommandLabel, long)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, long expirationTime) {
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label, expirationTime ){ private static final long serialVersionUID = 1L;} );
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#addCommand(java.lang.Object, java.lang.Object, com.aegisql.conveyor.CommandLabel, long, java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, long ttl, TimeUnit unit) {
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label, ttl, unit){ private static final long serialVersionUID = 1L;} );		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#addCommand(java.lang.Object, java.lang.Object, com.aegisql.conveyor.CommandLabel, java.time.Duration)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Duration duration) {
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label, duration){ private static final long serialVersionUID = 1L;} );		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#addCommand(java.lang.Object, java.lang.Object, com.aegisql.conveyor.CommandLabel, java.time.Instant)
-	 */
-	@Override
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Instant instant) {		
-		return this.addCommand( new GeneralCommand<K,V>(key, value, label, instant){ private static final long serialVersionUID = 1L;} );
+	public CommandLoader<K, L, OUT> command() {
+		return new CommandLoader<>(this::placeCommand);
 	}
 	
 	/* (non-Javadoc)

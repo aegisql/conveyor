@@ -2,6 +2,8 @@ package com.aegisql.conveyor.cart.command;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 import org.junit.After;
@@ -88,9 +90,10 @@ public class CommandTest {
 	 * Test check command.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test
-	public void testCheckCommand() throws InterruptedException {
+	public void testCheckCommand() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, String> ac = new AssemblingConveyor<>();
 
 		TestOut testOut = new TestOut();
@@ -123,16 +126,18 @@ public class CommandTest {
 		ac.place(c);
 		
 		Thread.sleep(100);
-		ac.addCommand(check);
-		Thread.sleep(100);
+		CompletableFuture<Boolean> chk1 = ac.command().id(1).check();
+		assertTrue(chk1.get());
 		assertEquals(0, out.length());
 		testOut.ready = true;
-		ac.addCommand(check);
+		ac.placeCommand(check);
 		Thread.sleep(100);
 		
 		assertEquals("Test",out.toString());
-		ac.addCommand(check);
+		ac.placeCommand(check);
 		Thread.sleep(50);
+		CompletableFuture<Boolean> chk2 = ac.command().id(2).check();
+		assertFalse(chk2.get());
 		
 	}
 

@@ -106,7 +106,7 @@ public class SchedulerTest {
 		s.part().id("test2").value(c).label(Schedule.SCHEDULE_WITH_DELAY).ttl(1, TimeUnit.SECONDS).place();
 		Thread.sleep(2100);
 		assertEquals(1,s.getCollectorSize());
-		s.addCommand(new CancelCommand<String>("test2"));
+		s.placeCommand(new CancelCommand<String>("test2"));
 		Thread.sleep(100);
 		assertEquals(0,s.getCollectorSize());
 	}
@@ -124,7 +124,7 @@ public class SchedulerTest {
 		s.part().id("test3").value(c).label(Schedule.SCHEDULE_AND_EXECUTE_NOW).ttl(1, TimeUnit.SECONDS).place();
 		Thread.sleep(3500);
 		assertEquals(1,s.getCollectorSize());
-		s.addCommand(new CancelCommand<String>("test3"));
+		s.placeCommand(new CancelCommand<String>("test3"));
 		Thread.sleep(100);
 		assertEquals(0,s.getCollectorSize());
 	}
@@ -143,7 +143,7 @@ public class SchedulerTest {
 		s.part().id("test4").value(c).label(Schedule.SCHEDULE_AND_EXECUTE_NOW).ttl(Duration.ofSeconds(1)).place();
 		Thread.sleep(3500);
 		assertEquals(1,s.getCollectorSize());
-		s.addCommand(new CancelCommand<String>("test4"));
+		s.placeCommand(new CancelCommand<String>("test4"));
 		Thread.sleep(100);
 		assertEquals(0,s.getCollectorSize());
 	}

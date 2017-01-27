@@ -34,6 +34,7 @@ public interface Conveyor<K, L, OUT> {
 	public BuilderLoader<K, OUT, Boolean> build();
 	public FutureLoader<K, OUT> future();
 	public BuilderLoader<K, OUT, OUT> buildFuture();
+	public CommandLoader<K, L, OUT> command();
 
 	/**
 	 * Adds the cart to the input queue.
@@ -51,67 +52,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @param command Cart
 	 * @return true, if successful
 	 */
-	public <V> CompletableFuture<Boolean> addCommand(GeneralCommand<K, V> command);
-	
-	/**
-	 * Adds the command.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label);
-	
-	/**
-	 * Adds the command.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param expirationTime the expiration time
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, long expirationTime);
-	
-	/**
-	 * Adds the command.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param ttl the ttl
-	 * @param unit the unit
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, long ttl, TimeUnit unit);
-	
-	/**
-	 * Adds the command.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param duration the duration
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Duration duration);
-	
-	/**
-	 * Adds the command.
-	 *
-	 * @param <V> the value type
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param instant the instant
-	 * @return the completable future
-	 */
-	public <V> CompletableFuture<Boolean> addCommand(K key, V value, CommandLabel label, Instant instant);	
+	public <V> CompletableFuture<Boolean> placeCommand(GeneralCommand<K, V> command);
 	
 	/**
 	 * Gets the collector size.

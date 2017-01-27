@@ -16,6 +16,7 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderLoader;
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.CommandLoader;
 import com.aegisql.conveyor.PartLoader;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.FutureLoader;
@@ -85,9 +86,9 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */	
 	@Override
-	public <V> CompletableFuture<Boolean> addCommand(GeneralCommand<K, V> command) {
+	public <V> CompletableFuture<Boolean> placeCommand(GeneralCommand<K, V> command) {
 		Objects.requireNonNull(command, "Command is null");
-		return this.balancingCommand.apply(command).get(0).addCommand(command);
+		return this.balancingCommand.apply(command).get(0).placeCommand(command);
 	}
 	
 	/* (non-Javadoc)
