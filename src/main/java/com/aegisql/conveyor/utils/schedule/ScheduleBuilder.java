@@ -2,6 +2,7 @@ package com.aegisql.conveyor.utils.schedule;
 
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.Expireable;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.TestingState;
 import com.aegisql.conveyor.TimeoutAction;
@@ -12,7 +13,7 @@ import com.aegisql.conveyor.TimeoutAction;
  *
  * @param <K> the key type
  */
-public class ScheduleBuilder <K> implements Supplier<SchedulableClosure>, TimeoutAction, TestingState<K, Schedule> {
+public class ScheduleBuilder<K> implements Supplier<SchedulableClosure>, TimeoutAction, TestingState<K, Schedule>, Expireable{
 
 	/** The closure. */
 	private SchedulableClosure closure;
@@ -26,8 +27,13 @@ public class ScheduleBuilder <K> implements Supplier<SchedulableClosure>, Timeou
 	/**
 	 * Instantiates a new schedule builder.
 	 */
-	public ScheduleBuilder() {
-		
+	
+	private long expTime = 0;
+	private long ttl = 0;
+	
+	public ScheduleBuilder(long ttl) {
+		this.expTime = ttl+System.currentTimeMillis();
+		this.ttl = ttl;
 	}
 	
 	/* (non-Javadoc)
@@ -79,7 +85,13 @@ public class ScheduleBuilder <K> implements Supplier<SchedulableClosure>, Timeou
 	 */
 	@Override
 	public void onTimeout() {
-		ready = true;
+		closure.apply();
+		if( reschedule ) {
+			this.expTime = ttl+System.currentTimeMillis();
+			ready = false;			
+		} else {
+			ready = true;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -106,6 +118,11 @@ public class ScheduleBuilder <K> implements Supplier<SchedulableClosure>, Timeou
 	 */
 	public void setReschedule(boolean reschedule) {
 		this.reschedule = reschedule;
+	}
+
+	@Override
+	public long getExpirationTime() {
+		return expTime;
 	}
 
 }

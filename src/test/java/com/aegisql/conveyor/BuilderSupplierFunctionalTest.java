@@ -270,4 +270,24 @@ public class BuilderSupplierFunctionalTest {
 		User u = bs.get().get();
 		bs.get().get();
 	}
+
+	@Test
+	public void testOf2() {
+		UserBuilder ub = new UserBuilder();
+		BuilderSupplier<User> bs = BuilderSupplier
+				.of(ub)
+				.expire(1000)
+				//.test((b)->true)
+				.withFuture(new CompletableFuture<User>());
+		assertNotNull(bs);
+		Expireable ex = (Expireable)bs.get();
+		assertEquals(1000, ex.getExpirationTime());
+		FutureSupplier<User> fs = (FutureSupplier<User>)bs;
+		assertNotNull(fs.getFuture());
+		bs.get();
+		User u = bs.get().get();
+		bs.get().get();
+		assertEquals(u,ub.get());
+	}
+
 }

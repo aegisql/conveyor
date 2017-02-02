@@ -3,6 +3,7 @@ package com.aegisql.conveyor.user;
 import static org.junit.Assert.*;
 
 import java.time.Duration;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -152,24 +153,22 @@ public class SchedulerTest {
 	 * Test execute once error.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
-	@Test(expected=NullPointerException.class)
-	public void testExecuteOnceError() throws InterruptedException {
-		s.part().id("test1").label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place();
-		Thread.sleep(1300);
-		assertEquals(0,s.getCollectorSize());
+	@Test(expected=ExecutionException.class)
+	public void testExecuteOnceError() throws InterruptedException, ExecutionException {
+		s.part().id("test1").label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place().get();
 	}
 
 	/**
 	 * Test execute once error2.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
-	@Test(expected=ClassCastException.class)
-	public void testExecuteOnceError2() throws InterruptedException {
-		s.part().id("test1").value("value").label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place();
-		Thread.sleep(1300);
-		assertEquals(0,s.getCollectorSize());
+	@Test(expected=ExecutionException.class)
+	public void testExecuteOnceError2() throws InterruptedException, ExecutionException {
+		s.part().id("test1").value("value").label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place().get();
 	}
 
 	

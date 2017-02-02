@@ -34,6 +34,10 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 	static <T> BuilderSupplier<T> of(BuilderSupplier<T> instance) {
 		return instance;
 	}
+
+	static <T> BuilderSupplier<T> of(Supplier<? extends T> instance) {
+		return ()->instance;
+	}
 	
 	/**
 	 * Identity.
