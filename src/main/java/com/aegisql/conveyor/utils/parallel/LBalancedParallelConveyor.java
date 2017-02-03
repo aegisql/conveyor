@@ -17,17 +17,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
-import com.aegisql.conveyor.BuilderLoader;
 import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.PartLoader;
 import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.FutureLoader;
 import com.aegisql.conveyor.FutureSupplier;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.loaders.BuilderLoader;
+import com.aegisql.conveyor.loaders.FutureLoader;
+import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
 /**

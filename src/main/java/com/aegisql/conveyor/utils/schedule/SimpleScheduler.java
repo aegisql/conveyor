@@ -9,9 +9,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.PartLoader;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
 /**

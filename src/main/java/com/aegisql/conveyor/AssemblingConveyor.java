@@ -42,6 +42,10 @@ import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.delay.DelayProvider;
+import com.aegisql.conveyor.loaders.BuilderLoader;
+import com.aegisql.conveyor.loaders.CommandLoader;
+import com.aegisql.conveyor.loaders.FutureLoader;
+import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
 /**
