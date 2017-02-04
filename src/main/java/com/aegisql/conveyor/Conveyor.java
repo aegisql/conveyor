@@ -3,8 +3,6 @@
  */
 package com.aegisql.conveyor;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -15,11 +13,11 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.loaders.BuilderLoader;
 import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.loaders.FutureLoader;
+import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
@@ -39,6 +37,8 @@ public interface Conveyor<K, L, OUT> {
 	public FutureLoader<K, OUT> future();
 	public BuilderLoader<K, OUT, OUT> buildFuture();
 	public CommandLoader<K, L, OUT> command();
+
+	public <X> MultiKeyPartLoader<K, L, X, OUT, Boolean> multiKeyPart();
 
 	/**
 	 * Adds the cart to the input queue.

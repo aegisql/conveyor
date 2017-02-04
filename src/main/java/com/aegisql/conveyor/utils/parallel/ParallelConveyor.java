@@ -38,11 +38,13 @@ import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
+import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.loaders.BuilderLoader;
 import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.loaders.FutureLoader;
+import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
@@ -122,6 +124,13 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
 		return new PartLoader<K,L,X,OUT,Boolean>(cl -> {
 			return place(new ShoppingCart<K,Object,L>(cl.key, cl.partValue, cl.label, cl.expirationTime));
+		});
+	}
+	
+	@Override
+	public <X> MultiKeyPartLoader<K, L, X, OUT, Boolean> multiKeyPart() {
+		return new MultiKeyPartLoader<K,L,X,OUT,Boolean>(cl -> {
+			return place(new MultiKeyCart<K,Object,L>(cl.filter, cl.partValue, cl.label, cl.expirationTime));
 		});
 	}
 

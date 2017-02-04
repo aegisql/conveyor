@@ -45,6 +45,7 @@ import com.aegisql.conveyor.delay.DelayProvider;
 import com.aegisql.conveyor.loaders.BuilderLoader;
 import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.loaders.FutureLoader;
+import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
@@ -266,28 +267,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			stop();
 		}
 		return running;
-	}
-	
-	/**
-	 * For each key and builder.
-	 *
-	 * @param keyBuilderPairConsumer the key builder pair consumer
-	 */
-	//BUG: not safe, concurrent modification possible
-	public void forEachKeyAndBuilder( BiConsumer<K, Supplier<? extends OUT>> keyBuilderPairConsumer ) {
-		lock.rLock.lock();
-		try {
-			collector.forEach((key,site)->{
-				try {
-					keyBuilderPairConsumer.accept( key, site.getProductSupplier() );
-				} catch (RuntimeException e) {
-					LOG.error("Error processing key="+key,e);
-				}
-				
-			});
-		} finally {
-			lock.rLock.unlock();
-		}
 	}
 	
 	/**
@@ -581,6 +560,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
 		return new PartLoader<K,L,X,OUT,Boolean>(cl -> {
 			return place(new ShoppingCart<K,Object,L>(cl.key, cl.partValue, cl.label, cl.expirationTime));
+		});
+	}
+	
+	@Override
+	public <X> MultiKeyPartLoader<K, L, X, OUT, Boolean> multiKeyPart() {
+		return new MultiKeyPartLoader<K,L,X,OUT,Boolean>(cl -> {
+			return place(new MultiKeyCart<K,Object,L>(cl.filter, cl.partValue, cl.label, cl.expirationTime));
 		});
 	}
 

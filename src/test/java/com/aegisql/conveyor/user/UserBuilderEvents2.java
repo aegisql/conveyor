@@ -24,7 +24,10 @@ public enum UserBuilderEvents2 implements SmartLabel<UserBuilderTesting> {
 	SET_LAST(UserBuilderTesting::setLast),
 	
 	/** The set year. */
-	SET_YEAR(UserBuilderTesting::setYearOfBirth)
+	SET_YEAR(UserBuilderTesting::setYearOfBirth),
+	
+	PRINT((UserBuilderTesting builder,String msg) -> { System.out.println( msg+": "+builder); })
+
 	;
 
 	/** The setter. */

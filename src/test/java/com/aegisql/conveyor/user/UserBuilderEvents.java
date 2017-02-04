@@ -28,9 +28,13 @@ public enum UserBuilderEvents implements SmartLabel<UserBuilderSmart> {
 	SET_YEAR(UserBuilderSmart::setYearOfBirth),
 	
 	/** The failure. */
-	FAILURE((UserBuilderSmart builder,RuntimeException error) -> { throw error; } )
+	FAILURE((UserBuilderSmart builder,RuntimeException error) -> { throw error; } ),
+	
+	PRINT((UserBuilderSmart builder,String msg) -> { System.out.println( msg+": "+builder); })
 	;
 
+	
+	
 	/** The setter. */
 	BiConsumer<UserBuilderSmart, Object> setter;
 
