@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.cart.AbstractCart;
@@ -21,6 +22,8 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -5709296056171099659L;
 
+	protected final Predicate<K> filter;
+	
 	/**
 	 * Instantiates a new general command.
 	 *
@@ -33,6 +36,13 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	public GeneralCommand(K k, V v, CommandLabel label, long ttl, TimeUnit timeUnit) {
 		super(k, v, label, ttl, timeUnit);
 		Objects.requireNonNull(k);
+		filter = key -> k.equals(k);
+	}
+
+	public GeneralCommand(Predicate<K> f, V v, CommandLabel label, long ttl, TimeUnit timeUnit) {
+		super(null, v, label, ttl, timeUnit);
+		Objects.requireNonNull(f);
+		this.filter = f;
 	}
 
 	/**
@@ -46,6 +56,13 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	public GeneralCommand(K k, V v, CommandLabel label, long expiration) {
 		super(k, v, label, expiration);
 		Objects.requireNonNull(k);
+		filter = key -> k.equals(k);
+	}
+
+	public GeneralCommand(Predicate<K> f, V v, CommandLabel label, long expiration) {
+		super(null, v, label, expiration);
+		Objects.requireNonNull(f);
+		filter = f;
 	}
 
 	/**
@@ -58,8 +75,15 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	public GeneralCommand(K k, V v, CommandLabel label) {
 		super(k, v, label);
 		Objects.requireNonNull(k);
+		filter = key -> k.equals(k);
 	}
-	
+
+	public GeneralCommand(Predicate<K> f, V v, CommandLabel label) {
+		super(null, v, label);
+		Objects.requireNonNull(f);
+		filter = f;
+	}
+
 	/**
 	 * Instantiates a new general command.
 	 *
@@ -71,6 +95,13 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	public GeneralCommand(K k, V v, CommandLabel label, Duration duration) {
 		super(k, v, label, duration);
 		Objects.requireNonNull(k);
+		filter = key -> k.equals(k);
+	}
+
+	public GeneralCommand(Predicate<K> f, V v, CommandLabel label, Duration duration) {
+		super(null, v, label, duration);
+		Objects.requireNonNull(f);
+		filter = f;
 	}
 
 	/**
@@ -84,6 +115,13 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	public GeneralCommand(K k, V v, CommandLabel label, Instant instant) {
 		super(k, v, label, instant);
 		Objects.requireNonNull(k);
+		filter = key -> k.equals(k);
+	}
+
+	public GeneralCommand(Predicate<K> f, V v, CommandLabel label, Instant instant) {
+		super(null, v, label, instant);
+		Objects.requireNonNull(f);
+		filter = f;
 	}
 
 	/* (non-Javadoc)
@@ -106,5 +144,8 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 		return new GeneralCommand<K, V>(getKey(), getValue(), getLabel(),getExpirationTime());
 	}
 
-	
+	public Predicate<K> getFilter() {
+		return filter;
+	}
+
 }
