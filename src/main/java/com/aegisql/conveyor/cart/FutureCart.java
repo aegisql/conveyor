@@ -99,7 +99,7 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 	public CompletableFuture<B> get() {
 		return getValue();
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.cart.Cart#copy()
 	 */
