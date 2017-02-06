@@ -86,9 +86,9 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */	
 	@Override
-	public <V> CompletableFuture<Boolean> placeCommand(GeneralCommand<K, V> command) {
+	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> command) {
 		Objects.requireNonNull(command, "Command is null");
-		return this.balancingCommand.apply(command).get(0).placeCommand(command);
+		return this.balancingCommand.apply(command).get(0).command(command);
 	}
 	
 	/* (non-Javadoc)

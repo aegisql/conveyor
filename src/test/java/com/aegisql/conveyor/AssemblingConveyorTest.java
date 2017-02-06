@@ -144,7 +144,7 @@ public class AssemblingConveyorTest {
 		});
 		GeneralCommand<Integer,String> c1 = new GeneralCommand<>(1, "", CommandLabel.TIMEOUT_BUILD,0L);
 		conveyor.stop();
-		conveyor.placeCommand(c1);
+		conveyor.command(c1);
 	}
 
 	/**
@@ -163,7 +163,7 @@ public class AssemblingConveyorTest {
 		});
 		GeneralCommand<Integer,?> c1 = new GeneralCommand<>(1,"",CommandLabel.TIMEOUT_BUILD,1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
-		conveyor.placeCommand(c1);
+		conveyor.command(c1);
 	}
 
 	/**
@@ -183,7 +183,7 @@ public class AssemblingConveyorTest {
 		});
 		GeneralCommand<Integer,?> c1 = new GeneralCommand<>(1,"",CommandLabel.TIMEOUT_BUILD,100,TimeUnit.MILLISECONDS);
 		Thread.sleep(20);
-		conveyor.placeCommand(c1);
+		conveyor.command(c1);
 	}
 
 	/**

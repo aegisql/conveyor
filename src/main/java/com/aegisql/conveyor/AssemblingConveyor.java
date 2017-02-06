@@ -676,7 +676,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public <V> CompletableFuture<Boolean> placeCommand(GeneralCommand<K, V> cart) {
+	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> cart) {
 		try {
 			CompletableFuture<Boolean> future = cart.getFuture();
 			commandBeforePlacementValidator.accept(cart);
@@ -700,7 +700,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CommandLoader<K, L, OUT> command() {
-		return new CommandLoader<>(this::placeCommand);
+		return new CommandLoader<>(this::command);
 	}
 
 	/*

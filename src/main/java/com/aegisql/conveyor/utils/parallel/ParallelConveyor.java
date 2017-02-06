@@ -170,11 +170,11 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public abstract <V> CompletableFuture<Boolean> placeCommand(GeneralCommand<K, V> cart);
+	public abstract <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> cart);
 	
 	@Override
 	public CommandLoader<K, L, OUT> command() {
-		return new CommandLoader<>(this::placeCommand);
+		return new CommandLoader<>(this::command);
 	}
 	
 	/* (non-Javadoc)

@@ -133,14 +133,14 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
 	 */
 	@Override
-	public <V> CompletableFuture<Boolean> placeCommand(GeneralCommand<K, V> cart) {
+	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> cart) {
 		Objects.requireNonNull(cart, "Command is null");
 		CompletableFuture<Boolean> combinedFutures = null;
 		for(Conveyor<K, L, OUT> conv: this.balancingCommand.apply(cart)) {
 			if(combinedFutures == null) {
-				combinedFutures = conv.placeCommand((GeneralCommand<K, V>) cart.copy());
+				combinedFutures = conv.command((GeneralCommand<K, V>) cart.copy());
 			} else {
-				combinedFutures = combinedFutures.thenCombine(conv.placeCommand((GeneralCommand<K, V>) cart.copy()), (a,b) -> a && b );
+				combinedFutures = combinedFutures.thenCombine(conv.command((GeneralCommand<K, V>) cart.copy()), (a,b) -> a && b );
 			}
 		}
 		return combinedFutures;

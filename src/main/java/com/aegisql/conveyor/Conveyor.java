@@ -92,7 +92,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @param command Cart
 	 * @return true, if successful
 	 */
-	public <V> CompletableFuture<Boolean> placeCommand(GeneralCommand<K, V> command);
+	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> command);
 	
 	/**
 	 * Gets the collector size.

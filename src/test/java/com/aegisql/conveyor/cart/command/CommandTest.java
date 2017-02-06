@@ -131,11 +131,11 @@ public class CommandTest {
 		assertTrue(chk1.get());
 		assertEquals(0, out.length());
 		testOut.ready = true;
-		ac.placeCommand(check);
+		ac.command(check);
 		Thread.sleep(100);
 		
 		assertEquals("Test",out.toString());
-		ac.placeCommand(check);
+		ac.command(check);
 		Thread.sleep(50);
 		CompletableFuture<Boolean> chk2 = ac.command().id(2).check();
 		assertFalse(chk2.get());
