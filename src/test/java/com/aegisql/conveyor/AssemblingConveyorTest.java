@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -32,9 +31,6 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
-import com.aegisql.conveyor.cart.command.CancelCommand;
-import com.aegisql.conveyor.cart.command.CreateCommand;
-import com.aegisql.conveyor.cart.command.TimeoutCommand;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
@@ -146,7 +142,7 @@ public class AssemblingConveyorTest {
 			assertTrue(o.comment.startsWith("Conveyor is not running"));
 			assertTrue(o.scrap instanceof Cart);
 		});
-		GeneralCommand<Integer,?> c1 = new TimeoutCommand<>(1);
+		GeneralCommand<Integer,String> c1 = new GeneralCommand<>(1, "", CommandLabel.TIMEOUT_BUILD,0L);
 		conveyor.stop();
 		conveyor.placeCommand(c1);
 	}
@@ -165,7 +161,7 @@ public class AssemblingConveyorTest {
 			assertTrue(o.comment.startsWith("Command has already expired"));
 			assertTrue(o.scrap instanceof Cart);
 		});
-		GeneralCommand<Integer,?> c1 = new TimeoutCommand<>(1,1,TimeUnit.MILLISECONDS);
+		GeneralCommand<Integer,?> c1 = new GeneralCommand<>(1,"",CommandLabel.TIMEOUT_BUILD,1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
 		conveyor.placeCommand(c1);
 	}
@@ -185,7 +181,7 @@ public class AssemblingConveyorTest {
 			assertTrue(o.comment.startsWith("Command is too old"));
 			assertTrue(o.scrap instanceof Cart);
 		});
-		GeneralCommand<Integer,?> c1 = new TimeoutCommand<>(1,100,TimeUnit.MILLISECONDS);
+		GeneralCommand<Integer,?> c1 = new GeneralCommand<>(1,"",CommandLabel.TIMEOUT_BUILD,100,TimeUnit.MILLISECONDS);
 		Thread.sleep(20);
 		conveyor.placeCommand(c1);
 	}
@@ -334,11 +330,6 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c6 = new ShoppingCart<>(6, "Ann", "setFirst");
 		Cart<Integer, String, String> c7 = new ShoppingCart<>(7, "Nik", "setLast", 1, TimeUnit.HOURS);
 
-		GeneralCommand<Integer,?> c8 = new CreateCommand<>(8,1,TimeUnit.SECONDS);
-		GeneralCommand<Integer,?> c9 = new CreateCommand<>(9,()->{
-			System.out.println("Command builder supplier called.");
-			return new UserBuilder();},1,TimeUnit.SECONDS);
-
 		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
@@ -354,11 +345,13 @@ public class AssemblingConveyorTest {
 		User u2 = outQueue.poll();
 		assertNull(u2);
 		conveyor.place(c7);
-		conveyor.placeCommand(c8);
-		conveyor.placeCommand(c9);
+		conveyor.command().id(8).ttl(1,TimeUnit.SECONDS).create();
+		conveyor.command().id(9).ttl(1,TimeUnit.SECONDS).create(()->{
+			System.out.println("Command builder supplier called.");
+			return new UserBuilder();});
 		Thread.sleep(100);
-		conveyor.placeCommand( new CancelCommand<Integer>(6));
-		conveyor.placeCommand( new TimeoutCommand<Integer>(7));
+		conveyor.command().id(6).cancel();
+		conveyor.command().id(7).cancel();
 
 		conveyor.place(c5);
 		Thread.sleep(2000);
@@ -409,9 +402,7 @@ public class AssemblingConveyorTest {
 		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
 		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");
 
-		GeneralCommand<Integer,?> c0 = new CreateCommand<>(1,UserBuilder::new,1,TimeUnit.SECONDS);
-
-		conveyor.placeCommand(c0);
+		conveyor.command().id(1).ttl(1,TimeUnit.SECONDS).create(UserBuilder::new);
 		conveyor.place(c1);
 		User u0 = outQueue.poll();
 		assertNull(u0);
@@ -547,8 +538,8 @@ public class AssemblingConveyorTest {
 		User u2 = outQueue.poll();
 		assertNull(u2);
 		Thread.sleep(100);
-		conveyor.placeCommand( new CancelCommand<Integer>(6));
-		conveyor.placeCommand( new TimeoutCommand<Integer>(7));
+		conveyor.command().id(6).cancel();
+		conveyor.command().id(7).cancel();
 
 		Thread.sleep(2000);
 		System.out.println("COL:"+conveyor.getCollectorSize());

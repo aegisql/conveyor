@@ -1112,21 +1112,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	/**
-	 * acknowledge build.
-	 *
-	 * @param conveyor
-	 *            the conveyor
-	 * @param cart
-	 *            the cart
-	 */
-	// TODO: add something
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	static <K> void acknowledge(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
-		K key = cart.getKey();
-		cart.getFuture().complete(true);
-	}
-
-	/**
 	 * Cancel now.
 	 *
 	 * @param conveyor
@@ -1171,47 +1156,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if (conveyor.collector.containsKey(key)) {
 			conveyor.processSite(cart, false);
 			cart.getFuture().complete(true);
-		} else {
-			LOG.debug("Key '{}' does not exist. Ignoring check command.", key);
-			cart.getFuture().complete(false);
-		}
-	}
-
-	/**
-	 * Future build.
-	 *
-	 * @param conveyor
-	 *            the conveyor
-	 * @param cart
-	 *            the cart
-	 */
-	// TODO: finish this
-	static <K> void futureBuild(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
-		K key = cart.getKey();
-		if (conveyor.collector.containsKey(key)) {
-			conveyor.processSite((Cart) cart, false);
-			cart.getFuture().complete(true);
-		} else {
-			LOG.debug("Key '{}' does not exist. Ignoring check command.", key);
-			cart.getFuture().complete(false);
-		}
-	}
-
-	/**
-	 * foreachBuild.
-	 *
-	 * @param conveyor
-	 *            the conveyor
-	 * @param cart
-	 *            the cart
-	 */
-	// TODO: finish this
-	static <K> void foreachBuild(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
-		K key = cart.getKey();
-		if (conveyor.collector.containsKey(key)) {
-			conveyor.processSite((Cart) cart, false);
-			cart.getFuture().complete(true);
-
 		} else {
 			LOG.debug("Key '{}' does not exist. Ignoring check command.", key);
 			cart.getFuture().complete(false);

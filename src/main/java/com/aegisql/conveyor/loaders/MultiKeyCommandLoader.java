@@ -8,8 +8,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.aegisql.conveyor.CommandLabel;
-import com.aegisql.conveyor.cart.command.CancelCommand;
-import com.aegisql.conveyor.cart.command.CheckBuildCommand;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 
 // TODO: Auto-generated Javadoc
@@ -157,10 +155,19 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 *
 	 * @return the completable future
 	 */
-	public CompletableFuture<Boolean> check() {
-		return conveyor.apply(new GeneralCommand<K,String>(filter,"CHECK",CommandLabel.CHECK_BUILD,expirationTime));
+	public CompletableFuture<Boolean> timeout() {
+		return conveyor.apply(new GeneralCommand<K,String>(filter,"TIMEOUT",CommandLabel.TIMEOUT_BUILD,expirationTime));
 	}
 
+	/**
+	 * Reschedule.
+	 *
+	 * @return the completable future
+	 */
+	public CompletableFuture<Boolean> reschedule() {
+		return conveyor.apply(new GeneralCommand<K,String>(filter,"RESCHEDULE",CommandLabel.RESCHEDULE_BUILD,expirationTime));
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

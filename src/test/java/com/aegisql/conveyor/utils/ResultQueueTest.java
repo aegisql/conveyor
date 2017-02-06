@@ -1,10 +1,11 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -13,14 +14,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.BuildingSite.Status;
+import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.cart.command.GeneralCommand;
-import com.aegisql.conveyor.cart.command.CancelCommand;
-import com.aegisql.conveyor.cart.command.CreateCommand;
-import com.aegisql.conveyor.cart.command.TimeoutCommand;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
@@ -146,8 +143,6 @@ public class ResultQueueTest {
 		Cart<Integer, String, String> c6 = new ShoppingCart<>(6, "Ann", "setFirst");
 		Cart<Integer, String, String> c7 = new ShoppingCart<>(7, "Nik", "setLast", 1, TimeUnit.HOURS);
 
-		GeneralCommand<Integer,?> c8 = new CreateCommand<>(8,1,TimeUnit.SECONDS);
-		GeneralCommand<Integer,?> c9 = new CreateCommand<>(8,UserBuilder::new,1,TimeUnit.SECONDS);
 
 		conveyor.place(c1);
 		User u0 = outQueue.poll();
@@ -164,11 +159,11 @@ public class ResultQueueTest {
 		User u2 = outQueue.poll();
 		assertNull(u2);
 		conveyor.place(c7);
-		conveyor.placeCommand(c8);
-		conveyor.placeCommand(c9);
+		conveyor.command().id(8).ttl(1,TimeUnit.SECONDS).create();
+		conveyor.command().id(8).ttl(1,TimeUnit.SECONDS).create(UserBuilder::new);
 		Thread.sleep(100);
-		conveyor.placeCommand( new CancelCommand<Integer>(6));
-		conveyor.placeCommand( new TimeoutCommand<Integer>(7));
+		conveyor.command().id(6).cancel();
+		conveyor.command().id(7).timeout();
 
 		conveyor.place(c5);
 		Thread.sleep(2000);

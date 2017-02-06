@@ -1,6 +1,6 @@
 package com.aegisql.conveyor.user;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
@@ -12,7 +12,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.cart.command.CancelCommand;
 import com.aegisql.conveyor.utils.schedule.SchedulableClosure;
 import com.aegisql.conveyor.utils.schedule.Schedule;
 import com.aegisql.conveyor.utils.schedule.SimpleScheduler;
@@ -107,7 +106,7 @@ public class SchedulerTest {
 		s.part().id("test2").value(c).label(Schedule.SCHEDULE_WITH_DELAY).ttl(1, TimeUnit.SECONDS).place();
 		Thread.sleep(2100);
 		assertEquals(1,s.getCollectorSize());
-		s.placeCommand(new CancelCommand<String>("test2"));
+		s.command().id("test2").cancel();
 		Thread.sleep(100);
 		assertEquals(0,s.getCollectorSize());
 	}
@@ -125,7 +124,7 @@ public class SchedulerTest {
 		s.part().id("test3").value(c).label(Schedule.SCHEDULE_AND_EXECUTE_NOW).ttl(1, TimeUnit.SECONDS).place();
 		Thread.sleep(3500);
 		assertEquals(1,s.getCollectorSize());
-		s.placeCommand(new CancelCommand<String>("test3"));
+		s.command().id("test3").cancel();
 		Thread.sleep(100);
 		assertEquals(0,s.getCollectorSize());
 	}
@@ -144,7 +143,7 @@ public class SchedulerTest {
 		s.part().id("test4").value(c).label(Schedule.SCHEDULE_AND_EXECUTE_NOW).ttl(Duration.ofSeconds(1)).place();
 		Thread.sleep(3500);
 		assertEquals(1,s.getCollectorSize());
-		s.placeCommand(new CancelCommand<String>("test4"));
+		s.command().id("test4").cancel();
 		Thread.sleep(100);
 		assertEquals(0,s.getCollectorSize());
 	}

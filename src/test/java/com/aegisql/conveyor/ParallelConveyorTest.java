@@ -28,8 +28,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.cart.command.CreateCommand;
-import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.utils.parallel.KBalancedParallelConveyor;
@@ -182,16 +181,11 @@ public class ParallelConveyorTest {
 	@Test
 	public void testParallelCommand() throws InterruptedException, ExecutionException {
 		
-		GeneralCommand<String,?> c1 = new CreateCommand<>(""+1,UserBuilder::new,10,TimeUnit.MILLISECONDS );
-		GeneralCommand<String,?> c2 = new CreateCommand<>(""+2,UserBuilder::new,10,TimeUnit.MILLISECONDS );
-		GeneralCommand<String,?> c3 = new CreateCommand<>(""+3,UserBuilder::new,10,TimeUnit.MILLISECONDS );
-		GeneralCommand<String,?> c4 = new CreateCommand<>(""+4,UserBuilder::new,10,TimeUnit.MILLISECONDS );
-
-		
-		CompletableFuture<Boolean> f1 = conveyor.placeCommand(c1);
-		CompletableFuture<Boolean> f2 = conveyor.placeCommand(c2);
-		CompletableFuture<Boolean> f3 = conveyor.placeCommand(c3);
-		CompletableFuture<Boolean> f4 = conveyor.placeCommand(c4);
+		CommandLoader<String, ?, ?> cmd = conveyor.command().ttl(10,TimeUnit.MILLISECONDS);
+		CompletableFuture<Boolean> f1 = cmd.id(""+1).create();
+		CompletableFuture<Boolean> f2 = cmd.id(""+2).create();
+		CompletableFuture<Boolean> f3 = cmd.id(""+3).create();
+		CompletableFuture<Boolean> f4 = cmd.id(""+4).create();
 
 		System.out.println("F1 "+f1);
 		System.out.println("F2 "+f2);

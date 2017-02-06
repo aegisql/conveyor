@@ -30,13 +30,6 @@ public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 		}
 	},
 
-	/** The acknowledge command. */
-	ACK_BUILD {
-		public BiConsumer<AssemblingConveyor, Object> get() {
-			return (c,o)->AssemblingConveyor.acknowledge(c, (Cart)o);
-		}
-	},
-
 	/** The timeout build. */
 	TIMEOUT_BUILD {
 		public BiConsumer<AssemblingConveyor, Object> get() {
@@ -58,19 +51,7 @@ public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 		}
 	},
 
-	/**  iterate foreach build in the queue. */
-	FOREACH_BUILD {
-		public BiConsumer<AssemblingConveyor, Object> get() {
-			return (c,o)->AssemblingConveyor.foreachBuild(c, (Cart)o);
-		}
-	},
-
-	/**  Check build readiness. */
-	FUTURE_BUILD {
-		public BiConsumer<AssemblingConveyor, Object> get() {
-			return (c,o)->AssemblingConveyor.futureBuild(c, (Cart)o);
-		}
-	};
+	;
 
 	/**
 	 *  The setter.

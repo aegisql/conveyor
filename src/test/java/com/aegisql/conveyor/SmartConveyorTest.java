@@ -21,8 +21,6 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.cart.command.CreateCommand;
-import com.aegisql.conveyor.cart.command.RescheduleCommand;
 import com.aegisql.conveyor.user.AbstractBuilderEvents;
 import com.aegisql.conveyor.user.LowerCaseUserBuilder;
 import com.aegisql.conveyor.user.LowerUser;
@@ -162,8 +160,7 @@ public class SmartConveyorTest {
 		assertNull(u0);
 		conveyor.place(c2);
 
-		RescheduleCommand<Integer> reschedule = new RescheduleCommand<>(1, 4, TimeUnit.SECONDS);
-		conveyor.placeCommand(reschedule);
+		conveyor.command().id(1).ttl(4, TimeUnit.SECONDS).reschedule();
 		Thread.sleep(1500);
 		conveyor.place(c3);
 		Thread.sleep(100);
@@ -294,32 +291,37 @@ public class SmartConveyorTest {
 			System.out.println("Default Supplier");
 			return new UserBuilderTesting();
 		});
-
+	
 		conveyor.setResultConsumer(res -> {
 			outQueue.add(res.product);
 		});
-
+	
 		BuilderSupplier<User> sup = () -> {
 			System.out.println("Cart Supplier");
 			return new UserBuilderTesting();
 		};
-
+	
 		BuilderSupplier<User> sup2 = () -> {
 			System.out.println("Cmd Supplier");
 			return new UserBuilderTesting();
 		};
-
+	
 		CompletableFuture<Boolean> cf1 = conveyor.build().id(1).supplier(sup).create();
 		CompletableFuture<Boolean> cf2 = conveyor.build().id(2).supplier(sup).create();
 		CompletableFuture<Boolean> cf3 = conveyor.build().id(3).create();
-
+	
 		assertTrue(cf1.get());
 		assertTrue(cf2.get());
-//		assertFalse(cf3.get()); //this fails - no supplier;
+		try {
+			assertFalse(cf3.get()); //this fails - no supplier;
+			fail();
+		} catch(Exception e) {
+			
+		}
 		
-		conveyor.placeCommand(new CreateCommand<Integer, User>(4));
-		conveyor.placeCommand(new CreateCommand<Integer, User>(5, sup2));
-
+		conveyor.command().id(4).create();
+		conveyor.command().id(5).create(sup2);
+	
 		conveyor.setName("Testing User Assembler");
 		conveyor.part().value("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
@@ -329,15 +331,15 @@ public class SmartConveyorTest {
 		conveyor.part().value(1999).id(1).label(UserBuilderEvents2.SET_YEAR).place();
 		Thread.sleep(100);
 		conveyor.multiKeyPart().foreach().value("CREATING").label(UserBuilderEvents2.PRINT).place();
-
+	
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
 		System.out.println(u1);
 		User u2 = outQueue.poll();
 		assertNull(u2);
-
+	
 		Thread.sleep(100);
-
+	
 		conveyor.stop();
 	}
 

@@ -13,6 +13,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.UserBuilder;
@@ -121,7 +122,7 @@ public class CommandTest {
 		
 		Cart<Integer,String,String> c = new ShoppingCart<>(1, "Test", "");
 		
-		CheckBuildCommand<Integer> check = new CheckBuildCommand<Integer>(1);
+		GeneralCommand<Integer,String> check = new GeneralCommand<>(1,"",CommandLabel.CHECK_BUILD,0L);
 		
 		ac.place(c);
 		

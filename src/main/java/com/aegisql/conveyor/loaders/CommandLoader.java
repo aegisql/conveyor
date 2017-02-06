@@ -6,8 +6,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import com.aegisql.conveyor.cart.command.CancelCommand;
-import com.aegisql.conveyor.cart.command.CheckBuildCommand;
+import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 
 // TODO: Auto-generated Javadoc
@@ -147,18 +147,50 @@ public final class CommandLoader<K,L,OUT> {
 	 * @return the completable future
 	 */
 	public CompletableFuture<Boolean> cancel() {
-		return conveyor.apply(new CancelCommand<K>(key,expirationTime));
+		return conveyor.apply(new GeneralCommand<K,String>(key,"CANCEL",CommandLabel.CANCEL_BUILD,expirationTime));
 	}
 
+	public CompletableFuture<Boolean> timeout() {
+		return conveyor.apply(new GeneralCommand<K,String>(key,"TIMEOUT",CommandLabel.TIMEOUT_BUILD,expirationTime));
+	}
+
+	/**
+	 * Reschedule.
+	 *
+	 * @return the completable future
+	 */
+	public CompletableFuture<Boolean> reschedule() {
+		return conveyor.apply(new GeneralCommand<K,String>(key,"RESCHEDULE",CommandLabel.RESCHEDULE_BUILD,expirationTime));
+	}
+	
 	/**
 	 * Check.
 	 *
 	 * @return the completable future
 	 */
 	public CompletableFuture<Boolean> check() {
-		return conveyor.apply(new CheckBuildCommand<K>(key));//TODO: where is expiration time?
+		return conveyor.apply(new GeneralCommand<K,String>(key,"CHECK",CommandLabel.CHECK_BUILD,expirationTime));
 	}
 
+	/**
+	 * Create.
+	 *
+	 * @return the completable future
+	 */
+	public CompletableFuture<Boolean> create() {
+		return conveyor.apply(new GeneralCommand<K,BuilderSupplier<OUT>>(key,null,CommandLabel.CREATE_BUILD,expirationTime));
+	}
+
+	/**
+	 * Create.
+	 *
+	 * @return the completable future
+	 */
+	public CompletableFuture<Boolean> create(BuilderSupplier<OUT> builder) {
+		return conveyor.apply(new GeneralCommand<K,BuilderSupplier<OUT>>(key,builder,CommandLabel.CREATE_BUILD,expirationTime));
+	}
+
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
