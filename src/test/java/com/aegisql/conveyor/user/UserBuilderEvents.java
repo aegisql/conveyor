@@ -30,7 +30,7 @@ public enum UserBuilderEvents implements SmartLabel<UserBuilderSmart> {
 	/** The failure. */
 	FAILURE((UserBuilderSmart builder,RuntimeException error) -> { throw error; } ),
 	
-	PRINT((UserBuilderSmart builder,String msg) -> { System.out.println( msg+": "+builder); })
+	PRINT((UserBuilderSmart builder,String msg) -> { System.out.println( msg+": "+builder.get()); })
 	;
 
 	

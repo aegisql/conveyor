@@ -100,9 +100,7 @@ public class SmartConveyorTest {
 		conveyor.setResultConsumer(res -> {
 			outQueue.add(res.product);
 		});
-		conveyor.setReadinessEvaluator((state, builder) -> {
-			return state.previouslyAccepted == 3;
-		});
+		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);
@@ -115,9 +113,10 @@ public class SmartConveyorTest {
 		assertNull(u0);
 		conveyor.place(c2);
 		conveyor.place(c3);
+		conveyor.multiKeyPart().foreach().value("BEFORE").label(UserBuilderEvents.PRINT).place();
+
 		conveyor.place(c4);
 		
-		conveyor.multiKeyPart().foreach().value("BEFORE").label(UserBuilderEvents.PRINT).place();
 		
 		Thread.sleep(100);
 		conveyor.multiKeyPart().foreach().value("AFTER").label(UserBuilderEvents.PRINT).place();
