@@ -79,18 +79,6 @@ public class CartTest {
 		
 		assertFalse(c.expired());
 		
-		Cart<String,String,String> c2 = c.nextCart("v2");
-		assertFalse(c2.expired());
-		assertEquals(c.getKey(),c2.getKey());
-		assertEquals(c.getLabel(),c2.getLabel());
-		assertNotEquals(c.getValue(), c2.getValue());
-		
-		Cart<String,String,String> c3 = c.nextCart("v2","l2");
-		assertFalse(c3.expired());
-		assertEquals(c.getKey(),c3.getKey());
-		assertNotEquals(c.getLabel(),c3.getLabel());
-		assertNotEquals(c.getValue(), c3.getValue());
-		
 		long delay = c.toDelayed().getDelay(TimeUnit.MILLISECONDS);
 		
 		assertTrue(delay > 0);
@@ -99,8 +87,6 @@ public class CartTest {
 		Thread.sleep(110);
 		
 		assertTrue(c.expired());
-		assertTrue(c2.expired());
-		assertTrue(c3.expired());
 		
 		delay = c.toDelayed().getDelay(TimeUnit.MILLISECONDS);
 		

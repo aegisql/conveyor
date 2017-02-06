@@ -58,32 +58,6 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	}
 
 	/**
-	 * Instantiates a new shopping cart.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param duration the duration
-	 */
-	public ShoppingCart(K key, V value, L label, Duration duration) {
-		super(key,value,label,duration);
-		Objects.requireNonNull(k);
-	}
-
-	/**
-	 * Instantiates a new shopping cart.
-	 *
-	 * @param key the key
-	 * @param value the value
-	 * @param label the label
-	 * @param instant the instant
-	 */
-	public ShoppingCart(K key, V value, L label, Instant instant) {
-		super(key,value,label,instant);
-		Objects.requireNonNull(k);
-	}
-
-	/**
 	 * Next cart.
 	 *
 	 * @param <V1> the generic type
@@ -93,17 +67,6 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	 */
 	public <V1> ShoppingCart<K,V1,L> nextCart(V1 newValue,L newLabel) {
 		return new ShoppingCart<>(this.getKey(),newValue,newLabel,this.getExpirationTime());
-	}
-
-	/**
-	 * Next cart.
-	 *
-	 * @param <V1> the generic type
-	 * @param newValue the new value
-	 * @return the cart
-	 */
-	public <V1> ShoppingCart<K,V1,L> nextCart(V1 newValue) {
-		return new ShoppingCart<>(this.getKey(), newValue, this.getLabel(), this.getExpirationTime());
 	}
 
 	/* (non-Javadoc)

@@ -1,9 +1,6 @@
 package com.aegisql.conveyor.cart;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.BuilderSupplier;
@@ -26,19 +23,6 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 *
 	 * @param k the k
 	 * @param v the v
-	 * @param ttl the ttl
-	 * @param timeUnit the time unit
-	 */
-	public CreatingCart(K k, BuilderSupplier<B> v, long ttl, TimeUnit timeUnit) {
-		super(k, v, null, ttl, timeUnit);
-		Objects.requireNonNull(k);
-	}
-
-	/**
-	 * Instantiates a new creating cart.
-	 *
-	 * @param k the k
-	 * @param v the v
 	 * @param expiration the expiration
 	 */
 	public CreatingCart(K k, BuilderSupplier<B> v, long expiration) {
@@ -55,97 +39,6 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	public CreatingCart(K k, BuilderSupplier<B> v) {
 		super(k, v, null);
 		Objects.requireNonNull(k);
-	}
-
-	/**
-	 * Instantiates a new creating cart.
-	 *
-	 * @param k the k
-	 * @param b the b
-	 * @param duration the duration
-	 */
-	public CreatingCart(K k, BuilderSupplier<B> b, Duration duration) {
-		super(k, b,null, duration);
-		Objects.requireNonNull(k);
-	}
-
-	/**
-	 * Instantiates a new creating cart.
-	 *
-	 * @param k the k
-	 * @param b the b
-	 * @param instant the instant
-	 */
-	public CreatingCart(K k, BuilderSupplier<B> b, Instant instant) {
-		super(k, b,null, instant);
-		Objects.requireNonNull(k);
-	}
-
-	/**
-	 * Instantiates a new creating cart.
-	 *
-	 * @param k the k
-	 * @param ttl the ttl
-	 * @param timeUnit the time unit
-	 */
-	public CreatingCart(K k, long ttl, TimeUnit timeUnit) {
-		super(k, null, null, ttl, timeUnit);
-		Objects.requireNonNull(k);
-	}
-
-	/**
-	 * Instantiates a new creating cart.
-	 *
-	 * @param k the k
-	 * @param expiration the expiration
-	 */
-	public CreatingCart(K k, long expiration) {
-		super(k, null, null, expiration);
-		Objects.requireNonNull(k);
-	}
-
-	/**
-	 * Instantiates a new creating cart.
-	 *
-	 * @param k the k
-	 */
-	public CreatingCart(K k) {
-		super(k, null, null);
-		Objects.requireNonNull(k);
-	}
-
-	/**
-	 * Instantiates a new creating cart.
-	 *
-	 * @param k the k
-	 * @param duration the duration
-	 */
-	public CreatingCart(K k, Duration duration) {
-		super(k, null,null, duration);
-		Objects.requireNonNull(k);
-	}
-
-	/**
-	 * Instantiates a new creating cart.
-	 *
-	 * @param k the k
-	 * @param instant the instant
-	 */
-	public CreatingCart(K k, Instant instant) {
-		super(k, null,null, instant);
-		Objects.requireNonNull(k);
-	}
-
-	/**
-	 * Next cart.
-	 *
-	 * @param <V1> the generic type
-	 * @param newValue the new value
-	 * @param newLabel the new label
-	 * @return the cart
-	 */
-	public <V1> ShoppingCart<K,V1,L> shoppingCart(V1 newValue,L newLabel) {
-		return new ShoppingCart<>(this.getKey(),newValue,newLabel,this.getExpirationTime());
 	}
 
 	/* (non-Javadoc)

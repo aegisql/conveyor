@@ -105,7 +105,7 @@ public class BuildingSiteTest {
 				100, TimeUnit.MILLISECONDS,false,false,false,0,false);
 		assertEquals(0, bs.getAcceptCount());
 		assertEquals(Status.WAITING_DATA, bs.getStatus());
-		bs.accept(c.nextCart("XXX"));
+		bs.accept(new ShoppingCart<>(1,"XXX","l",100,TimeUnit.MILLISECONDS));
 		User u = bs.build();
 		assertNotNull(u);
 		assertEquals(1, bs.getAcceptCount());

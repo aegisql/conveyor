@@ -5,7 +5,6 @@ package com.aegisql.conveyor.cart;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -173,6 +172,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	 *
 	 * @return the expiration time
 	 */
+	@Override
 	public long getExpirationTime() {
 		return expirationTime;
 	}
