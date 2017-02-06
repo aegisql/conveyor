@@ -559,6 +559,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 
+	/**
+	 * Process management command.
+	 *
+	 * @param cmdCart the cmd cart
+	 */
 	private void processManagementCommand(GeneralCommand<K, ?> cmdCart) {
 		commandCounter++;
 		if (LOG.isDebugEnabled()) {
@@ -595,6 +600,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		collector.clear();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#part()
+	 */
 	@Override
 	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
 		return new PartLoader<K, L, X, OUT, Boolean>(cl -> {
@@ -602,6 +610,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		});
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#multiKeyPart()
+	 */
 	@Override
 	public <X> MultiKeyPartLoader<K, L, X, OUT, Boolean> multiKeyPart() {
 		return new MultiKeyPartLoader<K, L, X, OUT, Boolean>(cl -> {
@@ -609,6 +620,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		});
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#build()
+	 */
 	@Override
 	public BuilderLoader<K, OUT, Boolean> build() {
 		return new BuilderLoader<K, OUT, Boolean>(cl -> {
@@ -617,6 +631,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		});
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#buildFuture()
+	 */
 	@Override
 	public BuilderLoader<K, OUT, OUT> buildFuture() {
 		return new BuilderLoader<K, OUT, OUT>(cl -> {
@@ -637,6 +654,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		});
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#future()
+	 */
 	@Override
 	public FutureLoader<K, OUT> future() {
 		return new FutureLoader<K, OUT>(cl -> {
@@ -675,6 +695,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#command()
+	 */
 	@Override
 	public CommandLoader<K, L, OUT> command() {
 		return new CommandLoader<>(this::placeCommand);
@@ -1099,10 +1122,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/**
 	 * Cancel now.
 	 *
-	 * @param conveyor
-	 *            the conveyor
-	 * @param cart
-	 *            the cart
+	 * @param <K> the key type
+	 * @param conveyor            the conveyor
+	 * @param cart            the cart
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static <K> void cancelNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
@@ -1114,10 +1136,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/**
 	 * Cancel now.
 	 *
-	 * @param conveyor
-	 *            the conveyor
-	 * @param cart
-	 *            the cart
+	 * @param <K> the key type
+	 * @param conveyor            the conveyor
+	 * @param cart            the cart
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static <K> void rescheduleNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
@@ -1130,10 +1151,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/**
 	 * Timeout now.
 	 *
-	 * @param conveyor
-	 *            the conveyor
-	 * @param cart
-	 *            the cart
+	 * @param <K> the key type
+	 * @param conveyor            the conveyor
+	 * @param cart            the cart
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static <K> void timeoutNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
@@ -1146,10 +1166,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/**
 	 * Check build.
 	 *
-	 * @param conveyor
-	 *            the conveyor
-	 * @param cart
-	 *            the cart
+	 * @param <K> the key type
+	 * @param conveyor            the conveyor
+	 * @param cart            the cart
 	 */
 	static <K> void checkBuild(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
 		K key = cart.getKey();

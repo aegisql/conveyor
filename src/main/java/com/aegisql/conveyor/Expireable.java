@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Interface Expireable.
  */
@@ -18,10 +19,10 @@ public interface Expireable {
 	
 	/**
 	 * addTime.
-	 * 
-	 * @param time, in milliseconds
+	 *
+	 * @param time the time
 	 * @return new instance of Expireable with added time
-	 * */
+	 */
 	default Expireable addTime(long time) {
 		Expireable e = this;
 		return new Expireable() {
@@ -34,21 +35,21 @@ public interface Expireable {
 
 	/**
 	 * addTime.
-	 * 
-	 * @param time
-	 * @param unit
+	 *
+	 * @param time the time
+	 * @param unit the unit
 	 * @return new instance of Expireable with added time
-	 * */
+	 */
 	default Expireable addTime(long time, TimeUnit unit) {
 		return addTime(unit.toMillis(time));
 	}
 
 	/**
 	 * addTime.
-	 * 
-	 * @param time, Duration
+	 *
+	 * @param time the time
 	 * @return new instance of Expireable with added time
-	 * */
+	 */
 	default Expireable addTime(Duration time) {
 		return addTime(time.toMillis());
 	}
@@ -62,6 +63,11 @@ public interface Expireable {
 		return isExpireable() && getExpirationTime() < System.currentTimeMillis();
 	}
 
+	/**
+	 * Checks if is expireable.
+	 *
+	 * @return true, if is expireable
+	 */
 	default boolean isExpireable() {
 		return getExpirationTime() > 0;
 	}

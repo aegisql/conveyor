@@ -35,6 +35,13 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
 		return instance;
 	}
 
+	/**
+	 * Of.
+	 *
+	 * @param <T> the generic type
+	 * @param instance the instance
+	 * @return the builder supplier
+	 */
 	static <T> BuilderSupplier<T> of(Supplier<? extends T> instance) {
 		return ()->instance;
 	}

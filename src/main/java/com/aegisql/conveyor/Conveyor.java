@@ -32,12 +32,48 @@ import com.aegisql.conveyor.loaders.PartLoader;
  */
 public interface Conveyor<K, L, OUT> {
 
+	/**
+	 * Part.
+	 *
+	 * @param <X> the generic type
+	 * @return the part loader
+	 */
 	public <X> PartLoader<K, L, X, OUT, Boolean> part();
+	
+	/**
+	 * Builds the.
+	 *
+	 * @return the builder loader
+	 */
 	public BuilderLoader<K, OUT, Boolean> build();
+	
+	/**
+	 * Future.
+	 *
+	 * @return the future loader
+	 */
 	public FutureLoader<K, OUT> future();
+	
+	/**
+	 * Builds the future.
+	 *
+	 * @return the builder loader
+	 */
 	public BuilderLoader<K, OUT, OUT> buildFuture();
+	
+	/**
+	 * Command.
+	 *
+	 * @return the command loader
+	 */
 	public CommandLoader<K, L, OUT> command();
 
+	/**
+	 * Multi key part.
+	 *
+	 * @param <X> the generic type
+	 * @return the multi key part loader
+	 */
 	public <X> MultiKeyPartLoader<K, L, X, OUT, Boolean> multiKeyPart();
 
 	/**
@@ -266,14 +302,38 @@ public interface Conveyor<K, L, OUT> {
 	boolean isForwardingResults();
 	
 	
+	/**
+	 * Gets the tester for.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param <OUT> the generic type
+	 * @param conveyor the conveyor
+	 * @return the tester for
+	 */
 	static <K, L,OUT> ReadinessTester<K, L,OUT> getTesterFor(Conveyor<K, L, OUT> conveyor) {
 		return new ReadinessTester<>();
 	}
+	
+	/**
+	 * Gets the consumer for.
+	 *
+	 * @param <L> the generic type
+	 * @param <OUT> the generic type
+	 * @param conveyor the conveyor
+	 * @return the consumer for
+	 */
 	static <L,OUT> LabeledValueConsumer<L, ?, Supplier<? extends OUT>> getConsumerFor(Conveyor<?, L, OUT> conveyor) {
 		return (l,v,b)->{
 			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
 		};
 	}
+	
+	/**
+	 * Gets the cart counter.
+	 *
+	 * @return the cart counter
+	 */
 	long getCartCounter();
 
 }

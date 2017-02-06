@@ -58,6 +58,7 @@ public interface LabeledValueConsumer<L,V,B> {
 	/**
 	 * When.
 	 *
+	 * @param <T> the generic type
 	 * @param label the label
 	 * @param consumer the consumer
 	 * @return the labeled value consumer
@@ -91,6 +92,7 @@ public interface LabeledValueConsumer<L,V,B> {
 	/**
 	 * Filter.
 	 *
+	 * @param <T> the generic type
 	 * @param label the label
 	 * @param consumer the consumer
 	 * @return the labeled value consumer
