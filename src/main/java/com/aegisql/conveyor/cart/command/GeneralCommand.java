@@ -39,12 +39,6 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 		filter = key -> k.equals(k);
 	}
 
-	public GeneralCommand(Predicate<K> f, V v, CommandLabel label, long ttl, TimeUnit timeUnit) {
-		super(null, v, label, ttl, timeUnit);
-		Objects.requireNonNull(f);
-		this.filter = f;
-	}
-
 	/**
 	 * Instantiates a new general command.
 	 *
