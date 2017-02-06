@@ -31,6 +31,7 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
@@ -161,9 +162,9 @@ public class AssemblingConveyorTest {
 			assertTrue(o.comment.startsWith("Command has already expired"));
 			assertTrue(o.scrap instanceof Cart);
 		});
-		GeneralCommand<Integer,?> c1 = new GeneralCommand<>(1,"",CommandLabel.TIMEOUT_BUILD,1,TimeUnit.MILLISECONDS);
+		CommandLoader<Integer, String, User> cl = conveyor.command().id(1).ttl(1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
-		conveyor.command(c1);
+		cl.timeout();
 	}
 
 	/**
@@ -181,7 +182,8 @@ public class AssemblingConveyorTest {
 			assertTrue(o.comment.startsWith("Command is too old"));
 			assertTrue(o.scrap instanceof Cart);
 		});
-		GeneralCommand<Integer,?> c1 = new GeneralCommand<>(1,"",CommandLabel.TIMEOUT_BUILD,100,TimeUnit.MILLISECONDS);
+		
+		GeneralCommand<Integer,?> c1 = new GeneralCommand<>(1,"",CommandLabel.TIMEOUT_BUILD,System.currentTimeMillis()+100);
 		Thread.sleep(20);
 		conveyor.command(c1);
 	}

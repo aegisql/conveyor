@@ -1,9 +1,6 @@
 package com.aegisql.conveyor.cart.command;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import com.aegisql.conveyor.CommandLabel;
@@ -30,21 +27,6 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	 * @param k the k
 	 * @param v the v
 	 * @param label the label
-	 * @param ttl the ttl
-	 * @param timeUnit the time unit
-	 */
-	public GeneralCommand(K k, V v, CommandLabel label, long ttl, TimeUnit timeUnit) {
-		super(k, v, label, ttl, timeUnit);
-		Objects.requireNonNull(k);
-		filter = key -> k.equals(k);
-	}
-
-	/**
-	 * Instantiates a new general command.
-	 *
-	 * @param k the k
-	 * @param v the v
-	 * @param label the label
 	 * @param expiration the expiration
 	 */
 	public GeneralCommand(K k, V v, CommandLabel label, long expiration) {
@@ -55,65 +37,6 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 
 	public GeneralCommand(Predicate<K> f, V v, CommandLabel label, long expiration) {
 		super(null, v, label, expiration);
-		Objects.requireNonNull(f);
-		filter = f;
-	}
-
-	/**
-	 * Instantiates a new general command.
-	 *
-	 * @param k the k
-	 * @param v the v
-	 * @param label the label
-	 */
-	public GeneralCommand(K k, V v, CommandLabel label) {
-		super(k, v, label);
-		Objects.requireNonNull(k);
-		filter = key -> k.equals(k);
-	}
-
-	public GeneralCommand(Predicate<K> f, V v, CommandLabel label) {
-		super(null, v, label);
-		Objects.requireNonNull(f);
-		filter = f;
-	}
-
-	/**
-	 * Instantiates a new general command.
-	 *
-	 * @param k the k
-	 * @param v the v
-	 * @param label the label
-	 * @param duration the duration
-	 */
-	public GeneralCommand(K k, V v, CommandLabel label, Duration duration) {
-		super(k, v, label, duration);
-		Objects.requireNonNull(k);
-		filter = key -> k.equals(k);
-	}
-
-	public GeneralCommand(Predicate<K> f, V v, CommandLabel label, Duration duration) {
-		super(null, v, label, duration);
-		Objects.requireNonNull(f);
-		filter = f;
-	}
-
-	/**
-	 * Instantiates a new general command.
-	 *
-	 * @param k the k
-	 * @param v the v
-	 * @param label the label
-	 * @param instant the instant
-	 */
-	public GeneralCommand(K k, V v, CommandLabel label, Instant instant) {
-		super(k, v, label, instant);
-		Objects.requireNonNull(k);
-		filter = key -> k.equals(k);
-	}
-
-	public GeneralCommand(Predicate<K> f, V v, CommandLabel label, Instant instant) {
-		super(null, v, label, instant);
 		Objects.requireNonNull(f);
 		filter = f;
 	}
