@@ -8,6 +8,7 @@ import java.util.function.Function;
 
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
+import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 
 // TODO: Auto-generated Javadoc
@@ -178,7 +179,7 @@ public final class CommandLoader<K,L,OUT> {
 	 * @return the completable future
 	 */
 	public CompletableFuture<Boolean> create() {
-		return conveyor.apply(new GeneralCommand<K,BuilderSupplier<OUT>>(key,null,CommandLabel.CREATE_BUILD,expirationTime));
+		return conveyor.apply(new CreateCommand<K,OUT>(key,expirationTime));
 	}
 
 	/**
@@ -187,7 +188,7 @@ public final class CommandLoader<K,L,OUT> {
 	 * @return the completable future
 	 */
 	public CompletableFuture<Boolean> create(BuilderSupplier<OUT> builder) {
-		return conveyor.apply(new GeneralCommand<K,BuilderSupplier<OUT>>(key,builder,CommandLabel.CREATE_BUILD,expirationTime));
+		return conveyor.apply(new CreateCommand<K,OUT>(key,builder,expirationTime));
 	}
 
 	
