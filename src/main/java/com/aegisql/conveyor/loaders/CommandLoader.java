@@ -92,16 +92,6 @@ public final class CommandLoader<K,L,OUT> {
 	}
 
 	/**
-	 * Label.
-	 *
-	 * @param l the l
-	 * @return the command loader
-	 */
-	public CommandLoader<K,L,OUT> label(L l) {
-		return new CommandLoader<K,L,OUT>(conveyor,expirationTime,ttlMsec,key,l);
-	}
-
-	/**
 	 * Expiration time.
 	 *
 	 * @param et the et
