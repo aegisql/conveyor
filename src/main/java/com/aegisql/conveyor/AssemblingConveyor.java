@@ -624,15 +624,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return new BuilderLoader<K, OUT, Boolean>(cl -> {
 			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, cl.value, cl.expirationTime);
 			return place(cart);
-		});
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#buildFuture()
-	 */
-	@Override
-	public BuilderLoader<K, OUT, OUT> buildFuture() {
-		return new BuilderLoader<K, OUT, OUT>(cl -> {
+		},
+		cl -> {
 			BuilderSupplier<OUT> bs = cl.value;
 			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
 			if (bs == null) {
@@ -647,8 +640,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				supplier.getFuture().cancel(true);
 			}
 			return supplier.getFuture();
-		});
+		}
+		);
 	}
+
 
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#future()

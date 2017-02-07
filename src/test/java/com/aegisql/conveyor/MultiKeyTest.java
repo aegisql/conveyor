@@ -46,10 +46,10 @@ public class MultiKeyTest {
 
 		AtomicInteger counter = new AtomicInteger(0);
 		
-		CompletableFuture<User> f1 = c.buildFuture().id(1).supplier(BuilderSupplier.of(UserBuilderSmart::new)
-				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).create();
-		CompletableFuture<User> f2 = c.buildFuture().id(2).supplier(BuilderSupplier.of(UserBuilderSmart::new)
-				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).create();
+		CompletableFuture<User> f1 = c.build().id(1).supplier(BuilderSupplier.of(UserBuilderSmart::new)
+				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).createFuture();
+		CompletableFuture<User> f2 = c.build().id(2).supplier(BuilderSupplier.of(UserBuilderSmart::new)
+				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).createFuture();
 
 		SmartLabel<UserBuilderSmart> multi = SmartLabel.of((builder,value)->{
 			System.out.println("--- visited --- "+builder.get() + " --- " + value);
@@ -84,10 +84,10 @@ public class MultiKeyTest {
 
 		AtomicInteger counter = new AtomicInteger(0);
 		
-		CompletableFuture<User> f1 = c.buildFuture().id(1).supplier(BuilderSupplier.of(UserBuilderSmart::new)
-				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).create();
-		CompletableFuture<User> f2 = c.buildFuture().id(2).supplier(BuilderSupplier.of(UserBuilderSmart::new)
-				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).create();
+		CompletableFuture<User> f1 = c.build().id(1).supplier(BuilderSupplier.of(UserBuilderSmart::new)
+				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).createFuture();
+		CompletableFuture<User> f2 = c.build().id(2).supplier(BuilderSupplier.of(UserBuilderSmart::new)
+				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).createFuture();
 
 		SmartLabel<UserBuilderSmart> multi = SmartLabel.of((builder,value)->{
 			System.out.println("--- visited --- "+builder.get() + " --- " + value);
@@ -124,10 +124,10 @@ public class MultiKeyTest {
 
 		AtomicInteger counter = new AtomicInteger(0);
 		
-		CompletableFuture<User> f1 = c.buildFuture().id(1).supplier(BuilderSupplier.of(UserBuilderSmart::new)
-				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).create();
-		CompletableFuture<User> f2 = c.buildFuture().id(2).supplier(BuilderSupplier.of(UserBuilderSmart::new)
-				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).create();
+		CompletableFuture<User> f1 = c.build().id(1).supplier(BuilderSupplier.of(UserBuilderSmart::new)
+				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).createFuture();
+		CompletableFuture<User> f2 = c.build().id(2).supplier(BuilderSupplier.of(UserBuilderSmart::new)
+				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).createFuture();
 
 		SmartLabel<UserBuilderSmart> multi = SmartLabel.of((builder,value)->{
 			System.out.println("--- visited --- "+builder.get() + " --- " + value);
@@ -165,10 +165,10 @@ public class MultiKeyTest {
 
 		AtomicInteger counter = new AtomicInteger(0);
 		
-		CompletableFuture<User> f1 = c.buildFuture().id(1).supplier(BuilderSupplier.of(UserBuilderSmart::new)
-				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).create();
-		CompletableFuture<User> f2 = c.buildFuture().id(2).supplier(BuilderSupplier.of(UserBuilderSmart::new)
-				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).create();
+		CompletableFuture<User> f1 = c.build().id(1).supplier(BuilderSupplier.of(UserBuilderSmart::new)
+				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).createFuture();
+		CompletableFuture<User> f2 = c.build().id(2).supplier(BuilderSupplier.of(UserBuilderSmart::new)
+				.readyAlgorithm(new ReadinessTester().accepted(l1, l2, l3))).createFuture();
 
 		SmartLabel<UserBuilderSmart> multi = SmartLabel.of((builder,value)->{
 			System.out.println("--- visited --- "+builder.get() + " --- " + value);

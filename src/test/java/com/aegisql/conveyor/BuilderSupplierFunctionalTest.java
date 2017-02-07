@@ -201,7 +201,7 @@ public class BuilderSupplierFunctionalTest {
 		BuilderSupplier<User> bs = ((BuilderSupplier<User>)UserBuilder::new).expire(200, TimeUnit.MILLISECONDS);
 		System.out.println("BS="+bs.get());						
 		
-		CompletableFuture<User> f = c.buildFuture().id(1).supplier(bs).create();
+		CompletableFuture<User> f = c.build().id(1).supplier(bs).createFuture();
 		c.part().id(1).value("VALUE").label("LABEL").place();
 		f.get();
 		

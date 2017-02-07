@@ -51,16 +51,6 @@ public class CollectionItemCart <K,V> extends AbstractCart<K, V, CollectionBuild
 	}
 
 	/**
-	 * Next item.
-	 *
-	 * @param newValue the new value
-	 * @return the collection item cart
-	 */
-	public CollectionItemCart<K,V> nextItem(V newValue) {
-		return new CollectionItemCart<>(this.getKey(), newValue, this.getExpirationTime());
-	}
-	
-	/**
 	 * Compelte.
 	 *
 	 * @return the collection complete cart

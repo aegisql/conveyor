@@ -52,7 +52,7 @@ public class Demo {
 		conveyor.setResultConsumer( bin-> {/*nowhere. we'll call future.get()*/} );
 		
 		// VI - Retrieve completable future of the build
-		CompletableFuture<Person> future = conveyor.buildFuture().id(1).create();
+		CompletableFuture<Person> future = conveyor.build().id(1).createFuture();
 		
 		// VII - Send data to conveyor queue (asynchronously)
 		pool.runAsynchWithDelay(10,()->{

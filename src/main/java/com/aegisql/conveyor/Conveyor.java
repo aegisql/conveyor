@@ -53,14 +53,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K, OUT> future();
-	
-	/**
-	 * Builds the future.
-	 *
-	 * @return the builder loader
-	 */
-	public BuilderLoader<K, OUT, OUT> buildFuture();
-	
+		
 	/**
 	 * Command.
 	 *

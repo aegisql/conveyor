@@ -139,12 +139,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return new BuilderLoader<K, OUT, Boolean> (cl -> {
 			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key,cl.value,cl.expirationTime);
 			return createBuildWithCart(cart);
-		});
-	}
-
-	@Override
-	public BuilderLoader<K, OUT, OUT> buildFuture() {
-		return new BuilderLoader<K, OUT, OUT> (cl -> {
+		},cl -> {
 			BuilderSupplier<OUT> bs = cl.value != null ? cl.value:builderSupplier;
 			return createBuildFutureWithCart(supplier -> new CreatingCart<K, OUT, L>(cl.key,supplier),bs);//builderSupplier);
 		});

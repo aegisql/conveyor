@@ -173,7 +173,7 @@ public class CartFutureTests {
 	 * @throws Exception the exception
 	 */
 	@Test(expected=CancellationException.class)
-	public void testBasicsBuildFutureSmart() throws InterruptedException, Exception {
+	public void testBasicsbuildSmart() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -189,8 +189,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
 		Cart<Integer, Integer, UserBuilderEvents> c4 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).ttl(100,TimeUnit.MILLISECONDS).create();
-		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).ttl(100,TimeUnit.MILLISECONDS).create();
+		CompletableFuture<User> cf1 = conveyor.build().id(1).ttl(100,TimeUnit.MILLISECONDS).createFuture();
+		CompletableFuture<User> cf2 = conveyor.build().id(2).ttl(100,TimeUnit.MILLISECONDS).createFuture();
 
 		assertFalse(cf1.isDone());
 		assertFalse(cf2.isDone());
@@ -425,7 +425,7 @@ public class CartFutureTests {
 	 * @throws Exception the exception
 	 */
 	@Test(expected=CancellationException.class)
-	public void testBasicsBuildFutureSmart2() throws InterruptedException, Exception {
+	public void testBasicsbuildSmart2() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -441,8 +441,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).create();
-		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).create();
+		CompletableFuture<User> cf1 = conveyor.build().id(1).createFuture();
+		CompletableFuture<User> cf2 = conveyor.build().id(2).createFuture();
 
 		assertFalse(cf1.isDone());
 
@@ -463,7 +463,7 @@ public class CartFutureTests {
 	 * @throws Exception the exception
 	 */
 	@Test(expected=CancellationException.class)
-	public void testBasicsBuildFutureSmart3() throws InterruptedException, Exception {
+	public void testBasicsbuildSmart3() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -478,8 +478,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).expirationTime(System.currentTimeMillis()+100).create();
-		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).expirationTime(System.currentTimeMillis()+100).create();
+		CompletableFuture<User> cf1 = conveyor.build().id(1).expirationTime(System.currentTimeMillis()+100).createFuture();
+		CompletableFuture<User> cf2 = conveyor.build().id(2).expirationTime(System.currentTimeMillis()+100).createFuture();
 
 		assertFalse(cf1.isDone());
 
@@ -500,7 +500,7 @@ public class CartFutureTests {
 	 * @throws Exception the exception
 	 */
 	@Test(expected=CancellationException.class)
-	public void testBasicsBuildFutureSmart4() throws InterruptedException, Exception {
+	public void testBasicsbuildSmart4() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -515,8 +515,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).ttl(Duration.ofMillis(100)).create();
-		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).ttl(Duration.ofMillis(100)).create();
+		CompletableFuture<User> cf1 = conveyor.build().id(1).ttl(Duration.ofMillis(100)).createFuture();
+		CompletableFuture<User> cf2 = conveyor.build().id(2).ttl(Duration.ofMillis(100)).createFuture();
 
 		assertFalse(cf1.isDone());
 
@@ -538,7 +538,7 @@ public class CartFutureTests {
 	 * @throws Exception the exception
 	 */
 	@Test(expected=CancellationException.class)
-	public void testBasicsBuildFutureSmart5() throws InterruptedException, Exception {
+	public void testBasicsbuildSmart5() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -553,8 +553,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).expirationTime(Instant.now().plusMillis(100)).create();
-		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).expirationTime(Instant.now().plusMillis(100)).create();
+		CompletableFuture<User> cf1 = conveyor.build().id(1).expirationTime(Instant.now().plusMillis(100)).createFuture();
+		CompletableFuture<User> cf2 = conveyor.build().id(2).expirationTime(Instant.now().plusMillis(100)).createFuture();
 
 		assertFalse(cf1.isDone());
 
@@ -576,7 +576,7 @@ public class CartFutureTests {
 	 * @throws Exception the exception
 	 */
 	@Test(expected=CancellationException.class)
-	public void testBasicsBuildFutureSmart6() throws InterruptedException, Exception {
+	public void testBasicsbuildSmart6() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
@@ -591,8 +591,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).create();
-		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).create();
+		CompletableFuture<User> cf1 = conveyor.build().id(1).supplier(UserBuilderSmart::new).createFuture();
+		CompletableFuture<User> cf2 = conveyor.build().id(2).supplier(UserBuilderSmart::new).createFuture();
 
 		assertFalse(cf1.isDone());
 
@@ -613,7 +613,7 @@ public class CartFutureTests {
 	 * @throws Exception the exception
 	 */
 	@Test(expected=CancellationException.class)
-	public void testBasicsBuildFutureSmart7() throws InterruptedException, Exception {
+	public void testBasicsbuildSmart7() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setResultConsumer(res -> {
@@ -627,8 +627,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).expirationTime(System.currentTimeMillis()+100).create();
-		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).expirationTime(System.currentTimeMillis()+100).create();
+		CompletableFuture<User> cf1 = conveyor.build().id(1).supplier(UserBuilderSmart::new).expirationTime(System.currentTimeMillis()+100).createFuture();
+		CompletableFuture<User> cf2 = conveyor.build().id(2).supplier(UserBuilderSmart::new).expirationTime(System.currentTimeMillis()+100).createFuture();
 
 		assertFalse(cf1.isDone());
 
@@ -649,7 +649,7 @@ public class CartFutureTests {
 	 * @throws Exception the exception
 	 */
 	@Test(expected=CancellationException.class)
-	public void testBasicsBuildFutureSmart8() throws InterruptedException, Exception {
+	public void testBasicsbuildSmart8() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setResultConsumer(res -> {
@@ -663,8 +663,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).ttl(100,TimeUnit.MILLISECONDS).create();
-		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).ttl(100,TimeUnit.MILLISECONDS).create();
+		CompletableFuture<User> cf1 = conveyor.build().id(1).supplier(UserBuilderSmart::new).ttl(100,TimeUnit.MILLISECONDS).createFuture();
+		CompletableFuture<User> cf2 = conveyor.build().id(2).supplier(UserBuilderSmart::new).ttl(100,TimeUnit.MILLISECONDS).createFuture();
 
 		assertFalse(cf1.isDone());
 
@@ -685,7 +685,7 @@ public class CartFutureTests {
 	 * @throws Exception the exception
 	 */
 	@Test(expected=CancellationException.class)
-	public void testBasicsBuildFutureSmart9() throws InterruptedException, Exception {
+	public void testBasicsbuildSmart9() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setResultConsumer(res -> {
@@ -699,8 +699,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).ttl(Duration.ofMillis(100)).create();
-		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).ttl(Duration.ofMillis(100)).create();
+		CompletableFuture<User> cf1 = conveyor.build().id(1).supplier(UserBuilderSmart::new).ttl(Duration.ofMillis(100)).createFuture();
+		CompletableFuture<User> cf2 = conveyor.build().id(2).supplier(UserBuilderSmart::new).ttl(Duration.ofMillis(100)).createFuture();
 
 		assertFalse(cf1.isDone());
 
@@ -721,7 +721,7 @@ public class CartFutureTests {
 	 * @throws Exception the exception
 	 */
 	@Test(expected=CancellationException.class)
-	public void testBasicsBuildFutureSmart10() throws InterruptedException, Exception {
+	public void testBasicsbuildSmart10() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setResultConsumer(res -> {
@@ -735,8 +735,8 @@ public class CartFutureTests {
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
-		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).expirationTime(Instant.now().plusMillis(100)).create();
-		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).expirationTime(Instant.now().plusMillis(100)).create();
+		CompletableFuture<User> cf1 = conveyor.build().id(1).supplier(UserBuilderSmart::new).expirationTime(Instant.now().plusMillis(100)).createFuture();
+		CompletableFuture<User> cf2 = conveyor.build().id(2).supplier(UserBuilderSmart::new).expirationTime(Instant.now().plusMillis(100)).createFuture();
 
 		assertFalse(cf1.isDone());
 
