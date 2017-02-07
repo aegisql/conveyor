@@ -104,9 +104,9 @@ public class SmartConveyorTest {
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE);
-		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, Integer, UserBuilderEvents> c4 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		conveyor.place(c1);
 		User u0 = outQueue.poll();
@@ -151,7 +151,7 @@ public class SmartConveyorTest {
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST,
 				1, TimeUnit.SECONDS);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1, 1999, UserBuilderEvents.SET_YEAR);
 
 		conveyor.place(c1);
@@ -191,9 +191,9 @@ public class SmartConveyorTest {
 		conveyor.setName("Testing User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents2> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents2.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents2> c2 = c1.nextCart("Doe", UserBuilderEvents2.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents2> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents2.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents2> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents2.SET_FIRST);
-		Cart<Integer, Integer, UserBuilderEvents2> c4 = c1.nextCart(1999, UserBuilderEvents2.SET_YEAR);
+		Cart<Integer, Integer, UserBuilderEvents2> c4 = new ShoppingCart<>(1,1999, UserBuilderEvents2.SET_YEAR);
 
 		conveyor.place(c1);
 		User u0 = outQueue.poll();
@@ -359,9 +359,9 @@ public class SmartConveyorTest {
 		conveyor.setName("TestingState User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents3> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents3.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents3> c2 = c1.nextCart("Doe", UserBuilderEvents3.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents3> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents3.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents3> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents3.SET_FIRST);
-		Cart<Integer, Integer, UserBuilderEvents3> c4 = c1.nextCart(1999, UserBuilderEvents3.SET_YEAR);
+		Cart<Integer, Integer, UserBuilderEvents3> c4 = new ShoppingCart<>(1,1999, UserBuilderEvents3.SET_YEAR);
 
 		conveyor.place(c1);
 		User u0 = outQueue.poll();
@@ -401,7 +401,7 @@ public class SmartConveyorTest {
 		conveyor.rejectUnexpireableCartsOlderThan(1, TimeUnit.SECONDS);
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		assertTrue(conveyor.place(c1).get());
 		Thread.sleep(1100);
 		CompletableFuture<Boolean> future = conveyor.place(c2);
@@ -429,7 +429,7 @@ public class SmartConveyorTest {
 		conveyor.rejectUnexpireableCartsOlderThan(1, TimeUnit.SECONDS);
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		assertTrue(conveyor.place(c1).get());
 		Thread.sleep(1100);
 		conveyor.place(c2).get();
@@ -474,9 +474,9 @@ public class SmartConveyorTest {
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE);
-		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, Integer, UserBuilderEvents> c4 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		
 		CompletableFuture<User> f1 = conveyor.future().id(1).get();

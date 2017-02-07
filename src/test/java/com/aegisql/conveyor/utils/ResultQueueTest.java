@@ -134,9 +134,9 @@ public class ResultQueueTest {
 		});
 		
 		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
-		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
+		Cart<Integer, String, String> c2 = new ShoppingCart<>(1,"Doe", "setLast");
 		Cart<Integer, String, String> c3 = new ShoppingCart<>(2, "Mike", "setFirst");
-		Cart<Integer, Integer, String> c4 = c1.nextCart(1999, "setYearOfBirth");
+		Cart<Integer, Integer, String> c4 = new ShoppingCart<>(1,1999, "setYearOfBirth");
 
 		Cart<Integer, Integer, String> c5 = new ShoppingCart<>(3, 1999, "setBlah");
 

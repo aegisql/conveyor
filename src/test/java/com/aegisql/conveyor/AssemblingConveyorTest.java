@@ -323,9 +323,9 @@ public class AssemblingConveyorTest {
 		conveyor.addBeforeKeyEvictionAction(key->{System.out.println("REMOVING! "+key);});
 		
 		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
-		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
+		Cart<Integer, String, String> c2 = new ShoppingCart<>(1,"Doe", "setLast");
 		Cart<Integer, String, String> c3 = new ShoppingCart<>(2, "Mike", "setFirst");
-		Cart<Integer, Integer, String> c4 = c1.nextCart(1999, "setYearOfBirth");
+		Cart<Integer, Integer, String> c4 = new ShoppingCart<>(1,1999, "setYearOfBirth");
 
 		Cart<Integer, Integer, String> c5 = new ShoppingCart<>(3, 1999, "setBlah");
 
@@ -401,8 +401,8 @@ public class AssemblingConveyorTest {
 		});
 		
 		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
-		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
-		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");
+		Cart<Integer, String, String> c2 = new ShoppingCart<>(1,"Doe", "setLast");
+		Cart<Integer, Integer, String> c3 = new ShoppingCart<>(1,1999, "setYearOfBirth");
 
 		conveyor.command().id(1).ttl(1,TimeUnit.SECONDS).create(UserBuilder::new);
 		conveyor.place(c1);
@@ -462,8 +462,8 @@ public class AssemblingConveyorTest {
 		});
 		
 		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
-		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
-		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");
+		Cart<Integer, String, String> c2 = new ShoppingCart<>(1,"Doe", "setLast");
+		Cart<Integer, Integer, String> c3 = new ShoppingCart<>(1,1999, "setYearOfBirth");
 
 		conveyor.place(c1);
 		User u0 = outQueue.poll();
@@ -522,9 +522,9 @@ public class AssemblingConveyorTest {
 		});
 		
 		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
-		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
+		Cart<Integer, String, String> c2 = new ShoppingCart<>(1,"Doe", "setLast");
 		Cart<Integer, String, String> c3 = new ShoppingCart<>(2, "Mike", "setFirst");
-		Cart<Integer, Integer, String> c4 = c1.nextCart(1999, "setYearOfBirth");
+		Cart<Integer, Integer, String> c4 = new ShoppingCart<>(1,1999, "setYearOfBirth");
 
 		conveyor.place(c1);
 		User u0 = outQueue.poll();
@@ -597,9 +597,9 @@ public class AssemblingConveyorTest {
 		});
 		
 		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
-		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
+		Cart<Integer, String, String> c2 = new ShoppingCart<>(1,"Doe", "setLast");
 		Cart<Integer, String, String> c3 = new ShoppingCart<>(2, "Mike", "setFirst");
-		Cart<Integer, Integer, String> c4 = c1.nextCart(1999, "setYearOfBirth");
+		Cart<Integer, Integer, String> c4 = new ShoppingCart<>(1,1999, "setYearOfBirth");
 
 		conveyor.place(c1);
 		User u0 = outQueue.poll();

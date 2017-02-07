@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderExpireable;
@@ -102,8 +103,8 @@ public class PostponeExpirationTest {
 
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		conveyor.place(c1);
 		User u0 = outQueue.poll();

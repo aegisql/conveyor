@@ -57,18 +57,6 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 		Objects.requireNonNull(k);
 	}
 
-	/**
-	 * Next cart.
-	 *
-	 * @param <V1> the generic type
-	 * @param newValue the new value
-	 * @param newLabel the new label
-	 * @return the cart
-	 */
-	public <V1> ShoppingCart<K,V1,L> nextCart(V1 newValue,L newLabel) {
-		return new ShoppingCart<>(this.getKey(),newValue,newLabel,this.getExpirationTime());
-	}
-
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.cart.Cart#copy()
 	 */

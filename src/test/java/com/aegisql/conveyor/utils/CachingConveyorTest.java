@@ -25,6 +25,7 @@ import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.utils.caching.CachingConveyor;
@@ -193,14 +194,11 @@ public class CachingConveyorTest {
 			}
 		});
 		
-		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
-		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
-		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");
-
 		Supplier<? extends User> supplier = conveyor.getProductSupplier(1);
 		assertNull(supplier);
 		
-		conveyor.place(c1);
+		PartLoader<Integer,String,?,?,?> pl =  conveyor.part().id(1);
+		pl.label("setFirst").value("John").place();
 		Thread.sleep(50);
 		supplier = conveyor.getProductSupplier(1);
 		assertNotNull(supplier);
@@ -208,16 +206,15 @@ public class CachingConveyorTest {
 		User u = supplier.get();
 		assertNotNull(u);
 		System.out.println(u);
-		conveyor.place(c2);
-		conveyor.place(c3);
+		pl.label("setLast").value("Doe").place();
+		pl.label("setYearOfBirth").value(1999).place();
 		Thread.sleep(50);
 		
 		u = supplier.get();
 		assertNotNull(u);
 		System.out.println(u);
 		assertEquals(1999,u.getYearOfBirth());
-		Cart<Integer, Integer, String> c4 = c1.nextCart(2001, "setYearOfBirth");
-		conveyor.place(c4);
+		pl.label("setYearOfBirth").value(2001).place();
 		Thread.sleep(50);
 		u = supplier.get();
 		assertNotNull(u);
@@ -254,14 +251,11 @@ public class CachingConveyorTest {
 		});
 		conveyor.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
 		conveyor.setIdleHeartBeat(500, TimeUnit.MILLISECONDS);
-		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
-		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
-		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");
+		PartLoader<Integer, String, ?, ?, ?> pl = conveyor.part().id(1);
 
 		Supplier<? extends User> supplier = conveyor.getProductSupplier(1);
 		assertNull(supplier);
-		
-		conveyor.place(c1);
+		pl.label("setFirst").value("John").place();
 		Thread.sleep(50);
 		supplier = conveyor.getProductSupplier(1);
 		assertNotNull(supplier);
@@ -269,16 +263,15 @@ public class CachingConveyorTest {
 		User u = supplier.get();
 		assertNotNull(u);
 		System.out.println(u);
-		conveyor.place(c2);
-		conveyor.place(c3);
+		pl.label("setLast").value("Doe").place();
+		pl.label("setYearOfBirth").value(1999).place();
 		Thread.sleep(50);
 		
 		u = supplier.get();
 		assertNotNull(u);
 		System.out.println(u);
 		assertEquals(1999,u.getYearOfBirth());
-		Cart<Integer, Integer, String> c4 = c1.nextCart(2001, "setYearOfBirth");
-		conveyor.place(c4);
+		pl.label("setYearOfBirth").value(2001).place();
 		Thread.sleep(50);
 		u = supplier.get();
 		assertNotNull(u);
@@ -319,14 +312,11 @@ public class CachingConveyorTest {
 		conveyor.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
 		conveyor.enablePostponeExpiration(true);
 		conveyor.setExpirationPostponeTime(1, TimeUnit.SECONDS);
-		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
-		Cart<Integer, String, String> c2 = c1.nextCart("Doe", "setLast");
-		Cart<Integer, Integer, String> c3 = c1.nextCart(1999, "setYearOfBirth");
+		PartLoader<Integer, String, ?, ?, ?> pl = conveyor.part().id(1);
 
 		Supplier<? extends User> supplier = conveyor.getProductSupplier(1);
 		assertNull(supplier);
-		
-		conveyor.place(c1);
+		pl.label("setFirst").value("John").place();
 		Thread.sleep(50);
 		supplier = conveyor.getProductSupplier(1);
 		assertNotNull(supplier);
@@ -334,16 +324,16 @@ public class CachingConveyorTest {
 		User u = supplier.get();
 		assertNotNull(u);
 		System.out.println(u);
-		conveyor.place(c2);
-		conveyor.place(c3);
+		pl.label("setLast").value("Doe").place();
+		pl.label("setYearOfBirth").value(1999).place();
+
 		Thread.sleep(50);
 		
 		u = supplier.get();
 		assertNotNull(u);
 		System.out.println(u);
 		assertEquals(1999,u.getYearOfBirth());
-		Cart<Integer, Integer, String> c4 = c1.nextCart(2001, "setYearOfBirth");
-		conveyor.place(c4);
+		pl.label("setYearOfBirth").value(2001).place();
 		Thread.sleep(50);
 		u = supplier.get();
 		assertNotNull(u);

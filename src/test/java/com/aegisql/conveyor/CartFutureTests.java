@@ -82,9 +82,9 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
-		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, Integer, UserBuilderEvents> c4 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<Boolean> cf1 = conveyor.place(c1);
 		assertFalse(cf1.isDone());
@@ -185,9 +185,9 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
-		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, Integer, UserBuilderEvents> c4 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).ttl(100,TimeUnit.MILLISECONDS).create();
 		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).ttl(100,TimeUnit.MILLISECONDS).create();
@@ -225,9 +225,9 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
-		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, Integer, UserBuilderEvents> c4 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		conveyor.place(c1);
 		conveyor.place(c2);
@@ -266,9 +266,9 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
-		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, Integer, UserBuilderEvents> c4 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		conveyor.place(c1);
 		conveyor.place(c2);
@@ -306,9 +306,9 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
-		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, Integer, UserBuilderEvents> c4 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		conveyor.place(c1);
 		CompletableFuture<User> cf1 = conveyor.future().id(1).expirationTime(System.currentTimeMillis()+100).get();
@@ -347,9 +347,9 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
-		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, Integer, UserBuilderEvents> c4 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<User> cf1 = conveyor.future().id(1).ttl(Duration.ofMillis(100)).get();
 		CompletableFuture<User> cf2 = conveyor.future().id(2).ttl(Duration.ofMillis(100)).get();
@@ -392,9 +392,9 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, String, UserBuilderEvents> c3 = new ShoppingCart<>(2, "Mike", UserBuilderEvents.CREATE,100,TimeUnit.MILLISECONDS);
-		Cart<Integer, Integer, UserBuilderEvents> c4 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, Integer, UserBuilderEvents> c4 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<User> cf1 = conveyor.future().id(1).expirationTime(Instant.now().plusMillis(100)).get();
 		CompletableFuture<User> cf2 = conveyor.future().id(2).expirationTime(Instant.now().plusMillis(100)).get();
@@ -438,8 +438,8 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).create();
 		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).create();
@@ -475,8 +475,8 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).expirationTime(System.currentTimeMillis()+100).create();
 		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).expirationTime(System.currentTimeMillis()+100).create();
@@ -512,8 +512,8 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).ttl(Duration.ofMillis(100)).create();
 		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).ttl(Duration.ofMillis(100)).create();
@@ -550,8 +550,8 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).expirationTime(Instant.now().plusMillis(100)).create();
 		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).expirationTime(Instant.now().plusMillis(100)).create();
@@ -588,8 +588,8 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).create();
 		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).create();
@@ -624,8 +624,8 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).expirationTime(System.currentTimeMillis()+100).create();
 		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).expirationTime(System.currentTimeMillis()+100).create();
@@ -660,8 +660,8 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).ttl(100,TimeUnit.MILLISECONDS).create();
 		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).ttl(100,TimeUnit.MILLISECONDS).create();
@@ -696,8 +696,8 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).ttl(Duration.ofMillis(100)).create();
 		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).ttl(Duration.ofMillis(100)).create();
@@ -732,8 +732,8 @@ public class CartFutureTests {
 		});
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = c1.nextCart("Doe", UserBuilderEvents.SET_LAST);
-		Cart<Integer, Integer, UserBuilderEvents> c3 = c1.nextCart(1999, UserBuilderEvents.SET_YEAR);
+		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
+		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);
 
 		CompletableFuture<User> cf1 = conveyor.buildFuture().id(1).supplier(UserBuilderSmart::new).expirationTime(Instant.now().plusMillis(100)).create();
 		CompletableFuture<User> cf2 = conveyor.buildFuture().id(2).supplier(UserBuilderSmart::new).expirationTime(Instant.now().plusMillis(100)).create();
