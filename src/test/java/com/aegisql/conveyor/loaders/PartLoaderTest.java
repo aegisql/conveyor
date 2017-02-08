@@ -32,7 +32,7 @@ public class PartLoaderTest {
 	}
 
 	@Test
-	public void test() {
+	public void testSingleKey() {
 		long current = System.currentTimeMillis();
 		PartLoader pl0 = new PartLoader<>(
 				l->{
@@ -91,4 +91,9 @@ public class PartLoaderTest {
 		assertNotNull(f);
 	}
 
+	@Test
+	public void testMultiKey() {
+		fail("Unimplemented");
+	}
+	
 }

@@ -35,7 +35,7 @@ public class CommandLoaderTest {
 	}
 
 	@Test
-	public void test() {
+	public void testSingleKey() {
 		long current = System.currentTimeMillis();
 
 		CommandLoader cl0 = new CommandLoader<>(c->{
@@ -85,6 +85,11 @@ public class CommandLoaderTest {
 		assertNotNull(reschedule);
 		CompletableFuture timeout = cl2in.timeout();
 		assertNotNull(timeout);
+	}
+
+	@Test
+	public void testMultiKey() {
+		fail("Unimplemented");
 	}
 
 }
