@@ -23,7 +23,7 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	private final Function<MultiKeyPartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer;
 	
 	/** The creation time. */
-	public final long creationTime = System.currentTimeMillis(); 
+	public final long creationTime; 
 	
 	/** The expiration time. */
 	public final long expirationTime;
@@ -50,8 +50,9 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	 * @param label the label
 	 * @param value the value
 	 */
-	private MultiKeyPartLoader(Function<MultiKeyPartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, long expirationTime, long ttlMsec, Predicate<K> filter, L label, V value) {
+	private MultiKeyPartLoader(Function<MultiKeyPartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer,long creationTime, long expirationTime, long ttlMsec, Predicate<K> filter, L label, V value) {
 		this.placer = placer;
+		this.creationTime = creationTime;
 		this.expirationTime = expirationTime;
 		this.ttlMsec = ttlMsec;
 		this.filter = filter;
@@ -69,8 +70,9 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	 * @param value the value
 	 * @param dumb the dumb
 	 */
-	private MultiKeyPartLoader(Function<MultiKeyPartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, long ttl, Predicate<K> filter, L label, V value, boolean dumb) {
+	private MultiKeyPartLoader(Function<MultiKeyPartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer,long creationTime, long ttl, Predicate<K> filter, L label, V value, boolean dumb) {
 		this.placer = placer;
+		this.creationTime = creationTime;
 		this.expirationTime = creationTime + ttl;
 		this.ttlMsec = ttl;
 		this.filter = filter;
@@ -84,7 +86,7 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	 * @param placer the placer
 	 */
 	public MultiKeyPartLoader(Function<MultiKeyPartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer) {
-		this(placer,0,0,k->false,null,null);
+		this(placer,System.currentTimeMillis(),0,0,k->false,null,null);
 	}
 	
 	/**
@@ -94,7 +96,7 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public MultiKeyPartLoader<K,L,V,OUT,F> foreach() {
-		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,expirationTime,ttlMsec,k->true,label,partValue);
+		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,k->true,label,partValue);
 	}
 
 	/**
@@ -104,7 +106,7 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public MultiKeyPartLoader<K,L,V,OUT,F> foreach(Predicate<K> filter) {
-		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,expirationTime,ttlMsec,filter,label,partValue);
+		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,filter,label,partValue);
 	}
 
 	/**
@@ -114,7 +116,7 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public MultiKeyPartLoader<K,L,V,OUT,F> label(L l) {
-		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,expirationTime,ttlMsec,filter,l,partValue);
+		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,filter,l,partValue);
 	}
 
 	/**
@@ -125,7 +127,7 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public<X> MultiKeyPartLoader<K,L,X,OUT,F> value(X v) {
-		return new MultiKeyPartLoader<K,L,X,OUT,F>(placer,expirationTime,ttlMsec,filter,label,v);
+		return new MultiKeyPartLoader<K,L,X,OUT,F>(placer,creationTime,expirationTime,ttlMsec,filter,label,v);
 	}
 
 	/**
@@ -135,7 +137,7 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public MultiKeyPartLoader<K,L,V,OUT,F>  expirationTime(long et) {
-		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,et,0,filter,label,partValue);
+		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,creationTime,et,0,filter,label,partValue);
 	}
 	
 	/**
@@ -145,7 +147,7 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public MultiKeyPartLoader<K,L,V,OUT,F>  expirationTime(Instant instant) {
-		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,instant.toEpochMilli(),0,filter,label,partValue);
+		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,creationTime,instant.toEpochMilli(),0,filter,label,partValue);
 	}
 	
 	/**
@@ -156,7 +158,7 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public MultiKeyPartLoader<K,L,V,OUT,F>  ttl(long time, TimeUnit unit) {
-		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,TimeUnit.MILLISECONDS.convert(time, unit),filter,label,partValue ,true);
+		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),filter,label,partValue ,true);
 	}
 	
 	/**
@@ -166,7 +168,7 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public MultiKeyPartLoader<K,L,V,OUT,F>  ttl(Duration duration) {
-		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,duration.toMillis(),filter,label,partValue,true);
+		return new MultiKeyPartLoader<K,L,V,OUT,F>(placer,creationTime,duration.toMillis(),filter,label,partValue,true);
 	}
 	
 	/**

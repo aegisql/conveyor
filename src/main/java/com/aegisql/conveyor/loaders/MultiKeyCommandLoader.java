@@ -24,7 +24,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	private final Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor;
 	
 	/** The creation time. */
-	public final long creationTime = System.currentTimeMillis(); 
+	public final long creationTime; 
 	
 	/** The expiration time. */
 	public final long expirationTime;
@@ -46,8 +46,9 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @param key the key
 	 * @param label the label
 	 */
-	private MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor, long expirationTime, long ttlMsec, Predicate<K> filter, L label) {
+	private MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor,long creationTime, long expirationTime, long ttlMsec, Predicate<K> filter, L label) {
 		this.conveyor = conveyor;
+		this.creationTime = creationTime;
 		this.expirationTime = expirationTime;
 		this.ttlMsec = ttlMsec;
 		this.filter = filter;
@@ -63,8 +64,9 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @param label the label
 	 * @param dumb the dumb
 	 */
-	private MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor, long ttl, Predicate<K> filter, L label, boolean dumb) {
+	private MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor,long creationTime, long ttl, Predicate<K> filter, L label, boolean dumb) {
 		this.conveyor = conveyor;
+		this.creationTime = creationTime;
 		this.expirationTime = creationTime + ttl;
 		this.ttlMsec = ttl;
 		this.filter = filter;
@@ -77,7 +79,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @param conveyor the conveyor
 	 */
 	public MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor) {
-		this(conveyor,0,0,k -> false,null);
+		this(conveyor,System.currentTimeMillis(),0,0,k -> false,null);
 	}
 	
 	/**
@@ -87,7 +89,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @return the command loader
 	 */
 	public MultiKeyCommandLoader<K,L,OUT> foreach(K k) {
-		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,expirationTime,ttlMsec,key -> true,label);
+		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,creationTime,expirationTime,ttlMsec,key -> true,label);
 	}
 
 	/**
@@ -97,7 +99,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @return the command loader
 	 */
 	public MultiKeyCommandLoader<K,L,OUT> label(L l) {
-		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,expirationTime,ttlMsec,filter,l);
+		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,creationTime,expirationTime,ttlMsec,filter,l);
 	}
 
 	/**
@@ -107,7 +109,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @return the command loader
 	 */
 	public MultiKeyCommandLoader<K,L,OUT>  expirationTime(long et) {
-		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,et,ttlMsec,filter,label);
+		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,creationTime,et,ttlMsec,filter,label);
 	}
 	
 	/**
@@ -117,7 +119,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @return the command loader
 	 */
 	public MultiKeyCommandLoader<K,L,OUT>  expirationTime(Instant instant) {
-		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,instant.toEpochMilli(),ttlMsec,filter,label);
+		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,creationTime,instant.toEpochMilli(),ttlMsec,filter,label);
 	}
 	
 	/**
@@ -128,7 +130,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @return the command loader
 	 */
 	public MultiKeyCommandLoader<K,L,OUT>  ttl(long time, TimeUnit unit) {
-		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,TimeUnit.MILLISECONDS.convert(time, unit),filter,label,true);
+		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),filter,label,true);
 	}
 	
 	/**
@@ -138,7 +140,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @return the command loader
 	 */
 	public MultiKeyCommandLoader<K,L,OUT>  ttl(Duration duration) {
-		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,duration.toMillis(),filter,label,true);
+		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,creationTime,duration.toMillis(),filter,label,true);
 	}
 	
 	/**

@@ -19,7 +19,7 @@ public final class FutureLoader<K,OUT> {
 	private final Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer;
 	
 	/** The creation time. */
-	public final long creationTime = System.currentTimeMillis(); 
+	public final long creationTime; 
 	
 	/** The expiration time. */
 	public final long expirationTime;
@@ -37,8 +37,9 @@ public final class FutureLoader<K,OUT> {
 	 * @param expirationTime the expiration time
 	 * @param key the key
 	 */
-	private FutureLoader(Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer, long expirationTime, long ttlMsec, K key) {
+	private FutureLoader(Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer,long creationTime, long expirationTime, long ttlMsec, K key) {
 		this.placer = placer;
+		this.creationTime = creationTime;
 		this.expirationTime = expirationTime;
 		this.ttlMsec = ttlMsec;
 		this.key = key;
@@ -52,8 +53,9 @@ public final class FutureLoader<K,OUT> {
 	 * @param key the key
 	 * @param dumb the dumb
 	 */
-	private FutureLoader(Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer, long ttl, K key, boolean dumb) {
+	private FutureLoader(Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer,long creationTime, long ttl, K key, boolean dumb) {
 		this.placer = placer;
+		this.creationTime = creationTime;
 		this.expirationTime = creationTime + ttl;
 		this.ttlMsec = ttl;
 		this.key = key;
@@ -65,7 +67,7 @@ public final class FutureLoader<K,OUT> {
 	 * @param placer the placer
 	 */
 	public FutureLoader(Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer) {
-		this(placer,0,0,null);
+		this(placer,System.currentTimeMillis(),0,0,null);
 	}
 	
 	/**
@@ -75,7 +77,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT> id(K k) {
-		return new FutureLoader<K,OUT>(placer,expirationTime,ttlMsec,k);
+		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,k);
 	}
 
 	/**
@@ -85,7 +87,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT>  expirationTime(long et) {
-		return new FutureLoader<K,OUT>(placer,et,ttlMsec,key);
+		return new FutureLoader<K,OUT>(placer,creationTime,et,ttlMsec,key);
 	}
 	
 	/**
@@ -95,7 +97,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT>  expirationTime(Instant instant) {
-		return new FutureLoader<K,OUT>(placer,instant.toEpochMilli(),ttlMsec,key);
+		return new FutureLoader<K,OUT>(placer,creationTime,instant.toEpochMilli(),ttlMsec,key);
 	}
 	
 	/**
@@ -106,7 +108,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT>  ttl(long time, TimeUnit unit) {
-		return new FutureLoader<K,OUT>(placer,TimeUnit.MILLISECONDS.convert(time, unit),key ,true);
+		return new FutureLoader<K,OUT>(placer,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key ,true);
 	}
 	
 	/**
@@ -116,7 +118,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT>  ttl(Duration duration) {
-		return new FutureLoader<K,OUT>(placer,duration.toMillis(),key,true);
+		return new FutureLoader<K,OUT>(placer,creationTime,duration.toMillis(),key,true);
 	}
 	
 	/**

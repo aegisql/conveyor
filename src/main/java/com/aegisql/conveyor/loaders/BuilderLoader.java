@@ -24,7 +24,7 @@ public final class BuilderLoader<K,OUT,F> {
 	private final Function<BuilderLoader<K,OUT,F>, CompletableFuture<OUT>> futurePlacer;
 
 	/** The creation time. */
-	public final long creationTime = System.currentTimeMillis(); 
+	public final long creationTime; 
 	
 	/** The expiration time. */
 	public final long expirationTime;
@@ -50,12 +50,14 @@ public final class BuilderLoader<K,OUT,F> {
 	private BuilderLoader(
 			Function<BuilderLoader<K,OUT,F>, CompletableFuture<F>> placer,
 			Function<BuilderLoader<K,OUT,F>, CompletableFuture<OUT>> futurePlacer,
+			long creationTime,
 			long expirationTime,
 			long ttlMsec,
 			K key, 
 			BuilderSupplier<OUT> value) {
 		this.placer = placer;
 		this.futurePlacer = futurePlacer;
+		this.creationTime = creationTime;
 		this.expirationTime = expirationTime;
 		this.ttlMsec = ttlMsec;
 		this.key = key;
@@ -74,12 +76,14 @@ public final class BuilderLoader<K,OUT,F> {
 	private BuilderLoader(
 			Function<BuilderLoader<K,OUT,F>, CompletableFuture<F>> placer,
 			Function<BuilderLoader<K,OUT,F>, CompletableFuture<OUT>> futurePlacer,
+			long creationTime,
 			long ttl,
 			K key,
 			BuilderSupplier<OUT> value,
 			boolean dumb) {
 		this.placer = placer;
 		this.futurePlacer = futurePlacer;
+		this.creationTime = creationTime;
 		this.expirationTime = creationTime + ttl;
 		this.ttlMsec = ttl;
 		this.key = key;
@@ -94,7 +98,7 @@ public final class BuilderLoader<K,OUT,F> {
 	public BuilderLoader(
 			Function<BuilderLoader<K,OUT,F>, CompletableFuture<F>> placer,
 			Function<BuilderLoader<K,OUT,F>, CompletableFuture<OUT>> futurePlacer) {
-		this(placer,futurePlacer,0,0,null,null);
+		this(placer,futurePlacer,System.currentTimeMillis(),0,0,null,null);
 	}
 	
 	/**
@@ -104,7 +108,7 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @return the builder loader
 	 */
 	public BuilderLoader<K,OUT,F> id(K k) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,expirationTime,ttlMsec,k,value);
+		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,k,value);
 	}
 
 	/**
@@ -114,7 +118,7 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @return the builder loader
 	 */
 	public BuilderLoader<K,OUT,F> supplier(BuilderSupplier<OUT> v) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,expirationTime,ttlMsec,key,v);
+		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,v);
 	}
 
 	/**
@@ -124,7 +128,7 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @return the builder loader
 	 */
 	public BuilderLoader<K,OUT,F>  expirationTime(long et) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,et,ttlMsec,key,value);
+		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,et,ttlMsec,key,value);
 	}
 	
 	/**
@@ -134,7 +138,7 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @return the builder loader
 	 */
 	public BuilderLoader<K,OUT,F>  expirationTime(Instant instant) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,instant.toEpochMilli(),ttlMsec,key,value);
+		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,instant.toEpochMilli(),ttlMsec,key,value);
 	}
 	
 	/**
@@ -145,7 +149,7 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @return the builder loader
 	 */
 	public BuilderLoader<K,OUT,F>  ttl(long time, TimeUnit unit) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,TimeUnit.MILLISECONDS.convert(time, unit),key,value ,true);
+		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,value ,true);
 	}
 	
 	/**
@@ -155,7 +159,7 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @return the builder loader
 	 */
 	public BuilderLoader<K,OUT,F>  ttl(Duration duration) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,duration.toMillis(),key,value,true);
+		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,duration.toMillis(),key,value,true);
 	}
 	
 	/**
