@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
+import com.aegisql.conveyor.cart.Cart;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -54,4 +55,12 @@ public class CreateCommand<K, OUT> extends GeneralCommand<K, BuilderSupplier<OUT
 		return getValue();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.cart.Cart#copy()
+	 */
+	@Override
+	public Cart<K, BuilderSupplier<OUT>, CommandLabel> copy() {
+		return new CreateCommand<K, OUT>(getKey(), getValue(),getCreationTime(),getExpirationTime());
+	}
+	
 }
