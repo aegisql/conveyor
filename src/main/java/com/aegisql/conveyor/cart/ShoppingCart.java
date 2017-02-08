@@ -43,6 +43,11 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 		Objects.requireNonNull(k);
 	}
 
+	public ShoppingCart(K k, V v, L label, long creation, long expiration) {
+		super(k, v, label, creation, expiration);
+		Objects.requireNonNull(k);
+	}
+
 	/**
 	 * Instantiates a new shopping cart.
 	 *

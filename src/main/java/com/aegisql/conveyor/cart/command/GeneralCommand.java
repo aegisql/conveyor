@@ -41,6 +41,18 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 		filter = f;
 	}
 
+	public GeneralCommand(K k, V v, CommandLabel label, long creation, long expiration) {
+		super(k, v, label, creation, expiration);
+		Objects.requireNonNull(k);
+		filter = key -> k.equals(k);
+	}
+
+	public GeneralCommand(Predicate<K> f, V v, CommandLabel label, long creation, long expiration) {
+		super(null, v, label, creation, expiration);
+		Objects.requireNonNull(f);
+		filter = f;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

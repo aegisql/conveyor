@@ -36,7 +36,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	protected final L label;
 	
 	/** The creation time. */
-	protected final long creationTime = System.currentTimeMillis(); 
+	protected final long creationTime; 
 
 	/** The expiration time. */
 	protected final long expirationTime; 
@@ -62,6 +62,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		this.k = k;
 		this.v = v;
 		this.label = label;
+		this.creationTime = System.currentTimeMillis();
 		this.expirationTime = creationTime + TimeUnit.MILLISECONDS.convert(ttl, timeUnit);
 	}
 
@@ -76,10 +77,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	 *            the label
 	 */
 	public AbstractCart(K k, V v, L label) {
-		this.k = k;
-		this.v = v;
-		this.label = label;
-		this.expirationTime = 0;
+		this(k,v,label,System.currentTimeMillis(),0);
 	}
 
 	/**
@@ -95,12 +93,30 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	 *            the expiration
 	 */
 	public AbstractCart(K k, V v, L label, long expiration) {
+		this(k,v,label,System.currentTimeMillis(),expiration);
+	}
+
+	/**
+	 * Instantiates a new cart.
+	 *
+	 * @param k
+	 *            the k
+	 * @param v
+	 *            the v
+	 * @param label
+	 *            the label
+	 * @param expiration
+	 *            the expiration
+	 */
+	public AbstractCart(K k, V v, L label, long creation, long expiration) {
 		this.k = k;
 		this.v = v;
 		this.label = label;
+		this.creationTime   = creation;
 		this.expirationTime = expiration;
 	}
 
+	
 	/**
 	 * Instantiates a new abstract cart.
 	 *
@@ -113,6 +129,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		this.k = k;
 		this.v = v;
 		this.label = label;
+		this.creationTime = System.currentTimeMillis();
 		this.expirationTime = creationTime + duration.toMillis();
 	}
 
@@ -128,6 +145,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		this.k = k;
 		this.v = v;
 		this.label = label;
+		this.creationTime = System.currentTimeMillis();
 		this.expirationTime = instant.toEpochMilli();
 	}
 

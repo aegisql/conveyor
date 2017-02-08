@@ -162,7 +162,7 @@ public class AssemblingConveyorTest {
 			assertTrue(o.comment.startsWith("Command has already expired"));
 			assertTrue(o.scrap instanceof Cart);
 		});
-		CommandLoader<Integer, String, User> cl = conveyor.command().id(1).ttl(1,TimeUnit.MILLISECONDS);
+		CommandLoader<Integer, User> cl = conveyor.command().id(1).ttl(1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
 		cl.timeout();
 	}

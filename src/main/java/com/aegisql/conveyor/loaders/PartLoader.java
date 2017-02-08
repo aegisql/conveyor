@@ -22,7 +22,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	private final Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer;
 	
 	/** The creation time. */
-	public final long creationTime = System.currentTimeMillis(); 
+	public final long creationTime; 
 	
 	/** The expiration time. */
 	public final long expirationTime;
@@ -49,8 +49,9 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param label the label
 	 * @param value the value
 	 */
-	private PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, long expirationTime, long ttlMsec, K key, L label, V value) {
+	private PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, long creationTime, long expirationTime, long ttlMsec, K key, L label, V value) {
 		this.placer = placer;
+		this.creationTime = creationTime;
 		this.expirationTime = expirationTime;
 		this.ttlMsec = ttlMsec;
 		this.key = key;
@@ -68,8 +69,9 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param value the value
 	 * @param dumb the dumb
 	 */
-	private PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, long ttl, K key, L label, V value, boolean dumb) {
+	private PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, long creationTime, long ttl, K key, L label, V value, boolean dumb) {
 		this.placer = placer;
+		this.creationTime = creationTime;
 		this.expirationTime = creationTime + ttl;
 		this.ttlMsec = ttl;
 		this.key = key;
@@ -83,7 +85,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param placer the placer
 	 */
 	public PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer) {
-		this(placer,0,0,null,null,null);
+		this(placer,System.currentTimeMillis(),0,0,null,null,null);
 	}
 	
 	/**
@@ -93,7 +95,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F> id(K k) {
-		return new PartLoader<K,L,V,OUT,F>(placer,expirationTime,ttlMsec,k,label,partValue);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,k,label,partValue);
 	}
 
 	/**
@@ -103,7 +105,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F> label(L l) {
-		return new PartLoader<K,L,V,OUT,F>(placer,expirationTime,ttlMsec,key,l,partValue);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,key,l,partValue);
 	}
 
 	/**
@@ -114,7 +116,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public<X> PartLoader<K,L,X,OUT,F> value(X v) {
-		return new PartLoader<K,L,X,OUT,F>(placer,expirationTime,ttlMsec,key,label,v);
+		return new PartLoader<K,L,X,OUT,F>(placer,creationTime,expirationTime,ttlMsec,key,label,v);
 	}
 
 	/**
@@ -124,7 +126,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F>  expirationTime(long et) {
-		return new PartLoader<K,L,V,OUT,F>(placer,et,0,key,label,partValue);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,et,0,key,label,partValue);
 	}
 	
 	/**
@@ -134,7 +136,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F>  expirationTime(Instant instant) {
-		return new PartLoader<K,L,V,OUT,F>(placer,instant.toEpochMilli(),0,key,label,partValue);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,instant.toEpochMilli(),0,key,label,partValue);
 	}
 	
 	/**
@@ -145,7 +147,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F>  ttl(long time, TimeUnit unit) {
-		return new PartLoader<K,L,V,OUT,F>(placer,TimeUnit.MILLISECONDS.convert(time, unit),key,label,partValue ,true);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,label,partValue ,true);
 	}
 	
 	/**
@@ -155,7 +157,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F>  ttl(Duration duration) {
-		return new PartLoader<K,L,V,OUT,F>(placer,duration.toMillis(),key,label,partValue,true);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,duration.toMillis(),key,label,partValue,true);
 	}
 	
 	/**

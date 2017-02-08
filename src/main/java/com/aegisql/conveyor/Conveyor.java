@@ -59,7 +59,7 @@ public interface Conveyor<K, L, OUT> {
 	 *
 	 * @return the command loader
 	 */
-	public CommandLoader<K, L, OUT> command();
+	public CommandLoader<K, OUT> command();
 
 	/**
 	 * Multi key part.

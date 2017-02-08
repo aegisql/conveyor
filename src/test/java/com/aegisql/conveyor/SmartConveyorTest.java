@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.user.AbstractBuilderEvents;
 import com.aegisql.conveyor.user.LowerCaseUserBuilder;
 import com.aegisql.conveyor.user.LowerUser;
@@ -398,13 +399,11 @@ public class SmartConveyorTest {
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 2;
 		});
+		PartLoader<Integer,UserBuilderEvents,?,?,Boolean> pl = conveyor.part().id(1);
 		conveyor.rejectUnexpireableCartsOlderThan(1, TimeUnit.SECONDS);
-		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
-				UserBuilderEvents.SET_FIRST);
-		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
-		assertTrue(conveyor.place(c1).get());
+		assertTrue(pl.label(UserBuilderEvents.SET_FIRST).value("John").place().get());
 		Thread.sleep(1100);
-		CompletableFuture<Boolean> future = conveyor.place(c2);
+		CompletableFuture<Boolean> future = pl.label(UserBuilderEvents.SET_LAST).value("Doe").place();
 		assertTrue(future.isCompletedExceptionally());
 		conveyor.stop();
 	}

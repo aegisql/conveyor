@@ -181,7 +181,7 @@ public class ParallelConveyorTest {
 	@Test
 	public void testParallelCommand() throws InterruptedException, ExecutionException {
 		
-		CommandLoader<String, ?, ?> cmd = conveyor.command().ttl(100,TimeUnit.MILLISECONDS);
+		CommandLoader<String, ?> cmd = conveyor.command().ttl(100,TimeUnit.MILLISECONDS);
 		CompletableFuture<Boolean> f1 = cmd.id(""+1).create();
 		CompletableFuture<Boolean> f2 = cmd.id(""+2).create();
 		CompletableFuture<Boolean> f3 = cmd.id(""+3).create();

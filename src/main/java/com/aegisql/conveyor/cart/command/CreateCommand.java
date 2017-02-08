@@ -28,6 +28,10 @@ public class CreateCommand<K, OUT> extends GeneralCommand<K, BuilderSupplier<OUT
 		super(k, builderSupplier, CommandLabel.CREATE_BUILD, expiration);
 	}
 
+	public CreateCommand(K k, BuilderSupplier<OUT> builderSupplier, long creation, long expiration) {
+		super(k, builderSupplier, CommandLabel.CREATE_BUILD, creation, expiration);
+	}
+
 	/**
 	 * Instantiates a new creates the command.
 	 *
@@ -36,6 +40,10 @@ public class CreateCommand<K, OUT> extends GeneralCommand<K, BuilderSupplier<OUT
 	 */
 	public CreateCommand(K k, long expiration) {
 		super(k, null, CommandLabel.CREATE_BUILD, expiration);
+	}
+
+	public CreateCommand(K k, long creation, long expiration) {
+		super(k, null, CommandLabel.CREATE_BUILD, creation, expiration);
 	}
 
 	/* (non-Javadoc)
