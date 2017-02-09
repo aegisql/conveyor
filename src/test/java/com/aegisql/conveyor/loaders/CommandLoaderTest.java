@@ -19,6 +19,8 @@ import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.multichannel.UserBuilderEvents;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
+import com.aegisql.conveyor.utils.parallel.KBalancedParallelConveyor;
+import com.aegisql.conveyor.utils.parallel.ParallelConveyor;
 
 public class CommandLoaderTest {
 
@@ -167,5 +169,42 @@ public class CommandLoaderTest {
 		}
 		
 	}
+
+	@Test
+	public void testMultiKeyCancelParallelCommand() throws InterruptedException, ExecutionException {
+		ParallelConveyor<Integer, UserBuilderEvents, User> c = new KBalancedParallelConveyor<>(2);
+		c.setBuilderSupplier(UserBuilder::new);
+		c.setResultConsumer(bin->{
+			System.out.println(bin);
+		});
+		CompletableFuture<Boolean> cf1 = c.build().id(1).create();
+		CompletableFuture<Boolean> cf2 = c.build().id(2).create();
+		CompletableFuture<Boolean> cf3 = c.build().id(3).create();
+		CompletableFuture<Boolean> cf4 = c.build().id(4).create();
+		assertTrue(cf1.get());
+		assertTrue(cf2.get());
+		assertTrue(cf3.get());
+		assertTrue(cf4.get());
+		
+		CompletableFuture<User> f1 = c.future().id(1).get();
+		CompletableFuture<User> f2 = c.future().id(2).get();
+		CompletableFuture<User> f3 = c.future().id(3).get();
+		CompletableFuture<User> f4 = c.future().id(3).get();
+		
+		assertEquals(2,c.getCollectorSize(0));
+		assertEquals(2,c.getCollectorSize(1));
+		
+		c.multiKeyCommand().foreach().cancel();
+		
+		try {
+			Thread.sleep(10);
+			f4.get();
+			fail("Not expected future");
+		} catch(Exception e) {
+			assertEquals(0,c.getCollectorSize(0));
+			assertEquals(0,c.getCollectorSize(1));
+		}
+	}
+
 	
 }

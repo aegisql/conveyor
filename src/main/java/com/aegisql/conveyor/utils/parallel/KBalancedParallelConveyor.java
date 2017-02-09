@@ -88,7 +88,15 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	@Override
 	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> command) {
 		Objects.requireNonNull(command, "Command is null");
-		return this.balancingCommand.apply(command).get(0).command(command);
+		if(command.getKey() != null) {
+			return this.balancingCommand.apply(command).get(0).command(command);
+		} else {
+			CompletableFuture<Boolean> cf = new CompletableFuture<Boolean>();
+			for(Conveyor<K, L, OUT> conv: this.conveyors) {
+				cf = cf.thenCombine(conv.command(command), (a,b)-> a && b);
+			}
+			return cf;
+		}
 	}
 	
 	/* (non-Javadoc)

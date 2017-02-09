@@ -136,11 +136,18 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> cart) {
 		Objects.requireNonNull(cart, "Command is null");
 		CompletableFuture<Boolean> combinedFutures = null;
+		if(cart.getKey() != null) {
 		for(Conveyor<K, L, OUT> conv: this.balancingCommand.apply(cart)) {
 			if(combinedFutures == null) {
 				combinedFutures = conv.command((GeneralCommand<K, V>) cart.copy());
 			} else {
 				combinedFutures = combinedFutures.thenCombine(conv.command((GeneralCommand<K, V>) cart.copy()), (a,b) -> a && b );
+			}
+		}
+		} else {
+			combinedFutures = new CompletableFuture<Boolean>();
+			for(Conveyor<K, L, OUT> conv: this.conveyors) {
+				combinedFutures = combinedFutures.thenCombine(conv.command(cart), (a,b)-> a && b);
 			}
 		}
 		return combinedFutures;
