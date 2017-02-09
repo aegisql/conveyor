@@ -44,6 +44,7 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.loaders.BuilderLoader;
 import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.loaders.FutureLoader;
+import com.aegisql.conveyor.loaders.MultiKeyCommandLoader;
 import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 
@@ -170,6 +171,11 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	@Override
 	public CommandLoader<K, OUT> command() {
 		return new CommandLoader<>(this::command);
+	}
+	
+	@Override
+	public MultiKeyCommandLoader<K, OUT> multiKeyCommand() {
+		return new MultiKeyCommandLoader<>(this::command);
 	}
 	
 	/* (non-Javadoc)

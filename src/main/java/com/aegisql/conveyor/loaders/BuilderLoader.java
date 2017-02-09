@@ -30,7 +30,7 @@ public final class BuilderLoader<K,OUT,F> {
 	public final long expirationTime;
 
 	/** The ttl msec. */
-	private final long ttlMsec;
+	public final long ttlMsec;
 
 	/** The key. */
 	public final K key;

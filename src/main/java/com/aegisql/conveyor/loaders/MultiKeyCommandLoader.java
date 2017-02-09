@@ -80,11 +80,20 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	/**
 	 * Id.
 	 *
-	 * @param k the k
 	 * @return the command loader
 	 */
-	public MultiKeyCommandLoader<K,OUT> foreach(K k) {
+	public MultiKeyCommandLoader<K,OUT> foreach() {
 		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,expirationTime,ttlMsec,key -> true);
+	}
+
+	/**
+	 * Id.
+	 *
+	 * @param p the p
+	 * @return the command loader
+	 */
+	public MultiKeyCommandLoader<K,OUT> foreach(Predicate<K> p) {
+		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,expirationTime,ttlMsec,p);
 	}
 
 	/**

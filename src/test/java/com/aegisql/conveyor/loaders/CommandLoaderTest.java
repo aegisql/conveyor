@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -13,7 +14,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.multichannel.UserBuilderEvents;
+import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
 public class CommandLoaderTest {
@@ -132,4 +136,36 @@ public class CommandLoaderTest {
 
 	}
 
+	@Test
+	public void testMultiKeyCancelCommand() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
+		c.setBuilderSupplier(UserBuilder::new);
+		c.setResultConsumer(bin->{
+			System.out.println(bin);
+		});
+		CompletableFuture<Boolean> cf1 = c.build().id(1).create();
+		CompletableFuture<Boolean> cf2 = c.build().id(2).create();
+		CompletableFuture<Boolean> cf3 = c.build().id(3).create();
+		assertTrue(cf1.get());
+		assertTrue(cf2.get());
+		assertTrue(cf3.get());
+		
+		CompletableFuture<User> f1 = c.future().id(1).get();
+		CompletableFuture<User> f2 = c.future().id(2).get();
+		CompletableFuture<User> f3 = c.future().id(3).get();
+		
+		assertEquals(3,c.getCollectorSize());
+		
+		c.multiKeyCommand().foreach().cancel();
+		
+		try {
+			Thread.sleep(10);
+			f3.get();
+			fail("Not expected future");
+		} catch(Exception e) {
+			assertEquals(0,c.getCollectorSize());
+		}
+		
+	}
+	
 }

@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -17,6 +18,7 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.loaders.BuilderLoader;
 import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.loaders.FutureLoader;
+import com.aegisql.conveyor.loaders.MultiKeyCommandLoader;
 import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 
@@ -61,6 +63,8 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	public CommandLoader<K, OUT> command();
 
+	public MultiKeyCommandLoader<K, OUT> multiKeyCommand();
+	
 	/**
 	 * Multi key part.
 	 *

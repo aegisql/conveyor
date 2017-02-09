@@ -312,12 +312,7 @@ public class SmartConveyorTest {
 	
 		assertTrue(cf1.get());
 		assertTrue(cf2.get());
-		try {
-			assertFalse(cf3.get()); //this fails - no supplier;
-			fail();
-		} catch(Exception e) {
-			
-		}
+		assertTrue(cf3.get()); //default supplier;
 		
 		conveyor.command().id(4).create();
 		conveyor.command().id(5).create(sup2);

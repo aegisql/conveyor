@@ -18,6 +18,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -41,6 +42,7 @@ import com.aegisql.conveyor.delay.DelayProvider;
 import com.aegisql.conveyor.loaders.BuilderLoader;
 import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.loaders.FutureLoader;
+import com.aegisql.conveyor.loaders.MultiKeyCommandLoader;
 import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 
@@ -129,7 +131,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The key before eviction. */
 	private Consumer<K> keyBeforeEviction = key -> {
 		LOG.trace("Key is ready to be evicted {}", key);
-		collector.remove(key);
+		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> bs = collector.remove(key);
 	};
 
 	/** The key before reschedule. */
@@ -622,11 +624,18 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public BuilderLoader<K, OUT, Boolean> build() {
 		return new BuilderLoader<K, OUT, Boolean>(cl -> {
-			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, cl.value, cl.creationTime, cl.expirationTime);
+			BuilderSupplier<OUT> bs = cl.value;
+			if(bs == null) {
+				bs = builderSupplier;
+			}
+			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime);
 			return place(cart);
 		},
 		cl -> {
 			BuilderSupplier<OUT> bs = cl.value;
+			if(bs == null) {
+				bs = builderSupplier;
+			}
 			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
 			if (bs == null) {
 				bs = builderSupplier.withFuture(future);
@@ -692,6 +701,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public CommandLoader<K, OUT> command() {
 		return new CommandLoader<>(this::command);
+	}
+
+	@Override
+	public MultiKeyCommandLoader<K, OUT> multiKeyCommand() {
+		return new MultiKeyCommandLoader<>(this::command);
 	}
 
 	/*
@@ -1120,7 +1134,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static <K> void cancelNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
 		K key = cart.getKey();
+		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
 		conveyor.keyBeforeEviction.accept(key);
+		if(bs != null) {
+			bs.cancelFutures();
+		}
 		cart.getFuture().complete(true);
 	}
 
