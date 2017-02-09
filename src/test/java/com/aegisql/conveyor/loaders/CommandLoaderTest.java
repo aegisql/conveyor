@@ -189,7 +189,7 @@ public class CommandLoaderTest {
 		CompletableFuture<User> f1 = c.future().id(1).get();
 		CompletableFuture<User> f2 = c.future().id(2).get();
 		CompletableFuture<User> f3 = c.future().id(3).get();
-		CompletableFuture<User> f4 = c.future().id(3).get();
+		CompletableFuture<User> f4 = c.future().id(4).get();
 		
 		assertEquals(2,c.getCollectorSize(0));
 		assertEquals(2,c.getCollectorSize(1));
