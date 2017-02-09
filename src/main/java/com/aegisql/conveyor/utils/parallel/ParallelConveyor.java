@@ -572,7 +572,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 					throw new IllegalStateException("Parallel Conveyor '"+this.name+"' cannot process label '"+cart.getLabel()+"'");					
 				}
 			});
-			
+			conveyors.forEach(c->c.acceptLabels(labels));
 			lBalanced = true;
 			
 		}		
