@@ -61,7 +61,7 @@ public class MultiKeyTest {
 		loader1.value("FIRST").label(l1).place();
 		loader1.value("LAST").label(l2).place();
 		loader2.value("SECOND").label(l1).place();
-		c.place(new MultiKeyCart<Integer, String, SmartLabel<UserBuilderSmart>>("TEST", multi));
+		c.multiKeyPart().foreach().label(multi).value("TEST").place();
 		loader2.value("LAST").label(l2).place();
 		
 		loader1.value(1999).label(l3).place();
@@ -139,10 +139,10 @@ public class MultiKeyTest {
 		loader1.value("FIRST").label(l1).place();
 		loader1.value("LAST").label(l2).place();
 		loader2.value("SECOND").label(l1).place();
-
-		c.place(new MultiKeyCart<Integer, String, SmartLabel<UserBuilderSmart>>((key)->{
+		c.multiKeyPart().label(multi).value("TEST").foreach((key)->{
 			return key % 2 == 0;
-					},"TEST", multi));
+					}).place();
+
 		loader2.value("LAST").label(l2).place();
 		
 		loader1.value(1999).label(l3).place();

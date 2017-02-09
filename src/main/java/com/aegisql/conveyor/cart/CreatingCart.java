@@ -25,19 +25,8 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 * @param v the v
 	 * @param expiration the expiration
 	 */
-	public CreatingCart(K k, BuilderSupplier<B> v, long expiration) {
-		super(k, v, null, expiration);
-		Objects.requireNonNull(k);
-	}
-
-	/**
-	 * Instantiates a new creating cart.
-	 *
-	 * @param k the k
-	 * @param v the v
-	 */
-	public CreatingCart(K k, BuilderSupplier<B> v) {
-		super(k, v, null);
+	public CreatingCart(K k, BuilderSupplier<B> v, long creation, long expiration) {
+		super(k, v, null, creation, expiration);
 		Objects.requireNonNull(k);
 	}
 
@@ -54,7 +43,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	@Override
 	public Cart<K,BuilderSupplier<B>,L> copy() {
-		return new CreatingCart<K,B,L>(getKey(),getValue(),getExpirationTime());
+		return new CreatingCart<K,B,L>(getKey(),getValue(),getCreationTime(), getExpirationTime());
 	}
 
 }

@@ -2,6 +2,8 @@ package com.aegisql.conveyor.loaders;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -28,7 +30,19 @@ public class BuilderLoaderTest {
 
 	@Test
 	public void test() {
-		fail("Not yet implemented");
+		
+		long current = System.currentTimeMillis();
+
+		BuilderLoader bl0 = new BuilderLoader<>(p->{
+			return new CompletableFuture();
+		}, fp->{
+			return new CompletableFuture();
+
+		});
+		System.out.println(bl0);
+		assertTrue(bl0.creationTime >= current);
+		
+		current = bl0.creationTime;
 	}
 
 }

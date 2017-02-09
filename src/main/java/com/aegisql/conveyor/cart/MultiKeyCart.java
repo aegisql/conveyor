@@ -21,40 +21,13 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 	protected final Predicate<K> filter;
 	
 	/**
-	 * Instantiates a new multikey cart.
-	 *
-	 * @param v the v
-	 * @param label the label
-	 * @param ttl the ttl
-	 * @param timeUnit the time unit
-	 */
-	public MultiKeyCart(V v, L label, long ttl, TimeUnit timeUnit) {
-		super(null, v, label, ttl, timeUnit);
-		filter = entry->true; //pass all by default
-	}
-
-	/**
-	 * Instantiates a new multikey cart.
-	 *
-	 * @param filter K key filtering predicate
-	 * @param v the v
-	 * @param label the label
-	 * @param ttl the ttl
-	 * @param timeUnit the time unit
-	 */
-	public MultiKeyCart(Predicate<K> filter, V v, L label, long ttl, TimeUnit timeUnit) {
-		super(null, v, label, ttl, timeUnit);
-		this.filter = filter;
-	}
-
-	/**
 	 * Instantiates a new shopping cart.
 	 *
 	 * @param v the v
 	 * @param label the label
 	 * @param expiration the expiration
 	 */
-	public MultiKeyCart(V v, L label, long expiration) {
+	public MultiKeyCart(V v, L label, long creation, long expiration) {
 		super(null, v, label, expiration);
 		filter = entry->true; //pass all by default
 	}
@@ -67,81 +40,8 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 	 * @param label the label
 	 * @param expiration the expiration
 	 */
-	public MultiKeyCart(Predicate<K> filter, V v, L label, long expiration) {
+	public MultiKeyCart(Predicate<K> filter, V v, L label, long creation, long expiration) {
 		super(null, v, label, expiration);
-		this.filter = filter;
-	}
-
-	/**
-	 * Instantiates a new shopping cart.
-	 *
-	 * @param v the v
-	 * @param label the label
-	 */
-	public MultiKeyCart(V v, L label) {
-		super(null, v, label);
-		filter = entry->true; //pass all by default
-	}
-
-	/**
-	 * Instantiates a new shopping cart.
-	 *
-	 * @param filter K key filtering predicate
-	 * @param v the v
-	 * @param label the label
-	 */
-	public MultiKeyCart(Predicate<K> filter, V v, L label) {
-		super(null, v, label);
-		this.filter = filter;
-	}
-
-	/**
-	 * Instantiates a new shopping cart.
-	 *
-	 * @param value the value
-	 * @param label the label
-	 * @param duration the duration
-	 */
-	public MultiKeyCart(V value, L label, Duration duration) {
-		super(null,value,label,duration);
-		filter = entry->true; //pass all by default
-	}
-
-	/**
-	 * Instantiates a new shopping cart.
-	 *
-	 * @param filter K key filtering predicate
-	 * @param value the value
-	 * @param label the label
-	 * @param duration the duration
-	 */
-	public MultiKeyCart(Predicate<K> filter, V value, L label, Duration duration) {
-		super(null,value,label,duration);
-		this.filter = filter;
-	}
-
-	/**
-	 * Instantiates a new shopping cart.
-	 *
-	 * @param value the value
-	 * @param label the label
-	 * @param instant the instant
-	 */
-	public MultiKeyCart(V value, L label, Instant instant) {
-		super(null,value,label,instant);
-		filter = entry->true; //pass all by default
-	}
-
-	/**
-	 * Instantiates a new shopping cart.
-	 *
-	 * @param filter K key filtering predicate
-	 * @param value the value
-	 * @param label the label
-	 * @param instant the instant
-	 */
-	public MultiKeyCart(Predicate<K> filter, V value, L label, Instant instant) {
-		super(null,value,label,instant);
 		this.filter = filter;
 	}
 
@@ -150,7 +50,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 	 */
 	@Override
 	public Cart <K,V,L> copy() {
-		return new MultiKeyCart<K,V,L>(getValue(), getLabel(),getExpirationTime());
+		return new MultiKeyCart<K,V,L>(getValue(), getLabel(),getCreationTime(),getExpirationTime());
 	}
 
 	public ShoppingCart<K, V, L> toShoppingCart(K key) {

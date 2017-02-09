@@ -36,9 +36,6 @@ public final class CommandLoader<K,OUT> {
 	/** The key. */
 	public final K key;
 	
-	/** The label. */
-	public final CommandLabel label;
-	
 	/**
 	 * Instantiates a new command loader.
 	 *
@@ -47,13 +44,12 @@ public final class CommandLoader<K,OUT> {
 	 * @param key the key
 	 * @param label the label
 	 */
-	private CommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor, long creation, long expirationTime, long ttlMsec, K key, CommandLabel label) {
+	private CommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor, long creation, long expirationTime, long ttlMsec, K key) {
 		this.conveyor = conveyor;
 		this.creationTime = creation;
 		this.expirationTime = expirationTime;
 		this.ttlMsec = ttlMsec;
 		this.key = key;
-		this.label = label;
 	}
 
 	/**
@@ -65,13 +61,12 @@ public final class CommandLoader<K,OUT> {
 	 * @param label the label
 	 * @param dumb the dumb
 	 */
-	private CommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor, long creation, long ttl, K key, CommandLabel label, boolean dumb) {
+	private CommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor, long creation, long ttl, K key, boolean dumb) {
 		this.conveyor = conveyor;
 		this.creationTime = creation;
 		this.expirationTime = creationTime + ttl;
 		this.ttlMsec = ttl;
 		this.key = key;
-		this.label = label;
 	}
 
 	/**
@@ -80,7 +75,7 @@ public final class CommandLoader<K,OUT> {
 	 * @param conveyor the conveyor
 	 */
 	public CommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor) {
-		this(conveyor,System.currentTimeMillis(),0,0,null,null);
+		this(conveyor,System.currentTimeMillis(),0,0,null);
 	}
 	
 	/**
@@ -90,7 +85,7 @@ public final class CommandLoader<K,OUT> {
 	 * @return the command loader
 	 */
 	public CommandLoader<K,OUT> id(K k) {
-		return new CommandLoader<K,OUT>(conveyor,creationTime,expirationTime,ttlMsec,k,label);
+		return new CommandLoader<K,OUT>(conveyor,creationTime,expirationTime,ttlMsec,k);
 	}
 
 	/**
@@ -100,7 +95,7 @@ public final class CommandLoader<K,OUT> {
 	 * @return the command loader
 	 */
 	public CommandLoader<K,OUT>  expirationTime(long et) {
-		return new CommandLoader<K,OUT>(conveyor,creationTime,et,ttlMsec,key,label);
+		return new CommandLoader<K,OUT>(conveyor,creationTime,et,ttlMsec,key);
 	}
 	
 	/**
@@ -110,7 +105,7 @@ public final class CommandLoader<K,OUT> {
 	 * @return the command loader
 	 */
 	public CommandLoader<K,OUT>  expirationTime(Instant instant) {
-		return new CommandLoader<K,OUT>(conveyor,creationTime,instant.toEpochMilli(),ttlMsec,key,label);
+		return new CommandLoader<K,OUT>(conveyor,creationTime,instant.toEpochMilli(),ttlMsec,key);
 	}
 	
 	/**
@@ -121,7 +116,7 @@ public final class CommandLoader<K,OUT> {
 	 * @return the command loader
 	 */
 	public CommandLoader<K,OUT>  ttl(long time, TimeUnit unit) {
-		return new CommandLoader<K,OUT>(conveyor,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,label,true);
+		return new CommandLoader<K,OUT>(conveyor,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,true);
 	}
 	
 	/**
@@ -131,7 +126,7 @@ public final class CommandLoader<K,OUT> {
 	 * @return the command loader
 	 */
 	public CommandLoader<K,OUT>  ttl(Duration duration) {
-		return new CommandLoader<K,OUT>(conveyor,creationTime,duration.toMillis(),key,label,true);
+		return new CommandLoader<K,OUT>(conveyor,creationTime,duration.toMillis(),key,true);
 	}
 	
 	/**

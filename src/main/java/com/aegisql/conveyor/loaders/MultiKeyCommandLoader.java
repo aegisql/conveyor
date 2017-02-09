@@ -18,7 +18,7 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
  * @param <L> the generic type
  * @param <OUT> the generic type
  */
-public final class MultiKeyCommandLoader<K,L,OUT> {
+public final class MultiKeyCommandLoader<K,OUT> {
 	
 	/** The conveyor. */
 	private final Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor;
@@ -35,9 +35,6 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	/** The key. */
 	public final Predicate<K> filter;
 	
-	/** The label. */
-	public final L label;
-	
 	/**
 	 * Instantiates a new command loader.
 	 *
@@ -46,13 +43,12 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @param key the key
 	 * @param label the label
 	 */
-	private MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor,long creationTime, long expirationTime, long ttlMsec, Predicate<K> filter, L label) {
+	private MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor,long creationTime, long expirationTime, long ttlMsec, Predicate<K> filter) {
 		this.conveyor = conveyor;
 		this.creationTime = creationTime;
 		this.expirationTime = expirationTime;
 		this.ttlMsec = ttlMsec;
 		this.filter = filter;
-		this.label = label;
 	}
 
 	/**
@@ -64,13 +60,12 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @param label the label
 	 * @param dumb the dumb
 	 */
-	private MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor,long creationTime, long ttl, Predicate<K> filter, L label, boolean dumb) {
+	private MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor,long creationTime, long ttl, Predicate<K> filter, boolean dumb) {
 		this.conveyor = conveyor;
 		this.creationTime = creationTime;
 		this.expirationTime = creationTime + ttl;
 		this.ttlMsec = ttl;
 		this.filter = filter;
-		this.label = label;
 	}
 
 	/**
@@ -79,7 +74,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @param conveyor the conveyor
 	 */
 	public MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor) {
-		this(conveyor,System.currentTimeMillis(),0,0,k -> false,null);
+		this(conveyor,System.currentTimeMillis(),0,0,k -> false);
 	}
 	
 	/**
@@ -88,18 +83,8 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @param k the k
 	 * @return the command loader
 	 */
-	public MultiKeyCommandLoader<K,L,OUT> foreach(K k) {
-		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,creationTime,expirationTime,ttlMsec,key -> true,label);
-	}
-
-	/**
-	 * Label.
-	 *
-	 * @param l the l
-	 * @return the command loader
-	 */
-	public MultiKeyCommandLoader<K,L,OUT> label(L l) {
-		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,creationTime,expirationTime,ttlMsec,filter,l);
+	public MultiKeyCommandLoader<K,OUT> foreach(K k) {
+		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,expirationTime,ttlMsec,key -> true);
 	}
 
 	/**
@@ -108,8 +93,8 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @param et the et
 	 * @return the command loader
 	 */
-	public MultiKeyCommandLoader<K,L,OUT>  expirationTime(long et) {
-		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,creationTime,et,ttlMsec,filter,label);
+	public MultiKeyCommandLoader<K,OUT>  expirationTime(long et) {
+		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,et,ttlMsec,filter);
 	}
 	
 	/**
@@ -118,8 +103,8 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @param instant the instant
 	 * @return the command loader
 	 */
-	public MultiKeyCommandLoader<K,L,OUT>  expirationTime(Instant instant) {
-		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,creationTime,instant.toEpochMilli(),ttlMsec,filter,label);
+	public MultiKeyCommandLoader<K,OUT>  expirationTime(Instant instant) {
+		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,instant.toEpochMilli(),ttlMsec,filter);
 	}
 	
 	/**
@@ -129,8 +114,8 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @param unit the unit
 	 * @return the command loader
 	 */
-	public MultiKeyCommandLoader<K,L,OUT>  ttl(long time, TimeUnit unit) {
-		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),filter,label,true);
+	public MultiKeyCommandLoader<K,OUT>  ttl(long time, TimeUnit unit) {
+		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),filter,true);
 	}
 	
 	/**
@@ -139,8 +124,8 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @param duration the duration
 	 * @return the command loader
 	 */
-	public MultiKeyCommandLoader<K,L,OUT>  ttl(Duration duration) {
-		return new MultiKeyCommandLoader<K,L,OUT>(conveyor,creationTime,duration.toMillis(),filter,label,true);
+	public MultiKeyCommandLoader<K,OUT>  ttl(Duration duration) {
+		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,duration.toMillis(),filter,true);
 	}
 	
 	/**
@@ -149,7 +134,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @return the completable future
 	 */
 	public CompletableFuture<Boolean> cancel() {
-		return conveyor.apply(new GeneralCommand<K,String>(filter,"CANCEL",CommandLabel.CANCEL_BUILD,expirationTime));
+		return conveyor.apply(new GeneralCommand<K,String>(filter,"CANCEL",CommandLabel.CANCEL_BUILD,creationTime,expirationTime));
 	}
 
 	/**
@@ -158,7 +143,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @return the completable future
 	 */
 	public CompletableFuture<Boolean> timeout() {
-		return conveyor.apply(new GeneralCommand<K,String>(filter,"TIMEOUT",CommandLabel.TIMEOUT_BUILD,expirationTime));
+		return conveyor.apply(new GeneralCommand<K,String>(filter,"TIMEOUT",CommandLabel.TIMEOUT_BUILD,creationTime,expirationTime));
 	}
 
 	/**
@@ -167,7 +152,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	 * @return the completable future
 	 */
 	public CompletableFuture<Boolean> reschedule() {
-		return conveyor.apply(new GeneralCommand<K,String>(filter,"RESCHEDULE",CommandLabel.RESCHEDULE_BUILD,expirationTime));
+		return conveyor.apply(new GeneralCommand<K,String>(filter,"RESCHEDULE",CommandLabel.RESCHEDULE_BUILD,creationTime,expirationTime));
 	}
 	
 	/* (non-Javadoc)
@@ -176,7 +161,7 @@ public final class MultiKeyCommandLoader<K,L,OUT> {
 	@Override
 	public String toString() {
 		return "MultiKeyCommandLoader [creationTime=" + creationTime + ", expirationTime="
-				+ expirationTime + ", ttlMsec=" + ttlMsec + ", command=" + label + "]";
+				+ expirationTime + ", ttlMsec=" + ttlMsec + "]";
 	}
 	
 }

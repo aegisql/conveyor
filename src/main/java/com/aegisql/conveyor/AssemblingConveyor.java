@@ -612,7 +612,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public <X> MultiKeyPartLoader<K, L, X, OUT, Boolean> multiKeyPart() {
 		return new MultiKeyPartLoader<K, L, X, OUT, Boolean>(cl -> {
-			return place(new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.expirationTime));
+			return place(new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime));
 		});
 	}
 
@@ -622,7 +622,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public BuilderLoader<K, OUT, Boolean> build() {
 		return new BuilderLoader<K, OUT, Boolean>(cl -> {
-			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, cl.value, cl.expirationTime);
+			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, cl.value, cl.creationTime, cl.expirationTime);
 			return place(cart);
 		},
 		cl -> {
@@ -633,7 +633,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			} else {
 				bs = bs.withFuture(future);
 			}
-			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.expirationTime);
+			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime);
 			FutureSupplier supplier = (FutureSupplier<OUT>) cart.getValue();
 			CompletableFuture<Boolean> cartFuture = place(cart);
 			if (cartFuture.isCancelled()) {
@@ -652,7 +652,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public FutureLoader<K, OUT> future() {
 		return new FutureLoader<K, OUT>(cl -> {
 			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-			FutureCart<K, OUT, L> cart = new FutureCart<K, OUT, L>(cl.key, future, cl.expirationTime);
+			FutureCart<K, OUT, L> cart = new FutureCart<K, OUT, L>(cl.key, future, cl.creationTime, cl.expirationTime);
 			CompletableFuture<Boolean> cartFuture = this.place(cart);
 			if (cartFuture.isCancelled()) {
 				future.cancel(true);

@@ -194,9 +194,9 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			if(conv.isForwardingResults()) {
 				LOG.debug("Create in conveyor {} {}",conv,cart);
 				if(combinedCreateFuture == null) {
-					combinedCreateFuture = conv.place(new CreatingCart<K, OUT, L>(cart.getKey(),builderSupplier,cart.getExpirationTime()));
+					combinedCreateFuture = conv.place(new CreatingCart<K, OUT, L>(cart.getKey(),builderSupplier,cart.getCreationTime(),cart.getExpirationTime()));
 				} else {
-					combinedCreateFuture = combinedCreateFuture.thenCombine(conv.place(new CreatingCart<K, OUT, L>(cart.getKey(),builderSupplier,cart.getExpirationTime())), ( a, b ) -> a && b );
+					combinedCreateFuture = combinedCreateFuture.thenCombine(conv.place(new CreatingCart<K, OUT, L>(cart.getKey(),builderSupplier,cart.getCreationTime(),cart.getExpirationTime())), ( a, b ) -> a && b );
 				}
 			} else {
 				//this conv will finally create the product

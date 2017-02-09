@@ -35,12 +35,6 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 		filter = key -> k.equals(k);
 	}
 
-	public GeneralCommand(Predicate<K> f, V v, CommandLabel label, long expiration) {
-		super(null, v, label, expiration);
-		Objects.requireNonNull(f);
-		filter = f;
-	}
-
 	public GeneralCommand(K k, V v, CommandLabel label, long creation, long expiration) {
 		super(k, v, label, creation, expiration);
 		Objects.requireNonNull(k);
@@ -61,6 +55,7 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 		return this.getClass().getSimpleName()+" [key=" + k + 
 				", value=" + v + 
 				", label=" + label + 
+				", creationTime=" + creationTime +
 				", expirationTime=" + expirationTime +
 				 "]";
 	}
