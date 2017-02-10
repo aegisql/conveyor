@@ -193,5 +193,43 @@ public class PartLoaderTest {
 		User u2 = f2.get();
 		User u3 = f3.get();
 	}
-	
+
+	@Test
+	public void multyKeyPartsWithFilter() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
+		c.setName("multyKeyParts");
+		c.setBuilderSupplier(UserBuilder::new);
+		c.setResultConsumer(bin->{
+			System.out.println(bin);
+		});
+		c.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
+		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
+		CompletableFuture<Boolean> cf1 = c.build().id(1).create();
+		CompletableFuture<Boolean> cf2 = c.build().id(2).create();
+		CompletableFuture<Boolean> cf3 = c.build().id(3).create();
+		assertTrue(cf1.get());
+		assertTrue(cf2.get());
+		assertTrue(cf3.get());
+		
+		CompletableFuture<User> f1 = c.future().id(1).get();
+		CompletableFuture<User> f2 = c.future().id(2).get();
+		CompletableFuture<User> f3 = c.future().id(3).get();
+
+		c.multiKeyPart().foreach(k->k>1).label(UserBuilderEvents.SET_FIRST).value("A").place();
+		c.multiKeyPart().foreach(k->k>1).label(UserBuilderEvents.SET_LAST).value("B").place();
+		c.multiKeyPart().foreach(k->k>1).label(UserBuilderEvents.SET_YEAR).value(2000).place();
+		
+		User u2 = f2.get();
+		User u3 = f3.get();
+		try {
+			User u1 = f1.get();
+			fail("Unexpected");
+		} catch(Exception e) {
+			
+		}
+
+		c.stop();
+	}
+
 }
