@@ -704,6 +704,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return new CommandLoader<>(this::command);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#multiKeyCommand()
+	 */
 	@Override
 	public MultiKeyCommandLoader<K, OUT> multiKeyCommand() {
 		return new MultiKeyCommandLoader<>(this::command);
