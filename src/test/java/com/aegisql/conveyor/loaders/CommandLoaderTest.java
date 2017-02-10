@@ -144,10 +144,43 @@ public class CommandLoaderTest {
 	@Test
 	public void testMultiKeyCancelCommand() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
+		c.setName("testMultiKeyCancelCommand");
+		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+		c.setResultConsumer(bin->{
+			System.out.println(bin);
+		});
+		CompletableFuture<Boolean> cf1 = c.build().supplier(UserBuilder::new).id(1).create();
+		CompletableFuture<Boolean> cf2 = c.build().supplier(UserBuilder::new).id(2).create();
+		CompletableFuture<Boolean> cf3 = c.build().supplier(UserBuilder::new).id(3).create();
+		assertTrue(cf1.get());
+		assertTrue(cf2.get());
+		assertTrue(cf3.get());
+		
+		CompletableFuture<User> f1 = c.future().id(1).get();
+		CompletableFuture<User> f2 = c.future().id(2).get();
+		CompletableFuture<User> f3 = c.future().id(3).get();
+		
+		assertEquals(3,c.getCollectorSize());
+		Thread.sleep(100);
+		c.multiKeyCommand().foreach().cancel();
+		
+		try {
+			f3.get();
+			fail("Not expected future");
+		} catch(Exception e) {
+			assertEquals(0,c.getCollectorSize());
+		}	
+	}
+
+	@Test
+	public void testMultiKeyRescheduleCommand() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
 		c.setBuilderSupplier(UserBuilder::new);
 		c.setResultConsumer(bin->{
 			System.out.println(bin);
 		});
+		c.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
+		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
 		CompletableFuture<Boolean> cf1 = c.build().id(1).create();
 		CompletableFuture<Boolean> cf2 = c.build().id(2).create();
 		CompletableFuture<Boolean> cf3 = c.build().id(3).create();
@@ -161,18 +194,21 @@ public class CommandLoaderTest {
 		
 		assertEquals(3,c.getCollectorSize());
 		
-		c.multiKeyCommand().foreach().cancel();
-		
-		try {
-			Thread.sleep(10);
-			f3.get();
-			fail("Not expected future");
-		} catch(Exception e) {
-			assertEquals(0,c.getCollectorSize());
-		}
+		c.multiKeyCommand().foreach().ttl(500, TimeUnit.MILLISECONDS).reschedule();
+
+		Thread.sleep(110);
+		assertFalse(f1.isDone());
+		assertFalse(f2.isDone());
+		assertFalse(f3.isDone());
+		Thread.sleep(410);
+		assertTrue(f1.isDone());
+		assertTrue(f2.isDone());
+		assertTrue(f3.isDone());
 		
 	}
 
+	
+	
 	@Test
 	public void testMultiKeyCancelKParallelCommand() throws InterruptedException, ExecutionException {
 		ParallelConveyor<Integer, UserBuilderEvents, User> c = new KBalancedParallelConveyor<>(2);
@@ -196,7 +232,7 @@ public class CommandLoaderTest {
 		
 		assertEquals(2,c.getCollectorSize(0));
 		assertEquals(2,c.getCollectorSize(1));
-		Thread.sleep(100);
+		Thread.sleep(2000);
 		c.multiKeyCommand().foreach().cancel();
 		
 		try {
