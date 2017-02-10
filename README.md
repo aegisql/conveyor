@@ -8,11 +8,17 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.1.9</version>
+  <version>1.2.0</version>
 </dependency>
 ```
 
 ## Release History
+
+### 1.2.0
+* Changes in Conveyor interface
+* Changes in Cart interface
+* Loaders for parts, commands, futures and builds
+* Bugfixes and improvements 
 
 ### 1.1.9
 * More interface extensions
