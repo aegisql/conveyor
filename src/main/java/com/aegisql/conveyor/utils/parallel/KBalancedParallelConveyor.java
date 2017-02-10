@@ -5,7 +5,6 @@ package com.aegisql.conveyor.utils.parallel;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -21,10 +20,6 @@ import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
-import com.aegisql.conveyor.loaders.BuilderLoader;
-import com.aegisql.conveyor.loaders.CommandLoader;
-import com.aegisql.conveyor.loaders.FutureLoader;
-import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -92,8 +87,9 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			return this.balancingCommand.apply(command).get(0).command(command);
 		} else {
 			CompletableFuture<Boolean> cf = new CompletableFuture<Boolean>();
+			cf.complete(true);
 			for(Conveyor<K, L, OUT> conv: this.conveyors) {
-				cf = cf.thenCombine(conv.command(command), (a,b)-> a && b);
+				cf = cf.thenCombine(conv.command((GeneralCommand<K, V>) command.copy()), (a,b)-> a && b);
 			}
 			return cf;
 		}

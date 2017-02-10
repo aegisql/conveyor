@@ -77,7 +77,6 @@ public class ChainResult<K,OUT1,L2> implements Consumer<ProductBin<K,OUT1>> {
 	@Override
 	public void accept(ProductBin<K,OUT1> bin) {
 		if(useRemaining) {
-			System.out.println("--- useingRemain "+bin.remainingDelayMsec);
 			next
 			.part()
 			.id(bin.key)
@@ -86,7 +85,6 @@ public class ChainResult<K,OUT1,L2> implements Consumer<ProductBin<K,OUT1>> {
 			.ttl(bin.remainingDelayMsec,TimeUnit.MILLISECONDS)
 			.place();			
 		} else {
-			System.out.println("--- NOT useingRemain "+ttlMsec);
 			next
 			.part()
 			.id(bin.key)

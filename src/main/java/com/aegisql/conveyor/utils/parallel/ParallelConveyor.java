@@ -567,6 +567,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 			for(L l:labels) {
 				acceptedLabels.add(l);
 			}
+			acceptedLabels.add(null);
 			this.addCartBeforePlacementValidator(cart->{
 				if( ! acceptedLabels.contains(cart.getLabel())) {
 					throw new IllegalStateException("Parallel Conveyor '"+this.name+"' cannot process label '"+cart.getLabel()+"'");					

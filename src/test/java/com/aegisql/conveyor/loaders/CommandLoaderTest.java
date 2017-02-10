@@ -245,6 +245,7 @@ public class CommandLoaderTest {
 		assertTrue(ch1.isLBalanced());
 
 		Conveyor<Integer, UserBuilderEvents, User> ch2 = new KBalancedParallelConveyor<>(3);
+		//Conveyor<Integer, UserBuilderEvents, User> ch2 = new AssemblingConveyor<>();
 		ch2.setBuilderSupplier(UserBuilder::new);
 		ch2.setScrapConsumer(bin->{
 			System.out.println("rejected ch2: "+bin);
@@ -267,9 +268,7 @@ public class CommandLoaderTest {
 		assertTrue(bf2.get());
 		
 		CompletableFuture<Boolean> bfCancel = pc.multiKeyCommand().foreach().cancel();
-		//TODO: some bug here
-		
-		//assertTrue(bfCancel.get());
+		assertTrue(bfCancel.get());
 	}
 	
 }

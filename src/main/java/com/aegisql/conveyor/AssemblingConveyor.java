@@ -553,6 +553,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					GeneralCommand<K,?> nextCommandCart = new GeneralCommand(k,value, label, expTime);
 					mQueue.add(nextCommandCart);
 				});
+				cmdCart.getFuture().complete(true);
 			}
 		}
 	}

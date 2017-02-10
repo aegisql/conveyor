@@ -63,6 +63,11 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	public CommandLoader<K, OUT> command();
 
+	/**
+	 * Multi key command.
+	 *
+	 * @return the multi key command loader
+	 */
 	public MultiKeyCommandLoader<K, OUT> multiKeyCommand();
 	
 	/**

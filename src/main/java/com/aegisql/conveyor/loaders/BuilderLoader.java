@@ -8,7 +8,6 @@ import java.util.function.Function;
 
 import com.aegisql.conveyor.BuilderSupplier;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class BuilderLoader.
  *
@@ -171,6 +170,11 @@ public final class BuilderLoader<K,OUT,F> {
 		return placer.apply(this);
 	}
 
+	/**
+	 * Creates the future.
+	 *
+	 * @return the completable future
+	 */
 	public CompletableFuture<OUT> createFuture() {
 		return futurePlacer.apply(this);
 	}
