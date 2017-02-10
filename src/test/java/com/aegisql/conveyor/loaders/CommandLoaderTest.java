@@ -175,6 +175,7 @@ public class CommandLoaderTest {
 	@Test
 	public void testMultiKeyRescheduleCommand() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
+		c.setName("testMultiKeyRescheduleCommand");
 		c.setBuilderSupplier(UserBuilder::new);
 		c.setResultConsumer(bin->{
 			System.out.println(bin);
@@ -207,6 +208,39 @@ public class CommandLoaderTest {
 		
 	}
 
+	@Test
+	public void testMultiKeyTimeoutCommand() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
+		c.setName("testMultiKeyTimeoutCommand");
+		c.setBuilderSupplier(UserBuilder::new);
+		c.setResultConsumer(bin->{
+			System.out.println(bin);
+		});
+		c.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
+		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+		CompletableFuture<Boolean> cf1 = c.build().id(1).create();
+		CompletableFuture<Boolean> cf2 = c.build().id(2).create();
+		CompletableFuture<Boolean> cf3 = c.build().id(3).create();
+		assertTrue(cf1.get());
+		assertTrue(cf2.get());
+		assertTrue(cf3.get());
+		
+		CompletableFuture<User> f1 = c.future().id(1).get();
+		CompletableFuture<User> f2 = c.future().id(2).get();
+		CompletableFuture<User> f3 = c.future().id(3).get();
+		
+		assertEquals(3,c.getCollectorSize());
+		
+		Thread.sleep(110);
+		c.multiKeyCommand().foreach().timeout();
+		Thread.sleep(110);
+
+		assertTrue(f1.isDone());
+		assertTrue(f2.isDone());
+		assertTrue(f3.isDone());
+		
+	}
+
 	
 	
 	@Test
@@ -216,6 +250,8 @@ public class CommandLoaderTest {
 		c.setResultConsumer(bin->{
 			System.out.println(bin);
 		});
+		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+		c.setName("testMultiKeyCancelKParallelCommand");
 		CompletableFuture<Boolean> cf1 = c.build().id(1).create();
 		CompletableFuture<Boolean> cf2 = c.build().id(2).create();
 		CompletableFuture<Boolean> cf3 = c.build().id(3).create();
@@ -232,9 +268,8 @@ public class CommandLoaderTest {
 		
 		assertEquals(2,c.getCollectorSize(0));
 		assertEquals(2,c.getCollectorSize(1));
-		Thread.sleep(2000);
 		c.multiKeyCommand().foreach().cancel();
-		
+		Thread.sleep(100);
 		try {
 			System.out.println("About to stop 3");
 			f3.get();
