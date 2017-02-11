@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.utils.scalar;
 
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
 import com.aegisql.conveyor.SmartLabel;
@@ -17,29 +16,6 @@ public class ScalarCart<K, V> extends ShoppingCart<K, V, SmartLabel<ScalarConver
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = -6377776104555576600L;
-
-	/**
-	 * Instantiates a new scalar cart.
-	 *
-	 * @param k the k
-	 * @param v the v
-	 * @param ttl the ttl
-	 * @param timeUnit the time unit
-	 */
-	public ScalarCart(K k, V v, long ttl, TimeUnit timeUnit) {
-		super(k, v, ScalarCart.getAddLabel(), ttl, timeUnit);
-	}
-
-	/**
-	 * Instantiates a new scalar cart.
-	 *
-	 * @param k the k
-	 * @param v the v
-	 * @param expiration the expiration
-	 */
-	public ScalarCart(K k, V v, long expiration) {
-		super(k, v, ScalarCart.getAddLabel(), expiration);
-	}
 
 	/**
 	 * Instantiates a new scalar cart.

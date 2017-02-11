@@ -2,6 +2,8 @@ package com.aegisql.conveyor.utils;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
@@ -78,9 +80,10 @@ public class ScalarConvertingConveyorTest {
 	 * Test scalar converting conveyor.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test
-	public void testScalarConvertingConveyor() throws InterruptedException {
+	public void testScalarConvertingConveyor() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		sc.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
@@ -92,10 +95,26 @@ public class ScalarConvertingConveyorTest {
 		
 		ScalarCart<String,String> c = new ScalarCart<String, String>("test", csv);
 		
-		sc.place(c);
-		Thread.sleep(20);
+		CompletableFuture<Boolean> cf = sc.place(c);
+		cf.get();
 		assertNotNull(usr.get());
 	}
 	
+
+	@Test
+	public void testScalarConvertingConveyorWithPart() throws InterruptedException, ExecutionException {
+		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
+		sc.setBuilderSupplier(StringToUserBuulder::new);
+		AtomicReference<User> usr = new AtomicReference<User>(null);
+		sc.setResultConsumer(u->{
+			System.out.println("RESULT: "+u);
+			usr.set(u.product);
+		});
+		String csv = "John,Dow,1990";
+				
+		CompletableFuture<Boolean> cf = sc.part().id("test").value(csv).place();
+		cf.get();
+		assertNotNull(usr.get());
+	}
 
 }
