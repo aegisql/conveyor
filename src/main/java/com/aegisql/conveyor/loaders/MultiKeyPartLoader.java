@@ -92,7 +92,6 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	/**
 	 * Id.
 	 *
-	 * @param k the k
 	 * @return the part loader
 	 */
 	public MultiKeyPartLoader<K,L,V,OUT,F> foreach() {
@@ -100,9 +99,9 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	}
 
 	/**
-	 * Id.
+	 * Foreach
 	 *
-	 * @param k the k
+	 * @param filter the filtering predicate
 	 * @return the part loader
 	 */
 	public MultiKeyPartLoader<K,L,V,OUT,F> foreach(Predicate<K> filter) {

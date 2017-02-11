@@ -15,7 +15,6 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
  * The Class CommandLoader.
  *
  * @param <K> the key type
- * @param <L> the generic type
  * @param <OUT> the generic type
  */
 public final class MultiKeyCommandLoader<K,OUT> {

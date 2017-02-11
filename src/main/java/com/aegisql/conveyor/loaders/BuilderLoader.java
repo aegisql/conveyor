@@ -93,6 +93,7 @@ public final class BuilderLoader<K,OUT,F> {
 	 * Instantiates a new builder loader.
 	 *
 	 * @param placer the placer
+	 * @param futurePlacer the future placer
 	 */
 	public BuilderLoader(
 			Function<BuilderLoader<K,OUT,F>, CompletableFuture<F>> placer,

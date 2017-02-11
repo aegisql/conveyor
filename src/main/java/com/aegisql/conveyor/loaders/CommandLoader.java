@@ -16,7 +16,6 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
  * The Class CommandLoader.
  *
  * @param <K> the key type
- * @param <L> the generic type
  * @param <OUT> the generic type
  */
 public final class CommandLoader<K,OUT> {
@@ -172,6 +171,7 @@ public final class CommandLoader<K,OUT> {
 	/**
 	 * Create.
 	 *
+	 * @param builder the builder supplier
 	 * @return the completable future
 	 */
 	public CompletableFuture<Boolean> create(BuilderSupplier<OUT> builder) {

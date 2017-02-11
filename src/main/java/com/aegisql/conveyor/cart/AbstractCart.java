@@ -105,8 +105,10 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	 *            the v
 	 * @param label
 	 *            the label
+	 * @param creation
+	 *            the creation time
 	 * @param expiration
-	 *            the expiration
+	 *            the expiration time
 	 */
 	public AbstractCart(K k, V v, L label, long creation, long expiration) {
 		this.k = k;
