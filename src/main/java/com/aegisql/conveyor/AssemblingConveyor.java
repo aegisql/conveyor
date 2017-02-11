@@ -176,7 +176,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		private final Condition hasCarts = rLock.newCondition();
 
 		/** The expiration collection interval. */
-		private long expirationCollectionInterval = Long.MAX_VALUE;
+		private long expirationCollectionInterval = 1000; //Long.MAX_VALUE;
 
 		/**
 		 * Sets the expiration collection interval.
