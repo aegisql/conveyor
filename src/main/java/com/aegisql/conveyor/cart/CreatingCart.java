@@ -23,7 +23,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 *
 	 * @param k the k
 	 * @param v the v
-	 * @param cretion the creation time
+	 * @param creation the creation time
 	 * @param expiration the expiration time
 	 */
 	public CreatingCart(K k, BuilderSupplier<B> v, long creation, long expiration) {
