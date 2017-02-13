@@ -1,7 +1,5 @@
 package com.aegisql.conveyor.utils.caching;
 
-import java.util.function.Supplier;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

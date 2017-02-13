@@ -11,7 +11,7 @@ import com.aegisql.conveyor.ProductSupplier;
  *
  * @param <T> the generic type
  */
-public class ImmutableReference<T> implements ProductSupplier<T> {
+public final class ImmutableReference<T> implements ProductSupplier<T> {
 
 	/** The reference. */
 	protected final T reference;

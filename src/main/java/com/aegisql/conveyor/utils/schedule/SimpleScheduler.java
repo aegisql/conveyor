@@ -1,11 +1,8 @@
 package com.aegisql.conveyor.utils.schedule;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
@@ -61,94 +58,6 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 			);
 		});
 	}
-
-//	@Override
-//	public <X> PartLoader<K, Schedule, X, SchedulableClosure, Boolean> part() {
-//		return new PartLoader<K,Schedule,X,SchedulableClosure,Boolean>(cl -> {
-//			SchedulableClosure closure = (SchedulableClosure)cl.partValue;
-//			Schedule label = cl.label;
-//			switch (label) {
-//			case SCHEDULE_AND_EXECUTE_NOW:
-//				final AtomicBoolean firstRun = new AtomicBoolean(true);
-//				closure = () -> {
-//					if( firstRun.get() ) {
-//						((SchedulableClosure) cl.partValue).apply();
-//						firstRun.set( false );
-//					} else {
-//						place(new ShoppingCart<K,Object,Schedule>(cl.key, cl.partValue, Schedule.SCHEDULE_WITH_DELAY, cl.expirationTime));
-//					}
-//				};
-//				break;
-//			case SCHEDULE_WITH_DELAY:
-//				closure = closure.andThen(() -> {
-//					place(new ShoppingCart<K,Object,Schedule>(cl.key, cl.partValue, Schedule.SCHEDULE_WITH_DELAY, cl.expirationTime));
-//					//add(key, value, label, executionTime);
-//				});
-//				break;
-//			default:
-//				break;
-//			}
-//			return place(new ShoppingCart<K,Object,Schedule>(cl.key, cl.partValue, cl.label, cl.expirationTime));
-//		});
-//	}
-//
-//	
-//	protected CompletableFuture<Boolean> add(K key, SchedulableClosure value, Schedule label, long executionTime) {
-//		SchedulableClosure closure = (SchedulableClosure) value;
-//		switch (label) {
-//		case SCHEDULE_AND_EXECUTE_NOW:
-//			final AtomicBoolean firstRun = new AtomicBoolean(true);
-//			closure = () -> {
-//				if( firstRun.get() ) {
-//					((SchedulableClosure) value).apply();
-//					firstRun.set( false );
-//				} else {
-//					add(key, value, Schedule.SCHEDULE_WITH_DELAY, executionTime);
-//				}
-//			};
-//			break;
-//		case SCHEDULE_WITH_DELAY:
-//			closure = closure.andThen(() -> {
-//				add(key, value, label, executionTime);
-//			});
-//			break;
-//		default:
-//			break;
-//		}
-//		return super.place(new ShoppingCart<K,SchedulableClosure,Schedule>(key,closure, label, executionTime));
-//	}
-//
-//	protected CompletableFuture<Boolean> add(K key, SchedulableClosure value, Schedule label, Duration duration) {
-//		SchedulableClosure closure = (SchedulableClosure) value;
-//		switch (label) {
-//		case SCHEDULE_AND_EXECUTE_NOW:
-//			final AtomicBoolean firstRun = new AtomicBoolean(true);
-//			closure = () -> {
-//				if( firstRun.get() ) {
-//					((SchedulableClosure) value).apply();
-//					firstRun.set( false );
-//				} else {
-//					add(key, value, Schedule.SCHEDULE_WITH_DELAY, duration);
-//				}
-//			};
-//			break;
-//		case SCHEDULE_WITH_DELAY:
-//			closure = closure.andThen(() -> {
-//				add(key, value, label, duration);
-//			});
-//			break;
-//		default:
-//			break;
-//		}
-//		return super.place(new ShoppingCart<K,SchedulableClosure,Schedule>(key,closure, label, duration));
-//	}
-//
-//	protected CompletableFuture<Boolean> add(K key, SchedulableClosure value, Schedule label, Instant instant) {
-//		if( ! label.equals(Schedule.EXECUTE_ONCE)) {
-//			LOG.warn("Add without TTL or Duration can only be executed once, while you requested {}",label);
-//		}
-//		return super.place(new ShoppingCart<K,SchedulableClosure,Schedule>(key, value, label, instant));
-//	}
 	
 
 }
