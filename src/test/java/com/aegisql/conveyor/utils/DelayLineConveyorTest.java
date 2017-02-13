@@ -1,9 +1,12 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -12,7 +15,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.utils.delay_line.DelayLineCart;
 import com.aegisql.conveyor.utils.delay_line.DelayLineConveyor;
 
 // TODO: Auto-generated Javadoc
@@ -61,9 +63,10 @@ public class DelayLineConveyorTest {
 	 * Test.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test
-	public void test() throws InterruptedException {
+	public void test() throws InterruptedException, ExecutionException {
 		
 		List<Integer> res = new ArrayList<>();
 		
@@ -76,20 +79,15 @@ public class DelayLineConveyorTest {
 			System.out.println("-- "+bin);
 		});
 		c.setIdleHeartBeat(50, TimeUnit.MILLISECONDS);
+				
+		c.part().id(1).value(1).ttl(Duration.ofMillis(11)).place();
+		c.part().id(4).value(4).ttl(Duration.ofMillis(14)).place();
+		c.part().id(2).value(2).ttl(Duration.ofMillis(12)).place();
+		c.part().id(3).value(3).ttl(Duration.ofMillis(13)).place();
+		CompletableFuture<Integer> last = c.future().ttl(Duration.ofMillis(15)).id(5).get();
+		c.part().id(5).value(5).place();
 		
-		DelayLineCart<Integer, Integer> c1 = new DelayLineCart<>(1, 1, 10+1, TimeUnit.MILLISECONDS);
-		DelayLineCart<Integer, Integer> c2 = new DelayLineCart<>(2, 2, 10+2, TimeUnit.MILLISECONDS);
-		DelayLineCart<Integer, Integer> c3 = new DelayLineCart<>(3, 3, 10+3, TimeUnit.MILLISECONDS);
-		DelayLineCart<Integer, Integer> c4 = new DelayLineCart<>(4, 4, 10+4, TimeUnit.MILLISECONDS);
-		DelayLineCart<Integer, Integer> c5 = new DelayLineCart<>(5, 5, 10+5, TimeUnit.MILLISECONDS);
-		
-		c.place(c1);
-		c.place(c4);
-		c.place(c2);
-		c.place(c3);
-		c.place(c5);
-		
-		Thread.sleep(100);
+		assertEquals(new Integer(5), last.get());
 		
 		assertEquals(1, res.get(0).intValue());
 		assertEquals(2, res.get(1).intValue());
