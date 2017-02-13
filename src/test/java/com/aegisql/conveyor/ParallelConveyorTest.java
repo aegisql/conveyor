@@ -33,7 +33,6 @@ import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.utils.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.utils.parallel.ParallelConveyor;
-import com.aegisql.conveyor.utils.scalar.ScalarCart;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 
@@ -333,7 +332,7 @@ public class ParallelConveyorTest {
 	 */
 	@Test
 	public void otherConveyorTest() throws InterruptedException {
-		KBalancedParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
+		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
@@ -342,15 +341,10 @@ public class ParallelConveyorTest {
 			usr.set(u.product);
 		});
 
-		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");
-		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow2,1991");
-		ScalarCart<String, String> c3 = new ScalarCart<>("2", "Jane,Dow3,1992");
-		ScalarCart<String, String> c4 = new ScalarCart<>("2", "Jane,Dow4,1993");
-		conveyor.place(c1);
-		conveyor.place(c2);
-		conveyor.place(c3);
-		conveyor.place(c4);
-		
+		conveyor.part().id("1").value("John,Dow1,1990").place();
+		conveyor.part().id("2").value("John,Dow1,1991").place();
+		conveyor.part().id("2").value("John,Dow1,1992").place();
+		conveyor.part().id("2").value("John,Dow1,1993").place();
 		Thread.sleep(20);
 		assertNotNull(usr.get());
 
@@ -365,7 +359,7 @@ public class ParallelConveyorTest {
 	 */
 	@Test(expected=TimeoutException.class)
 	public void futureConveyorTest() throws InterruptedException, ExecutionException, TimeoutException {
-		KBalancedParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
+		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
@@ -378,15 +372,10 @@ public class ParallelConveyorTest {
 		CompletableFuture<User> uf2 = conveyor.future().id("2").get();
 		CompletableFuture<User> uf3 = conveyor.future().id("3").get();
 
-		
-		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");
-		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow2,1991");
-		ScalarCart<String, String> c3 = new ScalarCart<>("2", "Jane,Dow3,1992");
-		ScalarCart<String, String> c4 = new ScalarCart<>("2", "Jane,Dow4,1993");
-		CompletableFuture<Boolean> f1 = conveyor.place(c1);
-		CompletableFuture<Boolean> f2 = conveyor.place(c2);
-		CompletableFuture<Boolean> f3 = conveyor.place(c3);
-		CompletableFuture<Boolean> f4 = conveyor.place(c4);
+		CompletableFuture<Boolean> f1 = conveyor.part().id("1").value("John,Dow1,1990").place();
+		CompletableFuture<Boolean> f2 = conveyor.part().id("2").value("John,Dow1,1991").place();
+		CompletableFuture<Boolean> f3 = conveyor.part().id("2").value("John,Dow1,1992").place();
+		CompletableFuture<Boolean> f4 = conveyor.part().id("2").value("John,Dow1,1993").place();
 		
 		assertTrue(f1.get());
 		assertTrue(f2.get());
@@ -408,7 +397,7 @@ public class ParallelConveyorTest {
 	 */
 	@Test
 	public void createFutureConveyorTest() throws InterruptedException, ExecutionException, TimeoutException {
-		KBalancedParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
+		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		conveyor.setResultConsumer(u->{
@@ -420,10 +409,8 @@ public class ParallelConveyorTest {
 		CompletableFuture<User> uf2 = conveyor.build().id("2").supplier(StringToUserBuulder::new).createFuture();
 
 		
-		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");
-		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow2,1991");
-		CompletableFuture<Boolean> f1 = conveyor.place(c1);
-		CompletableFuture<Boolean> f2 = conveyor.place(c2);
+		CompletableFuture<Boolean> f1 = conveyor.part().id("1").value("John,Dow1,1990").place();
+		CompletableFuture<Boolean> f2 = conveyor.part().id("2").value("John,Dow1,1991").place();
 		
 		assertTrue(f1.get());
 		assertTrue(f2.get());
@@ -442,7 +429,7 @@ public class ParallelConveyorTest {
 	 */
 	@Test
 	public void createFutureConveyorTest2() throws InterruptedException, ExecutionException, TimeoutException {
-		KBalancedParallelConveyor<String, SmartLabel<ScalarConvertingBuilder<String, ?>>, User>
+		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
@@ -454,10 +441,8 @@ public class ParallelConveyorTest {
 		CompletableFuture<User> uf2 = conveyor.build().id("2").createFuture();
 
 		
-		ScalarCart<String, String> c1 = new ScalarCart<>("1", "John,Dow1,1990");
-		ScalarCart<String, String> c2 = new ScalarCart<>("2", "Jane,Dow2,1991");
-		CompletableFuture<Boolean> f1 = conveyor.place(c1);
-		CompletableFuture<Boolean> f2 = conveyor.place(c2);
+		CompletableFuture<Boolean> f1 = conveyor.part().id("1").value("John,Dow1,1990").place();
+		CompletableFuture<Boolean> f2 = conveyor.part().id("2").value("John,Dow1,1991").place();
 		
 		assertTrue(f1.get());
 		assertTrue(f2.get());

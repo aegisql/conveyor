@@ -20,8 +20,6 @@ import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuuld
 import com.aegisql.conveyor.utils.batch.BatchCart;
 import com.aegisql.conveyor.utils.batch.BatchCollectingBuilder;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
-//import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuulder;
-import com.aegisql.conveyor.utils.scalar.ScalarCart;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 
 // TODO: Auto-generated Javadoc
@@ -80,9 +78,6 @@ public class ChainTest {
 		String csv1 = "John,Dow,1990";
 		String csv2 = "John,Smith,1991";
 		
-		ScalarCart<String,String> scalarCart1 = new ScalarCart<String, String>("test1", csv1);
-		ScalarCart<String,String> scalarCart2 = new ScalarCart<String, String>("test2", csv2);
-		
 		BatchConveyor<User> batchConveyor = new BatchConveyor<>();
 		
 		AtomicInteger ai  = new AtomicInteger(0);
@@ -109,8 +104,8 @@ public class ChainTest {
 			usr.set(u.product);
 		}));
 		
-		scalarConveyor.place(scalarCart1);
-		CompletableFuture<Boolean> f = scalarConveyor.place(scalarCart2);
+		scalarConveyor.part().id("test1").value(csv1).place();
+		CompletableFuture<Boolean> f = scalarConveyor.part().id("test2").value(csv2).place();
 
 		f.get();
 		assertNotNull(usr.get());

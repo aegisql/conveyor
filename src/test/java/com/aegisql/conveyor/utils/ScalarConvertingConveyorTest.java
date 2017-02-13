@@ -1,6 +1,6 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -13,7 +13,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.utils.scalar.ScalarCart;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 
@@ -82,25 +81,6 @@ public class ScalarConvertingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException 
 	 */
-	@Test
-	public void testScalarConvertingConveyor() throws InterruptedException, ExecutionException {
-		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
-		sc.setBuilderSupplier(StringToUserBuulder::new);
-		AtomicReference<User> usr = new AtomicReference<User>(null);
-		sc.setResultConsumer(u->{
-			System.out.println("RESULT: "+u);
-			usr.set(u.product);
-		});
-		String csv = "John,Dow,1990";
-		
-		ScalarCart<String,String> c = new ScalarCart<String, String>("test", csv);
-		
-		CompletableFuture<Boolean> cf = sc.place(c);
-		cf.get();
-		assertNotNull(usr.get());
-	}
-	
-
 	@Test
 	public void testScalarConvertingConveyorWithPart() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
