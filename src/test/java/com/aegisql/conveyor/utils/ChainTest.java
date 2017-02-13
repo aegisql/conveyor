@@ -17,7 +17,6 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuulder;
-import com.aegisql.conveyor.utils.batch.BatchCart;
 import com.aegisql.conveyor.utils.batch.BatchCollectingBuilder;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
@@ -96,8 +95,7 @@ public class ChainTest {
 		});
 		batchConveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);		
 				
-		BatchCart<User> protoCart = new BatchCart(new User("A","B",1));
-		ChainResult<String, User, String> chain = new ChainResult(batchConveyor,protoCart.getLabel());
+		ChainResult<String, User, String> chain = new ChainResult(batchConveyor,batchConveyor.BATCH);
 
 		scalarConveyor.setResultConsumer(chain.andThen(u->{
 			System.out.println("RESULT: "+u.product);

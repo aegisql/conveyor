@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
+import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -24,5 +26,21 @@ public class BatchConveyor <V> extends AssemblingConveyor<String, SmartLabel<Bat
 			builder.setReady(true);
 		});
 	}
+	
+	public final SmartLabel<BatchCollectingBuilder<V>> BATCH = SmartLabel.of((b,v)->{
+		BatchCollectingBuilder<V> builder = (BatchCollectingBuilder<V>)b;
+		BatchCollectingBuilder.add(builder, (V)v);
+	} ); 
 
+	@Override
+	public <X> PartLoader<String, SmartLabel<BatchCollectingBuilder<V>>, X, List<V>, Boolean> part() {
+		return (PartLoader<String, SmartLabel<BatchCollectingBuilder<V>>, X, List<V>, Boolean>) super.part().label(BATCH).id("_BATCH_");
+	}
+
+
+	public <X> MultiKeyPartLoader<String, SmartLabel<BatchCollectingBuilder<V>>, X, List<V>, Boolean> multiKeyPart() {
+		return (MultiKeyPartLoader<String, SmartLabel<BatchCollectingBuilder<V>>, X, List<V>, Boolean>) super.multiKeyPart().label(BATCH);
+	}
+
+	
 }

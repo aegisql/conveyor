@@ -1,6 +1,8 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +15,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.Expireable;
-import com.aegisql.conveyor.utils.batch.BatchCart;
 import com.aegisql.conveyor.utils.batch.BatchCollectingBuilder;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 
@@ -101,7 +101,7 @@ public class BatchConveyorBuilderTest {
 		});
 		b.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
-			b.place(new BatchCart<Integer>(i));
+			b.part().value(1).place();
 		}
 		
 		Thread.sleep(40);
@@ -145,9 +145,9 @@ public class BatchConveyorBuilderTest {
 		b.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
 			if(i % 2 == 0) {
-				b.place(new BatchCart<Integer>("A",i));
+				b.part().id("A").value(i).place();
 			} else {
-				b.place(new BatchCart<Integer>("B",i));
+				b.part().id("B").value(i).place();
 			}
 		}
 		Thread.sleep(20);
