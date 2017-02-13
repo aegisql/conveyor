@@ -1,6 +1,8 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -11,11 +13,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.Expireable;
 import com.aegisql.conveyor.utils.collection.CollectionBuilder;
-import com.aegisql.conveyor.utils.collection.CollectionCompleteCart;
 import com.aegisql.conveyor.utils.collection.CollectionConveyor;
-import com.aegisql.conveyor.utils.collection.CollectionItemCart;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -105,10 +104,10 @@ public class CollectionBuilderTest {
 		});
 		b.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 100; i++) {
-			b.place(new CollectionItemCart<Integer,Integer>(1,i));
+			b.part().id(1).value(i).place();
 		}
 
-		b.place(new CollectionCompleteCart<Integer,Integer>(1));
+		b.part().id(1).label(b.COMPLETE).place();
 
 		Thread.sleep(110);
 		assertEquals(1, ai.get());
@@ -149,7 +148,7 @@ public class CollectionBuilderTest {
 		});
 		b.setIdleHeartBeat(50, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 100; i++) {
-			b.place(new CollectionItemCart<Integer,Integer>(1,i));
+			b.part().id(1).value(i).place();
 		}
 
 		Thread.sleep(150);
