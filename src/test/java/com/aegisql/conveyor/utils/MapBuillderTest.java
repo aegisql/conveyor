@@ -2,6 +2,9 @@ package com.aegisql.conveyor.utils;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -9,6 +12,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.utils.map.MapBuilder;
 import com.aegisql.conveyor.utils.map.MapConveyor;
 
@@ -58,9 +62,10 @@ public class MapBuillderTest {
 	 * Test map builder.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test
-	public void testMapBuilder() throws InterruptedException {
+	public void testMapBuilder() throws InterruptedException, ExecutionException {
 		MapConveyor<Integer, String, String> mc = new MapConveyor<>();
 		
 		mc.setBuilderSupplier( ()-> new MapBuilder<>() );
@@ -68,18 +73,15 @@ public class MapBuillderTest {
 		mc.setResultConsumer(bin->{
 			System.out.println(bin);
 		});
+		mc.setScrapConsumer(bin->fail("Failde "+bin));
 		
-		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<Integer, String, String>(1, "FIRST", "ONE");
-		ShoppingCart<Integer, String, String> c2 = new ShoppingCart<Integer, String, String>(1, "SECOND", "TWO");
-		ShoppingCart<Integer, String, String> c3 = new ShoppingCart<Integer, String, String>(1, "THIRD", "THREE");
-		ShoppingCart<Integer, String, String> c4 = new ShoppingCart<Integer, String, String>(1, null, null);
-
-		mc.place(c1);
-		mc.place(c2);
-		mc.place(c3);
-		mc.place(c4);
-		
-		Thread.sleep(100);
+		PartLoader<Integer, String,?,?,?> pl = mc.part().id(1);
+		pl.label("FIRST").value("ONE").place();
+		pl.label("SECOND").value("TWO").place();
+		pl.label("THIRD").value("THREE").place();
+		CompletableFuture<Boolean> last = (CompletableFuture<Boolean>) pl.label(null).value(null).place();
+		assertTrue(last.get());
+		Thread.sleep(10);
 	}
 
 }
