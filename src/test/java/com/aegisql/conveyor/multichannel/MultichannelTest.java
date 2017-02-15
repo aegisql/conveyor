@@ -2,6 +2,7 @@ package com.aegisql.conveyor.multichannel;
 
 import static org.junit.Assert.*;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +78,7 @@ public class MultichannelTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ac = new AssemblingConveyor<>();
 		ac.setName("main");
 		ac.setBuilderSupplier(UserBuilder::new);
-		ac.setDefaultBuilderTimeout(50, TimeUnit.MILLISECONDS);
+		ac.setDefaultBuilderTimeout(Duration.ofMillis(50));
 		ac.setScrapConsumer(bin->{
 			System.out.println("rejected: "+bin);
 		});

@@ -216,7 +216,7 @@ public class CommandLoaderTest {
 		c.setResultConsumer(bin->{
 			System.out.println(bin);
 		});
-		c.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
+		c.setDefaultBuilderTimeout(Duration.ofMillis(500));
 		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
 		CompletableFuture<Boolean> cf1 = c.build().id(1).create();
 		CompletableFuture<Boolean> cf2 = c.build().id(2).create();
