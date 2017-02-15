@@ -5,7 +5,6 @@ package com.aegisql.conveyor.utils.parallel;
 
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ParallelConveyorMBean;
@@ -344,6 +342,11 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit) {
 		this.builderTimeout = unit.toMillis(builderTimeout);
 		this.conveyors.forEach(conv->conv.setDefaultBuilderTimeout(builderTimeout,unit));
+	}
+	
+	@Override
+	public void setDefaultBuilderTimeout(Duration duration) {
+		this.setDefaultBuilderTimeout(duration.toMillis(), TimeUnit.MILLISECONDS);
 	}
 
 	/**

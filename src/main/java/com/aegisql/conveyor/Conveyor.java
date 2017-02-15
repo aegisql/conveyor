@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor;
 
+import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -144,7 +145,14 @@ public interface Conveyor<K, L, OUT> {
 	 * @param unit the unit
 	 */
 	public void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit);
-	
+
+	/**
+	 * Sets the default builder timeout.
+	 *
+	 * @param Duration the duration
+	 */
+	public void setDefaultBuilderTimeout(Duration duration);
+
 	/**
 	 * Reject unexpireable carts older than.
 	 *

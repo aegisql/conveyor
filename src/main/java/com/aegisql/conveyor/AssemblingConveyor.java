@@ -4,6 +4,7 @@
 package com.aegisql.conveyor;
 
 import java.lang.management.ManagementFactory;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -1015,6 +1016,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.builderTimeout = unit.toMillis(builderTimeout);
 	}
 
+	@Override
+	public void setDefaultBuilderTimeout(Duration duration) {
+		this.setDefaultBuilderTimeout(duration.toMillis(), TimeUnit.MILLISECONDS);
+	}
+	
 	/**
 	 * Reject unexpireable carts older than.
 	 *
