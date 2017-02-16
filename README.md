@@ -14,6 +14,11 @@ Maven dependency
 
 ## Release History
 
+### 1.2.1-SNAPSHOT
+* Utility conveyors modified to use Loaders
+* Extended use of Duration in conveyor settings
+* More tests
+
 ### 1.2.0
 * Changes in Conveyor interface
 * Changes in Cart interface
