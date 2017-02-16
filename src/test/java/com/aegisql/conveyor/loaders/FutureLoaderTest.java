@@ -1,12 +1,12 @@
 package com.aegisql.conveyor.loaders;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -14,6 +14,11 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.user.UserBuilder;
 
 public class FutureLoaderTest {
 
@@ -74,6 +79,43 @@ public class FutureLoaderTest {
 
 		assertNotNull(cl2et.get());
 		
+	}
+	
+	@Test(expected=ExecutionException.class)
+	public void testFailingFuture() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, String, User> c = new AssemblingConveyor<>();
+		CompletableFuture<User> f = c.future().id(1).get();
+		f.get();
+	}
+
+	@Test
+	public void testCanceledFuture() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, String, User> c = new AssemblingConveyor<>();
+		CompletableFuture<Boolean> b = c.build().id(1).supplier(UserBuilder::new).create();
+		assertTrue(b.get());
+		CompletableFuture<User> f = c.future().id(1).get();
+		c.command().id(1).cancel();
+		try{
+			f.get();
+			fail("unexpected result");
+		} catch (Exception e) {
+		}
+	}
+
+	@Test
+	public void testFuture() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, String, User> c = new AssemblingConveyor<>();
+		c.setReadinessEvaluator(x->true);
+		c.setDefaultCartConsumer(Conveyor.getConsumerFor(c).filter(l->true, v->{}));
+		c.setResultConsumer(bin->{
+			System.out.println(bin);
+		});
+		CompletableFuture<Boolean> b = c.build().id(1).supplier(UserBuilder::new).create();
+		assertTrue(b.get());
+		CompletableFuture<User> f = c.future().id(1).get();
+		c.part().id(1).place();
+		User u = f.get();
+		assertNotNull(u);
 	}
 
 }
