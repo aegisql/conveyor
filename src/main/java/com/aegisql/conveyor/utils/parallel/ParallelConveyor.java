@@ -710,4 +710,18 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		}
 	}
 
+	@Override
+	public void setIdleHeartBeat(Duration duration) {
+		this.setIdleHeartBeat(duration.toMillis(),TimeUnit.MILLISECONDS);
+	}
+
+	@Override
+	public void rejectUnexpireableCartsOlderThan(Duration duration) {
+		this.rejectUnexpireableCartsOlderThan(duration.toMillis(),TimeUnit.MILLISECONDS);
+	}
+
+	@Override
+	public void setExpirationPostponeTime(Duration duration) {
+		this.setExpirationPostponeTime(duration.toMillis(),TimeUnit.MILLISECONDS);
+	}
 }

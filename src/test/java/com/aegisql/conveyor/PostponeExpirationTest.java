@@ -2,6 +2,7 @@ package com.aegisql.conveyor;
 
 import static org.junit.Assert.*;
 
+import java.time.Duration;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -97,7 +98,7 @@ public class PostponeExpirationTest {
 		conveyor.setName("User Assembler");
 
 		conveyor.enablePostponeExpiration(true);
-		conveyor.setExpirationPostponeTime(100, TimeUnit.MILLISECONDS);
+		conveyor.setExpirationPostponeTime(Duration.ofMillis(100));
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 		conveyor.setIdleHeartBeat(1, TimeUnit.MILLISECONDS);
 

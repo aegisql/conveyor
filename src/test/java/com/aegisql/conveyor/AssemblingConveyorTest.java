@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -176,7 +177,7 @@ public class AssemblingConveyorTest {
 	public void testCommandTooOld() throws InterruptedException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.rejectUnexpireableCartsOlderThan(10, TimeUnit.MILLISECONDS);
+		conveyor.rejectUnexpireableCartsOlderThan(Duration.ofMillis(10));
 		conveyor.setScrapConsumer((o)->{
 			System.out.println(o);
 			assertTrue(o.comment.startsWith("Command is too old"));

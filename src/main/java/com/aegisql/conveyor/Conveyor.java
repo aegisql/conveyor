@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -137,7 +136,14 @@ public interface Conveyor<K, L, OUT> {
 	 * @param unit the unit
 	 */
 	public void setIdleHeartBeat(long heartbeat, TimeUnit unit);
-	
+
+	/**
+	 * Sets the idle heart beat.
+	 *
+	 * @param duration the duration
+	 */
+	public void setIdleHeartBeat(Duration duration);
+
 	/**
 	 * Sets the default builder timeout.
 	 *
@@ -160,6 +166,14 @@ public interface Conveyor<K, L, OUT> {
 	 * @param unit the unit
 	 */
 	public void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit);
+
+	/**
+	 * Reject unexpireable carts older than.
+	 *
+	 * @param duration the duration
+	 */
+	public void rejectUnexpireableCartsOlderThan(Duration duration);
+
 	
 	/**
 	 * Sets the on timeout action.
@@ -303,7 +317,14 @@ public interface Conveyor<K, L, OUT> {
 	 * @param unit the unit
 	 */
 	public void setExpirationPostponeTime(long time, TimeUnit unit);
-	
+
+	/**
+	 * Sets the expiration postpone time.
+	 *
+	 * @param duration the duration
+	 */
+	public void setExpirationPostponeTime(Duration duration);
+
 	/**
 	 * Checks if is forwarding results.
 	 *

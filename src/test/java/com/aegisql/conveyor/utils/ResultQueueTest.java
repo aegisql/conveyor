@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.time.Duration;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 
@@ -106,7 +107,7 @@ public class ResultQueueTest {
 		conveyor.setBuilderSupplier(UserBuilder::new);
 		conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 		assertEquals(1000, conveyor.getDefaultBuilderTimeout());
-		conveyor.setIdleHeartBeat(500, TimeUnit.MILLISECONDS);
+		conveyor.setIdleHeartBeat(Duration.ofMillis(500));
 		assertEquals(500,conveyor.getExpirationCollectionIdleInterval());
 		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			UserBuilder userBuilder = (UserBuilder) builder;
