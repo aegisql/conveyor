@@ -45,7 +45,6 @@ import com.aegisql.conveyor.loaders.FutureLoader;
 import com.aegisql.conveyor.loaders.MultiKeyCommandLoader;
 import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
-import com.sun.org.apache.bcel.internal.generic.INSTANCEOF;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -145,8 +144,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The cart consumer. */
 	protected LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer = (l, v, b) -> {
 		scrapConsumer
-				.accept(new ScrapBin<L, Object>(l, v, "Cart Consumer is not set. label", FailureType.GENERAL_FAILURE));
-		throw new IllegalStateException("Cart Consumer is not set");
+				.accept(new ScrapBin<L, Object>(l, v, "Cart Consumer is not set.", new IllegalStateException("Cart Consumer is not set"), FailureType.GENERAL_FAILURE));
 	};
 
 	/** The ready. */
@@ -908,8 +906,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				failureType = FailureType.BUILD_FAILED;
 				OUT res = buildingSite.unsafeBuild();
 				failureType = FailureType.RESULT_CONSUMER_FAILED;
-				resultConsumer.accept(new ProductBin<K, OUT>(key, res, buildingSite.getDelayMsec(), Status.READY));
-				buildingSite.completeFuturesWithValue(res);
+				completeSuccessfully((BuildingSite<K, L, ?, OUT>) buildingSite,res,Status.READY);
 			}
 			cart.getFuture().complete(Boolean.TRUE);
 		} catch (Exception e) {
@@ -980,9 +977,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							LOG.trace("Expired and finished " + key);
 						}
 						OUT res = buildingSite.build();
-						resultConsumer.accept(
-								new ProductBin<K, OUT>(key, res, buildingSite.getDelayMsec(), Status.TIMED_OUT));
-						buildingSite.completeFuturesWithValue(res);
+						completeSuccessfully((BuildingSite<K, L, ?, OUT>) buildingSite,res,Status.TIMED_OUT);
 					} else {
 						if (postponeTimeout(buildingSite)) {
 							continue;
@@ -1373,9 +1368,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.forwardingTo = conv.toString();
 		this.setResultConsumer(bin -> {
 			LOG.debug("Forward {} from {} to {} {}", partial, this.name, conv.getName(), bin.product);
-			Cart<K, OUT, L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,
-					TimeUnit.MILLISECONDS);
-			conv.place(partialResult);
+			conv.part()
+			.id(bin.key)
+			.label(partial)
+			.value(bin.product)
+			.ttl( bin.remainingDelayMsec,TimeUnit.MILLISECONDS)
+			.place();
 		});
 	}
 
@@ -1522,4 +1520,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.setExpirationPostponeTime(duration.toMillis(),TimeUnit.MILLISECONDS);
 	}
 
+	private void completeSuccessfully(BuildingSite<K, L, ?, OUT> buildingSite, OUT res, Status status) {
+		resultConsumer.accept(new ProductBin<K, OUT>(buildingSite.getKey(), res, buildingSite.getDelayMsec(), status));
+		buildingSite.completeFuturesWithValue(res);
+	}
+	
 }
