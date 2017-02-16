@@ -17,8 +17,8 @@ public class ScrapBin<K,O> {
 	 */
 	public enum FailureType {
 		 
- 		/** The cart rejected. */
- 		CART_REJECTED
+/** The cart rejected. */
+CART_REJECTED
 		,
 /** The command rejected. */
 COMMAND_REJECTED

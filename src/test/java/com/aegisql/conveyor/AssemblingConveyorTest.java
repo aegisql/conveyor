@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.DelayQueue;
@@ -195,7 +196,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException 
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test(expected=CancellationException.class)
 	public void testAddStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -215,7 +216,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException 
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test(expected=CancellationException.class)
 	public void testNullCartContentStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -239,7 +240,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException 
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test(expected=CancellationException.class)
 	public void testAddExpiredStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -558,7 +559,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException the execution exception
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test(expected=CancellationException.class)
 	public void testSimpleConveyorBlocking() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>( ()->new ArrayBlockingQueue(3) );

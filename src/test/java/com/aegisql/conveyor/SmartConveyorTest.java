@@ -409,7 +409,7 @@ public class SmartConveyorTest {
 	 * @throws InterruptedException             the interrupted exception
 	 * @throws ExecutionException the execution exception
 	 */
-	@Test(expected = ExecutionException.class) // ???? Failed
+	@Test(expected = CancellationException.class) // ???? Failed
 	public void testRejectedStartAdd() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
