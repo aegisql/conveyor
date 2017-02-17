@@ -808,6 +808,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.scrapConsumer = this.scrapCartConsumer.andThen(usersScrapConsumer);
 	}
 
+	/**
+	 * Sets the scrap consumer.
+	 *
+	 * @param scrapConsumer
+	 *            the scrap consumer
+	 */
 	protected void setInnerScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer) {
 		this.scrapConsumer = scrapConsumer;
 	}

@@ -155,7 +155,7 @@ public interface Conveyor<K, L, OUT> {
 	/**
 	 * Sets the default builder timeout.
 	 *
-	 * @param Duration the duration
+	 * @param duration the duration
 	 */
 	public void setDefaultBuilderTimeout(Duration duration);
 
