@@ -160,7 +160,7 @@ public class SmartConveyorTest {
 		assertNull(u0);
 		conveyor.place(c2);
 
-		conveyor.command().id(1).ttl(4, TimeUnit.SECONDS).reschedule();
+		conveyor.command().id(1).ttl(10, TimeUnit.SECONDS).reschedule();
 		Thread.sleep(1500);
 		conveyor.place(c3);
 		Thread.sleep(100);
