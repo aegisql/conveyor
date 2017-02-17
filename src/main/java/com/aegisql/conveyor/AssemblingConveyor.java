@@ -801,8 +801,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/**
 	 * Sets the scrap consumer.
 	 *
-	 * @param scrapConsumer
-	 *            the scrap consumer
+	 * @param usersScrapConsumer
+	 *            the users scrap consumer
 	 */
 	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> usersScrapConsumer) {
 		this.scrapConsumer = this.scrapCartConsumer.andThen(usersScrapConsumer);
