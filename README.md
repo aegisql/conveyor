@@ -8,15 +8,18 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.2.0</version>
+  <version>1.2.1</version>
 </dependency>
 ```
 
 ## Release History
 
-### 1.2.1-SNAPSHOT
+### 1.2.2-SNAPSHOT
+
+### 1.2.1
 * Utility conveyors modified to use Loaders
 * Extended use of Duration in conveyor settings
+* Bugfixes
 * More tests
 
 ### 1.2.0
