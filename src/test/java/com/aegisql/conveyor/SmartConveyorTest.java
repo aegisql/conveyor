@@ -17,6 +17,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
@@ -138,6 +139,7 @@ public class SmartConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 */
 	@Test
+	@Ignore
 	public void testRescheduleSmart() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
