@@ -1110,8 +1110,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cartConsumer
 	 *            the cart consumer
 	 */
-	public void setDefaultCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer) {
-		this.cartConsumer = cartConsumer;
+	@Override
+	public <B extends Supplier<? extends OUT>> void setDefaultCartConsumer(LabeledValueConsumer<L, ?, B> cartConsumer) {
+		this.cartConsumer = (LabeledValueConsumer<L, ?, Supplier<? extends OUT>>) cartConsumer;
 	}
 
 	/**

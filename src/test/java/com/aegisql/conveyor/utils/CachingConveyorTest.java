@@ -92,16 +92,13 @@ public class CachingConveyorTest {
 		conveyor.setSynchronizeBuilder(true);
 		conveyor.setBuilderSupplier(BuilderSupplier.of(UserBuilder::new).expire(exp));
 		conveyor.setDefaultCartConsumer(
-				Conveyor.getConsumerFor(conveyor)
+				Conveyor.getConsumerFor(conveyor,UserBuilder.class)
 				.<String>when("setFirst", (b,v)->{
-					UserBuilder userBuilder = (UserBuilder) b;
-					userBuilder.setFirst(v);
+					b.setFirst(v);
 				}).<String>when("setLast", (b,v)->{
-					UserBuilder userBuilder = (UserBuilder) b;
-					userBuilder.setLast(v);
+					b.setLast(v);
 				}).<Integer>when("setYearOfBirth", (b,v)->{
-					UserBuilder userBuilder = (UserBuilder) b;
-					userBuilder.setYearOfBirth(v);
+					b.setYearOfBirth(v);
 				})
 				);
 

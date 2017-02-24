@@ -106,7 +106,10 @@ public class FutureLoaderTest {
 	public void testFuture() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> c = new AssemblingConveyor<>();
 		c.setReadinessEvaluator(x->true);
-		c.setDefaultCartConsumer(Conveyor.getConsumerFor(c).filter(l->true, v->{}));
+		c.setDefaultCartConsumer(Conveyor.getConsumerFor(c,UserBuilder.class).filter(l->true, (b,v)->{
+			System.out.println("First="+b.getFirst());			
+			System.out.println("Last="+b.getLast());			
+		}));
 		c.setResultConsumer(bin->{
 			System.out.println(bin);
 		});

@@ -194,7 +194,7 @@ public interface Conveyor<K, L, OUT> {
 	 *
 	 * @param cartConsumer the cart consumer
 	 */
-	public void setDefaultCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer);
+	public <B extends Supplier<? extends OUT>> void setDefaultCartConsumer(LabeledValueConsumer<L, ?, B> cartConsumer);
 	
 	/**
 	 * Sets the readiness evaluator.
@@ -359,6 +359,13 @@ public interface Conveyor<K, L, OUT> {
 			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
 		};
 	}
+
+	static <L,OUT,B extends Supplier<? extends OUT>> LabeledValueConsumer<L, ?, B> getConsumerFor(Conveyor<?, L, OUT> conveyor,Class<B> builder) {
+		return (l,v,b)->{
+			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
+		};
+	}
+
 	
 	/**
 	 * Gets the cart counter.

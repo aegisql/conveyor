@@ -393,7 +393,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 *
 	 * @param cartConsumer the cart consumer
 	 */
-	public void setDefaultCartConsumer(LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer) {
+	public <B extends Supplier<? extends OUT>> void setDefaultCartConsumer(LabeledValueConsumer<L, ?, B> cartConsumer) {
 		this.conveyors.forEach(conv->conv.setDefaultCartConsumer(cartConsumer));
 	}
 
