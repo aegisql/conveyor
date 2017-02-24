@@ -6,6 +6,8 @@ package com.aegisql.conveyor;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -144,6 +146,31 @@ public interface LabeledValueConsumer<L,V,B> {
 		};
 	}
 
+	default <T> LabeledValueConsumer<L,V,B> match(String pattern, BiConsumer<B,T> consumer) {
+		final Pattern p = Pattern.compile(pattern);
+		return filter(l->{
+			Matcher m = p.matcher(l.toString());
+			return m.matches();
+		},consumer);
+	}
+
+	default LabeledValueConsumer<L,V,B> match(String pattern, Consumer<V> consumer) {
+		final Pattern p = Pattern.compile(pattern);
+		return filter(l->{
+			Matcher m = p.matcher(l.toString());
+			return m.matches();
+		},consumer);
+	}
+
+	default LabeledValueConsumer<L,V,B> match(String pattern, Runnable runnable) {
+		final Pattern p = Pattern.compile(pattern);
+		return filter(l->{
+			Matcher m = p.matcher(l.toString());
+			return m.matches();
+		},runnable);
+	}
+
+	
 	/**
 	 * Ignore.
 	 *
