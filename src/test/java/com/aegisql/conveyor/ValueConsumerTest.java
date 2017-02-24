@@ -245,6 +245,7 @@ public class ValueConsumerTest {
 		System.out.println(sb);
 		assertEquals("aaa", sb.toString());
 	}
+
 	@Test
 	public void testMatch3() {
 		LabeledValueConsumer<String, String, StringBuilder> lvc = (l,v,b) -> {
@@ -264,6 +265,31 @@ public class ValueConsumerTest {
 		
 		System.out.println(sb);
 		assertEquals("aa", sb.toString());
+	}
+
+	@Test
+	public void testMatch4() {
+		LabeledValueConsumer<String, String, StringBuilder> lvc = (l,v,b) -> {
+			System.out.println("testing "+b+":"+v);
+		};
+
+		StringBuilder sb = new StringBuilder();
+
+		lvc = lvc.<String>match("a+", v->{
+			System.out.println("appending:"+v);
+			sb.append(v.toLowerCase());			
+		}).<String>match("z+", v->{
+			System.out.println("appending:"+v);
+			sb.append(v.toLowerCase());			
+		});
+		lvc.accept("a", "a", sb);
+		lvc.accept("aa", "AA", sb);
+		lvc.accept("aba", "aba", sb);
+		lvc.accept("b", "b", sb);
+		lvc.accept("z", "z", sb);
+		
+		System.out.println(sb);
+		assertEquals("aaaz", sb.toString());
 	}
 
 }
