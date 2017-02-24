@@ -360,6 +360,16 @@ public interface Conveyor<K, L, OUT> {
 		};
 	}
 
+	/**
+	 * Gets the consumer for.
+	 *
+	 * @param <L> the generic type
+	 * @param <OUT> the generic type
+	 * @param <B> the generic type
+	 * @param conveyor the conveyor
+	 * @param builder the builder
+	 * @return the consumer for
+	 */
 	static <L,OUT,B extends Supplier<? extends OUT>> LabeledValueConsumer<L, ?, B> getConsumerFor(Conveyor<?, L, OUT> conveyor,Class<B> builder) {
 		return (l,v,b)->{
 			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");

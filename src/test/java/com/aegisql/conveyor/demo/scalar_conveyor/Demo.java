@@ -29,10 +29,9 @@ public class Demo {
 		conveyor.setBuilderSupplier(PersonBuilder::new);
 		
 		// III - Explain conveyor how to process Building Parts
-		conveyor.setDefaultCartConsumer(Conveyor.getConsumerFor(conveyor)
-				.filter((l)->true, (builder,value)->{
+		conveyor.setDefaultCartConsumer(Conveyor.getConsumerFor(conveyor,PersonBuilder.class)
+				.filter((l)->true, (personBuilder,value)->{
 					try {
-						PersonBuilder personBuilder = (PersonBuilder)builder;
 						String[] parts = value.toString().split("\\|");
 						personBuilder.setFirstName(parts[0]);
 						personBuilder.setLastName(parts[1]);

@@ -35,16 +35,16 @@ public class Demo {
 		conveyor.setBuilderSupplier(PersonBuilder::new);
 		
 		// III - Explain conveyor how to process Building Parts
-		conveyor.setDefaultCartConsumer(Conveyor.getConsumerFor(conveyor)
+		conveyor.setDefaultCartConsumer(Conveyor.getConsumerFor(conveyor,PersonBuilder.class)
 				.when("FirstName", (builder,value)->{
-					((PersonBuilder) builder).setFirstName((String)value);
+					builder.setFirstName((String)value);
 				})
 				.when("LastName", (builder,value)->{
-					((PersonBuilder) builder).setLastName((String)value);
+					builder.setLastName((String)value);
 				})
 				//note how we tell the filter to ignore label case
 				.filter((l)->"dateofbirth".equalsIgnoreCase(l), (builder,value)->{
-					((PersonBuilder) builder).setDateOfBirth((Date) value);
+					builder.setDateOfBirth((Date) value);
 				})
 			);
 		
