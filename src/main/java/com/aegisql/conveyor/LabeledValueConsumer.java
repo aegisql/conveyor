@@ -146,6 +146,14 @@ public interface LabeledValueConsumer<L,V,B> {
 		};
 	}
 
+	/**
+	 * Match.
+	 *
+	 * @param <T> the generic type
+	 * @param pattern the pattern
+	 * @param consumer the consumer
+	 * @return the labeled value consumer
+	 */
 	default <T> LabeledValueConsumer<L,V,B> match(String pattern, BiConsumer<B,T> consumer) {
 		final Pattern p = Pattern.compile(pattern);
 		return filter(l->{
@@ -154,6 +162,13 @@ public interface LabeledValueConsumer<L,V,B> {
 		},consumer);
 	}
 
+	/**
+	 * Match.
+	 *
+	 * @param pattern the pattern
+	 * @param consumer the consumer
+	 * @return the labeled value consumer
+	 */
 	default LabeledValueConsumer<L,V,B> match(String pattern, Consumer<V> consumer) {
 		final Pattern p = Pattern.compile(pattern);
 		return filter(l->{
@@ -162,6 +177,13 @@ public interface LabeledValueConsumer<L,V,B> {
 		},consumer);
 	}
 
+	/**
+	 * Match.
+	 *
+	 * @param pattern the pattern
+	 * @param runnable the runnable
+	 * @return the labeled value consumer
+	 */
 	default LabeledValueConsumer<L,V,B> match(String pattern, Runnable runnable) {
 		final Pattern p = Pattern.compile(pattern);
 		return filter(l->{

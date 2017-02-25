@@ -8,13 +8,19 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.2.1</version>
+  <version>1.2.2</version>
 </dependency>
 ```
 
 ## Release History
 
-### 1.2.2-SNAPSHOT
+### 1.2.3-SNAPSHOT
+
+### 1.2.2
+* added method getConsumerFor with explicit Bulder class parameter to avoid class casting in consumers.
+* regex pattern match methods added to the LabeledValueConsumer interface.
+* more tests
+* minor bugfixes and refactoring
 
 ### 1.2.1
 * Utility conveyors modified to use Loaders
