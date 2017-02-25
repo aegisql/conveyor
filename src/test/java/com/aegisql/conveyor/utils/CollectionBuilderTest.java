@@ -151,7 +151,7 @@ public class CollectionBuilderTest {
 			b.part().id(1).value(i).place();
 		}
 
-		Thread.sleep(150);
+		Thread.sleep(1500);
 		System.out.println("COL:"+b.getCollectorSize());
 		System.out.println("DEL:"+b.getDelayedQueueSize());
 		System.out.println("IN :"+b.getInputQueueSize());
