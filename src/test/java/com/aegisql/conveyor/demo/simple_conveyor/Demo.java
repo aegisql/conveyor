@@ -36,13 +36,17 @@ public class Demo {
 		
 		// III - Explain conveyor how to process Building Parts
 		conveyor.setDefaultCartConsumer(Conveyor.getConsumerFor(conveyor,PersonBuilder.class)
+				//We use when method if we know how our labels look like. 
 				.when("FirstName", (builder,value)->{
 					builder.setFirstName((String)value);
 				})
-				.when("LastName", (builder,value)->{
+				//We can also use regular expressions to match complex label patterns to some action
+				//This example will math the "LastName" label
+				.match("^L.*e$", (builder,value)->{
 					builder.setLastName((String)value);
 				})
-				//note how we tell the filter to ignore label case
+				//or we can use custom filter. It will be accepted every time when
+				//corresponding predicate returns true
 				.filter((l)->"dateofbirth".equalsIgnoreCase(l), (builder,value)->{
 					builder.setDateOfBirth((Date) value);
 				})
