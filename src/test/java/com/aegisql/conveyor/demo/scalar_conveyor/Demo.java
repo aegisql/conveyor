@@ -30,9 +30,9 @@ public class Demo {
 		
 		// III - Explain conveyor how to process Building Parts
 		conveyor.setDefaultCartConsumer(Conveyor.getConsumerFor(conveyor,PersonBuilder.class)
-				.filter((l)->true, (personBuilder,value)->{
+				.<String>filter((l)->true, (personBuilder,value)->{
 					try {
-						String[] parts = value.toString().split("\\|");
+						String[] parts = value.split("\\|");
 						personBuilder.setFirstName(parts[0]);
 						personBuilder.setLastName(parts[1]);
 						personBuilder.setDateOfBirth((Date) format.parse(parts[2]));

@@ -36,21 +36,15 @@ public class Demo {
 		
 		// III - Explain conveyor how to process Building Parts
 		conveyor.setDefaultCartConsumer(Conveyor.getConsumerFor(conveyor,PersonBuilder.class)
-				//We use when method if we know how our labels look like. 
-				.when("FirstName", (builder,value)->{
-					builder.setFirstName((String)value);
-				})
-				//We can also use regular expressions to match complex label patterns to some action
-				//This example will math the "LastName" label
-				.match("^L.*e$", (builder,value)->{
-					builder.setLastName((String)value);
-				})
-				//or we can use custom filter. It will be accepted every time when
-				//corresponding predicate returns true
-				.filter((l)->"dateofbirth".equalsIgnoreCase(l), (builder,value)->{
-					builder.setDateOfBirth((Date) value);
-				})
-			);
+			//We use when method if we know how our labels look like. 
+			.<String>when("FirstName", (builder,firstName) -> builder.setFirstName(firstName))
+			//We can also use regular expressions to match complex label patterns to some action
+			//This example will math the "LastName" label
+			.<String>match("^L.*e$", (builder,lastName) -> builder.setLastName(lastName))
+			//or we can use custom filter. It will be accepted every time when
+			//corresponding predicate returns true
+			.<Date>filter((l)->"dateofbirth".equalsIgnoreCase(l), (builder,dateOfBirth)->builder.setDateOfBirth(dateOfBirth))
+		);
 		
 		// IV - Build is ready when builder accepted three different pieces of data
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(3));
