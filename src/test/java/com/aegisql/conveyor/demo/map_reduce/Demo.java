@@ -4,17 +4,18 @@
 package com.aegisql.conveyor.demo.map_reduce;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import org.junit.Test;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.demo.ThreadPool;
+import com.aegisql.conveyor.loaders.PartLoader;
+
+import org.junit.Test;
 
 public class Demo {
 	
@@ -40,22 +41,24 @@ public class Demo {
 			AssemblingConveyor<String, SmartLabel<WordCounter>, WordCount> source = collectingConveyor.detach();
 			//Giving conveyor a distinctive name is a good practice 
 			source.setName("COUNTER_"+Thread.currentThread().getId());
-			//Results will be forwrded to collectingConveyor with the MERGE_1 label
+			//Results will be forwrded to collectingConveyor with the MERGE label
 			source.forwardPartialResultTo(MERGE, collectingConveyor);
 			//Ready when "DONE" command is received
-			source.setReadinessEvaluator(Conveyor.getTesterFor(collectingConveyor).accepted(DONE));
-			//Send all words to the conveyor
-			for(String word:words) {
-				source.part().id(word).label(ADD).value(new WordCount(word, 1)).place();
-			}
+			source.setReadinessEvaluator(Conveyor.getTesterFor(source).accepted(DONE));
+			//Extract "common" part of the word loader into a variable
+			//This will just improve readability and highlight our intentions.
+			PartLoader<String, SmartLabel<WordCounter>,?,?,?> wordLoader = source.part().label(ADD);
+			//Stream all words to the conveyor
+			Arrays.stream(words).forEach(word->wordLoader.id(word).value(new WordCount(word, 1)).place());
 			//Send "DONE" message to all words and wait 
 			//until command is delivered to all of them.
+			CompletableFuture<Boolean> f = source.multiKeyPart().foreach().label(DONE).place();
+			//we need to wait to synchronize with the pool's future
+			//If pool's future is not required, the next call can be omitted.
 			try {
-				CompletableFuture<Boolean> f = source.multiKeyPart().foreach().label(DONE).place();
-				//we need to wait to synchronize with the pool's future
-				//If pool's future is not required, this call can be omitted.
 				f.get();
 			} catch (Exception e) {
+				throw new RuntimeException("Multi-Key DONE message failed in "+source.getName(),e);
 			}
 			//Now conveyor can be stopped. It will never be used again
 			source.stop();
@@ -63,14 +66,13 @@ public class Demo {
 	}
 
 	public void runDemo() throws InterruptedException, ExecutionException {
-
-
-		//Container for demo results
+		//Simple container for demo results
 		LinkedList<WordCount> wordList = new LinkedList<>();
 		//Creating conveyor
 		//Each word is a unique key of String type
 		//Label is a SmartLabel<WordCounter>
-		//Product is a WordCount - pair of word and number of occurrences
+		//For this example we created ADD, MERGE and DONE labels
+		//Product is a WordCount - immutable pair of word and number of occurrences
 		AssemblingConveyor<String, SmartLabel<WordCounter>, WordCount> collectingConveyor = new AssemblingConveyor<>();
 		collectingConveyor.setName("COLLECTOR");
 		collectingConveyor.setDefaultBuilderTimeout(Duration.ofSeconds(100));
