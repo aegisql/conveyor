@@ -20,6 +20,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	com.aegisql.conveyor.demo.simple_conveyor.Demo.class,
 	com.aegisql.conveyor.demo.smart_conveyor.Demo.class,
 	com.aegisql.conveyor.demo.smart_conveyor_labels.Demo.class,
+	com.aegisql.conveyor.demo.map_reduce.Demo.class,
 })
 public class DemoTests {
 
