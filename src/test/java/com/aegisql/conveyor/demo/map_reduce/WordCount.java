@@ -1,6 +1,10 @@
+/* 
+ * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
+ */
 package com.aegisql.conveyor.demo.map_reduce;
 
 public final class WordCount {
+	
 	private final String word;
 	private final int count;
 
