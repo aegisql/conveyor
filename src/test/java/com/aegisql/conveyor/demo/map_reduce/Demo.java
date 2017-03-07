@@ -20,18 +20,18 @@ public class Demo {
 	
 	//We will be counting words coming
 	//from three independent resources
-	static ThreadPool pool = new ThreadPool();
+	ThreadPool pool = new ThreadPool();
 	
 	//Define labels for two basic operations
-	static SmartLabel<WordCounter> ADD  = SmartLabel.of("ADD",WordCounter::add);
+	SmartLabel<WordCounter> ADD  = SmartLabel.of("ADD",WordCounter::add);
 	//Define label to forward results to the collectingConveyor
 	//note that MERGE and ADD labels associated with the same action
-	static SmartLabel<WordCounter> MERGE  = SmartLabel.of("MERGE",WordCounter::add);
+	SmartLabel<WordCounter> MERGE  = SmartLabel.of("MERGE",WordCounter::add);
 	//We do not need to do anything
 	//Just register the label as a trigger for the readiness algorithm
-	static SmartLabel<WordCounter> DONE = SmartLabel.of("DONE",()->{});
+	SmartLabel<WordCounter> DONE = SmartLabel.of("DONE",()->{});
 	
-	static Future<?> countWordsAsynch(AssemblingConveyor<String, SmartLabel<WordCounter>, WordCount> collectingConveyor, String... words ) {
+	Future<?> countWordsAsynch(AssemblingConveyor<String, SmartLabel<WordCounter>, WordCount> collectingConveyor, String... words ) {
 		//Run code in its own thread with some random delay
 		return pool.runAsynchWithDelay(System.nanoTime() % 100, 
 			()->{
@@ -62,8 +62,7 @@ public class Demo {
 		});
 	}
 
-	public static void main(String[] args) throws InterruptedException, ExecutionException {
-		
+	public void runDemo() throws InterruptedException, ExecutionException {
 
 
 		//Container for demo results
@@ -106,10 +105,14 @@ public class Demo {
 
 		pool.shutdown();
 		collectingConveyor.stop();
+		
+	}
+	public static void main(String[] args) throws InterruptedException, ExecutionException {
+		new Demo().runDemo();
 	}
 
 	@Test
 	public void test() throws Exception {
-		main(null);
+		new Demo().runDemo();
 	}
 }
