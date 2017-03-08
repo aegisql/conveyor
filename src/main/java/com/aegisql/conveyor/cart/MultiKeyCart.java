@@ -1,8 +1,5 @@
 package com.aegisql.conveyor.cart;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 // TODO: Auto-generated Javadoc

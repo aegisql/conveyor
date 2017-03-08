@@ -170,8 +170,15 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer, 
 			BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness, 
 			Consumer<Supplier<? extends OUT>> timeoutAction,
-			long ttl, TimeUnit unit, boolean synchronizeBuilder, 
-			boolean saveCarts, boolean postponeExpirationEnabled, long addExpirationTimeMsec, boolean postponeExpirationOnTimeoutEnabled) {
+			long ttl,
+			TimeUnit unit,
+			boolean synchronizeBuilder, 
+			boolean saveCarts, 
+			boolean postponeExpirationEnabled, 
+			long addExpirationTimeMsec, 
+			boolean postponeExpirationOnTimeoutEnabled,
+			Map<L,C> staticValues
+			) {
 		this.initialCart               = cart;
 		this.lastCart                  = cart;
 		this.defaultTimeoutAction      = timeoutAction;

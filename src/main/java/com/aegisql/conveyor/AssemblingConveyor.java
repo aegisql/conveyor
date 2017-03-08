@@ -76,6 +76,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The collector. */
 	protected final Map<K, BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT>> collector = new HashMap<>();
 
+	/** Keeps static values*/
+	protected final Map<L,Cart<K,?,L>> staticValues = new HashMap<>();
+	
 	/** The cart counter. */
 	protected long cartCounter = 0;
 
@@ -348,7 +351,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				if (bs != null) {
 					buildingSite = new BuildingSite<K, L, Cart<K, ?, L>, OUT>(cart, bs, cartConsumer, readiness,
 							timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder, saveCarts,
-							postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled);
+							postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues);
 					if (cart.getValue() instanceof FutureSupplier) {
 						FutureSupplier fs = (FutureSupplier) cart.getValue();
 						buildingSite.addFuture(fs.getFuture());
@@ -362,7 +365,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			} else if (builderSupplier != null) {
 				buildingSite = new BuildingSite<K, L, Cart<K, ?, L>, OUT>(cart, builderSupplier, cartConsumer,
 						readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder, saveCarts,
-						postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled);
+						postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues);
 			} else {
 				scrapConsumer.accept(new ScrapBin<K, Cart<K, ?, ?>>(cart.getKey(), cart,
 						"Ignore cart. Neither builder nor builder supplier available",
