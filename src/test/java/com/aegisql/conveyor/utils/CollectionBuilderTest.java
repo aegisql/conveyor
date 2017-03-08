@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.utils.collection.CollectionBuilder;
 import com.aegisql.conveyor.utils.collection.CollectionConveyor;
 
@@ -59,24 +60,6 @@ public class CollectionBuilderTest {
 	}
 
 	/**
-	 * Test collection builder.
-	 *
-	 * @throws InterruptedException the interrupted exception
-	 */
-	@Test
-	public void testCollectionBuilder() throws InterruptedException {
-		CollectionBuilder<Integer> b = new CollectionBuilder<>(100, TimeUnit.MILLISECONDS);
-		
-		assertFalse(b.test());
-		assertTrue(b.toDelayed().getDelay(TimeUnit.MILLISECONDS) > 0);
-		System.out.println(b.toDelayed().getDelay(TimeUnit.MILLISECONDS));
-		Thread.sleep(101);
-		System.out.println(b.toDelayed().getDelay(TimeUnit.MILLISECONDS));
-		assertTrue(b.toDelayed().getDelay(TimeUnit.MILLISECONDS) < 0);
-		
-	}
-	
-	/**
 	 * Test collection conveyor.
 	 *
 	 * @throws InterruptedException the interrupted exception
@@ -89,7 +72,7 @@ public class CollectionBuilderTest {
 		AtomicInteger ai = new AtomicInteger(0);
 		AtomicInteger aii = new AtomicInteger(0);
 		
-		b.setBuilderSupplier( () -> new CollectionBuilder<>(100, TimeUnit.MILLISECONDS) );
+		b.setBuilderSupplier( () -> new CollectionBuilder<>() );
 		b.setScrapConsumer((obj)->{
 			System.out.println(obj);
 			ai.decrementAndGet();
@@ -133,7 +116,7 @@ public class CollectionBuilderTest {
 		AtomicInteger ai = new AtomicInteger(0);
 		AtomicInteger aii = new AtomicInteger(0);
 		
-		b.setBuilderSupplier( () -> new CollectionBuilder<>(100, TimeUnit.MILLISECONDS) );
+		b.setBuilderSupplier( BuilderSupplier.of(new CollectionBuilder<Integer>()).expire(100, TimeUnit.MILLISECONDS) );
 		b.setScrapConsumer((obj)->{
 			System.out.println(obj);
 			ai.decrementAndGet();

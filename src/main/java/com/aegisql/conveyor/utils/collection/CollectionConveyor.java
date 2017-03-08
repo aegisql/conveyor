@@ -3,6 +3,7 @@ package com.aegisql.conveyor.utils.collection;
 import java.util.Collection;
 
 import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
@@ -22,6 +23,7 @@ public class CollectionConveyor <K,V> extends AssemblingConveyor<K, SmartLabel<C
 	public CollectionConveyor() {
 		super();
 		this.setName("CollectionConveyor");
+		this.setReadinessEvaluator(Conveyor.getTesterFor(this).accepted(COMPLETE));
 	}
 
 	public final SmartLabel<CollectionBuilder<V>> ITEM = SmartLabel.of((b,v)->{
@@ -29,10 +31,7 @@ public class CollectionConveyor <K,V> extends AssemblingConveyor<K, SmartLabel<C
 		CollectionBuilder.add(builder, (V)v);
 	});
 
-	public final SmartLabel<CollectionBuilder<V>> COMPLETE = SmartLabel.of((b,v)->{
-		CollectionBuilder<V> builder = (CollectionBuilder<V>)b;
-		CollectionBuilder.complete(builder, (V)v);
-	});
+	public final SmartLabel<CollectionBuilder<V>> COMPLETE = SmartLabel.of(()->{});
 
 	@Override
 	public <X> PartLoader<K, SmartLabel<CollectionBuilder<V>>, X, Collection<V>, Boolean> part() {
