@@ -659,7 +659,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			return place(new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime));
 		});
 	}
-//TODO: Compete	
+
 	@Override
 	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart() {
 		return  new StaticPartLoader<L, X, OUT, Boolean>(cl -> {
