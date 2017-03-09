@@ -661,8 +661,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 //TODO: Compete	
 	@Override
-	public <X> StaticPartLoader<K, L, X, OUT, Boolean> staticPart() {
-		return  new StaticPartLoader<K, L, X, OUT, Boolean>(cl -> {
+	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart() {
+		return  new StaticPartLoader<L, X, OUT, Boolean>(cl -> {
 			return place(new StaticCart<K, Object, L>(cl.staticPartValue, cl.label, cl.create));
 		});
 	}

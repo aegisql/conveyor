@@ -2,22 +2,20 @@ package com.aegisql.conveyor.loaders;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 // TODO: Auto-generated Javadoc
 /**
  * The Class StaticPartLoader.
  *
- * @param <K> the key type
  * @param <L> the generic type
  * @param <V> the value type
  * @param <OUT> the generic type
  * @param <F> the generic type
  */
-public final class StaticPartLoader<K,L,V,OUT,F> {
+public final class StaticPartLoader<L,V,OUT,F> {
 
 	/** The placer. */
-	private final Function<StaticPartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer;
+	private final Function<StaticPartLoader<L,?,OUT,F>, CompletableFuture<F>> placer;
 	
 	/** The label. */
 	public final L label;
@@ -34,7 +32,7 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 * @param label the label
 	 * @param value the value
 	 */
-	private StaticPartLoader(Function<StaticPartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer,L label, V value, boolean create) {
+	private StaticPartLoader(Function<StaticPartLoader<L,?,OUT,F>, CompletableFuture<F>> placer,L label, V value, boolean create) {
 		this.placer = placer;
 		this.label = label;
 		this.staticPartValue = value;
@@ -46,7 +44,7 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 *
 	 * @param placer the placer
 	 */
-	public StaticPartLoader(Function<StaticPartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer) {
+	public StaticPartLoader(Function<StaticPartLoader<L,?,OUT,F>, CompletableFuture<F>> placer) {
 		this(placer,null,null,true);
 	}
 	
@@ -55,8 +53,8 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 *
 	 * @return the part loader
 	 */
-	public StaticPartLoader<K,L,V,OUT,F> delete() {
-		return new StaticPartLoader<K,L,V,OUT,F>(placer,label,staticPartValue,false);
+	public StaticPartLoader<L,V,OUT,F> delete() {
+		return new StaticPartLoader<L,V,OUT,F>(placer,label,staticPartValue,false);
 	}
 
 	/**
@@ -65,8 +63,8 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 * @param filter the filtering predicate
 	 * @return the part loader
 	 */
-	public StaticPartLoader<K,L,V,OUT,F> create() {
-		return new StaticPartLoader<K,L,V,OUT,F>(placer,label,staticPartValue,true);
+	public StaticPartLoader<L,V,OUT,F> create() {
+		return new StaticPartLoader<L,V,OUT,F>(placer,label,staticPartValue,true);
 	}
 
 	/**
@@ -75,8 +73,8 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 * @param l the l
 	 * @return the part loader
 	 */
-	public StaticPartLoader<K,L,V,OUT,F> label(L l) {
-		return new StaticPartLoader<K,L,V,OUT,F>(placer,l,staticPartValue,create);
+	public StaticPartLoader<L,V,OUT,F> label(L l) {
+		return new StaticPartLoader<L,V,OUT,F>(placer,l,staticPartValue,create);
 	}
 
 	/**
@@ -86,8 +84,8 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 * @param v the v
 	 * @return the part loader
 	 */
-	public<X> StaticPartLoader<K,L,X,OUT,F> value(X v) {
-		return new StaticPartLoader<K,L,X,OUT,F>(placer,label,v,create);
+	public<X> StaticPartLoader<L,X,OUT,F> value(X v) {
+		return new StaticPartLoader<L,X,OUT,F>(placer,label,v,create);
 	}
 
 	/**
