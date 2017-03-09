@@ -37,6 +37,7 @@ import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.StaticCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.delay.DelayProvider;
 import com.aegisql.conveyor.loaders.BuilderLoader;
@@ -45,6 +46,7 @@ import com.aegisql.conveyor.loaders.FutureLoader;
 import com.aegisql.conveyor.loaders.MultiKeyCommandLoader;
 import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.loaders.StaticPartLoader;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -657,6 +659,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			return place(new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime));
 		});
 	}
+//TODO: Compete	
+	@Override
+	public <X> StaticPartLoader<K, L, X, OUT, Boolean> staticPart() {
+		return  new StaticPartLoader<K, L, X, OUT, Boolean>(cl -> {
+			return place(new StaticCart<K, Object, L>(cl.staticPartValue, cl.label));
+		});
+	}
+
 
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#build()

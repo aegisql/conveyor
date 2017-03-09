@@ -21,6 +21,7 @@ import com.aegisql.conveyor.loaders.FutureLoader;
 import com.aegisql.conveyor.loaders.MultiKeyCommandLoader;
 import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.loaders.StaticPartLoader;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -41,7 +42,15 @@ public interface Conveyor<K, L, OUT> {
 	 * @return the part loader
 	 */
 	public <X> PartLoader<K, L, X, OUT, Boolean> part();
-	
+
+	/**
+	 * StaticPart.
+	 *
+	 * @param <X> the generic type
+	 * @return the part loader
+	 */
+	public <X> StaticPartLoader<K, L, X, OUT, Boolean> staticPart();
+
 	/**
 	 * Builds the.
 	 *
