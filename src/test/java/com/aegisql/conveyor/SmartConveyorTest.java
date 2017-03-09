@@ -29,6 +29,7 @@ import com.aegisql.conveyor.user.LowerUser;
 import com.aegisql.conveyor.user.UpperCaseUserBuilder;
 import com.aegisql.conveyor.user.UpperUser;
 import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderEvents2;
 import com.aegisql.conveyor.user.UserBuilderEvents3;
@@ -709,6 +710,48 @@ public class SmartConveyorTest {
 		System.out.println(user1);
 		assertEquals(user1,new UpperUser("JOHN","DOE",1999));
 		conveyor.stop();
+	}
+	
+	@Test
+	public void testStaticValues() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, SmartLabel<UserBuilder>, User> c = new AssemblingConveyor<>();
+		c.setName("testStaticValues");
+		SmartLabel<UserBuilder> F = SmartLabel.of(UserBuilder::setFirst);
+		SmartLabel<UserBuilder> L = SmartLabel.of(UserBuilder::setLast);
+		SmartLabel<UserBuilder> D = SmartLabel.of(UserBuilder::setYearOfBirth);
+		c.setBuilderSupplier(UserBuilder::new);
+		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(F,L,D));
+		c.staticPart().label(F).value("Mr.").place();
+		
+		PartLoader<Integer, SmartLabel<UserBuilder>, ?, User, Boolean> plLast = c.part().label(L);
+		PartLoader<Integer, SmartLabel<UserBuilder>, ?, User, Boolean> plDate = c.part().label(D);
+		
+		CompletableFuture<User> f1 = c.build().id(1).createFuture();
+		plLast.id(1).value("Smith").place();
+		plDate.id(1).value(1999).place();
+		User u1 = f1.get();
+		assertNotNull(u1);
+		assertEquals("Mr.", u1.getFirst());
+		System.out.println(u1);
+
+		CompletableFuture<User> f2 = c.build().id(2).createFuture();
+		plLast.id(2).value("Johnson").place();
+		plDate.id(2).value(1977).place();
+		User u2 = f2.get();
+		assertNotNull(u2);
+		assertEquals("Mr.", u2.getFirst());
+		System.out.println(u2);
+
+		c.staticPart().label(F).value("Ms.").place();
+		
+		CompletableFuture<User> f3 = c.build().id(3).createFuture();
+		plLast.id(3).value("Jane").place();
+		plDate.id(3).value(2010).place();
+		User u3 = f3.get();
+		assertNotNull(u3);
+		assertEquals("Ms.", u3.getFirst());
+		System.out.println(u3);
+
 	}
 
 }

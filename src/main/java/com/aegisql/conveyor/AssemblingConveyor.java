@@ -881,6 +881,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					scrapCartConsumer.accept(new ScrapBin(cart.getLabel(), cart, "MultiKey cart failure", e, FailureType.GENERAL_FAILURE));
 					throw e;
 				}
+			} else if(cart instanceof StaticCart) {
+				staticValues.put(cart.getLabel(), cart);
 			}
 			return;
 		}

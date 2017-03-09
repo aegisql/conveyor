@@ -263,6 +263,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				expireableSource = () -> builderCreated + TimeUnit.MILLISECONDS.convert(ttl, unit);
 			}
 		}
+		if(staticValues != null && staticValues.size() > 0) {
+			staticValues.values().forEach(c->accept(c));
+		}
 	}
 
 	/**
