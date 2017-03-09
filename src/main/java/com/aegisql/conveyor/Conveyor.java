@@ -46,8 +46,8 @@ public interface Conveyor<K, L, OUT> {
 	/**
 	 * StaticPart.
 	 *
-	 * @param <X> the generic type
-	 * @return the part loader
+	 * @param <X> the generic type for the value
+	 * @return the static part loader
 	 */
 	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart();
 

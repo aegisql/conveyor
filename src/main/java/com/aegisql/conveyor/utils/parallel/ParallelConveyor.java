@@ -134,7 +134,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 			return place(new MultiKeyCart<K,Object,L>(cl.filter, cl.partValue, cl.label, cl.creationTime,cl.expirationTime));
 		});
 	}
-//TODO: Complete
+
 	@Override
 	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart() {
 		return new StaticPartLoader<L,X,OUT,Boolean>(cl -> {
