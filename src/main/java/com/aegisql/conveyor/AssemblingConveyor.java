@@ -450,6 +450,15 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					removeExpired();
 				}
 				LOG.info("Leaving {}", Thread.currentThread().getName());
+				//Stop processing input messages immediately
+				//but give all queues last chance to finish.
+				processManagementCommands();
+				Cart<K, ?, L> cart = inQueue.poll();
+				if (cart != null) {
+					cartCounter++;
+					processSite(cart, true);
+				}
+				removeExpired();
 				drainQueues();
 			} catch (Throwable e) { // Let it crash, but don't pretend its
 									// running
