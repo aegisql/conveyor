@@ -10,6 +10,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -726,7 +727,7 @@ public class SmartConveyorTest {
 		PartLoader<Integer, SmartLabel<UserBuilder>, ?, User, Boolean> plLast = c.part().label(L);
 		PartLoader<Integer, SmartLabel<UserBuilder>, ?, User, Boolean> plDate = c.part().label(D);
 		
-		CompletableFuture<User> f1 = c.build().id(1).createFuture();
+		Future<User> f1 = c.build().id(1).createFuture();
 		plLast.id(1).value("Smith").place();
 		plDate.id(1).value(1999).place();
 		User u1 = f1.get();
@@ -734,7 +735,7 @@ public class SmartConveyorTest {
 		assertEquals("Mr.", u1.getFirst());
 		System.out.println(u1);
 
-		CompletableFuture<User> f2 = c.build().id(2).createFuture();
+		Future<User> f2 = c.build().id(2).createFuture();
 		plLast.id(2).value("Johnson").place();
 		plDate.id(2).value(1977).place();
 		User u2 = f2.get();
@@ -744,7 +745,7 @@ public class SmartConveyorTest {
 
 		c.staticPart().label(F).value("Ms.").place();
 		
-		CompletableFuture<User> f3 = c.build().id(3).createFuture();
+		Future<User> f3 = c.build().id(3).createFuture();
 		plLast.id(3).value("Jane").place();
 		plDate.id(3).value(2010).place();
 		User u3 = f3.get();
