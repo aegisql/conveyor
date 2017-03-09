@@ -138,7 +138,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	@Override
 	public <X> StaticPartLoader<K, L, X, OUT, Boolean> staticPart() {
 		return new StaticPartLoader<K,L,X,OUT,Boolean>(cl -> {
-			return place(new StaticCart<K, Object, L>(cl.staticPartValue, cl.label));
+			return place(new StaticCart<K, Object, L>(cl.staticPartValue, cl.label, cl.create));
 		});
 	}
 

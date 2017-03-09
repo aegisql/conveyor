@@ -25,6 +25,8 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	/** The part value. */
 	public final V staticPartValue;
 	
+	public final boolean create;
+	
 	/**
 	 * Instantiates a new part loader.
 	 *
@@ -32,10 +34,11 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 * @param label the label
 	 * @param value the value
 	 */
-	private StaticPartLoader(Function<StaticPartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer,L label, V value) {
+	private StaticPartLoader(Function<StaticPartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer,L label, V value, boolean create) {
 		this.placer = placer;
 		this.label = label;
 		this.staticPartValue = value;
+		this.create = create;
 	}
 
 	/**
@@ -44,7 +47,7 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 * @param placer the placer
 	 */
 	public StaticPartLoader(Function<StaticPartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer) {
-		this(placer,null,null);
+		this(placer,null,null,true);
 	}
 	
 	/**
@@ -52,8 +55,8 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 *
 	 * @return the part loader
 	 */
-	public StaticPartLoader<K,L,V,OUT,F> foreach() {
-		return new StaticPartLoader<K,L,V,OUT,F>(placer,label,staticPartValue);
+	public StaticPartLoader<K,L,V,OUT,F> delete() {
+		return new StaticPartLoader<K,L,V,OUT,F>(placer,label,staticPartValue,false);
 	}
 
 	/**
@@ -62,8 +65,8 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 * @param filter the filtering predicate
 	 * @return the part loader
 	 */
-	public StaticPartLoader<K,L,V,OUT,F> foreach(Predicate<K> filter) {
-		return new StaticPartLoader<K,L,V,OUT,F>(placer,label,staticPartValue);
+	public StaticPartLoader<K,L,V,OUT,F> create() {
+		return new StaticPartLoader<K,L,V,OUT,F>(placer,label,staticPartValue,true);
 	}
 
 	/**
@@ -73,7 +76,7 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public StaticPartLoader<K,L,V,OUT,F> label(L l) {
-		return new StaticPartLoader<K,L,V,OUT,F>(placer,l,staticPartValue);
+		return new StaticPartLoader<K,L,V,OUT,F>(placer,l,staticPartValue,create);
 	}
 
 	/**
@@ -84,7 +87,7 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public<X> StaticPartLoader<K,L,X,OUT,F> value(X v) {
-		return new StaticPartLoader<K,L,X,OUT,F>(placer,label,v);
+		return new StaticPartLoader<K,L,X,OUT,F>(placer,label,v,create);
 	}
 
 	/**
@@ -101,7 +104,7 @@ public final class StaticPartLoader<K,L,V,OUT,F> {
 	 */
 	@Override
 	public String toString() {
-		return "StaticPartLoader [label=" + label + ", staticValue=" + staticPartValue + "]";
+		return "StaticPartLoader [" + (create ? "create ":"delete ") + "label=" + label + ", staticValue=" + staticPartValue + "]";
 	}
 	
 }

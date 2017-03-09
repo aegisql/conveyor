@@ -663,7 +663,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public <X> StaticPartLoader<K, L, X, OUT, Boolean> staticPart() {
 		return  new StaticPartLoader<K, L, X, OUT, Boolean>(cl -> {
-			return place(new StaticCart<K, Object, L>(cl.staticPartValue, cl.label));
+			return place(new StaticCart<K, Object, L>(cl.staticPartValue, cl.label, cl.create));
 		});
 	}
 
@@ -869,20 +869,25 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		K key = cart.getKey();
 		if (key == null) {
 			if (cart instanceof MultiKeyCart) {
-				CompletableFuture<Boolean> multiFuture = cart.getFuture();
 				MultiKeyCart<K, ?, L> mCart = (MultiKeyCart<K, ?, L>) cart;
 				try {
 					collector.entrySet().stream().map(entry -> entry.getKey()).filter(mCart::test)
 							.collect(Collectors.toList()).forEach(k -> {
 								processSite(mCart.toShoppingCart(k), accept);
 							});
-					multiFuture.complete(true);
+					cart.getFuture().complete(true);
 				} catch (Exception e) {
 					scrapCartConsumer.accept(new ScrapBin(cart.getLabel(), cart, "MultiKey cart failure", e, FailureType.GENERAL_FAILURE));
+					cart.getFuture().completeExceptionally(e);
 					throw e;
 				}
 			} else if(cart instanceof StaticCart) {
-				staticValues.put(cart.getLabel(), cart);
+				if(((StaticCart)cart).isCreate()) {
+					staticValues.put(cart.getLabel(), cart);
+				} else {
+					staticValues.remove(cart.getLabel());
+				}
+				cart.getFuture().complete(true);
 			}
 			return;
 		}

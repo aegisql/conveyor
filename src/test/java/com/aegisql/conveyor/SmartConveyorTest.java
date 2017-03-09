@@ -717,15 +717,15 @@ public class SmartConveyorTest {
 	public void testStaticValues() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, SmartLabel<UserBuilder>, User> c = new AssemblingConveyor<>();
 		c.setName("testStaticValues");
-		SmartLabel<UserBuilder> F = SmartLabel.of(UserBuilder::setFirst);
-		SmartLabel<UserBuilder> L = SmartLabel.of(UserBuilder::setLast);
-		SmartLabel<UserBuilder> D = SmartLabel.of(UserBuilder::setYearOfBirth);
+		SmartLabel<UserBuilder> FIRST = SmartLabel.of(UserBuilder::setFirst);
+		SmartLabel<UserBuilder> LAST = SmartLabel.of(UserBuilder::setLast);
+		SmartLabel<UserBuilder> YEAR = SmartLabel.of(UserBuilder::setYearOfBirth);
 		c.setBuilderSupplier(UserBuilder::new);
-		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(F,L,D));
-		c.staticPart().label(F).value("Mr.").place();
+		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(FIRST,LAST,YEAR));
+		c.staticPart().label(FIRST).value("Mr.").place();
 		
-		PartLoader<Integer, SmartLabel<UserBuilder>, ?, User, Boolean> plLast = c.part().label(L);
-		PartLoader<Integer, SmartLabel<UserBuilder>, ?, User, Boolean> plDate = c.part().label(D);
+		PartLoader<Integer, SmartLabel<UserBuilder>,?,?,?> plLast = c.part().label(LAST);
+		PartLoader<Integer, SmartLabel<UserBuilder>,?,?,?> plDate = c.part().label(YEAR);
 		
 		Future<User> f1 = c.build().id(1).createFuture();
 		plLast.id(1).value("Smith").place();
@@ -743,7 +743,7 @@ public class SmartConveyorTest {
 		assertEquals("Mr.", u2.getFirst());
 		System.out.println(u2);
 
-		c.staticPart().label(F).value("Ms.").place();
+		c.staticPart().label(FIRST).value("Ms.").place();
 		
 		Future<User> f3 = c.build().id(3).createFuture();
 		plLast.id(3).value("Jane").place();
@@ -753,6 +753,17 @@ public class SmartConveyorTest {
 		assertEquals("Ms.", u3.getFirst());
 		System.out.println(u3);
 
+		c.staticPart().label(FIRST).delete().place();
+
+		Future<User> f4 = c.build().id(4).createFuture();
+		c.part().id(4).label(FIRST).value("Lady").place();
+		plLast.id(4).value("Jane").place();
+		plDate.id(4).value(2010).place();
+		User u4 = f4.get();
+		assertNotNull(u4);
+		assertEquals("Lady", u4.getFirst());
+		System.out.println(u4);
+		
 	}
 
 }
