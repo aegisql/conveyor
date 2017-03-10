@@ -213,16 +213,19 @@ public class SmartLabelFunctionalTest {
 	@Test
 	public void testBeforeAfterBiConsumer() {
 		UserBuilderSmart b = new UserBuilderSmart();
-		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of("L1",UserBuilderSmart::setFirst);
 		assertNotNull(l1);
+		System.out.println(l1);
 		l1 = l1.before((builder,value)->{
 			System.out.println("Before "+value);
 		});
 		assertNotNull(l1);
+		System.out.println(l1);
 		l1 = l1.andThen((builder,value)->{
 			System.out.println("After "+value);			
 		});
 		assertNotNull(l1);
+		System.out.println(l1);
 		l1.get().accept(b, "TEST");	
 		User u = b.get();
 		assertEquals("TEST",u.getFirst());
