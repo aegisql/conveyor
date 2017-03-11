@@ -15,6 +15,9 @@ Maven dependency
 ## Release History
 
 ### 1.2.3-SNAPSHOT
+* static loader and values
+* Improved setting names for smart lables
+* bare smart labels with no actual function attached in order to pass messages that do not need to change state of the builder
 
 ### 1.2.2
 * added method getConsumerFor with explicit Bulder class parameter to avoid class casting in consumers.
