@@ -8,16 +8,20 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.2.2</version>
+  <version>1.2.3</version>
 </dependency>
 ```
 
 ## Release History
 
-### 1.2.3-SNAPSHOT
+### 1.2.4-SNAPSHOT
+
+### 1.2.3
 * static loader and values
 * Improved setting names for smart lables
 * bare smart labels with no actual function attached in order to pass messages that do not need to change state of the builder
+* tests
+* map-reduce demo
 
 ### 1.2.2
 * added method getConsumerFor with explicit Bulder class parameter to avoid class casting in consumers.
