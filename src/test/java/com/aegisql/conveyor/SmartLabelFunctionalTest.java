@@ -302,5 +302,48 @@ public class SmartLabelFunctionalTest {
 		assertEquals(1999,u.getYearOfBirth());
 	}
 
+	@Test
+	public void testLabelName() {
+		UserBuilderSmart b = new UserBuilderSmart();
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
+		assertNotNull(l1);
+		l1 = l1.labelName("L");
+		assertNotNull(l1);
+		System.out.println(l1);
+		assertNotNull(l1.get());
+		l1.get().accept(b, "A");
+		assertNotNull(b.get());
+		assertEquals(b.get().getFirst(), "A");
+		
+	}
+
+	
+	@Test
+	public void testBareName() {
+		UserBuilderSmart b = new UserBuilderSmart();
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.bare("L");
+		assertNotNull(l1);
+		System.out.println(l1);
+		assertNotNull(l1.get());
+		l1.get().accept(b, "A");
+		assertNotNull(b.get());
+		assertNull(b.get().getFirst());
+		
+	}
+
+	@Test
+	public void testBareNoName() {
+		UserBuilderSmart b = new UserBuilderSmart();
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.bare();
+		assertNotNull(l1);
+		l1 = l1.labelName("L");
+		assertNotNull(l1);
+		System.out.println(l1);
+		assertNotNull(l1.get());
+		l1.get().accept(b, "A");
+		assertNotNull(b.get());
+		assertNull(b.get().getFirst());
+		
+	}
 
 }

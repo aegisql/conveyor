@@ -109,12 +109,50 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	}
 
 	/**
+	 * Bare.
+	 *
+	 * @param <B> the generic type
+	 * @return the smart label
+	 */
+	static <B> SmartLabel<B> bare() {
+		return of( (bPhoby,oPhony) -> {} );
+	}
+
+	/**
+	 * Bare.
+	 *
+	 * @param <B> the generic type
+	 * @param labelName the method
+	 * @return the smart label
+	 */
+	static <B> SmartLabel<B> bare(final String labelName) {
+		return of( labelName, (bPhoby,oPhony) -> {} );
+	}
+
+	
+	/**
 	 * Identity.
 	 *
 	 * @return the smart label
 	 */
 	default SmartLabel<B> identity() {
 		return this;
+	}
+	
+	default SmartLabel<B> labelName(final String name) {
+		final SmartLabel<B> sl = this;
+		return new SmartLabel<B>() {
+			
+			private static final long serialVersionUID = 5086346018176455134L;
+			@Override
+			public BiConsumer<B, Object> get() {
+				return sl.get();
+			}
+			@Override
+			public String toString() {
+				return name;
+			}
+		};
 	}
 	
 	/**
