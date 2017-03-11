@@ -201,6 +201,7 @@ public interface Conveyor<K, L, OUT> {
 	/**
 	 * Sets the default cart consumer.
 	 *
+	 * @param <B> the generic type
 	 * @param cartConsumer the cart consumer
 	 */
 	public <B extends Supplier<? extends OUT>> void setDefaultCartConsumer(LabeledValueConsumer<L, ?, B> cartConsumer);

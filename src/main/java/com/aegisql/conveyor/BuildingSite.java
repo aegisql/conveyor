@@ -162,6 +162,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param postponeExpirationEnabled the postpone expiration enabled
 	 * @param addExpirationTimeMsec the add expiration time msec
 	 * @param postponeExpirationOnTimeoutEnabled the postpone expiration on timeout enabled
+	 * @param staticValues map of static values
 	 */
 	@SuppressWarnings("unchecked")
 	public BuildingSite( 

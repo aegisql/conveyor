@@ -20,6 +20,7 @@ Maven dependency
 * static loader and values
 * Improved setting names for smart lables
 * bare smart labels with no actual function attached in order to pass messages that do not need to change state of the builder
+* Improvements to Conveyor interface
 * tests
 * map-reduce demo
 

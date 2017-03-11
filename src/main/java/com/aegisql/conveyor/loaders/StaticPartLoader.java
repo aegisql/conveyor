@@ -1,3 +1,6 @@
+/* 
+ * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
+ */
 package com.aegisql.conveyor.loaders;
 
 import java.util.concurrent.CompletableFuture;
@@ -23,6 +26,7 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	/** The part value. */
 	public final V staticPartValue;
 	
+	/** The create. */
 	public final boolean create;
 	
 	/**
@@ -31,6 +35,7 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 * @param placer the placer
 	 * @param label the label
 	 * @param value the value
+	 * @param create the create
 	 */
 	private StaticPartLoader(Function<StaticPartLoader<L,?,OUT,F>, CompletableFuture<F>> placer,L label, V value, boolean create) {
 		this.placer = placer;
@@ -58,9 +63,8 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	}
 
 	/**
-	 * Foreach
+	 * Foreach.
 	 *
-	 * @param filter the filtering predicate
 	 * @return the part loader
 	 */
 	public StaticPartLoader<L,V,OUT,F> create() {
