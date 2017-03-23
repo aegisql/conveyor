@@ -3,14 +3,14 @@
  */
 package com.aegisql.conveyor;
 
-// TODO: Auto-generated Javadoc
+// TODO: Add full State from the BuildingSite, if available, to the scrap 
 /**
  * The Class ScrapBin.
  *
  * @param <K> the key type
  * @param <O> the generic type
  */
-public class ScrapBin<K,O> {
+public final class ScrapBin<K,O> {
 	
 	/**
 	 * The Enum FailureType.

@@ -12,7 +12,7 @@ import com.aegisql.conveyor.BuildingSite.Status;
  * @param <K> the key type
  * @param <OUT> the generic type
  */
-public class ProductBin<K,OUT> {
+public final class ProductBin<K,OUT> {
 
 	/** The key. */
 	public final K key;

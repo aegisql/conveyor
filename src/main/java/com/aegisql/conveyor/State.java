@@ -17,7 +17,7 @@ import com.aegisql.conveyor.cart.Cart;
  * @param <K> the key type
  * @param <L> the generic type
  */
-public class State<K,L> {
+public final class State<K,L> {
 	
 	/** The key. */
 	public final K key;
