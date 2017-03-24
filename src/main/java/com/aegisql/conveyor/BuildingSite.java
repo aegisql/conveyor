@@ -390,15 +390,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	}
 
 	/**
-	 * Ready.
+	 * Gets the state.
 	 *
-	 * @return true, if successful
+	 * @return the state
 	 */
-	public boolean ready() {
-		boolean res = false;
+	public State<K,L> getState() {
 		final Map<L,Integer> history = new LinkedHashMap<>();
 		eventHistory.forEach((k,v)->history.put(k, v.get()));
-		State<K,L> state = new State<>(
+		return new State<>(
 				initialCart.getKey(),
 				builderCreated,
 				expireableSource.getExpirationTime(),
@@ -408,6 +407,16 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				Collections.unmodifiableMap( history ),
 				Collections.unmodifiableList(allCarts)
 				);
+	}
+	
+	/**
+	 * Ready.
+	 *
+	 * @return true, if successful
+	 */
+	public boolean ready() {
+		boolean res = false;
+		State<K,L> state = getState();
 		lock.lock();
 		try {
 			res = readiness.test(state, builder);

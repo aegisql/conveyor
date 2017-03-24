@@ -68,22 +68,6 @@ GENERAL_FAILURE
 	
 	/** The failure type. */
 	public final FailureType failureType;
-	
-	/**
-	 * Instantiates a new scrap bin.
-	 *
-	 * @param key the key
-	 * @param scrap the scrap
-	 * @param comment the comment
-	 * @param type the type
-	 */
-	public ScrapBin(K key, O scrap, String comment, FailureType type) {
-		this.key         = key;
-		this.comment     = comment;
-		this.scrap       = scrap;
-		this.error       = null;
-		this.failureType = type;
-	}
 
 	/**
 	 * Instantiates a new scrap bin.
@@ -107,7 +91,9 @@ GENERAL_FAILURE
 	 */
 	@Override
 	public String toString() {
-		return "ScrapBin ["+failureType+" key=" + key + ": " + comment + "; " + scrap + (error == null ? "": " error="+error.getMessage() ) +"]";
+		return "ScrapBin ["+failureType+" key=" + key + ": " + comment + "; " + scrap 
+				+ (error == null ? "": " error="+error.getMessage() ) 
+				+"]";
 	}
 	
 }
