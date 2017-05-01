@@ -3,7 +3,11 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.time.Duration;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +26,7 @@ import com.aegisql.conveyor.loaders.MultiKeyCommandLoader;
 import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
+import com.aegisql.conveyor.utils.ResultQueue;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -357,7 +362,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @param conveyor the conveyor
 	 * @return the tester for
 	 */
-	static <K, L,OUT> ReadinessTester<K, L,OUT> getTesterFor(Conveyor<K, L, OUT> conveyor) {
+	public static <K, L,OUT> ReadinessTester<K, L,OUT> getTesterFor(Conveyor<K, L, OUT> conveyor) {
 		return new ReadinessTester<>();
 	}
 	
@@ -369,7 +374,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @param conveyor the conveyor
 	 * @return the consumer for
 	 */
-	static <L,OUT> LabeledValueConsumer<L, ?, Supplier<? extends OUT>> getConsumerFor(Conveyor<?, L, OUT> conveyor) {
+	public static <L,OUT> LabeledValueConsumer<L, ?, Supplier<? extends OUT>> getConsumerFor(Conveyor<?, L, OUT> conveyor) {
 		return (l,v,b)->{
 			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
 		};
@@ -385,10 +390,22 @@ public interface Conveyor<K, L, OUT> {
 	 * @param builder the builder
 	 * @return the consumer for
 	 */
-	static <L,OUT,B extends Supplier<? extends OUT>> LabeledValueConsumer<L, ?, B> getConsumerFor(Conveyor<?, L, OUT> conveyor,Class<B> builder) {
+	public static <L,OUT,B extends Supplier<? extends OUT>> LabeledValueConsumer<L, ?, B> getConsumerFor(Conveyor<?, L, OUT> conveyor,Class<B> builder) {
 		return (l,v,b)->{
 			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
 		};
+	}
+
+	public static <K, L,OUT,B extends Supplier<? extends OUT>> Queue<OUT> queueResults(Conveyor<K, L, OUT> conveyor){
+		ResultQueue<K, OUT> rq = new ResultQueue<>();
+		conveyor.setResultConsumer(rq);
+		return rq;
+	}
+
+	public static <K, L,OUT,B extends Supplier<? extends OUT>> OutputStream streamResults(Conveyor<K, L, OUT> conveyor, OutputStream os) throws IOException{
+		//TODO: implement
+		ObjectOutputStream oos = new ObjectOutputStream(os);
+		return oos;
 	}
 
 	
