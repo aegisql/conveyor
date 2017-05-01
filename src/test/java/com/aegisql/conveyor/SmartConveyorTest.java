@@ -5,6 +5,7 @@ package com.aegisql.conveyor;
 
 import static org.junit.Assert.*;
 
+import java.time.Duration;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -764,6 +765,119 @@ public class SmartConveyorTest {
 		assertEquals("Lady", u4.getFirst());
 		System.out.println(u4);
 		
+	}
+
+	/**
+	 * Test basics smart.
+	 *
+	 * @throws InterruptedException
+	 *             the interrupted exception
+	 * @throws ExecutionException 
+	 */
+	@Test
+	public void testCompleteAndStop() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderSmart::new);
+		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
+		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
+		conveyor.setName("User Assembler");
+		
+		for(int i = 0; i<100;i++) {
+			PartLoader pl = conveyor.part().id(i);
+			pl.label(UserBuilderEvents.SET_FIRST).value("First_"+i).place();
+			pl.label(UserBuilderEvents.SET_LAST).value("Last_"+i).place();
+			pl.label(UserBuilderEvents.SET_YEAR).value(1900+i).place(); 
+		}
+		
+		Future<?> f = conveyor.completeAndStop();
+		f.get();
+		assertEquals(100, outQueue.size());
+	}
+
+	@Test
+	public void testCompleteAndStopWithExpiration() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderSmart::new);
+		conveyor.setDefaultBuilderTimeout(Duration.ofMillis(100));
+		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
+		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
+		conveyor.setName("User Assembler");
+		
+		for(int i = 0; i<100;i++) {
+			PartLoader pl = conveyor.part().id(i);
+			pl.label(UserBuilderEvents.SET_FIRST).value("First_"+i).place();
+			pl.label(UserBuilderEvents.SET_LAST).value("Last_"+i).place();
+			if(i%2==0) {
+				pl.label(UserBuilderEvents.SET_YEAR).value(1900+i).place(); 
+			}
+		}
+		
+		Future<?> f = conveyor.completeAndStop();
+		f.get();
+		assertEquals(50, outQueue.size());
+	}
+
+	
+	/**
+	 * Test basics smart.
+	 *
+	 * @throws InterruptedException
+	 *             the interrupted exception
+	 * @throws ExecutionException 
+	 */
+	@Test
+	public void testCompleteAndStopRejectMessages() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderSmart::new);
+		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
+		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
+		conveyor.setName("User Assembler");
+		
+		for(int i = 0; i<1000;i++) {
+			PartLoader pl = conveyor.part().id(i);
+			pl.label(UserBuilderEvents.SET_FIRST).value("First_"+i).place();
+			pl.label(UserBuilderEvents.SET_LAST).value("Last_"+i).place();
+			pl.label(UserBuilderEvents.SET_YEAR).value(1900+i).place(); 
+		}
+		
+		Future<?> f = conveyor.completeAndStop();
+		PartLoader pl = conveyor.part().id(101);
+		Future<Boolean> cf = pl.label(UserBuilderEvents.SET_FIRST).value("First_"+101).place();
+		assertTrue(cf.isCancelled());
+		f.get();
+	}
+
+	
+	@Test(expected=IllegalStateException.class)
+	public void testCompleteAndStopRejectCommand() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
+		conveyor.setBuilderSupplier(UserBuilderSmart::new);
+		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
+		conveyor.setResultConsumer(res -> {
+			outQueue.add(res.product);
+		});
+		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
+		conveyor.setName("User Assembler");
+		
+		for(int i = 0; i<1000;i++) {
+			PartLoader pl = conveyor.part().id(i);
+			pl.label(UserBuilderEvents.SET_FIRST).value("First_"+i).place();
+			pl.label(UserBuilderEvents.SET_LAST).value("Last_"+i).place();
+			pl.label(UserBuilderEvents.SET_YEAR).value(1900+i).place(); 
+		}
+		
+		Future<?> f = conveyor.completeAndStop();
+		Future<Boolean> cf = conveyor.command().id(102).create();
+		f.get();
 	}
 
 }

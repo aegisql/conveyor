@@ -137,7 +137,12 @@ public interface Conveyor<K, L, OUT> {
 	 * Stop.
 	 */
 	public void stop();
-	
+
+	/**
+	 * complete all tasks and stop.
+	 */
+	public CompletableFuture<Boolean> completeAndStop();
+
 	/**
 	 * Sets the idle heart beat.
 	 *

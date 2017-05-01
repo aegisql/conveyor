@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -77,6 +78,11 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	
 	/** The running. */
 	protected volatile boolean running = true;
+	
+	protected CompletableFuture<Boolean> conveyorFuture = null;
+	
+	private final Object conveyorFutureLock = new Object();
+	
 
 	/** The conveyors. */
 	protected final List<Conveyor<K, L, OUT>> conveyors = new ArrayList<>();
@@ -304,6 +310,26 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		this.conveyors.forEach(conv->conv.stop());
 	}
 
+	/**
+	 * Complete tasks and stop.
+	 */
+	@Override
+	public CompletableFuture<Boolean> completeAndStop() {
+		if(this.conveyorFuture == null) {
+			synchronized (this.conveyorFutureLock) {
+				if(this.conveyorFuture == null) {
+					this.conveyorFuture = new CompletableFuture<Boolean>();
+					this.conveyorFuture.complete(true);
+					for(Conveyor<K, L, OUT> c:conveyors) {
+						CompletableFuture<Boolean> f = c.completeAndStop();
+						this.conveyorFuture = this.conveyorFuture.thenCombine(f, (a,b)-> a && b);
+					}
+				}
+			}
+		}
+		return this.conveyorFuture;
+	}
+	
 	/**
 	 * Gets the expiration collection interval.
 	 *

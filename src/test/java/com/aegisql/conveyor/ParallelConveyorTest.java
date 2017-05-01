@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
@@ -350,6 +351,25 @@ public class ParallelConveyorTest {
 
 	}
 
+	@Test
+	public void waitUntilCompleteConveyorTest() throws InterruptedException, ExecutionException {
+		KBalancedParallelConveyor<String, String, User>
+		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
+		conveyor.setBuilderSupplier(StringToUserBuulder::new);
+		List<User> users = new LinkedList<>();
+		conveyor.setResultConsumer(u->{
+			System.out.println("RESULT: "+u);
+			users.add(u.product);
+		});
+		for(int i =0;i<1000;i++) {
+			conveyor.part().id(""+i).value("John,Dow1,"+i).place();
+		}
+		CompletableFuture<Boolean> f = conveyor.completeAndStop();
+		f.get();
+		assertEquals(1000, users.size());
+	}
+
+	
 	/**
 	 * Future conveyor test.
 	 *

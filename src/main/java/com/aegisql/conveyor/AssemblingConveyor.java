@@ -13,6 +13,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -206,6 +207,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The accepted labels. */
 	protected final Set<L> acceptedLabels = new HashSet<>();
 
+	protected CompletableFuture<Boolean> conveyorFuture = null;
+	
+	private final Object conveyorFutureLock = new Object();
+	
 	/** The inner thread. */
 	private final Thread innerThread;
 
@@ -440,9 +445,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		acceptedLabels.add(null);
 		this.innerThread = new Thread(() -> {
 			try {
-				while (running) {
+				while (running || (inQueue.peek() != null) || (mQueue.peek() != null)) {
 					if (!waitData())
-						break;
+						break; //When interrupted, which is exceptional behavior, should return right away
 					processManagementCommands();
 					Cart<K, ?, L> cart = inQueue.poll();
 					if (cart != null) {
@@ -450,17 +455,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						processSite(cart, true);
 					}
 					removeExpired();
+					if(this.conveyorFuture != null && (inQueue.peek() == null) && (mQueue.peek() == null) && (collector.size() == 0)) {
+						running = false;
+						this.conveyorFuture.complete(true);
+						LOG.info("No pending messages or commands. Ready to leave {}", Thread.currentThread().getName());
+					}
 				}
 				LOG.info("Leaving {}", Thread.currentThread().getName());
-				//Stop processing input messages immediately
-				//but give all queues last chance to finish.
-				processManagementCommands();
-				Cart<K, ?, L> cart = inQueue.poll();
-				if (cart != null) {
-					cartCounter++;
-					processSite(cart, true);
-				}
-				removeExpired();
 				drainQueues();
 			} catch (Throwable e) { // Let it crash, but don't pretend its
 									// running
@@ -848,7 +849,32 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void stop() {
 		running = false;
+		if(this.conveyorFuture != null) {
+			this.conveyorFuture.complete(false);
+		}
 		lock.tell();
+	}
+	
+	/**
+	 * Complete tasks and stop.
+	 */
+	@Override
+	public CompletableFuture<Boolean> completeAndStop() {
+		if(this.conveyorFuture == null) {
+			synchronized (this.conveyorFutureLock) {
+				if(this.conveyorFuture == null) {
+					this.addCartBeforePlacementValidator(c->{
+						throw new IllegalStateException("Conveyor preparing to shut down. No new messages can be accepted");
+					});
+					this.commandBeforePlacementValidator = commandBeforePlacementValidator.andThen(cmd -> {
+						throw new IllegalStateException("Conveyor preparing to shut down. No new commands can be accepted");
+					});
+					this.conveyorFuture = new CompletableFuture<Boolean>();
+				}
+			}
+		}
+		lock.tell();
+		return this.conveyorFuture;
 	}
 
 	/**
