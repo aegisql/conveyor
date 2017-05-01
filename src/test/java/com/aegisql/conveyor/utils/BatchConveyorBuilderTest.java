@@ -101,7 +101,7 @@ public class BatchConveyorBuilderTest {
 		});
 		b.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
-			b.part().value(1).place();
+			b.part().value(i).place();
 		}
 		
 		Thread.sleep(40);
