@@ -8,13 +8,16 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.2.3</version>
+  <version>1.2.4</version>
 </dependency>
 ```
 
 ## Release History
 
-### 1.2.4-SNAPSHOT
+### 1.2.5-SNAPSHOT
+
+### 1.2.4
+* CompletableFuture<Boolean> completeAndStop() method. When called, conveyor stops accepting new messages or commands, then waits for completion of existing tasks. When all builds complete or time out, exits the conveyor thread. This method can be useful for single time jobs, like massive batch load from parallel sources.
 
 ### 1.2.3
 * static loader and values
