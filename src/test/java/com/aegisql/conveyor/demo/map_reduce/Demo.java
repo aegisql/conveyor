@@ -52,7 +52,8 @@ public class Demo {
 			Arrays.stream(words).forEach(word->wordLoader.id(word).value(new WordCount(word, 1)).place());
 			//Send "DONE" message to all words and wait 
 			//until command is delivered to all of them.
-			CompletableFuture<Boolean> f = source.multiKeyPart().foreach().label(DONE).place();
+			source.multiKeyPart().foreach().label(DONE).place();
+			CompletableFuture<Boolean> f = source.completeAndStop();
 			//we need to wait to synchronize with the pool's future
 			//If pool's future is not required, the next call can be omitted.
 			try {
@@ -60,8 +61,6 @@ public class Demo {
 			} catch (Exception e) {
 				throw new RuntimeException("Multi-Key DONE message failed in "+source.getName(),e);
 			}
-			//Now conveyor can be stopped. It will never be used again
-			source.stop();
 		});
 	}
 
@@ -99,16 +98,15 @@ public class Demo {
 		f1.get();
 		f2.get();
 		f3.get();
-		CompletableFuture<Boolean> mainFuture = collectingConveyor.multiKeyPart().foreach().label(DONE).place();
+		collectingConveyor.multiKeyPart().foreach().label(DONE).place();
+		CompletableFuture<Boolean> mainFuture = collectingConveyor.completeAndStop();
 		mainFuture.get();
 		//We expect something like this
 		//[a = 1, b = 3, c = 4, d = 3, e = 2, f = 1, g = 1]
 		System.out.println(wordList);
-
 		pool.shutdown();
-		collectingConveyor.stop();
-		
 	}
+
 	public static void main(String[] args) throws InterruptedException, ExecutionException {
 		new Demo().runDemo();
 	}
