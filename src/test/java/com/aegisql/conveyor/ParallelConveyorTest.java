@@ -356,9 +356,9 @@ public class ParallelConveyorTest {
 		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
-		List<User> users = new LinkedList<>();
+		List<User> users = Collections.synchronizedList(new LinkedList<>());
 		conveyor.setResultConsumer(u->{
-			System.out.println("RESULT: "+u);
+			//System.out.println("RESULT: "+u);
 			users.add(u.product);
 		});
 		for(int i =0;i<1000;i++) {
