@@ -54,4 +54,9 @@ public abstract class ScalarConvertingBuilder<T,OUT> extends CommonBuilder<OUT> 
 		builder.ready  = true;
 	}
 
+	@Override
+	public boolean test() {
+		return true;
+	}
+
 }

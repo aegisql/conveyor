@@ -20,6 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -1428,17 +1429,22 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * com.aegisql.conveyor.Conveyor#forwardPartialResultTo(java.lang.Object,
 	 * com.aegisql.conveyor.Conveyor)
 	 */
-	public void forwardPartialResultTo(L partial, Conveyor<K, L, OUT> conv) {
+	public <L2,OUT2> void forwardResultTo(Conveyor<K, L2, OUT2> destination, L2 label) {
+		forwardResultTo(destination,b->b.key,label);
+	}
+	
+	@Override
+	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>,K2> keyConverter, L2 label) {
 		this.forwardingResults = true;
-		this.forwardingTo = conv.toString();
+		this.forwardingTo = destination.toString();
 		this.setResultConsumer(bin -> {
-			LOG.debug("Forward {} from {} to {} {}", partial, this.name, conv.getName(), bin.product);
-			conv.part()
-			.id(bin.key)
-			.label(partial)
+			LOG.debug("Forward {} from {} to {} {}", label, this.name, destination.getName(), bin);
+			PartLoader<K2, L2, OUT, OUT2, Boolean> part = destination.part()
+			.id(keyConverter.apply(bin))
+			.label(label)
 			.value(bin.product)
-			.ttl( bin.remainingDelayMsec,TimeUnit.MILLISECONDS)
-			.place();
+			.ttl( bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
+			part.place();
 		});
 	}
 

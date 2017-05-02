@@ -14,8 +14,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
@@ -39,6 +43,8 @@ import com.aegisql.conveyor.utils.ResultQueue;
  * @param <OUT> the target class type
  */
 public interface Conveyor<K, L, OUT> {
+	
+	final static Logger LOG = LoggerFactory.getLogger(Conveyor.class);
 
 	/**
 	 * Part.
@@ -311,11 +317,20 @@ public interface Conveyor<K, L, OUT> {
 	/**
 	 * Forward partial result to.
 	 *
-	 * @param partial the partial
 	 * @param conv the conv
+	 * @param partial the partial
 	 */
-	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv);
-	
+	public <L2,OUT2> void forwardResultTo(Conveyor<K,L2,OUT2> destination, L2 label);
+
+	/**
+	 * Forward partial result to.
+	 *
+	 * @param keyConverter the keyConverter
+	 * @param conv the conv
+	 * @param partial the partial
+	 */
+	public <K2,L2,OUT2> void forwardResultTo(Conveyor<K2,L2,OUT2> destination, Function<ProductBin<K,OUT>,K2>keyConverter, L2 label);
+
 	/**
 	 * Enable postpone expiration.
 	 *
@@ -402,13 +417,18 @@ public interface Conveyor<K, L, OUT> {
 		return rq;
 	}
 
-	public static <K, L,OUT,B extends Supplier<? extends OUT>> OutputStream streamResults(Conveyor<K, L, OUT> conveyor, OutputStream os) throws IOException{
-		//TODO: implement
-		ObjectOutputStream oos = new ObjectOutputStream(os);
-		return oos;
+	public static <K, L,OUT,B extends Supplier<? extends OUT>> Queue<OUT> queueResults(Conveyor<K, L, OUT> conveyor, Queue<OUT> q){
+		ResultQueue<K, OUT> rq = new ResultQueue<>(q);
+		conveyor.setResultConsumer(rq);
+		return rq;
 	}
 
-	
+	public static <K, L,OUT,B extends Supplier<? extends OUT>> Queue<OUT> queueResults(Conveyor<K, L, OUT> conveyor, Supplier<Queue<OUT>> q){
+		ResultQueue<K, OUT> rq = new ResultQueue<>(q);
+		conveyor.setResultConsumer(rq);
+		return rq;
+	}
+
 	/**
 	 * Gets the cart counter.
 	 *

@@ -97,7 +97,7 @@ public class MultichannelTest {
 		
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch1 = ac.detach();
 		ch1.acceptLabels(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST);
-		ch1.forwardPartialResultTo(UserBuilderEvents.MERGE_A, ac);
+		ch1.forwardResultTo(ac,UserBuilderEvents.MERGE_A);
 		ch1.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.first != null && ub.last != null;
@@ -108,7 +108,7 @@ public class MultichannelTest {
 
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch2 = ac.detach();
 		ch2.acceptLabels(UserBuilderEvents.SET_YEAR);
-		ch2.forwardPartialResultTo(UserBuilderEvents.MERGE_B, ac);
+		ch2.forwardResultTo(ac, UserBuilderEvents.MERGE_B);
 		ch2.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.yearOfBirth != null;
@@ -164,7 +164,7 @@ public class MultichannelTest {
 		assertFalse(ac.isLBalanced());
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch1 = ac.detach();
 		ch1.acceptLabels(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST);
-		ch1.forwardPartialResultTo(UserBuilderEvents.MERGE_A, ac);
+		ch1.forwardResultTo(ac, UserBuilderEvents.MERGE_A);
 		ch1.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.first != null && ub.last != null;
@@ -175,7 +175,7 @@ public class MultichannelTest {
 
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch2 = ac.detach();
 		ch2.acceptLabels(UserBuilderEvents.SET_YEAR);
-		ch2.forwardPartialResultTo(UserBuilderEvents.MERGE_B, ac);
+		ch2.forwardResultTo(ac, UserBuilderEvents.MERGE_B);
 		ch2.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.yearOfBirth != null;
@@ -235,7 +235,7 @@ public class MultichannelTest {
 		
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch1 = ac.detach();
 		ch1.acceptLabels(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.INFO);
-		ch1.forwardPartialResultTo(UserBuilderEvents.MERGE_A, ac);
+		ch1.forwardResultTo(ac, UserBuilderEvents.MERGE_A);
 		ch1.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.first != null && ub.last != null;
@@ -246,7 +246,7 @@ public class MultichannelTest {
 
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch2 = ac.detach();
 		ch2.acceptLabels(UserBuilderEvents.SET_YEAR,UserBuilderEvents.INFO);
-		ch2.forwardPartialResultTo(UserBuilderEvents.MERGE_B, ac);
+		ch2.forwardResultTo(ac, UserBuilderEvents.MERGE_B);
 		ch2.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.yearOfBirth != null;
@@ -310,7 +310,7 @@ public class MultichannelTest {
 		
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch1 = ac.detach();
 		ch1.acceptLabels(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST);
-		ch1.forwardPartialResultTo(UserBuilderEvents.MERGE_A, ac);
+		ch1.forwardResultTo(ac, UserBuilderEvents.MERGE_A);
 		ch1.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.first != null && ub.last != null;
@@ -326,7 +326,7 @@ public class MultichannelTest {
 		});
 		
 		ch2.acceptLabels(UserBuilderEvents.SET_YEAR);
-		ch2.forwardPartialResultTo(UserBuilderEvents.MERGE_B, ac);
+		ch2.forwardResultTo(ac, UserBuilderEvents.MERGE_B);
 		ch2.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.yearOfBirth != null;
@@ -398,7 +398,7 @@ public class MultichannelTest {
 		
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch1 = ac.detach();
 		ch1.acceptLabels(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST);
-		ch1.forwardPartialResultTo(UserBuilderEvents.MERGE_A, ac);
+		ch1.forwardResultTo(ac, UserBuilderEvents.MERGE_A);
 		ch1.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.first != null && ub.last != null;
@@ -409,7 +409,7 @@ public class MultichannelTest {
 
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch2 = ac.detach();
 		ch2.acceptLabels(UserBuilderEvents.SET_YEAR);
-		ch2.forwardPartialResultTo(UserBuilderEvents.MERGE_B, ac);
+		ch2.forwardResultTo(ac, UserBuilderEvents.MERGE_B);
 		ch2.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.yearOfBirth != null;
@@ -479,7 +479,7 @@ public class MultichannelTest {
 		
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch1 = ac.detach();
 		ch1.acceptLabels(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST);
-		ch1.forwardPartialResultTo(UserBuilderEvents.MERGE_A, ac);
+		ch1.forwardResultTo(ac, UserBuilderEvents.MERGE_A);
 		ch1.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.first != null && ub.last != null;
@@ -490,7 +490,7 @@ public class MultichannelTest {
 
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch2 = ac.detach();
 		ch2.acceptLabels(UserBuilderEvents.SET_YEAR);
-		ch2.forwardPartialResultTo(UserBuilderEvents.MERGE_B, ac);
+		ch2.forwardResultTo(ac, UserBuilderEvents.MERGE_B);
 		ch2.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.yearOfBirth != null;

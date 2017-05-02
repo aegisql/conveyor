@@ -637,15 +637,22 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#forwardPartialResultTo(java.lang.Object, com.aegisql.conveyor.Conveyor)
 	 */
-	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv) {
-		this.forwardingResults  = true;
-		this.setResultConsumer(bin->{
-			LOG.debug("Forward {} from {} to {} {}",partial,this.name,conv.getName(),bin.product);
-			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
-			conv.place( partialResult );
-		});
+	@Override
+	public <L2,OUT2> void forwardResultTo(Conveyor<K,L2,OUT2> destination, L2 label) {
+		forwardResultTo(destination,b->b.key,label);
 	}
 
+	@Override
+	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>, K2> keyConverter,
+			L2 label) {
+		this.forwardingResults   = true;
+		this.setResultConsumer(bin->{
+			LOG.debug("Forward {} from {} to {} {}",label,this.name,destination.getName(),bin.product);
+			Cart<K2,OUT,L2> partialResult = new ShoppingCart<>(keyConverter.apply(bin), bin.product, label, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
+			destination.place( partialResult );
+		});
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#enablePostponeExpiration(boolean)
 	 */

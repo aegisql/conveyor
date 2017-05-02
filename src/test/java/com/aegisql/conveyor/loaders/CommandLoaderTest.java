@@ -315,7 +315,7 @@ public class CommandLoaderTest {
 		
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch1 = ac.detach();
 		ch1.acceptLabels(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST);
-		ch1.forwardPartialResultTo(UserBuilderEvents.MERGE_A, ac);
+		ch1.forwardResultTo(ac,UserBuilderEvents.MERGE_A);
 		ch1.setReadinessEvaluator(Conveyor.getTesterFor(ac).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST));
 		ch1.setName("CH1");
 
@@ -330,7 +330,7 @@ public class CommandLoaderTest {
 		});
 		
 		ch2.acceptLabels(UserBuilderEvents.SET_YEAR);
-		ch2.forwardPartialResultTo(UserBuilderEvents.MERGE_B, ac);
+		ch2.forwardResultTo(ac,UserBuilderEvents.MERGE_B);
 		ch2.setReadinessEvaluator(Conveyor.getTesterFor(ac).accepted(UserBuilderEvents.SET_YEAR));
 		ch2.setName("CH2");
 		

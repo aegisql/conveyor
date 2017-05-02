@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
@@ -27,6 +28,10 @@ public class ScalarConvertingConveyorTest {
 	 * The Class StringToUserBuulder.
 	 */
 	static class StringToUserBuulder extends ScalarConvertingBuilder<String,User> {
+		
+		public StringToUserBuulder() {
+			super(1000,TimeUnit.MILLISECONDS);
+		}
 		
 		/* (non-Javadoc)
 		 * @see java.util.function.Supplier#get()

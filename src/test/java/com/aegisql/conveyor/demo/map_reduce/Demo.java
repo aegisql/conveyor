@@ -42,7 +42,7 @@ public class Demo {
 			//Giving conveyor a distinctive name is a good practice 
 			source.setName("COUNTER_"+Thread.currentThread().getId());
 			//Results will be forwrded to collectingConveyor with the MERGE label
-			source.forwardPartialResultTo(MERGE, collectingConveyor);
+			source.forwardResultTo(collectingConveyor,MERGE);
 			//Ready when "DONE" command is received
 			source.setReadinessEvaluator(Conveyor.getTesterFor(source).accepted(DONE));
 			//Extract "common" part of the word loader into a variable

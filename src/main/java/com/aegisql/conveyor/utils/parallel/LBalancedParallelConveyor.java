@@ -20,6 +20,7 @@ import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.FutureSupplier;
+import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
@@ -255,15 +256,20 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#forwardPartialResultTo(java.lang.Object, com.aegisql.conveyor.Conveyor)
 	 */
-	public void forwardPartialResultTo(L partial, Conveyor<K,L,OUT> conv) {
+	@Override
+	public <L2,OUT2> void forwardResultTo(Conveyor<K,L2,OUT2> destination, L2 label) {
+		forwardResultTo(destination,k->k.key,label);
+	}
+
+	@Override
+	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>, K2> keyConverter,
+			L2 label) {
 		this.forwardingResults   = true;
 		this.setResultConsumer(bin->{
-			LOG.debug("Forward {} from {} to {} {}",partial,this.name,conv.getName(),bin.product);
-			Cart<K,OUT,L> partialResult = new ShoppingCart<>(bin.key, bin.product, partial, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
-			conv.place( partialResult );
-		});
+			LOG.debug("Forward {} from {} to {} {}",label,this.name,destination.getName(),bin.product);
+			Cart<K2,OUT,L2> partialResult = new ShoppingCart<>(keyConverter.apply(bin), bin.product, label, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
+			destination.place( partialResult );
+		});		
 	}
-	
-
 
 }

@@ -3,6 +3,8 @@
  */
 package com.aegisql.conveyor.user;
 
+import java.io.Serializable;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class User.
@@ -10,8 +12,13 @@ package com.aegisql.conveyor.user;
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  */
-public class User {
+public class User implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	/** The first. */
 	final String first;
 	
