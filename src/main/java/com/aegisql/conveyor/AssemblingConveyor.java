@@ -865,10 +865,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			synchronized (this.conveyorFutureLock) {
 				if(this.conveyorFuture == null) {
 					this.addCartBeforePlacementValidator(c->{
-						throw new IllegalStateException("Conveyor preparing to shut down. No new messages can be accepted");
+						K key = c.getKey();
+						if(key != null && ! this.collector.containsKey(key)) {
+							throw new IllegalStateException("Conveyor preparing to shut down. No new messages can be accepted");
+						}
 					});
 					this.commandBeforePlacementValidator = commandBeforePlacementValidator.andThen(cmd -> {
-						throw new IllegalStateException("Conveyor preparing to shut down. No new commands can be accepted");
+						K key = cmd.getKey();
+						if(key != null && ! this.collector.containsKey(key)) {
+							throw new IllegalStateException("Conveyor preparing to shut down. No new commands can be accepted");
+						}
 					});
 					this.conveyorFuture = new CompletableFuture<Boolean>();
 				}
