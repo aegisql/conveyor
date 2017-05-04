@@ -3,6 +3,8 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.HashMap;
@@ -464,6 +466,21 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 				LOG.info("Leaving {}", Thread.currentThread().getName());
 				drainQueues();
+				if(resultConsumer instanceof Closeable) {
+					try {
+						((Closeable)resultConsumer).close();
+					} catch(IOException e) {
+						LOG.error("Error closing result consumer for "+getName(),e);
+					}
+				}
+				if(scrapConsumer instanceof Closeable) {
+					try {
+						((Closeable)scrapConsumer).close();
+					} catch(IOException e) {
+						LOG.error("Error closing scrap consumer for "+getName(),e);
+					}
+				}
+
 			} catch (Throwable e) { // Let it crash, but don't pretend its
 									// running
 				stop();
