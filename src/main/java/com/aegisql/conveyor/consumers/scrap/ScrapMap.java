@@ -115,7 +115,11 @@ public class ScrapMap <K> implements ConcurrentMap<K,List<?>>, Consumer<ScrapBin
 
 	@Override
 	public void accept(ScrapBin<?, ?> bin) {
-		List<Object> scraps = (List<Object>) inner.putIfAbsent((K) bin.key, new ArrayList<>());
+		ArrayList<Object> newList = new ArrayList<>();
+		List<Object> scraps = (List<Object>) inner.putIfAbsent((K) bin.key, newList);
+		if(scraps == null) {
+			scraps = newList;
+		}
 		scraps.add(bin.scrap);
 	}
 
@@ -129,6 +133,11 @@ public class ScrapMap <K> implements ConcurrentMap<K,List<?>>, Consumer<ScrapBin
 
 	public static <K> ScrapMap<K> of(Conveyor<K,?,?> conv, Supplier<ConcurrentMap<K,List<?>>> mapS) {
 		return new ScrapMap<>(mapS);
+	}
+
+	@Override
+	public String toString() {
+		return "ScrapMap {" + inner + "}";
 	}
 
 }

@@ -218,5 +218,10 @@ public class ScrapQueue<K> implements Queue<Object>, Consumer<ScrapBin<?,?>> {
 	public static <K> ScrapQueue<K> of(Conveyor<K, ?, ?> conv, Supplier<Queue<Object>> qs) {
 		return new ScrapQueue<>(qs);
 	}
+
+	@Override
+	public String toString() {
+		return "ScrapQueue [" + inner + "]";
+	}
 	
 }

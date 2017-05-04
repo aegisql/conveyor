@@ -16,6 +16,8 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.consumers.scrap.PrintStreamScrap;
+import com.aegisql.conveyor.consumers.scrap.ScrapMap;
+import com.aegisql.conveyor.consumers.scrap.ScrapQueue;
 import com.aegisql.conveyor.consumers.scrap.ScrapReference;
 import com.aegisql.conveyor.consumers.scrap.StreamScrap;
 import com.aegisql.conveyor.user.User;
@@ -80,29 +82,44 @@ public class ResultConsumerTest {
 	public void testQueueConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		ResultQueue<String,User> q = ResultQueue.of(sc);
+		ScrapQueue<String> s = ScrapQueue.of(sc);
 		sc.setBuilderSupplier(StringToUserBuulder::new);
 		sc.setResultConsumer(q);
+		sc.setScrapConsumer(s);
 		String csv = "John,Dow,1990";
+		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
 		CompletableFuture<Boolean> cf = sc.part().id("test").value(csv).place();
 		cf.get();
 		assertNotNull(q);
 		assertEquals(1,q.size());
+		assertNotNull(s);
+		assertEquals(1,s.size());
 		System.out.println(q);
+		System.out.println(s);
 	}
 
 	@Test
 	public void testMapConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		ResultMap<String,User> q = ResultMap.of(sc);
+		ScrapMap<String> m = ScrapMap.of(sc);
 		sc.setBuilderSupplier(StringToUserBuulder::new);
 		sc.setResultConsumer(q);
+		sc.setScrapConsumer(m);
 		String csv = "John,Dow,1990";
+		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
 		CompletableFuture<Boolean> cf = sc.part().id("test").value(csv).place();
 		cf.get();
 		assertNotNull(q);
 		assertEquals(1,q.size());
 		assertTrue(q.containsKey("test"));
+		assertNotNull(m);
+		assertEquals(1,m.size());
+		assertTrue(m.containsKey("bad"));
+		assertNotNull(m.get("bad"));
+		assertEquals(1,m.get("bad").size());
 		System.out.println(q);
+		System.out.println(m);
 	}
 
 	
