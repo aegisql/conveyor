@@ -27,7 +27,7 @@ public class ScalarConvertingConveyorTest {
 	/**
 	 * The Class StringToUserBuulder.
 	 */
-	static class StringToUserBuulder extends ScalarConvertingBuilder<String,User> {
+	public static class StringToUserBuulder extends ScalarConvertingBuilder<String,User> {
 		
 		public StringToUserBuulder() {
 			super(1000,TimeUnit.MILLISECONDS);

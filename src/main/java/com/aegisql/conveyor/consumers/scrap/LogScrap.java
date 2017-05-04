@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
 
-public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
+public class LogScrap <K> implements Consumer<ScrapBin<?,?>> {
 
 	public static enum Level {
 		TRACE,
@@ -75,7 +75,7 @@ public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
 	}
 
 	@Override
-	public void accept(ScrapBin<K, ?> t) {
+	public void accept(ScrapBin<?, ?> t) {
 		consumer.accept(t);
 	}
 
