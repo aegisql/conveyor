@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
 
-public class ScrapMap <K> implements ConcurrentMap<K,List<?>>, Consumer<ScrapBin<K,?>> {
+public class ScrapMap <K> implements ConcurrentMap<K,List<?>>, Consumer<ScrapBin<?,?>> {
 
 	private final ConcurrentMap<K,List<?>> inner;
 	
@@ -114,8 +114,8 @@ public class ScrapMap <K> implements ConcurrentMap<K,List<?>>, Consumer<ScrapBin
 	}
 
 	@Override
-	public void accept(ScrapBin<K, ?> bin) {
-		List<Object> scraps = (List<Object>) inner.putIfAbsent(bin.key, new ArrayList<>());
+	public void accept(ScrapBin<?, ?> bin) {
+		List<Object> scraps = (List<Object>) inner.putIfAbsent((K) bin.key, new ArrayList<>());
 		scraps.add(bin.scrap);
 	}
 

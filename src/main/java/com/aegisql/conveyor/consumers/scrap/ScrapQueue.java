@@ -9,7 +9,6 @@ import java.util.function.Supplier;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
-import com.aegisql.conveyor.consumers.result.ResultQueue;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -17,7 +16,7 @@ import com.aegisql.conveyor.consumers.result.ResultQueue;
  *
  * @param <K> the key type
  */
-public class ScrapQueue<K> implements Queue<Object>, Consumer<ScrapBin<K,Object>> {
+public class ScrapQueue<K> implements Queue<Object>, Consumer<ScrapBin<?,?>> {
 
 	/** The inner. */
 	private final Queue<Object> inner;	
@@ -195,7 +194,7 @@ public class ScrapQueue<K> implements Queue<Object>, Consumer<ScrapBin<K,Object>
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<K, Object> scrapBin) {
+	public void accept(ScrapBin<?, ?> scrapBin) {
 		inner.add(scrapBin.scrap);
 	}
 

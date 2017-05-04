@@ -107,4 +107,9 @@ public class ResultMap <K,V> implements Map<K,V>, Consumer<ProductBin<K,V>> {
 		return new ResultMap<>(mapS);
 	}
 
+	@Override
+	public String toString() {
+		return "ResultMap {" + inner + "}";
+	}
+
 }

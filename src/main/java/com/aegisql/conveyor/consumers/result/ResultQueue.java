@@ -222,4 +222,9 @@ public class ResultQueue<K,E> implements Queue<E>, Consumer<ProductBin<K,E>> {
 		return new ResultQueue<>(qs);
 	}
 
+	@Override
+	public String toString() {
+		return "ResultQueue [" + inner + "]";
+	}
+
 }

@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
 
-public class StreamScrap <K> implements Consumer<ScrapBin<K,?>>, Closeable {
+public class StreamScrap <K> implements Consumer<ScrapBin<?,?>>, Closeable {
 
 	private final ObjectOutputStream os;
 	
@@ -20,7 +20,7 @@ public class StreamScrap <K> implements Consumer<ScrapBin<K,?>>, Closeable {
 	}
 
 	@Override
-	public void accept(ScrapBin<K,?> bin) {
+	public void accept(ScrapBin<?,?> bin) {
 		try {
 			os.writeObject(bin.scrap);
 			os.flush();

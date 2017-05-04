@@ -42,7 +42,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	protected final long expirationTime; 
 
 	/** The future. */
-	protected CompletableFuture<Boolean> future = null;
+	protected transient CompletableFuture<Boolean> future = null;
 	
 	/**
 	 * Instantiates a new cart.
