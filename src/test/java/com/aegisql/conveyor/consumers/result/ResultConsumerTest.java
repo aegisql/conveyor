@@ -3,9 +3,11 @@ package com.aegisql.conveyor.consumers.result;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
@@ -23,6 +25,8 @@ import com.aegisql.conveyor.consumers.scrap.StreamScrap;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuulder;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
+
+import sun.security.krb5.internal.ccache.CCacheInputStream;
 
 public class ResultConsumerTest {
 
@@ -71,6 +75,29 @@ public class ResultConsumerTest {
 		cf.get();
 		assertNotNull(q);
 		assertNotNull(q.getCurrent());
+		assertNotNull(s);
+		assertNotNull(s.getCurrent());
+		System.out.println(q);
+		System.out.println(s);
+	}
+
+	@Test
+	public void testLastConsumers() throws InterruptedException, ExecutionException, TimeoutException {
+		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
+		sc.setDefaultBuilderTimeout(Duration.ofMillis(100));
+		LastResults<String,User> q = LastResults.of(sc,2);
+		LastScrapReference s = LastScrapReference.of(sc);
+		sc.setBuilderSupplier(StringToUserBuulder::new);
+		sc.setResultConsumer(q);
+		sc.setScrapConsumer(s);
+		String csv = "John,Dow,199";
+		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
+		sc.part().id("test1").value(csv+"0").place();
+		sc.part().id("test2").value(csv+"1").place();
+		CompletableFuture<Boolean> cf = sc.part().id("test3").value(csv+"2").place();
+		sc.completeAndStop().get();
+		assertNotNull(q);
+		assertNotNull(q.getLast());
 		assertNotNull(s);
 		assertNotNull(s.getCurrent());
 		System.out.println(q);
