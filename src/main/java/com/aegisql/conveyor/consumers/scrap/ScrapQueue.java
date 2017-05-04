@@ -7,7 +7,9 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
+import com.aegisql.conveyor.consumers.result.ResultQueue;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -204,6 +206,18 @@ public class ScrapQueue<K> implements Queue<Object>, Consumer<ScrapBin<K,Object>
 	 */
 	public Queue<Object> getInnerQueue() {
 		return inner;
+	}
+	
+	public static <K> ScrapQueue<K> of(Conveyor<K, ?, ?> conv) {
+		return new ScrapQueue<>();
+	}
+
+	public static <K> ScrapQueue<K> of(Conveyor<K, ?, ?> conv, Queue<Object> q) {
+		return new ScrapQueue<>(q);
+	}
+
+	public static <K> ScrapQueue<K> of(Conveyor<K, ?, ?> conv, Supplier<Queue<Object>> qs) {
+		return new ScrapQueue<>(qs);
 	}
 	
 }

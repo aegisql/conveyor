@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
 
 // TODO: Auto-generated Javadoc
@@ -209,4 +210,16 @@ public class ResultQueue<K,E> implements Queue<E>, Consumer<ProductBin<K,E>> {
 		return (T) inner;
 	}
 	
+	public static <K,E> ResultQueue<K,E> of(Conveyor<K, ?, E> conv) {
+		return new ResultQueue<>();
+	}
+
+	public static <K,E> ResultQueue<K,E> of(Conveyor<K, ?, E> conv, Queue<E> q) {
+		return new ResultQueue<>(q);
+	}
+
+	public static <K,E> ResultQueue<K,E> of(Conveyor<K, ?, E> conv, Supplier<Queue<E>> qs) {
+		return new ResultQueue<>(qs);
+	}
+
 }
