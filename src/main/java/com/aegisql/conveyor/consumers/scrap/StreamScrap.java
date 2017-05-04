@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
 
-public class StreamScrap <K> implements Consumer<ScrapBin<?,?>>, Closeable {
+public class StreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 
 	private final ObjectOutputStream os;
 	
@@ -38,15 +38,15 @@ public class StreamScrap <K> implements Consumer<ScrapBin<?,?>>, Closeable {
 		return os;
 	}
 
-	public static <K> StreamScrap<K> of(Conveyor<K, ?, ?> conv, OutputStream os) throws IOException {
-		return new StreamScrap<>(os);
+	public static <K> StreamScrap of(Conveyor<K, ?, ?> conv, OutputStream os) throws IOException {
+		return new StreamScrap(os);
 	}
 
-	public static <K> StreamScrap<K> of(Conveyor<K, ?, ?> conv, File file) throws IOException {
+	public static <K> StreamScrap of(Conveyor<K, ?, ?> conv, File file) throws IOException {
 		return of(conv,new FileOutputStream(file));
 	}
 
-	public static <K> StreamScrap<K> of(Conveyor<K, ?, ?> conv, String file) throws IOException {
+	public static <K> StreamScrap of(Conveyor<K, ?, ?> conv, String file) throws IOException {
 		return of(conv,new File(file));
 	}
 

@@ -18,7 +18,7 @@ import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.consumers.scrap.PrintStreamScrap;
 import com.aegisql.conveyor.consumers.scrap.ScrapMap;
 import com.aegisql.conveyor.consumers.scrap.ScrapQueue;
-import com.aegisql.conveyor.consumers.scrap.ScrapReference;
+import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
 import com.aegisql.conveyor.consumers.scrap.StreamScrap;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuulder;
@@ -60,8 +60,8 @@ public class ResultConsumerTest {
 	@Test
 	public void testRefConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
-		ResultReference<String,User> q = ResultReference.of(sc);
-		ScrapReference<String> s = ScrapReference.of(sc);
+		LastResultReference<String,User> q = LastResultReference.of(sc);
+		LastScrapReference s = LastScrapReference.of(sc);
 		sc.setBuilderSupplier(StringToUserBuulder::new);
 		sc.setResultConsumer(q);
 		sc.setScrapConsumer(s);
@@ -82,7 +82,7 @@ public class ResultConsumerTest {
 	public void testQueueConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		ResultQueue<String,User> q = ResultQueue.of(sc);
-		ScrapQueue<String> s = ScrapQueue.of(sc);
+		ScrapQueue s = ScrapQueue.of(sc);
 		sc.setBuilderSupplier(StringToUserBuulder::new);
 		sc.setResultConsumer(q);
 		sc.setScrapConsumer(s);

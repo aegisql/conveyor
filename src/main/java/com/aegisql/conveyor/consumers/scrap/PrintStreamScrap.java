@@ -13,7 +13,7 @@ import java.util.function.Function;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
 
-public class PrintStreamScrap <K> implements Consumer<ScrapBin<?,?>>, Closeable {
+public class PrintStreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 
 	private final PrintStream os;
 	
@@ -44,27 +44,27 @@ public class PrintStreamScrap <K> implements Consumer<ScrapBin<?,?>>, Closeable 
 		return os;
 	}
 
-	public static <K,V> PrintStreamScrap<K> of(Conveyor<K, ?, ?> conv, OutputStream os, Function<Object,String> toString) {
-		return new PrintStreamScrap<>(os,toString);
+	public static <K> PrintStreamScrap of(Conveyor<K, ?, ?> conv, OutputStream os, Function<Object,String> toString) {
+		return new PrintStreamScrap(os,toString);
 	}
 
-	public static <K> PrintStreamScrap<K> of(Conveyor<K, ?, ?> conv, OutputStream os) {
+	public static <K> PrintStreamScrap of(Conveyor<K, ?, ?> conv, OutputStream os) {
 		return of(conv,os,v->""+v);
 	}
 
-	public static <K,V> PrintStreamScrap<K> of(Conveyor<K, ?, ?> conv, File file, Function<Object,String> toString) throws FileNotFoundException {
+	public static <K> PrintStreamScrap of(Conveyor<K, ?, ?> conv, File file, Function<Object,String> toString) throws FileNotFoundException {
 		return of(conv,new FileOutputStream(file),toString);
 	}
 
-	public static <K> PrintStreamScrap<K> of(Conveyor<K, ?, ?> conv, File file) throws FileNotFoundException {
+	public static <K> PrintStreamScrap of(Conveyor<K, ?, ?> conv, File file) throws FileNotFoundException {
 		return of(conv,file,v->""+v);
 	}
 
-	public static <K,V> PrintStreamScrap<K> of(Conveyor<K, ?, ?> conv, String file, Function<Object,String> toString) throws FileNotFoundException {
+	public static <K> PrintStreamScrap of(Conveyor<K, ?, ?> conv, String file, Function<Object,String> toString) throws FileNotFoundException {
 		return of(conv,new File(file),toString);
 	}
 
-	public static <K> PrintStreamScrap<K> of(Conveyor<K, ?, ?> conv, String file) throws FileNotFoundException {
+	public static <K> PrintStreamScrap of(Conveyor<K, ?, ?> conv, String file) throws FileNotFoundException {
 		return of(conv,file,v->""+v);
 	}
 	

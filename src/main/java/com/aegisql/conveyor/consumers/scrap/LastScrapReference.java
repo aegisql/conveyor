@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
 
-public class ScrapReference <K> implements Consumer<ScrapBin<?,?>> {
+public class LastScrapReference implements Consumer<ScrapBin<?,?>> {
 
 	AtomicReference<Object> ref = new AtomicReference<>();
 	
@@ -24,8 +24,8 @@ public class ScrapReference <K> implements Consumer<ScrapBin<?,?>> {
 		return "ScrapReference [" + ref.get() + "]";
 	}
 
-	public static <K> ScrapReference<K> of(Conveyor<K, ?, ?> conv) {
-		return new ScrapReference<>();
+	public static <K> LastScrapReference of(Conveyor<K, ?, ?> conv) {
+		return new LastScrapReference();
 	}
 	
 }

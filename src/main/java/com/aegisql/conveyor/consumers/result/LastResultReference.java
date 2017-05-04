@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
 
-public class ResultReference <K,V> implements Consumer<ProductBin<K,V>> {
+public class LastResultReference <K,V> implements Consumer<ProductBin<K,V>> {
 
 	AtomicReference<V> ref = new AtomicReference<>();
 	
@@ -24,8 +24,8 @@ public class ResultReference <K,V> implements Consumer<ProductBin<K,V>> {
 		return "ResultReference [" + ref.get() + "]";
 	}
 
-	public static <K,V> ResultReference<K, V> of(Conveyor<K, ?, V> conv) {
-		return new ResultReference<>();
+	public static <K,V> LastResultReference<K, V> of(Conveyor<K, ?, V> conv) {
+		return new LastResultReference<>();
 	}
 	
 }

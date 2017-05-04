@@ -16,7 +16,7 @@ import com.aegisql.conveyor.ScrapBin;
  *
  * @param <K> the key type
  */
-public class ScrapQueue<K> implements Queue<Object>, Consumer<ScrapBin<?,?>> {
+public class ScrapQueue implements Queue<Object>, Consumer<ScrapBin<?,?>> {
 
 	/** The inner. */
 	private final Queue<Object> inner;	
@@ -207,16 +207,16 @@ public class ScrapQueue<K> implements Queue<Object>, Consumer<ScrapBin<?,?>> {
 		return inner;
 	}
 	
-	public static <K> ScrapQueue<K> of(Conveyor<K, ?, ?> conv) {
-		return new ScrapQueue<>();
+	public static <K> ScrapQueue of(Conveyor<K, ?, ?> conv) {
+		return new ScrapQueue();
 	}
 
-	public static <K> ScrapQueue<K> of(Conveyor<K, ?, ?> conv, Queue<Object> q) {
-		return new ScrapQueue<>(q);
+	public static <K> ScrapQueue of(Conveyor<K, ?, ?> conv, Queue<Object> q) {
+		return new ScrapQueue(q);
 	}
 
-	public static <K> ScrapQueue<K> of(Conveyor<K, ?, ?> conv, Supplier<Queue<Object>> qs) {
-		return new ScrapQueue<>(qs);
+	public static <K> ScrapQueue of(Conveyor<K, ?, ?> conv, Supplier<Queue<Object>> qs) {
+		return new ScrapQueue(qs);
 	}
 
 	@Override
