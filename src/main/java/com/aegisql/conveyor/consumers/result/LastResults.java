@@ -13,6 +13,7 @@ public class LastResults <K,V> implements Consumer<ProductBin<K,V>> {
 	private final ArrayList<V> results;
 	private final int last;
 	private int p = 0;
+	private int n = -1;
 	
 	
 	public LastResults(int size) {
@@ -32,6 +33,7 @@ public class LastResults <K,V> implements Consumer<ProductBin<K,V>> {
 			} else {
 				p=0;
 			}
+			n++;
 		}
 	}
 	
@@ -39,15 +41,16 @@ public class LastResults <K,V> implements Consumer<ProductBin<K,V>> {
 		ArrayList<V> lastRes = new ArrayList<>(last+1);
 		synchronized (results) {
 			int lp = p;
-			for(int i = 0; i <= last;i++) {
-				lastRes.add(results.get(lp));
-				if(lp<last) {
-					lp++;
+			for(int i = 0; i <= Math.min(last,n); i++) {
+				if(lp > 0) {
+					lp--;
 				} else {
-					lp=0;
+					lp=last;
 				}
+				lastRes.add(results.get(lp));
 			}
 		}
+		Collections.reverse(lastRes);
 		return Collections.unmodifiableList(lastRes);
 	}
 
