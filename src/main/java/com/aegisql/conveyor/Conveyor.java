@@ -3,11 +3,7 @@
  */
 package com.aegisql.conveyor;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.time.Duration;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +26,6 @@ import com.aegisql.conveyor.loaders.MultiKeyCommandLoader;
 import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
-import com.aegisql.conveyor.utils.ResultQueue;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -45,7 +40,7 @@ import com.aegisql.conveyor.utils.ResultQueue;
 public interface Conveyor<K, L, OUT> {
 	
 	/** The Constant LOG. */
-	final static Logger LOG = LoggerFactory.getLogger(Conveyor.class);
+	public final static Logger LOG = LoggerFactory.getLogger(Conveyor.class);
 
 	/**
 	 * Part.
@@ -417,56 +412,6 @@ public interface Conveyor<K, L, OUT> {
 		return (l,v,b)->{
 			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
 		};
-	}
-
-	/**
-	 * Queue results.
-	 *
-	 * @param <K> the key type
-	 * @param <L> the generic type
-	 * @param <OUT> the generic type
-	 * @param <B> the generic type
-	 * @param conveyor the conveyor
-	 * @return the queue
-	 */
-	public static <K, L,OUT,B extends Supplier<? extends OUT>> Queue<OUT> queueResults(Conveyor<K, L, OUT> conveyor){
-		ResultQueue<K, OUT> rq = new ResultQueue<>();
-		conveyor.setResultConsumer(rq);
-		return rq;
-	}
-
-	/**
-	 * Queue results.
-	 *
-	 * @param <K> the key type
-	 * @param <L> the generic type
-	 * @param <OUT> the generic type
-	 * @param <B> the generic type
-	 * @param conveyor the conveyor
-	 * @param q the q
-	 * @return the queue
-	 */
-	public static <K, L,OUT,B extends Supplier<? extends OUT>> Queue<OUT> queueResults(Conveyor<K, L, OUT> conveyor, Queue<OUT> q){
-		ResultQueue<K, OUT> rq = new ResultQueue<>(q);
-		conveyor.setResultConsumer(rq);
-		return rq;
-	}
-
-	/**
-	 * Queue results.
-	 *
-	 * @param <K> the key type
-	 * @param <L> the generic type
-	 * @param <OUT> the generic type
-	 * @param <B> the generic type
-	 * @param conveyor the conveyor
-	 * @param q the q
-	 * @return the queue
-	 */
-	public static <K, L,OUT,B extends Supplier<? extends OUT>> Queue<OUT> queueResults(Conveyor<K, L, OUT> conveyor, Supplier<Queue<OUT>> q){
-		ResultQueue<K, OUT> rq = new ResultQueue<>(q);
-		conveyor.setResultConsumer(rq);
-		return rq;
 	}
 
 	/**

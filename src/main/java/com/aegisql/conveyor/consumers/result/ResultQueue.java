@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.utils;
+package com.aegisql.conveyor.consumers.result;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -115,7 +115,7 @@ public class ResultQueue<K,E> implements Queue<E>, Consumer<ProductBin<K,E>> {
 	 */
 	@Override
 	public boolean addAll(Collection<? extends E> c) {
-		return inner.addAll(c);
+		throw new RuntimeException("Method addAll is not available from this context");
 	}
 
 	/* (non-Javadoc)
@@ -147,7 +147,7 @@ public class ResultQueue<K,E> implements Queue<E>, Consumer<ProductBin<K,E>> {
 	 */
 	@Override
 	public boolean add(E e) {
-		return inner.add(e);
+		throw new RuntimeException("Method add is not available from this context");
 	}
 
 	/* (non-Javadoc)
@@ -155,7 +155,7 @@ public class ResultQueue<K,E> implements Queue<E>, Consumer<ProductBin<K,E>> {
 	 */
 	@Override
 	public boolean offer(E e) {
-		return inner.offer(e);
+		throw new RuntimeException("Method offer is not available from this context");
 	}
 
 	/* (non-Javadoc)
@@ -195,7 +195,7 @@ public class ResultQueue<K,E> implements Queue<E>, Consumer<ProductBin<K,E>> {
 	 */
 	@Override
 	public void accept(ProductBin<K, E> productBin) {
-		this.add(productBin.product);
+		inner.add(productBin.product);
 	}
 
 	/**

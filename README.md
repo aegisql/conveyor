@@ -20,7 +20,6 @@ Maven dependency
 * CompletableFuture<Boolean> completeAndStop() method. When called, conveyor stops accepting new messages or commands, then waits for completion of existing tasks. When all builds complete or time out, exits the conveyor thread. This method can be useful for single time jobs, like massive batch load from parallel sources.
 * Changes in the forwardResultsTo method. Now allows to forward results to conveyor with different data structure, inluding transformation of the key.
 * Dropped ChainResults class as redundant. Functionality better covered by the forwardResultsTo methods
-* static helping methods for queueing results.
 
 ### 1.2.3
 * static loader and values
