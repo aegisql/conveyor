@@ -14,7 +14,9 @@ Maven dependency
 
 ## Release History
 
-### 1.2.5-SNAPSHOT
+### 1.2.6-SNAPSHOT
+
+### 1.2.5
 * Collection of result consumers
 * Collection of scrap consumers
 
