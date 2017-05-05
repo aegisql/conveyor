@@ -210,18 +210,47 @@ public class ResultQueue<K,E> implements Queue<E>, Consumer<ProductBin<K,E>> {
 		return (T) inner;
 	}
 	
+	/**
+	 * Of.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conv the conv
+	 * @return the result queue
+	 */
 	public static <K,E> ResultQueue<K,E> of(Conveyor<K, ?, E> conv) {
 		return new ResultQueue<>();
 	}
 
+	/**
+	 * Of.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conv the conv
+	 * @param q the q
+	 * @return the result queue
+	 */
 	public static <K,E> ResultQueue<K,E> of(Conveyor<K, ?, E> conv, Queue<E> q) {
 		return new ResultQueue<>(q);
 	}
 
+	/**
+	 * Of.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conv the conv
+	 * @param qs the qs
+	 * @return the result queue
+	 */
 	public static <K,E> ResultQueue<K,E> of(Conveyor<K, ?, E> conv, Supplier<Queue<E>> qs) {
 		return new ResultQueue<>(qs);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "ResultQueue [" + inner + "]";

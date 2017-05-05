@@ -13,8 +13,6 @@ import com.aegisql.conveyor.ScrapBin;
 // TODO: Auto-generated Javadoc
 /**
  * The Class ResultQueue.
- *
- * @param <K> the key type
  */
 public class ScrapQueue implements Queue<Object>, Consumer<ScrapBin<?,?>> {
 
@@ -110,6 +108,12 @@ public class ScrapQueue implements Queue<Object>, Consumer<ScrapBin<?,?>> {
 		return inner.containsAll(c);
 	}
 
+	/**
+	 * Adds the all.
+	 *
+	 * @param c the c
+	 * @return true, if successful
+	 */
 	/* (non-Javadoc)
 	 * @see java.util.Collection#addAll(java.util.Collection)
 	 */
@@ -207,18 +211,44 @@ public class ScrapQueue implements Queue<Object>, Consumer<ScrapBin<?,?>> {
 		return inner;
 	}
 	
+	/**
+	 * Of.
+	 *
+	 * @param <K> the key type
+	 * @param conv the conv
+	 * @return the scrap queue
+	 */
 	public static <K> ScrapQueue of(Conveyor<K, ?, ?> conv) {
 		return new ScrapQueue();
 	}
 
+	/**
+	 * Of.
+	 *
+	 * @param <K> the key type
+	 * @param conv the conv
+	 * @param q the q
+	 * @return the scrap queue
+	 */
 	public static <K> ScrapQueue of(Conveyor<K, ?, ?> conv, Queue<Object> q) {
 		return new ScrapQueue(q);
 	}
 
+	/**
+	 * Of.
+	 *
+	 * @param <K> the key type
+	 * @param conv the conv
+	 * @param qs the qs
+	 * @return the scrap queue
+	 */
 	public static <K> ScrapQueue of(Conveyor<K, ?, ?> conv, Supplier<Queue<Object>> qs) {
 		return new ScrapQueue(qs);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "ScrapQueue [" + inner + "]";
