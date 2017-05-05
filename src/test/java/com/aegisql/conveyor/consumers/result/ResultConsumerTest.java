@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -202,7 +203,8 @@ public class ResultConsumerTest {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		sc.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
-		sc.setResultConsumer(StreamResult.of(sc,"/tmp/testStreamConsumers.out").andThen(StreamResult.of(sc,"/tmp/testStreamConsumers2.out",b->b.product.getFirst()+" "+b.product.getLast())).andThen(b->usr.set(b.product)));
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		sc.setResultConsumer(StreamResult.of(sc,"/tmp/testStreamConsumers.out").andThen(StreamResult.of(sc,bos,b->b.product.getFirst()+" "+b.product.getLast())).andThen(b->usr.set(b.product)));
 		sc.setScrapConsumer(StreamScrap.of(sc,"/tmp/testStreamConsumers.err"));
 		String csv = "John,Dow,1990";
 		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
@@ -210,6 +212,7 @@ public class ResultConsumerTest {
 		cf.get();
 		sc.completeAndStop().get();
 		assertNotNull(usr.get());
+		System.out.println(new String(bos.toByteArray()));
 	}
 
 }
