@@ -82,6 +82,32 @@ public class ResultConsumerTest {
 	}
 
 	@Test
+	public void testFirstConsumers() throws InterruptedException, ExecutionException, TimeoutException {
+		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
+		sc.setDefaultBuilderTimeout(Duration.ofMillis(100));
+		FirstResults<String,User> q = FirstResults.of(sc,2);
+		LastScrapReference s = LastScrapReference.of(sc);
+		sc.setBuilderSupplier(StringToUserBuulder::new);
+		sc.setResultConsumer(q);
+		sc.setScrapConsumer(s);
+		String csv = "John,Dow,199";
+		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
+		sc.part().id("test1").value(csv+"0").place();
+		sc.part().id("test2").value(csv+"1").place();
+		sc.part().id("test3").value(csv+"2").place();
+		CompletableFuture<Boolean> cf = sc.part().id("test4").value(csv+"3").place();
+		cf.get();
+		sc.completeAndStop().get();
+		assertNotNull(q);
+		assertNotNull(q.getFirst());
+		assertNotNull(s);
+		assertNotNull(s.getCurrent());
+		System.out.println(q);
+		System.out.println(s);
+	}
+
+	
+	@Test
 	public void testLastConsumers() throws InterruptedException, ExecutionException, TimeoutException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		sc.setDefaultBuilderTimeout(Duration.ofMillis(100));
@@ -94,7 +120,9 @@ public class ResultConsumerTest {
 		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
 		sc.part().id("test1").value(csv+"0").place();
 		sc.part().id("test2").value(csv+"1").place();
-		CompletableFuture<Boolean> cf = sc.part().id("test3").value(csv+"2").place();
+		sc.part().id("test3").value(csv+"2").place();
+		CompletableFuture<Boolean> cf = sc.part().id("test4").value(csv+"3").place();
+		cf.get();
 		sc.completeAndStop().get();
 		assertNotNull(q);
 		assertNotNull(q.getLast());

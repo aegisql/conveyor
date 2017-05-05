@@ -33,24 +33,26 @@ public class LastResults <K,V> implements Consumer<ProductBin<K,V>> {
 			} else {
 				p=0;
 			}
-			n++;
+			if(n<last) {
+				n++;
+			}
 		}
 	}
 	
 	public List<V> getLast() {
 		ArrayList<V> lastRes = new ArrayList<>(last+1);
 		synchronized (results) {
-			int lp = p;
-			for(int i = 0; i <= Math.min(last,n); i++) {
+			int lp  = p;
+			int min = Math.min(last,n);
+			for(int i = 0; i <= min; i++) {
 				if(lp > 0) {
 					lp--;
 				} else {
 					lp=last;
 				}
-				lastRes.add(results.get(lp));
+				lastRes.add(results.get(min-lp));
 			}
 		}
-		Collections.reverse(lastRes);
 		return Collections.unmodifiableList(lastRes);
 	}
 
