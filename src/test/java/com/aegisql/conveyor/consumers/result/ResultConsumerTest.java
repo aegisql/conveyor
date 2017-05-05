@@ -1,6 +1,8 @@
 package com.aegisql.conveyor.consumers.result;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -16,17 +18,17 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.consumers.scrap.FirstScraps;
+import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
+import com.aegisql.conveyor.consumers.scrap.LastScraps;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.consumers.scrap.PrintStreamScrap;
 import com.aegisql.conveyor.consumers.scrap.ScrapMap;
 import com.aegisql.conveyor.consumers.scrap.ScrapQueue;
-import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
 import com.aegisql.conveyor.consumers.scrap.StreamScrap;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuulder;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
-
-import sun.security.krb5.internal.ccache.CCacheInputStream;
 
 public class ResultConsumerTest {
 
@@ -86,7 +88,7 @@ public class ResultConsumerTest {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		sc.setDefaultBuilderTimeout(Duration.ofMillis(100));
 		FirstResults<String,User> q = FirstResults.of(sc,2);
-		LastScrapReference s = LastScrapReference.of(sc);
+		FirstScraps s = FirstScraps.of(sc,2);
 		sc.setBuilderSupplier(StringToUserBuulder::new);
 		sc.setResultConsumer(q);
 		sc.setScrapConsumer(s);
@@ -101,7 +103,7 @@ public class ResultConsumerTest {
 		assertNotNull(q);
 		assertNotNull(q.getFirst());
 		assertNotNull(s);
-		assertNotNull(s.getCurrent());
+		assertNotNull(s.getFirst());
 		System.out.println(q);
 		System.out.println(s);
 	}
@@ -112,7 +114,7 @@ public class ResultConsumerTest {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		sc.setDefaultBuilderTimeout(Duration.ofMillis(100));
 		LastResults<String,User> q = LastResults.of(sc,2);
-		LastScrapReference s = LastScrapReference.of(sc);
+		LastScraps s = LastScraps.of(sc,2);
 		sc.setBuilderSupplier(StringToUserBuulder::new);
 		sc.setResultConsumer(q);
 		sc.setScrapConsumer(s);
@@ -127,7 +129,7 @@ public class ResultConsumerTest {
 		assertNotNull(q);
 		assertNotNull(q.getLast());
 		assertNotNull(s);
-		assertNotNull(s.getCurrent());
+		assertNotNull(s.getLast());
 		System.out.println(q);
 		System.out.println(s);
 	}
