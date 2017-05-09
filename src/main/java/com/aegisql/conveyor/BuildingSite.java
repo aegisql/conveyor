@@ -147,6 +147,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	/** The postpone alg. */
 	private BiConsumer<BuildingSite <K, L, C, OUT>,C> postponeAlg = (bs,cart)->{/*do nothing*/};
 	
+	private Consumer<ProductBin<K, OUT>> resultConsumer;
+	
 	/**
 	 * Instantiates a new building site.
 	 *
@@ -163,6 +165,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param addExpirationTimeMsec the add expiration time msec
 	 * @param postponeExpirationOnTimeoutEnabled the postpone expiration on timeout enabled
 	 * @param staticValues map of static values
+	 * @param resultConsumer product consumer
 	 */
 	@SuppressWarnings("unchecked")
 	public BuildingSite( 
@@ -178,7 +181,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			boolean postponeExpirationEnabled, 
 			long addExpirationTimeMsec, 
 			boolean postponeExpirationOnTimeoutEnabled,
-			Map<L,C> staticValues
+			Map<L,C> staticValues,
+			Consumer<ProductBin<K, OUT>> resultConsumer
 			) {
 		this.initialCart               = cart;
 		this.lastCart                  = cart;
@@ -187,8 +191,16 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.postponeExpirationEnabled = postponeExpirationEnabled;
 		this.postponeExpirationOnTimeoutEnabled = postponeExpirationOnTimeoutEnabled;
 		this.addExpirationTimeMsec     = addExpirationTimeMsec;
-		this.defaultValueConsumer             = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
-
+		this.defaultValueConsumer      = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
+		
+		if(resultConsumer == null) {
+			this.resultConsumer = bin->{
+				LOG.error("LOST RESULT {} {}", bin.key, bin.product);
+			};
+		} else {
+			this.resultConsumer = resultConsumer;
+		}
+		
 		Supplier<? extends OUT> productSupplier = builderSupplier.get();
 		if( productSupplier instanceof ProductSupplier && ((ProductSupplier)productSupplier).getSupplier() != null) {
 			this.builder = ((ProductSupplier)productSupplier).getSupplier();
@@ -333,12 +345,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		if( ! ready() ) {
 			throw new IllegalStateException("Builder is not ready!");
 		}
-		lock.lock();
-		try {
-			return builder.get();
-		} finally {
-			lock.unlock();
-		}
+		return unsafeBuild();
 	}
 
 	/**
@@ -595,7 +602,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 *
 	 * @param resultFuture the result future
 	 */
-	public void addFuture(CompletableFuture<? extends OUT> resultFuture) {
+	public void addFuture(final CompletableFuture<OUT> resultFuture) {
+		this.resultConsumer = this.resultConsumer.andThen(bin->{
+			resultFuture.complete(bin.product);
+		});
 		futures.add(resultFuture);
 	}
 

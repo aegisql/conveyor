@@ -14,12 +14,12 @@ Maven dependency
 
 ## Release History
 
-### 1.2.6-SNAPSHOT
+### 1.3.0-SNAPSHOT
+* Changes in the Result and Scrap consumer processing
 
 ### 1.2.5
 * Collection of result consumers
 * Collection of scrap consumers
-
 
 ### 1.2.4
 * CompletableFuture<Boolean> completeAndStop() method. When called, conveyor stops accepting new messages or commands, then waits for completion of existing tasks. When all builds complete or time out, exits the conveyor thread. This method can be useful for single time jobs, like massive batch load from parallel sources.
