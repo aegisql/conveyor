@@ -148,7 +148,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private BiConsumer<BuildingSite <K, L, C, OUT>,C> postponeAlg = (bs,cart)->{/*do nothing*/};
 	
 	private Consumer<ProductBin<K, OUT>> resultConsumer;
-	
+
+	private Consumer<Boolean> cancelResultConsumer = b->{};
+
+	private Consumer<Throwable> exceptionalResultConsumer = t->{};
+
 	/**
 	 * Instantiates a new building site.
 	 *
@@ -570,19 +574,16 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 *
 	 * @param value the value
 	 */
-	void completeFuturesWithValue(Object value) {
-		for(CompletableFuture f : futures ) {
-			f.complete(value);
-		}
+	void completeFuturesWithValue(OUT value, Status status) {
+		ProductBin<K, OUT> bin = new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status);
+		resultConsumer.accept(bin);
 	}
 
 	/**
 	 * Cancel futures.
 	 */
 	void cancelFutures() {
-		for(CompletableFuture<? extends OUT> f : futures ) {
-			f.cancel(true);
-		}
+		cancelResultConsumer.accept(true);
 	}
 
 	/**
@@ -590,10 +591,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 *
 	 * @param value the value
 	 */
-	void completeFuturesExceptionaly(Throwable value) {
-		for(CompletableFuture<? extends OUT> f : futures ) {
-			f.completeExceptionally(value);
-		}
+	void completeFuturesExceptionaly(Throwable error) {
+		exceptionalResultConsumer.accept(error);
 	}
 
 	
@@ -605,6 +604,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	public void addFuture(final CompletableFuture<OUT> resultFuture) {
 		this.resultConsumer = this.resultConsumer.andThen(bin->{
 			resultFuture.complete(bin.product);
+		});
+		this.cancelResultConsumer = this.cancelResultConsumer.andThen( b -> {
+			resultFuture.cancel(b);
+		});
+		this.exceptionalResultConsumer = this.exceptionalResultConsumer.andThen( t -> {
+			resultFuture.completeExceptionally(t);
 		});
 		futures.add(resultFuture);
 	}

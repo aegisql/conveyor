@@ -25,6 +25,7 @@ import com.aegisql.conveyor.loaders.FutureLoader;
 import com.aegisql.conveyor.loaders.MultiKeyCommandLoader;
 import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.loaders.ResultConsumerLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
 
 // TODO: Auto-generated Javadoc
@@ -111,6 +112,8 @@ public interface Conveyor<K, L, OUT> {
 	 * @return true, if successful
 	 */
 	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> command);
+	
+	public ResultConsumerLoader<K, OUT> resultConsumer();
 	
 	/**
 	 * Gets the collector size.

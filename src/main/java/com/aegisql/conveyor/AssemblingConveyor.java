@@ -50,6 +50,7 @@ import com.aegisql.conveyor.loaders.FutureLoader;
 import com.aegisql.conveyor.loaders.MultiKeyCommandLoader;
 import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.loaders.ResultConsumerLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
 
 // TODO: Auto-generated Javadoc
@@ -101,9 +102,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected Consumer<Supplier<? extends OUT>> timeoutAction;
 
 	/** The result consumer. */
-	protected Consumer<ProductBin<K, OUT>> resultConsumer = out -> {
-		LOG.error("LOST RESULT {} {}", out.key, out.product);
-	};
+	protected Consumer<ProductBin<K, OUT>> resultConsumer = null;
 
 	/** The scrap cart future consumer. */
 	protected Consumer<ScrapBin<?, Cart<K,?,L>>> scrapCartFutureConsumer = (scrapBin) -> {
@@ -1600,8 +1599,17 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	private void completeSuccessfully(BuildingSite<K, L, ?, OUT> buildingSite, OUT res, Status status) {
-		resultConsumer.accept(new ProductBin<K, OUT>(buildingSite.getKey(), res, buildingSite.getDelayMsec(), status));
-		buildingSite.completeFuturesWithValue(res);
+		buildingSite.completeFuturesWithValue(res,status);
+	}
+
+	@Override
+	public ResultConsumerLoader<K, OUT> resultConsumer() {
+		return new ResultConsumerLoader<>(rcl->{
+			//TODO: send RC as a message
+			return null;
+		}, 
+		this::setResultConsumer, 
+		resultConsumer);
 	}
 	
 }

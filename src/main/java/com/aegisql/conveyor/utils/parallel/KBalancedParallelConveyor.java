@@ -20,6 +20,7 @@ import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.loaders.ResultConsumerLoader;
 
 // TODO: Auto-generated Javadoc
 /**
