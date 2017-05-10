@@ -135,9 +135,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	/** The lock. */
 	private final Lock lock;
 	
-	/** The postpone expiration enabled. */
-	private final boolean postponeExpirationEnabled;
-	
 	/** The postpone expiration on timeout enabled. */
 	private final boolean postponeExpirationOnTimeoutEnabled;
 
@@ -149,6 +146,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	
 	private Consumer<ProductBin<K, OUT>> resultConsumer;
 
+	private Consumer<ProductBin<K, OUT>> completeResultConsumer = b->{};	
+	
 	private Consumer<Boolean> cancelResultConsumer = b->{};
 
 	private Consumer<Throwable> exceptionalResultConsumer = t->{};
@@ -192,7 +191,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.lastCart                  = cart;
 		this.defaultTimeoutAction      = timeoutAction;
 		this.saveCarts                 = saveCarts;
-		this.postponeExpirationEnabled = postponeExpirationEnabled;
 		this.postponeExpirationOnTimeoutEnabled = postponeExpirationOnTimeoutEnabled;
 		this.addExpirationTimeMsec     = addExpirationTimeMsec;
 		this.defaultValueConsumer      = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
@@ -574,9 +572,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 *
 	 * @param value the value
 	 */
-	void completeFuturesWithValue(OUT value, Status status) {
-		ProductBin<K, OUT> bin = new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status);
-		resultConsumer.accept(bin);
+	void completeWithValue(OUT value, Status status) {
+		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status) );
+	}
+	
+	void setResultConsumer(Consumer<ProductBin<K, OUT>> resultConsumer) {
+		this.resultConsumer = resultConsumer;
 	}
 
 	/**
@@ -602,7 +603,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param resultFuture the result future
 	 */
 	public void addFuture(final CompletableFuture<OUT> resultFuture) {
-		this.resultConsumer = this.resultConsumer.andThen(bin->{
+		this.completeResultConsumer = this.completeResultConsumer.andThen(bin->{
 			resultFuture.complete(bin.product);
 		});
 		this.cancelResultConsumer = this.cancelResultConsumer.andThen( b -> {

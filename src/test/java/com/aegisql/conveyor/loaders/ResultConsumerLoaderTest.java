@@ -197,10 +197,111 @@ public class ResultConsumerLoaderTest {
 		c.part().id(1).label(UserBuilderEvents.SET_FIRST).value("A").place();
 		c.part().id(1).label(UserBuilderEvents.SET_LAST).value("B").place();
 		c.part().id(1).label(UserBuilderEvents.SET_YEAR).value(2017).place();
+		c.completeAndStop().get();
+		
+		
+	}
+
+	@Test
+	public void testWithConveyorAndId() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
+		c.setName("multyKeyParts");
+		c.setBuilderSupplier(UserBuilder::new);
+		c.resultConsumer().first(LogResult.stdOut(c)).andThen(bin->{
+			System.out.println("-----");
+		}).set();
+		c.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
+		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
+		
+		CompletableFuture<User> f = c.build().id(1).createFuture();
+		
+		c.resultConsumer().id(1).first(LogResult.stdErr(c)).andThen(bin->{
+			System.err.println("+++++");
+		}).set();
+		
+		c.part().id(1).label(UserBuilderEvents.SET_FIRST).value("A").place();
+		c.part().id(2).label(UserBuilderEvents.SET_FIRST).value("A2").place();
+		c.part().id(1).label(UserBuilderEvents.SET_LAST).value("B").place();
+		c.part().id(2).label(UserBuilderEvents.SET_LAST).value("B2").place();
+		c.part().id(1).label(UserBuilderEvents.SET_YEAR).value(2017).place();
+		c.part().id(2).label(UserBuilderEvents.SET_YEAR).value(2007).place();
+		
+		User u = f.get();
+		assertNotNull(u);
 		
 		c.completeAndStop().get();
 		
 		
 	}
+
+	@Test
+	public void testWithConveyorForeach() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
+		c.setName("multyKeyParts");
+		c.setBuilderSupplier(UserBuilder::new);
+		c.resultConsumer().first(LogResult.stdOut(c)).andThen(bin->{
+			System.out.println("-----");
+		}).set();
+		c.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
+		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
+		
+		CompletableFuture<User> f = c.build().id(1).createFuture();
+		
+		
+		c.part().id(1).label(UserBuilderEvents.SET_FIRST).value("A").place();
+		c.part().id(2).label(UserBuilderEvents.SET_FIRST).value("A2").place();
+
+		c.resultConsumer().foreach().first(LogResult.stdErr(c)).andThen(bin->{
+			System.err.println("+++++");
+		}).set();
+
+		c.part().id(1).label(UserBuilderEvents.SET_LAST).value("B").place();
+		c.part().id(2).label(UserBuilderEvents.SET_LAST).value("B2").place();
+		c.part().id(1).label(UserBuilderEvents.SET_YEAR).value(2017).place();
+		c.part().id(2).label(UserBuilderEvents.SET_YEAR).value(2007).place();
+		
+		User u = f.get();
+		assertNotNull(u);
+		
+		c.completeAndStop().get();
+		
+	}
+
+	@Test
+	public void testWithConveyorFilter() throws InterruptedException, ExecutionException {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
+		c.setName("multyKeyParts");
+		c.setBuilderSupplier(UserBuilder::new);
+		c.resultConsumer().first(LogResult.stdOut(c)).andThen(bin->{
+			System.out.println("-----");
+		}).set();
+		c.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
+		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
+		
+		CompletableFuture<User> f = c.build().id(1).createFuture();
+		
+		
+		c.part().id(1).label(UserBuilderEvents.SET_FIRST).value("A").place();
+		c.part().id(2).label(UserBuilderEvents.SET_FIRST).value("A2").place();
+
+		c.resultConsumer().filter(k->k%2==0).first(LogResult.stdErr(c)).andThen(bin->{
+			System.err.println("+++++");
+		}).set();
+
+		c.part().id(1).label(UserBuilderEvents.SET_LAST).value("B").place();
+		c.part().id(2).label(UserBuilderEvents.SET_LAST).value("B2").place();
+		c.part().id(1).label(UserBuilderEvents.SET_YEAR).value(2017).place();
+		c.part().id(2).label(UserBuilderEvents.SET_YEAR).value(2007).place();
+		
+		User u = f.get();
+		assertNotNull(u);
+		
+		c.completeAndStop().get();
+		
+	}
+
 	
 }

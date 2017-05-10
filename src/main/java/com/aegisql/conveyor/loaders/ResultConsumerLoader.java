@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.aegisql.conveyor.ProductBin;
 
@@ -28,12 +29,14 @@ public final class ResultConsumerLoader<K,OUT> {
 	
 	private final Consumer<Consumer<ProductBin<K,OUT>>> globalPlacer;
 	
+	public final Predicate<K> filter;
+	
 	public ResultConsumerLoader(
 			Function<ResultConsumerLoader<K,OUT>,CompletableFuture<Boolean>> placer,
 			Consumer<Consumer<ProductBin<K,OUT>>> globalPlacer,
 			Consumer<ProductBin<K, OUT>> consumer
 			) {
-		this(placer,globalPlacer,System.currentTimeMillis(),0,0,null,consumer);
+		this(placer,globalPlacer,System.currentTimeMillis(),0,0,null,consumer,null);
 	}
 
 	private ResultConsumerLoader(
@@ -43,7 +46,8 @@ public final class ResultConsumerLoader<K,OUT> {
 			long expirationTime,
 			long ttlMsec,
 			K key, 
-			Consumer<ProductBin<K, OUT> > consumer) {
+			Consumer<ProductBin<K, OUT> > consumer,
+			Predicate<K> filter ) {
 		this.placer         = placer;
 		this.globalPlacer   = globalPlacer;
 		this.consumer       = consumer;
@@ -51,6 +55,7 @@ public final class ResultConsumerLoader<K,OUT> {
 		this.creationTime   = creationTime;
 		this.expirationTime = expirationTime;
 		this.ttlMsec        = ttlMsec;
+		this.filter         = filter;
 	}
 
 	private ResultConsumerLoader(
@@ -60,6 +65,7 @@ public final class ResultConsumerLoader<K,OUT> {
 			long ttlMsec,
 			K key, 
 			Consumer<ProductBin<K, OUT> > consumer,
+			Predicate<K> filter,
 			boolean dumb) {
 		this.placer         = placer;
 		this.globalPlacer   = globalPlacer;
@@ -68,6 +74,7 @@ public final class ResultConsumerLoader<K,OUT> {
 		this.creationTime   = creationTime;
 		this.expirationTime = creationTime + ttlMsec;
 		this.ttlMsec        = ttlMsec;
+		this.filter         = filter;
 	}
 
 	public ResultConsumerLoader<K,OUT> id(K k) {
@@ -77,9 +84,35 @@ public final class ResultConsumerLoader<K,OUT> {
 				this.creationTime,
 				this.expirationTime,
 				this.ttlMsec,
-				k,this.consumer);
+				k,
+				this.consumer,
+				null/*either key or filter*/);
 	}
-	
+
+	public ResultConsumerLoader<K,OUT> filter(Predicate<K> f) {
+		return new ResultConsumerLoader<>(
+				this.placer,
+				this.globalPlacer,
+				this.creationTime,
+				this.expirationTime,
+				this.ttlMsec,
+				null/*either key or filter*/,
+				this.consumer,
+				f/*either key or filter*/);
+	}
+
+	public ResultConsumerLoader<K,OUT> foreach() {
+		return new ResultConsumerLoader<>(
+				this.placer,
+				this.globalPlacer,
+				this.creationTime,
+				this.expirationTime,
+				this.ttlMsec,
+				null/*either key or filter*/,
+				this.consumer,
+				k->true/*either key or filter*/);
+	}
+
 	public ResultConsumerLoader<K,OUT> first(Consumer<ProductBin<K, OUT> > consumer) {
 		return new ResultConsumerLoader<>(
 				this.placer,
@@ -88,7 +121,7 @@ public final class ResultConsumerLoader<K,OUT> {
 				this.expirationTime,
 				this.ttlMsec,
 				this.key,
-				consumer);
+				consumer,filter);
 	}
 
 	/**
@@ -98,7 +131,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the part loader
 	 */
 	public ResultConsumerLoader<K,OUT>  expirationTime(long et) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,et,0,key,consumer);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,et,0,key,consumer,filter);
 	}
 	
 	/**
@@ -108,7 +141,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the part loader
 	 */
 	public ResultConsumerLoader<K,OUT>  expirationTime(Instant instant) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,instant.toEpochMilli(),0,key,consumer);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,instant.toEpochMilli(),0,key,consumer,filter);
 	}
 	
 	/**
@@ -119,7 +152,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the part loader
 	 */
 	public ResultConsumerLoader<K,OUT>  ttl(long time, TimeUnit unit) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer, creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,consumer,true);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer, creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,consumer,filter,true);
 	}
 	
 	/**
@@ -129,7 +162,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the part loader
 	 */
 	public ResultConsumerLoader<K,OUT>  ttl(Duration duration) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,duration.toMillis(),key,consumer,true);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,duration.toMillis(),key,consumer,filter,true);
 	}
 
 	
@@ -142,11 +175,12 @@ public final class ResultConsumerLoader<K,OUT> {
 				this.ttlMsec,
 				this.key,
 				this.consumer != null ? this.consumer.andThen(consumer) : consumer
+				,this.filter
 				);
 	}
 
 	public CompletableFuture<Boolean> set() {
-		if(key==null) {
+		if(key == null && filter == null) {
 			CompletableFuture<Boolean> ready = new CompletableFuture<>();
 			ready.complete(true);
 			globalPlacer.accept(consumer);

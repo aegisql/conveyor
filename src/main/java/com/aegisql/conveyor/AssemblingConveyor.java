@@ -40,6 +40,7 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.MultiKeyCart;
+import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.StaticCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
@@ -774,6 +775,23 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public MultiKeyCommandLoader<K, OUT> multiKeyCommand() {
 		return new MultiKeyCommandLoader<>(this::command);
 	}
+	
+	@Override
+	public ResultConsumerLoader<K, OUT> resultConsumer() {
+		return new ResultConsumerLoader<>(rcl->{
+			Cart<K,?,L> cart = null;
+			if(rcl.key != null) {
+				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime);
+			} else {
+				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, k->{
+					return new ResultConsumerCart<K, OUT, L>(k, rcl.consumer, rcl.creationTime, rcl.expirationTime);
+				});
+			}
+			return this.place(cart);
+		}, 
+		this::setResultConsumer, 
+		resultConsumer);
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -917,9 +935,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if (cart instanceof MultiKeyCart) {
 				MultiKeyCart<K, ?, L> mCart = (MultiKeyCart<K, ?, L>) cart;
 				try {
+					
+					Function<K,Cart<K, ?, L>> cartBuilder = mCart.cartBuilder();
+					
 					collector.entrySet().stream().map(entry -> entry.getKey()).filter(mCart::test)
 							.collect(Collectors.toList()).forEach(k -> {
-								processSite(mCart.toShoppingCart(k), accept);
+								processSite(cartBuilder.apply(k), accept);
 							});
 					cart.getFuture().complete(true);
 				} catch (Exception e) {
@@ -939,9 +960,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> buildingSite = null;
 		CompletableFuture resultFuture = null;
+		Consumer newConsumer      = null;
 		if (cart instanceof FutureCart) {
 			FutureCart<K, ? extends OUT, L> fc = (FutureCart<K, ? extends OUT, L>) cart;
 			resultFuture = fc.getValue();
+		}
+		if (cart instanceof ResultConsumerCart) {
+			ResultConsumerCart<K,OUT, L> rc = (ResultConsumerCart<K,OUT, L>) cart;
+			newConsumer = rc.getValue();
 		}
 		FailureType failureType = FailureType.GENERAL_FAILURE;
 		try {
@@ -962,6 +988,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			if (resultFuture != null) {
 				buildingSite.addFuture(resultFuture);
+				cart.getFuture().complete(true);
+				return;
+			}
+			if (newConsumer != null) {
+				buildingSite.setResultConsumer(newConsumer);
+				cart.getFuture().complete(true);
 				return;
 			}
 			if (Status.TIMED_OUT.equals(cart.getValue())) {
@@ -1599,17 +1631,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	private void completeSuccessfully(BuildingSite<K, L, ?, OUT> buildingSite, OUT res, Status status) {
-		buildingSite.completeFuturesWithValue(res,status);
-	}
-
-	@Override
-	public ResultConsumerLoader<K, OUT> resultConsumer() {
-		return new ResultConsumerLoader<>(rcl->{
-			//TODO: send RC as a message
-			return null;
-		}, 
-		this::setResultConsumer, 
-		resultConsumer);
+		buildingSite.completeWithValue(res,status);
 	}
 	
 }

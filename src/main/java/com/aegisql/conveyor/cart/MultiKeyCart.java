@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.cart;
 
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 // TODO: Auto-generated Javadoc
@@ -17,6 +18,8 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 
 	protected final Predicate<K> filter;
 	
+	protected final Function<K,Cart<K, ?, L>> cartBuilder;
+	
 	/**
 	 * Instantiates a new shopping cart.
 	 *
@@ -27,7 +30,8 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 	 */
 	public MultiKeyCart(V v, L label, long creation, long expiration) {
 		super(null, v, label, expiration);
-		filter = entry->true; //pass all by default
+		this.filter = entry->true; //pass all by default
+		this.cartBuilder = this::toShoppingCart;
 	}
 
 	/**
@@ -42,6 +46,13 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 	public MultiKeyCart(Predicate<K> filter, V v, L label, long creation, long expiration) {
 		super(null, v, label, expiration);
 		this.filter = filter;
+		this.cartBuilder = this::toShoppingCart;
+	}
+
+	public MultiKeyCart(Predicate<K> filter, V v, L label, long creation, long expiration, Function<K,Cart<K, ?, L>> cartBuilder) {
+		super(null, v, label, expiration);
+		this.filter = filter;
+		this.cartBuilder = cartBuilder;
 	}
 
 	/* (non-Javadoc)
@@ -59,6 +70,10 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 	@Override
 	public boolean test(K key) {
 		return filter.test(key);
+	}
+	
+	public Function<K,Cart<K, ?, L>> cartBuilder() {
+		return cartBuilder;
 	}
 	
 }
