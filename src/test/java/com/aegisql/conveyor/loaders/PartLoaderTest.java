@@ -185,9 +185,9 @@ public class PartLoaderTest {
 		CompletableFuture<User> f2 = c.future().id(2).get();
 		CompletableFuture<User> f3 = c.future().id(3).get();
 
-		c.multiKeyPart().foreach().label(UserBuilderEvents.SET_FIRST).value("A").place();
-		c.multiKeyPart().foreach().label(UserBuilderEvents.SET_LAST).value("B").place();
-		c.multiKeyPart().foreach().label(UserBuilderEvents.SET_YEAR).value(2000).place();
+		c.part().foreach().label(UserBuilderEvents.SET_FIRST).value("A").place();
+		c.part().foreach().label(UserBuilderEvents.SET_LAST).value("B").place();
+		c.part().foreach().label(UserBuilderEvents.SET_YEAR).value(2000).place();
 		
 		User u1 = f1.get();
 		User u2 = f2.get();
@@ -216,9 +216,9 @@ public class PartLoaderTest {
 		CompletableFuture<User> f2 = c.future().id(2).get();
 		CompletableFuture<User> f3 = c.future().id(3).get();
 
-		c.multiKeyPart().foreach(k->k>1).label(UserBuilderEvents.SET_FIRST).value("A").place();
-		c.multiKeyPart().foreach(k->k>1).label(UserBuilderEvents.SET_LAST).value("B").place();
-		c.multiKeyPart().foreach(k->k>1).label(UserBuilderEvents.SET_YEAR).value(2000).place();
+		c.part().foreach(k->k>1).label(UserBuilderEvents.SET_FIRST).value("A").place();
+		c.part().foreach(k->k>1).label(UserBuilderEvents.SET_LAST).value("B").place();
+		c.part().foreach(k->k>1).label(UserBuilderEvents.SET_YEAR).value(2000).place();
 		
 		User u2 = f2.get();
 		User u3 = f3.get();

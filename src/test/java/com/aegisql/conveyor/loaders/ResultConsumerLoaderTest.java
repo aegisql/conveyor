@@ -287,7 +287,7 @@ public class ResultConsumerLoaderTest {
 		c.part().id(1).label(UserBuilderEvents.SET_FIRST).value("A").place();
 		c.part().id(2).label(UserBuilderEvents.SET_FIRST).value("A2").place();
 
-		c.resultConsumer().filter(k->k%2==0).first(LogResult.stdErr(c)).andThen(bin->{
+		c.resultConsumer().foreach(k->k%2==0).first(LogResult.stdErr(c)).andThen(bin->{
 			System.err.println("+++++");
 		}).set();
 

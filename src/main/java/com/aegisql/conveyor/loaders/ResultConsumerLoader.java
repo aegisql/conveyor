@@ -89,7 +89,7 @@ public final class ResultConsumerLoader<K,OUT> {
 				null/*either key or filter*/);
 	}
 
-	public ResultConsumerLoader<K,OUT> filter(Predicate<K> f) {
+	public ResultConsumerLoader<K,OUT> foreach(Predicate<K> f) {
 		return new ResultConsumerLoader<>(
 				this.placer,
 				this.globalPlacer,

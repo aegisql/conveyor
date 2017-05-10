@@ -31,7 +31,7 @@ public final class MultiKeyPartLoader<K,L,V,OUT,F> {
 	/** The ttl msec. */
 	public final long ttlMsec;
 	
-	/** The key. */
+	/** The key filter. */
 	public final Predicate<K> filter;
 	
 	/** The label. */
