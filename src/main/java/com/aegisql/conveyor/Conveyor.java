@@ -24,6 +24,7 @@ import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.loaders.FutureLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.loaders.ResultConsumerLoader;
+import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
 
 // TODO: Auto-generated Javadoc
@@ -127,6 +128,10 @@ public interface Conveyor<K, L, OUT> {
 	 * @param scrapConsumer the scrap consumer
 	 */
 	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer);
+
+	public ScrapConsumerLoader<K> scrapConsumer();
+
+	public ScrapConsumerLoader<K> scrapConsumer(Consumer<ScrapBin<K, ?>> scrapConsumer);
 	
 	/**
 	 * Stop.

@@ -47,6 +47,7 @@ import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.loaders.FutureLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.loaders.ResultConsumerLoader;
+import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
 
 // TODO: Auto-generated Javadoc
@@ -782,6 +783,17 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return this.resultConsumer().first(consumer);
 	}
 
+	@Override
+	public ScrapConsumerLoader<K> scrapConsumer() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ScrapConsumerLoader<K> scrapConsumer(Consumer<ScrapBin<K, ?>> scrapConsumer) {
+		return scrapConsumer().first(scrapConsumer);
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -1455,7 +1467,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>,K2> keyConverter, L2 label) {
 		this.forwardingResults = true;
 		this.forwardingTo = destination.toString();
-		this.resultConsumer().first(bin -> {
+		this.resultConsumer().andThen(bin -> {
 			LOG.debug("Forward {} from {} to {} {}", label, this.name, destination.getName(), bin);
 			PartLoader<K2, L2, OUT, OUT2, Boolean> part = destination.part()
 			.id(keyConverter.apply(bin))
@@ -1485,13 +1497,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		c.setDefaultCartConsumer(cartConsumer);
 		c.setKeepCartsOnSite(saveCarts);
 		c.setOnTimeoutAction(timeoutAction);
-		c.resultConsumer().first(bin -> {
-			throw new IllegalStateException("Result Consumet is not set for copy of conveyor '" + name + "'");
-		}).set();
 		c.setSynchronizeBuilder(synchronizeBuilder);
-
 		c.startTimeReject = this.startTimeReject;
-
 		return c;
 	}
 

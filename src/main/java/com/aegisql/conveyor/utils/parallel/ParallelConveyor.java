@@ -46,6 +46,7 @@ import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.loaders.FutureLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.loaders.ResultConsumerLoader;
+import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
 
 // TODO: Auto-generated Javadoc
@@ -783,5 +784,17 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public ResultConsumerLoader<K, OUT> resultConsumer(Consumer<ProductBin<K, OUT>> consumer) {
 		return this.resultConsumer().first(consumer);
 	}
+	
+	@Override
+	public ScrapConsumerLoader<K> scrapConsumer() {
+		return null;
+	}
+
+	@Override
+	public ScrapConsumerLoader<K> scrapConsumer(Consumer<ScrapBin<K, ?>> scrapConsumer) {
+		return scrapConsumer().first(scrapConsumer);
+	}
+
+
 	
 }
