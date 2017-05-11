@@ -671,16 +671,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#multiKeyPart()
-	 */
-	@Override
-	public <X> MultiKeyPartLoader<K, L, X, OUT, Boolean> multiKeyPart() {
-		return new MultiKeyPartLoader<K, L, X, OUT, Boolean>(cl -> {
-			return place(new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime));
-		});
-	}
-
 	@Override
 	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart() {
 		return  new StaticPartLoader<L, X, OUT, Boolean>(cl -> {
@@ -773,14 +763,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return new CommandLoader<>(this::command);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#multiKeyCommand()
-	 */
-	@Override
-	public MultiKeyCommandLoader<K, OUT> multiKeyCommand() {
-		return new MultiKeyCommandLoader<>(this::command);
-	}
-	
 	@Override
 	public ResultConsumerLoader<K, OUT> resultConsumer() {
 		return new ResultConsumerLoader<>(rcl->{

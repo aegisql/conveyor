@@ -52,7 +52,7 @@ public class Demo {
 			Arrays.stream(words).forEach(word->wordLoader.id(word).value(new WordCount(word, 1)).place());
 			//Send "DONE" message to all words and wait 
 			//until command is delivered to all of them.
-			source.multiKeyPart().foreach().label(DONE).place();
+			source.part().foreach().label(DONE).place();
 			CompletableFuture<Boolean> f = source.completeAndStop();
 			//we need to wait to synchronize with the pool's future
 			//If pool's future is not required, the next call can be omitted.
@@ -98,7 +98,7 @@ public class Demo {
 		f1.get();
 		f2.get();
 		f3.get();
-		collectingConveyor.multiKeyPart().foreach().label(DONE).place();
+		collectingConveyor.part().foreach().label(DONE).place();
 		CompletableFuture<Boolean> mainFuture = collectingConveyor.completeAndStop();
 		mainFuture.get();
 		//We expect something like this

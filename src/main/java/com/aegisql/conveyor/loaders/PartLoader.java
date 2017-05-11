@@ -105,7 +105,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	}
 
 	public PartLoader<K,L,V,OUT,F> foreach() {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,null/*either id or filter*/,label,partValue,k->true);
+		return foreach(k->true);
 	}
 
 	public PartLoader<K,L,V,OUT,F> foreach(Predicate<K> f) {

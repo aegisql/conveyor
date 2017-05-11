@@ -136,13 +136,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	}
 	
 	@Override
-	public <X> MultiKeyPartLoader<K, L, X, OUT, Boolean> multiKeyPart() {
-		return new MultiKeyPartLoader<K,L,X,OUT,Boolean>(cl -> {
-			return place(new MultiKeyCart<K,Object,L>(cl.filter, cl.partValue, cl.label, cl.creationTime,cl.expirationTime));
-		});
-	}
-
-	@Override
 	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart() {
 		return new StaticPartLoader<L,X,OUT,Boolean>(cl -> {
 			return place(new StaticCart<K, Object, L>(cl.staticPartValue, cl.label, cl.create));
@@ -193,11 +186,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	@Override
 	public CommandLoader<K, OUT> command() {
 		return new CommandLoader<>(this::command);
-	}
-	
-	@Override
-	public MultiKeyCommandLoader<K, OUT> multiKeyCommand() {
-		return new MultiKeyCommandLoader<>(this::command);
 	}
 	
 	/* (non-Javadoc)

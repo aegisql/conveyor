@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.SmartLabel;
-import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
@@ -37,10 +36,6 @@ public class BatchConveyor <V> extends AssemblingConveyor<String, SmartLabel<Bat
 		return (PartLoader<String, SmartLabel<BatchCollectingBuilder<V>>, X, List<V>, Boolean>) super.part().label(BATCH).id("_BATCH_");
 	}
 
-
-	public <X> MultiKeyPartLoader<String, SmartLabel<BatchCollectingBuilder<V>>, X, List<V>, Boolean> multiKeyPart() {
-		return (MultiKeyPartLoader<String, SmartLabel<BatchCollectingBuilder<V>>, X, List<V>, Boolean>) super.multiKeyPart().label(BATCH);
-	}
 
 	
 }

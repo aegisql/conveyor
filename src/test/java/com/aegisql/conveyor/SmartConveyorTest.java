@@ -118,13 +118,13 @@ public class SmartConveyorTest {
 		assertNull(u0);
 		conveyor.place(c2);
 		conveyor.place(c3);
-		conveyor.multiKeyPart().foreach().value("BEFORE").label(UserBuilderEvents.PRINT).place();
+		conveyor.part().foreach().value("BEFORE").label(UserBuilderEvents.PRINT).place();
 
 		conveyor.place(c4);
 		
 		
 		Thread.sleep(100);
-		conveyor.multiKeyPart().foreach().value("AFTER").label(UserBuilderEvents.PRINT).place();
+		conveyor.part().foreach().value("AFTER").label(UserBuilderEvents.PRINT).place();
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
 		System.out.println(u1);
@@ -330,7 +330,7 @@ public class SmartConveyorTest {
 		conveyor.part().id(2).value("Mike").label(UserBuilderEvents2.SET_FIRST).expirationTime(System.currentTimeMillis() + 10).place();
 		conveyor.part().value(1999).id(1).label(UserBuilderEvents2.SET_YEAR).place();
 		Thread.sleep(100);
-		conveyor.multiKeyPart().foreach().value("CREATING").label(UserBuilderEvents2.PRINT).place();
+		conveyor.part().foreach().value("CREATING").label(UserBuilderEvents2.PRINT).place();
 	
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
@@ -499,7 +499,7 @@ public class SmartConveyorTest {
 		assertFalse(f2.isCompletedExceptionally());
 		assertFalse(f2.isDone());
 
-		conveyor.multiKeyPart().foreach().value("FUTURE").label(UserBuilderEvents.PRINT).place();
+		conveyor.part().foreach().value("FUTURE").label(UserBuilderEvents.PRINT).place();
 
 		User user1 = f1.get();
 		assertNotNull(user1);

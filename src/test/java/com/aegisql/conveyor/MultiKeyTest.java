@@ -61,7 +61,7 @@ public class MultiKeyTest {
 		loader1.value("FIRST").label(l1).place();
 		loader1.value("LAST").label(l2).place();
 		loader2.value("SECOND").label(l1).place();
-		c.multiKeyPart().foreach().label(multi).value("TEST").place();
+		c.part().foreach().label(multi).value("TEST").place();
 		loader2.value("LAST").label(l2).place();
 		
 		loader1.value(1999).label(l3).place();
@@ -100,7 +100,7 @@ public class MultiKeyTest {
 		loader1.value("LAST").label(l2).place();
 		loader2.value("SECOND").label(l1).place();
 
-		c.multiKeyPart().foreach().value("TEST").label(multi).place();
+		c.part().foreach().value("TEST").label(multi).place();
 
 		loader2.value("LAST").label(l2).place();
 		
@@ -139,7 +139,7 @@ public class MultiKeyTest {
 		loader1.value("FIRST").label(l1).place();
 		loader1.value("LAST").label(l2).place();
 		loader2.value("SECOND").label(l1).place();
-		c.multiKeyPart().label(multi).value("TEST").foreach((key)->{
+		c.part().label(multi).value("TEST").foreach((key)->{
 			return key % 2 == 0;
 					}).place();
 
@@ -180,7 +180,7 @@ public class MultiKeyTest {
 		loader1.value("FIRST").label(l1).place();
 		loader1.value("LAST").label(l2).place();
 		loader2.value("SECOND").label(l1).place();
-		c.multiKeyPart().foreach((key)->{
+		c.part().foreach((key)->{
 			return key % 2 == 0;
 		}).value("TEST").label(multi).place();
 

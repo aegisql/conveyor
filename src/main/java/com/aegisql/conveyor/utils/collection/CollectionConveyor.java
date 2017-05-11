@@ -5,7 +5,6 @@ import java.util.Collection;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
-import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
@@ -36,11 +35,6 @@ public class CollectionConveyor <K,V> extends AssemblingConveyor<K, SmartLabel<C
 	@Override
 	public <X> PartLoader<K, SmartLabel<CollectionBuilder<V>>, X, Collection<V>, Boolean> part() {
 		return (PartLoader<K, SmartLabel<CollectionBuilder<V>>, X, Collection<V>, Boolean>) super.part().label(ITEM);
-	}
-
-
-	public <X> MultiKeyPartLoader<K, SmartLabel<CollectionBuilder<V>>, X, Collection<V>, Boolean> multiKeyPart() {
-		return (MultiKeyPartLoader<K, SmartLabel<CollectionBuilder<V>>, X, Collection<V>, Boolean>) super.multiKeyPart().label(ITEM);
 	}
 
 	

@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
@@ -87,6 +88,15 @@ public final class CommandLoader<K,OUT> {
 		return new CommandLoader<K,OUT>(conveyor,creationTime,expirationTime,ttlMsec,k);
 	}
 
+	public MultiKeyCommandLoader<K,OUT> foreach(Predicate<K> filter) {
+		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,expirationTime,ttlMsec,filter);
+	}
+
+	public MultiKeyCommandLoader<K,OUT> foreach() {
+		return foreach(k->true);
+	}
+
+	
 	/**
 	 * Expiration time.
 	 *

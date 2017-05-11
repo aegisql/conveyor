@@ -2,7 +2,6 @@ package com.aegisql.conveyor.utils.scalar;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
@@ -35,8 +34,4 @@ public class ScalarConvertingConveyor <K,IN,OUT> extends AssemblingConveyor<K, S
 	}
 
 
-	public <X> MultiKeyPartLoader<K, String, X, OUT, Boolean> multiKeyPart() {
-		return (MultiKeyPartLoader<K, String, X, OUT, Boolean>) super.multiKeyPart().label("MULTI-KEY-SCALAR");
-	}
-	
 }

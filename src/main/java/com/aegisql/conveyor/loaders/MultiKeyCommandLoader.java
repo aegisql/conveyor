@@ -42,7 +42,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * @param key the key
 	 * @param label the label
 	 */
-	private MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor,long creationTime, long expirationTime, long ttlMsec, Predicate<K> filter) {
+	MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor,long creationTime, long expirationTime, long ttlMsec, Predicate<K> filter) {
 		this.conveyor = conveyor;
 		this.creationTime = creationTime;
 		this.expirationTime = expirationTime;

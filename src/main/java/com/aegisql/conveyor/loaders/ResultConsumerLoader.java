@@ -98,19 +98,11 @@ public final class ResultConsumerLoader<K,OUT> {
 				this.ttlMsec,
 				null/*either key or filter*/,
 				this.consumer,
-				f/*either key or filter*/);
+				f);
 	}
 
 	public ResultConsumerLoader<K,OUT> foreach() {
-		return new ResultConsumerLoader<>(
-				this.placer,
-				this.globalPlacer,
-				this.creationTime,
-				this.expirationTime,
-				this.ttlMsec,
-				null/*either key or filter*/,
-				this.consumer,
-				k->true/*either key or filter*/);
+		return foreach(k->true);
 	}
 
 	public ResultConsumerLoader<K,OUT> first(Consumer<ProductBin<K, OUT> > consumer) {

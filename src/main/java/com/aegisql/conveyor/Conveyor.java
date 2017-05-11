@@ -81,21 +81,6 @@ public interface Conveyor<K, L, OUT> {
 	public CommandLoader<K, OUT> command();
 
 	/**
-	 * Multi key command.
-	 *
-	 * @return the multi key command loader
-	 */
-	public MultiKeyCommandLoader<K, OUT> multiKeyCommand();
-	
-	/**
-	 * Multi key part.
-	 *
-	 * @param <X> the generic type
-	 * @return the multi key part loader
-	 */
-	public <X> MultiKeyPartLoader<K, L, X, OUT, Boolean> multiKeyPart();
-
-	/**
 	 * Adds the cart to the input queue.
 	 *
 	 * @param <V> the value type

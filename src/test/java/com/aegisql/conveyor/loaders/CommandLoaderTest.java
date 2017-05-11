@@ -162,7 +162,7 @@ public class CommandLoaderTest {
 		
 		assertEquals(3,c.getCollectorSize());
 		Thread.sleep(100);
-		c.multiKeyCommand().foreach().cancel();
+		c.command().foreach().cancel();
 		
 		try {
 			f3.get();
@@ -195,7 +195,7 @@ public class CommandLoaderTest {
 		
 		assertEquals(3,c.getCollectorSize());
 		
-		c.multiKeyCommand().foreach().ttl(500, TimeUnit.MILLISECONDS).reschedule();
+		c.command().foreach().ttl(500, TimeUnit.MILLISECONDS).reschedule();
 
 		Thread.sleep(110);
 		assertFalse(f1.isDone());
@@ -232,7 +232,7 @@ public class CommandLoaderTest {
 		assertEquals(3,c.getCollectorSize());
 		
 		Thread.sleep(110);
-		c.multiKeyCommand().foreach().timeout();
+		c.command().foreach().timeout();
 		Thread.sleep(110);
 
 		assertTrue(f1.isDone());
@@ -269,7 +269,7 @@ public class CommandLoaderTest {
 		assertEquals(2,c.getCollectorSize(0));
 		assertEquals(2,c.getCollectorSize(1));
 		Thread.sleep(100);
-		c.multiKeyCommand().foreach().cancel();
+		c.command().foreach().cancel();
 		while(! (f4.isDone() && f3.isDone()) ) {
 			System.out.println("~3 "+f3);
 			System.out.println("~4 "+f4);
@@ -344,7 +344,7 @@ public class CommandLoaderTest {
 		CompletableFuture<Boolean> bf2 = pc.part().id(2).label(UserBuilderEvents.SET_LAST).value("B").place();
 		assertTrue(bf2.get());
 		
-		CompletableFuture<Boolean> bfCancel = pc.multiKeyCommand().foreach().cancel();
+		CompletableFuture<Boolean> bfCancel = pc.command().foreach().cancel();
 		assertTrue(bfCancel.get());
 	}
 	
