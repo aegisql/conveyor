@@ -29,6 +29,9 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.consumers.result.LastResultReference;
+import com.aegisql.conveyor.consumers.result.LogResult;
+import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
@@ -141,11 +144,6 @@ public class ParallelConveyorTest {
 	public void tearDown() throws Exception {
 	}
 	
-	/** The out queue. */
-	public static Queue<User> outQueue = new ConcurrentLinkedQueue<>();
-
-	
-	
 	/**
 	 * Gets the random ints.
 	 *
@@ -216,9 +214,10 @@ public class ParallelConveyorTest {
 		System.out.println("---");
 	});
 	assertTrue(conveyor.isOnTimeoutAction());
-	conveyor.setResultConsumer( res->{
-		    	outQueue.add(res.product);
-		    });
+	/** The out queue. */
+	ResultQueue<String,User> outQueue = new ResultQueue<>();
+
+	conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		
 	Thread runFirst = new Thread(()->{
 		Random r = new Random();
@@ -336,18 +335,15 @@ public class ParallelConveyorTest {
 		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
-		AtomicReference<User> usr = new AtomicReference<User>(null);
-		conveyor.setResultConsumer(u->{
-			System.out.println("RESULT: "+u);
-			usr.set(u.product);
-		});
+		LastResultReference<String,User> usr = LastResultReference.of(conveyor);
+		conveyor.resultConsumer().first(usr).andThen(LogResult.stdOut(conveyor)).set();
 
 		conveyor.part().id("1").value("John,Dow1,1990").place();
 		conveyor.part().id("2").value("John,Dow1,1991").place();
 		conveyor.part().id("2").value("John,Dow1,1992").place();
 		conveyor.part().id("2").value("John,Dow1,1993").place();
 		Thread.sleep(20);
-		assertNotNull(usr.get());
+		assertNotNull(usr.getCurrent());
 
 	}
 
@@ -356,17 +352,16 @@ public class ParallelConveyorTest {
 		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
-		List<User> users = Collections.synchronizedList(new LinkedList<>());
-		conveyor.setResultConsumer(u->{
-			//System.out.println("RESULT: "+u);
-			users.add(u.product);
-		});
+		/** The out queue. */
+		ResultQueue<String,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		for(int i =0;i<1000;i++) {
 			conveyor.part().id(""+i).value("John,Dow1,"+i).place();
 		}
 		CompletableFuture<Boolean> f = conveyor.completeAndStop();
 		f.get();
-		assertEquals(1000, users.size());
+		assertEquals(1000, outQueue.size());
 	}
 
 	
@@ -382,11 +377,8 @@ public class ParallelConveyorTest {
 		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
-		AtomicReference<User> usr = new AtomicReference<User>(null);
-		conveyor.setResultConsumer(u->{
-			System.out.println("RESULT: "+u);
-			usr.set(u.product);
-		});
+		LastResultReference<String,User> usr = LastResultReference.of(conveyor);
+		conveyor.resultConsumer().first(usr).andThen(LogResult.stdOut(conveyor)).set();
 
 		CompletableFuture<User> uf1 = conveyor.future().id("1").get();
 		CompletableFuture<User> uf2 = conveyor.future().id("2").get();
@@ -401,7 +393,7 @@ public class ParallelConveyorTest {
 		assertTrue(f2.get());
 		assertTrue(f3.get());
 		assertTrue(f4.get());
-		assertNotNull(usr.get());
+		assertNotNull(usr.getCurrent());
 		assertNotNull(uf1.get());
 		assertNotNull(uf2.get());
 		assertNotNull(uf3.get(1,TimeUnit.SECONDS));
@@ -419,11 +411,8 @@ public class ParallelConveyorTest {
 	public void createFutureConveyorTest() throws InterruptedException, ExecutionException, TimeoutException {
 		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
-		AtomicReference<User> usr = new AtomicReference<User>(null);
-		conveyor.setResultConsumer(u->{
-			System.out.println("RESULT: "+u);
-			usr.set(u.product);
-		});
+		LastResultReference<String,User> usr = LastResultReference.of(conveyor);
+		conveyor.resultConsumer().first(usr).andThen(LogResult.stdOut(conveyor)).set();
 
 		CompletableFuture<User> uf1 = conveyor.build().id("1").supplier(StringToUserBuulder::new).createFuture();
 		CompletableFuture<User> uf2 = conveyor.build().id("2").supplier(StringToUserBuulder::new).createFuture();
@@ -434,7 +423,7 @@ public class ParallelConveyorTest {
 		
 		assertTrue(f1.get());
 		assertTrue(f2.get());
-		assertNotNull(usr.get());
+		assertNotNull(usr.getCurrent());
 		assertNotNull(uf1.get());
 		assertNotNull(uf2.get());
 
@@ -451,12 +440,9 @@ public class ParallelConveyorTest {
 	public void createFutureConveyorTest2() throws InterruptedException, ExecutionException, TimeoutException {
 		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
-		AtomicReference<User> usr = new AtomicReference<User>(null);
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
-		conveyor.setResultConsumer(u->{
-			System.out.println("RESULT: "+u);
-			usr.set(u.product);
-		});
+		LastResultReference<String,User> usr = LastResultReference.of(conveyor);
+		conveyor.resultConsumer().first(usr).andThen(LogResult.stdOut(conveyor)).set();
 		CompletableFuture<User> uf1 = conveyor.build().id("1").createFuture();
 		CompletableFuture<User> uf2 = conveyor.build().id("2").createFuture();
 
@@ -466,7 +452,7 @@ public class ParallelConveyorTest {
 		
 		assertTrue(f1.get());
 		assertTrue(f2.get());
-		assertNotNull(usr.get());
+		assertNotNull(usr.getCurrent());
 		assertNotNull(uf1.get());
 		assertNotNull(uf2.get());
 

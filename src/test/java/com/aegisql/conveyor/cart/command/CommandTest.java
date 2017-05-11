@@ -115,10 +115,10 @@ public class CommandTest {
 		
 		StringBuilder out = new StringBuilder();
 		
-		ac.setResultConsumer((bin)->{
+		ac.resultConsumer().first((bin)->{
 			System.out.println(bin);
 			out.append(bin.product);
-		});
+		}).set();
 		
 		Cart<Integer,String,String> c = new ShoppingCart<>(1, "Test", "");
 		

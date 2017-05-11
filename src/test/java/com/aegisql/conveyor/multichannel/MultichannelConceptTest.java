@@ -81,10 +81,10 @@ public class MultichannelConceptTest {
 			UserBuilder ub = (UserBuilder)builder;
 			return ub.first != null && ub.last != null && ub.yearOfBirth != null;
 		});
-		merge.setResultConsumer(bin->{
+		merge.resultConsumer().first(bin->{
 			System.out.println("Merged "+bin.product);
 
-		});
+		}).set();
 		merge.addCartBeforePlacementValidator(cart->{
 			System.out.println("placement: "+cart);
 			if(cart.getLabel() != UserBuilderEvents.MERGE_A && cart.getLabel() != UserBuilderEvents.MERGE_B) {
@@ -100,11 +100,11 @@ public class MultichannelConceptTest {
 			UserBuilder ub = (UserBuilder)builder;
 			return ub.first != null && ub.last != null;
 		});
-		ch1.setResultConsumer(bin->{
+		ch1.resultConsumer().first(bin->{
 			ShoppingCart<Integer, User, UserBuilderEvents> cart = new ShoppingCart<>(bin.key, bin.product, UserBuilderEvents.MERGE_A,bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
 			merge.place(cart);
 			System.out.println("A sent "+bin.product);
-		});
+		}).set();
 
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch2 = new AssemblingConveyor<>();
 		ch2.setName("CH2");
@@ -113,11 +113,11 @@ public class MultichannelConceptTest {
 			UserBuilder ub = (UserBuilder)builder;
 			return ub.yearOfBirth != null;
 		});
-		ch2.setResultConsumer(bin->{
+		ch2.resultConsumer().first(bin->{
 			ShoppingCart<Integer, User, UserBuilderEvents> cart = new ShoppingCart<>(bin.key, bin.product, UserBuilderEvents.MERGE_B,bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
 			merge.place(cart);
 			System.out.println("B sent "+bin.product);
-		});
+		}).set();
 
 		ShoppingCart<Integer, String, UserBuilderEvents> cartA1 = new ShoppingCart<>(1,"John", UserBuilderEvents.SET_FIRST,100,TimeUnit.MILLISECONDS);
 		ShoppingCart<Integer, String, UserBuilderEvents> cartA2 = new ShoppingCart<>(1,"Silver", UserBuilderEvents.SET_LAST,100,TimeUnit.MILLISECONDS);

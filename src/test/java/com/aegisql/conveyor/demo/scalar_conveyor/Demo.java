@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.consumers.result.IgnoreResult;
 import com.aegisql.conveyor.demo.ThreadPool;
 
 public class Demo {
@@ -48,7 +49,7 @@ public class Demo {
 		});
 		
 		// V - Tell it where to send the Product
-		conveyor.setResultConsumer( bin-> {/*nowhere. we'll call future.get()*/} );
+		conveyor.resultConsumer().first( IgnoreResult.of(conveyor) ).set();
 		
 		// VI - Retrieve completable future of the build
 		CompletableFuture<Person> future = conveyor.build().id(1).createFuture();

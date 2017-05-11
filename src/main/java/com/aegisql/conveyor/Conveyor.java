@@ -97,7 +97,9 @@ public interface Conveyor<K, L, OUT> {
 	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> command);
 	
 	public ResultConsumerLoader<K, OUT> resultConsumer();
-	
+
+	public ResultConsumerLoader<K, OUT> resultConsumer(Consumer<ProductBin<K,OUT>> consumer);
+
 	/**
 	 * Gets the collector size.
 	 *
@@ -190,13 +192,6 @@ public interface Conveyor<K, L, OUT> {
 	 * @param timeoutAction the new on timeout action
 	 */
 	public void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction);
-	
-	/**
-	 * Sets the result consumer.
-	 *
-	 * @param resultConsumer the result consumer
-	 */
-	public void setResultConsumer(Consumer<ProductBin<K, OUT>> resultConsumer);
 	
 	/**
 	 * Sets the default cart consumer.

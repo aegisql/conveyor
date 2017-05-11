@@ -15,6 +15,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.consumers.result.LogResult;
+import com.aegisql.conveyor.consumers.result.ResultQueue;
+import com.aegisql.conveyor.consumers.scrap.ScrapQueue;
 import com.aegisql.conveyor.utils.batch.BatchCollectingBuilder;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 
@@ -87,30 +90,26 @@ public class BatchConveyorBuilderTest {
 	public void testBatchConveyor() throws InterruptedException {
 
 		BatchConveyor<Integer> b = new BatchConveyor<>();
-		
-		List<List<Integer>> l = new ArrayList<>();
+				
+		ResultQueue<String, List<Integer>> lq = ResultQueue.of(b);
+		ScrapQueue ls = ScrapQueue.of(b);
 		
 		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 50, TimeUnit.MILLISECONDS) );
-		b.setScrapConsumer((obj)->{
-			System.out.println(obj);
-			l.add(null);
-		});
-		b.setResultConsumer((list)->{
-			System.out.println(list);
-			l.add(list.product);
-		});
+		b.setScrapConsumer(ls);
+		b.resultConsumer(lq).andThen(LogResult.stdOut(b)).set();
 		b.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
 			b.part().value(i).place();
 		}
 		
 		Thread.sleep(40);
-		assertEquals(10,l.size());
-		System.out.println(l);
+		assertEquals(10,lq.size());
+		System.out.println(lq);
 		
 		Thread.sleep(200);
-		assertEquals(11,l.size());
-		System.out.println(l);
+		assertEquals(11,lq.size());
+		assertEquals(0,ls.size());
+		System.out.println(lq);
 		System.out.println("COL:"+b.getCollectorSize());
 		System.out.println("DEL:"+b.getDelayedQueueSize());
 		System.out.println("IN :"+b.getInputQueueSize());
@@ -137,11 +136,11 @@ public class BatchConveyorBuilderTest {
 			System.out.println(obj);
 			ai.decrementAndGet();
 		});
-		b.setResultConsumer((list)->{
+		b.resultConsumer((list)->{
 			System.out.println(list);
 			ai.incrementAndGet();
 			aii.addAndGet(list.product.size());
-		});
+		}).set();
 		b.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
 			if(i % 2 == 0) {

@@ -265,11 +265,11 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>, K2> keyConverter,
 			L2 label) {
 		this.forwardingResults   = true;
-		this.setResultConsumer(bin->{
+		this.resultConsumer().first(bin->{
 			LOG.debug("Forward {} from {} to {} {}",label,this.name,destination.getName(),bin.product);
 			Cart<K2,OUT,L2> partialResult = new ShoppingCart<>(keyConverter.apply(bin), bin.product, label, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
 			destination.place( partialResult );
-		});		
+		}).set();		
 	}
 
 }

@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
@@ -110,9 +111,7 @@ public class FutureLoaderTest {
 			System.out.println("First="+b.getFirst());			
 			System.out.println("Last="+b.getLast());			
 		}));
-		c.setResultConsumer(bin->{
-			System.out.println(bin);
-		});
+		c.resultConsumer().first(LogResult.stdOut(c)).set();
 		CompletableFuture<Boolean> b = c.build().id(1).supplier(UserBuilder::new).create();
 		assertTrue(b.get());
 		CompletableFuture<User> f = c.future().id(1).get();

@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderSmart;
@@ -74,9 +75,7 @@ public class CartFutureTests {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -124,9 +123,7 @@ public class CartFutureTests {
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(10, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -153,9 +150,7 @@ public class CartFutureTests {
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(10, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -177,9 +172,7 @@ public class CartFutureTests {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -217,9 +210,7 @@ public class CartFutureTests {
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -258,9 +249,7 @@ public class CartFutureTests {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -298,9 +287,7 @@ public class CartFutureTests {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -339,9 +326,7 @@ public class CartFutureTests {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -384,9 +369,7 @@ public class CartFutureTests {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -430,9 +413,7 @@ public class CartFutureTests {
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -467,9 +448,7 @@ public class CartFutureTests {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -504,9 +483,7 @@ public class CartFutureTests {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -542,9 +519,7 @@ public class CartFutureTests {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -580,9 +555,7 @@ public class CartFutureTests {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -616,9 +589,7 @@ public class CartFutureTests {
 	public void testBasicsbuildSmart7() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -652,9 +623,7 @@ public class CartFutureTests {
 	public void testBasicsbuildSmart8() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -688,9 +657,7 @@ public class CartFutureTests {
 	public void testBasicsbuildSmart9() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -724,9 +691,7 @@ public class CartFutureTests {
 	public void testBasicsbuildSmart10() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result:"+res);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});

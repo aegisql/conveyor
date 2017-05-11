@@ -18,6 +18,7 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.multichannel.UserBuilder;
 import com.aegisql.conveyor.multichannel.UserBuilderEvents;
 import com.aegisql.conveyor.user.User;
@@ -146,9 +147,7 @@ public class CommandLoaderTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
 		c.setName("testMultiKeyCancelCommand");
 		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
-		c.setResultConsumer(bin->{
-			System.out.println(bin);
-		});
+		c.resultConsumer().first(LogResult.stdOut(c)).set();
 		CompletableFuture<Boolean> cf1 = c.build().supplier(UserBuilder::new).id(1).create();
 		CompletableFuture<Boolean> cf2 = c.build().supplier(UserBuilder::new).id(2).create();
 		CompletableFuture<Boolean> cf3 = c.build().supplier(UserBuilder::new).id(3).create();
@@ -177,9 +176,7 @@ public class CommandLoaderTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
 		c.setName("testMultiKeyRescheduleCommand");
 		c.setBuilderSupplier(UserBuilder::new);
-		c.setResultConsumer(bin->{
-			System.out.println(bin);
-		});
+		c.resultConsumer().first(LogResult.stdOut(c)).set();
 		c.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
 		CompletableFuture<Boolean> cf1 = c.build().id(1).create();
@@ -213,9 +210,7 @@ public class CommandLoaderTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
 		c.setName("testMultiKeyTimeoutCommand");
 		c.setBuilderSupplier(UserBuilder::new);
-		c.setResultConsumer(bin->{
-			System.out.println(bin);
-		});
+		c.resultConsumer().first(LogResult.stdOut(c)).set();
 		c.setDefaultBuilderTimeout(Duration.ofMillis(500));
 		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
 		CompletableFuture<Boolean> cf1 = c.build().id(1).create();
@@ -247,9 +242,7 @@ public class CommandLoaderTest {
 	public void testMultiKeyCancelKParallelCommand() throws InterruptedException, ExecutionException {
 		ParallelConveyor<Integer, UserBuilderEvents, User> c = new KBalancedParallelConveyor<>(2);
 		c.setBuilderSupplier(UserBuilder::new);
-		c.setResultConsumer(bin->{
-			System.out.println(bin);
-		});
+		c.resultConsumer().first(LogResult.stdOut(c)).set();
 		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
 		c.setName("testMultiKeyCancelKParallelCommand");
 		CompletableFuture<Boolean> cf1 = c.build().id(1).create();
@@ -304,9 +297,7 @@ public class CommandLoaderTest {
 		ac.setScrapConsumer(bin->{
 			System.out.println("rejected ac: "+bin);
 		});
-		ac.setResultConsumer(bin->{
-			System.out.println("AC result: "+bin);
-		});
+		ac.resultConsumer().first(LogResult.stdOut(ac)).set();
 		ac.setReadinessEvaluator(Conveyor.getTesterFor(ac).accepted(UserBuilderEvents.MERGE_A,UserBuilderEvents.MERGE_B));
 
 		assertFalse(ac.isLBalanced());

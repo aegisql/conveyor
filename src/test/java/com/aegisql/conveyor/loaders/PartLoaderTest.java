@@ -19,6 +19,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.multichannel.UserBuilder;
 import com.aegisql.conveyor.multichannel.UserBuilderEvents;
 import com.aegisql.conveyor.user.User;
@@ -107,9 +108,7 @@ public class PartLoaderTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
 		c.setName("multyKeyParts");
 		c.setBuilderSupplier(UserBuilder::new);
-		c.setResultConsumer(bin->{
-			System.out.println(bin);
-		});
+		c.resultConsumer().first(LogResult.stdOut(c)).set();
 		c.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
 		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
 		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
@@ -138,9 +137,7 @@ public class PartLoaderTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
 		c.setName("multyKeyParts");
 		c.setBuilderSupplier(UserBuilder::new);
-		c.setResultConsumer(bin->{
-			System.out.println(bin);
-		});
+		c.resultConsumer().first(LogResult.stdOut(c)).set();
 		c.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
 		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
 		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));

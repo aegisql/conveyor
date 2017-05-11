@@ -91,10 +91,10 @@ public class ScalarConvertingConveyorTest {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		sc.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
-		sc.setResultConsumer(u->{
+		sc.resultConsumer(u->{
 			System.out.println("RESULT: "+u);
 			usr.set(u.product);
-		});
+		}).set();
 		String csv = "John,Dow,1990";
 				
 		CompletableFuture<Boolean> cf = sc.part().id("test").value(csv).place();

@@ -77,11 +77,11 @@ public class CollectionBuilderTest {
 			System.out.println(obj);
 			ai.decrementAndGet();
 		});
-		b.setResultConsumer((list)->{
+		b.resultConsumer((list)->{
 			System.out.println(list);
 			ai.incrementAndGet();
 			aii.addAndGet(list.product.size());
-		});
+		}).set();
 		b.setOnTimeoutAction((builder)->{
 			System.out.println("TIMEOUT:"+builder.get());
 		});
@@ -121,11 +121,11 @@ public class CollectionBuilderTest {
 			System.out.println(obj);
 			ai.decrementAndGet();
 		});
-		b.setResultConsumer((list)->{
+		b.resultConsumer((list)->{
 			System.out.println(list);
 			ai.incrementAndGet();
 			aii.addAndGet(list.product.size());
-		});
+		}).set();
 		b.setOnTimeoutAction((builder)->{
 			System.out.println("TIMEOUT:"+builder.get());
 		});

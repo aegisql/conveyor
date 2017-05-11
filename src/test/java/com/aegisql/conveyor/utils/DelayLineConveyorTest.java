@@ -71,10 +71,10 @@ public class DelayLineConveyorTest {
 		List<Integer> res = new ArrayList<>();
 		
 		DelayLineConveyor<Integer, Integer> c = new DelayLineConveyor<>();
-		c.setResultConsumer(bin->{
+		c.resultConsumer(bin->{
 			System.out.println("++ "+bin);
 			res.add(bin.product);
-		});
+		}).set();
 		c.setScrapConsumer(bin->{
 			System.out.println("-- "+bin);
 		});

@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
@@ -116,9 +117,6 @@ public class MultiThreadTest {
 	public void tearDown() throws Exception {
 	}
 	
-	/** The out queue. */
-	public static Queue<User> outQueue = new ConcurrentLinkedQueue<>();
-
 	
 	
 	/**
@@ -162,9 +160,10 @@ public class MultiThreadTest {
 		System.out.println("---");
 	});
 	assertTrue(conveyor.isOnTimeoutAction());
-	conveyor.setResultConsumer( res->{
-		    	outQueue.add(res.product);
-		    });
+	/** The out queue. */
+	ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+	conveyor.resultConsumer().first(outQueue).set();
 		
 	Thread runFirst = new Thread(()->{
 		Random r = new Random();

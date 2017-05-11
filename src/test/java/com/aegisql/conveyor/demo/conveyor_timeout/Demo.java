@@ -9,13 +9,13 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.demo.ThreadPool;
 
 public class Demo {
@@ -23,7 +23,6 @@ public class Demo {
 	public static void main(String[] args) throws ParseException, InterruptedException, ExecutionException {
 		ThreadPool pool                   = new ThreadPool();
 		SimpleDateFormat format           = new SimpleDateFormat("yyyy-MM-dd");
-		AtomicReference<Person> personRef = new AtomicReference<>();
 		
 		// I - Create labels describing building steps
 		final SmartLabel<PersonBuilder> FIRST_NAME    = SmartLabel.of("FirtsName",PersonBuilder::setFirstName);
@@ -32,12 +31,14 @@ public class Demo {
 		
 		// II - Create conveyor
 		Conveyor<Integer, SmartLabel<PersonBuilder>, Person> conveyor = new AssemblingConveyor<>();
+
+		LastResultReference<Integer,Person> personRef = LastResultReference.of(conveyor);
 		
 		// III - Tell it how to create the Builder
 		conveyor.setBuilderSupplier(PersonBuilder::new);
 		
 		// IV - Tell it where to put the Product (asynchronously)
-		conveyor.setResultConsumer( bin-> personRef.set(bin.product) );
+		conveyor.resultConsumer().first( personRef ).set();
 		
 		// V - Set default timeout and heartbeat intervals
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
@@ -68,10 +69,8 @@ public class Demo {
 			throw new RuntimeException(e);
 		}
 
-		Thread.sleep(1000);
-
+		conveyor.completeAndStop().get();
 		pool.shutdown();
-		conveyor.stop();
 	}
 
 	@Test(expected=RuntimeException.class)

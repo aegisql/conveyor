@@ -39,7 +39,7 @@ public class MultiKeyTest {
 	public void testMultiSimple() throws InterruptedException, ExecutionException {
 		
 		AssemblingConveyor<Integer, SmartLabel<UserBuilderSmart>, User> c = new AssemblingConveyor<>();
-		c.setResultConsumer(bin->{});
+		c.resultConsumer().first(bin->{}).set();
 		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
 		SmartLabel<UserBuilderSmart> l2 = SmartLabel.of(UserBuilderSmart::setLast);
 		SmartLabel<UserBuilderSmart> l3 = SmartLabel.of(UserBuilderSmart::setYearOfBirth);
@@ -77,7 +77,7 @@ public class MultiKeyTest {
 	public void testMultiSimple2() throws InterruptedException, ExecutionException {
 		
 		AssemblingConveyor<Integer, SmartLabel<UserBuilderSmart>, User> c = new AssemblingConveyor<>();
-		c.setResultConsumer(bin->{});
+		c.resultConsumer().first(bin->{}).set();
 		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
 		SmartLabel<UserBuilderSmart> l2 = SmartLabel.of(UserBuilderSmart::setLast);
 		SmartLabel<UserBuilderSmart> l3 = SmartLabel.of(UserBuilderSmart::setYearOfBirth);
@@ -117,7 +117,7 @@ public class MultiKeyTest {
 	public void testMultiWithPredicate() throws InterruptedException, ExecutionException {
 		
 		AssemblingConveyor<Integer, SmartLabel<UserBuilderSmart>, User> c = new AssemblingConveyor<>();
-		c.setResultConsumer(bin->{});
+		c.resultConsumer().first(bin->{}).set();
 		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
 		SmartLabel<UserBuilderSmart> l2 = SmartLabel.of(UserBuilderSmart::setLast);
 		SmartLabel<UserBuilderSmart> l3 = SmartLabel.of(UserBuilderSmart::setYearOfBirth);
@@ -158,7 +158,7 @@ public class MultiKeyTest {
 	public void testMultiWithPredicate2() throws InterruptedException, ExecutionException {
 		
 		AssemblingConveyor<Integer, SmartLabel<UserBuilderSmart>, User> c = new AssemblingConveyor<>();
-		c.setResultConsumer(bin->{});
+		c.resultConsumer().first(bin->{}).set();
 		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
 		SmartLabel<UserBuilderSmart> l2 = SmartLabel.of(UserBuilderSmart::setLast);
 		SmartLabel<UserBuilderSmart> l3 = SmartLabel.of(UserBuilderSmart::setYearOfBirth);

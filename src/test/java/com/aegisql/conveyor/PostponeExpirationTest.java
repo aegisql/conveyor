@@ -18,6 +18,8 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.consumers.result.LogResult;
+import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
@@ -80,15 +82,14 @@ public class PostponeExpirationTest {
 	 */
 	@Test
 	public void testDefaultExpirationPostpone() throws InterruptedException {
-		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
-		outQueue.clear();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result " + res);
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
+
 		conveyor.setScrapConsumer(bin -> {
 			System.out.println("Error " + bin);
 		});
@@ -136,14 +137,12 @@ public class PostponeExpirationTest {
 	@Test
 	public void testCartExpirationPostpone() throws InterruptedException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
-		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
-		outQueue.clear();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result " + res);
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setScrapConsumer(bin -> {
 			System.out.println("Error " + bin);
 		});
@@ -186,14 +185,12 @@ public class PostponeExpirationTest {
 	@Test
 	public void testBuilderExpirationPostpone() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> conveyor = new AssemblingConveyor<>();
-		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
-		outQueue.clear();
 		conveyor.setBuilderSupplier(()->new UserBuilderExpireable(100));
 
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result " + res);
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setScrapConsumer(bin -> {
 			System.out.println("Error " + bin);
 		});
@@ -249,15 +246,13 @@ public class PostponeExpirationTest {
 	 */
 	@Test
 	public void testTimeoutExpirationPostpone() throws InterruptedException {
-		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 		AssemblingConveyor<Integer, String, User> conveyor = new AssemblingConveyor<>();
-		outQueue.clear();
 		conveyor.setBuilderSupplier(()-> new UserBuilderExpireable(1000));
 
-		conveyor.setResultConsumer(res -> {
-			System.out.println("Result " + res);
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setScrapConsumer(bin -> {
 			System.out.println("Error " + bin);
 		});

@@ -90,11 +90,11 @@ public class ChainTest {
 			ai.decrementAndGet();
 			fail("Scrap unexpected in batch conveyor");
 		});
-		batchConveyor.setResultConsumer((list)->{
+		batchConveyor.resultConsumer((list)->{
 			System.out.println("BATCH "+list);
 			ai.incrementAndGet();
 			aii.addAndGet(list.product.size());
-		});
+		}).set();
 		batchConveyor.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);		
 				
 		scalarConveyor.forwardResultTo(batchConveyor, k->"BATCH", batchConveyor.BATCH);//aggregation of all keys

@@ -164,9 +164,9 @@ public class BuildTesterTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
-		conveyor.setResultConsumer(res -> {
+		conveyor.resultConsumer().first(res -> {
 			System.out.println(res);
-		});
+		}).set();
 		conveyor.setReadinessEvaluator(new ReadinessTester<Integer, UserBuilderEvents, User>().accepted(3));
 		conveyor.setName("User Assembler");
 
@@ -190,9 +190,9 @@ public class BuildTesterTest {
 		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTesting::new);
 
-		conveyor.setResultConsumer(res -> {
+		conveyor.resultConsumer().first(res -> {
 			System.out.println(res);
-		});
+		}).set();
 		conveyor.setReadinessEvaluator(new ReadinessTester<Integer, UserBuilderEvents2, User>().usingBuilderTest(UserBuilderTesting.class));
 		conveyor.setName("User Assembler");
 
@@ -216,9 +216,9 @@ public class BuildTesterTest {
 		AssemblingConveyor<Integer, UserBuilderEvents3, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTestingState::new);
 
-		conveyor.setResultConsumer(res -> {
+		conveyor.resultConsumer().first(res -> {
 			System.out.println(res);
-		});
+		}).set();
 		conveyor.setReadinessEvaluator(new ReadinessTester<Integer, UserBuilderEvents3, User>().andThen((s,b)->{
 			System.out.println("--- test state called ---");
 			return true;

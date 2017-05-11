@@ -24,6 +24,8 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.consumers.result.LogResult;
+import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.user.AbstractBuilderEvents;
 import com.aegisql.conveyor.user.LowerCaseUserBuilder;
@@ -48,8 +50,6 @@ import com.aegisql.conveyor.user.UserBuilderTestingState;
  */
 public class SmartConveyorTest {
 
-	/** The out queue. */
-	Queue<User> outQueue = new ConcurrentLinkedQueue<>();
 
 	/**
 	 * Sets the up before class.
@@ -102,9 +102,10 @@ public class SmartConveyorTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
@@ -147,9 +148,10 @@ public class SmartConveyorTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			System.out.println(state);
 			return state.previouslyAccepted == 3;
@@ -191,9 +193,10 @@ public class SmartConveyorTest {
 		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTesting::new);
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setName("Testing User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents2> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents2.SET_FIRST);
@@ -229,9 +232,10 @@ public class SmartConveyorTest {
 		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTesting::new);
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setName("Testing User Assembler");
 		conveyor.part().id(1).value("John").label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
@@ -261,9 +265,10 @@ public class SmartConveyorTest {
 		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTesting::new);
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setName("Testing User Assembler");
 		conveyor.part().value("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
@@ -297,9 +302,10 @@ public class SmartConveyorTest {
 			return new UserBuilderTesting();
 		});
 	
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 	
 		BuilderSupplier<User> sup = () -> {
 			System.out.println("Cart Supplier");
@@ -354,9 +360,10 @@ public class SmartConveyorTest {
 		AssemblingConveyor<Integer, UserBuilderEvents3, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTestingState::new);
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setName("TestingState User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents3> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents3.SET_FIRST);
@@ -393,9 +400,10 @@ public class SmartConveyorTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 2;
 		});
@@ -419,9 +427,10 @@ public class SmartConveyorTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 2;
 		});
@@ -462,9 +471,10 @@ public class SmartConveyorTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -531,9 +541,10 @@ public class SmartConveyorTest {
 	public void testUpperCase() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -569,9 +580,10 @@ public class SmartConveyorTest {
 	public void testLowerCase() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -608,9 +620,7 @@ public class SmartConveyorTest {
 	public void testObject() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, Object> conveyor = new AssemblingConveyor<>();
 
-		conveyor.setResultConsumer(res -> {
-			System.out.println(res.product);
-		});
+		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -647,9 +657,10 @@ public class SmartConveyorTest {
 	public void testUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setName("User Upper Assembler");
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		
@@ -685,9 +696,10 @@ public class SmartConveyorTest {
 	public void testFailingUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setName("User Upper Assembler");
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		
@@ -778,10 +790,10 @@ public class SmartConveyorTest {
 	public void testCompleteAndStop() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
-		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
 		conveyor.setName("User Assembler");
 		
@@ -802,10 +814,10 @@ public class SmartConveyorTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setDefaultBuilderTimeout(Duration.ofMillis(100));
-		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
 		conveyor.setName("User Assembler");
 		
@@ -835,10 +847,10 @@ public class SmartConveyorTest {
 	public void testCompleteAndStopRejectMessages() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
-		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
 		conveyor.setName("User Assembler");
 		
@@ -861,10 +873,10 @@ public class SmartConveyorTest {
 	public void testCompleteAndStopRejectCommand() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
-		Queue<User> outQueue = new ConcurrentLinkedQueue<>();
-		conveyor.setResultConsumer(res -> {
-			outQueue.add(res.product);
-		});
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
 		conveyor.setName("User Assembler");
 		

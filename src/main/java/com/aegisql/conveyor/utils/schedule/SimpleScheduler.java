@@ -25,9 +25,9 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 		super();
 		this.setName("SchedulingConveyor");
 		this.setIdleHeartBeat(1, TimeUnit.SECONDS);
-		this.setResultConsumer(bin -> {
+		this.resultConsumer().first(bin -> {
 			LOG.debug("Task complete {}",bin);
-		});
+		}).set();
 		this.setScrapConsumer(bin -> {
 			LOG.error("Scheduled event failure {}", bin);
 		});

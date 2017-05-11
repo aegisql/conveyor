@@ -33,6 +33,7 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
@@ -46,9 +47,7 @@ import com.aegisql.conveyor.user.UserBuilder;
  */
 public class AssemblingConveyorTest {
 
-	/** The out queue. */
-	Queue<User> outQueue = new ConcurrentLinkedQueue<>();
-	
+
 	/**
 	 * Sets the up before class.
 	 *
@@ -313,9 +312,9 @@ public class AssemblingConveyorTest {
 				throw new RuntimeException("Unknown label " + label);
 			}
 		});
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		/** The out queue. */
+		ResultQueue<Integer,User> outQueue = ResultQueue.of(conveyor);
+		conveyor.resultConsumer().first(outQueue).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -395,9 +394,8 @@ public class AssemblingConveyorTest {
 				throw new RuntimeException("Unknown label " + label);
 			}
 		});
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		ResultQueue<Integer,User> outQueue = ResultQueue.of(conveyor);
+		conveyor.resultConsumer().first(outQueue).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -456,9 +454,8 @@ public class AssemblingConveyorTest {
 				throw new RuntimeException("Unknown label " + label);
 			}
 		});
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		ResultQueue<Integer,User> outQueue = ResultQueue.of(conveyor);
+		conveyor.resultConsumer().first(outQueue).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -515,9 +512,8 @@ public class AssemblingConveyorTest {
 				throw new RuntimeException("Unknown label " + label);
 			}
 		});
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		ResultQueue<Integer,User> outQueue = ResultQueue.of(conveyor);
+		conveyor.resultConsumer().first(outQueue).set();
 		conveyor.setReadinessEvaluator((builder) -> {
 			UserBuilder ub = (UserBuilder)builder;
 			return ub.getFirst() != null && ub.getLast() != null && ub.getYearOfBirth() != null;
@@ -590,9 +586,8 @@ public class AssemblingConveyorTest {
 				throw new RuntimeException("Unknown label " + label);
 			}
 		});
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		ResultQueue<Integer,User> outQueue = ResultQueue.of(conveyor);
+		conveyor.resultConsumer().first(outQueue).set();
 		conveyor.setReadinessEvaluator((builder) -> {
 			UserBuilder ub = (UserBuilder)builder;
 			return ub.getFirst() != null && ub.getLast() != null && ub.getYearOfBirth() != null;
@@ -633,9 +628,8 @@ public class AssemblingConveyorTest {
 		conveyor.setDefaultCartConsumer((label, value, builder) -> {
 			throw new Error("TEST ERROR");
 		});
-		conveyor.setResultConsumer(res->{
-				    	outQueue.add(res.product);
-				    });
+		ResultQueue<Integer,User> outQueue = ResultQueue.of(conveyor);
+		conveyor.resultConsumer().first(outQueue).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});

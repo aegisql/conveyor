@@ -771,8 +771,15 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			return this.place(cart);
 		}, 
-		this::setResultConsumer, 
+		rc->{
+			this.resultConsumer = rc;
+		}, 
 		resultConsumer);
+	}
+
+	@Override
+	public ResultConsumerLoader<K, OUT> resultConsumer(Consumer<ProductBin<K, OUT>> consumer) {
+		return this.resultConsumer().first(consumer);
 	}
 
 	/*
@@ -1175,16 +1182,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	/**
-	 * Sets the result consumer.
-	 *
-	 * @param resultConsumer
-	 *            the new result consumer
-	 */
-	public void setResultConsumer(Consumer<ProductBin<K, OUT>> resultConsumer) {
-		this.resultConsumer = resultConsumer;
-	}
-
-	/**
 	 * Sets the cart consumer.
 	 *
 	 * @param cartConsumer
@@ -1458,7 +1455,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>,K2> keyConverter, L2 label) {
 		this.forwardingResults = true;
 		this.forwardingTo = destination.toString();
-		this.setResultConsumer(bin -> {
+		this.resultConsumer().first(bin -> {
 			LOG.debug("Forward {} from {} to {} {}", label, this.name, destination.getName(), bin);
 			PartLoader<K2, L2, OUT, OUT2, Boolean> part = destination.part()
 			.id(keyConverter.apply(bin))
@@ -1466,7 +1463,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			.value(bin.product)
 			.ttl( bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
 			part.place();
-		});
+		}).set();
 	}
 
 	/**
@@ -1488,9 +1485,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		c.setDefaultCartConsumer(cartConsumer);
 		c.setKeepCartsOnSite(saveCarts);
 		c.setOnTimeoutAction(timeoutAction);
-		c.setResultConsumer(bin -> {
+		c.resultConsumer().first(bin -> {
 			throw new IllegalStateException("Result Consumet is not set for copy of conveyor '" + name + "'");
-		});
+		}).set();
 		c.setSynchronizeBuilder(synchronizeBuilder);
 
 		c.startTimeReject = this.startTimeReject;

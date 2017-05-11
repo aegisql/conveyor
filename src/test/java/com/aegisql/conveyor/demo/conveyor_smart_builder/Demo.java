@@ -14,6 +14,7 @@ import org.junit.Test;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.consumers.result.IgnoreResult;
 import com.aegisql.conveyor.demo.ThreadPool;
 
 public class Demo {
@@ -34,7 +35,7 @@ public class Demo {
 		conveyor.setBuilderSupplier(PersonBuilder::new);
 		
 		// IV - Tell it where to put the Product (asynchronously)
-		conveyor.setResultConsumer( bin-> {/*nowhere. we'll use future*/});
+		conveyor.resultConsumer().first( IgnoreResult.of(conveyor) ).set();
 		
 		// V - Set default timeout and heartbeat intervals
 		conveyor.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);

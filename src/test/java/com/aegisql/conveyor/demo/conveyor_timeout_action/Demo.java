@@ -8,13 +8,13 @@ import java.text.SimpleDateFormat;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.demo.ThreadPool;
 
 public class Demo {
@@ -22,7 +22,6 @@ public class Demo {
 	public static void main(String[] args) throws ParseException, InterruptedException, ExecutionException {
 		ThreadPool pool                   = new ThreadPool();
 		SimpleDateFormat format           = new SimpleDateFormat("yyyy-MM-dd");
-		AtomicReference<Person> personRef = new AtomicReference<>();
 		
 		// I - Create labels describing building steps
 		final SmartLabel<PersonBuilder> FIRST_NAME    = SmartLabel.of("FirtsName",PersonBuilder::setFirstName);
@@ -36,7 +35,8 @@ public class Demo {
 		conveyor.setBuilderSupplier(PersonBuilder::new);
 		
 		// IV - Tell it where to put the Product (asynchronously)
-		conveyor.setResultConsumer( bin-> personRef.set(bin.product) );
+		LastResultReference<Integer,Person> personRef = LastResultReference.of(conveyor);
+		conveyor.resultConsumer().first( personRef ).set();
 		
 		// V - Set default timeout and heartbeat intervals
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);

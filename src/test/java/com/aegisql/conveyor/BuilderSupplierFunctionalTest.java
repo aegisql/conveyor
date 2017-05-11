@@ -190,9 +190,9 @@ public class BuilderSupplierFunctionalTest {
 		c.setScrapConsumer(bin->{
 			System.out.println(bin);
 		});
-		c.setResultConsumer(res->{
+		c.resultConsumer().first(res->{
 			System.out.println(res);			
-		});
+		}).set();
 		c.setDefaultCartConsumer((l,v,b)->{
 			System.out.println(l+" "+v+" "+b.get());						
 		});

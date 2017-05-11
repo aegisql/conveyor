@@ -36,6 +36,8 @@ import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
+import com.aegisql.conveyor.cart.MultiKeyCart;
+import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.StaticCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
@@ -115,6 +117,9 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	protected BuilderSupplier<OUT> builderSupplier = () -> {
 		throw new IllegalStateException("Builder Supplier is not set");
 	};
+	
+	/** The result consumer. */
+	protected Consumer<ProductBin<K, OUT>> resultConsumer = null;
 	
 	/**
 	 * Instantiates a new parallel conveyor.
@@ -401,15 +406,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	}
 
 	/**
-	 * Sets the result consumer.
-	 *
-	 * @param resultConsumer the new result consumer
-	 */
-	public void setResultConsumer(Consumer<ProductBin<K,OUT>> resultConsumer) {
-		this.conveyors.forEach(conv->conv.setResultConsumer(resultConsumer));
-	}
-
-	/**
 	 * Sets the cart consumer.
 	 *
 	 * @param cartConsumer the cart consumer
@@ -631,11 +627,11 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>, K2> keyConverter,
 			L2 label) {
 		this.forwardingResults   = true;
-		this.setResultConsumer(bin->{
+		this.resultConsumer().first(bin->{
 			LOG.debug("Forward {} from {} to {} {}",label,this.name,destination.getName(),bin.product);
 			Cart<K2,OUT,L2> partialResult = new ShoppingCart<>(keyConverter.apply(bin), bin.product, label, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
 			destination.place( partialResult );
-		});
+		}).set();
 	}
 	
 	/* (non-Javadoc)
@@ -755,7 +751,37 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	
 	@Override
 	public ResultConsumerLoader<K, OUT> resultConsumer() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ResultConsumerLoader<>(rcl->{
+			Cart<K,?,L> cart = null;
+			if(rcl.key != null) {
+				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime);
+			} else {
+				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, k->{
+					return new ResultConsumerCart<K, OUT, L>(k, rcl.consumer, rcl.creationTime, rcl.expirationTime);
+				});
+			}
+			
+			CompletableFuture<Boolean> f = new CompletableFuture<Boolean>();
+			f.complete(true);
+			
+			for(Conveyor<K, L, OUT> conv: conveyors) {
+				f = f.thenCombine( conv.place(cart.copy()), (a,b) -> a && b );
+			};
+			
+			return f;
+		}, 
+		rc->{
+			this.resultConsumer = rc;
+			for(Conveyor<K, L, OUT> conv: conveyors) {
+				conv.resultConsumer().first(this.resultConsumer).set();
+			};
+		}, 
+		this.resultConsumer);
 	}
+	
+	@Override
+	public ResultConsumerLoader<K, OUT> resultConsumer(Consumer<ProductBin<K, OUT>> consumer) {
+		return this.resultConsumer().first(consumer);
+	}
+	
 }

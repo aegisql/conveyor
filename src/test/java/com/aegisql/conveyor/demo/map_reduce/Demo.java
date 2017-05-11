@@ -12,6 +12,7 @@ import java.util.concurrent.Future;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.demo.ThreadPool;
 import com.aegisql.conveyor.loaders.PartLoader;
 
@@ -80,11 +81,11 @@ public class Demo {
 		//Note that though MERGE command is associated with the same label
 		//It does not result in finishing the word count task
 		collectingConveyor.setReadinessEvaluator(Conveyor.getTesterFor(collectingConveyor).accepted(DONE));
-		collectingConveyor.setResultConsumer(bin->{
+		collectingConveyor.resultConsumer().first(bin->{
 			//We assume that in this demo 
 			//this is the only thread accessing the wordList
 			wordList.add(bin.product);
-		});
+		}).andThen(LogResult.debug(collectingConveyor)).set();
 
 		//Start counting words in three parallel threads
 		Future<?> f1 = countWordsAsynch(collectingConveyor,"a","b","c","d","b");

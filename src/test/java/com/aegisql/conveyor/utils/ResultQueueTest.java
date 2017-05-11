@@ -130,7 +130,7 @@ public class ResultQueueTest {
 				throw new RuntimeException("Unknown label " + label);
 			}
 		});
-		conveyor.setResultConsumer(outQueue);
+		conveyor.resultConsumer(outQueue).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});

@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import org.junit.Test;
 
 import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.consumers.result.IgnoreResult;
 import com.aegisql.conveyor.demo.ThreadPool;
 import com.aegisql.conveyor.utils.caching.CachingConveyor;
 
@@ -36,7 +37,7 @@ public class Demo {
 		conveyor.setBuilderSupplier(PersonBuilder::new);
 		
 		// IV - Tell it where to put the Product (asynchronously)
-		conveyor.setResultConsumer( bin-> {/*no destination for the cache*/} );
+		conveyor.resultConsumer().first( IgnoreResult.of(conveyor) ).set();
 		
 		// IV - Add data to conveyor queue 
 		pool.runAsynchWithDelay(10,()->{

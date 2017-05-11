@@ -82,10 +82,10 @@ public class MultichannelTest {
 		ac.setScrapConsumer(bin->{
 			System.out.println("rejected: "+bin);
 		});
-		ac.setResultConsumer(bin->{
+		ac.resultConsumer().first(bin->{
 			System.out.println("AC result: "+bin);
 			user.set(bin.product);
-		});
+		}).set();
 		ac.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.first != null && ub.last != null && ub.yearOfBirth != null;
@@ -152,10 +152,10 @@ public class MultichannelTest {
 		ac.setScrapConsumer(bin->{
 			System.out.println("rejected: "+bin);
 		});
-		ac.setResultConsumer(bin->{
+		ac.resultConsumer().first(bin->{
 			System.out.println("AC result: "+bin);
 			user.set(bin.product);
-		});
+		}).set();
 		ac.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.first != null && ub.last != null && ub.yearOfBirth != null;
@@ -220,10 +220,10 @@ public class MultichannelTest {
 		ac.setScrapConsumer(bin->{
 			System.out.println("rejected: "+bin);
 		});
-		ac.setResultConsumer(bin->{
+		ac.resultConsumer().first(bin->{
 			System.out.println("AC result: "+bin);
 			user.set(bin.product);
-		});
+		}).set();
 		ac.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.first != null && ub.last != null && ub.yearOfBirth != null;
@@ -295,10 +295,10 @@ public class MultichannelTest {
 		ac.setScrapConsumer(bin->{
 			System.out.println("rejected: "+bin);
 		});
-		ac.setResultConsumer(bin->{
+		ac.resultConsumer().first(bin->{
 			System.out.println("AC result: "+bin);
 			user.set(bin.product);
-		});
+		}).set();
 		ac.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.first != null && ub.last != null && ub.yearOfBirth != null;
@@ -383,10 +383,10 @@ public class MultichannelTest {
 		ac.setScrapConsumer(bin->{
 			System.out.println("rejected: "+bin);
 		});
-		ac.setResultConsumer(bin->{
+		ac.resultConsumer().first(bin->{
 			System.out.println("MAIN result: "+bin);
 			user.set(bin.product);
-		});
+		}).set();
 		ac.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.first != null && ub.last != null && ub.yearOfBirth != null && ub.yearOfBirth > 0;
@@ -464,10 +464,10 @@ public class MultichannelTest {
 		ac.setScrapConsumer(bin->{
 			System.out.println("rejected: "+bin);
 		});
-		ac.setResultConsumer(bin->{
+		ac.resultConsumer().first(bin->{
 			System.out.println("MAIN result: "+bin);
 			user.set(bin.product);
-		});
+		}).set();
 		ac.setReadinessEvaluator(b->{
 			UserBuilder ub = (UserBuilder)b;
 			return ub.first != null && ub.last != null && ub.yearOfBirth != null && ub.yearOfBirth > 0;

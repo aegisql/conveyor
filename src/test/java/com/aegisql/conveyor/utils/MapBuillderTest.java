@@ -12,6 +12,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.utils.map.MapBuilder;
 import com.aegisql.conveyor.utils.map.MapConveyor;
@@ -70,9 +71,7 @@ public class MapBuillderTest {
 		
 		mc.setBuilderSupplier( ()-> new MapBuilder<>() );
 		
-		mc.setResultConsumer(bin->{
-			System.out.println(bin);
-		});
+		mc.resultConsumer(LogResult.stdOut(mc)).set();
 		mc.setScrapConsumer(bin->fail("Failde "+bin));
 		
 		PartLoader<Integer, String,?,?,?> pl = mc.part().id(1);

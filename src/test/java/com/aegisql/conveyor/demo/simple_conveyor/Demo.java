@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.demo.ThreadPool;
 
 public class Demo {
@@ -22,7 +23,6 @@ public class Demo {
 
 		ThreadPool pool                   = new ThreadPool();
 		SimpleDateFormat format           = new SimpleDateFormat("yyyy-MM-dd");
-		AtomicReference<Person> personRef = new AtomicReference<>();
 		
 		// I - Create conveyor
 		// Generic types:
@@ -51,7 +51,8 @@ public class Demo {
 		
 		// V - Tell conveyor where to put created Person object
 		//     Product receiver should not block the thread 
-		conveyor.setResultConsumer( bin-> personRef.set(bin.product) );
+		LastResultReference<Integer,Person> personRef = LastResultReference.of(conveyor);
+		conveyor.resultConsumer().first( personRef ).set();
 		
 		// VI - Optionally: retrieve completable future of the build
 		CompletableFuture<Person> future = conveyor.build().id(1).createFuture();
@@ -91,7 +92,7 @@ public class Demo {
 		// and sent to the consumer
 		Person person = future.get();
 		
-		System.out.println( "Person from asynchronous source: "+personRef.get() );
+		System.out.println( "Person from asynchronous source: "+personRef.getCurrent() );
 		System.out.println( "Person synchronized: "+person );
 		
 		pool.shutdown();
