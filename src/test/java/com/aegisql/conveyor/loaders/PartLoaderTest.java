@@ -1,6 +1,9 @@
 package com.aegisql.conveyor.loaders;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -98,70 +101,6 @@ public class PartLoaderTest {
 		assertNotNull(f);
 	}
 
-	@Test
-	public void testMultiKey() {
-		long current = System.currentTimeMillis();
-		MultiKeyPartLoader pl0 = new MultiKeyPartLoader<>(
-				l->{
-					System.out.println("Final: "+l);
-					assertNotNull(l);
-					assertEquals("test", l.label);
-					assertEquals("value", l.partValue);
-					assertTrue(l.expirationTime > 0);
-					assertTrue(l.creationTime > 0);
-					assertTrue(l.expirationTime > l.creationTime);
-					assertTrue(l.filter.test(123));
-					return new CompletableFuture();
-				}
-				);
-		System.out.println(pl0);
-		assertTrue(pl0.creationTime >= current);
-		
-		current = pl0.creationTime;
-
-		MultiKeyPartLoader pl1 = pl0;
-		System.out.println(pl1);
-		assertEquals(pl0.creationTime, pl1.creationTime);
-
-		MultiKeyPartLoader pl2 = pl1.label("test");
-		System.out.println(pl2);
-		assertEquals(pl1.creationTime, pl2.creationTime);
-		assertEquals("test", pl2.label);
-
-		MultiKeyPartLoader pl3 = pl2.value("value");
-		System.out.println(pl3);
-		assertEquals(pl3.creationTime, pl2.creationTime);
-		assertEquals("test", pl3.label);
-		assertEquals("value", pl3.partValue);
-
-		MultiKeyPartLoader pl4et  = pl3.expirationTime(current+1000);
-		MultiKeyPartLoader pl4in  = pl3.expirationTime(Instant.ofEpochMilli(current+1000));
-		MultiKeyPartLoader pl4ttl = pl3.ttl(1000, TimeUnit.MILLISECONDS);
-		MultiKeyPartLoader pl4dur = pl3.ttl(Duration.ofMillis(1000));
-		System.out.println(pl4et);
-		System.out.println(pl4in);
-		System.out.println(pl4ttl);
-		System.out.println(pl4dur);
-		assertEquals(pl4et.creationTime,pl4in.creationTime);
-		assertEquals(pl4et.creationTime,pl4ttl.creationTime);
-		assertEquals(pl4et.creationTime,pl4dur.creationTime);
-
-		assertEquals(0,pl4in.ttlMsec);
-		assertEquals(0,pl4et.ttlMsec);
-		assertEquals(1000,pl4ttl.ttlMsec);
-		assertEquals(1000,pl4dur.ttlMsec);
-
-		MultiKeyPartLoader pl4each = pl4in.foreach();
-		MultiKeyPartLoader pl4123 = pl4in.foreach(x->{return (Integer)x==123;});
-		
-		CompletableFuture f = pl4each.place();
-		assertNotNull(f);
-		CompletableFuture f2 = pl4123.place();
-		assertNotNull(f2);
-
-		
-		
-	}
 	
 	@Test
 	public void multyKeyParts() throws InterruptedException, ExecutionException {

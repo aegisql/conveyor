@@ -2,7 +2,6 @@ package com.aegisql.conveyor.utils.delay_line;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.SmartLabel;
-import com.aegisql.conveyor.loaders.MultiKeyPartLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
