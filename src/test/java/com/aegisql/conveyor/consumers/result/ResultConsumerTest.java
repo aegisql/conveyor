@@ -56,8 +56,8 @@ public class ResultConsumerTest {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		sc.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
-		sc.resultConsumer().first(LogResult.info(sc).andThen(b->usr.set(b.product))).set();
-		sc.scrapConsumer(LogScrap.error(sc)).set();
+		sc.resultConsumer().first(LogResult.info(sc,"UnitTestLogger").andThen(b->usr.set(b.product))).set();
+		sc.scrapConsumer(LogScrap.error(sc,"UnitTestLogger")).set();
 		String csv = "John,Dow,1990";
 		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
 		CompletableFuture<Boolean> cf = sc.part().id("test").value(csv).place();

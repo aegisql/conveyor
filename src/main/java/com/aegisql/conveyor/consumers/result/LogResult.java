@@ -2,6 +2,9 @@ package com.aegisql.conveyor.consumers.result;
 
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
 
@@ -41,31 +44,6 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 		STDERR
 	}
 	
-	/** The Constant trace. */
-	private final static Consumer<ProductBin<?,?>> trace = bin->{
-		Conveyor.LOG.trace("{}",bin);		
-	};
-	
-	/** The Constant debug. */
-	private final static Consumer<ProductBin<?,?>> debug = bin->{
-		Conveyor.LOG.debug("{}",bin);		
-	};
-	
-	/** The Constant info. */
-	private final static Consumer<ProductBin<?,?>> info = bin->{
-		Conveyor.LOG.info("{}",bin);		
-	};
-	
-	/** The Constant warn. */
-	private final static Consumer<ProductBin<?,?>> warn = bin->{
-		Conveyor.LOG.warn("{}",bin);		
-	};
-	
-	/** The Constant error. */
-	private final static Consumer<ProductBin<?,?>> error = bin->{
-		Conveyor.LOG.error("{}",bin);		
-	};
-	
 	/** The Constant stdout. */
 	private final static Consumer<ProductBin<?,?>> stdout = bin->{
 		System.out.println(""+bin);		
@@ -83,7 +61,7 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	 * Instantiates a new log result.
 	 */
 	public LogResult() {
-		consumer = debug;
+		consumer = bin->Conveyor.LOG.debug("{}",bin);
 	}
 
 	/**
@@ -91,22 +69,22 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	 *
 	 * @param level the level
 	 */
-	public LogResult(Level level) {
+	public LogResult(Logger log, Level level) {
 		switch (level) {
 		case TRACE:
-			consumer = trace;
+			consumer = bin->log.trace("{}",bin);
 			break;
 		case DEBUG:
-			consumer = debug;
+			consumer = bin->log.debug("{}",bin);
 			break;
 		case INFO:
-			consumer = info;
+			consumer = bin->log.info("{}",bin);
 			break;
 		case WARN:
-			consumer = warn;
+			consumer = bin->log.warn("{}",bin);
 			break;
 		case ERROR:
-			consumer = error;
+			consumer = bin->log.error("{}",bin);
 			break;
 		case STDOUT:
 			consumer = stdout;
@@ -137,7 +115,16 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	 * @return the log result
 	 */
 	public static <K,E> LogResult<K,E> trace(Conveyor<K, ?, E> conveyor) {
-		return new LogResult<>(Level.TRACE);
+		return new LogResult<>(Conveyor.LOG,Level.TRACE);
+	}
+	public static <K,E> LogResult<K,E> trace(Conveyor<K, ?, E> conveyor,Logger logger) {
+		return new LogResult<>(logger,Level.TRACE);
+	}
+	public static <K,E> LogResult<K,E> trace(Conveyor<K, ?, E> conveyor,String logger) {
+		return new LogResult<>(LoggerFactory.getLogger(logger),Level.TRACE);
+	}
+	public static <K,E> LogResult<K,E> trace(Conveyor<K, ?, E> conveyor,Class<?> logger) {
+		return new LogResult<>(LoggerFactory.getLogger(logger),Level.TRACE);
 	}
 
 	/**
@@ -149,7 +136,16 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	 * @return the log result
 	 */
 	public static <K,E> LogResult<K,E> debug(Conveyor<K, ?, E> conveyor) {
-		return new LogResult<>(Level.DEBUG);
+		return new LogResult<>(Conveyor.LOG,Level.DEBUG);
+	}
+	public static <K,E> LogResult<K,E> debug(Conveyor<K, ?, E> conveyor,Logger logger) {
+		return new LogResult<>(logger,Level.DEBUG);
+	}
+	public static <K,E> LogResult<K,E> debug(Conveyor<K, ?, E> conveyor,String logger) {
+		return new LogResult<>(LoggerFactory.getLogger(logger),Level.DEBUG);
+	}
+	public static <K,E> LogResult<K,E> debug(Conveyor<K, ?, E> conveyor,Class<?> logger) {
+		return new LogResult<>(LoggerFactory.getLogger(logger),Level.DEBUG);
 	}
 
 	/**
@@ -161,7 +157,16 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	 * @return the log result
 	 */
 	public static <K,E> LogResult<K,E> info(Conveyor<K, ?, E> conveyor) {
-		return new LogResult<>(Level.INFO);
+		return new LogResult<>(Conveyor.LOG,Level.INFO);
+	}
+	public static <K,E> LogResult<K,E> info(Conveyor<K, ?, E> conveyor,Logger logger) {
+		return new LogResult<>(logger,Level.INFO);
+	}
+	public static <K,E> LogResult<K,E> info(Conveyor<K, ?, E> conveyor,String logger) {
+		return new LogResult<>(LoggerFactory.getLogger(logger),Level.INFO);
+	}
+	public static <K,E> LogResult<K,E> info(Conveyor<K, ?, E> conveyor,Class<?> logger) {
+		return new LogResult<>(LoggerFactory.getLogger(logger),Level.INFO);
 	}
 
 	/**
@@ -173,7 +178,16 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	 * @return the log result
 	 */
 	public static <K,E> LogResult<K,E> warn(Conveyor<K, ?, E> conveyor) {
-		return new LogResult<>(Level.WARN);
+		return new LogResult<>(Conveyor.LOG,Level.WARN);
+	}
+	public static <K,E> LogResult<K,E> warn(Conveyor<K, ?, E> conveyor,Logger logger) {
+		return new LogResult<>(logger,Level.WARN);
+	}
+	public static <K,E> LogResult<K,E> warn(Conveyor<K, ?, E> conveyor,String logger) {
+		return new LogResult<>(LoggerFactory.getLogger(logger),Level.WARN);
+	}
+	public static <K,E> LogResult<K,E> warn(Conveyor<K, ?, E> conveyor,Class<?> logger) {
+		return new LogResult<>(LoggerFactory.getLogger(logger),Level.WARN);
 	}
 
 	/**
@@ -185,7 +199,16 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	 * @return the log result
 	 */
 	public static <K,E> LogResult<K,E> error(Conveyor<K, ?, E> conveyor) {
-		return new LogResult<>(Level.ERROR);
+		return new LogResult<>(Conveyor.LOG,Level.ERROR);
+	}
+	public static <K,E> LogResult<K,E> error(Conveyor<K, ?, E> conveyor,Logger logger) {
+		return new LogResult<>(logger,Level.ERROR);
+	}
+	public static <K,E> LogResult<K,E> error(Conveyor<K, ?, E> conveyor,String logger) {
+		return new LogResult<>(LoggerFactory.getLogger(logger),Level.ERROR);
+	}
+	public static <K,E> LogResult<K,E> error(Conveyor<K, ?, E> conveyor,Class<?> logger) {
+		return new LogResult<>(LoggerFactory.getLogger(logger),Level.ERROR);
 	}
 
 	/**
@@ -197,7 +220,7 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	 * @return the log result
 	 */
 	public static <K,E> LogResult<K,E> stdOut(Conveyor<K, ?, E> conveyor) {
-		return new LogResult<>(Level.STDOUT);
+		return new LogResult<>(Conveyor.LOG,Level.STDOUT);
 	}
 
 	/**
@@ -209,7 +232,7 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	 * @return the log result
 	 */
 	public static <K,E> LogResult<K,E> stdErr(Conveyor<K, ?, E> conveyor) {
-		return new LogResult<>(Level.STDERR);
+		return new LogResult<>(Conveyor.LOG,Level.STDERR);
 	}
 
 }
