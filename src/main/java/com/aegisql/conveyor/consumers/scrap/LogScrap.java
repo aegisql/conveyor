@@ -13,7 +13,6 @@ import com.aegisql.conveyor.ScrapBin;
  * The Class LogResult.
  *
  * @param <K> the key type
- * @param <E> the element type
  */
 public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
 
@@ -67,6 +66,7 @@ public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
 	/**
 	 * Instantiates a new log result.
 	 *
+	 * @param log the log
 	 * @param level the level
 	 */
 	public LogScrap(Logger log, Level level) {
@@ -117,12 +117,42 @@ public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
 	public static <K,E> LogScrap<K> trace(Conveyor<K, ?, E> conveyor) {
 		return new LogScrap<>(Conveyor.LOG,Level.TRACE);
 	}
+	
+	/**
+	 * Trace.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> trace(Conveyor<K, ?, E> conveyor,Logger logger) {
 		return new LogScrap<>(logger,Level.TRACE);
 	}
+	
+	/**
+	 * Trace.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> trace(Conveyor<K, ?, E> conveyor,String logger) {
 		return new LogScrap<>(LoggerFactory.getLogger(logger),Level.TRACE);
 	}
+	
+	/**
+	 * Trace.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> trace(Conveyor<K, ?, E> conveyor,Class<?> logger) {
 		return new LogScrap<>(LoggerFactory.getLogger(logger),Level.TRACE);
 	}
@@ -138,12 +168,42 @@ public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
 	public static <K,E> LogScrap<K> debug(Conveyor<K, ?, E> conveyor) {
 		return new LogScrap<>(Conveyor.LOG,Level.DEBUG);
 	}
+	
+	/**
+	 * Debug.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> debug(Conveyor<K, ?, E> conveyor,Logger logger) {
 		return new LogScrap<>(logger,Level.DEBUG);
 	}
+	
+	/**
+	 * Debug.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> debug(Conveyor<K, ?, E> conveyor,String logger) {
 		return new LogScrap<>(LoggerFactory.getLogger(logger),Level.DEBUG);
 	}
+	
+	/**
+	 * Debug.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> debug(Conveyor<K, ?, E> conveyor,Class<?> logger) {
 		return new LogScrap<>(LoggerFactory.getLogger(logger),Level.DEBUG);
 	}
@@ -159,12 +219,42 @@ public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
 	public static <K,E> LogScrap<K> info(Conveyor<K, ?, E> conveyor) {
 		return new LogScrap<>(Conveyor.LOG,Level.INFO);
 	}
+	
+	/**
+	 * Info.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> info(Conveyor<K, ?, E> conveyor,Logger logger) {
 		return new LogScrap<>(logger,Level.INFO);
 	}
+	
+	/**
+	 * Info.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> info(Conveyor<K, ?, E> conveyor,String logger) {
 		return new LogScrap<>(LoggerFactory.getLogger(logger),Level.INFO);
 	}
+	
+	/**
+	 * Info.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> info(Conveyor<K, ?, E> conveyor,Class<?> logger) {
 		return new LogScrap<>(LoggerFactory.getLogger(logger),Level.INFO);
 	}
@@ -180,12 +270,42 @@ public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
 	public static <K,E> LogScrap<K> warn(Conveyor<K, ?, E> conveyor) {
 		return new LogScrap<>(Conveyor.LOG,Level.WARN);
 	}
+	
+	/**
+	 * Warn.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> warn(Conveyor<K, ?, E> conveyor,Logger logger) {
 		return new LogScrap<>(logger,Level.WARN);
 	}
+	
+	/**
+	 * Warn.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> warn(Conveyor<K, ?, E> conveyor,String logger) {
 		return new LogScrap<>(LoggerFactory.getLogger(logger),Level.WARN);
 	}
+	
+	/**
+	 * Warn.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> warn(Conveyor<K, ?, E> conveyor,Class<?> logger) {
 		return new LogScrap<>(LoggerFactory.getLogger(logger),Level.WARN);
 	}
@@ -201,12 +321,42 @@ public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
 	public static <K,E> LogScrap<K> error(Conveyor<K, ?, E> conveyor) {
 		return new LogScrap<>(Conveyor.LOG,Level.ERROR);
 	}
+	
+	/**
+	 * Error.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> error(Conveyor<K, ?, E> conveyor,Logger logger) {
 		return new LogScrap<>(logger,Level.ERROR);
 	}
+	
+	/**
+	 * Error.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> error(Conveyor<K, ?, E> conveyor,String logger) {
 		return new LogScrap<>(LoggerFactory.getLogger(logger),Level.ERROR);
 	}
+	
+	/**
+	 * Error.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log scrap
+	 */
 	public static <K,E> LogScrap<K> error(Conveyor<K, ?, E> conveyor,Class<?> logger) {
 		return new LogScrap<>(LoggerFactory.getLogger(logger),Level.ERROR);
 	}

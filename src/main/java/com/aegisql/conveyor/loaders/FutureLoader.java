@@ -34,7 +34,9 @@ public final class FutureLoader<K,OUT> {
 	 * Instantiates a new future loader.
 	 *
 	 * @param placer the placer
+	 * @param creationTime the creation time
 	 * @param expirationTime the expiration time
+	 * @param ttlMsec the ttl msec
 	 * @param key the key
 	 */
 	private FutureLoader(Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer,long creationTime, long expirationTime, long ttlMsec, K key) {
@@ -49,6 +51,7 @@ public final class FutureLoader<K,OUT> {
 	 * Instantiates a new future loader.
 	 *
 	 * @param placer the placer
+	 * @param creationTime the creation time
 	 * @param ttl the ttl
 	 * @param key the key
 	 * @param dumb the dumb

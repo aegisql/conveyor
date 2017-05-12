@@ -9,6 +9,8 @@ import com.aegisql.conveyor.ScrapBin;
 // TODO: Auto-generated Javadoc
 /**
  * The Class LastScrapReference.
+ *
+ * @param <K> the key type
  */
 public class LastScrapReference<K> implements Consumer<ScrapBin<K,?>> {
 

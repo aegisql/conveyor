@@ -8,6 +8,8 @@ import com.aegisql.conveyor.ScrapBin;
 // TODO: Auto-generated Javadoc
 /**
  * The Class IgnoreScrap.
+ *
+ * @param <K> the key type
  */
 public class IgnoreScrap<K> implements Consumer<ScrapBin<K,?>>{
 

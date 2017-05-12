@@ -38,9 +38,10 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * Instantiates a new command loader.
 	 *
 	 * @param conveyor the conveyor
+	 * @param creationTime the creation time
 	 * @param expirationTime the expiration time
-	 * @param key the key
-	 * @param label the label
+	 * @param ttlMsec the ttl msec
+	 * @param filter the filter
 	 */
 	MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor,long creationTime, long expirationTime, long ttlMsec, Predicate<K> filter) {
 		this.conveyor = conveyor;
@@ -54,9 +55,9 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * Instantiates a new command loader.
 	 *
 	 * @param conveyor the conveyor
+	 * @param creationTime the creation time
 	 * @param ttl the ttl
-	 * @param key the key
-	 * @param label the label
+	 * @param filter the filter
 	 * @param dumb the dumb
 	 */
 	private MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor,long creationTime, long ttl, Predicate<K> filter, boolean dumb) {

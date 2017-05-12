@@ -97,8 +97,19 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> command);
 	
+	/**
+	 * Result consumer.
+	 *
+	 * @return the result consumer loader
+	 */
 	public ResultConsumerLoader<K, OUT> resultConsumer();
 
+	/**
+	 * Result consumer.
+	 *
+	 * @param consumer the consumer
+	 * @return the result consumer loader
+	 */
 	public ResultConsumerLoader<K, OUT> resultConsumer(Consumer<ProductBin<K,OUT>> consumer);
 
 	/**
@@ -122,8 +133,19 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	public int getDelayedQueueSize();
 	
+	/**
+	 * Scrap consumer.
+	 *
+	 * @return the scrap consumer loader
+	 */
 	public ScrapConsumerLoader<K> scrapConsumer();
 
+	/**
+	 * Scrap consumer.
+	 *
+	 * @param scrapConsumer the scrap consumer
+	 * @return the scrap consumer loader
+	 */
 	public ScrapConsumerLoader<K> scrapConsumer(Consumer<ScrapBin<K, ?>> scrapConsumer);
 	
 	/**

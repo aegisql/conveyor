@@ -14,6 +14,8 @@ import com.aegisql.conveyor.ScrapBin;
 // TODO: Auto-generated Javadoc
 /**
  * The Class StreamScrap.
+ *
+ * @param <K> the key type
  */
 public class StreamScrap<K> implements Consumer<ScrapBin<K,?>>, Closeable {
 

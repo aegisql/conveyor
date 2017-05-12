@@ -10,12 +10,22 @@ import java.util.function.Predicate;
 
 import com.aegisql.conveyor.ProductBin;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ResultConsumerLoader.
+ *
+ * @param <K> the key type
+ * @param <OUT> the generic type
+ */
 public final class ResultConsumerLoader<K,OUT> {
 
+	/** The key. */
 	public final K key;
 	
+	/** The consumer. */
 	public final Consumer<ProductBin<K, OUT>> consumer;
 	
+	/** The placer. */
 	public final Function<ResultConsumerLoader<K,OUT>,CompletableFuture<Boolean>> placer;
 	
 	/** The creation time. */
@@ -27,10 +37,19 @@ public final class ResultConsumerLoader<K,OUT> {
 	/** The ttl msec. */
 	public final long ttlMsec;
 	
+	/** The global placer. */
 	private final Consumer<Consumer<ProductBin<K,OUT>>> globalPlacer;
 	
+	/** The filter. */
 	public final Predicate<K> filter;
 	
+	/**
+	 * Instantiates a new result consumer loader.
+	 *
+	 * @param placer the placer
+	 * @param globalPlacer the global placer
+	 * @param consumer the consumer
+	 */
 	public ResultConsumerLoader(
 			Function<ResultConsumerLoader<K,OUT>,CompletableFuture<Boolean>> placer,
 			Consumer<Consumer<ProductBin<K,OUT>>> globalPlacer,
@@ -39,6 +58,18 @@ public final class ResultConsumerLoader<K,OUT> {
 		this(placer,globalPlacer,System.currentTimeMillis(),0,0,null,consumer,null);
 	}
 
+	/**
+	 * Instantiates a new result consumer loader.
+	 *
+	 * @param placer the placer
+	 * @param globalPlacer the global placer
+	 * @param creationTime the creation time
+	 * @param expirationTime the expiration time
+	 * @param ttlMsec the ttl msec
+	 * @param key the key
+	 * @param consumer the consumer
+	 * @param filter the filter
+	 */
 	private ResultConsumerLoader(
 			Function<ResultConsumerLoader<K,OUT>,CompletableFuture<Boolean>> placer, 
 			Consumer<Consumer<ProductBin<K,OUT>>> globalPlacer,
@@ -58,6 +89,18 @@ public final class ResultConsumerLoader<K,OUT> {
 		this.filter         = filter;
 	}
 
+	/**
+	 * Instantiates a new result consumer loader.
+	 *
+	 * @param placer the placer
+	 * @param globalPlacer the global placer
+	 * @param creationTime the creation time
+	 * @param ttlMsec the ttl msec
+	 * @param key the key
+	 * @param consumer the consumer
+	 * @param filter the filter
+	 * @param dumb the dumb
+	 */
 	private ResultConsumerLoader(
 			Function<ResultConsumerLoader<K,OUT>,CompletableFuture<Boolean>> placer, 
 			Consumer<Consumer<ProductBin<K,OUT>>> globalPlacer,
@@ -77,6 +120,12 @@ public final class ResultConsumerLoader<K,OUT> {
 		this.filter         = filter;
 	}
 
+	/**
+	 * Id.
+	 *
+	 * @param k the k
+	 * @return the result consumer loader
+	 */
 	public ResultConsumerLoader<K,OUT> id(K k) {
 		return new ResultConsumerLoader<>(
 				this.placer,
@@ -89,6 +138,12 @@ public final class ResultConsumerLoader<K,OUT> {
 				null/*either key or filter*/);
 	}
 
+	/**
+	 * Foreach.
+	 *
+	 * @param f the f
+	 * @return the result consumer loader
+	 */
 	public ResultConsumerLoader<K,OUT> foreach(Predicate<K> f) {
 		return new ResultConsumerLoader<>(
 				this.placer,
@@ -101,10 +156,21 @@ public final class ResultConsumerLoader<K,OUT> {
 				f);
 	}
 
+	/**
+	 * Foreach.
+	 *
+	 * @return the result consumer loader
+	 */
 	public ResultConsumerLoader<K,OUT> foreach() {
 		return foreach(k->true);
 	}
 
+	/**
+	 * First.
+	 *
+	 * @param consumer the consumer
+	 * @return the result consumer loader
+	 */
 	public ResultConsumerLoader<K,OUT> first(Consumer<ProductBin<K, OUT> > consumer) {
 		return new ResultConsumerLoader<>(
 				this.placer,
@@ -158,6 +224,12 @@ public final class ResultConsumerLoader<K,OUT> {
 	}
 
 	
+	/**
+	 * And then.
+	 *
+	 * @param consumer the consumer
+	 * @return the result consumer loader
+	 */
 	public ResultConsumerLoader<K,OUT> andThen(Consumer<ProductBin<K, OUT> > consumer) {
 		return new ResultConsumerLoader<>(
 				this.placer,
@@ -171,6 +243,11 @@ public final class ResultConsumerLoader<K,OUT> {
 				);
 	}
 
+	/**
+	 * Sets the.
+	 *
+	 * @return the completable future
+	 */
 	public CompletableFuture<Boolean> set() {
 		if(key == null && filter == null) {
 			CompletableFuture<Boolean> ready = new CompletableFuture<>();
@@ -182,6 +259,9 @@ public final class ResultConsumerLoader<K,OUT> {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "ResultConsumerLoader [" + (key==null?"default":"key="+key) + ", creationTime=" + creationTime + ", expirationTime="

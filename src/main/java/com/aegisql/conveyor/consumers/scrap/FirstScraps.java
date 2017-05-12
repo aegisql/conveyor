@@ -11,6 +11,8 @@ import com.aegisql.conveyor.ScrapBin;
 // TODO: Auto-generated Javadoc
 /**
  * The Class FirstScraps.
+ *
+ * @param <K> the key type
  */
 public class FirstScraps<K> implements Consumer<ScrapBin<K,?>> {
 	

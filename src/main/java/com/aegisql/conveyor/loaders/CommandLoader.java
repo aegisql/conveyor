@@ -40,9 +40,10 @@ public final class CommandLoader<K,OUT> {
 	 * Instantiates a new command loader.
 	 *
 	 * @param conveyor the conveyor
+	 * @param creation the creation
 	 * @param expirationTime the expiration time
+	 * @param ttlMsec the ttl msec
 	 * @param key the key
-	 * @param label the label
 	 */
 	private CommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor, long creation, long expirationTime, long ttlMsec, K key) {
 		this.conveyor = conveyor;
@@ -56,9 +57,9 @@ public final class CommandLoader<K,OUT> {
 	 * Instantiates a new command loader.
 	 *
 	 * @param conveyor the conveyor
+	 * @param creation the creation
 	 * @param ttl the ttl
 	 * @param key the key
-	 * @param label the label
 	 * @param dumb the dumb
 	 */
 	private CommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor, long creation, long ttl, K key, boolean dumb) {
@@ -88,10 +89,21 @@ public final class CommandLoader<K,OUT> {
 		return new CommandLoader<K,OUT>(conveyor,creationTime,expirationTime,ttlMsec,k);
 	}
 
+	/**
+	 * Foreach.
+	 *
+	 * @param filter the filter
+	 * @return the multi key command loader
+	 */
 	public MultiKeyCommandLoader<K,OUT> foreach(Predicate<K> filter) {
 		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,expirationTime,ttlMsec,filter);
 	}
 
+	/**
+	 * Foreach.
+	 *
+	 * @return the multi key command loader
+	 */
 	public MultiKeyCommandLoader<K,OUT> foreach() {
 		return foreach(k->true);
 	}
@@ -147,6 +159,11 @@ public final class CommandLoader<K,OUT> {
 		return conveyor.apply(new GeneralCommand<K,String>(key,"CANCEL",CommandLabel.CANCEL_BUILD,creationTime,expirationTime));
 	}
 
+	/**
+	 * Timeout.
+	 *
+	 * @return the completable future
+	 */
 	public CompletableFuture<Boolean> timeout() {
 		return conveyor.apply(new GeneralCommand<K,String>(key,"TIMEOUT",CommandLabel.TIMEOUT_BUILD,creationTime,expirationTime));
 	}

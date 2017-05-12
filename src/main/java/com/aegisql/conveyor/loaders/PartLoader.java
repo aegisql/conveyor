@@ -47,11 +47,13 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * Instantiates a new part loader.
 	 *
 	 * @param placer the placer
+	 * @param creationTime the creation time
 	 * @param expirationTime the expiration time
 	 * @param ttlMsec the ttl msec
 	 * @param key the key
 	 * @param label the label
 	 * @param value the value
+	 * @param filter the filter
 	 */
 	private PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, long creationTime, long expirationTime, long ttlMsec, K key, L label, V value,Predicate<K> filter) {
 		this.placer         = placer;
@@ -68,10 +70,12 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * Instantiates a new part loader.
 	 *
 	 * @param placer the placer
+	 * @param creationTime the creation time
 	 * @param ttl the ttl
 	 * @param key the key
 	 * @param label the label
 	 * @param value the value
+	 * @param filter the filter
 	 * @param dumb the dumb
 	 */
 	private PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, long creationTime, long ttl, K key, L label, V value, Predicate<K> filter, boolean dumb) {
@@ -104,10 +108,21 @@ public final class PartLoader<K,L,V,OUT,F> {
 		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,k,label,partValue,null/*either id or filter*/);
 	}
 
+	/**
+	 * Foreach.
+	 *
+	 * @return the part loader
+	 */
 	public PartLoader<K,L,V,OUT,F> foreach() {
 		return foreach(k->true);
 	}
 
+	/**
+	 * Foreach.
+	 *
+	 * @param f the f
+	 * @return the part loader
+	 */
 	public PartLoader<K,L,V,OUT,F> foreach(Predicate<K> f) {
 		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,null/*either id or filter*/,label,partValue,f);
 	}

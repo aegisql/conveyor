@@ -8,6 +8,7 @@ import java.util.function.Function;
 
 import com.aegisql.conveyor.BuilderSupplier;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class BuilderLoader.
  *
@@ -20,6 +21,7 @@ public final class BuilderLoader<K,OUT,F> {
 	/** The placer. */
 	private final Function<BuilderLoader<K,OUT,F>, CompletableFuture<F>> placer;
 
+	/** The future placer. */
 	private final Function<BuilderLoader<K,OUT,F>, CompletableFuture<OUT>> futurePlacer;
 
 	/** The creation time. */
@@ -42,7 +44,10 @@ public final class BuilderLoader<K,OUT,F> {
 	 * Instantiates a new builder loader.
 	 *
 	 * @param placer the placer
+	 * @param futurePlacer the future placer
+	 * @param creationTime the creation time
 	 * @param expirationTime the expiration time
+	 * @param ttlMsec the ttl msec
 	 * @param key the key
 	 * @param value the value
 	 */
@@ -67,6 +72,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * Instantiates a new builder loader.
 	 *
 	 * @param placer the placer
+	 * @param futurePlacer the future placer
+	 * @param creationTime the creation time
 	 * @param ttl the ttl
 	 * @param key the key
 	 * @param value the value

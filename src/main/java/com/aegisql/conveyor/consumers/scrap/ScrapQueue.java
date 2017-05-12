@@ -13,6 +13,8 @@ import com.aegisql.conveyor.ScrapBin;
 // TODO: Auto-generated Javadoc
 /**
  * The Class ResultQueue.
+ *
+ * @param <K> the key type
  */
 public class ScrapQueue<K> implements Queue<Object>, Consumer<ScrapBin<K,?>> {
 

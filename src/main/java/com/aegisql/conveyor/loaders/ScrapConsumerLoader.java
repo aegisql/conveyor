@@ -8,9 +8,16 @@ import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.FutureCart;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ScrapConsumerLoader.
+ *
+ * @param <K> the key type
+ */
 public final class ScrapConsumerLoader<K> {
 
 	
+	/** The cart future consumer. */
 	protected final Consumer<ScrapBin<?, Cart<K,?,?>>> CART_FUTURE_CONSUMER = scrapBin -> {
 		if(scrapBin.scrap == null) {
 			return;
@@ -23,6 +30,7 @@ public final class ScrapConsumerLoader<K> {
 		}
 	};
 
+	/** The future consumer. */
 	protected final Consumer<ScrapBin<?, FutureCart<K,?,?>>> FUTURE_CONSUMER = scrapBin -> {
 		if(scrapBin.scrap == null) {
 			return;
@@ -35,6 +43,7 @@ public final class ScrapConsumerLoader<K> {
 		}
 	};
 	
+	/** The cart consumer. */
 	protected final Consumer<ScrapBin<K, ?>> CART_CONSUMER = scrapBin -> {
 		if(scrapBin.scrap instanceof Cart) {
 			Cart<K,?,?> c = (Cart<K,?,?>)scrapBin.scrap;
@@ -47,6 +56,7 @@ public final class ScrapConsumerLoader<K> {
 	
 	//public final K key;
 	
+	/** The consumer. */
 	public final Consumer<ScrapBin<K,?>> consumer;
 	
 	//public final Function<ScrapConsumerLoader<K>,CompletableFuture<Boolean>> placer;
@@ -78,6 +88,12 @@ public final class ScrapConsumerLoader<K> {
 //				);
 //	}
 
+	/**
+	 * Instantiates a new scrap consumer loader.
+	 *
+	 * @param globalPlacer the global placer
+	 * @param consumer the consumer
+	 */
 	public ScrapConsumerLoader(
 			//Function<ScrapConsumerLoader<K>,CompletableFuture<Boolean>> placer, 
 			Consumer<Consumer<ScrapBin<K,?>>> globalPlacer,
@@ -145,7 +161,13 @@ public final class ScrapConsumerLoader<K> {
 //		return foreach(k->true);
 //	}
 
-	public ScrapConsumerLoader<K> first(Consumer<ScrapBin<K,?> > consumer) {
+	/**
+ * First.
+ *
+ * @param consumer the consumer
+ * @return the scrap consumer loader
+ */
+public ScrapConsumerLoader<K> first(Consumer<ScrapBin<K,?> > consumer) {
 		return new ScrapConsumerLoader<>(
 				//this.placer,
 				this.globalPlacer,
@@ -200,7 +222,13 @@ public final class ScrapConsumerLoader<K> {
 //	}
 
 	
-	public ScrapConsumerLoader<K> andThen(Consumer<ScrapBin<K,?> > consumer) {
+	/**
+ * And then.
+ *
+ * @param consumer the consumer
+ * @return the scrap consumer loader
+ */
+public ScrapConsumerLoader<K> andThen(Consumer<ScrapBin<K,?> > consumer) {
 		return new ScrapConsumerLoader<>(
 				//this.placer,
 				this.globalPlacer,
@@ -213,6 +241,11 @@ public final class ScrapConsumerLoader<K> {
 				);
 	}
 
+	/**
+	 * Sets the.
+	 *
+	 * @return the completable future
+	 */
 	public CompletableFuture<Boolean> set() {
 //		if(key == null && filter == null) {
 //			CompletableFuture<Boolean> ready = new CompletableFuture<>();

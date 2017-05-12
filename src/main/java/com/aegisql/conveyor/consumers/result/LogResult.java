@@ -67,6 +67,7 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	/**
 	 * Instantiates a new log result.
 	 *
+	 * @param log the log
 	 * @param level the level
 	 */
 	public LogResult(Logger log, Level level) {
@@ -117,12 +118,42 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	public static <K,E> LogResult<K,E> trace(Conveyor<K, ?, E> conveyor) {
 		return new LogResult<>(Conveyor.LOG,Level.TRACE);
 	}
+	
+	/**
+	 * Trace.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> trace(Conveyor<K, ?, E> conveyor,Logger logger) {
 		return new LogResult<>(logger,Level.TRACE);
 	}
+	
+	/**
+	 * Trace.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> trace(Conveyor<K, ?, E> conveyor,String logger) {
 		return new LogResult<>(LoggerFactory.getLogger(logger),Level.TRACE);
 	}
+	
+	/**
+	 * Trace.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> trace(Conveyor<K, ?, E> conveyor,Class<?> logger) {
 		return new LogResult<>(LoggerFactory.getLogger(logger),Level.TRACE);
 	}
@@ -138,12 +169,42 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	public static <K,E> LogResult<K,E> debug(Conveyor<K, ?, E> conveyor) {
 		return new LogResult<>(Conveyor.LOG,Level.DEBUG);
 	}
+	
+	/**
+	 * Debug.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> debug(Conveyor<K, ?, E> conveyor,Logger logger) {
 		return new LogResult<>(logger,Level.DEBUG);
 	}
+	
+	/**
+	 * Debug.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> debug(Conveyor<K, ?, E> conveyor,String logger) {
 		return new LogResult<>(LoggerFactory.getLogger(logger),Level.DEBUG);
 	}
+	
+	/**
+	 * Debug.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> debug(Conveyor<K, ?, E> conveyor,Class<?> logger) {
 		return new LogResult<>(LoggerFactory.getLogger(logger),Level.DEBUG);
 	}
@@ -159,12 +220,42 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	public static <K,E> LogResult<K,E> info(Conveyor<K, ?, E> conveyor) {
 		return new LogResult<>(Conveyor.LOG,Level.INFO);
 	}
+	
+	/**
+	 * Info.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> info(Conveyor<K, ?, E> conveyor,Logger logger) {
 		return new LogResult<>(logger,Level.INFO);
 	}
+	
+	/**
+	 * Info.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> info(Conveyor<K, ?, E> conveyor,String logger) {
 		return new LogResult<>(LoggerFactory.getLogger(logger),Level.INFO);
 	}
+	
+	/**
+	 * Info.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> info(Conveyor<K, ?, E> conveyor,Class<?> logger) {
 		return new LogResult<>(LoggerFactory.getLogger(logger),Level.INFO);
 	}
@@ -180,12 +271,42 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	public static <K,E> LogResult<K,E> warn(Conveyor<K, ?, E> conveyor) {
 		return new LogResult<>(Conveyor.LOG,Level.WARN);
 	}
+	
+	/**
+	 * Warn.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> warn(Conveyor<K, ?, E> conveyor,Logger logger) {
 		return new LogResult<>(logger,Level.WARN);
 	}
+	
+	/**
+	 * Warn.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> warn(Conveyor<K, ?, E> conveyor,String logger) {
 		return new LogResult<>(LoggerFactory.getLogger(logger),Level.WARN);
 	}
+	
+	/**
+	 * Warn.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> warn(Conveyor<K, ?, E> conveyor,Class<?> logger) {
 		return new LogResult<>(LoggerFactory.getLogger(logger),Level.WARN);
 	}
@@ -201,12 +322,42 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	public static <K,E> LogResult<K,E> error(Conveyor<K, ?, E> conveyor) {
 		return new LogResult<>(Conveyor.LOG,Level.ERROR);
 	}
+	
+	/**
+	 * Error.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> error(Conveyor<K, ?, E> conveyor,Logger logger) {
 		return new LogResult<>(logger,Level.ERROR);
 	}
+	
+	/**
+	 * Error.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> error(Conveyor<K, ?, E> conveyor,String logger) {
 		return new LogResult<>(LoggerFactory.getLogger(logger),Level.ERROR);
 	}
+	
+	/**
+	 * Error.
+	 *
+	 * @param <K> the key type
+	 * @param <E> the element type
+	 * @param conveyor the conveyor
+	 * @param logger the logger
+	 * @return the log result
+	 */
 	public static <K,E> LogResult<K,E> error(Conveyor<K, ?, E> conveyor,Class<?> logger) {
 		return new LogResult<>(LoggerFactory.getLogger(logger),Level.ERROR);
 	}
