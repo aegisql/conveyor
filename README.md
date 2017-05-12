@@ -4,6 +4,16 @@ Asynchronous Builder Framework
 [Tutorial](https://github.com/aegisql/conveyor/wiki)
 
 Maven dependency
+New Version
+```xml
+<dependency>
+  <groupId>com.aegisql</groupId>
+  <artifactId>conveyor</artifactId>
+  <version>1.3.0</version>
+</dependency>
+```
+
+Stable version
 ```xml
 <dependency>
   <groupId>com.aegisql</groupId>
@@ -14,9 +24,13 @@ Maven dependency
 
 ## Release History
 
-### 1.3.0-SNAPSHOT
+### 1.3.1-SNAPSHOT
+
+### 1.3.0
 * Changes in the Result and Scrap consumer processing
-* Removed multi-key part and command loader interfaces. Their functionality merged with part and command interfaces respectively.   
+* Removed multi-key part and command loader interfaces. Their functionality merged with part and command interfaces respectively.
+* Added new and improved old result and scrap consumers
+* More tests and bugfixes  
 
 ### 1.2.5
 * Collection of result consumers
