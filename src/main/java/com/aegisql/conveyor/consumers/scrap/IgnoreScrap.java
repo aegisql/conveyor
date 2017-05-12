@@ -9,13 +9,13 @@ import com.aegisql.conveyor.ScrapBin;
 /**
  * The Class IgnoreScrap.
  */
-public class IgnoreScrap implements Consumer<ScrapBin<?,?>>{
+public class IgnoreScrap<K> implements Consumer<ScrapBin<K,?>>{
 
 	/* (non-Javadoc)
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<?, ?> t) {
+	public void accept(ScrapBin<K, ?> t) {
 		//Ignore
 	}
 
@@ -26,8 +26,8 @@ public class IgnoreScrap implements Consumer<ScrapBin<?,?>>{
 	 * @param conveyor the conveyor
 	 * @return the ignore scrap
 	 */
-	public static <K> IgnoreScrap of(Conveyor<K, ?, ?> conveyor) {
-		return new IgnoreScrap();
+	public static <K> IgnoreScrap<K> of(Conveyor<K, ?, ?> conveyor) {
+		return new IgnoreScrap<>();
 	}
 	
 }

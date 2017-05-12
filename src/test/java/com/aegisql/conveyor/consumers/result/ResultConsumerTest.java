@@ -24,6 +24,7 @@ import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
 import com.aegisql.conveyor.consumers.scrap.LastScraps;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.consumers.scrap.PrintStreamScrap;
+import com.aegisql.conveyor.consumers.scrap.ScrapCounter;
 import com.aegisql.conveyor.consumers.scrap.ScrapMap;
 import com.aegisql.conveyor.consumers.scrap.ScrapQueue;
 import com.aegisql.conveyor.consumers.scrap.StreamScrap;
@@ -62,6 +63,24 @@ public class ResultConsumerTest {
 		CompletableFuture<Boolean> cf = sc.part().id("test").value(csv).place();
 		cf.get();
 		assertNotNull(usr.get());
+	}
+
+	@Test
+	public void testCountConsumers() throws InterruptedException, ExecutionException {
+		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
+		sc.setBuilderSupplier(StringToUserBuulder::new);
+		AtomicReference<User> usr = new AtomicReference<User>(null);
+		ResultCounter<String,User> rc = ResultCounter.of(sc); 
+		sc.resultConsumer().first(rc.andThen(b->usr.set(b.product))).set();
+		ScrapCounter<String> scc = ScrapCounter.of(sc); 
+		sc.scrapConsumer(scc).set();
+		String csv = "John,Dow,1990";
+		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
+		CompletableFuture<Boolean> cf = sc.part().id("test").value(csv).place();
+		cf.get();
+		assertNotNull(usr.get());
+		assertEquals(1, rc.get());
+		assertEquals(1, scc.get());
 	}
 
 	@Test
