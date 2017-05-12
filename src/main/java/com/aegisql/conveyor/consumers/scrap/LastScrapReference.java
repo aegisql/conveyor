@@ -10,7 +10,7 @@ import com.aegisql.conveyor.ScrapBin;
 /**
  * The Class LastScrapReference.
  */
-public class LastScrapReference implements Consumer<ScrapBin<?,?>> {
+public class LastScrapReference<K> implements Consumer<ScrapBin<K,?>> {
 
 	/** The ref. */
 	AtomicReference<Object> ref = new AtomicReference<>();
@@ -19,7 +19,7 @@ public class LastScrapReference implements Consumer<ScrapBin<?,?>> {
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<?,?> bin) {
+	public void accept(ScrapBin<K,?> bin) {
 		ref.set(bin.scrap);
 	}
 	
@@ -47,8 +47,8 @@ public class LastScrapReference implements Consumer<ScrapBin<?,?>> {
 	 * @param conv the conv
 	 * @return the last scrap reference
 	 */
-	public static <K> LastScrapReference of(Conveyor<K, ?, ?> conv) {
-		return new LastScrapReference();
+	public static <K> LastScrapReference<K> of(Conveyor<K, ?, ?> conv) {
+		return new LastScrapReference<>();
 	}
 	
 }

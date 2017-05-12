@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.multichannel.UserBuilder;
 import com.aegisql.conveyor.user.User;
 
@@ -187,9 +188,7 @@ public class BuilderSupplierFunctionalTest {
 	public void testConvWithExpire() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> c = new AssemblingConveyor<>();
 		c.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		c.setScrapConsumer(bin->{
-			System.out.println(bin);
-		});
+		c.scrapConsumer(LogScrap.error(c)).set();
 		c.resultConsumer().first(res->{
 			System.out.println(res);			
 		}).set();

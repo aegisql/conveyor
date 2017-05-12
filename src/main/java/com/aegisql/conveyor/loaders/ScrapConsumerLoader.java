@@ -1,12 +1,8 @@
 package com.aegisql.conveyor.loaders;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.cart.Cart;
@@ -49,182 +45,189 @@ public final class ScrapConsumerLoader<K> {
 		}
 	};
 	
-	public final K key;
+	//public final K key;
 	
 	public final Consumer<ScrapBin<K,?>> consumer;
 	
-	public final Function<ScrapConsumerLoader<K>,CompletableFuture<Boolean>> placer;
+	//public final Function<ScrapConsumerLoader<K>,CompletableFuture<Boolean>> placer;
 	
 	/** The creation time. */
-	public final long creationTime; 
+	//public final long creationTime; 
 	
 	/** The expiration time. */
-	public final long expirationTime;
+	//public final long expirationTime;
 	
 	/** The ttl msec. */
-	public final long ttlMsec;
+	//public final long ttlMsec;
 	
 	private final Consumer<Consumer<ScrapBin<K,?>>> globalPlacer;
 	
-	public final Predicate<K> filter;
+	//public final Predicate<K> filter;
 	
+//	public ScrapConsumerLoader(
+//			Function<ScrapConsumerLoader<K>,CompletableFuture<Boolean>> placer,
+//			Consumer<Consumer<ScrapBin<K,?>>> globalPlacer,
+//			Consumer<ScrapBin<K,?>> consumer
+//			) {
+//		this(
+//				//placer,
+//				globalPlacer,
+//				//System.currentTimeMillis(),0,0,null,
+//				consumer
+//				//,null
+//				);
+//	}
+
 	public ScrapConsumerLoader(
-			Function<ScrapConsumerLoader<K>,CompletableFuture<Boolean>> placer,
+			//Function<ScrapConsumerLoader<K>,CompletableFuture<Boolean>> placer, 
 			Consumer<Consumer<ScrapBin<K,?>>> globalPlacer,
-			Consumer<ScrapBin<K,?>> consumer
+			//long creationTime,
+			//long expirationTime,
+			//long ttlMsec,
+			//K key, 
+			Consumer<ScrapBin<K,?> > consumer
+			//Predicate<K> filter 
 			) {
-		this(placer,globalPlacer,System.currentTimeMillis(),0,0,null,consumer,null);
-	}
-
-	private ScrapConsumerLoader(
-			Function<ScrapConsumerLoader<K>,CompletableFuture<Boolean>> placer, 
-			Consumer<Consumer<ScrapBin<K,?>>> globalPlacer,
-			long creationTime,
-			long expirationTime,
-			long ttlMsec,
-			K key, 
-			Consumer<ScrapBin<K,?> > consumer,
-			Predicate<K> filter ) {
-		this.placer         = placer;
+		//this.placer         = placer;
 		this.globalPlacer   = globalPlacer;
 		this.consumer       = consumer != null ? consumer : CART_CONSUMER;
-		this.key            = key;
-		this.creationTime   = creationTime;
-		this.expirationTime = expirationTime;
-		this.ttlMsec        = ttlMsec;
-		this.filter         = filter;
+		//this.key            = key;
+		//this.creationTime   = creationTime;
+		//this.expirationTime = expirationTime;
+		//this.ttlMsec        = ttlMsec;
+		//this.filter         = filter;
 	}
 
-	private ScrapConsumerLoader(
-			Function<ScrapConsumerLoader<K>,CompletableFuture<Boolean>> placer, 
-			Consumer<Consumer<ScrapBin<K,?>>> globalPlacer,
-			long creationTime,
-			long ttlMsec,
-			K key, 
-			Consumer<ScrapBin<K,?> > consumer,
-			Predicate<K> filter,
-			boolean dumb) {
-		this.placer         = placer;
-		this.globalPlacer   = globalPlacer;
-		this.consumer       = consumer != null ? consumer : CART_CONSUMER;
-		this.key            = key;
-		this.creationTime   = creationTime;
-		this.expirationTime = creationTime + ttlMsec;
-		this.ttlMsec        = ttlMsec;
-		this.filter         = filter;
-	}
+//	private ScrapConsumerLoader(
+//			Function<ScrapConsumerLoader<K>,CompletableFuture<Boolean>> placer, 
+//			Consumer<Consumer<ScrapBin<K,?>>> globalPlacer,
+//			long creationTime,
+//			long ttlMsec,
+//			K key, 
+//			Consumer<ScrapBin<K,?> > consumer,
+//			Predicate<K> filter,
+//			boolean dumb) {
+//		this.placer         = placer;
+//		this.globalPlacer   = globalPlacer;
+//		this.consumer       = consumer != null ? consumer : CART_CONSUMER;
+//		this.key            = key;
+//		this.creationTime   = creationTime;
+//		this.expirationTime = creationTime + ttlMsec;
+//		this.ttlMsec        = ttlMsec;
+//		this.filter         = filter;
+//	}
 
-	public ScrapConsumerLoader<K> id(K k) {
-		return new ScrapConsumerLoader<>(
-				this.placer,
-				this.globalPlacer,
-				this.creationTime,
-				this.expirationTime,
-				this.ttlMsec,
-				k,
-				this.consumer,
-				null/*either key or filter*/);
-	}
-
-	public ScrapConsumerLoader<K> foreach(Predicate<K> f) {
-		return new ScrapConsumerLoader<>(
-				this.placer,
-				this.globalPlacer,
-				this.creationTime,
-				this.expirationTime,
-				this.ttlMsec,
-				null/*either key or filter*/,
-				this.consumer,
-				f);
-	}
-
-	public ScrapConsumerLoader<K> foreach() {
-		return foreach(k->true);
-	}
+//	public ScrapConsumerLoader<K> id(K k) {
+//		return new ScrapConsumerLoader<>(
+//				this.placer,
+//				this.globalPlacer,
+//				this.creationTime,
+//				this.expirationTime,
+//				this.ttlMsec,
+//				k,
+//				this.consumer,
+//				null/*either key or filter*/);
+//	}
+//
+//	public ScrapConsumerLoader<K> foreach(Predicate<K> f) {
+//		return new ScrapConsumerLoader<>(
+//				this.placer,
+//				this.globalPlacer,
+//				this.creationTime,
+//				this.expirationTime,
+//				this.ttlMsec,
+//				null/*either key or filter*/,
+//				this.consumer,
+//				f);
+//	}
+//
+//	public ScrapConsumerLoader<K> foreach() {
+//		return foreach(k->true);
+//	}
 
 	public ScrapConsumerLoader<K> first(Consumer<ScrapBin<K,?> > consumer) {
 		return new ScrapConsumerLoader<>(
-				this.placer,
+				//this.placer,
 				this.globalPlacer,
-				this.creationTime,
-				this.expirationTime,
-				this.ttlMsec,
-				this.key,
-				CART_CONSUMER.andThen( consumer ), //first take care about futures
-				filter);
+				//this.creationTime,
+				//this.expirationTime,
+				//this.ttlMsec,
+				//this.key,
+				CART_CONSUMER.andThen( consumer ) //first take care about futures
+				//filter
+				);
 	}
 
-	/**
-	 * Expiration time.
-	 *
-	 * @param et the et
-	 * @return the part loader
-	 */
-	public ScrapConsumerLoader<K>  expirationTime(long et) {
-		return new ScrapConsumerLoader<>(placer,globalPlacer,creationTime,et,0,key,consumer,filter);
-	}
-	
-	/**
-	 * Expiration time.
-	 *
-	 * @param instant the instant
-	 * @return the part loader
-	 */
-	public ScrapConsumerLoader<K>  expirationTime(Instant instant) {
-		return new ScrapConsumerLoader<>(placer,globalPlacer,creationTime,instant.toEpochMilli(),0,key,consumer,filter);
-	}
-	
-	/**
-	 * Ttl.
-	 *
-	 * @param time the time
-	 * @param unit the unit
-	 * @return the part loader
-	 */
-	public ScrapConsumerLoader<K>  ttl(long time, TimeUnit unit) {
-		return new ScrapConsumerLoader<>(placer,globalPlacer, creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,consumer,filter,true);
-	}
-	
-	/**
-	 * Ttl.
-	 *
-	 * @param duration the duration
-	 * @return the part loader
-	 */
-	public ScrapConsumerLoader<K>  ttl(Duration duration) {
-		return new ScrapConsumerLoader<>(placer,globalPlacer,creationTime,duration.toMillis(),key,consumer,filter,true);
-	}
+//	/**
+//	 * Expiration time.
+//	 *
+//	 * @param et the et
+//	 * @return the part loader
+//	 */
+//	public ScrapConsumerLoader<K>  expirationTime(long et) {
+//		return new ScrapConsumerLoader<>(placer,globalPlacer,creationTime,et,0,key,consumer,filter);
+//	}
+//	
+//	/**
+//	 * Expiration time.
+//	 *
+//	 * @param instant the instant
+//	 * @return the part loader
+//	 */
+//	public ScrapConsumerLoader<K>  expirationTime(Instant instant) {
+//		return new ScrapConsumerLoader<>(placer,globalPlacer,creationTime,instant.toEpochMilli(),0,key,consumer,filter);
+//	}
+//	
+//	/**
+//	 * Ttl.
+//	 *
+//	 * @param time the time
+//	 * @param unit the unit
+//	 * @return the part loader
+//	 */
+//	public ScrapConsumerLoader<K>  ttl(long time, TimeUnit unit) {
+//		return new ScrapConsumerLoader<>(placer,globalPlacer, creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,consumer,filter,true);
+//	}
+//	
+//	/**
+//	 * Ttl.
+//	 *
+//	 * @param duration the duration
+//	 * @return the part loader
+//	 */
+//	public ScrapConsumerLoader<K>  ttl(Duration duration) {
+//		return new ScrapConsumerLoader<>(placer,globalPlacer,creationTime,duration.toMillis(),key,consumer,filter,true);
+//	}
 
 	
 	public ScrapConsumerLoader<K> andThen(Consumer<ScrapBin<K,?> > consumer) {
 		return new ScrapConsumerLoader<>(
-				this.placer,
+				//this.placer,
 				this.globalPlacer,
-				this.creationTime,
-				this.expirationTime,
-				this.ttlMsec,
-				this.key,
+				//this.creationTime,
+				//this.expirationTime,
+				//this.ttlMsec,
+				//this.key,
 				this.consumer != null ? this.consumer.andThen(consumer) : CART_CONSUMER.andThen( consumer )
-				,this.filter
+				//,this.filter
 				);
 	}
 
 	public CompletableFuture<Boolean> set() {
-		if(key == null && filter == null) {
-			CompletableFuture<Boolean> ready = new CompletableFuture<>();
-			ready.complete(true);
-			globalPlacer.accept(consumer);
-			return ready;
-		} else {
-			return placer.apply(this);
-		}
+//		if(key == null && filter == null) {
+//			CompletableFuture<Boolean> ready = new CompletableFuture<>();
+//			ready.complete(true);
+//			globalPlacer.accept(consumer);
+//			return ready;
+//		} else {
+//			return placer.apply(this);
+//		}
+		CompletableFuture<Boolean> ready = new CompletableFuture<>();
+		globalPlacer.accept(consumer);
+		ready.complete(true);
+		return ready;
 	}
 
-	@Override
-	public String toString() {
-		return "ScrapConsumerLoader [" + (key==null?"default":"key="+key) + ", creationTime=" + creationTime + ", expirationTime="
-				+ expirationTime + ", ttlMsec=" + ttlMsec + "]";
-	}
 	
 	
 	

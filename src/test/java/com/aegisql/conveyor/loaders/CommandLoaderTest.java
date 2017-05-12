@@ -294,9 +294,9 @@ public class CommandLoaderTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ac = new AssemblingConveyor<>();
 		ac.setName("main");
 		ac.setDefaultBuilderTimeout(50, TimeUnit.MILLISECONDS);
-		ac.setScrapConsumer(bin->{
+		ac.scrapConsumer(bin->{
 			System.out.println("rejected ac: "+bin);
-		});
+		}).set();
 		ac.resultConsumer().first(LogResult.stdOut(ac)).set();
 		ac.setReadinessEvaluator(Conveyor.getTesterFor(ac).accepted(UserBuilderEvents.MERGE_A,UserBuilderEvents.MERGE_B));
 
@@ -315,10 +315,10 @@ public class CommandLoaderTest {
 		Conveyor<Integer, UserBuilderEvents, User> ch2 = new KBalancedParallelConveyor<>(3);
 		//Conveyor<Integer, UserBuilderEvents, User> ch2 = new AssemblingConveyor<>();
 		ch2.setBuilderSupplier(UserBuilder::new);
-		ch2.setScrapConsumer(bin->{
+		ch2.scrapConsumer(bin->{
 			System.out.println("rejected ch2: "+bin);
 			((Cart)bin.scrap).getFuture().cancel(true);
-		});
+		}).set();
 		
 		ch2.acceptLabels(UserBuilderEvents.SET_YEAR);
 		ch2.forwardResultTo(ac,UserBuilderEvents.MERGE_B);

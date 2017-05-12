@@ -16,6 +16,7 @@ Maven dependency
 
 ### 1.3.0-SNAPSHOT
 * Changes in the Result and Scrap consumer processing
+* Removed multi-key part and command loader interfaces. Their functionality merged with part and command interfaces respectively.   
 
 ### 1.2.5
 * Collection of result consumers

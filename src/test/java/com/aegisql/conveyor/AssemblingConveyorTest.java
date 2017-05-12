@@ -34,6 +34,7 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
+import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
@@ -95,12 +96,12 @@ public class AssemblingConveyorTest {
 		AtomicBoolean visited = new AtomicBoolean(false);
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((o)->{
+		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
 			assertTrue(o.comment.startsWith("Cart Processor Failed"));
 			assertTrue(o.scrap instanceof Cart);
 			visited.set(true);
-		});
+		}).set();
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		CompletableFuture<Boolean> f = conveyor.place(c1);
 		assertFalse(f.isCompletedExceptionally());
@@ -119,11 +120,11 @@ public class AssemblingConveyorTest {
 	public void testOfferStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((o)->{
+		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
 			assertTrue(o.comment.startsWith("Conveyor is not running"));
 			assertTrue(o.scrap instanceof Cart);
-		});
+		}).set();
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		conveyor.stop();
 		assertTrue(conveyor.place(c1).isCompletedExceptionally());
@@ -139,11 +140,11 @@ public class AssemblingConveyorTest {
 	public void testCommandStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((o)->{
+		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
 			assertTrue(o.comment.startsWith("Conveyor is not running"));
 			assertTrue(o.scrap instanceof Cart);
-		});
+		}).set();
 		GeneralCommand<Integer,String> c1 = new GeneralCommand<>(1, "", CommandLabel.TIMEOUT_BUILD,0L);
 		conveyor.stop();
 		conveyor.command(c1);
@@ -158,11 +159,11 @@ public class AssemblingConveyorTest {
 	public void testCommandExpired() throws InterruptedException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((o)->{
+		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
 			assertTrue(o.comment.startsWith("Command has already expired"));
 			assertTrue(o.scrap instanceof Cart);
-		});
+		}).set();
 		CommandLoader<Integer, User> cl = conveyor.command().id(1).ttl(1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
 		cl.timeout();
@@ -178,11 +179,11 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.rejectUnexpireableCartsOlderThan(Duration.ofMillis(10));
-		conveyor.setScrapConsumer((o)->{
+		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
 			assertTrue(o.comment.startsWith("Command is too old"));
 			assertTrue(o.scrap instanceof Cart);
-		});
+		}).set();
 		
 		GeneralCommand<Integer,?> c1 = new GeneralCommand<>(1,"",CommandLabel.TIMEOUT_BUILD,System.currentTimeMillis()+100);
 		Thread.sleep(20);
@@ -199,11 +200,11 @@ public class AssemblingConveyorTest {
 	public void testAddStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((o)->{
+		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
 			assertTrue(o.comment.startsWith("Conveyor is not running"));
 			assertTrue(o.scrap instanceof Cart);
-		});
+		}).set();
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		conveyor.stop();
 		conveyor.place(c1).get();
@@ -219,11 +220,11 @@ public class AssemblingConveyorTest {
 	public void testNullCartContentStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((o)->{
+		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
 			assertTrue(o.comment.startsWith("#####"));
 			assertTrue(o.scrap instanceof Cart);
-		});
+		}).set();
 		conveyor.addCartBeforePlacementValidator(cart->{
 			if(cart.getValue()==null) {
 				throw new NullPointerException("#####");
@@ -243,11 +244,11 @@ public class AssemblingConveyorTest {
 	public void testAddExpiredStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((o)->{
+		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
 			assertTrue(o.comment.startsWith("Cart has already expired"));
 			assertTrue(o.scrap instanceof Cart);
-		});
+		}).set();
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
 		conveyor.place(c1).get();
@@ -263,11 +264,11 @@ public class AssemblingConveyorTest {
 	public void testOfferExpiredStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
-		conveyor.setScrapConsumer((o)->{
+		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
 			assertTrue(o.comment.startsWith("Cart has already expired"));
 			assertTrue(o.scrap instanceof Cart);
-		});
+		}).set();
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
 		assertTrue(conveyor.place(c1).isCompletedExceptionally());
@@ -633,11 +634,7 @@ public class AssemblingConveyorTest {
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
-		conveyor.setScrapConsumer((o)->{
-			System.out.println(o);
-//			assertTrue(ex.startsWith("Cart expired"));
-//			assertTrue(o instanceof Cart);
-		});
+		conveyor.scrapConsumer(LogScrap.error(conveyor)).set();
 
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		assertTrue(conveyor.isRunning());

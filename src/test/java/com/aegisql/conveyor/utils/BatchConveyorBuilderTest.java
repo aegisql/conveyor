@@ -92,10 +92,10 @@ public class BatchConveyorBuilderTest {
 		BatchConveyor<Integer> b = new BatchConveyor<>();
 				
 		ResultQueue<String, List<Integer>> lq = ResultQueue.of(b);
-		ScrapQueue ls = ScrapQueue.of(b);
+		ScrapQueue<String> ls = ScrapQueue.of(b);
 		
 		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 50, TimeUnit.MILLISECONDS) );
-		b.setScrapConsumer(ls);
+		b.scrapConsumer(ls).set();
 		b.resultConsumer(lq).andThen(LogResult.stdOut(b)).set();
 		b.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		for(int i = 0; i < 102; i++) {
@@ -132,10 +132,10 @@ public class BatchConveyorBuilderTest {
 		AtomicInteger aii = new AtomicInteger(0);
 		
 		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 20, TimeUnit.MILLISECONDS) );
-		b.setScrapConsumer((obj)->{
+		b.scrapConsumer((obj)->{
 			System.out.println(obj);
 			ai.decrementAndGet();
-		});
+		}).set();
 		b.resultConsumer((list)->{
 			System.out.println(list);
 			ai.incrementAndGet();

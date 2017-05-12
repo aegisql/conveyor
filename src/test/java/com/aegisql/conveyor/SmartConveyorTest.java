@@ -25,6 +25,7 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.LogResult;
+import com.aegisql.conveyor.consumers.result.ResultMap;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.user.AbstractBuilderEvents;
@@ -141,17 +142,18 @@ public class SmartConveyorTest {
 	 * Test reschedule smart.
 	 *
 	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException 
 	 */
 	@Test
-	@Ignore
-	public void testRescheduleSmart() throws InterruptedException {
+	//@Ignore
+	public void testRescheduleSmart() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 
 		/** The out queue. */
-		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+		ResultMap<Integer,User> outMap = new ResultMap<>();
 
-		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
+		conveyor.resultConsumer().first(outMap).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			System.out.println(state);
 			return state.previouslyAccepted == 3;
@@ -163,23 +165,17 @@ public class SmartConveyorTest {
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1, 1999, UserBuilderEvents.SET_YEAR);
 
 		conveyor.place(c1);
-		User u0 = outQueue.poll();
-		assertNull(u0);
 		conveyor.place(c2);
-
+		User u0 = outMap.get(1);
+		assertNull(u0);
 		conveyor.command().id(1).ttl(10, TimeUnit.SECONDS).reschedule();
-		Thread.sleep(1500);
-		conveyor.place(c3);
-		Thread.sleep(100);
-		User u1 = outQueue.poll();
+		Thread.sleep(1001);
+		conveyor.place(c3).get();
+		User u1 = outMap.get(1);
 		assertNotNull(u1);
-		System.out.println(u1);
-		User u2 = outQueue.poll();
-		assertNull(u2);
+		System.out.println(outMap);
 
-		Thread.sleep(100);
-
-		conveyor.stop();
+		conveyor.completeAndStop().get();
 	}
 
 	/**

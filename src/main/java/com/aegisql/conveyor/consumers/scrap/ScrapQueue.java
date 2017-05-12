@@ -14,7 +14,7 @@ import com.aegisql.conveyor.ScrapBin;
 /**
  * The Class ResultQueue.
  */
-public class ScrapQueue implements Queue<Object>, Consumer<ScrapBin<?,?>> {
+public class ScrapQueue<K> implements Queue<Object>, Consumer<ScrapBin<K,?>> {
 
 	/** The inner. */
 	private final Queue<Object> inner;	
@@ -198,7 +198,7 @@ public class ScrapQueue implements Queue<Object>, Consumer<ScrapBin<?,?>> {
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<?, ?> scrapBin) {
+	public void accept(ScrapBin<K, ?> scrapBin) {
 		inner.add(scrapBin.scrap);
 	}
 
@@ -218,8 +218,8 @@ public class ScrapQueue implements Queue<Object>, Consumer<ScrapBin<?,?>> {
 	 * @param conv the conv
 	 * @return the scrap queue
 	 */
-	public static <K> ScrapQueue of(Conveyor<K, ?, ?> conv) {
-		return new ScrapQueue();
+	public static <K> ScrapQueue<K> of(Conveyor<K, ?, ?> conv) {
+		return new ScrapQueue<>();
 	}
 
 	/**
@@ -230,8 +230,8 @@ public class ScrapQueue implements Queue<Object>, Consumer<ScrapBin<?,?>> {
 	 * @param q the q
 	 * @return the scrap queue
 	 */
-	public static <K> ScrapQueue of(Conveyor<K, ?, ?> conv, Queue<Object> q) {
-		return new ScrapQueue(q);
+	public static <K> ScrapQueue<K> of(Conveyor<K, ?, ?> conv, Queue<Object> q) {
+		return new ScrapQueue<>(q);
 	}
 
 	/**
@@ -242,8 +242,8 @@ public class ScrapQueue implements Queue<Object>, Consumer<ScrapBin<?,?>> {
 	 * @param qs the qs
 	 * @return the scrap queue
 	 */
-	public static <K> ScrapQueue of(Conveyor<K, ?, ?> conv, Supplier<Queue<Object>> qs) {
-		return new ScrapQueue(qs);
+	public static <K> ScrapQueue<K> of(Conveyor<K, ?, ?> conv, Supplier<Queue<Object>> qs) {
+		return new ScrapQueue<>(qs);
 	}
 
 	/* (non-Javadoc)

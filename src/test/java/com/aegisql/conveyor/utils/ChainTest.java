@@ -85,11 +85,11 @@ public class ChainTest {
 		
 		batchConveyor.setBuilderSupplier( () -> new BatchCollectingBuilder<>(2, System.currentTimeMillis()+1000) );
 		batchConveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
-		batchConveyor.setScrapConsumer((obj)->{
+		batchConveyor.scrapConsumer((obj)->{
 			System.out.println(obj);
 			ai.decrementAndGet();
 			fail("Scrap unexpected in batch conveyor");
-		});
+		}).set();
 		batchConveyor.resultConsumer((list)->{
 			System.out.println("BATCH "+list);
 			ai.incrementAndGet();

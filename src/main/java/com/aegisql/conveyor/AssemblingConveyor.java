@@ -128,7 +128,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	};
 
 	/** The scrap cart consumer. */
-	protected Consumer<ScrapBin<?, ?>> scrapCartConsumer = (scrapBin) -> {
+	protected Consumer<ScrapBin<K, ?>> scrapCartConsumer = (scrapBin) -> {
 		if(scrapBin.scrap instanceof Cart) {
 			Cart<K,?,L> c = (Cart)scrapBin.scrap;
 			scrapCartFutureConsumer.accept((ScrapBin<?, Cart<K, ?, L>>) scrapBin);
@@ -139,17 +139,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	};
 
 	/** The scrap logger. */
-	protected Consumer<ScrapBin<?, ?>> scrapLogger = scrapBin->{
+	protected Consumer<ScrapBin<K, ?>> scrapLogger = scrapBin->{
 		LOG.error("{}",scrapBin);
 	};
 
 	/** The scrap consumer. */
-	protected Consumer<ScrapBin<?, ?>> scrapConsumer = scrapLogger.andThen(scrapCartConsumer);
+	protected Consumer<ScrapBin<K, ?>> scrapConsumer = scrapLogger.andThen(scrapCartConsumer);
 	
 	/** The cart consumer. */
 	protected LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer = (l, v, b) -> {
-		scrapConsumer
-				.accept(new ScrapBin<L, Object>(l, v, "Cart Consumer is not set.", new IllegalStateException("Cart Consumer is not set"), FailureType.GENERAL_FAILURE));
+		throw new IllegalStateException("Cart Consumer is not set");
 	};
 
 	/** The ready. */
@@ -785,8 +784,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public ScrapConsumerLoader<K> scrapConsumer() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ScrapConsumerLoader<>(sc -> this.scrapConsumer = sc, this.scrapConsumer);
 	}
 
 	@Override
@@ -848,20 +846,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/**
 	 * Sets the scrap consumer.
 	 *
-	 * @param usersScrapConsumer
-	 *            the users scrap consumer
-	 */
-	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> usersScrapConsumer) {
-		this.scrapConsumer = this.scrapCartConsumer.andThen(usersScrapConsumer);
-	}
-
-	/**
-	 * Sets the scrap consumer.
-	 *
 	 * @param scrapConsumer
 	 *            the scrap consumer
 	 */
-	protected void setInnerScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer) {
+	protected void setInnerScrapConsumer(Consumer<ScrapBin<K, ?>> scrapConsumer) {
 		this.scrapConsumer = scrapConsumer;
 	}
 

@@ -8,6 +8,7 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.loaders.PartLoader;
 
 // TODO: Auto-generated Javadoc
@@ -28,9 +29,7 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 		this.resultConsumer().first(bin -> {
 			LOG.debug("Task complete {}",bin);
 		}).set();
-		this.setScrapConsumer(bin -> {
-			LOG.error("Scheduled event failure {}", bin);
-		});
+		this.scrapConsumer().first(LogScrap.debug(this)).set();
 		this.addCartBeforePlacementValidator(cart -> {
 			Objects.requireNonNull(cart.getValue());
 		});

@@ -122,13 +122,6 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	public int getDelayedQueueSize();
 	
-	/**
-	 * Sets the scrap consumer.
-	 *
-	 * @param scrapConsumer the scrap consumer
-	 */
-	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer);
-
 	public ScrapConsumerLoader<K> scrapConsumer();
 
 	public ScrapConsumerLoader<K> scrapConsumer(Consumer<ScrapBin<K, ?>> scrapConsumer);

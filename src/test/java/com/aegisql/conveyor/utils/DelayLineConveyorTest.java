@@ -75,9 +75,9 @@ public class DelayLineConveyorTest {
 			System.out.println("++ "+bin);
 			res.add(bin.product);
 		}).set();
-		c.setScrapConsumer(bin->{
+		c.scrapConsumer(bin->{
 			System.out.println("-- "+bin);
-		});
+		}).set();
 		c.setIdleHeartBeat(50, TimeUnit.MILLISECONDS);
 				
 		c.part().id(1).value(1).ttl(Duration.ofMillis(11)).place();

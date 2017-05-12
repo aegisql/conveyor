@@ -20,6 +20,7 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
+import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
@@ -90,9 +91,7 @@ public class PostponeExpirationTest {
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 
-		conveyor.setScrapConsumer(bin -> {
-			System.out.println("Error " + bin);
-		});
+		conveyor.scrapConsumer(LogScrap.error(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -143,9 +142,7 @@ public class PostponeExpirationTest {
 		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
-		conveyor.setScrapConsumer(bin -> {
-			System.out.println("Error " + bin);
-		});
+		conveyor.scrapConsumer(LogScrap.error(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -191,9 +188,7 @@ public class PostponeExpirationTest {
 		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
-		conveyor.setScrapConsumer(bin -> {
-			System.out.println("Error " + bin);
-		});
+		conveyor.scrapConsumer(LogScrap.error(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -253,9 +248,7 @@ public class PostponeExpirationTest {
 		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
-		conveyor.setScrapConsumer(bin -> {
-			System.out.println("Error " + bin);
-		});
+		conveyor.scrapConsumer(LogScrap.error(conveyor)).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			UserBuilderExpireable be = (UserBuilderExpireable)builder;
 			return be.ready();

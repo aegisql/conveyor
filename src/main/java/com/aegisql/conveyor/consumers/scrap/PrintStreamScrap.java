@@ -17,7 +17,7 @@ import com.aegisql.conveyor.ScrapBin;
 /**
  * The Class PrintStreamScrap.
  */
-public class PrintStreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
+public class PrintStreamScrap<K> implements Consumer<ScrapBin<K,?>>, Closeable {
 
 	/** The os. */
 	private final PrintStream os;
@@ -50,7 +50,7 @@ public class PrintStreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<?, ?> bin) {
+	public void accept(ScrapBin<K, ?> bin) {
 		os.println(toString.apply(bin.scrap));
 		os.flush();
 	}
@@ -81,8 +81,8 @@ public class PrintStreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 	 * @param toString the to string
 	 * @return the prints the stream scrap
 	 */
-	public static <K> PrintStreamScrap of(Conveyor<K, ?, ?> conv, OutputStream os, Function<Object,String> toString) {
-		return new PrintStreamScrap(os,toString);
+	public static <K> PrintStreamScrap<K> of(Conveyor<K, ?, ?> conv, OutputStream os, Function<Object,String> toString) {
+		return new PrintStreamScrap<>(os,toString);
 	}
 
 	/**
@@ -93,7 +93,7 @@ public class PrintStreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 	 * @param os the os
 	 * @return the prints the stream scrap
 	 */
-	public static <K> PrintStreamScrap of(Conveyor<K, ?, ?> conv, OutputStream os) {
+	public static <K> PrintStreamScrap<K> of(Conveyor<K, ?, ?> conv, OutputStream os) {
 		return of(conv,os,v->""+v);
 	}
 
@@ -107,7 +107,7 @@ public class PrintStreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 	 * @return the prints the stream scrap
 	 * @throws FileNotFoundException the file not found exception
 	 */
-	public static <K> PrintStreamScrap of(Conveyor<K, ?, ?> conv, File file, Function<Object,String> toString) throws FileNotFoundException {
+	public static <K> PrintStreamScrap<K> of(Conveyor<K, ?, ?> conv, File file, Function<Object,String> toString) throws FileNotFoundException {
 		return of(conv,new FileOutputStream(file),toString);
 	}
 
@@ -120,7 +120,7 @@ public class PrintStreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 	 * @return the prints the stream scrap
 	 * @throws FileNotFoundException the file not found exception
 	 */
-	public static <K> PrintStreamScrap of(Conveyor<K, ?, ?> conv, File file) throws FileNotFoundException {
+	public static <K> PrintStreamScrap<K> of(Conveyor<K, ?, ?> conv, File file) throws FileNotFoundException {
 		return of(conv,file,v->""+v);
 	}
 
@@ -134,7 +134,7 @@ public class PrintStreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 	 * @return the prints the stream scrap
 	 * @throws FileNotFoundException the file not found exception
 	 */
-	public static <K> PrintStreamScrap of(Conveyor<K, ?, ?> conv, String file, Function<Object,String> toString) throws FileNotFoundException {
+	public static <K> PrintStreamScrap<K> of(Conveyor<K, ?, ?> conv, String file, Function<Object,String> toString) throws FileNotFoundException {
 		return of(conv,new File(file),toString);
 	}
 
@@ -147,7 +147,7 @@ public class PrintStreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 	 * @return the prints the stream scrap
 	 * @throws FileNotFoundException the file not found exception
 	 */
-	public static <K> PrintStreamScrap of(Conveyor<K, ?, ?> conv, String file) throws FileNotFoundException {
+	public static <K> PrintStreamScrap<K> of(Conveyor<K, ?, ?> conv, String file) throws FileNotFoundException {
 		return of(conv,file,v->""+v);
 	}
 	

@@ -121,6 +121,8 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	
 	/** The result consumer. */
 	protected Consumer<ProductBin<K, OUT>> resultConsumer = null;
+
+	private Consumer<ScrapBin<K, ?>> scrapConsumer = null;
 	
 	/**
 	 * Instantiates a new parallel conveyor.
@@ -282,15 +284,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		} else {
 			return conveyors.get(idx).getDelayedQueueSize();
 		}
-	}
-
-	/**
-	 * Sets the scrap consumer.
-	 *
-	 * @param scrapConsumer the scrap consumer
-	 */
-	public void setScrapConsumer(Consumer<ScrapBin<?, ?>> scrapConsumer) {
-		this.conveyors.forEach(conv->conv.setScrapConsumer(scrapConsumer));
 	}
 
 	/**
@@ -787,7 +780,13 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	
 	@Override
 	public ScrapConsumerLoader<K> scrapConsumer() {
-		return null;
+		return new ScrapConsumerLoader<K>(sc->{
+			this.scrapConsumer = sc;
+			for(Conveyor<K, L, OUT> conv: conveyors) {
+				conv.scrapConsumer().first(this.scrapConsumer).set();
+			};
+			
+		}, scrapConsumer );
 	}
 
 	@Override

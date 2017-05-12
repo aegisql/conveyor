@@ -12,7 +12,7 @@ import com.aegisql.conveyor.ScrapBin;
 /**
  * The Class FirstScraps.
  */
-public class FirstScraps implements Consumer<ScrapBin<?,?>> {
+public class FirstScraps<K> implements Consumer<ScrapBin<K,?>> {
 	
 	/** The scraps. */
 	private final ArrayList<Object> scraps;
@@ -37,7 +37,7 @@ public class FirstScraps implements Consumer<ScrapBin<?,?>> {
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<?,?> bin) {
+	public void accept(ScrapBin<K,?> bin) {
 		synchronized (scraps) {
 			if(p < max) {
 				scraps.add(bin.scrap);
@@ -71,8 +71,8 @@ public class FirstScraps implements Consumer<ScrapBin<?,?>> {
 	 * @param size the size
 	 * @return the first scraps
 	 */
-	public static <K> FirstScraps of(Conveyor<K, ?, ?> conv,int size) {
-		return new FirstScraps(size);
+	public static <K> FirstScraps<K> of(Conveyor<K, ?, ?> conv,int size) {
+		return new FirstScraps<>(size);
 	}
 	
 }

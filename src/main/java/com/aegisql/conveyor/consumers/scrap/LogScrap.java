@@ -9,7 +9,7 @@ import com.aegisql.conveyor.ScrapBin;
 /**
  * The Class LogScrap.
  */
-public class LogScrap implements Consumer<ScrapBin<?,?>> {
+public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
 
 	/**
 	 * The Enum Level.
@@ -121,7 +121,7 @@ public class LogScrap implements Consumer<ScrapBin<?,?>> {
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<?, ?> t) {
+	public void accept(ScrapBin<K, ?> t) {
 		consumer.accept(t);
 	}
 
@@ -132,8 +132,8 @@ public class LogScrap implements Consumer<ScrapBin<?,?>> {
 	 * @param conveyor the conveyor
 	 * @return the log scrap
 	 */
-	public static <K> LogScrap trace(Conveyor<K, ?, ?> conveyor) {
-		return new LogScrap(Level.TRACE);
+	public static <K> LogScrap<K> trace(Conveyor<K, ?, ?> conveyor) {
+		return new LogScrap<>(Level.TRACE);
 	}
 
 	/**
@@ -143,8 +143,8 @@ public class LogScrap implements Consumer<ScrapBin<?,?>> {
 	 * @param conveyor the conveyor
 	 * @return the log scrap
 	 */
-	public static <K> LogScrap debug(Conveyor<K, ?, ?> conveyor) {
-		return new LogScrap(Level.DEBUG);
+	public static <K> LogScrap<K> debug(Conveyor<K, ?, ?> conveyor) {
+		return new LogScrap<>(Level.DEBUG);
 	}
 
 	/**
@@ -154,8 +154,8 @@ public class LogScrap implements Consumer<ScrapBin<?,?>> {
 	 * @param conveyor the conveyor
 	 * @return the log scrap
 	 */
-	public static <K> LogScrap info(Conveyor<K, ?, ?> conveyor) {
-		return new LogScrap(Level.INFO);
+	public static <K> LogScrap<K> info(Conveyor<K, ?, ?> conveyor) {
+		return new LogScrap<>(Level.INFO);
 	}
 
 	/**
@@ -165,8 +165,8 @@ public class LogScrap implements Consumer<ScrapBin<?,?>> {
 	 * @param conveyor the conveyor
 	 * @return the log scrap
 	 */
-	public static <K> LogScrap warn(Conveyor<K, ?, ?> conveyor) {
-		return new LogScrap(Level.WARN);
+	public static <K> LogScrap<K> warn(Conveyor<K, ?, ?> conveyor) {
+		return new LogScrap<>(Level.WARN);
 	}
 
 	/**
@@ -176,8 +176,8 @@ public class LogScrap implements Consumer<ScrapBin<?,?>> {
 	 * @param conveyor the conveyor
 	 * @return the log scrap
 	 */
-	public static <K> LogScrap error(Conveyor<K, ?, ?> conveyor) {
-		return new LogScrap(Level.ERROR);
+	public static <K> LogScrap<K> error(Conveyor<K, ?, ?> conveyor) {
+		return new LogScrap<>(Level.ERROR);
 	}
 
 	/**
@@ -187,8 +187,8 @@ public class LogScrap implements Consumer<ScrapBin<?,?>> {
 	 * @param conveyor the conveyor
 	 * @return the log scrap
 	 */
-	public static <K> LogScrap stdOut(Conveyor<K, ?, ?> conveyor) {
-		return new LogScrap(Level.STDOUT);
+	public static <K> LogScrap<K> stdOut(Conveyor<K, ?, ?> conveyor) {
+		return new LogScrap<>(Level.STDOUT);
 	}
 
 	/**
@@ -198,8 +198,8 @@ public class LogScrap implements Consumer<ScrapBin<?,?>> {
 	 * @param conveyor the conveyor
 	 * @return the log scrap
 	 */
-	public static <K> LogScrap stdErr(Conveyor<K, ?, ?> conveyor) {
-		return new LogScrap(Level.STDERR);
+	public static <K> LogScrap<K> stdErr(Conveyor<K, ?, ?> conveyor) {
+		return new LogScrap<>(Level.STDERR);
 	}
 
 }

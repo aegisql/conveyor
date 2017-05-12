@@ -19,7 +19,7 @@ import com.aegisql.conveyor.ScrapBin;
  *
  * @param <K> the key type
  */
-public class ScrapMap <K> implements ConcurrentMap<K,List<?>>, Consumer<ScrapBin<?,?>> {
+public class ScrapMap <K> implements ConcurrentMap<K,List<?>>, Consumer<ScrapBin<K,?>> {
 
 	/** The inner. */
 	private final ConcurrentMap<K,List<?>> inner;
@@ -190,7 +190,7 @@ public class ScrapMap <K> implements ConcurrentMap<K,List<?>>, Consumer<ScrapBin
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<?, ?> bin) {
+	public void accept(ScrapBin<K, ?> bin) {
 		ArrayList<Object> newList = new ArrayList<>();
 		List<Object> scraps = (List<Object>) inner.putIfAbsent((K) bin.key, newList);
 		if(scraps == null) {

@@ -18,6 +18,7 @@ import org.junit.Test;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.utils.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.utils.parallel.LBalancedParallelConveyor;
@@ -79,9 +80,7 @@ public class MultichannelTest {
 		ac.setName("main");
 		ac.setBuilderSupplier(UserBuilder::new);
 		ac.setDefaultBuilderTimeout(Duration.ofMillis(50));
-		ac.setScrapConsumer(bin->{
-			System.out.println("rejected: "+bin);
-		});
+		ac.scrapConsumer(LogScrap.error(ac)).set();
 		ac.resultConsumer().first(bin->{
 			System.out.println("AC result: "+bin);
 			user.set(bin.product);
@@ -149,9 +148,7 @@ public class MultichannelTest {
 		ac.setName("main");
 		ac.setBuilderSupplier(UserBuilder::new);
 		ac.setDefaultBuilderTimeout(50, TimeUnit.MILLISECONDS);
-		ac.setScrapConsumer(bin->{
-			System.out.println("rejected: "+bin);
-		});
+		ac.scrapConsumer(LogScrap.error(ac)).set();
 		ac.resultConsumer().first(bin->{
 			System.out.println("AC result: "+bin);
 			user.set(bin.product);
@@ -217,9 +214,7 @@ public class MultichannelTest {
 		ac.setName("main");
 		ac.setBuilderSupplier(UserBuilder::new);
 		ac.setDefaultBuilderTimeout(50, TimeUnit.MILLISECONDS);
-		ac.setScrapConsumer(bin->{
-			System.out.println("rejected: "+bin);
-		});
+		ac.scrapConsumer(LogScrap.error(ac)).set();
 		ac.resultConsumer().first(bin->{
 			System.out.println("AC result: "+bin);
 			user.set(bin.product);
@@ -292,9 +287,7 @@ public class MultichannelTest {
 		ac.setName("main");
 		ac.setBuilderSupplier(UserBuilder::new);
 		ac.setDefaultBuilderTimeout(50, TimeUnit.MILLISECONDS);
-		ac.setScrapConsumer(bin->{
-			System.out.println("rejected: "+bin);
-		});
+		ac.scrapConsumer(LogScrap.error(ac)).set();
 		ac.resultConsumer().first(bin->{
 			System.out.println("AC result: "+bin);
 			user.set(bin.product);
@@ -321,9 +314,7 @@ public class MultichannelTest {
 
 		Conveyor<Integer, UserBuilderEvents, User> ch2 = new KBalancedParallelConveyor<>(3);
 		ch2.setBuilderSupplier(UserBuilder::new);
-		ch2.setScrapConsumer(bin->{
-			System.out.println("rejected: "+bin);
-		});
+		ac.scrapConsumer(LogScrap.error(ac)).set();
 		
 		ch2.acceptLabels(UserBuilderEvents.SET_YEAR);
 		ch2.forwardResultTo(ac, UserBuilderEvents.MERGE_B);
@@ -380,9 +371,7 @@ public class MultichannelTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ac = new AssemblingConveyor<>();
 		ac.setName("MAIN");
 		ac.setDefaultBuilderTimeout(50, TimeUnit.MILLISECONDS);
-		ac.setScrapConsumer(bin->{
-			System.out.println("rejected: "+bin);
-		});
+		ac.scrapConsumer(LogScrap.error(ac)).set();
 		ac.resultConsumer().first(bin->{
 			System.out.println("MAIN result: "+bin);
 			user.set(bin.product);
@@ -461,9 +450,7 @@ public class MultichannelTest {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ac = new AssemblingConveyor<>();
 		ac.setName("MAIN");
 		ac.setDefaultBuilderTimeout(50, TimeUnit.MILLISECONDS);
-		ac.setScrapConsumer(bin->{
-			System.out.println("rejected: "+bin);
-		});
+		ac.scrapConsumer(LogScrap.error(ac)).set();
 		ac.resultConsumer().first(bin->{
 			System.out.println("MAIN result: "+bin);
 			user.set(bin.product);

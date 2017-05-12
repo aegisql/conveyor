@@ -72,7 +72,7 @@ public class MapBuillderTest {
 		mc.setBuilderSupplier( ()-> new MapBuilder<>() );
 		
 		mc.resultConsumer(LogResult.stdOut(mc)).set();
-		mc.setScrapConsumer(bin->fail("Failde "+bin));
+		mc.scrapConsumer(bin->fail("Failed "+bin)).set();
 		
 		PartLoader<Integer, String,?,?,?> pl = mc.part().id(1);
 		pl.label("FIRST").value("ONE").place();

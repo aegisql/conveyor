@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuildingSite;
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.consumers.scrap.LogScrap;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -32,9 +33,7 @@ public class CachingConveyor<K, L, OUT> extends AssemblingConveyor<K, L, OUT> {
 		this.setOnTimeoutAction(builder->{
 			LOG.debug("Cache Timeout {}", builder);			
 		});
-		this.setScrapConsumer(bin->{
-			LOG.debug("Evicted on {}: {}", bin.failureType, bin);
-		});
+		this.scrapConsumer().first(LogScrap.debug(this)).set();
 	}
 
 	/**

@@ -15,7 +15,7 @@ import com.aegisql.conveyor.ScrapBin;
 /**
  * The Class StreamScrap.
  */
-public class StreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
+public class StreamScrap<K> implements Consumer<ScrapBin<K,?>>, Closeable {
 
 	/** The os. */
 	private final ObjectOutputStream os;
@@ -34,7 +34,7 @@ public class StreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<?,?> bin) {
+	public void accept(ScrapBin<K,?> bin) {
 		try {
 			os.writeObject(bin.scrap);
 			os.flush();
@@ -69,8 +69,8 @@ public class StreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 	 * @return the stream scrap
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public static <K> StreamScrap of(Conveyor<K, ?, ?> conv, OutputStream os) throws IOException {
-		return new StreamScrap(os);
+	public static <K> StreamScrap<K> of(Conveyor<K, ?, ?> conv, OutputStream os) throws IOException {
+		return new StreamScrap<>(os);
 	}
 
 	/**
@@ -82,7 +82,7 @@ public class StreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 	 * @return the stream scrap
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public static <K> StreamScrap of(Conveyor<K, ?, ?> conv, File file) throws IOException {
+	public static <K> StreamScrap<K> of(Conveyor<K, ?, ?> conv, File file) throws IOException {
 		return of(conv,new FileOutputStream(file));
 	}
 
@@ -95,7 +95,7 @@ public class StreamScrap implements Consumer<ScrapBin<?,?>>, Closeable {
 	 * @return the stream scrap
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public static <K> StreamScrap of(Conveyor<K, ?, ?> conv, String file) throws IOException {
+	public static <K> StreamScrap<K> of(Conveyor<K, ?, ?> conv, String file) throws IOException {
 		return of(conv,new File(file));
 	}
 
