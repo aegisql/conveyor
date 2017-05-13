@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.consumers.scrap.FirstScraps;
 import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
 import com.aegisql.conveyor.consumers.scrap.LastScraps;
@@ -83,6 +84,28 @@ public class ResultConsumerTest {
 		assertEquals(1, scc.get());
 	}
 
+	@Test
+	public void testCountFilterConsumers() throws InterruptedException, ExecutionException {
+		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
+		sc.setBuilderSupplier(StringToUserBuulder::new);
+		AtomicReference<User> usr = new AtomicReference<User>(null);
+		ResultCounter<String,User> rc = ResultCounter.of(sc);
+		
+		FilterResult<String, User> fr = FilterResult.of( b->"test".equals(b.key), rc);
+		
+		sc.resultConsumer().first(fr.andThen(b->usr.set(b.product))).andThen(LogResult.stdOut(sc)).set();
+		ScrapCounter<String> scc = ScrapCounter.of(sc); 
+		sc.scrapConsumer(scc).set();
+		String csv = "John,Dow,1990";
+		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
+		CompletableFuture<Boolean> cf = sc.part().id("test").value(csv).place();
+		cf.get();
+		assertNotNull(usr.get());
+		assertEquals(1, rc.get());
+		assertEquals(1, scc.get());
+	}
+
+	
 	@Test
 	public void testRefConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();

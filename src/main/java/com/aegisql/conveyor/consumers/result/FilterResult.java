@@ -22,4 +22,8 @@ public class FilterResult <K,V> implements Consumer<ProductBin<K,V>>{
 		}
 	}
 
+	public static <K,V> FilterResult <K,V> of(Predicate<ProductBin<K,V>> filter, Consumer<ProductBin<K,V>> action) {
+		return new FilterResult<>(filter, action);
+	}
+	
 }
