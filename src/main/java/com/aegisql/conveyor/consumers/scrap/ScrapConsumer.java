@@ -1,6 +1,8 @@
 package com.aegisql.conveyor.consumers.scrap;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -70,6 +72,19 @@ public interface ScrapConsumer<K,V> extends Consumer<ScrapBin<K,V>>{
 	    		  accept(bin); 
 	    	  }
 	      };	
+	}
+
+	default ScrapConsumer<K,V> async(ExecutorService pool) {
+		Objects.requireNonNull(pool);
+		return bin -> {
+			pool.submit(()->{
+				accept(bin);
+			});
+		};
+	}
+
+	default ScrapConsumer<K,V> async() {
+		return async(ForkJoinPool.commonPool());
 	}
 
 	

@@ -1,6 +1,8 @@
 package com.aegisql.conveyor.consumers.result;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -54,5 +56,17 @@ public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 		};
 	}
 
+	default ResultConsumer<K,V> async(ExecutorService pool) {
+		Objects.requireNonNull(pool);
+		return bin -> {
+			pool.submit(()->{
+				accept(bin);
+			});
+		};
+	}
+
+	default ResultConsumer<K,V> async() {
+		return async(ForkJoinPool.commonPool());
+	}
 	
 }
