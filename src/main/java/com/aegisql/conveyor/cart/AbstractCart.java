@@ -8,6 +8,8 @@ import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class Cart.
@@ -228,4 +230,16 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		return getClass().getSimpleName()+" [key=" + k + ", value=" + v + ", label=" + label + ", expirationTime=" + expirationTime + "]";
 	}
 
+	@Override
+	public ScrapConsumer<K, Cart<K, V, L>> getScrapConsumer() {
+		return bin->{
+			CompletableFuture<Boolean> f = bin.scrap.getFuture();
+			if(bin.error !=null) {
+				f.completeExceptionally(bin.error);
+			} else {
+				f.cancel(true);
+			}
+		};
+	}
+	
 }

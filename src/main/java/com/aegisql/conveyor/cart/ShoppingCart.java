@@ -3,6 +3,8 @@ package com.aegisql.conveyor.cart;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class ShoppingCart.
@@ -67,6 +69,5 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	public Cart <K,V,L> copy() {
 		return new ShoppingCart<K,V,L>(getKey(), getValue(), getLabel(),getCreationTime(),getExpirationTime());
 	}
-
 	
 }

@@ -31,7 +31,6 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ParallelConveyorMBean;
 import com.aegisql.conveyor.ProductBin;
-import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;

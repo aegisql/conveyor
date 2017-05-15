@@ -4,6 +4,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class FutureCart.
@@ -49,5 +51,18 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 	public Cart<K, CompletableFuture<B>, L> copy() {
 		return new FutureCart<K, B, L>(getKey(), getValue(), getExpirationTime());
 	}
+
+	@Override
+	public ScrapConsumer<K, Cart<K, CompletableFuture<B>, L>> getScrapConsumer() {
+		return super.getScrapConsumer().andThen(bin->{
+			CompletableFuture<B> f = bin.scrap.getValue();
+			if(bin.error !=null) {
+				f.completeExceptionally(bin.error);
+			} else {
+				f.cancel(true);
+			}
+		});
+	}
+	
 	
 }

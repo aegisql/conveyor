@@ -4,6 +4,8 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.BuilderSupplier.BuilderFutureSupplier;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -47,4 +49,22 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 		return new CreatingCart<K,B,L>(getKey(),getValue(),getCreationTime(), getExpirationTime());
 	}
 
+	@Override
+	public ScrapConsumer<K, Cart<K, BuilderSupplier<B>, L>> getScrapConsumer() {
+		return super.getScrapConsumer().andThen(bin->{
+			BuilderSupplier<B> bs = bin.scrap.getValue();
+			if(bs instanceof BuilderFutureSupplier) {
+				BuilderFutureSupplier<B> bfs = (BuilderFutureSupplier<B>)bs;
+				if(bin.error !=null) {
+					bfs.getFuture().completeExceptionally(bin.error);
+				} else {
+					bfs.getFuture().cancel(true);
+				}
+
+			}
+		});
+	}
+
+	
+	
 }

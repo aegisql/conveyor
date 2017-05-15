@@ -117,7 +117,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test(expected=ExecutionException.class)
 	public void testExpiredSmart() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -144,7 +144,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test(expected=ExecutionException.class)
 	public void testExpiredSmart2() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);

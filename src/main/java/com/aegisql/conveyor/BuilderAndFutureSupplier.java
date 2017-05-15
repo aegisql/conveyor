@@ -6,13 +6,15 @@ package com.aegisql.conveyor;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.BuilderSupplier.BuilderFutureSupplier;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class BuilderAndFutureSupplier.
  *
  * @param <T> the generic type
  */
-public class BuilderAndFutureSupplier<T> implements BuilderSupplier<T>, FutureSupplier<T> {
+public class BuilderAndFutureSupplier<T> implements BuilderFutureSupplier<T> {
 
 	/** The future. */
 	private final CompletableFuture<T> future;

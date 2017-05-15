@@ -196,7 +196,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException 
 	 */
-	@Test(expected=CancellationException.class)
+	@Test(expected=ExecutionException.class)
 	public void testAddStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -216,7 +216,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException 
 	 */
-	@Test(expected=CancellationException.class)
+	@Test(expected=ExecutionException.class)
 	public void testNullCartContentStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -240,7 +240,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException 
 	 */
-	@Test(expected=CancellationException.class)
+	@Test(expected=ExecutionException.class)
 	public void testAddExpiredStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -556,7 +556,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException the execution exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test(expected=ExecutionException.class)
 	public void testSimpleConveyorBlocking() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>( ()->new ArrayBlockingQueue(3) );

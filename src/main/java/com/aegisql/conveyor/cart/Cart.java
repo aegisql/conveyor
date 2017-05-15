@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 
 import com.aegisql.conveyor.Expireable;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -58,6 +59,8 @@ public interface Cart <K,V,L> extends Expireable, Serializable {
 	 * @return the future
 	 */
 	public CompletableFuture<Boolean> getFuture();
+	
+	public ScrapConsumer<K,Cart<K,V,L>> getScrapConsumer();
 	
 	/**
 	 * copy().

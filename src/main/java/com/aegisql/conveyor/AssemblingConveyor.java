@@ -103,50 +103,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The result consumer. */
 	protected ResultConsumer <K,OUT> resultConsumer = null;
 
-	/** The scrap cart future consumer. */
-	protected ScrapConsumer<?, Cart<K,?,L>> scrapCartFutureConsumer = (scrapBin) -> {
-		if(scrapBin.scrap == null) {
-			return;
-		}
-		CompletableFuture<Boolean> future = scrapBin.scrap.getFuture();
-		if(scrapBin.error != null) {
-			future.completeExceptionally(scrapBin.error);
-		} else {
-			future.cancel(true);
-		}
-	};
-
-	/** The scrap future consumer. */
-	protected ScrapConsumer<?, FutureCart<K,OUT,L>> scrapFutureConsumer = (scrapBin) -> {
-		if(scrapBin.scrap == null) {
-			return;
-		}
-		CompletableFuture<OUT> productFuture  = scrapBin.scrap.getValue();
-		if(scrapBin.error != null) {
-			productFuture.completeExceptionally(scrapBin.error);
-		} else {
-			productFuture.cancel(true);
-		}
-	};
-
-	/** The scrap cart consumer. */
-	protected ScrapConsumer<K,?> scrapCartConsumer = (scrapBin) -> {
-		if(scrapBin.scrap instanceof Cart) {
-			Cart<K,?,L> c = (Cart)scrapBin.scrap;
-			scrapCartFutureConsumer.accept((ScrapBin) scrapBin);
-			if( c instanceof FutureCart ) {
-				scrapFutureConsumer.accept((ScrapBin) scrapBin);
-			}
-		}
-	};
-
 	/** The scrap logger. */
 	protected ScrapConsumer<K,?> scrapLogger = scrapBin->{
 		LOG.error("{}",scrapBin);
 	};
 
 	/** The scrap consumer. */
-	protected ScrapConsumer<K,?> scrapConsumer = scrapLogger.andThen((ScrapConsumer) scrapCartConsumer);
+	protected ScrapConsumer<K,?> scrapConsumer = scrapLogger;
 	
 	/** The cart consumer. */
 	protected LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer = (l, v, b) -> {
@@ -364,7 +327,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						buildingSite.addFuture(fs.getFuture());
 					}
 				} else {
-					scrapConsumer.accept(new ScrapBin(cart.getKey(), cart,
+					cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(cart.getKey(), cart,
 							"Ignore cart. Neither creating cart nor default builder supplier available",
 							null, 
 							FailureType.BUILD_INITIALIZATION_FAILED));
@@ -375,7 +338,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder, saveCarts,
 						postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues,resultConsumer);
 			} else {
-				scrapConsumer.accept(new ScrapBin(cart.getKey(), cart,
+				cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(cart.getKey(), cart,
 						"Ignore cart. Neither builder nor builder supplier available",
 						null, 
 						FailureType.BUILD_INITIALIZATION_FAILED));
@@ -637,13 +600,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected void drainQueues() {
 		Cart<K, ?, L> cart = null;
 		while ((cart = inQueue.poll()) != null) {
-			scrapConsumer.accept(new ScrapBin(cart.getKey(), cart, "Draining inQueue",
+			cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(cart.getKey(), cart, "Draining inQueue",
 					null, 
 					FailureType.CONVEYOR_STOPPED));
-			if (cart instanceof FutureCart) {
-				FutureCart<K, OUT, L> fc = (FutureCart<K, OUT, L>) cart;
-				fc.getValue().cancel(true);
-			}
 		}
 		delayProvider.clear();
 		collector.forEach((k, v) -> {
@@ -744,8 +703,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			return future;
 		} catch (RuntimeException e) {
-			scrapConsumer.accept(
-					new ScrapBin(cart.getKey(), cart, e.getMessage(), null, FailureType.COMMAND_REJECTED));
+			cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(
+					new ScrapBin(cart.getKey(), cart, e.getMessage(), e, FailureType.COMMAND_REJECTED));
 			throw e;
 		} finally {
 			lock.tell();
@@ -809,9 +768,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				future.cancel(true);
 			}
 		} catch (RuntimeException e) {
-			scrapConsumer.accept(
-					new ScrapBin(cart.getKey(), cart, e.getMessage(), null, FailureType.CART_REJECTED));
-			future.completeExceptionally(e);
+			cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(
+					new ScrapBin(cart.getKey(), cart, e.getMessage(), e, FailureType.CART_REJECTED));
 		} finally {
 			lock.tell();
 		}
@@ -935,8 +893,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							});
 					cart.getFuture().complete(true);
 				} catch (Exception e) {
-					scrapCartConsumer.accept(new ScrapBin(cart.getLabel(), cart, "MultiKey cart failure", e, FailureType.GENERAL_FAILURE));
-					cart.getFuture().completeExceptionally(e);
+					cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(cart.getLabel(), cart, "MultiKey cart failure", e, FailureType.GENERAL_FAILURE));
 					throw e;
 				}
 			} else if(cart instanceof StaticCart) {
@@ -1009,11 +966,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				buildingSite.setStatus(Status.INVALID);
 				buildingSite.setLastError(e);
 				buildingSite.setLastCart(cart);
-				scrapConsumer.accept(new ScrapBin(cart.getKey(), buildingSite,
+				cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(cart.getKey(), buildingSite,
 						"Site Processor failed", e, failureType));
 				buildingSite.completeFuturesExceptionaly(e);
 			} else {
-				scrapConsumer.accept(
+				cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(
 						new ScrapBin(cart.getKey(), cart, "Cart Processor Failed", e, failureType));
 			}
 			if (!failureType.equals(FailureType.BEFORE_EVICTION_FAILED)) {

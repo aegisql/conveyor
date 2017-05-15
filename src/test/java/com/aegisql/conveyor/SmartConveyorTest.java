@@ -418,7 +418,7 @@ public class SmartConveyorTest {
 	 * @throws InterruptedException             the interrupted exception
 	 * @throws ExecutionException the execution exception
 	 */
-	@Test(expected = CancellationException.class) // ???? Failed
+	@Test(expected = ExecutionException.class) // ???? Failed
 	public void testRejectedStartAdd() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -839,7 +839,7 @@ public class SmartConveyorTest {
 	 *             the interrupted exception
 	 * @throws ExecutionException 
 	 */
-	@Test
+	@Test(expected=ExecutionException.class)
 	public void testCompleteAndStopRejectMessages() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -860,8 +860,9 @@ public class SmartConveyorTest {
 		Future<?> f = conveyor.completeAndStop();
 		PartLoader pl = conveyor.part().id(101);
 		Future<Boolean> cf = pl.label(UserBuilderEvents.SET_FIRST).value("First_"+101).place();
-		assertTrue(cf.isCancelled());
-		f.get();
+		System.err.println(cf);
+		assertTrue(cf.isDone());
+		cf.get();
 	}
 
 	
