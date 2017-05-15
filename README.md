@@ -24,9 +24,16 @@ Stable version
 
 ## Release History
 
-### 1.3.1-SNAPSHOT
+### 1.3.2-SNAPSHOT
+
+### 1.3.1
+* Added functional Interfaces ResultConsumer and ScrapConsumer with default methods extending standard Consumer interface.
+* re-factored code to use new interfaces
+* Cart interface now provides the getScrapConsumer method which can be overridden to customize the scrap consumption behavior.   
+* Tests and bugfixes
 
 ### 1.3.0
+* New unstable release
 * Changes in the Result and Scrap consumer processing
 * Removed multi-key part and command loader interfaces. Their functionality merged with part and command interfaces respectively.
 * Added new and improved old result and scrap consumers

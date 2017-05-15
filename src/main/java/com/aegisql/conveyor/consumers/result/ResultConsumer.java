@@ -9,9 +9,22 @@ import java.util.function.Predicate;
 import com.aegisql.conveyor.BuildingSite.Status;
 import com.aegisql.conveyor.ProductBin;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Interface ResultConsumer.
+ *
+ * @param <K> the key type
+ * @param <V> the value type
+ */
 @FunctionalInterface
 public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 	
+	/**
+	 * And then.
+	 *
+	 * @param other the other
+	 * @return the result consumer
+	 */
 	default ResultConsumer<K,V> andThen(ResultConsumer <K,V> other) {
 	      Objects.requireNonNull(other);
 	      return  bin -> { 
@@ -20,6 +33,12 @@ public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 	      };	
 	}
 	
+	/**
+	 * Filter.
+	 *
+	 * @param filter the filter
+	 * @return the result consumer
+	 */
 	default ResultConsumer<K,V> filter(Predicate<ProductBin<K,V>> filter) {
 		Objects.requireNonNull(filter);
 		return bin -> {
@@ -29,6 +48,12 @@ public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 		};
 	}
 
+	/**
+	 * Filter key.
+	 *
+	 * @param filter the filter
+	 * @return the result consumer
+	 */
 	default ResultConsumer<K,V> filterKey(Predicate<K> filter) {
 		Objects.requireNonNull(filter);
 		return bin -> {
@@ -38,6 +63,12 @@ public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 		};
 	}
 
+	/**
+	 * Filter result.
+	 *
+	 * @param filter the filter
+	 * @return the result consumer
+	 */
 	default ResultConsumer<K,V> filterResult(Predicate<V> filter) {
 		Objects.requireNonNull(filter);
 		return bin -> {
@@ -47,6 +78,12 @@ public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 		};
 	}
 
+	/**
+	 * Filter status.
+	 *
+	 * @param filter the filter
+	 * @return the result consumer
+	 */
 	default ResultConsumer<K,V> filterStatus(Predicate<Status> filter) {
 		Objects.requireNonNull(filter);
 		return bin -> {
@@ -56,6 +93,12 @@ public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 		};
 	}
 
+	/**
+	 * Async.
+	 *
+	 * @param pool the pool
+	 * @return the result consumer
+	 */
 	default ResultConsumer<K,V> async(ExecutorService pool) {
 		Objects.requireNonNull(pool);
 		return bin -> {
@@ -65,6 +108,11 @@ public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 		};
 	}
 
+	/**
+	 * Async.
+	 *
+	 * @return the result consumer
+	 */
 	default ResultConsumer<K,V> async() {
 		return async(ForkJoinPool.commonPool());
 	}
