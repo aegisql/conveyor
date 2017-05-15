@@ -17,7 +17,7 @@ import com.aegisql.conveyor.ProductBin;
  * @param <K> the key type
  * @param <E> the element type
  */
-public class ResultQueue<K,E> implements Queue<E>, Consumer<ProductBin<K,E>> {
+public class ResultQueue<K,E> implements Queue<E>, ResultConsumer<K,E> {
 
 	/** The inner. */
 	private final Queue<E> inner;	

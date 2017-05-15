@@ -15,7 +15,7 @@ import com.aegisql.conveyor.ProductBin;
  * @param <K> the key type
  * @param <E> the element type
  */
-public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
+public class LogResult <K,E> implements ResultConsumer<K,E> {
 
 	/**
 	 * The Enum Level.
@@ -45,17 +45,17 @@ public class LogResult <K,E> implements Consumer<ProductBin<K,E>> {
 	}
 	
 	/** The Constant stdout. */
-	private final static Consumer<ProductBin<?,?>> stdout = bin->{
+	private final static ResultConsumer <?,?> stdout = bin->{
 		System.out.println(""+bin);		
 	};
 	
 	/** The Constant stderr. */
-	private final static Consumer<ProductBin<?,?>> stderr = bin->{
+	private final static ResultConsumer <?,?> stderr = bin->{
 		System.err.println(""+bin);		
 	};
 	
 	/** The consumer. */
-	private final Consumer<ProductBin<?,?>> consumer;
+	private final ResultConsumer consumer;
 	
 	/**
 	 * Instantiates a new log result.

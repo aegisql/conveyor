@@ -19,9 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.ScrapBin.FailureType;
-import com.aegisql.conveyor.consumers.scrap.FilterScrap;
 import com.aegisql.conveyor.consumers.scrap.FirstScraps;
 import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
 import com.aegisql.conveyor.consumers.scrap.LastScraps;
@@ -93,14 +91,10 @@ public class ResultConsumerTest {
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		ResultCounter<String,User> rc = ResultCounter.of(sc);
 		
-		FilterResult<String, User> fr = FilterResult.of( b->"test".equals(b.key), rc);
-		
-		sc.resultConsumer().first(fr.andThen(b->usr.set(b.product))).andThen(LogResult.stdOut(sc)).set();
+		sc.resultConsumer().first(rc.filterKey(k->"test".equals(k)).andThen(b->usr.set(b.product))).andThen(LogResult.stdOut(sc)).set();
 		ScrapCounter<String> scc = ScrapCounter.of(sc); 
 
-		FilterScrap<String> fs = FilterScrap.of( b->b.failureType.equals(FailureType.CART_REJECTED), scc);
-
-		sc.scrapConsumer(fs).andThen(LogScrap.error(sc)).set();
+		sc.scrapConsumer(scc.filterFailureType(f->f.equals(FailureType.CART_REJECTED))).andThen(LogScrap.error(sc)).set();
 		String csv = "John,Dow,1990";
 		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
 		CompletableFuture<Boolean> cf = sc.part().id("test").value(csv).place();

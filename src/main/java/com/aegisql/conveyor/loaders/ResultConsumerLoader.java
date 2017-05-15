@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -23,7 +24,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	public final K key;
 	
 	/** The consumer. */
-	public final Consumer<ProductBin<K, OUT>> consumer;
+	public final ResultConsumer <K,OUT> consumer;
 	
 	/** The placer. */
 	public final Function<ResultConsumerLoader<K,OUT>,CompletableFuture<Boolean>> placer;
@@ -38,7 +39,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	public final long ttlMsec;
 	
 	/** The global placer. */
-	private final Consumer<Consumer<ProductBin<K,OUT>>> globalPlacer;
+	private final Consumer<ResultConsumer<K,OUT>> globalPlacer;
 	
 	/** The filter. */
 	public final Predicate<K> filter;
@@ -52,8 +53,8 @@ public final class ResultConsumerLoader<K,OUT> {
 	 */
 	public ResultConsumerLoader(
 			Function<ResultConsumerLoader<K,OUT>,CompletableFuture<Boolean>> placer,
-			Consumer<Consumer<ProductBin<K,OUT>>> globalPlacer,
-			Consumer<ProductBin<K, OUT>> consumer
+			Consumer<ResultConsumer <K,OUT>> globalPlacer,
+			ResultConsumer <K,OUT> consumer
 			) {
 		this(placer,globalPlacer,System.currentTimeMillis(),0,0,null,consumer,null);
 	}
@@ -72,12 +73,12 @@ public final class ResultConsumerLoader<K,OUT> {
 	 */
 	private ResultConsumerLoader(
 			Function<ResultConsumerLoader<K,OUT>,CompletableFuture<Boolean>> placer, 
-			Consumer<Consumer<ProductBin<K,OUT>>> globalPlacer,
+			Consumer<ResultConsumer <K,OUT>> globalPlacer,
 			long creationTime,
 			long expirationTime,
 			long ttlMsec,
 			K key, 
-			Consumer<ProductBin<K, OUT> > consumer,
+			ResultConsumer <K,OUT> consumer,
 			Predicate<K> filter ) {
 		this.placer         = placer;
 		this.globalPlacer   = globalPlacer;
@@ -103,11 +104,11 @@ public final class ResultConsumerLoader<K,OUT> {
 	 */
 	private ResultConsumerLoader(
 			Function<ResultConsumerLoader<K,OUT>,CompletableFuture<Boolean>> placer, 
-			Consumer<Consumer<ProductBin<K,OUT>>> globalPlacer,
+			Consumer<ResultConsumer <K,OUT>> globalPlacer,
 			long creationTime,
 			long ttlMsec,
 			K key, 
-			Consumer<ProductBin<K, OUT> > consumer,
+			ResultConsumer <K,OUT> consumer,
 			Predicate<K> filter,
 			boolean dumb) {
 		this.placer         = placer;
@@ -171,7 +172,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @param consumer the consumer
 	 * @return the result consumer loader
 	 */
-	public ResultConsumerLoader<K,OUT> first(Consumer<ProductBin<K, OUT> > consumer) {
+	public ResultConsumerLoader<K,OUT> first(ResultConsumer <K,OUT> consumer) {
 		return new ResultConsumerLoader<>(
 				this.placer,
 				this.globalPlacer,
@@ -230,7 +231,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @param consumer the consumer
 	 * @return the result consumer loader
 	 */
-	public ResultConsumerLoader<K,OUT> andThen(Consumer<ProductBin<K, OUT> > consumer) {
+	public ResultConsumerLoader<K,OUT> andThen(ResultConsumer <K,OUT> consumer) {
 		return new ResultConsumerLoader<>(
 				this.placer,
 				this.globalPlacer,

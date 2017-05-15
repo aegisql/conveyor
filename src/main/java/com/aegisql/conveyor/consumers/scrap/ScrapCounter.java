@@ -13,7 +13,7 @@ import com.aegisql.conveyor.ScrapBin;
  *
  * @param <K> the key type
  */
-public class ScrapCounter <K> implements Consumer<ScrapBin<K,?>>{
+public class ScrapCounter <K> implements ScrapConsumer<K,Object>{
 
 	/** The counter. */
 	private final AtomicLong counter = new AtomicLong(0);
@@ -41,7 +41,7 @@ public class ScrapCounter <K> implements Consumer<ScrapBin<K,?>>{
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<K,?> bin) {
+	public void accept(ScrapBin<K,Object> bin) {
 		if( filter.test(bin) ) {
 			counter.incrementAndGet();
 		}

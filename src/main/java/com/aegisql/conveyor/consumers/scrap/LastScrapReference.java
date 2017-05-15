@@ -1,7 +1,6 @@
 package com.aegisql.conveyor.consumers.scrap;
 
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
@@ -12,7 +11,7 @@ import com.aegisql.conveyor.ScrapBin;
  *
  * @param <K> the key type
  */
-public class LastScrapReference<K> implements Consumer<ScrapBin<K,?>> {
+public class LastScrapReference<K> implements ScrapConsumer<K,Object> {
 
 	/** The ref. */
 	AtomicReference<Object> ref = new AtomicReference<>();
@@ -21,7 +20,7 @@ public class LastScrapReference<K> implements Consumer<ScrapBin<K,?>> {
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<K,?> bin) {
+	public void accept(ScrapBin<K,Object> bin) {
 		ref.set(bin.scrap);
 	}
 	

@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.Conveyor;
@@ -17,7 +16,7 @@ import com.aegisql.conveyor.ProductBin;
  * @param <K> the key type
  * @param <V> the value type
  */
-public class ResultMap <K,V> implements Map<K,V>, Consumer<ProductBin<K,V>> {
+public class ResultMap <K,V> implements Map<K,V>, ResultConsumer<K,V> {
 
 	/** The inner. */
 	private final Map<K,V> inner;

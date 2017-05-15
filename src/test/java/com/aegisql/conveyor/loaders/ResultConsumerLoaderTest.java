@@ -19,6 +19,7 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.consumers.result.LogResult;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.multichannel.UserBuilder;
 import com.aegisql.conveyor.multichannel.UserBuilderEvents;
 import com.aegisql.conveyor.user.User;
@@ -47,7 +48,7 @@ public class ResultConsumerLoaderTest {
 	Integer keyInteger = -1;
 	String  keyString = "key";
 
-	private void consumer(Consumer<ProductBin<Integer,String>> rc) {
+	private void consumer(ResultConsumer<Integer,String> rc) {
 		
 		rc.accept(null);
 	}

@@ -3,7 +3,6 @@ package com.aegisql.conveyor.consumers.result;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
@@ -15,7 +14,7 @@ import com.aegisql.conveyor.ProductBin;
  * @param <K> the key type
  * @param <V> the value type
  */
-public class FirstResults <K,V> implements Consumer<ProductBin<K,V>> {
+public class FirstResults <K,V> implements ResultConsumer<K,V> {
 	
 	/** The results. */
 	private final ArrayList<V> results;

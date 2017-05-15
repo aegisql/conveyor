@@ -1,7 +1,6 @@
 package com.aegisql.conveyor.consumers.result;
 
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
@@ -13,7 +12,7 @@ import com.aegisql.conveyor.ProductBin;
  * @param <K> the key type
  * @param <V> the value type
  */
-public class ResultCounter <K,V> implements Consumer<ProductBin<K,V>>{
+public class ResultCounter <K,V> implements ResultConsumer<K,V> {
 
 	/** The counter. */
 	private final AtomicLong counter = new AtomicLong(0);

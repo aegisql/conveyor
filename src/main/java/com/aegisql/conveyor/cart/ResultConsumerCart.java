@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -13,7 +14,7 @@ import com.aegisql.conveyor.ProductBin;
  * @param <B> the generic type
  * @param <L> the generic type
  */
-public class ResultConsumerCart<K, B, L> extends AbstractCart<K, Consumer<ProductBin<K, B>>, L> {
+public class ResultConsumerCart<K, B, L> extends AbstractCart<K, ResultConsumer <K,B>, L> {
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 4985202264573416558L;
@@ -26,7 +27,7 @@ public class ResultConsumerCart<K, B, L> extends AbstractCart<K, Consumer<Produc
 	 * @param creation the creation time
 	 * @param expiration the expiration time
 	 */
-	public ResultConsumerCart(K k, Consumer<ProductBin<K, B>> v, long creation, long expiration) {
+	public ResultConsumerCart(K k, ResultConsumer <K,B> v, long creation, long expiration) {
 		super(k, v, null, creation, expiration);
 		Objects.requireNonNull(k);
 	}
@@ -35,7 +36,7 @@ public class ResultConsumerCart<K, B, L> extends AbstractCart<K, Consumer<Produc
 	 * @see com.aegisql.conveyor.cart.Cart#copy()
 	 */
 	@Override
-	public Cart<K,Consumer<ProductBin<K, B>>,L> copy() {
+	public Cart<K,ResultConsumer <K,B>, L> copy() {
 		return new ResultConsumerCart<K,B,L>(getKey(),getValue(),getCreationTime(), getExpirationTime());
 	}
 

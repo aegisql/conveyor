@@ -14,7 +14,7 @@ import com.aegisql.conveyor.ScrapBin;
  *
  * @param <K> the key type
  */
-public class LastScraps<K> implements Consumer<ScrapBin<K,?>> {
+public class LastScraps<K> implements ScrapConsumer<K,Object> {
 	
 	/** The results. */
 	private final ArrayList<Object> results;
@@ -46,7 +46,7 @@ public class LastScraps<K> implements Consumer<ScrapBin<K,?>> {
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<K,?> bin) {
+	public void accept(ScrapBin<K,Object> bin) {
 		synchronized (results) {
 			results.set(p, bin.scrap);
 			if(p<last) {

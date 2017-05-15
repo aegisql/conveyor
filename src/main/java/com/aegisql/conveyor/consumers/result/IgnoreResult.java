@@ -1,7 +1,5 @@
 package com.aegisql.conveyor.consumers.result;
 
-import java.util.function.Consumer;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
 
@@ -12,7 +10,7 @@ import com.aegisql.conveyor.ProductBin;
  * @param <K> the key type
  * @param <E> the element type
  */
-public class IgnoreResult <K,E> implements Consumer<ProductBin<K,E>> {
+public class IgnoreResult <K,E> implements ResultConsumer<K,E> {
 
 	/* (non-Javadoc)
 	 * @see java.util.function.Consumer#accept(java.lang.Object)

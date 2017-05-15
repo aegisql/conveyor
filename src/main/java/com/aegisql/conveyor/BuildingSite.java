@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -144,9 +145,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	/** The postpone alg. */
 	private BiConsumer<BuildingSite <K, L, C, OUT>,C> postponeAlg = (bs,cart)->{/*do nothing*/};
 	
-	private Consumer<ProductBin<K, OUT>> resultConsumer;
+	private ResultConsumer<K,OUT> resultConsumer;
 
-	private Consumer<ProductBin<K, OUT>> completeResultConsumer = b->{};	
+	private ResultConsumer<K,OUT> completeResultConsumer = b->{};	
 	
 	private Consumer<Boolean> cancelResultConsumer = b->{};
 
@@ -185,7 +186,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			long addExpirationTimeMsec, 
 			boolean postponeExpirationOnTimeoutEnabled,
 			Map<L,C> staticValues,
-			Consumer<ProductBin<K, OUT>> resultConsumer
+			ResultConsumer<K,OUT> resultConsumer
 			) {
 		this.initialCart               = cart;
 		this.lastCart                  = cart;
@@ -576,7 +577,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status) );
 	}
 	
-	void setResultConsumer(Consumer<ProductBin<K, OUT>> resultConsumer) {
+	void setResultConsumer(ResultConsumer<K,OUT> resultConsumer) {
 		this.resultConsumer = resultConsumer;
 	}
 

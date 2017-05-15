@@ -14,7 +14,7 @@ import com.aegisql.conveyor.ScrapBin;
  *
  * @param <K> the key type
  */
-public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
+public class LogScrap <K> implements ScrapConsumer<K,Object> {
 
 	/**
 	 * The Enum Level.
@@ -44,17 +44,17 @@ public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
 	}
 	
 	/** The Constant stdout. */
-	private final static Consumer<ScrapBin<?,?>> stdout = bin->{
+	private final static ScrapConsumer<?,?> stdout = bin->{
 		System.out.println(""+bin);		
 	};
 	
 	/** The Constant stderr. */
-	private final static Consumer<ScrapBin<?,?>> stderr = bin->{
+	private final static ScrapConsumer<?,?> stderr = bin->{
 		System.err.println(""+bin);		
 	};
 	
 	/** The consumer. */
-	private final Consumer<ScrapBin<?,?>> consumer;
+	private final ScrapConsumer<?,?> consumer;
 	
 	/**
 	 * Instantiates a new log result.
@@ -102,8 +102,8 @@ public class LogScrap <K> implements Consumer<ScrapBin<K,?>> {
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<K,?> t) {
-		consumer.accept(t);
+	public void accept(ScrapBin<K,Object> t) {
+		consumer.accept((ScrapBin) t);
 	}
 
 	/**

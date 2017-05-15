@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import com.aegisql.conveyor.Conveyor;
@@ -19,7 +18,7 @@ import com.aegisql.conveyor.ProductBin;
  * @param <K> the key type
  * @param <V> the value type
  */
-public class StreamResult <K,V> implements Consumer<ProductBin<K,V>>, Closeable {
+public class StreamResult <K,V> implements ResultConsumer<K,V>, Closeable {
 
 	/** The os. */
 	private final ObjectOutputStream os;

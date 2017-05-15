@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.loaders.BuilderLoader;
 import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.loaders.FutureLoader;
@@ -110,7 +112,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @param consumer the consumer
 	 * @return the result consumer loader
 	 */
-	public ResultConsumerLoader<K, OUT> resultConsumer(Consumer<ProductBin<K,OUT>> consumer);
+	public ResultConsumerLoader<K, OUT> resultConsumer(ResultConsumer<K,OUT> consumer);
 
 	/**
 	 * Gets the collector size.
@@ -146,7 +148,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @param scrapConsumer the scrap consumer
 	 * @return the scrap consumer loader
 	 */
-	public ScrapConsumerLoader<K> scrapConsumer(Consumer<ScrapBin<K, ?>> scrapConsumer);
+	public ScrapConsumerLoader<K> scrapConsumer(ScrapConsumer<K,?> scrapConsumer);
 	
 	/**
 	 * Stop.

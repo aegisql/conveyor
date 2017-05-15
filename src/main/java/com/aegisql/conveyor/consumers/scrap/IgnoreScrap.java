@@ -1,7 +1,5 @@
 package com.aegisql.conveyor.consumers.scrap;
 
-import java.util.function.Consumer;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
 
@@ -11,13 +9,13 @@ import com.aegisql.conveyor.ScrapBin;
  *
  * @param <K> the key type
  */
-public class IgnoreScrap<K> implements Consumer<ScrapBin<K,?>>{
+public class IgnoreScrap<K> implements ScrapConsumer<K,Object>{
 
 	/* (non-Javadoc)
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<K, ?> t) {
+	public void accept(ScrapBin<K, Object> t) {
 		//Ignore
 	}
 

@@ -2,11 +2,11 @@ package com.aegisql.conveyor.loaders;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.FutureCart;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -18,7 +18,7 @@ public final class ScrapConsumerLoader<K> {
 
 	
 	/** The cart future consumer. */
-	protected final Consumer<ScrapBin<?, Cart<K,?,?>>> CART_FUTURE_CONSUMER = scrapBin -> {
+	protected final ScrapConsumer<K, Cart<K,?,?>> CART_FUTURE_CONSUMER = scrapBin -> {
 		if(scrapBin.scrap == null) {
 			return;
 		}
@@ -31,7 +31,7 @@ public final class ScrapConsumerLoader<K> {
 	};
 
 	/** The future consumer. */
-	protected final Consumer<ScrapBin<?, FutureCart<K,?,?>>> FUTURE_CONSUMER = scrapBin -> {
+	protected final ScrapConsumer<K, FutureCart<K,?,?>> FUTURE_CONSUMER = scrapBin -> {
 		if(scrapBin.scrap == null) {
 			return;
 		}
@@ -44,12 +44,12 @@ public final class ScrapConsumerLoader<K> {
 	};
 	
 	/** The cart consumer. */
-	protected final Consumer<ScrapBin<K, ?>> CART_CONSUMER = scrapBin -> {
+	protected final ScrapConsumer<K,?> CART_CONSUMER = scrapBin -> {
 		if(scrapBin.scrap instanceof Cart) {
 			Cart<K,?,?> c = (Cart<K,?,?>)scrapBin.scrap;
-			CART_FUTURE_CONSUMER.accept((ScrapBin<?, Cart<K, ?, ?>>) scrapBin);
+			CART_FUTURE_CONSUMER.accept((ScrapBin)scrapBin);
 			if( c instanceof FutureCart ) {
-				FUTURE_CONSUMER.accept((ScrapBin<?, FutureCart<K, ?, ?>>) scrapBin);
+				FUTURE_CONSUMER.accept((ScrapBin)scrapBin);
 			}
 		}
 	};
@@ -57,7 +57,7 @@ public final class ScrapConsumerLoader<K> {
 	//public final K key;
 	
 	/** The consumer. */
-	public final Consumer<ScrapBin<K,?>> consumer;
+	public final ScrapConsumer<K,?> consumer;
 	
 	//public final Function<ScrapConsumerLoader<K>,CompletableFuture<Boolean>> placer;
 	
@@ -70,7 +70,7 @@ public final class ScrapConsumerLoader<K> {
 	/** The ttl msec. */
 	//public final long ttlMsec;
 	
-	private final Consumer<Consumer<ScrapBin<K,?>>> globalPlacer;
+	private final Consumer<ScrapConsumer<K,?>> globalPlacer;
 	
 	//public final Predicate<K> filter;
 	
@@ -96,12 +96,12 @@ public final class ScrapConsumerLoader<K> {
 	 */
 	public ScrapConsumerLoader(
 			//Function<ScrapConsumerLoader<K>,CompletableFuture<Boolean>> placer, 
-			Consumer<Consumer<ScrapBin<K,?>>> globalPlacer,
+			Consumer<ScrapConsumer<K,?>> globalPlacer,
 			//long creationTime,
 			//long expirationTime,
 			//long ttlMsec,
 			//K key, 
-			Consumer<ScrapBin<K,?> > consumer
+			ScrapConsumer<K,?> consumer
 			//Predicate<K> filter 
 			) {
 		//this.placer         = placer;
@@ -167,7 +167,7 @@ public final class ScrapConsumerLoader<K> {
  * @param consumer the consumer
  * @return the scrap consumer loader
  */
-public ScrapConsumerLoader<K> first(Consumer<ScrapBin<K,?> > consumer) {
+public ScrapConsumerLoader<K> first(ScrapConsumer<K,?> consumer) {
 		return new ScrapConsumerLoader<>(
 				//this.placer,
 				this.globalPlacer,
@@ -175,7 +175,7 @@ public ScrapConsumerLoader<K> first(Consumer<ScrapBin<K,?> > consumer) {
 				//this.expirationTime,
 				//this.ttlMsec,
 				//this.key,
-				CART_CONSUMER.andThen( consumer ) //first take care about futures
+				CART_CONSUMER.andThen( (ScrapConsumer) consumer ) //first take care about futures
 				//filter
 				);
 	}
@@ -228,7 +228,7 @@ public ScrapConsumerLoader<K> first(Consumer<ScrapBin<K,?> > consumer) {
  * @param consumer the consumer
  * @return the scrap consumer loader
  */
-public ScrapConsumerLoader<K> andThen(Consumer<ScrapBin<K,?> > consumer) {
+public ScrapConsumerLoader<K> andThen(ScrapConsumer<K,?> consumer) {
 		return new ScrapConsumerLoader<>(
 				//this.placer,
 				this.globalPlacer,
@@ -236,7 +236,7 @@ public ScrapConsumerLoader<K> andThen(Consumer<ScrapBin<K,?> > consumer) {
 				//this.expirationTime,
 				//this.ttlMsec,
 				//this.key,
-				this.consumer != null ? this.consumer.andThen(consumer) : CART_CONSUMER.andThen( consumer )
+				this.consumer != null ? this.consumer.andThen((ScrapConsumer) consumer) : CART_CONSUMER.andThen( (ScrapConsumer) consumer )
 				//,this.filter
 				);
 	}

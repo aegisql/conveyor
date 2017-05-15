@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import com.aegisql.conveyor.Conveyor;
@@ -19,7 +18,7 @@ import com.aegisql.conveyor.ScrapBin;
  *
  * @param <K> the key type
  */
-public class PrintStreamScrap<K> implements Consumer<ScrapBin<K,?>>, Closeable {
+public class PrintStreamScrap<K> implements ScrapConsumer<K,Object>, Closeable {
 
 	/** The os. */
 	private final PrintStream os;
@@ -52,7 +51,7 @@ public class PrintStreamScrap<K> implements Consumer<ScrapBin<K,?>>, Closeable {
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
 	@Override
-	public void accept(ScrapBin<K, ?> bin) {
+	public void accept(ScrapBin<K, Object> bin) {
 		os.println(toString.apply(bin.scrap));
 		os.flush();
 	}

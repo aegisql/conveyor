@@ -41,6 +41,8 @@ import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.StaticCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.loaders.BuilderLoader;
 import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.loaders.FutureLoader;
@@ -120,9 +122,9 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	};
 	
 	/** The result consumer. */
-	protected Consumer<ProductBin<K, OUT>> resultConsumer = null;
+	protected ResultConsumer <K,OUT> resultConsumer = null;
 
-	private Consumer<ScrapBin<K, ?>> scrapConsumer = null;
+	private ScrapConsumer<K,?> scrapConsumer = null;
 	
 	/**
 	 * Instantiates a new parallel conveyor.
@@ -774,7 +776,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	}
 	
 	@Override
-	public ResultConsumerLoader<K, OUT> resultConsumer(Consumer<ProductBin<K, OUT>> consumer) {
+	public ResultConsumerLoader<K, OUT> resultConsumer(ResultConsumer<K,OUT> consumer) {
 		return this.resultConsumer().first(consumer);
 	}
 	
@@ -790,7 +792,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	}
 
 	@Override
-	public ScrapConsumerLoader<K> scrapConsumer(Consumer<ScrapBin<K, ?>> scrapConsumer) {
+	public ScrapConsumerLoader<K> scrapConsumer(ScrapConsumer<K,?> scrapConsumer) {
 		return scrapConsumer().first(scrapConsumer);
 	}
 
