@@ -4,16 +4,15 @@ Asynchronous Builder Framework
 [Tutorial](https://github.com/aegisql/conveyor/wiki)
 
 Maven dependency
-New Version
 ```xml
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor</artifactId>
-  <version>1.3.0</version>
+  <version>1.3.1</version>
 </dependency>
 ```
 
-Stable version
+Previous Stable version
 ```xml
 <dependency>
   <groupId>com.aegisql</groupId>
