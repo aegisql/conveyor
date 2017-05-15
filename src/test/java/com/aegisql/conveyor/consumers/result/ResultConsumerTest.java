@@ -1,16 +1,16 @@
 package com.aegisql.conveyor.consumers.result;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
@@ -66,6 +66,56 @@ public class ResultConsumerTest {
 		assertNotNull(usr.get());
 	}
 
+	
+	@Test
+	public void testAsynchResultConsumers() throws InterruptedException, ExecutionException {
+		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
+		sc.setBuilderSupplier(StringToUserBuulder::new);
+		AtomicReference<User> usr = new AtomicReference<User>(null);
+		AtomicLong threadId = new AtomicLong();
+		CompletableFuture<Object> f = new CompletableFuture<Object>();
+		sc.resultConsumer().first(LogResult.info(sc,"UnitTestLogger").andThen(b->{
+			usr.set(b.product);
+			threadId.set(Thread.currentThread().getId());
+			f.complete(null);
+		}).async()).set();
+		sc.scrapConsumer(LogScrap.error(sc,"UnitTestLogger")).set();
+		String csv = "John,Dow,1990";
+		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
+		CompletableFuture<Boolean> cf = sc.part().id("test").value(csv).place();
+		cf.get();
+		f.get();
+		assertNotNull(usr.get());
+		assertFalse(Thread.currentThread().getId() == threadId.get() );
+		System.out.println("Current: "+Thread.currentThread().getId()+" consumer's: "+threadId);
+	}
+
+	@Test
+	public void testAsynchScrapConsumers() throws InterruptedException, ExecutionException {
+		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
+		sc.setBuilderSupplier(StringToUserBuulder::new);
+		AtomicReference<User> usr = new AtomicReference<User>(null);
+		AtomicLong threadId = new AtomicLong();
+		CompletableFuture<Object> f = new CompletableFuture<Object>();
+		sc.resultConsumer().first(LogResult.info(sc,"UnitTestLogger").andThen(b->{
+			usr.set(b.product);
+		})).set();
+		sc.scrapConsumer(LogScrap.error(sc,"UnitTestLogger").andThen(s->{
+			threadId.set(Thread.currentThread().getId());
+			f.complete(null);
+		}).async()).set();
+		String csv = "John,Dow,1990";
+		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
+		CompletableFuture<Boolean> cf = sc.part().id("test").value(csv).place();
+		cf.get();
+		f.get();
+		assertNotNull(usr.get());
+		assertFalse(Thread.currentThread().getId() == threadId.get() );
+		System.out.println("Current: "+Thread.currentThread().getId()+" consumer's: "+threadId);
+	}
+
+	
+	
 	@Test
 	public void testCountConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
