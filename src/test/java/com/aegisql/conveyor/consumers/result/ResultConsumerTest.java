@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.BuildingSite.Status;
 import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.consumers.scrap.FirstScraps;
 import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
@@ -306,4 +307,20 @@ public class ResultConsumerTest {
 		System.out.println(new String(bos.toByteArray()));
 	}
 
+	@Test
+	public void demoTest() {
+		ResultConsumer<Integer, String> rc = bin->{
+			System.out.println("key="+bin.key);
+		};
+		rc = rc.andThen(bin->{
+			System.out.println("product="+bin.product);
+		});
+		ResultCounter<Integer, String> counter = new ResultCounter<>();
+		rc = rc.andThen(counter);
+		rc = rc.filterStatus(status->status.equals(Status.TIMED_OUT));
+		
+		
+		
+	}
+	
 }
