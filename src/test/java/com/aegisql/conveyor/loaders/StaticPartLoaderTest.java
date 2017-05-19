@@ -30,7 +30,7 @@ public class StaticPartLoaderTest {
 		assertFalse(spl2.create);
 		assertEquals("L", spl2.label);
 
-		StaticPartLoader spl3 = spl2.create();
+		StaticPartLoader spl3 = spl2.value(1);
 		assertNotNull(spl3);
 		assertTrue(spl3.create);
 		assertEquals("L", spl3.label);

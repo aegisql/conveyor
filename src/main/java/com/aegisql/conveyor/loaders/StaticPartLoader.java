@@ -63,15 +63,6 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	}
 
 	/**
-	 * Foreach.
-	 *
-	 * @return the part loader
-	 */
-	public StaticPartLoader<L,V,OUT,F> create() {
-		return new StaticPartLoader<L,V,OUT,F>(placer,label,staticPartValue,true);
-	}
-
-	/**
 	 * Label.
 	 *
 	 * @param l the l
@@ -89,7 +80,7 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public<X> StaticPartLoader<L,X,OUT,F> value(X v) {
-		return new StaticPartLoader<L,X,OUT,F>(placer,label,v,create);
+		return new StaticPartLoader<L,X,OUT,F>(placer,label,v,true);
 	}
 
 	/**

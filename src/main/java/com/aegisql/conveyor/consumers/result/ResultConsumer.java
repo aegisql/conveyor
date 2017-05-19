@@ -116,5 +116,5 @@ public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 	default ResultConsumer<K,V> async() {
 		return async(ForkJoinPool.commonPool());
 	}
-	
+
 }
