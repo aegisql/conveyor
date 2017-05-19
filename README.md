@@ -38,6 +38,8 @@ Previous Stable version
 * Added new and improved old result and scrap consumers
 * More tests and bugfixes  
 
+*** 
+
 ### 1.2.5
 * Collection of result consumers
 * Collection of scrap consumers
@@ -72,6 +74,8 @@ Previous Stable version
 * Changes in Cart interface
 * Loaders for parts, commands, futures and builds
 * Bugfixes and improvements 
+
+*** 
 
 ### 1.1.9
 * More interface extensions
@@ -115,6 +119,8 @@ Previous Stable version
 * Interface improvements
 * ParallelConveyor becomes abstract and replaced by a pair of K and L balanced conveyors 
 * Bugfixes for 1.0.x
+
+*** 
 
 ### 1.0.16
 * bugfix
