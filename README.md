@@ -7,8 +7,8 @@ Maven dependency
 ```xml
 <dependency>
   <groupId>com.aegisql</groupId>
-  <artifactId>conveyor</artifactId>
-  <version>1.3.1</version>
+  <artifactId>conveyor-core</artifactId>
+  <version>1.3.2</version>
 </dependency>
 ```
 
@@ -23,7 +23,10 @@ Previous Stable version
 
 ## Release History
 
-### 1.3.2-SNAPSHOT
+### 1.3.3-SNAPSHOT
+
+### 1.3.1
+* No code changes. Changed project structure. All current code moved into the conveyor-core module 
 
 ### 1.3.1
 * Added functional Interfaces ResultConsumer and ScrapConsumer with default methods extending standard Consumer interface.
