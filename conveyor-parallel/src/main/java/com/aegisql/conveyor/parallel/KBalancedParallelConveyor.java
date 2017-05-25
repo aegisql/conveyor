@@ -1,11 +1,10 @@
 /* 
  * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
  */
-package com.aegisql.conveyor.utils.parallel;
+package com.aegisql.conveyor.parallel;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -16,14 +15,11 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
-import com.aegisql.conveyor.loaders.ResultConsumerLoader;
-import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
 
 // TODO: Auto-generated Javadoc
 /**

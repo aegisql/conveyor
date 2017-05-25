@@ -1,13 +1,14 @@
 package com.aegisql.conveyor.loaders;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -15,14 +16,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ProductBin;
-import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
-import com.aegisql.conveyor.multichannel.UserBuilder;
-import com.aegisql.conveyor.multichannel.UserBuilderEvents;
-import com.aegisql.conveyor.user.User;
 
 public class ResultConsumerLoaderTest {
 
@@ -182,127 +176,6 @@ public class ResultConsumerLoaderTest {
 		
 	}
 
-	@Test
-	public void testWithConveyor() throws InterruptedException, ExecutionException {
-		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
-		c.setName("multyKeyParts");
-		c.setBuilderSupplier(UserBuilder::new);
-		c.resultConsumer().first(LogResult.stdOut(c)).andThen(bin->{
-			System.out.println("-----");
-		}).set();
-		c.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
-		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
-		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
-		
-		
-		c.part().id(1).label(UserBuilderEvents.SET_FIRST).value("A").place();
-		c.part().id(1).label(UserBuilderEvents.SET_LAST).value("B").place();
-		c.part().id(1).label(UserBuilderEvents.SET_YEAR).value(2017).place();
-		c.completeAndStop().get();
-		
-		
-	}
-
-	@Test
-	public void testWithConveyorAndId() throws InterruptedException, ExecutionException {
-		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
-		c.setName("multyKeyParts");
-		c.setBuilderSupplier(UserBuilder::new);
-		c.resultConsumer().first(LogResult.stdOut(c)).andThen(bin->{
-			System.out.println("-----");
-		}).set();
-		c.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
-		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
-		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
-		
-		CompletableFuture<User> f = c.build().id(1).createFuture();
-		
-		c.resultConsumer().id(1).first(LogResult.stdErr(c)).andThen(bin->{
-			System.err.println("+++++");
-		}).set();
-		
-		c.part().id(1).label(UserBuilderEvents.SET_FIRST).value("A").place();
-		c.part().id(2).label(UserBuilderEvents.SET_FIRST).value("A2").place();
-		c.part().id(1).label(UserBuilderEvents.SET_LAST).value("B").place();
-		c.part().id(2).label(UserBuilderEvents.SET_LAST).value("B2").place();
-		c.part().id(1).label(UserBuilderEvents.SET_YEAR).value(2017).place();
-		c.part().id(2).label(UserBuilderEvents.SET_YEAR).value(2007).place();
-		
-		User u = f.get();
-		assertNotNull(u);
-		
-		c.completeAndStop().get();
-		
-		
-	}
-
-	@Test
-	public void testWithConveyorForeach() throws InterruptedException, ExecutionException {
-		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
-		c.setName("multyKeyParts");
-		c.setBuilderSupplier(UserBuilder::new);
-		c.resultConsumer().first(LogResult.stdOut(c)).andThen(bin->{
-			System.out.println("-----");
-		}).set();
-		c.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
-		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
-		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
-		
-		CompletableFuture<User> f = c.build().id(1).createFuture();
-		
-		
-		c.part().id(1).label(UserBuilderEvents.SET_FIRST).value("A").place();
-		c.part().id(2).label(UserBuilderEvents.SET_FIRST).value("A2").place();
-
-		c.resultConsumer().foreach().first(LogResult.stdErr(c)).andThen(bin->{
-			System.err.println("+++++");
-		}).set();
-
-		c.part().id(1).label(UserBuilderEvents.SET_LAST).value("B").place();
-		c.part().id(2).label(UserBuilderEvents.SET_LAST).value("B2").place();
-		c.part().id(1).label(UserBuilderEvents.SET_YEAR).value(2017).place();
-		c.part().id(2).label(UserBuilderEvents.SET_YEAR).value(2007).place();
-		
-		User u = f.get();
-		assertNotNull(u);
-		
-		c.completeAndStop().get();
-		
-	}
-
-	@Test
-	public void testWithConveyorFilter() throws InterruptedException, ExecutionException {
-		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
-		c.setName("multyKeyParts");
-		c.setBuilderSupplier(UserBuilder::new);
-		c.resultConsumer().first(LogResult.stdOut(c)).andThen(bin->{
-			System.out.println("-----");
-		}).set();
-		c.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
-		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
-		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
-		
-		CompletableFuture<User> f = c.build().id(1).createFuture();
-		
-		
-		c.part().id(1).label(UserBuilderEvents.SET_FIRST).value("A").place();
-		c.part().id(2).label(UserBuilderEvents.SET_FIRST).value("A2").place();
-
-		c.resultConsumer().foreach(k->k%2==0).first(LogResult.stdErr(c)).andThen(bin->{
-			System.err.println("+++++");
-		}).set();
-
-		c.part().id(1).label(UserBuilderEvents.SET_LAST).value("B").place();
-		c.part().id(2).label(UserBuilderEvents.SET_LAST).value("B2").place();
-		c.part().id(1).label(UserBuilderEvents.SET_YEAR).value(2017).place();
-		c.part().id(2).label(UserBuilderEvents.SET_YEAR).value(2007).place();
-		
-		User u = f.get();
-		assertNotNull(u);
-		
-		c.completeAndStop().get();
-		
-	}
 
 	
 }

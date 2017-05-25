@@ -19,9 +19,9 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
+import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
+import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.utils.parallel.KBalancedParallelConveyor;
-import com.aegisql.conveyor.utils.parallel.LBalancedParallelConveyor;
 
 // TODO: Auto-generated Javadoc
 /**

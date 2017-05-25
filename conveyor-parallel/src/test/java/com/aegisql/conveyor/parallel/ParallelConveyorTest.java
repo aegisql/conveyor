@@ -1,7 +1,7 @@
 /* 
  * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
  */
-package com.aegisql.conveyor;
+package com.aegisql.conveyor.parallel;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -10,16 +10,12 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -35,8 +31,6 @@ import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.loaders.CommandLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
-import com.aegisql.conveyor.utils.parallel.KBalancedParallelConveyor;
-import com.aegisql.conveyor.utils.parallel.ParallelConveyor;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 

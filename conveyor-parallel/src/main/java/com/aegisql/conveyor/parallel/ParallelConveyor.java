@@ -1,7 +1,7 @@
 /* 
  * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
  */
-package com.aegisql.conveyor.utils.parallel;
+package com.aegisql.conveyor.parallel;
 
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
@@ -29,7 +29,6 @@ import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
-import com.aegisql.conveyor.ParallelConveyorMBean;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.cart.Cart;

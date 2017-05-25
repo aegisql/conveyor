@@ -17,8 +17,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
-import com.aegisql.conveyor.multichannel.UserBuilder;
 import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.user.UserBuilder;
 
 // TODO: Auto-generated Javadoc
 /**

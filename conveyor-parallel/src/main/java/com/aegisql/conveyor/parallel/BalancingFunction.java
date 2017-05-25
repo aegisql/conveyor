@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.utils.parallel;
+package com.aegisql.conveyor.parallel;
 
 // TODO: Auto-generated Javadoc
 /**
