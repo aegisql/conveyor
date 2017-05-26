@@ -24,6 +24,7 @@ Previous Stable version
 ## Release History
 
 ### 1.3.3-SNAPSHOT
+* Extracted Parallel conveyors into a separate module
 
 ### 1.3.1
 * No code changes. Changed project structure. All current code moved into the conveyor-core module 
