@@ -76,6 +76,10 @@ public class BatchCollectingBuilder<T> extends CommonBuilder<List<T>> implements
 		builder.batch.add(value);
 	}
 
+	public static <T> void complete(BatchCollectingBuilder<T> builder, BatchConveyor.BatchComplete value) {
+		builder.ready = true;
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.utils.CommonBuilder#test()
 	 */

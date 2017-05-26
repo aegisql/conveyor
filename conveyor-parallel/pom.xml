@@ -22,4 +22,9 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
+  <organization>
+  	<name>AEGIS DATA SOLUTIONS, LLC</name>
+  	<url>http://www.aegisql.com</url>
+  </organization>
+  <description>Implementation of Parallel Conveyor interface</description>
 </project>

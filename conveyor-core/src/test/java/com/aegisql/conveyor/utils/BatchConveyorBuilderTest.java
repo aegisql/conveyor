@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -115,6 +116,33 @@ public class BatchConveyorBuilderTest {
 		System.out.println("IN :"+b.getInputQueueSize());
 		assertEquals(0,b.getCollectorSize());
 		assertEquals(0,b.getDelayedQueueSize());
+		assertEquals(0,b.getInputQueueSize());
+	}
+
+	
+	@Test
+	public void testBatchConveyorComplete() throws InterruptedException, ExecutionException {
+
+		BatchConveyor<Integer> b = new BatchConveyor<>();
+				
+		ResultQueue<String, List<Integer>> lq = ResultQueue.of(b);
+		ScrapQueue<String> ls = ScrapQueue.of(b);
+		
+		b.setBuilderSupplier( () -> new BatchCollectingBuilder<>(10, 50, TimeUnit.MILLISECONDS) );
+		b.scrapConsumer(ls).set();
+		b.resultConsumer(lq).andThen(LogResult.stdOut(b)).set();
+		b.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
+		for(int i = 0; i < 102; i++) {
+			b.part().value(i).place();
+		}
+		b.completeBatch().get();
+		assertEquals(11,lq.size());
+		assertEquals(0,ls.size());
+		System.out.println(lq);
+		System.out.println("COL:"+b.getCollectorSize());
+		System.out.println("DEL:"+b.getDelayedQueueSize());
+		System.out.println("IN :"+b.getInputQueueSize());
+		assertEquals(0,b.getCollectorSize());
 		assertEquals(0,b.getInputQueueSize());
 	}
 
