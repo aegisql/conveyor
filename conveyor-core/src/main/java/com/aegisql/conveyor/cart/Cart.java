@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.cart;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import com.aegisql.conveyor.Expireable;
@@ -60,7 +61,47 @@ public interface Cart <K,V,L> extends Expireable, Serializable {
 	 */
 	public CompletableFuture<Boolean> getFuture();
 	
+	/**
+	 * Gets the scrap consumer.
+	 *
+	 * @return the scrap consumer
+	 */
 	public ScrapConsumer<K,Cart<K,V,L>> getScrapConsumer();
+	
+	/**
+	 * Adds the serializable property.
+	 *
+	 * @param <X> the generic type
+	 * @param name the name
+	 * @param property the property
+	 */
+	public <X> void addProperty(String name, X property);
+	
+	/**
+	 * Gets the property.
+	 *
+	 * @param <X> the generic type
+	 * @param name the name
+	 * @param cls the cls
+	 * @return the property
+	 */
+	public <X> X getProperty(String name, Class<X> cls); 
+
+	/**
+	 * Gets the all properties.
+	 *
+	 * @return the all properties
+	 */
+	public Map<String,Object> getAllProperties(); 
+
+	
+	/**
+	 * Clear property.
+	 *
+	 * @param name the name
+	 */
+	public void clearProperty(String name);
+	
 	
 	/**
 	 * copy().

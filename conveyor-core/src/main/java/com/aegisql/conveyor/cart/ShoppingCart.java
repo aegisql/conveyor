@@ -67,7 +67,9 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	 */
 	@Override
 	public Cart <K,V,L> copy() {
-		return new ShoppingCart<K,V,L>(getKey(), getValue(), getLabel(),getCreationTime(),getExpirationTime());
+		ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(getKey(), getValue(), getLabel(),getCreationTime(),getExpirationTime());
+		cart.putAllProperties(this.getAllProperties());
+		return cart;
 	}
 	
 }

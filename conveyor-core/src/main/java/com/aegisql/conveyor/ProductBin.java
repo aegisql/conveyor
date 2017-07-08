@@ -3,6 +3,8 @@
  */
 package com.aegisql.conveyor;
 
+import java.util.Map;
+
 import com.aegisql.conveyor.BuildingSite.Status;
 
 // TODO: Auto-generated Javadoc
@@ -26,6 +28,8 @@ public final class ProductBin<K,OUT> {
 	/** The status. */
 	public final Status status;
 	
+	public final Map<String,Object> properties;
+	
 	
 	/**
 	 * Instantiates a new product bin.
@@ -35,12 +39,13 @@ public final class ProductBin<K,OUT> {
 	 * @param remainingDelayMsec the remaining delay msec
 	 * @param status the status
 	 */
-	public ProductBin(K key, OUT product, long remainingDelayMsec, Status status) {
+	public ProductBin(K key, OUT product, long remainingDelayMsec, Status status, Map<String,Object> properties) {
 		super();
 		this.key = key;
 		this.product = product;
 		this.remainingDelayMsec = remainingDelayMsec;
 		this.status = status;
+		this.properties = properties;
 	}
 
 

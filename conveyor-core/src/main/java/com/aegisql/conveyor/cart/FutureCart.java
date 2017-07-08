@@ -49,7 +49,9 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 	 */
 	@Override
 	public Cart<K, CompletableFuture<B>, L> copy() {
-		return new FutureCart<K, B, L>(getKey(), getValue(), getExpirationTime());
+		FutureCart<K, B, L> cart = new FutureCart<K, B, L>(getKey(), getValue(), getExpirationTime());
+		cart.putAllProperties(this.getAllProperties());
+		return cart;
 	}
 
 	@Override

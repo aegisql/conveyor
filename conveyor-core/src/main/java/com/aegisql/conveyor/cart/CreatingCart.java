@@ -46,7 +46,9 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	@Override
 	public Cart<K,BuilderSupplier<B>,L> copy() {
-		return new CreatingCart<K,B,L>(getKey(),getValue(),getCreationTime(), getExpirationTime());
+		CreatingCart<K,B,L> cart =  new CreatingCart<K,B,L>(getKey(),getValue(),getCreationTime(), getExpirationTime());
+		cart.putAllProperties(this.getAllProperties());
+		return cart;
 	}
 
 	@Override

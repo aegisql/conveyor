@@ -60,11 +60,15 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 	 */
 	@Override
 	public Cart <K,V,L> copy() {
-		return new MultiKeyCart<K,V,L>(getValue(), getLabel(),getCreationTime(),getExpirationTime());
+		MultiKeyCart<K,V,L> cart = new MultiKeyCart<K,V,L>(getValue(), getLabel(),getCreationTime(),getExpirationTime());
+		cart.putAllProperties(this.getAllProperties());
+		return cart;
 	}
 
 	public ShoppingCart<K, V, L> toShoppingCart(K key) {
-		return new ShoppingCart<K,V,L>(key, getValue(), getLabel(),getExpirationTime());
+		ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue(), getLabel(),getExpirationTime());
+		cart.putAllProperties(this.getAllProperties());
+		return cart;
 	}
 	
 	@Override

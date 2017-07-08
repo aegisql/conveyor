@@ -65,11 +65,15 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	 */
 	@Override
 	public Cart<K, V, CommandLabel> copy() {
+		GeneralCommand<K, V> cart;
 		if(getKey() != null) {
-			return new GeneralCommand<K, V>(getKey(), getValue(), getLabel(),getCreationTime(),getExpirationTime());
+			cart = new GeneralCommand<K, V>(getKey(), getValue(), getLabel(),getCreationTime(),getExpirationTime());
 		} else {
-			return new GeneralCommand<K, V>(getFilter(), getValue(), getLabel(),getCreationTime(),getExpirationTime());
+			cart = new GeneralCommand<K, V>(getFilter(), getValue(), getLabel(),getCreationTime(),getExpirationTime());
 		}
+		cart.putAllProperties(this.getAllProperties());
+		return cart;
+
 	}
 
 	public Predicate<K> getFilter() {

@@ -37,7 +37,9 @@ public class ResultConsumerCart<K, B, L> extends AbstractCart<K, ResultConsumer 
 	 */
 	@Override
 	public Cart<K,ResultConsumer <K,B>, L> copy() {
-		return new ResultConsumerCart<K,B,L>(getKey(),getValue(),getCreationTime(), getExpirationTime());
+		ResultConsumerCart<K,B,L> cart =  new ResultConsumerCart<K,B,L>(getKey(),getValue(),getCreationTime(), getExpirationTime());
+		cart.putAllProperties(this.getAllProperties());
+		return cart;
 	}
 
 }

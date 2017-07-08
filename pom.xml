@@ -159,5 +159,6 @@
 	<modules>
 		<module>conveyor-core</module>
 		<module>conveyor-parallel</module>
+		<module>conveyor-persistence</module>
 	</modules>
 </project>

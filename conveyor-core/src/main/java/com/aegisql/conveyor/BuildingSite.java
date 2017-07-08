@@ -5,6 +5,7 @@ package com.aegisql.conveyor;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,6 +130,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	
 	/** The event history. */
 	private final Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>();
+	
+	private final Map<String,Object> properties = new HashMap<>();
 	
 	/** The delay keeper. */
 	//Delayed delayKeeper;
@@ -574,7 +577,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param value the value
 	 */
 	void completeWithValue(OUT value, Status status) {
-		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status) );
+		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status , getProperties()) );
 	}
 	
 	void setResultConsumer(ResultConsumer<K,OUT> resultConsumer) {
@@ -674,6 +677,19 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 */
 	public Consumer<Supplier<? extends OUT>> getTimeoutAction() {
 		return timeoutAction;
+	}
+
+	/**
+	 * Gets the properties.
+	 *
+	 * @return the properties
+	 */
+	public Map<String,Object> getProperties() {
+		return Collections.unmodifiableMap(properties);
+	}
+
+	public void setProperties(Map<String,Object> properties) {
+		this.properties.putAll(properties);
 	}
 		
 }

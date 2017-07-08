@@ -5,6 +5,9 @@ package com.aegisql.conveyor.cart;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -45,6 +48,8 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 
 	/** The future. */
 	protected transient CompletableFuture<Boolean> future = null;
+	
+	protected final Map<String, Object> properties = new HashMap<>();
 	
 	/**
 	 * Instantiates a new cart.
@@ -241,5 +246,29 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 			}
 		};
 	}
+
+	@Override
+	public <X> void addProperty(String name, X property) {
+		properties.put(name, property);
+	}
+
+	@Override
+	public <X> X getProperty(String name, Class<X> cls) {
+		return (X) properties.get(name);
+	}
+
+	@Override
+	public Map<String,Object> getAllProperties() {
+		return Collections.unmodifiableMap(properties);
+	}
+	
+	protected void putAllProperties(Map<String,Object> other) {
+		properties.putAll(other);
+	}
+
+	@Override
+	public void clearProperty(String name) {
+		properties.remove(name);
+	}	
 	
 }
