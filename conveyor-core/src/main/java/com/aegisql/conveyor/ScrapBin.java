@@ -3,6 +3,8 @@
  */
 package com.aegisql.conveyor;
 
+import java.util.Map;
+
 // TODO: Add full State from the BuildingSite, if available, to the scrap 
 /**
  * The Class ScrapBin.
@@ -68,6 +70,8 @@ GENERAL_FAILURE
 	
 	/** The failure type. */
 	public final FailureType failureType;
+	
+	public final Map<String,Object> properties;
 
 	/**
 	 * Instantiates a new scrap bin.
@@ -78,12 +82,13 @@ GENERAL_FAILURE
 	 * @param error the error
 	 * @param type the type
 	 */
-	public ScrapBin(K key, O scrap, String comment, Throwable error, FailureType type) {
+	public ScrapBin(K key, O scrap, String comment, Throwable error, FailureType type, Map<String,Object> properties) {
 		this.key         = key;
 		this.comment     = comment;
 		this.scrap       = scrap;
 		this.error       = error;
 		this.failureType = type;
+		this.properties  = properties;
 	}
 
 	/* (non-Javadoc)
