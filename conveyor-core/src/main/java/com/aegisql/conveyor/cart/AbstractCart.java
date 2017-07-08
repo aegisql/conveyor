@@ -259,7 +259,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 
 	@Override
 	public Map<String,Object> getAllProperties() {
-		return Collections.unmodifiableMap(properties);
+		return properties;
 	}
 	
 	protected void putAllProperties(Map<String,Object> other) {

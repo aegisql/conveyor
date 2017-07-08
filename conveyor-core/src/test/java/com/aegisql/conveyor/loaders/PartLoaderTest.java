@@ -94,5 +94,32 @@ public class PartLoaderTest {
 	}
 
 	
+	@Test
+	public void testProperties() {
+		PartLoader pl0 = new PartLoader<>(
+				l->{
+					System.out.println("Final: "+l);
+					return new CompletableFuture();
+				}
+				);
+		System.out.println(pl0);
+		assertEquals(0, pl0.getAllProperties().size());
+		PartLoader pl1 = pl0.addProperty("A", 1);
+		System.out.println(pl1);
+		assertEquals(1, pl1.getAllProperties().size());
 
+		PartLoader pl2 = pl1.addProperty("B", "X");
+		System.out.println(pl2);
+		assertEquals(0, pl0.getAllProperties().size());
+		assertEquals(1, pl1.getAllProperties().size());
+		assertEquals(2, pl2.getAllProperties().size());
+
+		PartLoader pl31 = pl2.clearProperties();
+		assertEquals(0, pl31.getAllProperties().size());
+
+		PartLoader pl32 = pl2.clearProperty("A");
+		assertEquals(1, pl32.getAllProperties().size());
+
+	}
+	
 }

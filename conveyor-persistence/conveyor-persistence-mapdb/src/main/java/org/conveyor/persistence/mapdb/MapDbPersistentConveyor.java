@@ -250,7 +250,7 @@ public class MapDbPersistentConveyor<K,L,OUT> implements Conveyor<K,L,OUT> {
 			inQueue.put(nano, cart);
 		} catch( RuntimeException e) {
 			cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(
-					new ScrapBin(cart.getKey(), cart, e.getMessage(), e, FailureType.CART_REJECTED));
+					new ScrapBin(cart.getKey(), cart, e.getMessage(), e, FailureType.CART_REJECTED,cart.getAllProperties()));
 		} finally {
 			lock.tell();
 		}

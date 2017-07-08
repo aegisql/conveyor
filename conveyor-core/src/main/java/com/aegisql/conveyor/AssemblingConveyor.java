@@ -618,12 +618,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
 		return new PartLoader<K, L, X, OUT, Boolean>(cl -> {
-			
+			Cart <K, Object, L> cart;
 			if(cl.filter != null) {
-				return place(new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime));
+				cart = new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime);
 			} else {
-				return place(new ShoppingCart<K, Object, L>(cl.key, cl.partValue, cl.label,cl.creationTime ,cl.expirationTime));
+				cart = new ShoppingCart<K, Object, L>(cl.key, cl.partValue, cl.label,cl.creationTime ,cl.expirationTime);
 			}
+			cl.getAllProperties().forEach((k,v)->cart.addProperty(k, v));
+			return place(cart);
 		});
 	}
 

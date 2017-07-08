@@ -114,4 +114,26 @@ public class BuildingSiteTest {
 		assertEquals(0, bs.getAcceptedCarts().size());
 	}
 
+	@Test()
+	public void testProperties() throws InterruptedException {
+		ShoppingCart<Integer,String,String> c = new ShoppingCart<>(1,"v1","l",100,TimeUnit.MILLISECONDS);
+		c.addProperty("A", 1);
+		c.addProperty("B", "X");
+		BuildingSite<Integer, String, Cart<Integer,?,String>, User> bs = new BuildingSite<>
+		(
+				c, 
+				() -> { return new UserBuilder();},
+				(label,value,builder)-> { }, 
+				(state,builder)->{return true;}, 
+				null,
+				100, TimeUnit.MILLISECONDS,false,false,false,0,false,null,null);
+
+		bs.addProperties(c.getAllProperties());
+		
+		assertTrue(bs.getProperties().size() == 2);
+		assertTrue(bs.getProperties().containsKey("A"));
+		assertTrue(bs.getProperties().containsKey("B"));
+		
+	}
+
 }

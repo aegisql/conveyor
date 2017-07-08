@@ -685,7 +685,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @return the properties
 	 */
 	public Map<String,Object> getProperties() {
-		return Collections.unmodifiableMap(properties);
+		return properties;
 	}
 
 	public void addProperties(Map<String,Object> properties) {
