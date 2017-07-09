@@ -1,10 +1,12 @@
 package com.aegisql.conveyor.loaders;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -120,4 +122,32 @@ public class FutureLoaderTest {
 		assertNotNull(u);
 	}
 
+	@Test
+	public void propertiesTest() {
+		long current = System.currentTimeMillis();
+
+		FutureLoader pl0 = new FutureLoader<>(c->{
+			System.out.println("Final: "+c);
+			return new CompletableFuture();
+		});
+		
+		System.out.println(pl0);
+		assertEquals(0, pl0.getAllProperties().size());
+		FutureLoader pl1 = pl0.addProperty("A", 1);
+		System.out.println(pl1);
+		assertEquals(1, pl1.getAllProperties().size());
+
+		FutureLoader pl2 = pl1.addProperty("B", "X");
+		System.out.println(pl2);
+		assertEquals(0, pl0.getAllProperties().size());
+		assertEquals(1, pl1.getAllProperties().size());
+		assertEquals(2, pl2.getAllProperties().size());
+
+		FutureLoader pl31 = pl2.clearProperties();
+		assertEquals(0, pl31.getAllProperties().size());
+
+		FutureLoader pl32 = pl2.clearProperty("A");
+		assertEquals(1, pl32.getAllProperties().size());
+
+	}
 }

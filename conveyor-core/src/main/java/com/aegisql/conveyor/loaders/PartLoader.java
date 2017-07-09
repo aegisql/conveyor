@@ -60,7 +60,16 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param value the value
 	 * @param filter the filter
 	 */
-	private PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, long creationTime, long expirationTime, long ttlMsec, K key, L label, V value,Predicate<K> filter, Map<String,Object> properties) {
+	private PartLoader(
+			Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, 
+			long creationTime, 
+			long expirationTime, 
+			long ttlMsec, 
+			K key, 
+			L label, 
+			V value,
+			Predicate<K> filter, 
+			Map<String,Object> properties) {
 		this.placer         = placer;
 		this.creationTime   = creationTime;
 		this.expirationTime = expirationTime;
@@ -84,7 +93,16 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param filter the filter
 	 * @param dumb the dumb
 	 */
-	private PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, long creationTime, long ttl, K key, L label, V value, Predicate<K> filter, Map<String,Object> properties, boolean dumb) {
+	private PartLoader(
+			Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, 
+			long creationTime, 
+			long ttl, 
+			K key, 
+			L label, 
+			V value, 
+			Predicate<K> filter, 
+			Map<String,Object> properties, 
+			boolean dumb) {
 		this.placer         = placer;
 		this.creationTime   = creationTime;
 		this.expirationTime = creationTime + ttl;
@@ -102,7 +120,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param placer the placer
 	 */
 	public PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer) {
-		this(placer,System.currentTimeMillis(),0,0,null,null,null,null,new HashMap<>());
+		this(placer,System.currentTimeMillis(),0,0,null,null,null,null,Collections.EMPTY_MAP);
 	}
 	
 	/**
@@ -197,7 +215,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	}
 	
 	public PartLoader<K,L,V,OUT,F> clearProperties() {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,key,label,partValue,filter,new HashMap<>());
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,key,label,partValue,filter,Collections.EMPTY_MAP);
 	}
 
 	public PartLoader<K,L,V,OUT,F> clearProperty(String k) {

@@ -1,6 +1,8 @@
 package com.aegisql.conveyor.loaders;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -82,6 +84,39 @@ public class BuilderLoaderTest {
 		CompletableFuture<String> cf2 = cl2et.createFuture();
 		assertNotNull(cf2);
 		assertEquals("test",cf2.get());
+	}
+	
+	@Test
+	public void propertiesTest() {
+		BuilderLoader<Integer,String,Boolean> pl0 = new BuilderLoader<>(p->{
+			CompletableFuture<Boolean> cf = new CompletableFuture<Boolean>();
+			cf.complete(true);
+			return cf;
+		}, fp->{
+			CompletableFuture<String> cf = new CompletableFuture<String>();
+			cf.complete("test");
+			return cf;
+
+		});
+		System.out.println(pl0);
+		assertEquals(0, pl0.getAllProperties().size());
+		BuilderLoader pl1 = pl0.addProperty("A", 1);
+		System.out.println(pl1);
+		assertEquals(1, pl1.getAllProperties().size());
+
+		BuilderLoader pl2 = pl1.addProperty("B", "X");
+		System.out.println(pl2);
+		assertEquals(0, pl0.getAllProperties().size());
+		assertEquals(1, pl1.getAllProperties().size());
+		assertEquals(2, pl2.getAllProperties().size());
+
+		BuilderLoader pl31 = pl2.clearProperties();
+		assertEquals(0, pl31.getAllProperties().size());
+
+		BuilderLoader pl32 = pl2.clearProperty("A");
+		assertEquals(1, pl32.getAllProperties().size());
+
+
 	}
 
 }

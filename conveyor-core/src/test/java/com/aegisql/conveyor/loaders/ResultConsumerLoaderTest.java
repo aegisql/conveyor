@@ -176,6 +176,36 @@ public class ResultConsumerLoaderTest {
 		
 	}
 
+	@Test
+	public void propertiesLoader() {
+		long current = System.currentTimeMillis();
+		
+		ResultConsumerLoader<Integer, String> pl0 = new ResultConsumerLoader<>(rcl->{
+			System.out.println("For Key "+rcl);
+			return null;
+		}, this::consumer, bin->{
+			System.out.println("Default "+bin);
+			defaultInteger = 1;
+			defaultString  = "DEFAULT_1";
+		});
+		System.out.println(pl0);
+		assertEquals(0, pl0.getAllProperties().size());
+		ResultConsumerLoader<Integer, String> pl1 = pl0.addProperty("A", 1);
+		System.out.println(pl1);
+		assertEquals(1, pl1.getAllProperties().size());
 
+		ResultConsumerLoader<Integer, String> pl2 = pl1.addProperty("B", "X");
+		System.out.println(pl2);
+		assertEquals(0, pl0.getAllProperties().size());
+		assertEquals(1, pl1.getAllProperties().size());
+		assertEquals(2, pl2.getAllProperties().size());
+
+		ResultConsumerLoader<Integer, String> pl31 = pl2.clearProperties();
+		assertEquals(0, pl31.getAllProperties().size());
+
+		ResultConsumerLoader<Integer, String> pl32 = pl2.clearProperty("A");
+		assertEquals(1, pl32.getAllProperties().size());
+
+	}
 	
 }

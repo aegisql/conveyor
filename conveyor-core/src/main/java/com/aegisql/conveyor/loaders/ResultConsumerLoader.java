@@ -2,6 +2,9 @@ package com.aegisql.conveyor.loaders;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -43,6 +46,8 @@ public final class ResultConsumerLoader<K,OUT> {
 	/** The filter. */
 	public final Predicate<K> filter;
 	
+	private final Map<String,Object> properties = new HashMap<>();
+	
 	/**
 	 * Instantiates a new result consumer loader.
 	 *
@@ -55,7 +60,7 @@ public final class ResultConsumerLoader<K,OUT> {
 			Consumer<ResultConsumer <K,OUT>> globalPlacer,
 			ResultConsumer <K,OUT> consumer
 			) {
-		this(placer,globalPlacer,System.currentTimeMillis(),0,0,null,consumer,null);
+		this(placer,globalPlacer,System.currentTimeMillis(),0,0,null,consumer,null,Collections.EMPTY_MAP);
 	}
 
 	/**
@@ -78,7 +83,8 @@ public final class ResultConsumerLoader<K,OUT> {
 			long ttlMsec,
 			K key, 
 			ResultConsumer <K,OUT> consumer,
-			Predicate<K> filter ) {
+			Predicate<K> filter,
+			Map<String,Object> properties) {
 		this.placer         = placer;
 		this.globalPlacer   = globalPlacer;
 		this.consumer       = consumer;
@@ -87,6 +93,7 @@ public final class ResultConsumerLoader<K,OUT> {
 		this.expirationTime = expirationTime;
 		this.ttlMsec        = ttlMsec;
 		this.filter         = filter;
+		this.properties.putAll(properties);
 	}
 
 	/**
@@ -109,6 +116,7 @@ public final class ResultConsumerLoader<K,OUT> {
 			K key, 
 			ResultConsumer <K,OUT> consumer,
 			Predicate<K> filter,
+			Map<String,Object> properties,
 			boolean dumb) {
 		this.placer         = placer;
 		this.globalPlacer   = globalPlacer;
@@ -118,6 +126,7 @@ public final class ResultConsumerLoader<K,OUT> {
 		this.expirationTime = creationTime + ttlMsec;
 		this.ttlMsec        = ttlMsec;
 		this.filter         = filter;
+		this.properties.putAll(properties);
 	}
 
 	/**
@@ -135,7 +144,8 @@ public final class ResultConsumerLoader<K,OUT> {
 				this.ttlMsec,
 				k,
 				this.consumer,
-				null/*either key or filter*/);
+				null/*either key or filter*/
+				,properties);
 	}
 
 	/**
@@ -153,7 +163,8 @@ public final class ResultConsumerLoader<K,OUT> {
 				this.ttlMsec,
 				null/*either key or filter*/,
 				this.consumer,
-				f);
+				f,
+				properties);
 	}
 
 	/**
@@ -179,7 +190,9 @@ public final class ResultConsumerLoader<K,OUT> {
 				this.expirationTime,
 				this.ttlMsec,
 				this.key,
-				consumer,filter);
+				consumer,
+				filter,
+				properties);
 	}
 
 	/**
@@ -189,7 +202,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the part loader
 	 */
 	public ResultConsumerLoader<K,OUT>  expirationTime(long et) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,et,0,key,consumer,filter);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,et,0,key,consumer,filter,properties);
 	}
 	
 	/**
@@ -199,7 +212,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the part loader
 	 */
 	public ResultConsumerLoader<K,OUT>  expirationTime(Instant instant) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,instant.toEpochMilli(),0,key,consumer,filter);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,instant.toEpochMilli(),0,key,consumer,filter,properties);
 	}
 	
 	/**
@@ -210,7 +223,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the part loader
 	 */
 	public ResultConsumerLoader<K,OUT>  ttl(long time, TimeUnit unit) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer, creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,consumer,filter,true);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer, creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,consumer,filter,properties,true);
 	}
 	
 	/**
@@ -220,7 +233,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the part loader
 	 */
 	public ResultConsumerLoader<K,OUT>  ttl(Duration duration) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,duration.toMillis(),key,consumer,filter,true);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,duration.toMillis(),key,consumer,filter,properties,true);
 	}
 
 	
@@ -239,10 +252,45 @@ public final class ResultConsumerLoader<K,OUT> {
 				this.ttlMsec,
 				this.key,
 				this.consumer != null ? this.consumer.andThen(consumer) : consumer
-				,this.filter
+				,this.filter,
+				properties
 				);
 	}
 
+	public ResultConsumerLoader<K,OUT> clearProperties() {
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,Collections.EMPTY_MAP);
+	}
+
+	public ResultConsumerLoader<K,OUT> clearProperty(String k) {
+		Map<String,Object> newMap = new HashMap<>();
+		newMap.putAll(properties);
+		newMap.remove(k);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,newMap);
+	}
+
+	public ResultConsumerLoader<K,OUT> addProperty(String k, Object v) {
+		Map<String,Object> newMap = new HashMap<>();
+		newMap.putAll(properties);
+		newMap.put(k, v);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,newMap);
+	}
+
+	public ResultConsumerLoader<K,OUT> addProperties(Map<String,Object> moreProperties) {
+		Map<String,Object> newMap = new HashMap<>();
+		newMap.putAll(properties);
+		newMap.putAll(moreProperties);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,newMap);
+	}
+	
+	public <X> X getProperty(String key, Class<X> cls) {
+		return (X) properties.get(key);
+	}
+
+	public Map<String,Object> getAllProperties() {
+		return Collections.unmodifiableMap(properties);
+	}
+
+	
 	/**
 	 * Sets the.
 	 *
@@ -265,7 +313,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	@Override
 	public String toString() {
 		return "ResultConsumerLoader [" + (key==null?"default":"key="+key) + ", creationTime=" + creationTime + ", expirationTime="
-				+ expirationTime + ", ttlMsec=" + ttlMsec + "]";
+				+ expirationTime + ", ttlMsec=" + ttlMsec + ", properties=" + properties + "]";
 	}
 	
 	
