@@ -647,7 +647,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(bs == null) {
 				bs = builderSupplier;
 			}
-			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime);
+			final CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime);
+			cl.getAllProperties().forEach((k,v)->{cart.addProperty(k, v);});
 			return place(cart);
 		},
 		cl -> {
@@ -680,7 +681,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public FutureLoader<K, OUT> future() {
 		return new FutureLoader<K, OUT>(cl -> {
 			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-			FutureCart<K, OUT, L> cart = new FutureCart<K, OUT, L>(cl.key, future, cl.creationTime, cl.expirationTime);
+			final FutureCart<K, OUT, L> cart = new FutureCart<K, OUT, L>(cl.key, future, cl.creationTime, cl.expirationTime);
+			cl.getAllProperties().forEach((k,v)->{cart.addProperty(k, v);});
 			CompletableFuture<Boolean> cartFuture = this.place(cart);
 			if (cartFuture.isCancelled()) {
 				future.cancel(true);
@@ -724,7 +726,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public ResultConsumerLoader<K, OUT> resultConsumer() {
 		return new ResultConsumerLoader<>(rcl->{
-			Cart<K,?,L> cart = null;
+			final Cart<K,?,L> cart;
 			if(rcl.key != null) {
 				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime);
 			} else {
@@ -732,6 +734,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					return new ResultConsumerCart<K, OUT, L>(k, rcl.consumer, rcl.creationTime, rcl.expirationTime);
 				});
 			}
+			rcl.getAllProperties().forEach((k,v)->{ cart.addProperty(k, v);});
 			return this.place(cart);
 		}, 
 		rc->{

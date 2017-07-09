@@ -55,7 +55,7 @@ public final class ProductBin<K,OUT> {
 	@Override
 	public String toString() {
 		return "ProductBin [key=" + key + ", product=" + product + ", remainingDelayMsec=" + remainingDelayMsec
-				+ ", status=" + status + "]";
+				+ ", status=" + status + ", properties=" + properties + "]";
 	}
 
 }

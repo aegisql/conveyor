@@ -206,6 +206,9 @@ public class ResultConsumerLoaderTest {
 		ResultConsumerLoader<Integer, String> pl32 = pl2.clearProperty("A");
 		assertEquals(1, pl32.getAllProperties().size());
 
+		ResultConsumerLoader<Integer, String> pl33 = pl2.andThen(x->{});
+		assertEquals(2, pl33.getAllProperties().size());
+
 	}
 	
 }

@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -258,6 +259,8 @@ public class SmartConveyorTest {
 	 */
 	@Test
 	public void testBasicsTestingWithInternalAddInterfaces() throws InterruptedException {
+		
+		AtomicReference<String> ref = new AtomicReference<String>();
 		AssemblingConveyor<Integer, UserBuilderEvents2, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderTesting::new);
 
@@ -271,7 +274,13 @@ public class SmartConveyorTest {
 		assertNull(u0);
 		conveyor.part().id(1).value("Doe").label(UserBuilderEvents2.SET_LAST).ttl(10, TimeUnit.MILLISECONDS).place();
 		conveyor.part().id(2).value("Mike").label(UserBuilderEvents2.SET_FIRST).expirationTime(System.currentTimeMillis() + 10).place();
-		conveyor.part().value(1999).id(1).label(UserBuilderEvents2.SET_YEAR).place();
+		conveyor.resultConsumer().id(1).addProperty("B", "Y").andThen(bin->{
+			System.out.println("FINAL: "+bin.properties);
+			assertEquals(2,bin.properties.size());
+			assertTrue(bin.properties.containsKey("A"));
+			assertTrue(bin.properties.containsKey("B"));
+		}).set();
+		conveyor.part().value(1999).id(1).label(UserBuilderEvents2.SET_YEAR).addProperty("A","X").place();
 		Thread.sleep(100);
 		User u1 = outQueue.poll();
 		assertNotNull(u1);
