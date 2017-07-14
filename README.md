@@ -8,7 +8,7 @@ Maven dependency
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-core</artifactId>
-  <version>1.3.2</version>
+  <version>1.3.3</version>
 </dependency>
 ```
 
@@ -23,8 +23,12 @@ Previous Stable version
 
 ## Release History
 
-### 1.3.3-SNAPSHOT
+### 1.3.4-SNAPSHOT
+
+### 1.3.3
 * Extracted Parallel conveyors into a separate module
+* Added the persistence project - testing deployment, not for use
+* Added runtime properties
 
 ### 1.3.1
 * No code changes. Changed project structure. All current code moved into the conveyor-core module 
