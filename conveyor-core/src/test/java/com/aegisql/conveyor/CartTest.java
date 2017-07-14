@@ -126,12 +126,12 @@ public class CartTest {
 		Cart<String,String,String> c = new ShoppingCart<>("k","v1","l");
 		c.addProperty("A", 1);
 		assertTrue(c.getAllProperties().size() > 0);
-		assertEquals(1, c.getProperty("A", Integer.class));
+		assertEquals(Integer.valueOf(1), c.getProperty("A", Integer.class));
 		
 		Cart<String,String,String> n = c.copy();
 
 		assertTrue(n.getAllProperties().size() > 0);
-		assertEquals(1, n.getProperty("A", Integer.class));
+		assertEquals(Integer.valueOf(1), n.getProperty("A", Integer.class));
 
 	}
 }

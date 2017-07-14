@@ -624,6 +624,12 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		this.resultConsumer().first(bin->{
 			LOG.debug("Forward {} from {} to {} {}",label,this.name,destination.getName(),bin.product);
 			Cart<K2,OUT,L2> partialResult = new ShoppingCart<>(keyConverter.apply(bin), bin.product, label, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
+			String forwarded = getName();
+			if(! bin.properties.containsKey("FORWARDED")) {
+				partialResult.addProperty("FORWARDED", forwarded);
+			} else {
+				partialResult.addProperty("FORWARDED", bin.properties.get("FORWARDED")+"->"+forwarded);				
+			}
 			destination.place( partialResult );
 		}).set();
 	}
