@@ -972,7 +972,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				buildingSite.setStatus(Status.INVALID);
 				buildingSite.setLastError(e);
 				buildingSite.setLastCart(cart);
-				cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(cart.getKey(), buildingSite,
+				cart.getScrapConsumer().accept(new ScrapBin(cart.getKey(), cart,
+						"Site Processor failed", e, failureType,cart.getAllProperties()));
+				scrapConsumer.accept(new ScrapBin(cart.getKey(), buildingSite,
 						"Site Processor failed", e, failureType,cart.getAllProperties()));
 				buildingSite.completeFuturesExceptionaly(e);
 			} else {
