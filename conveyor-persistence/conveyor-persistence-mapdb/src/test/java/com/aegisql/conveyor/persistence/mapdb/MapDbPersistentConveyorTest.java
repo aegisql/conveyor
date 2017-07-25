@@ -1,4 +1,4 @@
-package org.conveyor.persistence.mapdb;
+package com.aegisql.conveyor.persistence.mapdb;
 
 import static org.junit.Assert.*;
 
@@ -16,6 +16,7 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.persistence.mapdb.MapDbPersistentConveyor;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 

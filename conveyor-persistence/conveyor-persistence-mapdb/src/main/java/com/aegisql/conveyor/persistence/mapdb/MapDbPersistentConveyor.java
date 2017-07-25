@@ -1,4 +1,4 @@
-package org.conveyor.persistence.mapdb;
+package com.aegisql.conveyor.persistence.mapdb;
 
 import java.time.Duration;
 import java.util.HashMap;
