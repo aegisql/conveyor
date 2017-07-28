@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.utils.batch;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -33,7 +34,11 @@ public class BatchConveyor <V> extends AssemblingConveyor<String, SmartLabel<Bat
 	
 	public final SmartLabel<BatchCollectingBuilder<V>> BATCH = SmartLabel.<BatchCollectingBuilder<V>,V>of((b,v)->{
 		BatchCollectingBuilder.add(b, (V)v);
-	} ).intercept(BatchComplete.class, (b,v) -> b.complete(b, v) ); 
+	} ).intercept(Iterable.class, (b,v)->{
+		v.forEach(val->{
+			BatchCollectingBuilder.add(b, (V)val);
+		});
+	}).intercept(BatchComplete.class, (b,v) -> b.complete(b, v) ); 
 
 	@Override
 	public <X> PartLoader<String, SmartLabel<BatchCollectingBuilder<V>>, X, List<V>, Boolean> part() {

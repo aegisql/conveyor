@@ -30,6 +30,7 @@ public final class ProductBin<K,OUT> {
 	
 	public final Map<String,Object> properties;
 	
+	public final Acknowledge acknowledge;
 	
 	/**
 	 * Instantiates a new product bin.
@@ -39,13 +40,14 @@ public final class ProductBin<K,OUT> {
 	 * @param remainingDelayMsec the remaining delay msec
 	 * @param status the status
 	 */
-	public ProductBin(K key, OUT product, long remainingDelayMsec, Status status, Map<String,Object> properties) {
+	public ProductBin(K key, OUT product, long remainingDelayMsec, Status status, Map<String,Object> properties, Acknowledge acknowledge) {
 		super();
-		this.key = key;
-		this.product = product;
+		this.key                = key;
+		this.product            = product;
 		this.remainingDelayMsec = remainingDelayMsec;
-		this.status = status;
-		this.properties = properties;
+		this.status             = status;
+		this.properties         = properties;
+		this.acknowledge        = acknowledge;
 	}
 
 

@@ -577,7 +577,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param value the value
 	 */
 	void completeWithValue(OUT value, Status status) {
-		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status , getProperties()) );
+		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status , getProperties(), null) );
 	}
 	
 	void setResultConsumer(ResultConsumer<K,OUT> resultConsumer) {

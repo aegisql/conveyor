@@ -800,6 +800,13 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return scrapConsumer().first(scrapConsumer);
 	}
 
+	@Override
+	public void setAutoAcknowledge(boolean auto) {
+		for(Conveyor<K, L, OUT> conv: conveyors) {
+			conv.setAutoAcknowledge(auto);
+		};
+	}
+
 
 	
 }

@@ -27,8 +27,8 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.ScrapBin;
-import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.ScrapBin.FailureType;
+import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
@@ -652,6 +652,13 @@ public class MapDbPersistentConveyor<K,L,OUT> implements Conveyor<K,L,OUT> {
 	public long getCartCounter() {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+
+	@Override
+	public void setAutoAcknowledge(boolean auto) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

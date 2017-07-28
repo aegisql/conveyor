@@ -252,6 +252,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The save carts. */
 	private boolean saveCarts;
+	
+	protected boolean autoAck = true;
 
 	/** The name. */
 	private String name;
@@ -1573,6 +1575,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	private void completeSuccessfully(BuildingSite<K, L, ?, OUT> buildingSite, OUT res, Status status) {
 		buildingSite.completeWithValue(res,status);
+	}
+
+	@Override
+	public void setAutoAcknowledge(boolean auto) {
+		this.autoAck = auto;
 	}
 	
 }

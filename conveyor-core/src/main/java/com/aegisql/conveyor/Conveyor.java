@@ -423,5 +423,12 @@ public interface Conveyor<K, L, OUT> {
 	 * @return the cart counter
 	 */
 	long getCartCounter();
+	
+	/**
+	 * Sets the auto acknowledge. Default value is true
+	 *
+	 * @param auto the new auto acknowledge
+	 */
+	void setAutoAcknowledge(boolean auto);
 
 }
