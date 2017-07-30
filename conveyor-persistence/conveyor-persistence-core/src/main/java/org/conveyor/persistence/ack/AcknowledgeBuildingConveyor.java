@@ -21,6 +21,7 @@ public class AcknowledgeBuildingConveyor <I, K> extends AssemblingConveyor<K, Sm
 		this.setName("AcknowledgeBuildingConveyor<"+(forward == null ? "":forward.getName())+">");
 		this.setBuilderSupplier( () -> new AcknowledgeBuilder<>(persistence, forward)  );
 		this.resultConsumer(bin->{
+			cleaner.part().label(cleaner.KEY).value(bin.key).place();
 			cleaner.part().label(cleaner.CART_IDS).value(bin.product).place();
 		}).set();
 		

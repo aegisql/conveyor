@@ -60,17 +60,17 @@ public class PersistTestImpl implements Persist<Integer, Integer> {
 
 	@Override
 	public void deleteCarts(Collection<Integer> ids) {
-		ids.forEach(id->cartIds.remove(id));
+		ids.forEach(id->carts.remove(id));
 	}
 
 	@Override
-	public void deleteKeys(Collection<Integer> keys) {
-		keys.forEach(k->carts.remove(k));
+	public void deleteKeys(Collection<Integer> key) {
+		key.forEach(k->cartIds.remove(k));
 	}
 
 	@Override
 	public void deleteAckKeys(Collection<Integer> keys) {
-		ack.forEach(k->carts.remove(k));
+		ack.removeAll(keys);
 	}
 
 	@Override

@@ -5,11 +5,15 @@ import java.util.Collection;
 import java.util.function.Supplier;
 
 import org.conveyor.persistence.core.Persist;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.TimeoutAction;
 
 public class CleaunupBatchBuilder <K,I> implements Supplier<Runnable>, Testing, TimeoutAction {
+	
+	private static Logger LOG = LoggerFactory.getLogger(CleaunupBatchBuilder.class);
 
 	private boolean ready = false;
 	
@@ -26,6 +30,7 @@ public class CleaunupBatchBuilder <K,I> implements Supplier<Runnable>, Testing, 
 	@Override
 	public Runnable get() {
 		return ()->{
+			LOG.debug("Archiving data: keys:{} ids:{}",keys, cartIds);
 			persistence.deleteCarts(cartIds);
 			persistence.deleteKeys(keys);
 			persistence.deleteAckKeys(keys);

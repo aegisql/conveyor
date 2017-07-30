@@ -40,10 +40,9 @@ public class PersistentConveyorTest {
 		PersistentConveyor<Integer, Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
 	
 		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
-		pc.part().id(1).label(TrioPart.TEXT2).value("txt2").place();
-		pc.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
+		pc.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
 		System.out.println(p);
-		Thread.sleep(1000);
+		pc.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
 		System.out.println(p);
 	}
 
