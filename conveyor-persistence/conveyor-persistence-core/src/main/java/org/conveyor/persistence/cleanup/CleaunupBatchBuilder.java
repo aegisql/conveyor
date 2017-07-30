@@ -31,9 +31,9 @@ public class CleaunupBatchBuilder <K,I> implements Supplier<Runnable>, Testing, 
 	public Runnable get() {
 		return ()->{
 			LOG.debug("Archiving data: keys:{} ids:{}",keys, cartIds);
-			persistence.deleteCarts(cartIds);
-			persistence.deleteKeys(keys);
-			persistence.deleteAckKeys(keys);
+			persistence.archiveData(cartIds);
+			persistence.archiveKeys(keys);
+			persistence.archiveAckKeys(keys);
 		};
 	}
 

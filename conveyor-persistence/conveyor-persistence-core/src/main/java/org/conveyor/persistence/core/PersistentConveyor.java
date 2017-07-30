@@ -49,6 +49,7 @@ public class PersistentConveyor<I,K,L,OUT> implements Conveyor<K, L, OUT> {
 		forward.addBeforeKeyEvictionAction(k->{
 			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(k).place();
 		});
+		persistence.getAllCarts().forEach(cart->this.place((Cart<K, ?, L>) cart));
 	}
 	
 	@Override

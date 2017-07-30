@@ -13,9 +13,11 @@ public interface Persist <K,I> {
 	public Cart<K,?,?> getCart(I id);
 	
 	public Collection<I> getAllCartIds(K key);
+	public Collection<Cart<K,?,?>> getAllCarts();
 	
-	public void deleteCarts(Collection<I> ids);
-	public void deleteKeys(Collection<K> keys);
-	public void deleteAckKeys(Collection<K> keys);
+	
+	public void archiveData(Collection<I> ids);
+	public void archiveKeys(Collection<K> keys);
+	public void archiveAckKeys(Collection<K> keys);
 	
 }
