@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.conveyor.persistence.cleanup.CleaunupBatchBuilder;
+import org.conveyor.persistence.core.harness.PersistTestImpl;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

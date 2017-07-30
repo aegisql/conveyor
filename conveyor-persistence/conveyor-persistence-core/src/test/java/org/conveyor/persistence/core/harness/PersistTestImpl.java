@@ -1,4 +1,4 @@
-package org.conveyor.persistence.core;
+package org.conveyor.persistence.core.harness;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.conveyor.persistence.core.Persist;
 
 import com.aegisql.conveyor.cart.Cart;
 
@@ -71,4 +73,11 @@ public class PersistTestImpl implements Persist<Integer, Integer> {
 		ack.forEach(k->carts.remove(k));
 	}
 
+	@Override
+	public String toString() {
+		return "Persistence [carts=" + carts + ", cartIds=" + cartIds + ", ack=" + ack + "]";
+	}
+
+	
+	
 }

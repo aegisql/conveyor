@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.apache.log4j.BasicConfigurator;
 import org.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
+import org.conveyor.persistence.core.harness.PersistTestImpl;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

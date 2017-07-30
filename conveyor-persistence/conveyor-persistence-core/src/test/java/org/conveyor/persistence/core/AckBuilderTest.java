@@ -3,6 +3,7 @@ package org.conveyor.persistence.core;
 import static org.junit.Assert.*;
 
 import org.conveyor.persistence.ack.AcknowledgeBuilder;
+import org.conveyor.persistence.core.harness.PersistTestImpl;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,7 +35,7 @@ public class AckBuilderTest {
 
 		Persist<Integer, Integer> p = new PersistTestImpl();
 		
-		AcknowledgeBuilder<Integer, Integer, String> ab = new AcknowledgeBuilder<>(p, null);
+		AcknowledgeBuilder<Integer, Integer> ab = new AcknowledgeBuilder<>(p, null);
 		
 		ab.processCart(ab, new ShoppingCart<>(1, 1, "A"));
 		ab.processCart(ab, new ShoppingCart<>(1, 2, "B"));

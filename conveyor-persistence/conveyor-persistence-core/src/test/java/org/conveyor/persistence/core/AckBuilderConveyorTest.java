@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.BasicConfigurator;
 import org.conveyor.persistence.ack.AcknowledgeBuildingConveyor;
+import org.conveyor.persistence.core.harness.PersistTestImpl;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -45,7 +46,7 @@ public class AckBuilderConveyorTest {
 		
 		Persist<Integer, Integer> p = new PersistTestImpl();
 
-		AcknowledgeBuildingConveyor<Integer, Integer, String> abc = new AcknowledgeBuildingConveyor<>(p, null, null); //no forward, no cleaning
+		AcknowledgeBuildingConveyor<Integer, Integer> abc = new AcknowledgeBuildingConveyor<>(p, null, null); //no forward, no cleaning
 		abc.setIdleHeartBeat(10,TimeUnit.MILLISECONDS);
 		
 		CompletableFuture<List<Integer>> f = abc.future().id(1).get();

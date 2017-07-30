@@ -2,6 +2,7 @@ package org.conveyor.persistence.core;
 
 import static org.junit.Assert.*;
 
+import org.conveyor.persistence.core.harness.PersistTestImpl;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
