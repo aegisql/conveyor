@@ -6,8 +6,8 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import com.aegisql.conveyor.BuildingSite.Status;
 import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.Status;
 
 // TODO: Auto-generated Javadoc
 /**

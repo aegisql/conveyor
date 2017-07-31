@@ -31,7 +31,6 @@ import javax.management.StandardMBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.aegisql.conveyor.BuildingSite.Status;
 import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
@@ -137,8 +136,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	};
 
 	/** The key before eviction. */
-	private Consumer<K> keyBeforeEviction = key -> {
-		LOG.trace("Key is ready to be evicted {}", key);
+	private BiConsumer<K,Status> keyBeforeEviction = (key,status) -> {
+		LOG.trace("Key is ready to be evicted {} status:{}", key, status);
 		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> bs = collector.remove(key);
 	};
 
@@ -961,12 +960,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			failureType = FailureType.READY_FAILED;
 			if (buildingSite.ready()) {
-				failureType = FailureType.BEFORE_EVICTION_FAILED;
-				keyBeforeEviction.accept(key);
 				failureType = FailureType.BUILD_FAILED;
 				OUT res = buildingSite.unsafeBuild();
 				failureType = FailureType.RESULT_CONSUMER_FAILED;
 				completeSuccessfully((BuildingSite<K, L, ?, OUT>) buildingSite,res,Status.READY);
+				failureType = FailureType.BEFORE_EVICTION_FAILED;
+				keyBeforeEviction.accept(key,Status.READY);
 			}
 			cart.getFuture().complete(Boolean.TRUE);
 		} catch (Exception e) {
@@ -985,7 +984,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			if (!failureType.equals(FailureType.BEFORE_EVICTION_FAILED)) {
 				try {
-					keyBeforeEviction.accept(key);
+					keyBeforeEviction.accept(key,Status.INVALID);
 				} catch (Exception e2) {
 					LOG.error("BeforeEviction failed after processing failure: {} {} {}", failureType, e.getMessage(),
 							e2.getMessage());
@@ -1069,7 +1068,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						buildingSite, "Site expired. No timeout action", null, FailureType.BUILD_EXPIRED,buildingSite.getProperties()));
 				buildingSite.cancelFutures();
 			}
-			keyBeforeEviction.accept(key);
+			keyBeforeEviction.accept(key,Status.TIMED_OUT);
 			cnt++;
 		}
 		if (cnt > 0) {
@@ -1233,7 +1232,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	static <K> void cancelNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
 		K key = cart.getKey();
 		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
-		conveyor.keyBeforeEviction.accept(key);
+		conveyor.keyBeforeEviction.accept(key,Status.CANCELED);
 		if(bs != null) {
 			bs.cancelFutures();
 		}
@@ -1354,7 +1353,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#addBeforeKeyEvictionAction(java.util.
 	 * function.Consumer)
 	 */
-	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction) {
+	public void addBeforeKeyEvictionAction(BiConsumer<K,Status> keyBeforeEviction) {
 		if (keyBeforeEviction != null) {
 			this.keyBeforeEviction = keyBeforeEviction.andThen(this.keyBeforeEviction);
 		}

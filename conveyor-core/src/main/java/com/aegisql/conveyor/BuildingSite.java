@@ -58,27 +58,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		}
 	};
 	
-	/**
-	 * The Enum Status.
-	 */
-	public static enum Status{
-		
-		/** The waiting data. */
-		WAITING_DATA,
-		
-		/** The timed out. */
-		TIMED_OUT,
-		
-		/** The ready. */
-		READY,
-		
-		/** The canceled. */
-		CANCELED,
-		
-		/** The invalid. */
-		INVALID;
-	}
-	
 	/** The builder. */
 	private final Supplier<? extends OUT> builder;
 	

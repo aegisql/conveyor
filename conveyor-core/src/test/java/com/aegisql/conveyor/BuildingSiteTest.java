@@ -16,7 +16,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.BuildingSite.Status;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;

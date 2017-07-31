@@ -19,8 +19,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.BuildingSite.Status;
 import com.aegisql.conveyor.ScrapBin.FailureType;
+import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.consumers.scrap.FirstScraps;
 import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
 import com.aegisql.conveyor.consumers.scrap.LastScraps;

@@ -5,8 +5,6 @@ package com.aegisql.conveyor;
 
 import java.util.Map;
 
-import com.aegisql.conveyor.BuildingSite.Status;
-
 // TODO: Auto-generated Javadoc
 /**
  * The Class ProductBin.

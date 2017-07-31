@@ -270,7 +270,7 @@ public interface Conveyor<K, L, OUT> {
 	 *
 	 * @param keyBeforeEviction the key before eviction
 	 */
-	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction);
+	public void addBeforeKeyEvictionAction(BiConsumer<K,Status> keyBeforeEviction);
 	
 	/**
 	 * Adds the before key rescheduling action.

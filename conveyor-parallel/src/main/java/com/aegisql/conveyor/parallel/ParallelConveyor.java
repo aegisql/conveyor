@@ -31,6 +31,7 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.State;
+import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
@@ -488,7 +489,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#addBeforeKeyEvictionAction(java.util.function.Consumer)
 	 */
-	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction) {
+	public void addBeforeKeyEvictionAction(BiConsumer<K,Status> keyBeforeEviction) {
 		if(keyBeforeEviction != null) {
 			this.conveyors.forEach(conv->conv.addBeforeKeyEvictionAction(keyBeforeEviction));
 		}

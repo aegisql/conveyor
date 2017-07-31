@@ -21,6 +21,7 @@ import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.State;
+import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
@@ -46,9 +47,11 @@ public class PersistentConveyor<I,K,L,OUT> implements Conveyor<K, L, OUT> {
 		this.forward = forward;
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(persistence,batchSize);
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(persistence, forward, cleaner);
-		forward.addBeforeKeyEvictionAction(k->{
+		forward.addBeforeKeyEvictionAction((k,status)->{
 			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(k).place();
 		});
+		//not empty only if previous conveyor could not complete.
+		//Pers must be initialized with the previous state
 		persistence.getAllCarts().forEach(cart->this.place((Cart<K, ?, L>) cart));
 	}
 	
@@ -238,7 +241,7 @@ public class PersistentConveyor<I,K,L,OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	@Override
-	public void addBeforeKeyEvictionAction(Consumer<K> keyBeforeEviction) {
+	public void addBeforeKeyEvictionAction(BiConsumer<K,Status> keyBeforeEviction) {
 		// TODO Auto-generated method stub
 		
 	}
