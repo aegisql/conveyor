@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.cart.Cart;
 
@@ -23,7 +24,7 @@ public class AcknowledgeBuilder <K,I> implements Supplier<List<I>>, Testing {
 	
 	private K ackKey = null;
 	
-	private boolean ready = false;
+	private boolean complete = false;
 	
 	public AcknowledgeBuilder(Persist<K,I> persistence, Conveyor<K, ?, ?> forward) {
 		this.persistence = persistence;
@@ -38,13 +39,18 @@ public class AcknowledgeBuilder <K,I> implements Supplier<List<I>>, Testing {
 	
 	public static <K,I,L> void processCart(AcknowledgeBuilder <K,I> builder, Cart cart) {
 		LOG.debug("CART "+cart);
-		I id = builder.persistence.getUniqueId();
-		cart.addProperty("CART_ID", id);
+		I id = null;
+		if( ! cart.getAllProperties().containsKey("CART_ID") ) {
+			id = builder.persistence.getUniqueId();
+			cart.addProperty("CART_ID", id);
+		} else {
+			id = (I)cart.getProperty("CART_ID", Object.class);
+		}
 		builder.persistence.saveCart(id, cart);
-		builder.cartIds.add(id);
+		builder.cartIds.add(id);		
 		if( builder.ackKey == null && builder.forward != null ) {
 			builder.forward.place(cart);
-		}
+		}			
 	}
 	
 	public static <K,I,L> void setAckKey(AcknowledgeBuilder <K,I> builder, K key) {
@@ -52,15 +58,14 @@ public class AcknowledgeBuilder <K,I> implements Supplier<List<I>>, Testing {
 		builder.ackKey = key;
 	}
 
-	public static <K,I,L> void complete(AcknowledgeBuilder <K,I> builder, K key) {
-		LOG.debug("COMPLETE "+key);
-		builder.ackKey = key;
-		builder.ready  = true;
+	public static <K,I,L> void complete(AcknowledgeBuilder <K,I> builder, Status status) {
+		LOG.debug("COMPLETE "+status);
+		builder.complete  = true;
 	}
 
 	@Override
 	public boolean test() {
-		return ready;
+		return complete && ackKey != null;
 	}
 
 }

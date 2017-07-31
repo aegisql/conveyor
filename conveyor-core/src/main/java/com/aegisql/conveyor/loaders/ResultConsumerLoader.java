@@ -257,6 +257,27 @@ public final class ResultConsumerLoader<K,OUT> {
 				);
 	}
 
+	/**
+	 * Before.
+	 *
+	 * @param consumer the consumer
+	 * @return the result consumer loader
+	 */
+	public ResultConsumerLoader<K,OUT> before(ResultConsumer <K,OUT> consumer) {
+		return new ResultConsumerLoader<>(
+				this.placer,
+				this.globalPlacer,
+				this.creationTime,
+				this.expirationTime,
+				this.ttlMsec,
+				this.key,
+				this.consumer != null ? consumer.andThen(this.consumer) : consumer
+				,this.filter,
+				properties
+				);
+	}
+
+	
 	public ResultConsumerLoader<K,OUT> clearProperties() {
 		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,Collections.EMPTY_MAP);
 	}

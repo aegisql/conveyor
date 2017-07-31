@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.ShoppingCart;
 
 public class AckBuilderConveyorTest {
@@ -56,7 +57,7 @@ public class AckBuilderConveyorTest {
 		abc.part().id(1).label(abc.CART).value(new ShoppingCart<Integer, Integer, String>(1, 3, "C")).place();
 		
 		abc.part().id(1).label(abc.ACK).value(1).place();
-		abc.part().id(1).label(abc.COMPLETE).value(1).place();
+		abc.part().id(1).label(abc.COMPLETE).value(Status.READY).place();
 		List<Integer> ids = f.join();
 		System.out.println(ids);
 	

@@ -20,6 +20,35 @@ public class PersistTestImpl implements Persist<Integer, Integer> {
 	
 	AtomicInteger idGen = new AtomicInteger(0);
 	
+	public PersistTestImpl() {
+		
+	}
+	
+	public PersistTestImpl(PersistTestImpl old, PersistTestImpl... more) {
+		
+		old.carts.forEach((oldId,cart)->{
+			cart.addProperty("_RECOVERY_CART", Boolean.TRUE);
+			Integer newId = getUniqueId();
+			cart.addProperty("CART_ID", newId );
+			this.saveCart(newId, cart);
+		});
+		
+		old.archiveAckKeys(this.carts.keySet());
+		old.archiveKeys(this.carts.keySet());
+		this.cartIds.forEach((id,list)->old.archiveData(list));
+		
+		ack.addAll(old.ack);
+		if(more != null) {
+			for(PersistTestImpl p:more) {
+				p.carts.forEach((oldId,cart)->this.saveCart(getUniqueId(), cart));
+				ack.addAll(p.ack);
+				p.archiveAckKeys(this.carts.keySet());
+				p.archiveKeys(this.carts.keySet());
+				p.cartIds.forEach((id,list)->old.archiveData(list));
+			}
+		}
+	}
+	
 
 	@Override
 	public Integer getUniqueId() {
@@ -83,6 +112,8 @@ public class PersistTestImpl implements Persist<Integer, Integer> {
 		return carts.values();
 	}
 
-	
+	public boolean isEmpty() {
+		return carts.isEmpty() && cartIds.isEmpty() && ack.isEmpty();
+	}
 	
 }

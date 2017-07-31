@@ -47,8 +47,12 @@ public class PersistentConveyor<I,K,L,OUT> implements Conveyor<K, L, OUT> {
 		this.forward = forward;
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(persistence,batchSize);
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(persistence, forward, cleaner);
+		forward.resultConsumer().before(bin->{
+			persistence.saveAcknowledge(bin.key);
+			ackConveyor.part().id(bin.key).label(ackConveyor.ACK).value(bin.key).place();
+		}).set();
 		forward.addBeforeKeyEvictionAction((k,status)->{
-			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(k).place();
+			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
 		});
 		//not empty only if previous conveyor could not complete.
 		//Pers must be initialized with the previous state
@@ -236,20 +240,17 @@ public class PersistentConveyor<I,K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator) {
-		// TODO Auto-generated method stub
-		
+		forward.addCartBeforePlacementValidator(cartBeforePlacementValidator);
 	}
 
 	@Override
 	public void addBeforeKeyEvictionAction(BiConsumer<K,Status> keyBeforeEviction) {
-		// TODO Auto-generated method stub
-		
+		forward.addBeforeKeyEvictionAction(keyBeforeEviction);
 	}
 
 	@Override
 	public void addBeforeKeyReschedulingAction(BiConsumer<K, Long> keyBeforeRescheduling) {
-		// TODO Auto-generated method stub
-		
+		forward.addBeforeKeyReschedulingAction(keyBeforeRescheduling);
 	}
 
 	@Override

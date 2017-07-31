@@ -118,6 +118,31 @@ public class ResultConsumerLoaderTest {
 		
 	}
 
+	@Test
+	public void testResultConsumer4() throws InterruptedException, ExecutionException {
+		ResultConsumerLoader<Integer, String> rc = new ResultConsumerLoader<>(rcl->{
+			System.out.println("For Key "+rcl);
+			return null;
+		}, this::consumer, bin->{
+			System.out.println("Default "+bin);
+			defaultInteger = defaultInteger + 2;
+			defaultString  = "DEFAULT_1";
+		});
+		
+		CompletableFuture<Boolean> f = rc.before(bin->{
+			System.out.println("First "+bin);
+			defaultInteger = 1;
+			defaultString  = defaultString+"_2";
+		}).set();
+		
+		assertNotNull(f);
+		assertTrue(f.get());
+		
+		assertEquals(Integer.valueOf(3), defaultInteger);
+		assertEquals("DEFAULT_1", defaultString);
+		
+	}
+
 	
 	@Test
 	public void testResultConsumerTime() throws InterruptedException, ExecutionException {

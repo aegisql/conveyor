@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.ShoppingCart;
 
 public class AckBuilderTest {
@@ -45,7 +46,7 @@ public class AckBuilderTest {
 		assertFalse(ab.test());
 		ab.setAckKey(ab, 1);
 		assertFalse(ab.test());
-		ab.complete(ab, 1);
+		ab.complete(ab, Status.READY);
 		assertTrue(ab.test());
 		assertEquals(4, ab.get().size());
 		System.out.println(ab.get());
