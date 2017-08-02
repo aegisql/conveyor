@@ -49,7 +49,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(persistence, forward, cleaner);
 		forward.resultConsumer().before(bin->{
 			persistence.saveAcknowledge(bin.key);
-			ackConveyor.part().id(bin.key).label(ackConveyor.ACK).value(bin.key).place();
+			ackConveyor.part().id(bin.key).label(ackConveyor.READY).value(bin.key).place();
 		}).set();
 		forward.addBeforeKeyEvictionAction((k,status)->{
 			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();

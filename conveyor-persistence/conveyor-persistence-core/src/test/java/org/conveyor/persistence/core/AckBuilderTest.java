@@ -44,7 +44,7 @@ public class AckBuilderTest {
 		ab.processCart(ab, new ShoppingCart<>(1, 4, "D"));
 		
 		assertFalse(ab.test());
-		ab.setAckKey(ab, 1);
+		ab.keyReady(ab, 1);
 		assertFalse(ab.test());
 		ab.complete(ab, Status.READY);
 		assertTrue(ab.test());

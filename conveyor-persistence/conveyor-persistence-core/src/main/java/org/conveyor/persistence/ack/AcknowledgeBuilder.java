@@ -1,6 +1,7 @@
 package org.conveyor.persistence.ack;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -22,7 +23,7 @@ public class AcknowledgeBuilder <K> implements Supplier<List<Long>>, Testing {
 	private final List<Long> cartIds = new ArrayList<>();
 	private final Conveyor<K, ?, ?> forward;
 	
-	private K ackKey = null;
+	private K keyReady = null;
 	
 	private boolean complete = false;
 	
@@ -48,14 +49,14 @@ public class AcknowledgeBuilder <K> implements Supplier<List<Long>>, Testing {
 		}
 		builder.persistence.saveCart(id, cart);
 		builder.cartIds.add(id);		
-		if( builder.ackKey == null && builder.forward != null ) {
+		if( builder.keyReady == null && builder.forward != null ) {
 			builder.forward.place(cart);
 		}			
 	}
 	
-	public static <K,L> void setAckKey(AcknowledgeBuilder <K> builder, K key) {
+	public static <K,L> void keyReady(AcknowledgeBuilder <K> builder, K key) {
 		LOG.debug("ACK "+key);
-		builder.ackKey = key;
+		builder.keyReady = key;
 	}
 
 	public static <K,L> void complete(AcknowledgeBuilder <K> builder, Status status) {
@@ -63,9 +64,22 @@ public class AcknowledgeBuilder <K> implements Supplier<List<Long>>, Testing {
 		builder.complete  = true;
 	}
 
+	public static <K,L> void replay(AcknowledgeBuilder <K> builder, K key) {
+		if(builder.keyReady != null) {
+			LOG.debug("REPLAY "+key);
+			Collection<Long> cartIds = builder.persistence.getAllCartIds(key);
+			cartIds.forEach(id -> {
+				Cart cart = builder.persistence.getCart(id);
+				builder.forward.place(cart);
+			});
+		} else {
+			LOG.debug("REPLAY NOT READY FOR "+key);
+		}
+	}
+
 	@Override
 	public boolean test() {
-		return complete && ackKey != null;
+		return complete && keyReady != null;
 	}
 
 }

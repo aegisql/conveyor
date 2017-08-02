@@ -56,7 +56,7 @@ public class AckBuilderConveyorTest {
 		abc.part().id(1).label(abc.CART).value(new ShoppingCart<Integer, Integer, String>(1, 2, "B")).place();
 		abc.part().id(1).label(abc.CART).value(new ShoppingCart<Integer, Integer, String>(1, 3, "C")).place();
 		
-		abc.part().id(1).label(abc.ACK).value(1).place();
+		abc.part().id(1).label(abc.READY).value(1).place();
 		abc.part().id(1).label(abc.COMPLETE).value(Status.READY).place();
 		List<Long> ids = f.join();
 		System.out.println(ids);

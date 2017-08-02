@@ -14,8 +14,9 @@ import com.aegisql.conveyor.cart.Cart;
 public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, SmartLabel<AcknowledgeBuilder<K>>, List<Long>> {
 	
 	public final SmartLabel<AcknowledgeBuilder<K>> CART     = SmartLabel.of("CART", (b,cart)->{ AcknowledgeBuilder.processCart(b, (Cart<K,?,?>)cart); });
-	public final SmartLabel<AcknowledgeBuilder<K>> ACK      = SmartLabel.of("ACK", (b,key)->{ AcknowledgeBuilder.setAckKey(b, (K)key); });
+	public final SmartLabel<AcknowledgeBuilder<K>> READY    = SmartLabel.of("READY", (b,key)->{ AcknowledgeBuilder.keyReady(b, (K)key); });
 	public final SmartLabel<AcknowledgeBuilder<K>> COMPLETE = SmartLabel.of("COMPLETE", (b,status)->{ AcknowledgeBuilder.complete(b, (Status)status); });
+	public final SmartLabel<AcknowledgeBuilder<K>> REPLAY   = SmartLabel.of("REPLAY", (b,key)->{ AcknowledgeBuilder.replay(b, (K)key); });
 
 	public <L,OUT> AcknowledgeBuildingConveyor(Persist<K> persistence, Conveyor<K, L, OUT> forward, PersistenceCleanupBatchConveyor<K> cleaner) {
 		super();
