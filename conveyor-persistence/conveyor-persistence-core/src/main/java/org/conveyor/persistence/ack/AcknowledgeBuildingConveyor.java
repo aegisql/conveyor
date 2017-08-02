@@ -11,13 +11,13 @@ import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
 
-public class AcknowledgeBuildingConveyor <I, K> extends AssemblingConveyor<K, SmartLabel<AcknowledgeBuilder<K, I>>, List<I>> {
+public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, SmartLabel<AcknowledgeBuilder<K>>, List<Long>> {
 	
-	public final SmartLabel<AcknowledgeBuilder<K, I>> CART     = SmartLabel.of("CART", (b,cart)->{ AcknowledgeBuilder.processCart(b, (Cart<K,?,?>)cart); });
-	public final SmartLabel<AcknowledgeBuilder<K, I>> ACK      = SmartLabel.of("ACK", (b,key)->{ AcknowledgeBuilder.setAckKey(b, (K)key); });
-	public final SmartLabel<AcknowledgeBuilder<K, I>> COMPLETE = SmartLabel.of("COMPLETE", (b,status)->{ AcknowledgeBuilder.complete(b, (Status)status); });
+	public final SmartLabel<AcknowledgeBuilder<K>> CART     = SmartLabel.of("CART", (b,cart)->{ AcknowledgeBuilder.processCart(b, (Cart<K,?,?>)cart); });
+	public final SmartLabel<AcknowledgeBuilder<K>> ACK      = SmartLabel.of("ACK", (b,key)->{ AcknowledgeBuilder.setAckKey(b, (K)key); });
+	public final SmartLabel<AcknowledgeBuilder<K>> COMPLETE = SmartLabel.of("COMPLETE", (b,status)->{ AcknowledgeBuilder.complete(b, (Status)status); });
 
-	public <L,OUT> AcknowledgeBuildingConveyor(Persist<K,I> persistence, Conveyor<K, L, OUT> forward, PersistenceCleanupBatchConveyor<K, I> cleaner) {
+	public <L,OUT> AcknowledgeBuildingConveyor(Persist<K> persistence, Conveyor<K, L, OUT> forward, PersistenceCleanupBatchConveyor<K> cleaner) {
 		super();
 		this.setName("AcknowledgeBuildingConveyor<"+(forward == null ? "":forward.getName())+">");
 		this.setBuilderSupplier( () -> new AcknowledgeBuilder<>(persistence, forward)  );

@@ -33,8 +33,8 @@ public class CleanupBatchBuilderTest {
 
 	@Test
 	public void testTimeoutReady() {
-		Persist<Integer, Integer> p = new PersistTestImpl();
-		CleaunupBatchBuilder<Integer, Integer> cb = new CleaunupBatchBuilder<>(p, 3);
+		Persist<Integer> p = new PersistTestImpl();
+		CleaunupBatchBuilder<Integer> cb = new CleaunupBatchBuilder<>(p, 3);
 		
 		assertFalse(cb.test());
 		cb.onTimeout();
@@ -44,23 +44,23 @@ public class CleanupBatchBuilderTest {
 
 	@Test
 	public void testSizeReady1() {
-		Persist<Integer, Integer> p = new PersistTestImpl();
-		CleaunupBatchBuilder<Integer, Integer> cb = new CleaunupBatchBuilder<>(p, 3);
+		Persist<Integer> p = new PersistTestImpl();
+		CleaunupBatchBuilder<Integer> cb = new CleaunupBatchBuilder<>(p, 3);
 		
 		assertFalse(cb.test());
-		cb.addCartId(cb, 1);
-		cb.addCartId(cb, 2);
-		cb.addCartId(cb, 3);
+		cb.addCartId(cb, 1L);
+		cb.addCartId(cb, 2L);
+		cb.addCartId(cb, 3L);
 		assertTrue(cb.test());
 	}
 
 	@Test
 	public void testSizeReady2() {
-		Persist<Integer, Integer> p = new PersistTestImpl();
-		CleaunupBatchBuilder<Integer, Integer> cb = new CleaunupBatchBuilder<>(p, 3);
-		List<Integer> l = new ArrayList<>();
-		l.add(1);
-		l.add(2);
+		Persist<Integer> p = new PersistTestImpl();
+		CleaunupBatchBuilder<Integer> cb = new CleaunupBatchBuilder<>(p, 3);
+		List<Long> l = new ArrayList<>();
+		l.add(1L);
+		l.add(2L);
 		assertFalse(cb.test());
 		cb.addCartIds(cb, l);
 		cb.addKey(cb, 2);

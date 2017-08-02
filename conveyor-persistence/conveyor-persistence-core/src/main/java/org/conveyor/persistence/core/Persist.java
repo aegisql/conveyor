@@ -4,19 +4,19 @@ import java.util.Collection;
 
 import com.aegisql.conveyor.cart.Cart;
 
-public interface Persist <K,I> {
+public interface Persist <K> {
 
-	public I getUniqueId();
-	public void saveCart(I id,Cart<K,?,?> cart);
-	public void saveCartId(K key, I cartId);
+	public long getUniqueId();
+	public void saveCart(long id,Cart<K,?,?> cart);
+	public void saveCartId(K key, long cartId);
 	public void saveAcknowledge(K key);
-	public Cart<K,?,?> getCart(I id);
+	public Cart<K,?,?> getCart(long id);
 	
-	public Collection<I> getAllCartIds(K key);
+	public Collection<Long> getAllCartIds(K key);
 	public Collection<Cart<K,?,?>> getAllCarts();
 	
 	
-	public void archiveData(Collection<I> ids);
+	public void archiveData(Collection<Long> ids);
 	public void archiveKeys(Collection<K> keys);
 	public void archiveAckKeys(Collection<K> keys);
 	

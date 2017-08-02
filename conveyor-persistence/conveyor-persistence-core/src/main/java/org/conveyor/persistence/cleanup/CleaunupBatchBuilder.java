@@ -11,18 +11,18 @@ import org.slf4j.LoggerFactory;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.TimeoutAction;
 
-public class CleaunupBatchBuilder <K,I> implements Supplier<Runnable>, Testing, TimeoutAction {
+public class CleaunupBatchBuilder <K> implements Supplier<Runnable>, Testing, TimeoutAction {
 	
 	private static Logger LOG = LoggerFactory.getLogger(CleaunupBatchBuilder.class);
 
 	private boolean ready = false;
 	
-	private final Persist<K,I> persistence;
+	private final Persist<K> persistence;
 	private final int summBatchSize;
-	private final Collection<I> cartIds = new ArrayList<>();
+	private final Collection<Long> cartIds = new ArrayList<>();
 	private final Collection<K> keys    = new ArrayList<>();
 	
-	public CleaunupBatchBuilder(Persist<K,I> persistence, int summBatchSize) {
+	public CleaunupBatchBuilder(Persist<K> persistence, int summBatchSize) {
 		this.persistence   = persistence;
 		this.summBatchSize = summBatchSize;
 	}
@@ -47,15 +47,15 @@ public class CleaunupBatchBuilder <K,I> implements Supplier<Runnable>, Testing, 
 		ready = true;
 	}
 
-	public static <K,I> void addCartId(CleaunupBatchBuilder <K,I> builder, I id) {
+	public static <K> void addCartId(CleaunupBatchBuilder <K> builder, long id) {
 		builder.cartIds.add(id);
 	}
 
-	public static <K,I> void addCartIds(CleaunupBatchBuilder <K,I> builder, Collection<I> ids) {
+	public static <K> void addCartIds(CleaunupBatchBuilder <K> builder, Collection<Long> ids) {
 		builder.cartIds.addAll(ids);
 	}
 
-	public static <K,I> void addKey(CleaunupBatchBuilder <K,I> builder, K key) {
+	public static <K> void addKey(CleaunupBatchBuilder <K> builder, K key) {
 		builder.keys.add(key);
 	}
 

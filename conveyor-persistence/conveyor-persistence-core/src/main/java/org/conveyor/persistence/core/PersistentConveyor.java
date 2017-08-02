@@ -36,14 +36,14 @@ import com.aegisql.conveyor.loaders.ResultConsumerLoader;
 import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
 
-public class PersistentConveyor<I,K,L,OUT> implements Conveyor<K, L, OUT> {
+public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	
 	private final Conveyor<K, L, OUT> forward;
-	private final AcknowledgeBuildingConveyor<I, K> ackConveyor;
-	private final PersistenceCleanupBatchConveyor<K, I> cleaner;
+	private final AcknowledgeBuildingConveyor<K> ackConveyor;
+	private final PersistenceCleanupBatchConveyor<K> cleaner;
 	
-	public PersistentConveyor(Persist<K,I> persistence, Conveyor<K, L, OUT> forward, int batchSize) {
+	public PersistentConveyor(Persist<K> persistence, Conveyor<K, L, OUT> forward, int batchSize) {
 		this.forward = forward;
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(persistence,batchSize);
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(persistence, forward, cleaner);
@@ -99,7 +99,7 @@ public class PersistentConveyor<I,K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public <V> CompletableFuture<Boolean> place(Cart<K, V, L> cart) {
-		ShoppingCart<K, Cart, SmartLabel<AcknowledgeBuilder<K, I>>> ackCart = new ShoppingCart<>(cart.getKey(), cart, ackConveyor.CART);
+		ShoppingCart<K, Cart, SmartLabel<AcknowledgeBuilder<K>>> ackCart = new ShoppingCart<>(cart.getKey(), cart, ackConveyor.CART);
 		CompletableFuture<Boolean> forwardFuture = cart.getFuture();
 		CompletableFuture<Boolean> ackFuture = ackCart.getFuture();
 		CompletableFuture<Boolean> bothFutures = ackFuture.thenCombine(forwardFuture,(a,b)->a&&b);

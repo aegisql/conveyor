@@ -13,38 +13,38 @@ import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.cart.Cart;
 
-public class AcknowledgeBuilder <K,I> implements Supplier<List<I>>, Testing {
+public class AcknowledgeBuilder <K> implements Supplier<List<Long>>, Testing {
 	
 	private final static Logger LOG = LoggerFactory.getLogger(AcknowledgeBuilder.class);
 
-	private final Persist<K,I> persistence;
+	private final Persist<K> persistence;
 	
-	private final List<I> cartIds = new ArrayList<>();
+	private final List<Long> cartIds = new ArrayList<>();
 	private final Conveyor<K, ?, ?> forward;
 	
 	private K ackKey = null;
 	
 	private boolean complete = false;
 	
-	public AcknowledgeBuilder(Persist<K,I> persistence, Conveyor<K, ?, ?> forward) {
+	public AcknowledgeBuilder(Persist<K> persistence, Conveyor<K, ?, ?> forward) {
 		this.persistence = persistence;
 		this.forward     = forward;
 		LOG.debug("Created");
 	}
 	
 	@Override
-	public List<I> get() {
+	public List<Long> get() {
 		return cartIds;
 	}
 	
-	public static <K,I,L> void processCart(AcknowledgeBuilder <K,I> builder, Cart cart) {
+	public static <K,L> void processCart(AcknowledgeBuilder <K> builder, Cart cart) {
 		LOG.debug("CART "+cart);
-		I id = null;
+		Long id = null;
 		if( ! cart.getAllProperties().containsKey("CART_ID") ) {
 			id = builder.persistence.getUniqueId();
 			cart.addProperty("CART_ID", id);
 		} else {
-			id = (I)cart.getProperty("CART_ID", Object.class);
+			id = (Long) cart.getProperty("CART_ID", Long.class);
 		}
 		builder.persistence.saveCart(id, cart);
 		builder.cartIds.add(id);		
@@ -53,12 +53,12 @@ public class AcknowledgeBuilder <K,I> implements Supplier<List<I>>, Testing {
 		}			
 	}
 	
-	public static <K,I,L> void setAckKey(AcknowledgeBuilder <K,I> builder, K key) {
+	public static <K,L> void setAckKey(AcknowledgeBuilder <K> builder, K key) {
 		LOG.debug("ACK "+key);
 		builder.ackKey = key;
 	}
 
-	public static <K,I,L> void complete(AcknowledgeBuilder <K,I> builder, Status status) {
+	public static <K,L> void complete(AcknowledgeBuilder <K> builder, Status status) {
 		LOG.debug("COMPLETE "+status);
 		builder.complete  = true;
 	}

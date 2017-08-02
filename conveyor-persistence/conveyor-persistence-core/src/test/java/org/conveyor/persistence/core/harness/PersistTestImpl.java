@@ -12,10 +12,10 @@ import org.conveyor.persistence.core.Persist;
 
 import com.aegisql.conveyor.cart.Cart;
 
-public class PersistTestImpl implements Persist<Integer, Integer> {
+public class PersistTestImpl implements Persist<Integer> {
 
-	ConcurrentHashMap<Integer,Cart<Integer,?,?>> carts = new ConcurrentHashMap<>();
-	ConcurrentHashMap<Integer,List<Integer>> cartIds   = new ConcurrentHashMap<>();
+	ConcurrentHashMap<Long,Cart<Integer,?,?>> carts = new ConcurrentHashMap<>();
+	ConcurrentHashMap<Integer,List<Long>> cartIds   = new ConcurrentHashMap<>();
 	Set<Integer> ack = new HashSet<>();
 	
 	AtomicInteger idGen = new AtomicInteger(0);
@@ -28,13 +28,13 @@ public class PersistTestImpl implements Persist<Integer, Integer> {
 		
 		old.carts.forEach((oldId,cart)->{
 			cart.addProperty("_RECOVERY_CART", Boolean.TRUE);
-			Integer newId = getUniqueId();
+			Long newId = getUniqueId();
 			cart.addProperty("CART_ID", newId );
 			this.saveCart(newId, cart);
 		});
 		
-		old.archiveAckKeys(this.carts.keySet());
-		old.archiveKeys(this.carts.keySet());
+		old.archiveAckKeys(this.cartIds.keySet());
+		old.archiveKeys(this.cartIds.keySet());
 		this.cartIds.forEach((id,list)->old.archiveData(list));
 		
 		ack.addAll(old.ack);
@@ -42,8 +42,8 @@ public class PersistTestImpl implements Persist<Integer, Integer> {
 			for(PersistTestImpl p:more) {
 				p.carts.forEach((oldId,cart)->this.saveCart(getUniqueId(), cart));
 				ack.addAll(p.ack);
-				p.archiveAckKeys(this.carts.keySet());
-				p.archiveKeys(this.carts.keySet());
+				p.archiveAckKeys(this.cartIds.keySet());
+				p.archiveKeys(this.cartIds.keySet());
 				p.cartIds.forEach((id,list)->old.archiveData(list));
 			}
 		}
@@ -51,18 +51,18 @@ public class PersistTestImpl implements Persist<Integer, Integer> {
 	
 
 	@Override
-	public Integer getUniqueId() {
+	public long getUniqueId() {
 		return idGen.incrementAndGet();
 	}
 
 	@Override
-	public void saveCart(Integer id, Cart<Integer, ?, ?> cart) {
+	public void saveCart(long id, Cart<Integer, ?, ?> cart) {
 		carts.put(id, cart);
 		saveCartId(cart.getKey(), id);
 	}
 
 	@Override
-	public void saveCartId(Integer key, Integer cartId) {
+	public void saveCartId(Integer key, long cartId) {
 		getAllCartIds(key).add(cartId);
 	}
 
@@ -72,15 +72,15 @@ public class PersistTestImpl implements Persist<Integer, Integer> {
 	}
 
 	@Override
-	public Cart<Integer, ?, ?> getCart(Integer id) {
+	public Cart<Integer, ?, ?> getCart(long id) {
 		return carts.get(id);
 	}
 
 	@Override
-	public Collection<Integer> getAllCartIds(Integer key) {
-		ArrayList<Integer> newList = new ArrayList<>();
+	public Collection<Long> getAllCartIds(Integer key) {
+		ArrayList<Long> newList = new ArrayList<>();
 		
-		List<Integer> ids = cartIds.putIfAbsent(key, newList);
+		List<Long> ids = cartIds.putIfAbsent(key, newList);
 		if(ids == null) {
 			ids = newList;
 		}
@@ -88,7 +88,7 @@ public class PersistTestImpl implements Persist<Integer, Integer> {
 	}
 
 	@Override
-	public void archiveData(Collection<Integer> ids) {
+	public void archiveData(Collection<Long> ids) {
 		ids.forEach(id->carts.remove(id));
 	}
 

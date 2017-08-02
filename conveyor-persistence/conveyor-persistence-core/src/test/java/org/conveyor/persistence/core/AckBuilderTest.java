@@ -34,9 +34,9 @@ public class AckBuilderTest {
 	@Test
 	public void test() {
 
-		Persist<Integer, Integer> p = new PersistTestImpl();
+		Persist<Integer> p = new PersistTestImpl();
 		
-		AcknowledgeBuilder<Integer, Integer> ab = new AcknowledgeBuilder<>(p, null);
+		AcknowledgeBuilder<Integer> ab = new AcknowledgeBuilder<>(p, null);
 		
 		ab.processCart(ab, new ShoppingCart<>(1, 1, "A"));
 		ab.processCart(ab, new ShoppingCart<>(1, 2, "B"));

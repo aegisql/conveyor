@@ -10,25 +10,25 @@ import com.aegisql.conveyor.loaders.FutureLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 
 
-public class PersistenceCleanupBatchConveyor <K,I> extends AssemblingConveyor<SingleKey, SmartLabel<CleaunupBatchBuilder<K,I>>, Runnable> {
+public class PersistenceCleanupBatchConveyor <K> extends AssemblingConveyor<SingleKey, SmartLabel<CleaunupBatchBuilder<K>>, Runnable> {
 
 	public static class Batch {}
 	
-	public final SmartLabel<CleaunupBatchBuilder<K,I>> CART_ID  = SmartLabel.of("CART_ID", (b,id)->CleaunupBatchBuilder.addCartId(b, (I)id));
-	public final SmartLabel<CleaunupBatchBuilder<K,I>> CART_IDS = SmartLabel.of("CART_IDS", (b,ids)->CleaunupBatchBuilder.addCartIds(b, (Collection<I>)ids ));
-	public final SmartLabel<CleaunupBatchBuilder<K,I>> KEY      = SmartLabel.of("KEY", (b,key)->CleaunupBatchBuilder.addKey(b, (K)key));
+	public final SmartLabel<CleaunupBatchBuilder<K>> CART_ID  = SmartLabel.of("CART_ID", (b,id)->CleaunupBatchBuilder.addCartId(b, (Long)id));
+	public final SmartLabel<CleaunupBatchBuilder<K>> CART_IDS = SmartLabel.of("CART_IDS", (b,ids)->CleaunupBatchBuilder.addCartIds(b, (Collection<Long>)ids ));
+	public final SmartLabel<CleaunupBatchBuilder<K>> KEY      = SmartLabel.of("KEY", (b,key)->CleaunupBatchBuilder.addKey(b, (K)key));
 
-	public PersistenceCleanupBatchConveyor(Persist<K,I> persistence,int batchSize) {
+	public PersistenceCleanupBatchConveyor(Persist<K> persistence,int batchSize) {
 		super();
 		this.setName("PersistenceCleanupBatchConveyor");
-		this.setBuilderSupplier( () -> new CleaunupBatchBuilder<K,I>(persistence,batchSize)  );
+		this.setBuilderSupplier( () -> new CleaunupBatchBuilder<K>(persistence,batchSize)  );
 		this.resultConsumer(bin->{
 			bin.product.run();
 		}).set();
 	}
 
 	@Override
-	public PartLoader<SingleKey, SmartLabel<CleaunupBatchBuilder<K, I>>, ?, Runnable, Boolean> part() {
+	public PartLoader<SingleKey, SmartLabel<CleaunupBatchBuilder<K>>, ?, Runnable, Boolean> part() {
 		return super.part().id(SingleKey.BATCH);
 	}
 

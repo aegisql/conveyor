@@ -33,7 +33,7 @@ public class PersistTestImplTest {
 	public void test() {
 
 		PersistTestImpl p = new PersistTestImpl();
-		assertEquals(Integer.valueOf(1), p.getUniqueId());
+		assertEquals(1L, p.getUniqueId());
 		
 		p.saveCart(p.getUniqueId(),new ShoppingCart<Integer, Integer, Integer>(1, 1, 1));
 		p.saveCart(p.getUniqueId(),new ShoppingCart<Integer, Integer, Integer>(1, 2, 2));

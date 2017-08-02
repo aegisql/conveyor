@@ -45,12 +45,12 @@ public class AckBuilderConveyorTest {
 	@Test
 	public void test() throws InterruptedException {
 		
-		Persist<Integer, Integer> p = new PersistTestImpl();
+		Persist<Integer> p = new PersistTestImpl();
 
-		AcknowledgeBuildingConveyor<Integer, Integer> abc = new AcknowledgeBuildingConveyor<>(p, null, null); //no forward, no cleaning
+		AcknowledgeBuildingConveyor<Integer> abc = new AcknowledgeBuildingConveyor<>(p, null, null); //no forward, no cleaning
 		abc.setIdleHeartBeat(10,TimeUnit.MILLISECONDS);
 		
-		CompletableFuture<List<Integer>> f = abc.future().id(1).get();
+		CompletableFuture<List<Long>> f = abc.future().id(1).get();
 		
 		abc.part().id(1).label(abc.CART).value(new ShoppingCart<Integer, Integer, String>(1, 1, "A")).place();
 		abc.part().id(1).label(abc.CART).value(new ShoppingCart<Integer, Integer, String>(1, 2, "B")).place();
@@ -58,7 +58,7 @@ public class AckBuilderConveyorTest {
 		
 		abc.part().id(1).label(abc.ACK).value(1).place();
 		abc.part().id(1).label(abc.COMPLETE).value(Status.READY).place();
-		List<Integer> ids = f.join();
+		List<Long> ids = f.join();
 		System.out.println(ids);
 	
 	}
