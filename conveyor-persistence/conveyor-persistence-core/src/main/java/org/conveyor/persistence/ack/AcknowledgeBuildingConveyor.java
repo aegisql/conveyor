@@ -3,7 +3,7 @@ package org.conveyor.persistence.ack;
 import java.util.List;
 
 import org.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
-import org.conveyor.persistence.core.Persist;
+import org.conveyor.persistence.core.Persistence;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
@@ -18,7 +18,7 @@ public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, Smart
 	public final SmartLabel<AcknowledgeBuilder<K>> COMPLETE = SmartLabel.of("COMPLETE", (b,status)->{ AcknowledgeBuilder.complete(b, (Status)status); });
 	public final SmartLabel<AcknowledgeBuilder<K>> REPLAY   = SmartLabel.of("REPLAY", (b,key)->{ AcknowledgeBuilder.replay(b, (K)key); });
 
-	public <L,OUT> AcknowledgeBuildingConveyor(Persist<K> persistence, Conveyor<K, L, OUT> forward, PersistenceCleanupBatchConveyor<K> cleaner) {
+	public <L,OUT> AcknowledgeBuildingConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward, PersistenceCleanupBatchConveyor<K> cleaner) {
 		super();
 		this.setName("AcknowledgeBuildingConveyor<"+(forward == null ? "":forward.getName())+">");
 		this.setBuilderSupplier( () -> new AcknowledgeBuilder<>(persistence, forward)  );

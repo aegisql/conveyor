@@ -36,11 +36,13 @@ public class CleanupBatchConveyorTest {
 
 	@Test
 	public void test() {
-		Persist<Integer> p = new PersistTestImpl();
+		Persistence<Integer> p = new PersistTestImpl();
 		
-		p.saveCart(1, new ShoppingCart<>(1, 2, "A"));
-		p.saveCart(2, new ShoppingCart<>(1, 3, "B"));
-		p.saveAcknowledge(1);
+		p.savePart(1, new ShoppingCart<>(1, 2, "A"));
+		p.savePartId(1, 1);
+		p.savePart(2, new ShoppingCart<>(1, 3, "B"));
+		p.savePartId(1, 2);
+		p.saveCompletedBuildKey(1);
 		
 		PersistenceCleanupBatchConveyor<Integer> pcc = new PersistenceCleanupBatchConveyor<>(p, 3);
 		
@@ -50,10 +52,10 @@ public class CleanupBatchConveyorTest {
 		pcc.part().label(pcc.CART_ID).value(2L).place();
 		pcc.part().label(pcc.KEY).value(1).place();
 
-		assertEquals(2, p.getAllCartIds(1).size());
+		assertEquals(2, p.getAllPartIds(1).size());
 		Runnable r = f.join();
 		assertNotNull(r);
-		assertEquals(0, p.getAllCartIds(1).size());
+		assertEquals(0, p.getAllPartIds(1).size());
 		
 	}
 

@@ -34,7 +34,7 @@ public class PersistentConveyorTest {
 
 	@Test
 	public void veryBasicTest() throws InterruptedException {
-		Persist<Integer> p = new PersistTestImpl();
+		Persistence<Integer> p = new PersistTestImpl();
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);

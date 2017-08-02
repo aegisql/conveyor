@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.conveyor.persistence.core.Persist;
+import org.conveyor.persistence.core.Persistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ public class AcknowledgeBuilder <K> implements Supplier<List<Long>>, Testing {
 	
 	private final static Logger LOG = LoggerFactory.getLogger(AcknowledgeBuilder.class);
 
-	private final Persist<K> persistence;
+	private final Persistence<K> persistence;
 	
 	private final List<Long> cartIds = new ArrayList<>();
 	private final Conveyor<K, ?, ?> forward;
@@ -27,7 +27,7 @@ public class AcknowledgeBuilder <K> implements Supplier<List<Long>>, Testing {
 	
 	private boolean complete = false;
 	
-	public AcknowledgeBuilder(Persist<K> persistence, Conveyor<K, ?, ?> forward) {
+	public AcknowledgeBuilder(Persistence<K> persistence, Conveyor<K, ?, ?> forward) {
 		this.persistence = persistence;
 		this.forward     = forward;
 		LOG.debug("Created");
@@ -38,19 +38,20 @@ public class AcknowledgeBuilder <K> implements Supplier<List<Long>>, Testing {
 		return cartIds;
 	}
 	
-	public static <K,L> void processCart(AcknowledgeBuilder <K> builder, Cart cart) {
+	public static <K,L> void processCart(AcknowledgeBuilder <K> builder, Cart<K,?,L> cart) {
 		LOG.debug("CART "+cart);
 		Long id = null;
 		if( ! cart.getAllProperties().containsKey("CART_ID") ) {
-			id = builder.persistence.getUniqueId();
+			id = builder.persistence.nextUniquePartId();
 			cart.addProperty("CART_ID", id);
 		} else {
 			id = (Long) cart.getProperty("CART_ID", Long.class);
 		}
-		builder.persistence.saveCart(id, cart);
+		builder.persistence.savePart(id, cart);
+		builder.persistence.savePartId(cart.getKey(), id);
 		builder.cartIds.add(id);		
 		if( builder.keyReady == null && builder.forward != null ) {
-			builder.forward.place(cart);
+			builder.forward.place((Cart)cart);
 		}			
 	}
 	
@@ -67,9 +68,9 @@ public class AcknowledgeBuilder <K> implements Supplier<List<Long>>, Testing {
 	public static <K,L> void replay(AcknowledgeBuilder <K> builder, K key) {
 		if(builder.keyReady != null) {
 			LOG.debug("REPLAY "+key);
-			Collection<Long> cartIds = builder.persistence.getAllCartIds(key);
+			Collection<Long> cartIds = builder.persistence.getAllPartIds(key);
 			cartIds.forEach(id -> {
-				Cart cart = builder.persistence.getCart(id);
+				Cart cart = builder.persistence.getPart(id);
 				builder.forward.place(cart);
 			});
 		} else {

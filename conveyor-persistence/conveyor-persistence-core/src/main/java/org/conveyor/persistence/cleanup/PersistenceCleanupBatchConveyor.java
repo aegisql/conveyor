@@ -2,7 +2,7 @@ package org.conveyor.persistence.cleanup;
 
 import java.util.Collection;
 
-import org.conveyor.persistence.core.Persist;
+import org.conveyor.persistence.core.Persistence;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.SmartLabel;
@@ -18,7 +18,7 @@ public class PersistenceCleanupBatchConveyor <K> extends AssemblingConveyor<Sing
 	public final SmartLabel<CleaunupBatchBuilder<K>> CART_IDS = SmartLabel.of("CART_IDS", (b,ids)->CleaunupBatchBuilder.addCartIds(b, (Collection<Long>)ids ));
 	public final SmartLabel<CleaunupBatchBuilder<K>> KEY      = SmartLabel.of("KEY", (b,key)->CleaunupBatchBuilder.addKey(b, (K)key));
 
-	public PersistenceCleanupBatchConveyor(Persist<K> persistence,int batchSize) {
+	public PersistenceCleanupBatchConveyor(Persistence<K> persistence,int batchSize) {
 		super();
 		this.setName("PersistenceCleanupBatchConveyor");
 		this.setBuilderSupplier( () -> new CleaunupBatchBuilder<K>(persistence,batchSize)  );

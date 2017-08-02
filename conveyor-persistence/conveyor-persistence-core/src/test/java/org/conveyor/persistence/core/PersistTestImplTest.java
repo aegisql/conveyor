@@ -33,22 +33,25 @@ public class PersistTestImplTest {
 	public void test() {
 
 		PersistTestImpl p = new PersistTestImpl();
-		assertEquals(1L, p.getUniqueId());
+		assertEquals(1L, p.nextUniquePartId());
 		
-		p.saveCart(p.getUniqueId(),new ShoppingCart<Integer, Integer, Integer>(1, 1, 1));
-		p.saveCart(p.getUniqueId(),new ShoppingCart<Integer, Integer, Integer>(1, 2, 2));
-		p.saveCart(p.getUniqueId(),new ShoppingCart<Integer, Integer, Integer>(2, 1, 1));
+		p.savePart(p.nextUniquePartId(),new ShoppingCart<Integer, Integer, Integer>(1, 1, 1));
+		p.savePartId(1, 1);
+		p.savePart(p.nextUniquePartId(),new ShoppingCart<Integer, Integer, Integer>(1, 2, 2));
+		p.savePartId(1, 2);
+		p.savePart(p.nextUniquePartId(),new ShoppingCart<Integer, Integer, Integer>(2, 1, 1));
+		p.savePartId(2, 3);
 		
-		assertEquals(2, p.getAllCartIds(1).size());
-		assertEquals(1, p.getAllCartIds(2).size());
-		assertEquals(0, p.getAllCartIds(3).size());
+		assertEquals(2, p.getAllPartIds(1).size());
+		assertEquals(1, p.getAllPartIds(2).size());
+		assertEquals(0, p.getAllPartIds(3).size());
 		
-		assertNotNull(p.getCart(2));
-		assertNotNull(p.getCart(3));
-		assertNotNull(p.getCart(4));
-		assertNull(p.getCart(5));
+		assertNotNull(p.getPart(2));
+		assertNotNull(p.getPart(3));
+		assertNotNull(p.getPart(4));
+		assertNull(p.getPart(5));
 
-		p.saveAcknowledge(1);
+		p.saveCompletedBuildKey(1);
 		
 	}
 

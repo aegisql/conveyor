@@ -33,7 +33,7 @@ public class CleanupBatchBuilderTest {
 
 	@Test
 	public void testTimeoutReady() {
-		Persist<Integer> p = new PersistTestImpl();
+		Persistence<Integer> p = new PersistTestImpl();
 		CleaunupBatchBuilder<Integer> cb = new CleaunupBatchBuilder<>(p, 3);
 		
 		assertFalse(cb.test());
@@ -44,7 +44,7 @@ public class CleanupBatchBuilderTest {
 
 	@Test
 	public void testSizeReady1() {
-		Persist<Integer> p = new PersistTestImpl();
+		Persistence<Integer> p = new PersistTestImpl();
 		CleaunupBatchBuilder<Integer> cb = new CleaunupBatchBuilder<>(p, 3);
 		
 		assertFalse(cb.test());
@@ -56,7 +56,7 @@ public class CleanupBatchBuilderTest {
 
 	@Test
 	public void testSizeReady2() {
-		Persist<Integer> p = new PersistTestImpl();
+		Persistence<Integer> p = new PersistTestImpl();
 		CleaunupBatchBuilder<Integer> cb = new CleaunupBatchBuilder<>(p, 3);
 		List<Long> l = new ArrayList<>();
 		l.add(1L);

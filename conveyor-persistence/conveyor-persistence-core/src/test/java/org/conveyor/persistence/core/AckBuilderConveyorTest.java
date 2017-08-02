@@ -45,7 +45,7 @@ public class AckBuilderConveyorTest {
 	@Test
 	public void test() throws InterruptedException {
 		
-		Persist<Integer> p = new PersistTestImpl();
+		Persistence<Integer> p = new PersistTestImpl();
 
 		AcknowledgeBuildingConveyor<Integer> abc = new AcknowledgeBuildingConveyor<>(p, null, null); //no forward, no cleaning
 		abc.setIdleHeartBeat(10,TimeUnit.MILLISECONDS);

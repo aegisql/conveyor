@@ -34,7 +34,7 @@ public class AckBuilderTest {
 	@Test
 	public void test() {
 
-		Persist<Integer> p = new PersistTestImpl();
+		Persistence<Integer> p = new PersistTestImpl();
 		
 		AcknowledgeBuilder<Integer> ab = new AcknowledgeBuilder<>(p, null);
 		

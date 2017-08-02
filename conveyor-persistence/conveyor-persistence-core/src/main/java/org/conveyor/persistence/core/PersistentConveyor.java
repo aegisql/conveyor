@@ -43,12 +43,12 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	private final AcknowledgeBuildingConveyor<K> ackConveyor;
 	private final PersistenceCleanupBatchConveyor<K> cleaner;
 	
-	public PersistentConveyor(Persist<K> persistence, Conveyor<K, L, OUT> forward, int batchSize) {
+	public PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward, int batchSize) {
 		this.forward = forward;
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(persistence,batchSize);
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(persistence, forward, cleaner);
 		forward.resultConsumer().before(bin->{
-			persistence.saveAcknowledge(bin.key);
+			persistence.saveCompletedBuildKey(bin.key);
 			ackConveyor.part().id(bin.key).label(ackConveyor.READY).value(bin.key).place();
 		}).set();
 		forward.addBeforeKeyEvictionAction((k,status)->{
@@ -56,7 +56,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		});
 		//not empty only if previous conveyor could not complete.
 		//Pers must be initialized with the previous state
-		persistence.getAllCarts().forEach(cart->this.place((Cart<K, ?, L>) cart));
+		persistence.<L>getAllParts().forEach(cart->this.place(cart));
 	}
 	
 	@Override
@@ -99,7 +99,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public <V> CompletableFuture<Boolean> place(Cart<K, V, L> cart) {
-		ShoppingCart<K, Cart, SmartLabel<AcknowledgeBuilder<K>>> ackCart = new ShoppingCart<>(cart.getKey(), cart, ackConveyor.CART);
+		ShoppingCart<K, Cart<K,?,L>, SmartLabel<AcknowledgeBuilder<K>>> ackCart = new ShoppingCart<>(cart.getKey(), cart, ackConveyor.CART);
 		CompletableFuture<Boolean> forwardFuture = cart.getFuture();
 		CompletableFuture<Boolean> ackFuture = ackCart.getFuture();
 		CompletableFuture<Boolean> bothFutures = ackFuture.thenCombine(forwardFuture,(a,b)->a&&b);
