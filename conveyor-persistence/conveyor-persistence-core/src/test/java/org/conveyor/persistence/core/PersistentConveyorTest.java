@@ -2,6 +2,8 @@ package org.conveyor.persistence.core;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.apache.log4j.BasicConfigurator;
 import org.conveyor.persistence.core.harness.PersistTestImpl;
 import org.conveyor.persistence.core.harness.Trio;
@@ -12,6 +14,8 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.aegisql.conveyor.Acknowledge;
 
 public class PersistentConveyorTest {
 
@@ -47,6 +51,37 @@ public class PersistentConveyorTest {
 		assertEquals(1, tc.results.size());
 	}
 
+	
+	@Test
+	public void simpleAckTest() throws InterruptedException {
+		PersistTestImpl p = new PersistTestImpl();
+		TrioConveyor tc = new TrioConveyor();
+		
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
+		pc.setAutoAcknowledge(false);
+		
+		AtomicReference<Acknowledge> ref = new AtomicReference<>();
+		
+		pc.resultConsumer().andThen(bin->{
+			ref.set(bin.acknowledge);
+		}).set();
+		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
+		pc.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
+		System.out.println(p);
+		pc.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
+		System.out.println(p);
+		assertEquals(1, tc.results.size());
+		assertNotNull(ref.get());
+		assertFalse(ref.get().isAcknowledged());
+		assertFalse(p.isEmpty());
+		ref.get().ack();
+		assertTrue(ref.get().isAcknowledged());
+		Thread.sleep(1000);
+		System.out.println(p);
+		assertTrue(p.isEmpty());
+	}
+
+	
 	@Test
 	public void simpleReplayTest() throws InterruptedException {
 		PersistTestImpl p1 = new PersistTestImpl();
