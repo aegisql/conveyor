@@ -296,7 +296,7 @@ public class MapDbPersistentConveyor<K,L,OUT> implements Conveyor<K,L,OUT> {
 			inQueue.put(nano, cart);
 		} catch( RuntimeException e) {
 			cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(
-					new ScrapBin(cart.getKey(), cart, e.getMessage(), e, FailureType.CART_REJECTED,cart.getAllProperties()));
+					new ScrapBin(cart.getKey(), cart, e.getMessage(), e, FailureType.CART_REJECTED,cart.getAllProperties(), null));
 		} finally {
 			lock.tell();
 		}
@@ -658,6 +658,13 @@ public class MapDbPersistentConveyor<K,L,OUT> implements Conveyor<K,L,OUT> {
 
 	@Override
 	public void setAutoAcknowledge(boolean auto) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void setAcknowledgeAction(BiConsumer<K, Status> ackAction) {
 		// TODO Auto-generated method stub
 		
 	}
