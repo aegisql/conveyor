@@ -135,10 +135,17 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			throw new NullPointerException("Command is null");
 	};
 
+	protected boolean autoAck = true;
+	
+	protected BiConsumer<K,Status> ackAction = (key,status)->{};
+
 	/** The key before eviction. */
 	private BiConsumer<K,Status> keyBeforeEviction = (key,status) -> {
 		LOG.trace("Key is ready to be evicted {} status:{}", key, status);
 		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> bs = collector.remove(key);
+		if(autoAck) {
+			ackAction.accept(key, status);
+		}
 	};
 
 	/** The key before reschedule. */
@@ -252,8 +259,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The save carts. */
 	private boolean saveCarts;
 	
-	protected boolean autoAck = true;
-
 	/** The name. */
 	private String name;
 
@@ -1579,6 +1584,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public void setAutoAcknowledge(boolean auto) {
 		this.autoAck = auto;
+	}
+
+	@Override
+	public void setAcknowledgeAction(BiConsumer<K,Status> ackAction) {
+		this.ackAction = ackAction;
 	}
 	
 }

@@ -51,7 +51,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 			persistence.saveCompletedBuildKey(bin.key);
 			ackConveyor.part().id(bin.key).label(ackConveyor.READY).value(bin.key).place();
 		}).set();
-		forward.addBeforeKeyEvictionAction((k,status)->{
+		forward.setAcknowledgeAction((k,status)->{
 			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
 		});
 		//not empty only if previous conveyor could not complete.
@@ -324,6 +324,11 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public void setAutoAcknowledge(boolean auto) {
 		forward.setAutoAcknowledge(auto);
+	}
+
+	@Override
+	public void setAcknowledgeAction(BiConsumer<K, Status> ackAction) {
+		forward.setAcknowledgeAction(ackAction);
 	}
 
 }

@@ -807,7 +807,5 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 			conv.setAutoAcknowledge(auto);
 		};
 	}
-
-
 	
 }

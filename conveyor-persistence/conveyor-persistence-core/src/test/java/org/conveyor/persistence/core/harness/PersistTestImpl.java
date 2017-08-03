@@ -25,17 +25,20 @@ public class PersistTestImpl implements Persistence<Integer> {
 	}
 	
 	public PersistTestImpl(PersistTestImpl old, PersistTestImpl... more) {
-		
+
+		old.archiveCompleteKeys(old.getCompletedKeys());
 		absorb(old);
+		old.archiveAll();
 		
-		old.archiveCompleteKeys(this.cartIds.keySet());
 		old.archiveKeys(this.cartIds.keySet());
 		this.cartIds.forEach((id,list)->old.archiveParts(list));
 		
 		completed.addAll(old.completed);
 		if(more != null) {
 			for(PersistTestImpl p:more) {
+				p.archiveCompleteKeys(p.getCompletedKeys());
 				absorb(p);
+				p.archiveAll();
 			}
 		}
 	}
@@ -90,6 +93,12 @@ public class PersistTestImpl implements Persistence<Integer> {
 	@Override
 	public void archiveCompleteKeys(Collection<Integer> keys) {
 		completed.removeAll(keys);
+		keys.forEach(key->{
+			Collection<Long> ids = cartIds.remove(key);
+			if(ids != null) {
+				ids.forEach(id->carts.remove(id));
+			}
+		});
 	}
 
 	@Override
@@ -109,6 +118,13 @@ public class PersistTestImpl implements Persistence<Integer> {
 	@Override
 	public Set<Integer> getCompletedKeys() {
 		return new HashSet<Integer>(completed);
+	}
+
+	@Override
+	public void archiveAll() {
+		cartIds.clear();
+		carts.clear();
+		completed.clear();
 	}
 	
 }

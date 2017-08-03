@@ -23,6 +23,8 @@ public interface Persistence <K> {
 	public void archiveKeys(Collection<K> keys);
 	public void archiveCompleteKeys(Collection<K> keys);
 	
+	public void archiveAll();
+	
 	default <L> void absorb(Persistence<K> old) {
 		Set<K> completed                 = old.getCompletedKeys();
 		Collection<Cart<K,?,L>> oldParts = old.getAllParts();
