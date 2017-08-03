@@ -52,7 +52,15 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 			ackConveyor.part().id(bin.key).label(ackConveyor.READY).value(bin.key).place();
 		}).set();
 		forward.setAcknowledgeAction((k,status)->{
-			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
+			switch(status) {
+				case READY:
+				case TIMED_OUT:
+				case CANCELED:
+					ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
+					break;
+				default:
+					LOG.debug("Acknowledge key {} received , but not applicable for {}",k,status);
+			}
 		});
 		//not empty only if previous conveyor could not complete.
 		//Pers must be initialized with the previous state

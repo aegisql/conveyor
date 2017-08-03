@@ -72,6 +72,8 @@ GENERAL_FAILURE
 	public final FailureType failureType;
 	
 	public final Map<String,Object> properties;
+	
+	public final Acknowledge acknowledge;
 
 	/**
 	 * Instantiates a new scrap bin.
@@ -82,13 +84,14 @@ GENERAL_FAILURE
 	 * @param error the error
 	 * @param type the type
 	 */
-	public ScrapBin(K key, O scrap, String comment, Throwable error, FailureType type, Map<String,Object> properties) {
+	public ScrapBin(K key, O scrap, String comment, Throwable error, FailureType type, Map<String,Object> properties, Acknowledge acknowledge) {
 		this.key         = key;
 		this.comment     = comment;
 		this.scrap       = scrap;
 		this.error       = error;
 		this.failureType = type;
 		this.properties  = properties;
+		this.acknowledge = acknowledge;
 	}
 
 	/* (non-Javadoc)

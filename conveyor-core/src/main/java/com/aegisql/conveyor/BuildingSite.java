@@ -135,6 +135,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	private Consumer<Throwable> exceptionalResultConsumer = t->{};
 
+	private final BiConsumer<K,Status> ackAction;
 	/**
 	 * Instantiates a new building site.
 	 *
@@ -168,7 +169,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			long addExpirationTimeMsec, 
 			boolean postponeExpirationOnTimeoutEnabled,
 			Map<L,C> staticValues,
-			ResultConsumer<K,OUT> resultConsumer
+			ResultConsumer<K,OUT> resultConsumer,
+			BiConsumer<K,Status> ackAction
 			) {
 		this.initialCart               = cart;
 		this.lastCart                  = cart;
@@ -177,7 +179,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.postponeExpirationOnTimeoutEnabled = postponeExpirationOnTimeoutEnabled;
 		this.addExpirationTimeMsec     = addExpirationTimeMsec;
 		this.defaultValueConsumer      = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
-		
+		this.ackAction                 = ackAction;
 		if(resultConsumer == null) {
 			this.resultConsumer = bin->{
 				LOG.error("LOST RESULT {} {}", bin.key, bin.product);
@@ -556,7 +558,24 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param value the value
 	 */
 	void completeWithValue(OUT value, Status status) {
-		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status , getProperties(), null) );
+		Acknowledge ack = new Acknowledge() {
+			
+			private boolean acknowledged = false;
+			
+			@Override
+			public boolean iAcknowledged() {
+				return acknowledged;
+			}
+			
+			@Override
+			public synchronized void ack() {
+				if(! acknowledged) {
+					ackAction.accept(getKey(), status);
+					acknowledged = true;
+				}
+			}
+		};
+		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status , getProperties(), ack) );
 	}
 	
 	void setResultConsumer(ResultConsumer<K,OUT> resultConsumer) {
