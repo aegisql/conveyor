@@ -25,5 +25,6 @@
 	<modules>
 		<module>conveyor-persistence-mapdb</module>
     <module>conveyor-persistence-core</module>
+    <module>conveyor-persistence-jdbc</module>
   </modules>
 </project>

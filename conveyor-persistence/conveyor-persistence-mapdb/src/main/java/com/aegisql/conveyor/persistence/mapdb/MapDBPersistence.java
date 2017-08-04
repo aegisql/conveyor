@@ -107,6 +107,7 @@ public class MapDBPersistence <K> implements Persistence<K> {
 
 	@Override
 	public void archiveAll() {
+		 
 		db.getAll().clear();
 	}
 
