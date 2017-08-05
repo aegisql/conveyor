@@ -3,8 +3,6 @@ package com.aegisql.conveyor.cart;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
-
 // TODO: Auto-generated Javadoc
 /**
  * The Class ShoppingCart.

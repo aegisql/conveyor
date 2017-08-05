@@ -9,12 +9,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.Expireable;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 
-public class AcknowledgeBuilder <K> implements Supplier<List<Long>>, Testing {
+public class AcknowledgeBuilder <K> implements Supplier<List<Long>>, Testing, Expireable {
 	
 	private final static Logger LOG = LoggerFactory.getLogger(AcknowledgeBuilder.class);
 
@@ -30,7 +31,6 @@ public class AcknowledgeBuilder <K> implements Supplier<List<Long>>, Testing {
 	public AcknowledgeBuilder(Persistence<K> persistence, Conveyor<K, ?, ?> forward) {
 		this.persistence = persistence;
 		this.forward     = forward;
-		LOG.debug("Created");
 	}
 	
 	@Override
@@ -81,6 +81,14 @@ public class AcknowledgeBuilder <K> implements Supplier<List<Long>>, Testing {
 	@Override
 	public boolean test() {
 		return complete && keyReady != null;
+	}
+
+	//This build never expires.
+	//Expiration is managed by receiving the COMPLETED message
+	//From the working conveyor.
+	@Override
+	public long getExpirationTime() {
+		return Long.MAX_VALUE;
 	}
 
 }
