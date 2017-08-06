@@ -70,7 +70,7 @@ public class PersistentConveyorTest {
 		});
 		TrioConveyor tc = new TrioConveyor();
 		
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, ()->tc, 3);
 		pc.setAutoAcknowledge(false);
 		
 		AtomicReference<Acknowledge> ref = new AtomicReference<>();

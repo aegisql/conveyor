@@ -346,5 +346,17 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	public void setAcknowledgeAction(BiConsumer<K, Status> ackAction) {
 		forward.setAcknowledgeAction(ackAction);
 	}
+	
+	public Conveyor<K, L, OUT> getWorkingConveyor() {
+		return forward;
+	}
+	
+	public AcknowledgeBuildingConveyor<K> getAcknowledgeBuildingConveyor() {
+		return ackConveyor;
+	}
+	
+	public PersistenceCleanupBatchConveyor<K> getCleaningConveyor() {
+		return cleaner;
+	}
 
 }
