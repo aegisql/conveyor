@@ -11,6 +11,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
@@ -65,6 +66,14 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		//Pers must be initialized with the previous state
 		persistence.<L>getAllParts().forEach(cart->this.place(cart));
 	}
+	
+	public PersistentConveyor(Persistence<K> persistence, int batchSize) {
+		this(persistence,new AssemblingConveyor<>(),batchSize);
+	}
+	
+	public PersistentConveyor(Persistence<K> persistence, Supplier<Conveyor<K, L, OUT>> forwardSupplier, int batchSize) {
+		this(persistence,forwardSupplier.get(),batchSize);
+	}	
 	
 	@Override
 	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
