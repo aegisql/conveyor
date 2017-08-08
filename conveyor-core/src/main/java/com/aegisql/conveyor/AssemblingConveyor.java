@@ -5,6 +5,7 @@ package com.aegisql.conveyor;
 
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -139,12 +140,17 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	
 	protected BiConsumer<K,Status> ackAction = (key,status)->{};
 
+	private EnumSet ackStatusSet = EnumSet.allOf(Status.class);
+
 	/** The key before eviction. */
 	private BiConsumer<K,Status> keyBeforeEviction = (key,status) -> {
 		LOG.trace("Key is ready to be evicted {} status:{}", key, status);
 		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> bs = collector.remove(key);
-		if(autoAck) {
+		if(autoAck && ackStatusSet.contains(status)) {
 			ackAction.accept(key, status);
+		} else {
+			LOG.debug("Auto Acknowledge for key {} not applicable for status {}",key,status);
+
 		}
 	};
 
@@ -1592,6 +1598,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public void setAcknowledgeAction(BiConsumer<K,Status> ackAction) {
 		this.ackAction = ackAction;
+	}
+
+	@Override
+	public void autoAcknowledgeOnStatus(Status first, Status... other) {
+		ackStatusSet = EnumSet.of(first, other);
+		
 	}
 	
 }

@@ -432,5 +432,7 @@ public interface Conveyor<K, L, OUT> {
 	void setAutoAcknowledge(boolean auto);
 	
 	void setAcknowledgeAction(BiConsumer<K,Status> ackAction);
+
+	void autoAcknowledgeOnStatus(Status first, Status... other);
 	
 }

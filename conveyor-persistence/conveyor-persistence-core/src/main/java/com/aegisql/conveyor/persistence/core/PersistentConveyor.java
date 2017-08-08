@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.persistence.core;
 
 import java.time.Duration;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +44,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	private final AcknowledgeBuildingConveyor<K> ackConveyor;
 	private final PersistenceCleanupBatchConveyor<K> cleaner;
 	
+	
 	public PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward, int batchSize) {
 		this.forward = forward;
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(persistence,batchSize);
@@ -52,15 +54,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 			ackConveyor.part().id(bin.key).label(ackConveyor.READY).value(bin.key).place();
 		}).set();
 		forward.setAcknowledgeAction((k,status)->{
-			switch(status) {
-				case READY:
-				case TIMED_OUT:
-				case CANCELED:
-					ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
-					break;
-				default:
-					LOG.debug("Acknowledge key {} received , but not applicable for {}",k,status);
-			}
+			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
 		});
 		//not empty only if previous conveyor could not complete.
 		//Pers must be initialized with the previous state
@@ -357,6 +351,11 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	
 	public PersistenceCleanupBatchConveyor<K> getCleaningConveyor() {
 		return cleaner;
+	}
+
+	@Override
+	public void autoAcknowledgeOnStatus(Status first, Status... other) {
+		forward.autoAcknowledgeOnStatus(first, other);
 	}
 
 }

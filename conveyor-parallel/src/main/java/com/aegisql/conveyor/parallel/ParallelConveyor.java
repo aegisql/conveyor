@@ -807,5 +807,12 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 			conv.setAutoAcknowledge(auto);
 		};
 	}
-	
+
+	@Override
+	public void autoAcknowledgeOnStatus(Status first, Status... other) {
+		for(Conveyor<K, L, OUT> conv: conveyors) {
+			conv.autoAcknowledgeOnStatus(first,other);
+		};		
+	}
+
 }
