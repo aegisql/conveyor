@@ -135,7 +135,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	private Consumer<Throwable> exceptionalResultConsumer = t->{};
 
-	private final BiConsumer<K,Status> ackAction;
+	private final Acknowledge acknowledge;
+	
+	
 	/**
 	 * Instantiates a new building site.
 	 *
@@ -179,7 +181,23 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.postponeExpirationOnTimeoutEnabled = postponeExpirationOnTimeoutEnabled;
 		this.addExpirationTimeMsec     = addExpirationTimeMsec;
 		this.defaultValueConsumer      = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
-		this.ackAction                 = ackAction;
+		this.acknowledge               = new Acknowledge() {
+			
+			private volatile boolean acknowledged = false;
+			@Override
+			public boolean isAcknowledged() {
+				return acknowledged;
+			}
+			
+			@Override
+			public synchronized void ack() {
+				if(! acknowledged) {
+					ackAction.accept(getKey(), status);
+					acknowledged = true;
+				}
+			}
+		};
+		
 		if(resultConsumer == null) {
 			this.resultConsumer = bin->{
 				LOG.error("LOST RESULT {} {}", bin.key, bin.product);
@@ -558,23 +576,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param value the value
 	 */
 	void completeWithValue(OUT value, Status status) {
-		Acknowledge ack = new Acknowledge() {
-			
-			private boolean acknowledged = false;
-			
-			@Override
-			public boolean isAcknowledged() {
-				return acknowledged;
-			}
-			
-			@Override
-			public synchronized void ack() {
-				if(! acknowledged) {
-					ackAction.accept(getKey(), status);
-					acknowledged = true;
-				}
-			}
-		};
+		Acknowledge ack = getAcknowledge();
 		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status , getProperties(), ack) );
 	}
 	
@@ -688,6 +690,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	public void addProperties(Map<String,Object> properties) {
 		this.properties.putAll(properties);
+	}
+
+	public Acknowledge getAcknowledge() {
+		return acknowledge;
 	}
 		
 }

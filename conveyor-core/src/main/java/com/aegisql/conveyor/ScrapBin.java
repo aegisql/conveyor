@@ -4,6 +4,7 @@
 package com.aegisql.conveyor;
 
 import java.util.Map;
+import java.util.Optional;
 
 // TODO: Add full State from the BuildingSite, if available, to the scrap 
 /**
@@ -73,7 +74,7 @@ GENERAL_FAILURE
 	
 	public final Map<String,Object> properties;
 	
-	public final Acknowledge acknowledge;
+	public final Optional<Acknowledge> acknowledge;
 
 	/**
 	 * Instantiates a new scrap bin.
@@ -91,7 +92,7 @@ GENERAL_FAILURE
 		this.error       = error;
 		this.failureType = type;
 		this.properties  = properties;
-		this.acknowledge = acknowledge;
+		this.acknowledge = Optional.ofNullable(acknowledge);
 	}
 
 	/* (non-Javadoc)
