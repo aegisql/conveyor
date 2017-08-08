@@ -1035,6 +1035,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	private void removeExpired() {
 		int cnt = 0;
+		Status statusForEviction = Status.TIMED_OUT;
 		for (K key : delayProvider.getAllExpiredKeys()) {
 			BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> buildingSite = collector.get(key);
 			if (buildingSite == null) {
@@ -1053,6 +1054,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						}
 						OUT res = buildingSite.build();
 						completeSuccessfully((BuildingSite<K, L, ?, OUT>) buildingSite,res,Status.TIMED_OUT);
+						statusForEviction = Status.READY;
 					} else {
 						if (postponeTimeout(buildingSite)) {
 							continue;
@@ -1067,6 +1069,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				} catch (Exception e) {
 					buildingSite.setStatus(Status.INVALID);
 					buildingSite.setLastError(e);
+					statusForEviction = Status.INVALID;
 					scrapConsumer.accept(new ScrapBin(key,
 							buildingSite, "Timeout processor failed ", e, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
 					buildingSite.completeFuturesExceptionaly(e);
@@ -1082,7 +1085,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						buildingSite, "Site expired. No timeout action", null, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
 				buildingSite.cancelFutures();
 			}
-			keyBeforeEviction.accept(key,Status.TIMED_OUT);
+			keyBeforeEviction.accept(key,statusForEviction);
 			cnt++;
 		}
 		if (cnt > 0) {
