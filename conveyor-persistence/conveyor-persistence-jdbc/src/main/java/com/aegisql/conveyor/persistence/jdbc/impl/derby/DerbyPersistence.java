@@ -25,24 +25,24 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		private DerbyPersistenceBuilder(Class<K> clas) {
 			this.keyClass = clas;
 			if(clas == Integer.class) {
-				this.keyType = "CHAR("+(Integer.MAX_VALUE+"").length()+")";
+				this.keyType = "CART_KEY INT";
 			} else if(clas == Long.class) {
-				this.keyType = "CHAR("+(Long.MAX_VALUE+"").length()+")";
+				this.keyType = "CART_KEY BIGINT";
 			} else if(clas == UUID.class) {
-				this.keyType = "CHAR(36)";
+				this.keyType = "CART_KEY CHAR(36)";
 			} else if(clas.isEnum()) {
 				int maxLength = 0;
 				for(Object o:clas.getEnumConstants()) {
 					maxLength = Math.max(maxLength, o.toString().length());
 				}
-				this.keyType = "CHAR("+maxLength+")";
+				this.keyType = "CART_KEY CHAR("+maxLength+")";
 			} else {
-				this.keyType = "VARCHAR(255)";
+				this.keyType = "CART_KEY VARCHAR(255)";
 			}
 		}
 		
 		private Class<K> keyClass;
-		private String keyType = "VARCHAR(255)";
+		private String keyType = "CART_KEY VARCHAR(255)";
 		private final static String PROTOCOL = "jdbc:derby:";
 		private final static int PORT = 1527;
 		
@@ -148,8 +148,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				try(Statement st = conn.createStatement() ) {
 					String sql = "CREATE TABLE "
 								+partTable+" ("
-								+" ID BIGINT PRIMARY KEY"
-								+",CART_KEY "+keyType
+								+"ID BIGINT PRIMARY KEY"
+								+","+keyType
 								+",CART_LABEL VARCHAR(100)"
 								+",CREATION_TIME TIMESTAMP"
 								+",EXPIRATION_TIME TIMESTAMP"
@@ -169,13 +169,14 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			}
 
 			if( ! keyLogTableFound ) {
-				LOG.debug("Table '{}' not found. Trying to create...",completedLogTable);
 				try(Statement st = conn.createStatement() ) {
-					st.execute("CREATE TABLE "
+					String sql = "CREATE TABLE "
 								+completedLogTable+" ("
-								+" CART_KEY "+keyType+" PRIMARY KEY"
+								+keyType+" PRIMARY KEY"
 								+",COMPLETION_TIME TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
-								+")");
+								+")";
+					LOG.debug("Table '{}' not found. Trying to create...\n{}",completedLogTable,sql);
+					st.execute(sql);
 					LOG.debug("Table '{}' created",completedLogTable);
 				} 
 			} else {
