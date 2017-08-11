@@ -29,7 +29,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 	 * @param expiration the expiration time
 	 */
 	public MultiKeyCart(V v, L label, long creation, long expiration) {
-		super(null, v, label, expiration);
+		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 		this.filter = entry->true; //pass all by default
 		this.cartBuilder = this::toShoppingCart;
 	}
@@ -44,13 +44,13 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 	 * @param expiration the expiration time
 	 */
 	public MultiKeyCart(Predicate<K> filter, V v, L label, long creation, long expiration) {
-		super(null, v, label, expiration);
+		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 		this.filter = filter;
 		this.cartBuilder = this::toShoppingCart;
 	}
 
 	public MultiKeyCart(Predicate<K> filter, V v, L label, long creation, long expiration, Function<K,Cart<K, ?, L>> cartBuilder) {
-		super(null, v, label, expiration);
+		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 		this.filter = filter;
 		this.cartBuilder = cartBuilder;
 	}

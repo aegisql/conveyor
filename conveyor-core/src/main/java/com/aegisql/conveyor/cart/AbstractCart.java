@@ -49,112 +49,31 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	protected transient CompletableFuture<Boolean> future = null;
 	
 	protected final Map<String, Object> properties = new HashMap<>();
+
+	protected final LoadType loadType;
 	
-	/**
-	 * Instantiates a new cart.
-	 *
-	 * @param k
-	 *            the k
-	 * @param v
-	 *            the v
-	 * @param label
-	 *            the label
-	 * @param ttl
-	 *            the ttl
-	 * @param timeUnit
-	 *            the time unit
-	 */
-	public AbstractCart(K k, V v, L label, long ttl, TimeUnit timeUnit) {
-		this.k = k;
-		this.v = v;
-		this.label = label;
-		this.creationTime = System.currentTimeMillis();
-		this.expirationTime = creationTime + TimeUnit.MILLISECONDS.convert(ttl, timeUnit);
-	}
-
-	/**
-	 * Instantiates a new cart.
-	 *
-	 * @param k
-	 *            the k
-	 * @param v
-	 *            the v
-	 * @param label
-	 *            the label
-	 */
-	public AbstractCart(K k, V v, L label) {
-		this(k,v,label,System.currentTimeMillis(),0);
-	}
-
-	/**
-	 * Instantiates a new cart.
-	 *
-	 * @param k
-	 *            the k
-	 * @param v
-	 *            the v
-	 * @param label
-	 *            the label
-	 * @param expiration
-	 *            the expiration
-	 */
-	public AbstractCart(K k, V v, L label, long expiration) {
-		this(k,v,label,System.currentTimeMillis(),expiration);
-	}
-
-	/**
-	 * Instantiates a new cart.
-	 *
-	 * @param k
-	 *            the k
-	 * @param v
-	 *            the v
-	 * @param label
-	 *            the label
-	 * @param creation
-	 *            the creation time
-	 * @param expiration
-	 *            the expiration time
-	 */
-	public AbstractCart(K k, V v, L label, long creation, long expiration) {
-		this.k = k;
-		this.v = v;
-		this.label = label;
+	public AbstractCart(K k, V v, L label, long creation, long expiration, Map<String,Object> properties, LoadType loadType) {
+		this.k              = k;
+		this.v              = v;
+		this.label          = label;
 		this.creationTime   = creation;
 		this.expirationTime = expiration;
+		this.loadType       = loadType;
+		if(properties != null) {
+			this.properties.putAll(properties);
+		}
 	}
 
-	
-	/**
-	 * Instantiates a new abstract cart.
-	 *
-	 * @param k the k
-	 * @param v the v
-	 * @param label the label
-	 * @param duration the duration
-	 */
-	public AbstractCart(K k, V v, L label, Duration duration) {
-		this.k = k;
-		this.v = v;
-		this.label = label;
-		this.creationTime = System.currentTimeMillis();
-		this.expirationTime = creationTime + duration.toMillis();
-	}
-
-	/**
-	 * Instantiates a new abstract cart.
-	 *
-	 * @param k the k
-	 * @param v the v
-	 * @param label the label
-	 * @param instant the instant
-	 */
-	public AbstractCart(K k, V v, L label, Instant instant) {
-		this.k = k;
-		this.v = v;
-		this.label = label;
-		this.creationTime = System.currentTimeMillis();
-		this.expirationTime = instant.toEpochMilli();
+	public AbstractCart(K k, V v, L label, long creation, long duration, Map<String,Object> properties, LoadType loadType, boolean dummy) {
+		this.k              = k;
+		this.v              = v;
+		this.label          = label;
+		this.creationTime   = creation;
+		this.expirationTime = creation+duration;
+		this.loadType       = loadType;
+		if(properties != null) {
+			this.properties.putAll(properties);
+		}
 	}
 
 	/**
@@ -231,8 +150,9 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	 */
 	@Override
 	public String toString() {
-		return getClass().getSimpleName()
-				+" [key=" + k 
+		return "Cart("
+				+ loadType
+				+") [key=" + k 
 				+ ", value=" + v 
 				+ ", label=" + label 
 				+ ", expirationTime=" + expirationTime
@@ -274,6 +194,13 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	@Override
 	public void clearProperty(String name) {
 		properties.remove(name);
-	}	
+	}
+
+	@Override
+	public LoadType getLoadType() {
+		return loadType;
+	}
+	
+	
 	
 }

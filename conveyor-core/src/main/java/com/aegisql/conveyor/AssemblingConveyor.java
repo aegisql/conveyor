@@ -36,10 +36,11 @@ import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
+import static com.aegisql.conveyor.cart.LoadType.*;
 import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ResultConsumerCart;
+
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.cart.StaticCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
@@ -647,7 +648,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart() {
 		return  new StaticPartLoader<L, X, OUT, Boolean>(cl -> {
-			return place(new StaticCart<K, Object, L>(cl.staticPartValue, cl.label, cl.create));
+			Map<String,Object> properties = new HashMap<>();
+			properties.put("CREATE", cl.create);
+			Cart<K,?,L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART);
+			return place(staticPart);
 		});
 	}
 
@@ -901,7 +905,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private void processSite(Cart<K, ?, L> cart, boolean accept) {
 		K key = cart.getKey();
 		if (key == null) {
-			if (cart instanceof MultiKeyCart) {
+			if (cart.getLoadType() == MULTI_KEY_PART) {
 				MultiKeyCart<K, ?, L> mCart = (MultiKeyCart<K, ?, L>) cart;
 				try {
 					
@@ -916,8 +920,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(cart.getLabel(), cart, "MultiKey cart failure", e, FailureType.GENERAL_FAILURE,cart.getAllProperties(), null));
 					throw e;
 				}
-			} else if(cart instanceof StaticCart) {
-				if(((StaticCart)cart).isCreate()) {
+			} else if(cart.getLoadType() == STATIC_PART) {
+				if( cart.getProperty("CREATE", Boolean.class) ) {
 					staticValues.put(cart.getLabel(), cart);
 				} else {
 					staticValues.remove(cart.getLabel());
@@ -929,11 +933,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> buildingSite = null;
 		CompletableFuture resultFuture = null;
 		ResultConsumer newConsumer     = null;
-		if (cart instanceof FutureCart) {
+		if (cart.getLoadType() == FUTURE) {
 			FutureCart<K, ? extends OUT, L> fc = (FutureCart<K, ? extends OUT, L>) cart;
 			resultFuture = fc.getValue();
 		}
-		if (cart instanceof ResultConsumerCart) {
+		if (cart.getLoadType() == RESULT_CONSUMER) {
 			ResultConsumerCart<K,OUT, L> rc = (ResultConsumerCart<K,OUT, L>) cart;
 			newConsumer = rc.getValue();
 		}
@@ -944,7 +948,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			buildingSite = getBuildingSite(cart);
 			if (buildingSite == null) {
-				if (cart instanceof CreatingCart) {
+				if (cart.getLoadType() == BUILDER) {
 					cart.getFuture().complete(Boolean.TRUE);
 				} else {
 					cart.getFuture().complete(Boolean.FALSE);

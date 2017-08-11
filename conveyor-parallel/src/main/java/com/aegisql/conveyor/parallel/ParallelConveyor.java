@@ -3,11 +3,15 @@
  */
 package com.aegisql.conveyor.parallel;
 
+import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
+
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +42,6 @@ import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.cart.StaticCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
@@ -143,7 +146,10 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	@Override
 	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart() {
 		return new StaticPartLoader<L,X,OUT,Boolean>(cl -> {
-			return place(new StaticCart<K, Object, L>(cl.staticPartValue, cl.label, cl.create));
+			Map<String,Object> properties = new HashMap<>();
+			properties.put("CREATE", cl.create);
+			Cart<K,?,L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART);
+			return place(staticPart);
 		});
 	}
 

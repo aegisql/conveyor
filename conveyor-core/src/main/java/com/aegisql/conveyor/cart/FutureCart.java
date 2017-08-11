@@ -27,12 +27,12 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 	 * @param expiration the expiration
 	 */
 	public FutureCart(K k, CompletableFuture<B> v, long expiration) {
-		super(k, v, null, expiration);
+		super(k, v, null, System.currentTimeMillis(),expiration,null,LoadType.FUTURE);
 		Objects.requireNonNull(k);
 	}
 
 	public FutureCart(K k, CompletableFuture<B> v, long creation, long expiration) {
-		super(k, v, null, creation, expiration);
+		super(k, v, null, creation,expiration,null,LoadType.FUTURE);
 		Objects.requireNonNull(k);
 	}
 

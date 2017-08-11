@@ -1,5 +1,7 @@
 package com.aegisql.conveyor.cart.command;
 
+import static com.aegisql.conveyor.cart.LoadType.COMMAND;
+
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -30,19 +32,19 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	 * @param expiration the expiration
 	 */
 	public GeneralCommand(K k, V v, CommandLabel label, long expiration) {
-		super(k, v, label, expiration);
+		super(k, v, label, System.currentTimeMillis(),expiration,null,COMMAND);
 		Objects.requireNonNull(k);
 		filter = key -> k.equals(k);
 	}
 
 	public GeneralCommand(K k, V v, CommandLabel label, long creation, long expiration) {
-		super(k, v, label, creation, expiration);
+		super(k, v, label, creation, expiration,null,COMMAND);
 		Objects.requireNonNull(k);
 		filter = key -> k.equals(k);
 	}
 
 	public GeneralCommand(Predicate<K> f, V v, CommandLabel label, long creation, long expiration) {
-		super(null, v, label, creation, expiration);
+		super(null, v, label, creation, expiration,null,COMMAND);
 		Objects.requireNonNull(f);
 		filter = f;
 	}
@@ -57,6 +59,7 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 				", label=" + label + 
 				", creationTime=" + creationTime +
 				", expirationTime=" + expirationTime +
+				", properties=" + properties +
 				 "]";
 	}
 

@@ -103,6 +103,8 @@ public interface Cart <K,V,L> extends Expireable, Serializable {
 	public void clearProperty(String name);
 	
 	
+	public LoadType getLoadType();
+	
 	/**
 	 * copy().
 	 *

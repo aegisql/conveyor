@@ -149,10 +149,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					String sql = "CREATE TABLE "
 								+partTable+" ("
 								+"ID BIGINT PRIMARY KEY"
+								+",LOAD_TYPE CHAR(15)"
 								+","+keyType
 								+",CART_LABEL VARCHAR(100)"
-								+",CREATION_TIME TIMESTAMP"
-								+",EXPIRATION_TIME TIMESTAMP"
+								+",CREATION_TIME TIMESTAMP NOT NULL"
+								+",EXPIRATION_TIME TIMESTAMP NOT NULL"
 								+",CART_VALUE BLOB"
 								+",CART_PROPERTIES VARCHAR(1024)"
 								+",ARCHIVED SMALLINT NOT NULL DEFAULT 0"

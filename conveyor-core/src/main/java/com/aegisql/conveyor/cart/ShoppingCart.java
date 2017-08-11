@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.cart;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -15,6 +16,15 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 4055225191822888396L;
+	
+	public ShoppingCart(K k, V v, L label, long creation, long expiration, Map<String,Object> properties, LoadType loadType) {
+		super(k,v,label,creation,expiration,properties,loadType);
+	}
+
+	public ShoppingCart(K k, V v, L label, long creation, long duration, Map<String,Object> properties, LoadType loadType, boolean dummy) {
+		super(k,v,label,creation,duration,properties,loadType,dummy);
+	}
+
 
 	/**
 	 * Instantiates a new shopping cart.
@@ -26,7 +36,7 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	 * @param timeUnit the time unit
 	 */
 	public ShoppingCart(K k, V v, L label, long ttl, TimeUnit timeUnit) {
-		super(k, v, label, ttl, timeUnit);
+		super(k, v, label, System.currentTimeMillis(),timeUnit.toMillis(ttl),null,LoadType.PART,true);
 		Objects.requireNonNull(k);
 	}
 
@@ -39,12 +49,12 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	 * @param expiration the expiration
 	 */
 	public ShoppingCart(K k, V v, L label, long expiration) {
-		super(k, v, label, expiration);
+		super(k, v, label, System.currentTimeMillis(),expiration,null,LoadType.PART);
 		Objects.requireNonNull(k);
 	}
 
 	public ShoppingCart(K k, V v, L label, long creation, long expiration) {
-		super(k, v, label, creation, expiration);
+		super(k, v, label, creation, expiration, null, LoadType.PART);
 		Objects.requireNonNull(k);
 	}
 
@@ -56,7 +66,7 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	 * @param label the label
 	 */
 	public ShoppingCart(K k, V v, L label) {
-		super(k, v, label);
+		super(k, v, label, System.currentTimeMillis(),0,null,LoadType.PART);
 		Objects.requireNonNull(k);
 	}
 
