@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.io.FileUtils;
@@ -64,6 +65,14 @@ public class DerbyPersistenceTest {
 		assertEquals(2, id);
 		Cart<Integer,String,String> c = new ShoppingCart<Integer, String, String>(1, "value", "label");
 		p.savePart(id, c);
+		p.saveCompletedBuildKey(1);
+		Cart<Integer,?,String> c2 = p.getPart(2);
+		System.out.println(c2);
+		assertNotNull(c2);
+		Collection<Long> allIds = p.getAllPartIds(1);
+		System.out.println("all IDs "+allIds);
+		assertNotNull(allIds);
+		assertEquals(1,allIds.size());
 	}
 
 }

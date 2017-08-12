@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.LoadType;
+import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.BlobConverter;
 import com.aegisql.conveyor.persistence.jdbc.EnumConverter;
@@ -215,10 +217,40 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+") VALUES (?,?,?,?,?,?,?,?)"
 					;
 			
+			String saveCompletedBuildKeyQuery = "INSERT INTO " + completedLogTable + "( CART_KEY ) VALUES( ? )"
+					;
+			String getPartQuery = "SELECT"
+					+" CART_KEY"
+					+",CART_VALUE"
+					+",CART_LABEL"
+					+",CREATION_TIME"
+					+",EXPIRATION_TIME"
+					+",LOAD_TYPE"
+					+",CART_PROPERTIES"
+					+" FROM " + partTable + " WHERE ID = ?"
+					;
+			String getAllPartIdsQuery = "SELECT"
+					+" ID"
+					+" FROM " + partTable + " WHERE CART_KEY = ?"
+					;
+			String getAllUnfinishedPartIdsQuery = "SELECT "
+					+",CART_KEY"
+					+",CART_VALUE"
+					+",CART_LABEL"
+					+",CREATION_TIME"
+					+",EXPIRATION_TIME"
+					+",LOAD_TYPE"
+					+",CART_PROPERTIES"
+					+" FROM " + partTable + " WHERE ARCHIVED = 0"
+					;
+
 			return new DerbyPersistence<K>(
 					conn
 					,idSupplier
 					,saveCartQuery
+					,saveCompletedBuildKeyQuery
+					,getPartQuery
+					,getAllPartIdsQuery
 					);
 		}
 
@@ -230,16 +262,25 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	private final EnumConverter<LoadType> loadTypeConverter = new EnumConverter<>(LoadType.class);
 	
 	private final String saveCartQuery;
+	private final String saveCompletedBuildKeyQuery;
+	private final String getPartQuery;
+	private final String getAllPartIdsQuery;
 	
 	public DerbyPersistence(
 			Connection conn
 			,LongSupplier idSupplier
 			,String saveCartQuery
+			,String saveCompletedBuildKeyQuery
+			,String getPartQuery
+			,String getAllPartIdsQuery
 			) {
 		this.conn          = conn;
 		this.idSupplier    = idSupplier;
 		this.blobConverter = new BlobConverter<>(conn);
 		this.saveCartQuery = saveCartQuery;
+		this.saveCompletedBuildKeyQuery = saveCompletedBuildKeyQuery;
+		this.getPartQuery = getPartQuery;
+		this.getAllPartIdsQuery = getAllPartIdsQuery;
 	}
 
 	public static <K> DerbyPersistenceBuilder<K> forKeyClass(Class<K> clas) {
@@ -271,26 +312,60 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 	@Override
 	public void savePartId(K key, long partId) {
-		// TODO Auto-generated method stub
-		
+		// DO NOTHING. SUPPORTED BY SECONDARY INDEX ON THE PART TABLE
 	}
 
 	@Override
 	public void saveCompletedBuildKey(K key) {
-		// TODO Auto-generated method stub
-		
+		try(PreparedStatement st = conn.prepareStatement(saveCompletedBuildKeyQuery) ) {
+			st.setObject(1, key);
+			st.execute();
+		} catch (Exception e) {
+	    	LOG.error("SaveCompletedKey Exception: {}",key,e.getMessage());
+	    	throw new RuntimeException("SaveCompletedKey failed",e);
+		}
 	}
 
 	@Override
 	public <L> Cart<K, ?, L> getPart(long id) {
-		// TODO Auto-generated method stub
-		return null;
+		Cart<K, ?, L> cart = null;
+		LOG.debug("getPart: {}",getPartQuery);
+		try(PreparedStatement st = conn.prepareStatement(getPartQuery) ) {
+			st.setLong(1, id);
+			ResultSet rs = st.executeQuery();
+			if(rs.next()) {
+				K key = (K)rs.getObject(1);
+				Object val = blobConverter.fromPersistence(rs.getBlob(2));
+				L label = (L)rs.getObject(3);
+				long creationTime = rs.getTimestamp(4).getTime();
+				long expirationTime = rs.getTimestamp(5).getTime();
+				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
+				//TODO - decide with properties
+				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+				cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,null,loadType);
+			}
+		} catch (Exception e) {
+	    	LOG.error("getPart Exception: {}",id,e.getMessage());
+	    	throw new RuntimeException("getPart failed",e);
+		}
+		return cart;
 	}
 
 	@Override
 	public Collection<Long> getAllPartIds(K key) {
-		// TODO Auto-generated method stub
-		return null;
+		Set<Long> res = new LinkedHashSet<>();
+		try(PreparedStatement st = conn.prepareStatement(getAllPartIdsQuery) ) {
+			st.setObject(1, key);
+			ResultSet rs = st.executeQuery();
+			while(rs.next()) {
+				Long id = rs.getLong(1);
+				res.add(id);
+			}
+		} catch (Exception e) {
+	    	LOG.error("getAllPartIds Exception: {}",key,e.getMessage());
+	    	throw new RuntimeException("getAllPartIds failed",e);
+		}
+		return res;
 	}
 
 	@Override
