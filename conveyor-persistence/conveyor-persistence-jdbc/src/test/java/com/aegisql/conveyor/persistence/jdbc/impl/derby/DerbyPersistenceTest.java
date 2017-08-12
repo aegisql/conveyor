@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -12,6 +13,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence.DerbyPersistenceBuilder;
 
@@ -47,9 +50,20 @@ public class DerbyPersistenceTest {
 	public void test() throws Exception {
 		DerbyPersistenceBuilder<Integer> pb = DerbyPersistence.forKeyClass(Integer.class);
 		assertNotNull(pb);
+		AtomicLong ids = new AtomicLong(0);
+		pb = pb.idSupplier(ids::incrementAndGet);
 		
 		Persistence<Integer> p = pb.build();
-		assertNotNull(p);		
+		assertNotNull(p);
+		
+		long id = p.nextUniquePartId();
+		System.out.println("ID="+id);
+		assertEquals(1, id);
+		id = p.nextUniquePartId();
+		System.out.println("ID="+id);
+		assertEquals(2, id);
+		Cart<Integer,String,String> c = new ShoppingCart<Integer, String, String>(1, "value", "label");
+		p.savePart(id, c);
 	}
 
 }

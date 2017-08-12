@@ -1,20 +1,29 @@
 package com.aegisql.conveyor.persistence.jdbc.impl.derby;
 
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
+import java.util.function.LongSupplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.jdbc.BlobConverter;
+import com.aegisql.conveyor.persistence.jdbc.EnumConverter;
 
 public class DerbyPersistence<K> implements Persistence<K>{
 
@@ -39,9 +48,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			} else {
 				this.keyType = "CART_KEY VARCHAR(255)";
 			}
+			final AtomicLong idGen = new AtomicLong(System.currentTimeMillis() * 1000000);
+			idSupplier = idGen::get;
 		}
 		
 		private Class<K> keyClass;
+		private BiConsumer<PreparedStatement, K> keyPlacer;
 		private String keyType = "CART_KEY VARCHAR(255)";
 		private final static String PROTOCOL = "jdbc:derby:";
 		private final static int PORT = 1527;
@@ -64,6 +76,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		private String schema      = "conveyor_db";
 		private String partTable   = "PART";
 		private String completedLogTable = "COMPLETED_LOG";
+		
+		private LongSupplier idSupplier;
 		
 		public DerbyPersistenceBuilder<K> embedded(boolean embedded) {
 			if(embedded) {
@@ -101,7 +115,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			this.port = port;
 			return this;
 		}
-		
+
+		public DerbyPersistenceBuilder<K> idSupplier(LongSupplier idSupplier) {
+			this.idSupplier = idSupplier;
+			return this;
+		}
+
 		public DerbyPersistence<K> build() throws Exception {
 			LOG.debug("DERBY PERSISTENCE");
 
@@ -184,15 +203,43 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				LOG.debug("Table '{}' already exists",completedLogTable);
 			}
 
-			return new DerbyPersistence<K>(conn);
+			String saveCartQuery = "INSERT INTO " + partTable + "("
+					+"ID"
+					+",LOAD_TYPE"
+					+",CART_KEY"
+					+",CART_LABEL"
+					+",CREATION_TIME"
+					+",EXPIRATION_TIME"
+					+",CART_VALUE"
+					+",CART_PROPERTIES"
+					+") VALUES (?,?,?,?,?,?,?,?)"
+					;
+			
+			return new DerbyPersistence<K>(
+					conn
+					,idSupplier
+					,saveCartQuery
+					);
 		}
 
 	}
 
-	private final Connection conn;
+	private final Connection   conn;
+	private final LongSupplier idSupplier;
+	private final BlobConverter blobConverter;
+	private final EnumConverter<LoadType> loadTypeConverter = new EnumConverter<>(LoadType.class);
 	
-	public DerbyPersistence(Connection conn) {
-		this.conn = conn;
+	private final String saveCartQuery;
+	
+	public DerbyPersistence(
+			Connection conn
+			,LongSupplier idSupplier
+			,String saveCartQuery
+			) {
+		this.conn          = conn;
+		this.idSupplier    = idSupplier;
+		this.blobConverter = new BlobConverter<>(conn);
+		this.saveCartQuery = saveCartQuery;
 	}
 
 	public static <K> DerbyPersistenceBuilder<K> forKeyClass(Class<K> clas) {
@@ -201,14 +248,25 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	
 	@Override
 	public long nextUniquePartId() {
-		// TODO Auto-generated method stub
-		return 0;
+		return idSupplier.getAsLong();
 	}
 
 	@Override
 	public <L> void savePart(long id, Cart<K, ?, L> cart) {
-		// TODO Auto-generated method stub
-		
+		try(PreparedStatement st = conn.prepareStatement(saveCartQuery) ) {
+			st.setLong(1, id);
+			st.setString(2, loadTypeConverter.toPersistence(cart.getLoadType()));
+			st.setObject(3, cart.getKey());
+			st.setObject(4, cart.getLabel());
+			st.setTimestamp(5, new Timestamp(cart.getCreationTime()));
+			st.setTimestamp(6, new Timestamp(cart.getExpirationTime()));
+			st.setBlob(7, blobConverter.toPersistence((Serializable) cart.getValue()));
+			st.setString(8, cart.getAllProperties().toString());
+			st.execute();
+		} catch (Exception e) {
+	    	LOG.error("SavePart Exception: {}",cart,e.getMessage());
+	    	throw new RuntimeException("Save Part failed",e);
+		}
 	}
 
 	@Override
