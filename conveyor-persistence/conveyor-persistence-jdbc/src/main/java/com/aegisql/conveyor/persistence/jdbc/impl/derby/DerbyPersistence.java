@@ -8,13 +8,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 
 import org.slf4j.Logger;
@@ -28,6 +31,16 @@ import com.aegisql.conveyor.persistence.jdbc.BlobConverter;
 import com.aegisql.conveyor.persistence.jdbc.EnumConverter;
 
 public class DerbyPersistence<K> implements Persistence<K>{
+	
+	private static enum ArchiveStrategy {
+		CUSTOM, //set strategy
+		DELETE,
+		SET_ARCHIVED,
+		MOVE_TO_SCHEMA_TABLE, //schema,table
+		MOVE_TO_FILE, //path,file
+		LOG, //Logger
+		NO_ACTION //external archive strategy
+	}
 
 	private final static Logger LOG = LoggerFactory.getLogger(DerbyPersistence.class);
 	
@@ -81,6 +94,10 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		
 		private LongSupplier idSupplier;
 		
+		
+		private ArchiveStrategy archiveStrategy = ArchiveStrategy.DELETE;
+		private BiConsumer<Connection,Collection<Long>> archiveIdsStrategy;
+		
 		public DerbyPersistenceBuilder<K> embedded(boolean embedded) {
 			if(embedded) {
 				this.embedded = true;
@@ -122,6 +139,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			this.idSupplier = idSupplier;
 			return this;
 		}
+		
+		public DerbyPersistenceBuilder<K> archiveIdsStrategy(BiConsumer<Connection,Collection<Long>> archiveIdsStrategy) {
+			this.archiveIdsStrategy = archiveIdsStrategy;
+			return this;
+		}
+		
 
 		public DerbyPersistence<K> build() throws Exception {
 			LOG.debug("DERBY PERSISTENCE");
@@ -176,7 +199,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 								+",CREATION_TIME TIMESTAMP NOT NULL"
 								+",EXPIRATION_TIME TIMESTAMP NOT NULL"
 								+",CART_VALUE BLOB"
-								+",CART_PROPERTIES VARCHAR(1024)"
+								+",CART_PROPERTIES BLOB"
 								+",ARCHIVED SMALLINT NOT NULL DEFAULT 0"
 								+")";
 					LOG.debug("Table '{}' not found. Trying to create...\n{}",partTable,sql);
@@ -233,8 +256,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+" ID"
 					+" FROM " + partTable + " WHERE CART_KEY = ?"
 					;
-			String getAllUnfinishedPartIdsQuery = "SELECT "
-					+",CART_KEY"
+			String getAllUnfinishedPartIdsQuery = "SELECT"
+					+" CART_KEY"
 					+",CART_VALUE"
 					+",CART_LABEL"
 					+",CREATION_TIME"
@@ -243,6 +266,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+",CART_PROPERTIES"
 					+" FROM " + partTable + " WHERE ARCHIVED = 0"
 					;
+			String getAllCompletedKeysQuery = "SELECT CART_KEY FROM "+completedLogTable;
+			
+			Consumer<Collection<Long>> ais = ids->{
+				archiveIdsStrategy.accept(conn, ids);
+			};
 
 			return new DerbyPersistence<K>(
 					conn
@@ -251,11 +279,14 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,saveCompletedBuildKeyQuery
 					,getPartQuery
 					,getAllPartIdsQuery
+					,getAllUnfinishedPartIdsQuery
+					,getAllCompletedKeysQuery
+					,ais
 					);
 		}
 
 	}
-
+///////////////////////////////////////////////////////////////////////////////
 	private final Connection   conn;
 	private final LongSupplier idSupplier;
 	private final BlobConverter blobConverter;
@@ -265,6 +296,10 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	private final String saveCompletedBuildKeyQuery;
 	private final String getPartQuery;
 	private final String getAllPartIdsQuery;
+	private final String getAllUnfinishedPartIdsQuery;
+	private final String getAllCompletedKeysQuery;
+	
+	private final Consumer<Collection<Long>> archiveIdsStrategy;
 	
 	public DerbyPersistence(
 			Connection conn
@@ -273,14 +308,20 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,String saveCompletedBuildKeyQuery
 			,String getPartQuery
 			,String getAllPartIdsQuery
+			,String getAllUnfinishedPartIdsQuery
+			,String getAllCompletedKeysQuery
+			,Consumer<Collection<Long>> archiveIdsStrategy
 			) {
-		this.conn          = conn;
-		this.idSupplier    = idSupplier;
-		this.blobConverter = new BlobConverter<>(conn);
-		this.saveCartQuery = saveCartQuery;
-		this.saveCompletedBuildKeyQuery = saveCompletedBuildKeyQuery;
-		this.getPartQuery = getPartQuery;
-		this.getAllPartIdsQuery = getAllPartIdsQuery;
+		this.conn                         = conn;
+		this.idSupplier                   = idSupplier;
+		this.blobConverter                = new BlobConverter<>(conn);
+		this.saveCartQuery                = saveCartQuery;
+		this.saveCompletedBuildKeyQuery   = saveCompletedBuildKeyQuery;
+		this.getPartQuery                 = getPartQuery;
+		this.getAllPartIdsQuery           = getAllPartIdsQuery;
+		this.getAllUnfinishedPartIdsQuery = getAllUnfinishedPartIdsQuery;
+		this.getAllCompletedKeysQuery     = getAllCompletedKeysQuery;
+		this.archiveIdsStrategy           = archiveIdsStrategy;
 	}
 
 	public static <K> DerbyPersistenceBuilder<K> forKeyClass(Class<K> clas) {
@@ -302,7 +343,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			st.setTimestamp(5, new Timestamp(cart.getCreationTime()));
 			st.setTimestamp(6, new Timestamp(cart.getExpirationTime()));
 			st.setBlob(7, blobConverter.toPersistence((Serializable) cart.getValue()));
-			st.setString(8, cart.getAllProperties().toString());
+			st.setBlob(8, blobConverter.toPersistence((Serializable) cart.getAllProperties()));
 			st.execute();
 		} catch (Exception e) {
 	    	LOG.error("SavePart Exception: {}",cart,e.getMessage());
@@ -340,9 +381,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-				//TODO - decide with properties
+				Map<String,Object> properties = (Map<String, Object>) blobConverter.fromPersistence(rs.getBlob(7));
 				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-				cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,null,loadType);
+				cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
 			}
 		} catch (Exception e) {
 	    	LOG.error("getPart Exception: {}",id,e.getMessage());
@@ -370,20 +411,49 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getAllParts() {
-		// TODO Auto-generated method stub
-		return null;
+		LOG.debug("getAllParts: {}",getAllUnfinishedPartIdsQuery);
+		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
+		try(PreparedStatement st = conn.prepareStatement(getAllUnfinishedPartIdsQuery) ) {
+			Cart<K, ?, L> cart = null;
+			ResultSet rs = st.executeQuery();
+			while(rs.next()) {
+				K key = (K)rs.getObject(1);
+				Object val = blobConverter.fromPersistence(rs.getBlob(2));
+				L label = (L)rs.getObject(3);
+				long creationTime = rs.getTimestamp(4).getTime();
+				long expirationTime = rs.getTimestamp(5).getTime();
+				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
+				Map<String,Object> properties = (Map<String, Object>) blobConverter.fromPersistence(rs.getBlob(7));
+				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+				cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+				carts.add(cart);
+			}
+		} catch (Exception e) {
+	    	LOG.error("getAllUnfinishedPartIdsQuery exception: ",e.getMessage());
+	    	throw new RuntimeException("getAllUnfinishedPartIdsQuery failed",e);
+		}
+		return carts;
 	}
 
 	@Override
 	public Set<K> getCompletedKeys() {
-		// TODO Auto-generated method stub
-		return null;
+		Set<K> res = new LinkedHashSet<>();
+		try(PreparedStatement st = conn.prepareStatement(getAllCompletedKeysQuery) ) {
+			ResultSet rs = st.executeQuery();
+			while(rs.next()) {
+				K key = (K) rs.getObject(1);
+				res.add(key);
+			}
+		} catch (Exception e) {
+	    	LOG.error("getCompletedKeys Exception:",e.getMessage());
+	    	throw new RuntimeException("getCompletedKeys failed",e);
+		}
+		return res;
 	}
 
 	@Override
 	public void archiveParts(Collection<Long> ids) {
-		// TODO Auto-generated method stub
-		
+		archiveIdsStrategy.accept(ids);
 	}
 
 	@Override

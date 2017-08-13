@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.io.FileUtils;
@@ -73,6 +74,13 @@ public class DerbyPersistenceTest {
 		System.out.println("all IDs "+allIds);
 		assertNotNull(allIds);
 		assertEquals(1,allIds.size());
+		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
+		assertNotNull(allCarts);
+		assertEquals(1,allCarts.size());
+		Set<Integer> completed = p.getCompletedKeys();
+		System.out.println("Completed:"+completed);
+		assertNotNull(completed);
+		assertTrue(completed.contains(1));
 	}
 
 }
