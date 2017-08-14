@@ -1,10 +1,15 @@
 package com.aegisql.conveyor.persistence.jdbc;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-import java.sql.SQLException;
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -13,18 +18,29 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.Acknowledge;
+import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
-import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 
 public class PersistentConveyorTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		BasicConfigurator.configure();
+		String conveyor_db_path = "testConv";
+		File f = new File(conveyor_db_path);
+		try {
+			//Deleting the directory recursively using FileUtils.
+			FileUtils.deleteDirectory(f);
+			System.out.println("Directory has been deleted recursively !");
+		} catch (IOException e) {
+			System.err.println("Problem occurs when deleting the directory : " + conveyor_db_path);
+			e.printStackTrace();
+		}
 	}
 
 	@AfterClass
@@ -40,13 +56,12 @@ public class PersistentConveyorTest {
 	}
 
 	@Test
-	public void veryBasicTest() throws InterruptedException, ClassNotFoundException, SQLException {
-		Persistence<Integer> p = new JdbcPersistence<Integer>("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:testConv;create=true",new StringConverter<Integer>() {
-			@Override
-			public Integer fromPersistence(String p) {
-				return Integer.valueOf(p);
-			}
-		});
+	public void veryBasicTest() throws Exception {
+		Persistence<Integer> p = DerbyPersistence
+				.forKeyClass(Integer.class)
+				.schema("testConv")
+				.labelConverter(new EnumConverter<>(TrioPart.class))
+				.build();
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
@@ -61,13 +76,12 @@ public class PersistentConveyorTest {
 
 	
 	@Test
-	public void simpleAckTest() throws InterruptedException, ClassNotFoundException, SQLException {
-		JdbcPersistence<Integer> p = new JdbcPersistence<Integer>("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:testConv;create=true",new StringConverter<Integer>() {
-			@Override
-			public Integer fromPersistence(String p) {
-				return Integer.valueOf(p);
-			}
-		});
+	public void simpleAckTest() throws Exception {
+		Persistence<Integer> p = DerbyPersistence
+				.forKeyClass(Integer.class)
+				.schema("testConv")
+				.labelConverter(new EnumConverter<>(TrioPart.class))
+				.build();
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, ()->tc, 3);
@@ -76,6 +90,7 @@ public class PersistentConveyorTest {
 		AtomicReference<Acknowledge> ref = new AtomicReference<>();
 		
 		pc.resultConsumer().andThen(bin->{
+			System.out.println("ACK:"+bin.acknowledge.isAcknowledged());
 			ref.set(bin.acknowledge);
 		}).set();
 		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
@@ -96,15 +111,23 @@ public class PersistentConveyorTest {
 
 	
 	@Test
-	public void simpleReplayTest() throws InterruptedException, ClassNotFoundException, SQLException {
-		JdbcPersistence<Integer> p1 = new JdbcPersistence<Integer>("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:testConv;create=true",new StringConverter<Integer>() {
-			@Override
-			public Integer fromPersistence(String p) {
-				return Integer.valueOf(p);
-			}
-		});
+	public void testEnumConverter() {
+		EnumConverter<TrioPart>  ec = new EnumConverter<TrioPart>(TrioPart.class);
+		String toP = ec.toPersistence(TrioPart.TEXT1);
+		TrioPart fromP = ec.fromPersistence(toP);
+		System.out.println("toString="+toP);
+		System.out.println("fromString="+fromP);
+	}
+	
+	@Test
+	public void simpleReplayTest() throws Exception {
+		Persistence<Integer> p1 = DerbyPersistence
+				.forKeyClass(Integer.class)
+				.schema("testConv")
+				.labelConverter(new EnumConverter<TrioPart>(TrioPart.class))
+				.build();
 		TrioConveyor tc1 = new TrioConveyor();
-		
+		tc1.autoAcknowledgeOnStatus(Status.READY);
 		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1, 3);
 		pc1.setName("TC1");
 		pc1.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
@@ -113,13 +136,13 @@ public class PersistentConveyorTest {
 		
 		pc1.stop();
 		TrioConveyor tc2 = new TrioConveyor();
+		tc2.autoAcknowledgeOnStatus(Status.READY);
 		
-		JdbcPersistence<Integer> p2 = new JdbcPersistence<Integer>("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:testConv;create=true",new StringConverter<Integer>() {
-			@Override
-			public Integer fromPersistence(String p) {
-				return Integer.valueOf(p);
-			}
-		});
+		Persistence<Integer> p2 = DerbyPersistence
+				.forKeyClass(Integer.class)
+				.schema("testConv")
+				.labelConverter(new EnumConverter<>(TrioPart.class))
+				.build();
 		//Must copy state from the previous persistence
 		//assertFalse(p2.isEmpty());
 		//p1 must be empty after moving data to p1. 
@@ -127,7 +150,7 @@ public class PersistentConveyorTest {
 		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2, 3);
 		pc2.setName("TC2");
 		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
-		System.out.println(p1);
+		System.out.println(tc2);
 		assertEquals(0, tc1.results.size());
 		assertEquals(1, tc2.results.size());
 		System.out.println(tc2);

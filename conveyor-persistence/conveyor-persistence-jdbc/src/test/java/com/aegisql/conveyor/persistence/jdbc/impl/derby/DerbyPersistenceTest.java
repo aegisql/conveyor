@@ -49,7 +49,7 @@ public class DerbyPersistenceTest {
 	}
 
 	@Test
-	public void test() throws Exception {
+	public void testWithDefaultArchivingStrategy() throws Exception {
 		DerbyPersistenceBuilder<Integer> pb = DerbyPersistence.forKeyClass(Integer.class);
 		assertNotNull(pb);
 		AtomicLong ids = new AtomicLong(0);
@@ -57,6 +57,47 @@ public class DerbyPersistenceTest {
 		
 		Persistence<Integer> p = pb.build();
 		assertNotNull(p);
+		p.archiveAll();
+		long id = p.nextUniquePartId();
+		System.out.println("ID="+id);
+		assertEquals(1, id);
+		id = p.nextUniquePartId();
+		System.out.println("ID="+id);
+		assertEquals(2, id);
+		Cart<Integer,String,String> c = new ShoppingCart<Integer, String, String>(1, "value", "label");
+		p.savePart(id, c);
+		p.saveCompletedBuildKey(1);
+		Cart<Integer,?,String> c2 = p.getPart(2);
+		System.out.println(c2);
+		assertNotNull(c2);
+		Collection<Long> allIds = p.getAllPartIds(1);
+		System.out.println("all IDs "+allIds);
+		assertNotNull(allIds);
+		assertEquals(1,allIds.size());
+		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
+		assertNotNull(allCarts);
+		assertEquals(1,allCarts.size());
+		Set<Integer> completed = p.getCompletedKeys();
+		System.out.println("Completed:"+completed);
+		assertNotNull(completed);
+		assertTrue(completed.contains(1));
+		p.archiveCompleteKeys(completed);
+		p.archiveKeys(completed);
+		p.archiveParts(allIds);
+		assertNull(p.getPart(2));
+	}
+
+	@Test
+	public void testWithArchivedArchivingStrategy() throws Exception {
+		DerbyPersistenceBuilder<Integer> pb = DerbyPersistence.forKeyClass(Integer.class);
+		assertNotNull(pb);
+		AtomicLong ids = new AtomicLong(0);
+		pb = pb.idSupplier(ids::incrementAndGet);
+		pb = pb.whenArchiveRecords().markArchived();
+		
+		Persistence<Integer> p = pb.build();
+		assertNotNull(p);
+		p.archiveAll();
 		
 		long id = p.nextUniquePartId();
 		System.out.println("ID="+id);
@@ -81,6 +122,10 @@ public class DerbyPersistenceTest {
 		System.out.println("Completed:"+completed);
 		assertNotNull(completed);
 		assertTrue(completed.contains(1));
+		p.archiveCompleteKeys(completed);
+		p.archiveKeys(completed);
+		p.archiveParts(allIds);
+		assertNull(p.getPart(2));
 	}
 
 }

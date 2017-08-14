@@ -1,7 +1,13 @@
 package com.aegisql.conveyor.persistence.jdbc;
 
-import static org.junit.Assert.*;
-import java.sql.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 
 import org.junit.After;
@@ -12,7 +18,8 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
+import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 
 public class LearnDerbyTest {
 
@@ -70,13 +77,16 @@ public class LearnDerbyTest {
 	}
 	
 	@Test
-	public void testPers() throws ClassNotFoundException, SQLException {
-		JdbcPersistence<String> p = new JdbcPersistence<>("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:testConv;create=true",new StringConverter<String>() {
-			@Override
-			public String fromPersistence(String p) {
-				return p;
-			}
-		});
+	public void testPers() throws Exception {
+		Persistence<String> p = DerbyPersistence
+				.forKeyClass(String.class)
+				.schema("testDb1")
+				.labelConverter(new StringConverter<String>(){
+					@Override
+					public String fromPersistence(String p) {
+						return p;
+					}})
+				.build();
 		p.archiveAll();
 		p.savePart(p.nextUniquePartId(), new ShoppingCart<String, String, String>("1", "one", "ONE"));
 		p.savePartId("1", 100);
@@ -102,13 +112,16 @@ public class LearnDerbyTest {
 	}
 
 	@Test
-	public void testPers2() throws ClassNotFoundException, SQLException {
-		JdbcPersistence<String> p1 = new JdbcPersistence<>("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:testConv;create=true",new StringConverter<String>() {
-			@Override
-			public String fromPersistence(String p) {
-				return p;
-			}
-		});
+	public void testPers2() throws Exception {
+		Persistence<String> p1 = DerbyPersistence
+				.forKeyClass(String.class)
+				.schema("testDb1")
+				.labelConverter(new StringConverter<String>(){
+					@Override
+					public String fromPersistence(String p) {
+						return p;
+					}})
+				.build();
 		p1.archiveAll();
 		p1.savePart(p1.nextUniquePartId(), new ShoppingCart<String, String, String>("1", "one", "ONE"));
 		p1.savePartId("1", 100);
@@ -128,12 +141,15 @@ public class LearnDerbyTest {
 		assertNotNull(completed);
 		assertEquals(1, completed.size());
 		
-		JdbcPersistence<String> p2 = new JdbcPersistence<>("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:testConv;create=true",new StringConverter<String>() {
-			@Override
-			public String fromPersistence(String p) {
-				return p;
-			}
-		});
+		Persistence<String> p2 = DerbyPersistence
+				.forKeyClass(String.class)
+				.schema("testDb1")
+				.labelConverter(new StringConverter<String>(){
+					@Override
+					public String fromPersistence(String p) {
+						return p;
+					}})
+				.build();
 
 		Collection<Cart<String,?,String>> allCarts2 = p2.getAllParts();
 		System.out.println(allCarts2);
@@ -146,7 +162,7 @@ public class LearnDerbyTest {
 		Collection<String> completed2 = p2.getCompletedKeys();
 		System.out.println(completed2);
 		assertNotNull(completed2);
-		assertEquals(0, completed2.size());
+		assertEquals(1, completed2.size());
 
 		
 		p1.archiveParts(ids);

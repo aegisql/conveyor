@@ -42,16 +42,20 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 
 	public static <K, L> void processCart(AcknowledgeBuilder<K> builder, Cart<K, ?, L> cart) {
 		LOG.debug("CART " + cart);
+		boolean save = false;
 		Long id = null;
 		if (!cart.getAllProperties().containsKey("CART_ID")) {
 			id = builder.persistence.nextUniquePartId();
 			cart.addProperty("CART_ID", id);
+			save = true;
 		} else {
 			id = (Long) cart.getProperty("CART_ID", Long.class);
 		}
 		if (!builder.cartIds.contains(id)) {
-			builder.persistence.savePart(id, cart);
-			builder.persistence.savePartId(cart.getKey(), id);
+			if(save) {
+				builder.persistence.savePart(id, cart);
+				builder.persistence.savePartId(cart.getKey(), id);
+			}
 			builder.cartIds.add(id);
 			if (builder.keyReady == null && builder.forward != null) {
 				builder.forward.place((Cart) cart);

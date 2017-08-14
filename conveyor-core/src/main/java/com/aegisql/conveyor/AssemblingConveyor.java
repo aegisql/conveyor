@@ -141,18 +141,19 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	
 	protected BiConsumer<K,Status> ackAction = (key,status)->{};
 
-	private EnumSet ackStatusSet = EnumSet.allOf(Status.class);
+	private EnumSet<Status> ackStatusSet = EnumSet.allOf(Status.class);
 
 	/** The key before eviction. */
 	private BiConsumer<K,Status> keyBeforeEviction = (key,status) -> {
 		LOG.trace("Key is ready to be evicted {} status:{}", key, status);
 		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> bs = collector.remove(key);
-		if(autoAck && ackStatusSet.contains(status)) {
-			ackAction.accept(key, status);
-		} else {
-			LOG.debug("Auto Acknowledge for key {} not applicable for status {}",key,status);
-
-		}
+		if(autoAck) {
+			if(ackStatusSet.contains(status)) {
+				ackAction.accept(key, status);
+			} else {
+				LOG.debug("Auto Acknowledge for key {} not applicable for status {} of {}",key,status,ackStatusSet);
+			}
+	}
 	};
 
 	/** The key before reschedule. */

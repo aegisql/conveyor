@@ -6,6 +6,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -20,15 +21,21 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.jdbc.Archiver;
 import com.aegisql.conveyor.persistence.jdbc.BlobConverter;
 import com.aegisql.conveyor.persistence.jdbc.EnumConverter;
+import com.aegisql.conveyor.persistence.jdbc.StringConverter;
 
 public class DerbyPersistence<K> implements Persistence<K>{
 	
@@ -38,14 +45,55 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		SET_ARCHIVED,
 		MOVE_TO_SCHEMA_TABLE, //schema,table
 		MOVE_TO_FILE, //path,file
-		LOG, //Logger
 		NO_ACTION //external archive strategy
 	}
 
+	public static class ArchiveBuilder<K> {
+		private final DerbyPersistenceBuilder<K> dpb;
+		public ArchiveBuilder(DerbyPersistenceBuilder<K> dpb) {
+			this.dpb = dpb;
+		}
+		
+		public DerbyPersistenceBuilder<K> doNothing() {
+			dpb.archiveStrategy = ArchiveStrategy.NO_ACTION;
+			return dpb;
+		}
+		public DerbyPersistenceBuilder<K> delete() {
+			dpb.archiveStrategy = ArchiveStrategy.DELETE;
+			return dpb;
+		}
+		public DerbyPersistenceBuilder<K> markArchived() {
+			dpb.archiveStrategy = ArchiveStrategy.SET_ARCHIVED;
+			return dpb;
+		}
+		public DerbyPersistenceBuilder<K> customStrategy(Archiver<K> archiver) {
+			dpb.archiveStrategy = ArchiveStrategy.CUSTOM;
+			dpb.archiver = archiver;
+			return dpb;
+		}
+		public DerbyPersistenceBuilder<K> moveToTable(String archiveTable) {
+			dpb.archiveStrategy = ArchiveStrategy.MOVE_TO_SCHEMA_TABLE;
+			dpb.archiveTable = archiveTable;
+			return dpb;
+		}
+		public DerbyPersistenceBuilder<K> moveToFile(String archiveFileTemplate,long maxFileSize) {
+			dpb.archiveStrategy = ArchiveStrategy.MOVE_TO_FILE;
+			dpb.archiveFileTemplate = archiveFileTemplate;
+			dpb.maxFileSize = maxFileSize;
+			return dpb;
+		}
+		
+	}
+	
 	private final static Logger LOG = LoggerFactory.getLogger(DerbyPersistence.class);
 	
 	public static class DerbyPersistenceBuilder<K> {
 		
+		public long maxFileSize;
+		public String archiveFileTemplate;
+		public String archiveTable;
+		public Archiver<K> archiver;
+
 		private DerbyPersistenceBuilder(Class<K> clas) {
 			this.keyClass = clas;
 			if(clas == Integer.class) {
@@ -64,10 +112,34 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				this.keyType = "CART_KEY VARCHAR(255)";
 			}
 			final AtomicLong idGen = new AtomicLong(System.currentTimeMillis() * 1000000);
-			idSupplier = idGen::get;
+			idSupplier = idGen::incrementAndGet;
 		}
 		
 		private Class<K> keyClass;
+		
+		private Archiver<K> DO_NOTHING_ARCHIVER = new Archiver<K>(){
+			@Override
+			public void archiveParts(Connection conn, Collection<Long> ids) {}
+			@Override
+			public void archiveKeys(Connection conn, Collection<K> keys) {}
+			@Override
+			public void archiveCompleteKeys(Connection conn, Collection<K> keys) {}
+			@Override
+			public void archiveAll(Connection conn) {}
+		};
+
+		//TODO: remove when all imp;emented
+		private Archiver<K> UNIMPLEMENTED_ARCHIVER = new Archiver<K>(){
+			@Override
+			public void archiveParts(Connection conn, Collection<Long> ids) {throw new RuntimeException("Unimplemented archiver");}
+			@Override
+			public void archiveKeys(Connection conn, Collection<K> keys) {throw new RuntimeException("Unimplemented archiver");}
+			@Override
+			public void archiveCompleteKeys(Connection conn, Collection<K> keys) {throw new RuntimeException("Unimplemented archiver");}
+			@Override
+			public void archiveAll(Connection conn) {throw new RuntimeException("Unimplemented archiver");}
+		};
+
 		private BiConsumer<PreparedStatement, K> keyPlacer;
 		private String keyType = "CART_KEY VARCHAR(255)";
 		private final static String PROTOCOL = "jdbc:derby:";
@@ -96,7 +168,19 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		
 		
 		private ArchiveStrategy archiveStrategy = ArchiveStrategy.DELETE;
+		
 		private BiConsumer<Connection,Collection<Long>> archiveIdsStrategy;
+		private String encryptionSecret;
+		private SecretKey secretKey;
+		private String encryptionCipherAlgorithm;
+		private Cipher encryptionCipher;
+		
+		private ObjectConverter<?,String> labelConverter = new StringConverter<String>() {
+			@Override
+			public String fromPersistence(String p) {
+				return p;
+			}
+		};
 		
 		public DerbyPersistenceBuilder<K> embedded(boolean embedded) {
 			if(embedded) {
@@ -140,11 +224,34 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			return this;
 		}
 		
-		public DerbyPersistenceBuilder<K> archiveIdsStrategy(BiConsumer<Connection,Collection<Long>> archiveIdsStrategy) {
-			this.archiveIdsStrategy = archiveIdsStrategy;
-			return this;
+		public ArchiveBuilder<K> whenArchiveRecords() {
+			return new ArchiveBuilder<>(this);
 		}
 		
+		public DerbyPersistenceBuilder<K> encryptionSecret(String secret) {
+			this.encryptionSecret = secret;
+			return this;
+		}
+
+		public DerbyPersistenceBuilder<K> encryptionSecret(SecretKey secret) {
+			this.secretKey = secret;
+			return this;
+		}
+
+		public DerbyPersistenceBuilder<K> encryptionCipher(String algorithm) {
+			this.encryptionCipherAlgorithm = algorithm;
+			return this;
+		}
+
+		public DerbyPersistenceBuilder<K> encryptionCipher(Cipher cipher) {
+			this.encryptionCipher = cipher;
+			return this;
+		}
+
+		public <L> DerbyPersistenceBuilder<K> labelConverter(ObjectConverter<L,String> labelConverter) {
+			this.labelConverter = labelConverter;
+			return this;
+		}
 
 		public DerbyPersistence<K> build() throws Exception {
 			LOG.debug("DERBY PERSISTENCE");
@@ -250,11 +357,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+",EXPIRATION_TIME"
 					+",LOAD_TYPE"
 					+",CART_PROPERTIES"
-					+" FROM " + partTable + " WHERE ID = ?"
+					+" FROM " + partTable + " WHERE ID = ? AND ARCHIVED = 0"
 					;
 			String getAllPartIdsQuery = "SELECT"
 					+" ID"
-					+" FROM " + partTable + " WHERE CART_KEY = ?"
+					+" FROM " + partTable + " WHERE CART_KEY = ? AND ARCHIVED = 0"
 					;
 			String getAllUnfinishedPartIdsQuery = "SELECT"
 					+" CART_KEY"
@@ -272,6 +379,29 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				archiveIdsStrategy.accept(conn, ids);
 			};
 
+			switch(archiveStrategy) {
+				case CUSTOM:
+					//defined by user
+					break;
+				case DELETE:
+					archiver = makeDeleteArchiver(partTable,completedLogTable);
+					break;
+				case SET_ARCHIVED:
+					archiver = makeStArchivedArchiver(partTable,completedLogTable);
+					break;
+				case MOVE_TO_SCHEMA_TABLE:
+					archiver = UNIMPLEMENTED_ARCHIVER;
+					break;
+				case MOVE_TO_FILE: 
+					archiver = UNIMPLEMENTED_ARCHIVER;
+					break;
+				case NO_ACTION:
+					archiver = DO_NOTHING_ARCHIVER;
+					break;
+				default:
+					
+			}
+			
 			return new DerbyPersistence<K>(
 					conn
 					,idSupplier
@@ -281,8 +411,184 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,getAllPartIdsQuery
 					,getAllUnfinishedPartIdsQuery
 					,getAllCompletedKeysQuery
-					,ais
+					,archiver
+					,labelConverter
 					);
+		}
+
+		private Archiver<K> makeStArchivedArchiver(String partTable, String completedTable) {
+			
+			final String deleteFromPartsById      = "UPDATE "+partTable + " SET ARCHIVED = 1 WHERE ID IN(?)";
+			final String deleteFromPartsByCartKey = "UPDATE "+partTable + " SET ARCHIVED = 1 WHERE CART_KEY IN(?)";
+			final String deleteFromCompleted      = "DELETE FROM "+completedTable + " WHERE CART_KEY IN(?)";
+			
+			final String deleteAllParts           = "UPDATE "+partTable+" SET ARCHIVED = 1";
+			final String deleteAllCompleted       = "DELETE FROM "+completedTable;
+			
+			final String q;
+			if(Number.class.isAssignableFrom(keyClass)) {
+				q = "";
+			} else {
+				q = "'";
+			}
+			
+			return new Archiver<K>(){
+
+				@Override
+				public void archiveParts(Connection conn, Collection<Long> ids) {
+					try(PreparedStatement ps = conn.prepareStatement(deleteFromPartsById)) {
+						StringBuilder sb = new StringBuilder();
+						ids.forEach(id->sb.append(id).append(","));
+						if(sb.lastIndexOf(",") > 0) {
+							sb.deleteCharAt(sb.lastIndexOf(","));
+						}
+						ps.setString(1, sb.toString());
+						ps.execute();
+					} catch (SQLException e) {
+						LOG.error("archiveParts failure",e);
+						throw new RuntimeException("archiveParts failure",e);
+					}
+				}
+
+				@Override
+				public void archiveKeys(Connection conn, Collection<K> keys) {
+					try(PreparedStatement ps = conn.prepareStatement(deleteFromPartsByCartKey)) {
+						StringBuilder sb = new StringBuilder();
+						keys.forEach(id->{
+							sb.append(q).append(id).append(q).append(",");
+							});
+						if(sb.lastIndexOf(",") > 0) {
+							sb.deleteCharAt(sb.lastIndexOf(","));
+						}
+						ps.setString(1, sb.toString());
+						ps.execute();
+					} catch (SQLException e) {
+						LOG.error("archiveKeys failure",e);
+						throw new RuntimeException("archiveKeys failure",e);
+					}
+				}
+
+				@Override
+				public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
+					try(PreparedStatement ps = conn.prepareStatement(deleteFromCompleted)) {
+						StringBuilder sb = new StringBuilder();
+						keys.forEach(id->{
+							sb.append(q).append(id).append(q).append(",");
+							});
+						if(sb.lastIndexOf(",") > 0) {
+							sb.deleteCharAt(sb.lastIndexOf(","));
+						}
+						ps.setString(1, sb.toString());
+						ps.execute();
+					} catch (SQLException e) {
+						LOG.error("archiveCompleteKeys failure",e);
+						throw new RuntimeException("archiveCompleteKeys failure",e);
+					}
+				}
+
+				@Override
+				public void archiveAll(Connection conn) {
+					try(PreparedStatement ps = conn.prepareStatement(deleteAllParts)) {
+						ps.execute();
+					} catch (SQLException e) {
+						LOG.error("archiveAll parts failure",e);
+						throw new RuntimeException("archiveAll parts failure",e);
+					}
+					try(PreparedStatement ps = conn.prepareStatement(deleteAllCompleted)) {
+						ps.execute();
+					} catch (SQLException e) {
+						LOG.error("archiveAll completed failure",e);
+						throw new RuntimeException("archiveAll completed failure",e);
+					}
+				}};
+		}
+
+		private Archiver<K> makeDeleteArchiver(String partTable, String completedTable) {
+			
+			final String deleteFromPartsById      = "DELETE FROM "+partTable + " WHERE ID IN(?)";
+			final String deleteFromPartsByCartKey = "DELETE FROM "+partTable + " WHERE CART_KEY IN(?)";
+			final String deleteFromCompleted      = "DELETE FROM "+completedTable + " WHERE CART_KEY IN(?)";
+			
+			final String deleteAllParts           = "DELETE FROM "+partTable;
+			final String deleteAllCompleted       = "DELETE FROM "+completedTable;
+			
+			final String q;
+			if(Number.class.isAssignableFrom(keyClass)) {
+				q = "";
+			} else {
+				q = "'";
+			}
+			
+			return new Archiver<K>(){
+
+				@Override
+				public void archiveParts(Connection conn, Collection<Long> ids) {
+					if(ids.isEmpty()) {
+						return;
+					}
+					StringBuilder sb = new StringBuilder();
+					ids.forEach(id->sb.append(id).append(","));
+					if(sb.lastIndexOf(",") > 0) {
+						sb.deleteCharAt(sb.lastIndexOf(","));
+					}
+					LOG.debug("IDs to delete: {}",sb.toString());
+					try(Statement ps = conn.createStatement()) {
+						ps.execute(deleteFromPartsById.replace("?", sb.toString()));
+					} catch (SQLException e) {
+						LOG.error("archiveParts failure",e);
+						throw new RuntimeException("archiveParts failure",e);
+					}
+				}
+
+				@Override
+				public void archiveKeys(Connection conn, Collection<K> keys) {
+					StringBuilder sb = new StringBuilder();
+					keys.forEach(id->{
+						sb.append(q).append(id).append(q).append(",");
+						});
+					if(sb.lastIndexOf(",") > 0) {
+						sb.deleteCharAt(sb.lastIndexOf(","));
+					}
+					try(Statement ps = conn.createStatement()) {
+						ps.execute(deleteFromPartsByCartKey.replace("?", sb.toString()));
+					} catch (SQLException e) {
+						LOG.error("archiveKeys failure",e);
+						throw new RuntimeException("archiveKeys failure",e);
+					}
+				}
+
+				@Override
+				public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
+					StringBuilder sb = new StringBuilder();
+					keys.forEach(id->{
+						sb.append(q).append(id).append(q).append(",");
+						});
+					if(sb.lastIndexOf(",") > 0) {
+						sb.deleteCharAt(sb.lastIndexOf(","));
+					}
+					try(Statement ps = conn.createStatement()) {
+						ps.execute(deleteFromCompleted.replace("?", sb.toString()));
+					} catch (SQLException e) {
+						LOG.error("archiveCompleteKeys failure",e);
+						throw new RuntimeException("archiveCompleteKeys failure",e);
+					}
+				}
+
+				@Override
+				public void archiveAll(Connection conn) {
+					try(PreparedStatement ps = conn.prepareStatement(deleteAllParts)) {
+						ps.execute();
+					} catch (SQLException e) {
+						LOG.error("archiveAll parts failure",e);
+						throw new RuntimeException("archiveAll parts failure",e);
+					}
+					try(PreparedStatement ps = conn.prepareStatement(deleteAllCompleted)) {
+						ps.execute();
+					} catch (SQLException e) {
+						LOG.error("archiveAll completed failure",e);
+						throw new RuntimeException("archiveAll completed failure",e);
+					}
+				}};
 		}
 
 	}
@@ -291,6 +597,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	private final LongSupplier idSupplier;
 	private final BlobConverter blobConverter;
 	private final EnumConverter<LoadType> loadTypeConverter = new EnumConverter<>(LoadType.class);
+	private final ObjectConverter labelConverter;
 	
 	private final String saveCartQuery;
 	private final String saveCompletedBuildKeyQuery;
@@ -299,7 +606,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	private final String getAllUnfinishedPartIdsQuery;
 	private final String getAllCompletedKeysQuery;
 	
-	private final Consumer<Collection<Long>> archiveIdsStrategy;
+	private final Archiver<K> archiver;
 	
 	public DerbyPersistence(
 			Connection conn
@@ -310,7 +617,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,String getAllPartIdsQuery
 			,String getAllUnfinishedPartIdsQuery
 			,String getAllCompletedKeysQuery
-			,Consumer<Collection<Long>> archiveIdsStrategy
+			,Archiver<K> archiver
+			,ObjectConverter<?,String> labelConverter
 			) {
 		this.conn                         = conn;
 		this.idSupplier                   = idSupplier;
@@ -321,7 +629,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		this.getAllPartIdsQuery           = getAllPartIdsQuery;
 		this.getAllUnfinishedPartIdsQuery = getAllUnfinishedPartIdsQuery;
 		this.getAllCompletedKeysQuery     = getAllCompletedKeysQuery;
-		this.archiveIdsStrategy           = archiveIdsStrategy;
+		this.archiver                     = archiver;
+		this.labelConverter               = labelConverter;
 	}
 
 	public static <K> DerbyPersistenceBuilder<K> forKeyClass(Class<K> clas) {
@@ -339,14 +648,17 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			st.setLong(1, id);
 			st.setString(2, loadTypeConverter.toPersistence(cart.getLoadType()));
 			st.setObject(3, cart.getKey());
-			st.setObject(4, cart.getLabel());
+			L label = cart.getLabel();
+			LOG.debug("LABEL:{} {}",label,label.getClass());
+			st.setString(4, (String) (labelConverter).toPersistence(label));
 			st.setTimestamp(5, new Timestamp(cart.getCreationTime()));
 			st.setTimestamp(6, new Timestamp(cart.getExpirationTime()));
 			st.setBlob(7, blobConverter.toPersistence((Serializable) cart.getValue()));
 			st.setBlob(8, blobConverter.toPersistence((Serializable) cart.getAllProperties()));
 			st.execute();
 		} catch (Exception e) {
-	    	LOG.error("SavePart Exception: {}",cart,e.getMessage());
+			e.printStackTrace();
+	    	LOG.error("SavePart Exception: {} {}",cart,e.getMessage());
 	    	throw new RuntimeException("Save Part failed",e);
 		}
 	}
@@ -377,7 +689,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			if(rs.next()) {
 				K key = (K)rs.getObject(1);
 				Object val = blobConverter.fromPersistence(rs.getBlob(2));
-				L label = (L)rs.getObject(3);
+				L label = (L)labelConverter.fromPersistence(rs.getString(3).trim());
+				LOG.debug("getPart LABEL: {} {}",label,label.getClass());
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
@@ -419,7 +732,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			while(rs.next()) {
 				K key = (K)rs.getObject(1);
 				Object val = blobConverter.fromPersistence(rs.getBlob(2));
-				L label = (L)rs.getObject(3);
+				L label = (L)labelConverter.fromPersistence(rs.getString(3).trim());
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
@@ -453,25 +766,22 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 	@Override
 	public void archiveParts(Collection<Long> ids) {
-		archiveIdsStrategy.accept(ids);
+		archiver.archiveParts(conn,ids);
 	}
 
 	@Override
 	public void archiveKeys(Collection<K> keys) {
-		// TODO Auto-generated method stub
-		
+		archiver.archiveKeys(conn, keys);
 	}
 
 	@Override
 	public void archiveCompleteKeys(Collection<K> keys) {
-		// TODO Auto-generated method stub
-		
+		archiver.archiveCompleteKeys(conn, keys);
 	}
 
 	@Override
 	public void archiveAll() {
-		// TODO Auto-generated method stub
-		
+		archiver.archiveAll(conn);
 	}
 	
 }
