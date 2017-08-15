@@ -2,7 +2,6 @@ package com.aegisql.conveyor.persistence.core.harness;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
@@ -15,11 +14,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 
 public class PersistTestImpl implements Persistence<Integer> {
 
-	ConcurrentHashMap<Long,byte[]> carts = new ConcurrentHashMap<>();
+	ConcurrentHashMap<Long,byte[]> carts = new ConcurrentHashMap<>(); //emulation of serialization-deserialization stage
 	ConcurrentHashMap<Integer,List<Long>> cartIds   = new ConcurrentHashMap<>();
 	Set<Integer> completed = new HashSet<>();
 	

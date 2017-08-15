@@ -2,18 +2,20 @@ package com.aegisql.conveyor.persistence.jdbc;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import org.apache.commons.io.IOUtils;
+
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
 public class BlobConverter <T extends Serializable> implements ObjectConverter<T, Blob> {
 
+	
+	protected final ByteArrayConverter<T> byteConverter = new ByteArrayConverter<>();
 	protected final Connection conn;
 
 	public BlobConverter(Connection conn) {
@@ -30,10 +32,8 @@ public class BlobConverter <T extends Serializable> implements ObjectConverter<T
 		} catch (SQLException e) {
 			throw new RuntimeException("SQL Runntime Exception",e);
 		}
-    	ObjectOutputStream oos;
 		try {
-			oos = new ObjectOutputStream(os);
-	    	oos.writeObject(obj);
+			os.write( byteConverter.toPersistence(obj));
 			return blob;
 		} catch (IOException e) {
 			throw new RuntimeException("IO Runntime Exception",e);
@@ -42,17 +42,12 @@ public class BlobConverter <T extends Serializable> implements ObjectConverter<T
 
 	@Override
 	public T fromPersistence(Blob blb) {
-		InputStream in = null;
-		try {
-			in = blb.getBinaryStream(1, blb.length());
-			ObjectInputStream ois = new ObjectInputStream(in);
-			return (T) ois.readObject();
+		try(InputStream in = blb.getBinaryStream(1, blb.length())) {
+			return byteConverter.fromPersistence( IOUtils.toByteArray(in) );
 		} catch (SQLException e) {
 			throw new RuntimeException("SQL Runntime Exception",e);
 		} catch (IOException e) {
 			throw new RuntimeException("IO Runntime Exception",e);
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException("ClassNotFound Runtime Exception",e);
 		}
 	}
 
