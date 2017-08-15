@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.persistence.jdbc.impl.derby;
 
 import java.io.Serializable;
+import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -10,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -18,11 +20,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,7 @@ import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.Archiver;
 import com.aegisql.conveyor.persistence.jdbc.BlobConverter;
+import com.aegisql.conveyor.persistence.jdbc.EncryptingBlobConverter;
 import com.aegisql.conveyor.persistence.jdbc.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.StringConverter;
 
@@ -128,7 +131,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			public void archiveAll(Connection conn) {}
 		};
 
-		//TODO: remove when all imp;emented
+		//TODO: remove when all implemented
 		private Archiver<K> UNIMPLEMENTED_ARCHIVER = new Archiver<K>(){
 			@Override
 			public void archiveParts(Connection conn, Collection<Long> ids) {throw new RuntimeException("Unimplemented archiver");}
@@ -140,7 +143,6 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			public void archiveAll(Connection conn) {throw new RuntimeException("Unimplemented archiver");}
 		};
 
-		private BiConsumer<PreparedStatement, K> keyPlacer;
 		private String keyType = "CART_KEY VARCHAR(255)";
 		private final static String PROTOCOL = "jdbc:derby:";
 		private final static int PORT = 1527;
@@ -169,11 +171,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		
 		private ArchiveStrategy archiveStrategy = ArchiveStrategy.DELETE;
 		
-		private BiConsumer<Connection,Collection<Long>> archiveIdsStrategy;
-		private String encryptionSecret;
+		private String encryptionSecret = null;
 		private SecretKey secretKey;
-		private String encryptionCipherAlgorithm;
+		private String encryptionAlgorithm = "AES";
+		private String encryptionTransformation = "AES/ECB/PKCS5Padding";
 		private Cipher encryptionCipher;
+		private int encryptionKeyLength = 16;
 		
 		private ObjectConverter<?,String> labelConverter = new StringConverter<String>() {
 			@Override
@@ -238,9 +241,19 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			return this;
 		}
 
-		public DerbyPersistenceBuilder<K> encryptionCipher(String algorithm) {
-			this.encryptionCipherAlgorithm = algorithm;
+		public DerbyPersistenceBuilder<K> encryptionAlgorithm(String algorithm) {
+			this.encryptionAlgorithm = algorithm;
 			return this;
+		}
+
+		public DerbyPersistenceBuilder<K> encryptionTransformation(String algorithm) {
+			this.encryptionTransformation = algorithm;
+			return this;
+		}
+
+		public DerbyPersistenceBuilder<K> encryptionKeyLength(int keyLenght) {
+			this.encryptionKeyLength = keyLenght;
+			return this;			
 		}
 
 		public DerbyPersistenceBuilder<K> encryptionCipher(Cipher cipher) {
@@ -248,6 +261,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			return this;
 		}
 
+		public <L extends Enum<L>> DerbyPersistenceBuilder<K> labelConverter(Class<L> enClass) {
+			this.labelConverter = new EnumConverter<>(enClass);
+			return this;
+		}
+		
 		public <L> DerbyPersistenceBuilder<K> labelConverter(ObjectConverter<L,String> labelConverter) {
 			this.labelConverter = labelConverter;
 			return this;
@@ -283,10 +301,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			
 			ResultSet tables = meta.getTables(null,null,null,null);
 			boolean partTableFound   = false;
-			boolean partIdTableFound = false;
 			boolean keyLogTableFound = false;
 			while(tables.next()) {
-				String tableSchema = tables.getString("TABLE_SCHEM");
 				String tableName = tables.getString("TABLE_NAME");
 				if(tableName.equalsIgnoreCase(partTable)) {
 					partTableFound = true;
@@ -375,10 +391,6 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					;
 			String getAllCompletedKeysQuery = "SELECT CART_KEY FROM "+completedLogTable;
 			
-			Consumer<Collection<Long>> ais = ids->{
-				archiveIdsStrategy.accept(conn, ids);
-			};
-
 			switch(archiveStrategy) {
 				case CUSTOM:
 					//defined by user
@@ -402,6 +414,25 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					
 			}
 			
+			@SuppressWarnings("unused")
+			BlobConverter<?> blobConverter;
+			if(encryptionSecret != null) {
+				LOG.debug("ENCRIPTION VALUES ON");
+				if(secretKey == null) {
+					byte[] key = encryptionSecret.getBytes("UTF-8");
+					MessageDigest sha = MessageDigest.getInstance("SHA-1");
+					key = sha.digest(key);
+					key = Arrays.copyOf(key, encryptionKeyLength);
+					secretKey = new SecretKeySpec(key, encryptionAlgorithm);
+
+					encryptionCipher = Cipher.getInstance(encryptionTransformation);
+				}
+				blobConverter = new EncryptingBlobConverter<>(conn,secretKey,encryptionCipher);
+			} else {
+				LOG.debug("ENCRIPTION VALUES OFF");
+				blobConverter = new BlobConverter<>(conn);
+			}
+			
 			return new DerbyPersistence<K>(
 					conn
 					,idSupplier
@@ -413,6 +444,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,getAllCompletedKeysQuery
 					,archiver
 					,labelConverter
+					,new BlobConverter<>(conn)
 					);
 		}
 
@@ -618,11 +650,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,String getAllUnfinishedPartIdsQuery
 			,String getAllCompletedKeysQuery
 			,Archiver<K> archiver
-			,ObjectConverter<?,String> labelConverter
+			,ObjectConverter<?,String> labelConverter,
+			BlobConverter blobConverter
 			) {
 		this.conn                         = conn;
 		this.idSupplier                   = idSupplier;
-		this.blobConverter                = new BlobConverter<>(conn);
+		this.blobConverter                = blobConverter;
 		this.saveCartQuery                = saveCartQuery;
 		this.saveCompletedBuildKeyQuery   = saveCompletedBuildKeyQuery;
 		this.getPartQuery                 = getPartQuery;
@@ -649,8 +682,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			st.setString(2, loadTypeConverter.toPersistence(cart.getLoadType()));
 			st.setObject(3, cart.getKey());
 			L label = cart.getLabel();
-			LOG.debug("LABEL:{} {}",label,label.getClass());
-			st.setString(4, (String) (labelConverter).toPersistence(label));
+			st.setObject(4, labelConverter.toPersistence(label));
 			st.setTimestamp(5, new Timestamp(cart.getCreationTime()));
 			st.setTimestamp(6, new Timestamp(cart.getExpirationTime()));
 			st.setBlob(7, blobConverter.toPersistence((Serializable) cart.getValue()));
@@ -754,6 +786,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		try(PreparedStatement st = conn.prepareStatement(getAllCompletedKeysQuery) ) {
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
+				@SuppressWarnings("unchecked")
 				K key = (K) rs.getObject(1);
 				res.add(key);
 			}

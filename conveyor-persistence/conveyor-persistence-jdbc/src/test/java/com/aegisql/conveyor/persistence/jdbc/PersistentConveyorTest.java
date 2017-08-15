@@ -60,7 +60,7 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p = DerbyPersistence
 				.forKeyClass(Integer.class)
 				.schema("testConv")
-				.labelConverter(new EnumConverter<>(TrioPart.class))
+				.labelConverter(TrioPart.class)
 				.build();
 		TrioConveyor tc = new TrioConveyor();
 		

@@ -14,7 +14,7 @@ import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
 public class BlobConverter <T extends Serializable> implements ObjectConverter<T, Blob> {
 
-	private final Connection conn;
+	protected final Connection conn;
 
 	public BlobConverter(Connection conn) {
 		this.conn = conn;

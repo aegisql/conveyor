@@ -54,6 +54,7 @@ public class DerbyPersistenceTest {
 		assertNotNull(pb);
 		AtomicLong ids = new AtomicLong(0);
 		pb = pb.idSupplier(ids::incrementAndGet);
+		pb = pb.encryptionSecret("dfqejrfljheq");
 		
 		Persistence<Integer> p = pb.build();
 		assertNotNull(p);
