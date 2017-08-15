@@ -1,7 +1,6 @@
 package com.aegisql.conveyor.persistence.core;
 
 import java.time.Duration;
-import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +21,6 @@ import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.MultiKeyCart;
-import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
@@ -54,11 +52,8 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		this.forward = forward;
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(persistence,batchSize);
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(persistence, forward, cleaner);
-		forward.resultConsumer().before(bin->{
-			persistence.saveCompletedBuildKey(bin.key);
-			ackConveyor.part().id(bin.key).label(ackConveyor.READY).value(bin.key).place();
-		}).set();
 		forward.setAcknowledgeAction((k,status)->{
+			persistence.saveCompletedBuildKey(k);
 			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
 		});
 		//not empty only if previous conveyor could not complete.

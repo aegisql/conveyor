@@ -91,7 +91,7 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 
 	@Override
 	public boolean test() {
-		return complete && keyReady != null;
+		return complete;// && keyReady != null;
 	}
 
 	// This build never expires.
