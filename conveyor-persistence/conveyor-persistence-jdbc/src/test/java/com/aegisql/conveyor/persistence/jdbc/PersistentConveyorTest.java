@@ -60,9 +60,10 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p = DerbyPersistence
 				.forKeyClass(Integer.class)
 				.schema("testConv")
+				.partTable("veryBasicTest")
+				.completedLogTable("veryBasicTestCompleted")
 				.labelConverter(TrioPart.class)
 				.build();
-		p.archiveAll();
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
@@ -81,9 +82,10 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p = DerbyPersistence
 				.forKeyClass(Integer.class)
 				.schema("testConv")
+				.partTable("simpleAckTest")
+				.completedLogTable("simpleAckTestCompleted")
 				.labelConverter(new EnumConverter<>(TrioPart.class))
 				.build();
-		p.archiveAll();
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, ()->tc, 3);
@@ -126,9 +128,10 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p1 = DerbyPersistence
 				.forKeyClass(Integer.class)
 				.schema("testConv")
+				.partTable("simpleReplayTest")
+				.completedLogTable("simpleReplayTestCompleted")
 				.labelConverter(new EnumConverter<TrioPart>(TrioPart.class))
 				.build();
-		p1.archiveAll();
 		TrioConveyor tc1 = new TrioConveyor();
 		tc1.autoAcknowledgeOnStatus(Status.READY);
 		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1, 3);
@@ -144,6 +147,8 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p2 = DerbyPersistence
 				.forKeyClass(Integer.class)
 				.schema("testConv")
+				.partTable("simpleReplayTest")
+				.completedLogTable("simpleReplayTestCompleted")
 				.labelConverter(new EnumConverter<>(TrioPart.class))
 				.build();
 		//Must copy state from the previous persistence
@@ -169,6 +174,8 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p1 = DerbyPersistence
 				.forKeyClass(Integer.class)
 				.schema("testConv")
+				.partTable("failingEncryptionReplayTest")
+				.completedLogTable("failingEncryptionReplayTestCompleted")
 				.labelConverter(new EnumConverter<TrioPart>(TrioPart.class))
 				.encryptionSecret("dfgjksfgkjhd")
 				.build();
@@ -187,6 +194,8 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p2 = DerbyPersistence
 				.forKeyClass(Integer.class)
 				.schema("testConv")
+				.partTable("failingEncryptionReplayTest")
+				.completedLogTable("failingEncryptionReplayTestCompleted")
 				.labelConverter(new EnumConverter<>(TrioPart.class))
 				.build();
 		//Must copy state from the previous persistence

@@ -216,6 +216,16 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			return this;
 		}
 
+		public DerbyPersistenceBuilder<K> partTable(String table) {
+			this.partTable = table;
+			return this;
+		}
+
+		public DerbyPersistenceBuilder<K> completedLogTable(String table) {
+			this.completedLogTable = table;
+			return this;
+		}
+
 		public DerbyPersistenceBuilder<K> port(int port) {
 			this.port = port;
 			return this;
@@ -327,8 +337,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					LOG.debug("Table '{}' not found. Trying to create...\n{}",partTable,sql);
 					st.execute(sql);
 					LOG.debug("Table '{}' created",partTable);
-					st.execute("CREATE INDEX PART_IDX ON PART(CART_KEY)");
-					LOG.debug("Index PART_IDX ON PART(CART_KEY) created");
+					st.execute("CREATE INDEX "+partTable+"_IDX ON "+partTable+"(CART_KEY)");
+					LOG.debug("Index "+partTable+"_IDX ON "+partTable+"(CART_KEY) created");
 
 				} 
 			} else {
