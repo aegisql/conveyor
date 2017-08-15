@@ -280,184 +280,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			return this;
 		}
 
-		public DerbyPersistence<K> build() throws Exception {
-			LOG.debug("DERBY PERSISTENCE");
-
-			Class.forName(driver);
-			Properties properties = new Properties();
-			String url = urlPattern;
-			url = url.replace("{schema}", schema);
-			if(embedded && create) {
-				properties.setProperty("create", "true");
-			} else {
-				url = url.replace("{host}", host);
-				url = url.replace("{port}", ""+port);
-				if( ! username.isEmpty()) {
-					properties.setProperty("user", username);
-				}
-				if( ! password.isEmpty()) {
-					properties.setProperty("password", password);
-				}
-			}
-			
-			LOG.debug("Driver: {}",driver);
-			LOG.debug("Connection Url: {}",url);
-			LOG.debug("Schema: {}",schema);
-			
-			Connection conn = DriverManager.getConnection(url, properties);
-			DatabaseMetaData meta = conn.getMetaData();
-			LOG.debug("Connected!");
-			
-			ResultSet tables = meta.getTables(null,null,null,null);
-			boolean partTableFound   = false;
-			boolean keyLogTableFound = false;
-			while(tables.next()) {
-				String tableName = tables.getString("TABLE_NAME");
-				if(tableName.equalsIgnoreCase(partTable)) {
-					partTableFound = true;
-				}
-				if(tableName.equalsIgnoreCase(completedLogTable)) {
-					keyLogTableFound = true;
-				}
-			}
-			if( ! partTableFound ) {
-				try(Statement st = conn.createStatement() ) {
-					String sql = "CREATE TABLE "
-								+partTable+" ("
-								+"ID BIGINT PRIMARY KEY"
-								+",LOAD_TYPE CHAR(15)"
-								+","+keyType
-								+",CART_LABEL VARCHAR(100)"
-								+",CREATION_TIME TIMESTAMP NOT NULL"
-								+",EXPIRATION_TIME TIMESTAMP NOT NULL"
-								+",CART_VALUE BLOB"
-								+",CART_PROPERTIES BLOB"
-								+",ARCHIVED SMALLINT NOT NULL DEFAULT 0"
-								+")";
-					LOG.debug("Table '{}' not found. Trying to create...\n{}",partTable,sql);
-					st.execute(sql);
-					LOG.debug("Table '{}' created",partTable);
-					st.execute("CREATE INDEX "+partTable+"_IDX ON "+partTable+"(CART_KEY)");
-					LOG.debug("Index "+partTable+"_IDX ON "+partTable+"(CART_KEY) created");
-
-				} 
-			} else {
-				LOG.debug("Table '{}' already exists",partTable);
-			}
-
-			if( ! keyLogTableFound ) {
-				try(Statement st = conn.createStatement() ) {
-					String sql = "CREATE TABLE "
-								+completedLogTable+" ("
-								+keyType+" PRIMARY KEY"
-								+",COMPLETION_TIME TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
-								+")";
-					LOG.debug("Table '{}' not found. Trying to create...\n{}",completedLogTable,sql);
-					st.execute(sql);
-					LOG.debug("Table '{}' created",completedLogTable);
-				} 
-			} else {
-				LOG.debug("Table '{}' already exists",completedLogTable);
-			}
-
-			String saveCartQuery = "INSERT INTO " + partTable + "("
-					+"ID"
-					+",LOAD_TYPE"
-					+",CART_KEY"
-					+",CART_LABEL"
-					+",CREATION_TIME"
-					+",EXPIRATION_TIME"
-					+",CART_VALUE"
-					+",CART_PROPERTIES"
-					+") VALUES (?,?,?,?,?,?,?,?)"
-					;
-			
-			String saveCompletedBuildKeyQuery = "INSERT INTO " + completedLogTable + "( CART_KEY ) VALUES( ? )"
-					;
-			String getPartQuery = "SELECT"
-					+" CART_KEY"
-					+",CART_VALUE"
-					+",CART_LABEL"
-					+",CREATION_TIME"
-					+",EXPIRATION_TIME"
-					+",LOAD_TYPE"
-					+",CART_PROPERTIES"
-					+" FROM " + partTable + " WHERE ID = ? AND ARCHIVED = 0"
-					;
-			String getAllPartIdsQuery = "SELECT"
-					+" ID"
-					+" FROM " + partTable + " WHERE CART_KEY = ? AND ARCHIVED = 0"
-					;
-			String getAllUnfinishedPartIdsQuery = "SELECT"
-					+" CART_KEY"
-					+",CART_VALUE"
-					+",CART_LABEL"
-					+",CREATION_TIME"
-					+",EXPIRATION_TIME"
-					+",LOAD_TYPE"
-					+",CART_PROPERTIES"
-					+" FROM " + partTable + " WHERE ARCHIVED = 0"
-					;
-			String getAllCompletedKeysQuery = "SELECT CART_KEY FROM "+completedLogTable;
-			
-			switch(archiveStrategy) {
-				case CUSTOM:
-					//defined by user
-					break;
-				case DELETE:
-					archiver = makeDeleteArchiver(partTable,completedLogTable);
-					break;
-				case SET_ARCHIVED:
-					archiver = makeStArchivedArchiver(partTable,completedLogTable);
-					break;
-				case MOVE_TO_SCHEMA_TABLE:
-					archiver = UNIMPLEMENTED_ARCHIVER;
-					break;
-				case MOVE_TO_FILE: 
-					archiver = UNIMPLEMENTED_ARCHIVER;
-					break;
-				case NO_ACTION:
-					archiver = DO_NOTHING_ARCHIVER;
-					break;
-				default:
-					
-			}
-			
-			@SuppressWarnings("unused")
-			BlobConverter<?> blobConverter;
-			if(encryptionSecret != null) {
-				LOG.debug("VALUES ENCRIPTION ON");
-				if(secretKey == null) {
-					byte[] key = encryptionSecret.getBytes("UTF-8");
-					MessageDigest sha = MessageDigest.getInstance("SHA-1");
-					key = sha.digest(key);
-					key = Arrays.copyOf(key, encryptionKeyLength);
-					secretKey = new SecretKeySpec(key, encryptionAlgorithm);
-
-					encryptionCipher = Cipher.getInstance(encryptionTransformation);
-				}
-				blobConverter = new EncryptingBlobConverter<>(conn,secretKey,encryptionCipher);
-			} else {
-				LOG.debug("VALUES ENCRIPTION OFF");
-				blobConverter = new BlobConverter<>(conn);
-			}
-			
-			return new DerbyPersistence<K>(
-					conn
-					,idSupplier
-					,saveCartQuery
-					,saveCompletedBuildKeyQuery
-					,getPartQuery
-					,getAllPartIdsQuery
-					,getAllUnfinishedPartIdsQuery
-					,getAllCompletedKeysQuery
-					,archiver
-					,labelConverter
-					,blobConverter
-					);
-		}
-
-		private Archiver<K> makeStArchivedArchiver(String partTable, String completedTable) {
+		private Archiver<K> makeArchivedArchiver(String partTable, String completedTable) {
 			
 			final String deleteFromPartsById      = "UPDATE "+partTable + " SET ARCHIVED = 1 WHERE ID IN(?)";
 			final String deleteFromPartsByCartKey = "UPDATE "+partTable + " SET ARCHIVED = 1 WHERE CART_KEY IN(?)";
@@ -632,6 +455,182 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				}};
 		}
 
+		public DerbyPersistence<K> build() throws Exception {
+			LOG.debug("DERBY PERSISTENCE");
+
+			Class.forName(driver);
+			Properties properties = new Properties();
+			String url = urlPattern;
+			url = url.replace("{schema}", schema);
+			if(embedded && create) {
+				properties.setProperty("create", "true");
+			} else {
+				url = url.replace("{host}", host);
+				url = url.replace("{port}", ""+port);
+				if( ! username.isEmpty()) {
+					properties.setProperty("user", username);
+				}
+				if( ! password.isEmpty()) {
+					properties.setProperty("password", password);
+				}
+			}
+			
+			LOG.debug("Driver: {}",driver);
+			LOG.debug("Connection Url: {}",url);
+			LOG.debug("Schema: {}",schema);
+			
+			Connection conn = DriverManager.getConnection(url, properties);
+			DatabaseMetaData meta = conn.getMetaData();
+			LOG.debug("Connected!");
+			
+			ResultSet tables = meta.getTables(null,null,null,null);
+			boolean partTableFound   = false;
+			boolean keyLogTableFound = false;
+			while(tables.next()) {
+				String tableName = tables.getString("TABLE_NAME");
+				if(tableName.equalsIgnoreCase(partTable)) {
+					partTableFound = true;
+				}
+				if(tableName.equalsIgnoreCase(completedLogTable)) {
+					keyLogTableFound = true;
+				}
+			}
+			if( ! partTableFound ) {
+				try(Statement st = conn.createStatement() ) {
+					String sql = "CREATE TABLE "
+								+partTable+" ("
+								+"ID BIGINT PRIMARY KEY"
+								+",LOAD_TYPE CHAR(15)"
+								+","+keyType
+								+",CART_LABEL VARCHAR(100)"
+								+",CREATION_TIME TIMESTAMP NOT NULL"
+								+",EXPIRATION_TIME TIMESTAMP NOT NULL"
+								+",CART_VALUE BLOB"
+								+",CART_PROPERTIES BLOB"
+								+",ARCHIVED SMALLINT NOT NULL DEFAULT 0"
+								+")";
+					LOG.debug("Table '{}' not found. Trying to create...\n{}",partTable,sql);
+					st.execute(sql);
+					LOG.debug("Table '{}' created",partTable);
+					st.execute("CREATE INDEX "+partTable+"_IDX ON "+partTable+"(CART_KEY)");
+					LOG.debug("Index "+partTable+"_IDX ON "+partTable+"(CART_KEY) created");
+
+				} 
+			} else {
+				LOG.debug("Table '{}' already exists",partTable);
+			}
+
+			if( ! keyLogTableFound ) {
+				try(Statement st = conn.createStatement() ) {
+					String sql = "CREATE TABLE "
+								+completedLogTable+" ("
+								+keyType+" PRIMARY KEY"
+								+",COMPLETION_TIME TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
+								+")";
+					LOG.debug("Table '{}' not found. Trying to create...\n{}",completedLogTable,sql);
+					st.execute(sql);
+					LOG.debug("Table '{}' created",completedLogTable);
+				} 
+			} else {
+				LOG.debug("Table '{}' already exists",completedLogTable);
+			}
+
+			String saveCartQuery = "INSERT INTO " + partTable + "("
+					+"ID"
+					+",LOAD_TYPE"
+					+",CART_KEY"
+					+",CART_LABEL"
+					+",CREATION_TIME"
+					+",EXPIRATION_TIME"
+					+",CART_VALUE"
+					+",CART_PROPERTIES"
+					+") VALUES (?,?,?,?,?,?,?,?)"
+					;
+			
+			String saveCompletedBuildKeyQuery = "INSERT INTO " + completedLogTable + "( CART_KEY ) VALUES( ? )"
+					;
+			String getPartQuery = "SELECT"
+					+" CART_KEY"
+					+",CART_VALUE"
+					+",CART_LABEL"
+					+",CREATION_TIME"
+					+",EXPIRATION_TIME"
+					+",LOAD_TYPE"
+					+",CART_PROPERTIES"
+					+" FROM " + partTable + " WHERE ID = ? AND ARCHIVED = 0"
+					;
+			String getAllPartIdsQuery = "SELECT"
+					+" ID"
+					+" FROM " + partTable + " WHERE CART_KEY = ? AND ARCHIVED = 0"
+					;
+			String getAllUnfinishedPartIdsQuery = "SELECT"
+					+" CART_KEY"
+					+",CART_VALUE"
+					+",CART_LABEL"
+					+",CREATION_TIME"
+					+",EXPIRATION_TIME"
+					+",LOAD_TYPE"
+					+",CART_PROPERTIES"
+					+" FROM " + partTable + " WHERE ARCHIVED = 0"
+					;
+			String getAllCompletedKeysQuery = "SELECT CART_KEY FROM "+completedLogTable;
+			
+			switch(archiveStrategy) {
+				case CUSTOM:
+					//defined by user
+					break;
+				case DELETE:
+					archiver = makeDeleteArchiver(partTable,completedLogTable);
+					break;
+				case SET_ARCHIVED:
+					archiver = makeArchivedArchiver(partTable,completedLogTable);
+					break;
+				case MOVE_TO_SCHEMA_TABLE:
+					archiver = UNIMPLEMENTED_ARCHIVER;
+					break;
+				case MOVE_TO_FILE: 
+					archiver = UNIMPLEMENTED_ARCHIVER;
+					break;
+				case NO_ACTION:
+					archiver = DO_NOTHING_ARCHIVER;
+					break;
+				default:
+					
+			}
+			
+			@SuppressWarnings("unused")
+			BlobConverter<?> blobConverter;
+			if(encryptionSecret != null) {
+				LOG.debug("VALUES ENCRIPTION ON");
+				if(secretKey == null) {
+					byte[] key = encryptionSecret.getBytes("UTF-8");
+					MessageDigest sha = MessageDigest.getInstance("SHA-1");
+					key = sha.digest(key);
+					key = Arrays.copyOf(key, encryptionKeyLength);
+					secretKey = new SecretKeySpec(key, encryptionAlgorithm);
+
+					encryptionCipher = Cipher.getInstance(encryptionTransformation);
+				}
+				blobConverter = new EncryptingBlobConverter<>(conn,secretKey,encryptionCipher);
+			} else {
+				LOG.debug("VALUES ENCRIPTION OFF");
+				blobConverter = new BlobConverter<>(conn);
+			}
+			
+			return new DerbyPersistence<K>(
+					conn
+					,idSupplier
+					,saveCartQuery
+					,saveCompletedBuildKeyQuery
+					,getPartQuery
+					,getAllPartIdsQuery
+					,getAllUnfinishedPartIdsQuery
+					,getAllCompletedKeysQuery
+					,archiver
+					,labelConverter
+					,blobConverter
+					);
+		}
 	}
 ///////////////////////////////////////////////////////////////////////////////
 	private final Connection   conn;
@@ -649,7 +648,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	
 	private final Archiver<K> archiver;
 	
-	public DerbyPersistence(
+	private DerbyPersistence(
 			Connection conn
 			,LongSupplier idSupplier
 			,String saveCartQuery
