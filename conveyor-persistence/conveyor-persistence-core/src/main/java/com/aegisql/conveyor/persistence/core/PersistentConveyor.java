@@ -114,9 +114,6 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public <V> CompletableFuture<Boolean> place(Cart<K, V, L> cart) {
-		if(cart instanceof ResultConsumerCart) {
-			return forward.place(cart);
-		}
 		ShoppingCart<K, Cart<K,?,L>, SmartLabel<AcknowledgeBuilder<K>>> ackCart = new ShoppingCart<>(cart.getKey(), cart, ackConveyor.CART);
 		CompletableFuture<Boolean> forwardFuture = cart.getFuture();
 		CompletableFuture<Boolean> ackFuture = ackCart.getFuture();
@@ -133,22 +130,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public ResultConsumerLoader<K, OUT> resultConsumer() {
-		return new ResultConsumerLoader<>(rcl->{
-			final Cart<K,?,L> cart;
-			if(rcl.key != null) {
-				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime);
-			} else {
-				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, k->{
-					return new ResultConsumerCart<K, OUT, L>(k, rcl.consumer, rcl.creationTime, rcl.expirationTime);
-				});
-			}
-			rcl.getAllProperties().forEach((k,v)->{ cart.addProperty(k, v);});
-			return this.place(cart);
-		}, 
-		rc->{
-			this.resultConsumer = rc;
-		}, 
-		resultConsumer);
+		return forward.resultConsumer();
 	}
 
 	@Override
