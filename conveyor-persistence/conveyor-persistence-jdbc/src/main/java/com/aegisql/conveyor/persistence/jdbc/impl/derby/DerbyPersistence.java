@@ -19,7 +19,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BiConsumer;
 import java.util.function.LongSupplier;
 
 import javax.crypto.Cipher;
@@ -417,7 +416,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			@SuppressWarnings("unused")
 			BlobConverter<?> blobConverter;
 			if(encryptionSecret != null) {
-				LOG.debug("ENCRIPTION VALUES ON");
+				LOG.debug("VALUES ENCRIPTION ON");
 				if(secretKey == null) {
 					byte[] key = encryptionSecret.getBytes("UTF-8");
 					MessageDigest sha = MessageDigest.getInstance("SHA-1");
@@ -429,7 +428,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				}
 				blobConverter = new EncryptingBlobConverter<>(conn,secretKey,encryptionCipher);
 			} else {
-				LOG.debug("ENCRIPTION VALUES OFF");
+				LOG.debug("VALUES ENCRIPTION OFF");
 				blobConverter = new BlobConverter<>(conn);
 			}
 			
@@ -444,7 +443,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,getAllCompletedKeysQuery
 					,archiver
 					,labelConverter
-					,new BlobConverter<>(conn)
+					,blobConverter
 					);
 		}
 

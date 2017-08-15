@@ -19,11 +19,13 @@ import javax.crypto.SecretKey;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EncryptingBlobConverter <T extends Serializable> extends BlobConverter<T> {
 
+	private final static Logger LOG = LoggerFactory.getLogger(EncryptingBlobConverter.class);
+	
 	private final SecretKey key;
 	private final Cipher cipher;
 	
@@ -35,6 +37,7 @@ public class EncryptingBlobConverter <T extends Serializable> extends BlobConver
 	
 	@Override
 	public Blob toPersistence(T obj) {
+		LOG.debug("TO - ORIGINAL:{}",obj);
     	Blob blob       = null;
     	OutputStream os = null;
 		try {
@@ -51,6 +54,7 @@ public class EncryptingBlobConverter <T extends Serializable> extends BlobConver
 	    	oos.writeObject(obj);
 	    	bos.close();
 			byte[] encrypted = cipher.doFinal( bos.toByteArray() );
+			LOG.debug("TO - ENCRYPTED:{}",new String(encrypted));
 			os.write(encrypted);
 			return blob;
 		} catch (Exception e) {
@@ -65,10 +69,14 @@ public class EncryptingBlobConverter <T extends Serializable> extends BlobConver
 			cipher.init(Cipher.DECRYPT_MODE, key);
 			in = blb.getBinaryStream(1, blb.length());
 			byte[] bytes = IOUtils.toByteArray(in);
+			LOG.debug("FROM - ENCRYPTED:{}",new String(bytes));
 			bytes = cipher.doFinal(bytes);
 			ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
 			ObjectInputStream ois = new ObjectInputStream(bis);
-			return (T) ois.readObject();
+			T res = (T) ois.readObject();
+			LOG.debug("FROM - RESTORED:{}",res);
+
+			return res;
 		} catch (SQLException e) {
 			throw new RuntimeException("SQL Runntime Exception",e);
 		} catch (IOException e) {

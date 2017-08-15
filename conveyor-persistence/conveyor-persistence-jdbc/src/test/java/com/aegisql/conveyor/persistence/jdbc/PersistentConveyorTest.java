@@ -62,6 +62,7 @@ public class PersistentConveyorTest {
 				.schema("testConv")
 				.labelConverter(TrioPart.class)
 				.build();
+		p.archiveAll();
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
@@ -82,6 +83,7 @@ public class PersistentConveyorTest {
 				.schema("testConv")
 				.labelConverter(new EnumConverter<>(TrioPart.class))
 				.build();
+		p.archiveAll();
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, ()->tc, 3);
@@ -126,6 +128,7 @@ public class PersistentConveyorTest {
 				.schema("testConv")
 				.labelConverter(new EnumConverter<TrioPart>(TrioPart.class))
 				.build();
+		p1.archiveAll();
 		TrioConveyor tc1 = new TrioConveyor();
 		tc1.autoAcknowledgeOnStatus(Status.READY);
 		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1, 3);
@@ -156,6 +159,49 @@ public class PersistentConveyorTest {
 		System.out.println(tc2);
 		System.out.println("P1="+p1);
 		System.out.println("P2="+p2);
+		//p2 must be empty after completion. 
+		Thread.sleep(100);
+		//assertTrue(p2.isEmpty());
+	}
+
+	@Test(expected=RuntimeException.class)
+	public void failingEncryptionReplayTest() throws Exception {
+		Persistence<Integer> p1 = DerbyPersistence
+				.forKeyClass(Integer.class)
+				.schema("testConv")
+				.labelConverter(new EnumConverter<TrioPart>(TrioPart.class))
+				.encryptionSecret("dfgjksfgkjhd")
+				.build();
+		TrioConveyor tc1 = new TrioConveyor();
+		tc1.autoAcknowledgeOnStatus(Status.READY);
+		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1, 3);
+		pc1.setName("TC1");
+		pc1.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
+		pc1.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
+		System.out.println(p1);
+		
+		pc1.stop();
+		TrioConveyor tc2 = new TrioConveyor();
+		tc2.autoAcknowledgeOnStatus(Status.READY);
+		
+		Persistence<Integer> p2 = DerbyPersistence
+				.forKeyClass(Integer.class)
+				.schema("testConv")
+				.labelConverter(new EnumConverter<>(TrioPart.class))
+				.build();
+		//Must copy state from the previous persistence
+		//assertFalse(p2.isEmpty());
+		//p1 must be empty after moving data to p1. 
+		//assertTrue(p1.isEmpty());
+		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2, 3);
+		pc2.setName("TC2");
+		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
+		System.out.println(tc2);
+		assertEquals(0, tc1.results.size());
+		assertEquals(1, tc2.results.size());
+		System.out.println(tc2);
+		System.out.println("P1="+tc1);
+		System.out.println("P2="+tc2);
 		//p2 must be empty after completion. 
 		Thread.sleep(100);
 		//assertTrue(p2.isEmpty());
