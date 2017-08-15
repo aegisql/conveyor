@@ -1,5 +1,10 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -14,7 +19,7 @@ import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 
 public class PersistTestImpl implements Persistence<Integer> {
 
-	ConcurrentHashMap<Long,Cart<Integer,?,?>> carts = new ConcurrentHashMap<>();
+	ConcurrentHashMap<Long,byte[]> carts = new ConcurrentHashMap<>();
 	ConcurrentHashMap<Integer,List<Long>> cartIds   = new ConcurrentHashMap<>();
 	Set<Integer> completed = new HashSet<>();
 	
@@ -51,7 +56,14 @@ public class PersistTestImpl implements Persistence<Integer> {
 
 	@Override
 	public <L> void savePart(long id, Cart<Integer, ?, L> cart) {
-		carts.put(id, cart);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(bos);
+			oos.writeObject(cart);
+			carts.put(id, bos.toByteArray());
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -66,7 +78,18 @@ public class PersistTestImpl implements Persistence<Integer> {
 
 	@Override
 	public <L> Cart<Integer, ?, L> getPart(long id) {
-		return (Cart<Integer, ?, L>) carts.get(id);
+		byte[] bytes = carts.get(id);
+		if(bytes == null) {
+			return null;
+		}
+		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+		ObjectInputStream ois;
+		try {
+			ois = new ObjectInputStream(bis);
+			return (Cart<Integer, ?, L>) ois.readObject();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -108,7 +131,18 @@ public class PersistTestImpl implements Persistence<Integer> {
 
 	@Override
 	public Collection<Cart<Integer, ?, ?>> getAllParts() {
-		return carts.values();
+		List<Cart<Integer, ?, ?>> cartsList = new ArrayList<>();
+		carts.forEach((id,bytes)->{
+			ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+			ObjectInputStream ois;
+			try {
+				ois = new ObjectInputStream(bis);
+				cartsList.add( (Cart<Integer, ?, ?>) ois.readObject() );
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		});
+		return cartsList;
 	}
 
 	public boolean isEmpty() {
