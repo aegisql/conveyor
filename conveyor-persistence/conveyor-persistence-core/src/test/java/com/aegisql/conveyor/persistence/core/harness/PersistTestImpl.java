@@ -158,5 +158,10 @@ public class PersistTestImpl implements Persistence<Integer> {
 		carts.clear();
 		completed.clear();
 	}
+
+	@Override
+	public <L> Collection<Cart<Integer, ?, L>> getAllStaticParts() {
+		return new ArrayList<>();
+	}
 	
 }

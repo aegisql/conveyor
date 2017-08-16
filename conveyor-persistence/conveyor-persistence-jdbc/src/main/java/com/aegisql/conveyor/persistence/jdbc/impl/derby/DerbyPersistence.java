@@ -571,9 +571,19 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+",EXPIRATION_TIME"
 					+",LOAD_TYPE"
 					+",CART_PROPERTIES"
-					+" FROM " + partTable + " WHERE ARCHIVED = 0"
+					+" FROM " + partTable + " WHERE ARCHIVED = 0  AND LOAD_TYPE <> 'STATIC_PART'"
 					;
 			String getAllCompletedKeysQuery = "SELECT CART_KEY FROM "+completedLogTable;
+			
+			String getAllStaticPartsQuery = "SELECT"
+					+" CART_KEY"
+					+",CART_VALUE"
+					+",CART_LABEL"
+					+",CREATION_TIME"
+					+",EXPIRATION_TIME"
+					+",LOAD_TYPE"
+					+",CART_PROPERTIES"
+					+" FROM " + partTable + " WHERE ARCHIVED = 0 AND LOAD_TYPE = 'STATIC_PART' ";
 			
 			switch(archiveStrategy) {
 				case CUSTOM:
@@ -626,6 +636,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,getAllPartIdsQuery
 					,getAllUnfinishedPartIdsQuery
 					,getAllCompletedKeysQuery
+					,getAllStaticPartsQuery
 					,archiver
 					,labelConverter
 					,blobConverter
@@ -647,6 +658,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	private final String getAllCompletedKeysQuery;
 	
 	private final Archiver<K> archiver;
+	private final String getAllStaticPartsQuery;
 	
 	private DerbyPersistence(
 			Connection conn
@@ -657,6 +669,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,String getAllPartIdsQuery
 			,String getAllUnfinishedPartIdsQuery
 			,String getAllCompletedKeysQuery
+			,String getAllStaticPartsQuery
 			,Archiver<K> archiver
 			,ObjectConverter<?,String> labelConverter,
 			BlobConverter blobConverter
@@ -668,6 +681,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		this.saveCompletedBuildKeyQuery   = saveCompletedBuildKeyQuery;
 		this.getPartQuery                 = getPartQuery;
 		this.getAllPartIdsQuery           = getAllPartIdsQuery;
+		this.getAllStaticPartsQuery       = getAllStaticPartsQuery;
 		this.getAllUnfinishedPartIdsQuery = getAllUnfinishedPartIdsQuery;
 		this.getAllCompletedKeysQuery     = getAllCompletedKeysQuery;
 		this.archiver                     = archiver;
@@ -823,6 +837,32 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	@Override
 	public void archiveAll() {
 		archiver.archiveAll(conn);
+	}
+
+	@Override
+	public <L> Collection<Cart<K, ?, L>> getAllStaticParts() {
+		LOG.debug("getAllStaticParts: {}",getAllStaticPartsQuery);
+		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
+		try(PreparedStatement st = conn.prepareStatement(getAllUnfinishedPartIdsQuery) ) {
+			Cart<K, ?, L> cart = null;
+			ResultSet rs = st.executeQuery();
+			while(rs.next()) {
+				K key = (K)rs.getObject(1);
+				Object val = blobConverter.fromPersistence(rs.getBlob(2));
+				L label = (L)labelConverter.fromPersistence(rs.getString(3).trim());
+				long creationTime = rs.getTimestamp(4).getTime();
+				long expirationTime = rs.getTimestamp(5).getTime();
+				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
+				Map<String,Object> properties = (Map<String, Object>) blobConverter.fromPersistence(rs.getBlob(7));
+				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+				cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+				carts.add(cart);
+			}
+		} catch (Exception e) {
+	    	LOG.error("getAllStaticParts exception: ",e.getMessage());
+	    	throw new RuntimeException("getAllStaticParts failed",e);
+		}
+		return carts;
 	}
 	
 }

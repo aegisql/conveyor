@@ -15,6 +15,7 @@ public interface Persistence <K> {
 	
 	public Collection<Long> getAllPartIds(K key);
 	public <L> Collection<Cart<K,?,L>> getAllParts();
+	public <L> Collection<Cart<K,?,L>> getAllStaticParts();
 	
 	public Set<K> getCompletedKeys();
 	

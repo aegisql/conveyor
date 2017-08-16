@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.io.FileUtils;
@@ -216,6 +217,26 @@ public class PersistentConveyorTest {
 		//assertTrue(p2.isEmpty());
 	}
 
+	@Test
+	public void staticBasicTest() throws Exception {
+		Persistence<Integer> p = DerbyPersistence
+				.forKeyClass(Integer.class)
+				.schema("testConv")
+				.partTable("staticBasicTest")
+				.completedLogTable("staticBasicTestCompleted")
+				.labelConverter(TrioPart.class)
+				.build();
+		TrioConveyor tc = new TrioConveyor();
+		
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
+		pc.staticPart().label(TrioPart.NUMBER).value(1).place().join();
 	
+		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
+		pc.part().id(1).label(TrioPart.TEXT2).value("txt2").place().get();
+		System.out.println(tc);
+		assertEquals(1, tc.results.size());
+		//pc.stop();
+	}
+
 	
 }

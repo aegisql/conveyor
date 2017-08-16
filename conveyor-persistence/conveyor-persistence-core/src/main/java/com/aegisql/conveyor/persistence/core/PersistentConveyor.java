@@ -1,6 +1,10 @@
 package com.aegisql.conveyor.persistence.core;
 
+import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
+
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +24,7 @@ import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
@@ -43,10 +48,10 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	private final AcknowledgeBuildingConveyor<K> ackConveyor;
 	private final PersistenceCleanupBatchConveyor<K> cleaner;
 	
-	ResultConsumer<K,OUT> resultConsumer = new ThreeStageResultConsumer<>(
-			bin->{}, 
-			bin->{}, 
-			bin->{});
+//	ResultConsumer<K,OUT> resultConsumer = new ThreeStageResultConsumer<>(
+//			bin->{}, 
+//			bin->{}, 
+//			bin->{});
 	
 	public PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward, int batchSize) {
 		this.forward = forward;
@@ -58,6 +63,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		});
 		//not empty only if previous conveyor could not complete.
 		//Pers must be initialized with the previous state
+		persistence.<L>getAllStaticParts().forEach(cart->this.place(cart));
 		persistence.<L>getAllParts().forEach(cart->this.place(cart));
 	}
 	
@@ -85,8 +91,12 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart() {
-		// TODO Auto-generated method stub
-		return null;
+		return  new StaticPartLoader<L, X, OUT, Boolean>(cl -> {
+			Map<String,Object> properties = new HashMap<>();
+			properties.put("CREATE", cl.create);
+			Cart<K,?,L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART);
+			return place(staticPart);
+		});
 	}
 
 	@Override
@@ -109,12 +119,17 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public <V> CompletableFuture<Boolean> place(Cart<K, V, L> cart) {
-		ShoppingCart<K, Cart<K,?,L>, SmartLabel<AcknowledgeBuilder<K>>> ackCart = new ShoppingCart<>(cart.getKey(), cart, ackConveyor.CART);
+		Cart<K, Cart<K,?,?>, SmartLabel<AcknowledgeBuilder<K>>> ackCart = PersistenceCart.of(cart, ackConveyor.CART);
+		LOG.debug("PLACING "+ackCart);
 		CompletableFuture<Boolean> forwardFuture = cart.getFuture();
 		CompletableFuture<Boolean> ackFuture = ackCart.getFuture();
 		CompletableFuture<Boolean> bothFutures = ackFuture.thenCombine(forwardFuture,(a,b)->a&&b);
 		ackConveyor.place(ackCart);
-		return bothFutures;
+		if(cart.getLoadType()==LoadType.STATIC_PART) {
+			return ackFuture;
+		} else {
+			return bothFutures;
+		}
 	}
 
 	@Override
