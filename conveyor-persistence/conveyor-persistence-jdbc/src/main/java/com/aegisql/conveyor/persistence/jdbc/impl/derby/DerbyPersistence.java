@@ -561,7 +561,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					;
 			String getAllPartIdsQuery = "SELECT"
 					+" ID"
-					+" FROM " + partTable + " WHERE CART_KEY = ? AND ARCHIVED = 0"
+					+" FROM " + partTable + " WHERE CART_KEY = ? AND ARCHIVED = 0 ORDER BY ID ASC"
 					;
 			String getAllUnfinishedPartIdsQuery = "SELECT"
 					+" CART_KEY"
@@ -571,7 +571,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+",EXPIRATION_TIME"
 					+",LOAD_TYPE"
 					+",CART_PROPERTIES"
-					+" FROM " + partTable + " WHERE ARCHIVED = 0  AND LOAD_TYPE <> 'STATIC_PART'"
+					+" FROM " + partTable + " WHERE ARCHIVED = 0  AND LOAD_TYPE <> 'STATIC_PART' ORDER BY ID ASC"
 					;
 			String getAllCompletedKeysQuery = "SELECT CART_KEY FROM "+completedLogTable;
 			
@@ -583,7 +583,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+",EXPIRATION_TIME"
 					+",LOAD_TYPE"
 					+",CART_PROPERTIES"
-					+" FROM " + partTable + " WHERE ARCHIVED = 0 AND LOAD_TYPE = 'STATIC_PART' ";
+					+" FROM " + partTable + " WHERE ARCHIVED = 0 AND LOAD_TYPE = 'STATIC_PART' ORDER BY ID ASC";
 			
 			switch(archiveStrategy) {
 				case CUSTOM:
@@ -699,6 +699,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 	@Override
 	public <L> void savePart(long id, Cart<K, ?, L> cart) {
+		LOG.debug("SAVING: {}",cart);
 		try(PreparedStatement st = conn.prepareStatement(saveCartQuery) ) {
 			st.setLong(1, id);
 			st.setString(2, loadTypeConverter.toPersistence(cart.getLoadType()));
@@ -713,7 +714,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		} catch (Exception e) {
 			e.printStackTrace();
 	    	LOG.error("SavePart Exception: {} {}",cart,e.getMessage());
-	    	throw new RuntimeException("Save Part failed",e);
+	    	throw new RuntimeException("Save Part failed for "+cart,e);
 		}
 	}
 
@@ -843,7 +844,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	public <L> Collection<Cart<K, ?, L>> getAllStaticParts() {
 		LOG.debug("getAllStaticParts: {}",getAllStaticPartsQuery);
 		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
-		try(PreparedStatement st = conn.prepareStatement(getAllUnfinishedPartIdsQuery) ) {
+		try(PreparedStatement st = conn.prepareStatement(getAllStaticPartsQuery) ) {
 			Cart<K, ?, L> cart = null;
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {

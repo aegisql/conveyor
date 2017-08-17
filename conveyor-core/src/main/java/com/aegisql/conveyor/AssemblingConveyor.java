@@ -907,12 +907,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		K key = cart.getKey();
 		if (key == null) {
 			if (cart.getLoadType() == MULTI_KEY_PART) {
-				MultiKeyCart<K, ?, L> mCart = (MultiKeyCart<K, ?, L>) cart;
 				try {
 					
-					Function<K,Cart<K, ?, L>> cartBuilder = mCart.cartBuilder();
+					Function<K,Cart<K, ?, L>> cartBuilder = cart.getProperty("#CART_BUILDER", Function.class);
 					
-					collector.entrySet().stream().map(entry -> entry.getKey()).filter(mCart::test)
+					collector.entrySet().stream().map(entry -> entry.getKey()).filter(cart.getProperty("#FILTER", Predicate.class))
 							.collect(Collectors.toList()).forEach(k -> {
 								processSite(cartBuilder.apply(k), accept);
 							});

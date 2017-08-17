@@ -1,2 +1,6 @@
 /target/
 /derby.log
+/conveyor_db/
+/carts_db/
+/testConv/
+/testDb1/

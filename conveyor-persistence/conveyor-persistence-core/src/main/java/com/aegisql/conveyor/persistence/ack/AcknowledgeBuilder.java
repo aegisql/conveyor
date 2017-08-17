@@ -53,6 +53,7 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 		}
 		if (!builder.cartIds.contains(id)) {
 			if(save) {
+				LOG.debug("---- SAVING " + cart);
 				builder.persistence.savePart(id, cart);
 				builder.persistence.savePartId(cart.getKey(), id);
 			}
@@ -100,6 +101,12 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 	@Override
 	public long getExpirationTime() {
 		return Long.MAX_VALUE;
+	}
+
+	@Override
+	public String toString() {
+		return "AcknowledgeBuilder [persistence=" + persistence + ", cartIds=" + cartIds + ", forward=" + forward
+				+ ", keyReady=" + keyReady + ", complete=" + complete + "]";
 	}
 
 }

@@ -1,7 +1,9 @@
 package com.aegisql.conveyor.cart;
 
-import java.util.function.Function;
+import java.io.Serializable;
 import java.util.function.Predicate;
+
+import com.aegisql.conveyor.SerializableFunction;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -11,15 +13,10 @@ import java.util.function.Predicate;
  * @param <V> the value type
  * @param <L> the generic type
  */
-public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Predicate<K> {
-
+public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 4055225191822888396L;
 
-	protected final Predicate<K> filter;
-	
-	protected final Function<K,Cart<K, ?, L>> cartBuilder;
-	
 	/**
 	 * Instantiates a new shopping cart.
 	 *
@@ -30,8 +27,12 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 	 */
 	public MultiKeyCart(V v, L label, long creation, long expiration) {
 		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
-		this.filter = entry->true; //pass all by default
-		this.cartBuilder = this::toShoppingCart;
+		this.addProperty("#FILTER", (Predicate)entry->true);
+		this.addProperty("#CART_BUILDER", (SerializableFunction<K,Cart<K, ?, L>> & Serializable) key->{
+			ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue(), getLabel(),getExpirationTime());
+			cart.putAllProperties(this.getAllProperties());
+			return cart;
+		});
 	}
 
 	/**
@@ -45,14 +46,18 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 	 */
 	public MultiKeyCart(Predicate<K> filter, V v, L label, long creation, long expiration) {
 		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
-		this.filter = filter;
-		this.cartBuilder = this::toShoppingCart;
+		this.addProperty("#FILTER", filter);
+		this.addProperty("#CART_BUILDER", (SerializableFunction<K,Cart<K, ?, L>> & Serializable) key->{
+			ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue(), getLabel(),getExpirationTime());
+			cart.putAllProperties(this.getAllProperties());
+			return cart;
+		});
 	}
 
-	public MultiKeyCart(Predicate<K> filter, V v, L label, long creation, long expiration, Function<K,Cart<K, ?, L>> cartBuilder) {
+	public MultiKeyCart(Predicate<K> filter, V v, L label, long creation, long expiration, SerializableFunction<K,Cart<K, ?, L>> cartBuilder) {
 		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
-		this.filter = filter;
-		this.cartBuilder = cartBuilder;
+		this.addProperty("#FILTER", filter);
+		this.addProperty("#CART_BUILDER", cartBuilder);
 	}
 
 	/* (non-Javadoc)
@@ -69,15 +74,6 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> implements Pred
 		ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue(), getLabel(),getExpirationTime());
 		cart.putAllProperties(this.getAllProperties());
 		return cart;
-	}
-	
-	@Override
-	public boolean test(K key) {
-		return filter.test(key);
-	}
-	
-	public Function<K,Cart<K, ?, L>> cartBuilder() {
-		return cartBuilder;
 	}
 	
 }

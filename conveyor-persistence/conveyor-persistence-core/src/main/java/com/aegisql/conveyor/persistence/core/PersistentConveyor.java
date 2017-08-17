@@ -3,6 +3,7 @@ package com.aegisql.conveyor.persistence.core;
 import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
 
 import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +48,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	private final Conveyor<K, L, OUT> forward;
 	private final AcknowledgeBuildingConveyor<K> ackConveyor;
 	private final PersistenceCleanupBatchConveyor<K> cleaner;
+	private final AcknowledgeBuilder<K> staticAcknowledgeBuilder;
 	
 //	ResultConsumer<K,OUT> resultConsumer = new ThreeStageResultConsumer<>(
 //			bin->{}, 
@@ -61,10 +63,15 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 			persistence.saveCompletedBuildKey(k);
 			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
 		});
+		this.staticAcknowledgeBuilder = new AcknowledgeBuilder<>(persistence, forward);
 		//not empty only if previous conveyor could not complete.
 		//Pers must be initialized with the previous state
-		persistence.<L>getAllStaticParts().forEach(cart->this.place(cart));
-		persistence.<L>getAllParts().forEach(cart->this.place(cart));
+		Collection<Cart<K,?,L>> staticParts = persistence.<L>getAllStaticParts();
+		LOG.debug("Static parts: {}",staticParts);
+		Collection<Cart<K,?,L>> allParts = persistence.<L>getAllParts();
+		LOG.debug("All parts: {}",allParts);
+		staticParts.forEach(cart->this.place(cart));
+		allParts.forEach(cart->this.place(cart));
 	}
 	
 	public PersistentConveyor(Persistence<K> persistence, int batchSize) {
@@ -119,6 +126,11 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public <V> CompletableFuture<Boolean> place(Cart<K, V, L> cart) {
+		if(cart.getKey() == null) {
+			AcknowledgeBuilder.processCart(staticAcknowledgeBuilder, cart);
+			cart.getFuture().complete(true);
+			return cart.getFuture();
+		}
 		Cart<K, Cart<K,?,?>, SmartLabel<AcknowledgeBuilder<K>>> ackCart = PersistenceCart.of(cart, ackConveyor.CART);
 		LOG.debug("PLACING "+ackCart);
 		CompletableFuture<Boolean> forwardFuture = cart.getFuture();

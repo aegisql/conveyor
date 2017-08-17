@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.loaders;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -9,6 +10,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import com.aegisql.conveyor.SerializablePredicate;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -38,7 +41,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	public final K key;
 	
 	/** The key filter. */
-	public final Predicate<K> filter;
+	public final SerializablePredicate<K> filter;
 	
 	/** The label. */
 	public final L label;
@@ -68,7 +71,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 			K key, 
 			L label, 
 			V value,
-			Predicate<K> filter, 
+			SerializablePredicate<K> filter, 
 			Map<String,Object> properties) {
 		this.placer         = placer;
 		this.creationTime   = creationTime;
@@ -100,7 +103,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 			K key, 
 			L label, 
 			V value, 
-			Predicate<K> filter, 
+			SerializablePredicate<K> filter, 
 			Map<String,Object> properties, 
 			boolean dumb) {
 		this.placer         = placer;
@@ -148,7 +151,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param f the f
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F> foreach(Predicate<K> f) {
+	public PartLoader<K,L,V,OUT,F> foreach(SerializablePredicate<K> f) {
 		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,null/*either id or filter*/,label,partValue,f,properties);
 	}
 	

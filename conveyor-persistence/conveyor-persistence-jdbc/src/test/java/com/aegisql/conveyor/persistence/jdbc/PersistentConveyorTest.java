@@ -238,5 +238,67 @@ public class PersistentConveyorTest {
 		//pc.stop();
 	}
 
+
+	@Test
+	public void staticReplayTest() throws Exception {
+		Persistence<Integer> p = DerbyPersistence
+				.forKeyClass(Integer.class)
+				.schema("testConv")
+				.partTable("staticReplayTest")
+				.completedLogTable("staticReplayTestCompleted")
+				.labelConverter(TrioPart.class)
+				.build();
+		TrioConveyor tc = new TrioConveyor();
+		
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
+		pc.staticPart().label(TrioPart.NUMBER).value(1).place().join();
+		pc.staticPart().label(TrioPart.NUMBER).value(2).place().join();
+		pc.staticPart().label(TrioPart.NUMBER).value(3).place().join();
+
+		Persistence<Integer> p2 = DerbyPersistence
+				.forKeyClass(Integer.class)
+				.schema("testConv")
+				.partTable("staticReplayTest")
+				.completedLogTable("staticReplayTestCompleted")
+				.labelConverter(TrioPart.class)
+				.build();
+		TrioConveyor tc2 = new TrioConveyor();
+		
+		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2, 3);
+
+		
+		pc2.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
+		pc2.part().id(1).label(TrioPart.TEXT2).value("txt2").place().get();
+		System.out.println(tc2);
+		assertEquals(1, tc2.results.size());
+		//pc.stop();
+	}
+
+	@Test
+	public void multiBasicTest() throws Exception {
+		Persistence<Integer> p = DerbyPersistence
+				.forKeyClass(Integer.class)
+				.schema("testConv")
+				.partTable("multiBasicTest")
+				.completedLogTable("multiBasicTestCompleted")
+				.labelConverter(TrioPart.class)
+				.build();
+		TrioConveyor tc = new TrioConveyor();
+		
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
+	
+		pc.part().id(1).label(TrioPart.TEXT1).value("txt11").place();
+		pc.part().id(1).label(TrioPart.TEXT2).value("txt21").place();
+		pc.part().id(2).label(TrioPart.TEXT1).value("txt12").place();
+		pc.part().id(2).label(TrioPart.TEXT2).value("txt22").place();
+
+		
+		pc.part().foreach().label(TrioPart.NUMBER).value(1).place().join();
+
+		System.out.println(tc);
+		assertEquals(1, tc.results.size());
+		//pc.stop();
+	}
+
 	
 }
