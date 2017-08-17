@@ -198,7 +198,7 @@ public class PersistCartsTest {
 		assertEquals(sc1.getCreationTime(), scRestored.getCreationTime());
 		assertEquals(sc1.getExpirationTime(), scRestored.getExpirationTime());
 		assertEquals(sc1.getLoadType(), scRestored.getLoadType());
-		assertEquals(sc1.getProperty("PROPERTY", String.class), scRestored.getProperty("PROPERTY", String.class));
+		//assertEquals(sc1.getProperty("PROPERTY", String.class), scRestored.getProperty("PROPERTY", String.class));
 	}
 
 	

@@ -73,7 +73,11 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 			forwardPersistence.saveCompletedBuildKey(k);
 			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
 		});
-		this.resultConsumer = forward.getResultConsumer();
+		if(forward != null && forward.getResultConsumer() != null) {
+			this.resultConsumer = forward.getResultConsumer();
+		} else {
+			this.resultConsumer = bin->{};
+		}
 		this.staticAcknowledgeBuilder = new AcknowledgeBuilder<>(staticPersistence, forward);
 		//not empty only if previous conveyor could not complete.
 		//Pers must be initialized with the previous state
@@ -198,6 +202,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		}, 
 		rc->{
 			this.resultConsumer = rc;
+			this.forward.resultConsumer(rc).set();
 		}, 
 		resultConsumer );
 	}
