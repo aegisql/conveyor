@@ -3,7 +3,8 @@ package com.aegisql.conveyor.cart;
 import java.io.Serializable;
 import java.util.function.Predicate;
 
-import com.aegisql.conveyor.SerializableFunction;
+import com.aegisql.conveyor.serial.SerializableFunction;
+import com.aegisql.conveyor.serial.SerializablePredicate;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -27,7 +28,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> {
 	 */
 	public MultiKeyCart(V v, L label, long creation, long expiration) {
 		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
-		this.addProperty("#FILTER", (Predicate)entry->true);
+		this.addProperty("#FILTER", (SerializablePredicate)entry->true);
 		this.addProperty("#CART_BUILDER", (SerializableFunction<K,Cart<K, ?, L>> & Serializable) key->{
 			ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue(), getLabel(),getExpirationTime());
 			cart.putAllProperties(this.getAllProperties());
@@ -44,7 +45,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> {
 	 * @param creation the creation time
 	 * @param expiration the expiration time
 	 */
-	public MultiKeyCart(Predicate<K> filter, V v, L label, long creation, long expiration) {
+	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration) {
 		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 		this.addProperty("#FILTER", filter);
 		this.addProperty("#CART_BUILDER", (SerializableFunction<K,Cart<K, ?, L>>) key->{
@@ -54,7 +55,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> {
 		});
 	}
 
-	public MultiKeyCart(Predicate<K> filter, V v, L label, long creation, long expiration, SerializableFunction<K,Cart<K, ?, L>> cartBuilder) {
+	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, SerializableFunction<K,Cart<K, ?, L>> cartBuilder) {
 		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 		this.addProperty("#FILTER", filter);
 		this.addProperty("#CART_BUILDER", cartBuilder);

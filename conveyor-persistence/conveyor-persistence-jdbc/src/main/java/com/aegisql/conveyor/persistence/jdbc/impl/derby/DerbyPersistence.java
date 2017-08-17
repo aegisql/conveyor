@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.persistence.jdbc.impl.derby;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.sql.Connection;
@@ -628,7 +629,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			}
 			
 			return new DerbyPersistence<K>(
-					conn
+					this
+					,conn
 					,idSupplier
 					,saveCartQuery
 					,saveCompletedBuildKeyQuery
@@ -660,8 +662,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	private final Archiver<K> archiver;
 	private final String getAllStaticPartsQuery;
 	
+	private final DerbyPersistenceBuilder<K> builder;
+	
 	private DerbyPersistence(
-			Connection conn
+			DerbyPersistenceBuilder<K> builder
+			,Connection conn
 			,LongSupplier idSupplier
 			,String saveCartQuery
 			,String saveCompletedBuildKeyQuery
@@ -674,6 +679,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,ObjectConverter<?,String> labelConverter,
 			BlobConverter blobConverter
 			) {
+		this.builder                      = builder;
 		this.conn                         = conn;
 		this.idSupplier                   = idSupplier;
 		this.blobConverter                = blobConverter;
@@ -690,6 +696,15 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 	public static <K> DerbyPersistenceBuilder<K> forKeyClass(Class<K> clas) {
 		return new DerbyPersistenceBuilder<K>(clas);
+	}
+	
+	@Override
+	public Persistence<K> copy() {
+		try {
+			return builder.build();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed copying persistence object",e);
+		}
 	}
 	
 	@Override
@@ -864,6 +879,15 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	    	throw new RuntimeException("getAllStaticParts failed",e);
 		}
 		return carts;
+	}
+
+	@Override
+	public void close() throws IOException {
+		try {
+			conn.close();
+		} catch (SQLException e) {
+			throw new IOException("SQL Connection close error",e);
+		}
 	}
 	
 }

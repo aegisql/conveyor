@@ -8,6 +8,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.serial.SerializableBiConsumer;
+import com.aegisql.conveyor.serial.SerializableConsumer;
+import com.aegisql.conveyor.serial.SerializableRunnable;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Interface SmartLabel.
@@ -35,7 +39,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param method the method
 	 * @return the smart label
 	 */
-	static <B,T> SmartLabel<B> of(BiConsumer<B, T> method) {
+	static <B,T> SmartLabel<B> of(SerializableBiConsumer<B, T> method) {
 		return ()->(b,t)->method.accept(b,(T)t);
 	}
 
@@ -48,12 +52,12 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param method the method
 	 * @return the smart label
 	 */
-	static <B,T> SmartLabel<B> of(final String labelName, BiConsumer<B, T> method) {
+	static <B,T> SmartLabel<B> of(final String labelName, SerializableBiConsumer<B, T> method) {
 		return new SmartLabel<B>() {
 			private static final long serialVersionUID = 1L;
 			@Override
-			public BiConsumer<B, Object> get() {
-				return (BiConsumer<B, Object>) method;
+			public SerializableBiConsumer<B, Object> get() {
+				return (SerializableBiConsumer<B, Object>) method;
 			}
 			@Override
 			public String toString() {
@@ -69,7 +73,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param method the method
 	 * @return the smart label
 	 */
-	static <B> SmartLabel<B> of(Consumer<B> method) {
+	static <B> SmartLabel<B> of(SerializableConsumer<B> method) {
 		return of( (b,oPhony) -> method.accept(b) );
 	}
 
@@ -81,8 +85,8 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param method the method
 	 * @return the smart label
 	 */
-	static <B> SmartLabel<B> of(final String labelName, Consumer<B> method) {
-		return of( labelName, (b,oPhony) -> method.accept(b) );
+	static <B> SmartLabel<B> of(final String labelName, SerializableConsumer<B> method) {
+		return of( labelName, (SerializableBiConsumer<B, Object>)(b,oPhony) -> method.accept(b) );
 	}
 
 	/**
@@ -92,7 +96,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param method the method
 	 * @return the smart label
 	 */
-	static <B> SmartLabel<B> of(Runnable method) {
+	static <B> SmartLabel<B> of(SerializableRunnable method) {
 		return of( (bPhoby,oPhony) -> method.run() );
 	}
 
@@ -104,7 +108,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param method the method
 	 * @return the smart label
 	 */
-	static <B> SmartLabel<B> of(final String labelName, Runnable method) {
+	static <B> SmartLabel<B> of(final String labelName, SerializableRunnable method) {
 		return of( labelName, (bPhoby,oPhony) -> method.run() );
 	}
 
@@ -163,7 +167,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param interceptor the interceptor
 	 * @return the smart label
 	 */
-	default <T> SmartLabel<B> intercept(Class<T> clas, Consumer<T> interceptor) {
+	default <T> SmartLabel<B> intercept(Class<T> clas, SerializableConsumer<T> interceptor) {
 		SmartLabel<B> sl = this;
 		return ()->(bPhony,o)->{
 			if( o != null ) {
@@ -186,7 +190,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param interceptor the interceptor
 	 * @return the smart label
 	 */
-	default <T> SmartLabel<B> intercept(Class<T> clas, BiConsumer<B,T> interceptor) {
+	default <T> SmartLabel<B> intercept(Class<T> clas, SerializableBiConsumer<B,T> interceptor) {
 		SmartLabel<B> sl = this;
 		return ()->(b,o)->{
 			if( o != null ) {
@@ -209,7 +213,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param interceptor the interceptor
 	 * @return the smart label
 	 */
-	default <T> SmartLabel<B> intercept(Class<T> clas, Runnable interceptor) {
+	default <T> SmartLabel<B> intercept(Class<T> clas, SerializableRunnable interceptor) {
 		SmartLabel<B> sl = this;
 		return ()->(bPhony,oPhony)->{
 			if( oPhony != null ) {
@@ -231,7 +235,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param after the after
 	 * @return the smart label
 	 */
-	default <T> SmartLabel<B> andThen(BiConsumer<B,T> after) {
+	default <T> SmartLabel<B> andThen(SerializableBiConsumer<B,T> after) {
 		SmartLabel<B> sl = this;
 		return ()->(b,o) -> {
 			sl.get().accept(b, o);
@@ -246,7 +250,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param before the before
 	 * @return the smart label
 	 */
-	default <T> SmartLabel<B> before(BiConsumer<B,T> before) {
+	default <T> SmartLabel<B> before(SerializableBiConsumer<B,T> before) {
 		SmartLabel<B> sl = this;
 		return ()->(b,o) -> {
 			before.accept(b, (T)o);
@@ -261,7 +265,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param after the after
 	 * @return the smart label
 	 */
-	default <T> SmartLabel<B> andThen(Consumer<T> after) {
+	default <T> SmartLabel<B> andThen(SerializableConsumer<T> after) {
 		SmartLabel<B> sl = this;
 		return ()->(bPhony,o) -> {
 			sl.get().accept(bPhony, o);
@@ -276,7 +280,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param before the before
 	 * @return the smart label
 	 */
-	default <T> SmartLabel<B> before(Consumer<T> before) {
+	default <T> SmartLabel<B> before(SerializableConsumer<T> before) {
 		SmartLabel<B> sl = this;
 		return ()->(bPhony,o) -> {
 			before.accept((T)o);
@@ -290,7 +294,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param after the after
 	 * @return the smart label
 	 */
-	default SmartLabel<B> andThen(Runnable after) {
+	default SmartLabel<B> andThen(SerializableRunnable after) {
 		SmartLabel<B> sl = this;
 		return ()->(bPhony,o) -> {
 			sl.get().accept(bPhony, o);
@@ -304,7 +308,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @param before the before
 	 * @return the smart label
 	 */
-	default SmartLabel<B> before(Runnable before) {
+	default SmartLabel<B> before(SerializableRunnable before) {
 		SmartLabel<B> sl = this;
 		return ()->(bPhony,o) -> {
 			before.run();

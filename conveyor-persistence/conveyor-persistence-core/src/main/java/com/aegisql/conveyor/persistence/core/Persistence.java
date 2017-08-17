@@ -1,11 +1,12 @@
 package com.aegisql.conveyor.persistence.core;
 
+import java.io.Closeable;
 import java.util.Collection;
 import java.util.Set;
 
 import com.aegisql.conveyor.cart.Cart;
 
-public interface Persistence <K> {
+public interface Persistence <K> extends Closeable{
 
 	public long nextUniquePartId();
 	public <L> void savePart(long id,Cart<K,?,L> cart);
@@ -26,6 +27,8 @@ public interface Persistence <K> {
 	
 	public void archiveAll();
 	
+	
+	
 	default <L> void absorb(Persistence<K> old) {
 		Set<K> completed                 = old.getCompletedKeys();
 		Collection<Cart<K,?,L>> oldParts = old.getAllParts();
@@ -45,5 +48,6 @@ public interface Persistence <K> {
 			}
 		});
 	}
+	Persistence<K> copy();
 	
 }

@@ -2,6 +2,7 @@ package com.aegisql.conveyor.persistence.core;
 
 import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
@@ -56,14 +57,20 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 //			bin->{});
 	
 	public PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward, int batchSize) {
+		
+		Persistence<K> ackPersistence     = persistence.copy();
+		Persistence<K> forwardPersistence = persistence.copy();
+		Persistence<K> cleanPersistence   = persistence.copy();
+		Persistence<K> staticPersistence  = persistence.copy();
+		
 		this.forward = forward;
-		this.cleaner = new PersistenceCleanupBatchConveyor<>(persistence,batchSize);
-		this.ackConveyor = new AcknowledgeBuildingConveyor<>(persistence, forward, cleaner);
+		this.cleaner = new PersistenceCleanupBatchConveyor<>(cleanPersistence,batchSize);
+		this.ackConveyor = new AcknowledgeBuildingConveyor<>(ackPersistence, forward, cleaner);
 		forward.setAcknowledgeAction((k,status)->{
-			persistence.saveCompletedBuildKey(k);
+			forwardPersistence.saveCompletedBuildKey(k);
 			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
 		});
-		this.staticAcknowledgeBuilder = new AcknowledgeBuilder<>(persistence, forward);
+		this.staticAcknowledgeBuilder = new AcknowledgeBuilder<>(staticPersistence, forward);
 		//not empty only if previous conveyor could not complete.
 		//Pers must be initialized with the previous state
 		Collection<Cart<K,?,L>> staticParts = persistence.<L>getAllStaticParts();
@@ -72,6 +79,11 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		LOG.debug("All parts: {}",allParts);
 		staticParts.forEach(cart->this.place(cart));
 		allParts.forEach(cart->this.place(cart));
+		try {
+			persistence.close();
+		} catch (IOException e) {
+			throw new RuntimeException(e.getMessage(),e);
+		}
 	}
 	
 	public PersistentConveyor(Persistence<K> persistence, int batchSize) {

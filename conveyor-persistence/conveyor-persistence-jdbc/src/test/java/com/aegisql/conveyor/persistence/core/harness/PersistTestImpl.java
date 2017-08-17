@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -130,6 +131,16 @@ public class PersistTestImpl implements Persistence<Integer> {
 	@Override
 	public <L> Collection<Cart<Integer, ?, L>> getAllStaticParts() {
 		return new ArrayList<>();
+	}
+
+	@Override
+	public Persistence<Integer> copy() {
+		return this;
+	}
+
+	@Override
+	public void close() throws IOException {
+		
 	}
 	
 }

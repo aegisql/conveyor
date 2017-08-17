@@ -6,6 +6,7 @@ package com.aegisql.conveyor;
 import java.util.function.BiConsumer;
 
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.serial.SerializableBiConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -18,35 +19,35 @@ public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 	
 	/** The create build. */
 	CREATE_BUILD {
-		public BiConsumer<AssemblingConveyor, Object> get() {
+		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
 			return (c,o)->AssemblingConveyor.createNow(c, (Cart)o);
 		}
 	},
 	
 	/** The cancel build. */
 	CANCEL_BUILD {
-		public BiConsumer<AssemblingConveyor, Object> get() {
+		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
 			return (c,o)->AssemblingConveyor.cancelNow(c, (Cart)o);
 		}
 	},
 
 	/** The timeout build. */
 	TIMEOUT_BUILD {
-		public BiConsumer<AssemblingConveyor, Object> get() {
+		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
 			return (c,o)->AssemblingConveyor.timeoutNow(c, (Cart)o);
 		}
 	},
 
 	/** Reschedule build. */
 	RESCHEDULE_BUILD {
-		public BiConsumer<AssemblingConveyor, Object> get() {
+		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
 			return (c,o)->AssemblingConveyor.rescheduleNow(c, (Cart)o);
 		}
 	},
 	
 	/**  Check build readiness. */
 	CHECK_BUILD {
-		public BiConsumer<AssemblingConveyor, Object> get() {
+		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
 			return (c,o)->AssemblingConveyor.checkBuild(c, (Cart)o);
 		}
 	},
@@ -63,7 +64,7 @@ public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 	 * @see com.aegisql.conveyor.SmartLabel#getSetter()
 	 */
 	@Override
-	public BiConsumer<AssemblingConveyor, Object> get() {
+	public SerializableBiConsumer<AssemblingConveyor, Object> get() {
 		throw new AbstractMethodError("Unimplemented");
 	}
 	

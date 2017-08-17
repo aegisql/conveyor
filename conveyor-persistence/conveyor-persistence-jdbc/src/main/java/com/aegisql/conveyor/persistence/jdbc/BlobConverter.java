@@ -30,7 +30,7 @@ public class BlobConverter <T extends Serializable> implements ObjectConverter<T
 			blob = conn.createBlob();
 	    	os = blob.setBinaryStream(1);
 		} catch (SQLException e) {
-			throw new RuntimeException("SQL Runntime Exception",e);
+			throw new RuntimeException("SQL Runntime Exception for "+obj,e);
 		}
 		try {
 			os.write( byteConverter.toPersistence(obj));

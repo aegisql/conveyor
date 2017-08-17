@@ -1,8 +1,7 @@
 package com.aegisql.conveyor.utils.schedule;
 
-import java.util.function.BiConsumer;
-
 import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.serial.SerializableBiConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -21,7 +20,7 @@ SCHEDULE_AND_EXECUTE_NOW(ScheduleBuilder::setAndExecuteClosure)
 	;
 
 	/** The setter. */
-	BiConsumer<ScheduleBuilder<?>,Object> setter;
+ 	SerializableBiConsumer<ScheduleBuilder<?>,Object> setter;
 	
 	/**
 	 * Instantiates a new schedule.
@@ -29,15 +28,15 @@ SCHEDULE_AND_EXECUTE_NOW(ScheduleBuilder::setAndExecuteClosure)
 	 * @param <T> the generic type
 	 * @param setter the setter
 	 */
-	<T> Schedule(BiConsumer<ScheduleBuilder<?>,T> setter) {
-		this.setter = (BiConsumer<ScheduleBuilder<?>, Object>) setter;
+	<T> Schedule(SerializableBiConsumer<ScheduleBuilder<?>,T> setter) {
+		this.setter = (SerializableBiConsumer<ScheduleBuilder<?>, Object>) setter;
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.SmartLabel#get()
 	 */
 	@Override
-	public BiConsumer<ScheduleBuilder<?>,Object> get() {
+	public SerializableBiConsumer<ScheduleBuilder<?>,Object> get() {
 		return setter;
 	}
 }

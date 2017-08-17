@@ -2,7 +2,9 @@ package com.aegisql.conveyor.persistence.loaders;
 
 import static org.junit.Assert.*;
 
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.function.Consumer;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -10,14 +12,18 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.SerializableFunction;
-import com.aegisql.conveyor.SerializablePredicate;
+import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.persistence.ack.AcknowledgeBuilder;
+import com.aegisql.conveyor.persistence.ack.AcknowledgeBuildingConveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.core.PersistenceCart;
 import com.aegisql.conveyor.persistence.jdbc.StringConverter;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
+import com.aegisql.conveyor.serial.SerializableFunction;
+import com.aegisql.conveyor.serial.SerializablePredicate;
 
 public class PersistCartsTest {
 
@@ -86,9 +92,7 @@ public class PersistCartsTest {
 		Persistence<Integer> p = getPersistence("testMultyKeyCarts");
 		p.archiveAll();
 
-		MultiKeyCart<Integer, String, String> sc1 = new MultiKeyCart<Integer, String, String>((SerializablePredicate<Integer>)key->true, "sc1", "CART", 0, 0, (SerializableFunction<Integer,Cart<Integer, ?, String>>)key->{
-			return new ShoppingCart<>(key, "sc", "CART");
-		}); 
+		MultiKeyCart<Integer, String, String> sc1 = new MultiKeyCart<Integer, String, String>((SerializablePredicate<Integer>)key->true, "sc1", "CART", 0, 0); 
 		sc1.addProperty("PROPERTY","test");
 		p.savePart(p.nextUniquePartId(), sc1);
 		
@@ -113,6 +117,30 @@ public class PersistCartsTest {
 		Cart<Integer, ?, ?> produced = (Cart<Integer, ?, ?>) scRestored.getProperty("#CART_BUILDER", SerializableFunction.class).apply(1);
 		System.out.println(produced);
 		assertNotNull(produced);
+	}
+
+	
+	@Test
+	public void testPersistentKeyCarts() {
+		Persistence<Integer> p = getPersistence("testMultyKeyCarts");
+		p.archiveAll();
+
+		MultiKeyCart<Integer, String, String> sc1 = new MultiKeyCart<Integer, String, String>(key->true, "sc1", "CART", 0, 0); 
+		sc1.addProperty("PROPERTY","test");
+		
+		AcknowledgeBuildingConveyor<Integer> ab = new AcknowledgeBuildingConveyor<>(p, null, null);
+		PersistenceCart<Integer> pc1 = PersistenceCart.of(sc1,ab.CART);
+		
+		p.savePart(p.nextUniquePartId(), pc1);
+		
+		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
+		
+		assertEquals(1,allCarts.size());
+		
+		Cart<Integer, ?, String> scRestored = allCarts.iterator().next(); 
+		
+		assertNull(scRestored.getKey());
+		System.out.println(scRestored);
 	}
 
 }

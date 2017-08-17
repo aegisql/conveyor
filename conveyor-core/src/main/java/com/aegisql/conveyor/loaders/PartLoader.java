@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import com.aegisql.conveyor.SerializablePredicate;
+import com.aegisql.conveyor.serial.SerializablePredicate;
 
 // TODO: Auto-generated Javadoc
 /**

@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.serial.SerializablePredicate;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -44,7 +45,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	private final Consumer<ResultConsumer<K,OUT>> globalPlacer;
 	
 	/** The filter. */
-	public final Predicate<K> filter;
+	public final SerializablePredicate<K> filter;
 	
 	private final Map<String,Object> properties = new HashMap<>();
 	
@@ -83,7 +84,7 @@ public final class ResultConsumerLoader<K,OUT> {
 			long ttlMsec,
 			K key, 
 			ResultConsumer <K,OUT> consumer,
-			Predicate<K> filter,
+			SerializablePredicate<K> filter,
 			Map<String,Object> properties) {
 		this.placer         = placer;
 		this.globalPlacer   = globalPlacer;
@@ -115,7 +116,7 @@ public final class ResultConsumerLoader<K,OUT> {
 			long ttlMsec,
 			K key, 
 			ResultConsumer <K,OUT> consumer,
-			Predicate<K> filter,
+			SerializablePredicate<K> filter,
 			Map<String,Object> properties,
 			boolean dumb) {
 		this.placer         = placer;
@@ -154,7 +155,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @param f the f
 	 * @return the result consumer loader
 	 */
-	public ResultConsumerLoader<K,OUT> foreach(Predicate<K> f) {
+	public ResultConsumerLoader<K,OUT> foreach(SerializablePredicate<K> f) {
 		return new ResultConsumerLoader<>(
 				this.placer,
 				this.globalPlacer,

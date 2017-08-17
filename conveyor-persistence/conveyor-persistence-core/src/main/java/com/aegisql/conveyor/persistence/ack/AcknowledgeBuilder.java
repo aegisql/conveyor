@@ -53,7 +53,7 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 		}
 		if (!builder.cartIds.contains(id)) {
 			if(save) {
-				LOG.debug("---- SAVING " + cart);
+				LOG.debug("---- SAVING {} {}",id,cart);
 				builder.persistence.savePart(id, cart);
 				builder.persistence.savePartId(cart.getKey(), id);
 			}

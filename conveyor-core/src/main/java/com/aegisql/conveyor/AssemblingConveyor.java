@@ -910,7 +910,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				try {
 					
 					Function<K,Cart<K, ?, L>> cartBuilder = cart.getProperty("#CART_BUILDER", Function.class);
-					
+					LOG.debug("--- READY TO APPLY MULTY");
 					collector.entrySet().stream().map(entry -> entry.getKey()).filter(cart.getProperty("#FILTER", Predicate.class))
 							.collect(Collectors.toList()).forEach(k -> {
 								processSite(cartBuilder.apply(k), accept);

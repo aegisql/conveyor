@@ -1,4 +1,4 @@
-package com.aegisql.conveyor;
+package com.aegisql.conveyor.serial;
 
 import java.io.Serializable;
 import java.util.function.Predicate;
