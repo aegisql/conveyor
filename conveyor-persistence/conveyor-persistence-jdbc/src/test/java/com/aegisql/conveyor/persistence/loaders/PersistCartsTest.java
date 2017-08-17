@@ -14,12 +14,17 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.MultiKeyCart;
+import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuilder;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuildingConveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceCart;
+import com.aegisql.conveyor.persistence.core.harness.Trio;
+import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
 import com.aegisql.conveyor.persistence.jdbc.StringConverter;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 import com.aegisql.conveyor.serial.SerializableFunction;
@@ -143,4 +148,59 @@ public class PersistCartsTest {
 		System.out.println(scRestored);
 	}
 
+	@Test
+	public void testResultConsumerCarts() {
+		Persistence<Integer> p = getPersistence("testResultConsumerCarts");
+		p.archiveAll();
+
+		ResultConsumerCart<Integer, String, String> sc1 = new ResultConsumerCart<Integer, String, String>(1, bin->{
+			System.out.println("TA-DA");
+		},1, 2); 
+		sc1.addProperty("PROPERTY","test");
+		p.savePart(p.nextUniquePartId(), sc1);
+		
+		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
+		
+		assertEquals(1,allCarts.size());
+		
+		Cart<Integer, ?, String> scRestored = allCarts.iterator().next(); 
+		
+		assertEquals(sc1.getKey(), scRestored.getKey());
+		ResultConsumer<Integer,String> rc = (ResultConsumer<Integer, String>) scRestored.getValue();
+		assertNotNull(rc);
+		rc.accept(null);
+		assertEquals(sc1.getCreationTime(), scRestored.getCreationTime());
+		assertEquals(sc1.getExpirationTime(), scRestored.getExpirationTime());
+		assertEquals(sc1.getLoadType(), scRestored.getLoadType());
+		assertEquals(sc1.getProperty("PROPERTY", String.class), scRestored.getProperty("PROPERTY", String.class));
+	}
+
+	@Test
+	public void testCreatingCarts() {
+		Persistence<Integer> p = getPersistence("testCreatingCarts");
+		p.archiveAll();
+
+		CreatingCart<Integer, Trio, String> sc1 = new CreatingCart<>(1, TrioBuilder::new,1, 2); 
+		sc1.addProperty("PROPERTY","test");
+		p.savePart(p.nextUniquePartId(), sc1);
+		
+		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
+		
+		assertEquals(1,allCarts.size());
+		
+		Cart<Integer, ?, String> scRestored = allCarts.iterator().next(); 
+		
+		assertEquals(sc1.getKey(), scRestored.getKey());
+
+		TrioBuilder tb = (TrioBuilder) sc1.getValue().get();
+		
+		assertNotNull(tb);
+		assertEquals(sc1.getCreationTime(), scRestored.getCreationTime());
+		assertEquals(sc1.getExpirationTime(), scRestored.getExpirationTime());
+		assertEquals(sc1.getLoadType(), scRestored.getLoadType());
+		assertEquals(sc1.getProperty("PROPERTY", String.class), scRestored.getProperty("PROPERTY", String.class));
+	}
+
+	
+	
 }

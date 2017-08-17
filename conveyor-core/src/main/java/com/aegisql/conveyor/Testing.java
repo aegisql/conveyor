@@ -3,12 +3,14 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.Serializable;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Interface Testing.
  */
 @FunctionalInterface
-public interface Testing {
+public interface Testing extends Serializable {
 	
 	/**
 	 * Test.

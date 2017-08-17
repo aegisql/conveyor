@@ -3,7 +3,7 @@
  */
 package com.aegisql.conveyor;
 
-import java.util.function.Predicate;
+import com.aegisql.conveyor.serial.SerializablePredicate;
 
 /**
  * The Interface TestingState.
@@ -12,6 +12,6 @@ import java.util.function.Predicate;
  * @param <L> the generic type
  */
 @FunctionalInterface
-public interface TestingState <K,L> extends Predicate<State<K,L>> {
+public interface TestingState <K,L> extends SerializablePredicate<State<K,L>> {
 
 }

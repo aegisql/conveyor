@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.Serializable;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
@@ -14,7 +15,7 @@ import java.util.function.Supplier;
  * @param <L> the generic type
  * @param <OUT> the generic type
  */
-public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplier<? extends OUT>> {
+public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplier<? extends OUT>>, Serializable {
 
 	/** The p. */
 	private final BiPredicate<State<K,L>, Supplier<? extends OUT>> p;

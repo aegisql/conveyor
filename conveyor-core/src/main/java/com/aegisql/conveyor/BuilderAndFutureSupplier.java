@@ -16,6 +16,8 @@ import com.aegisql.conveyor.BuilderSupplier.BuilderFutureSupplier;
  */
 public class BuilderAndFutureSupplier<T> implements BuilderFutureSupplier<T> {
 
+	private static final long serialVersionUID = 1L;
+
 	/** The future. */
 	private final CompletableFuture<T> future;
 	

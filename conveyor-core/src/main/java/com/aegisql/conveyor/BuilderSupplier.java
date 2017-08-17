@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
@@ -18,14 +19,14 @@ import java.util.function.Supplier;
  *
  * @param <T> the generic type
  */
-public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>> {
+public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>>, Serializable {
 
 	/**
 	 * The Interface BuilderFutureSupplier.
 	 *
 	 * @param <T> the generic type
 	 */
-	interface BuilderFutureSupplier<T> extends BuilderSupplier<T>, FutureSupplier<T> {};
+	interface BuilderFutureSupplier<T> extends BuilderSupplier<T>, FutureSupplier<T>, Serializable {};
 
 	/**
 	 * Of.

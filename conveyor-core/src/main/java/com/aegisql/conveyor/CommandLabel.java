@@ -3,8 +3,6 @@
  */
 package com.aegisql.conveyor;
 
-import java.util.function.BiConsumer;
-
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.serial.SerializableBiConsumer;
 

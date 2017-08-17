@@ -1,11 +1,12 @@
 package com.aegisql.conveyor;
 
+import java.io.Serializable;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 @FunctionalInterface
-public interface ReadinessPredicate <K,L,OUT> extends BiPredicate<State<K,L>, Supplier<? extends OUT>> {
+public interface ReadinessPredicate <K,L,OUT> extends BiPredicate<State<K,L>, Supplier<? extends OUT>>, Serializable {
 
 	default ReadinessPredicate <K,L,OUT> and(ReadinessPredicate <K,L,OUT> other) {
 		return (a,b) -> this.test(a, b) && other.test(a, b);

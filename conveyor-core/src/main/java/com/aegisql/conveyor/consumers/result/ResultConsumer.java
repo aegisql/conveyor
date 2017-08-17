@@ -3,11 +3,11 @@ package com.aegisql.conveyor.consumers.result;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.Status;
+import com.aegisql.conveyor.serial.SerializableConsumer;
+import com.aegisql.conveyor.serial.SerializablePredicate;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -17,7 +17,7 @@ import com.aegisql.conveyor.Status;
  * @param <V> the value type
  */
 @FunctionalInterface
-public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
+public interface ResultConsumer <K,V> extends SerializableConsumer<ProductBin<K,V>>{
 	
 	/**
 	 * And then.
@@ -39,7 +39,7 @@ public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 	 * @param filter the filter
 	 * @return the result consumer
 	 */
-	default ResultConsumer<K,V> filter(Predicate<ProductBin<K,V>> filter) {
+	default ResultConsumer<K,V> filter(SerializablePredicate<ProductBin<K,V>> filter) {
 		Objects.requireNonNull(filter);
 		return bin -> {
 			if( filter.test(bin) ) {
@@ -54,7 +54,7 @@ public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 	 * @param filter the filter
 	 * @return the result consumer
 	 */
-	default ResultConsumer<K,V> filterKey(Predicate<K> filter) {
+	default ResultConsumer<K,V> filterKey(SerializablePredicate<K> filter) {
 		Objects.requireNonNull(filter);
 		return bin -> {
 			if( filter.test(bin.key) ) {
@@ -69,7 +69,7 @@ public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 	 * @param filter the filter
 	 * @return the result consumer
 	 */
-	default ResultConsumer<K,V> filterResult(Predicate<V> filter) {
+	default ResultConsumer<K,V> filterResult(SerializablePredicate<V> filter) {
 		Objects.requireNonNull(filter);
 		return bin -> {
 			if( filter.test(bin.product) ) {
@@ -84,7 +84,7 @@ public interface ResultConsumer <K,V> extends Consumer<ProductBin<K,V>>{
 	 * @param filter the filter
 	 * @return the result consumer
 	 */
-	default ResultConsumer<K,V> filterStatus(Predicate<Status> filter) {
+	default ResultConsumer<K,V> filterStatus(SerializablePredicate<Status> filter) {
 		Objects.requireNonNull(filter);
 		return bin -> {
 			if( filter.test(bin.status) ) {

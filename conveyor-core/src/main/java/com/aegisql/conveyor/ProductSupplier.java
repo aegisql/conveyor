@@ -8,6 +8,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.serial.SerializableSupplier;
+
 
 // TODO: Auto-generated Javadoc
 /**
@@ -15,7 +17,7 @@ import java.util.function.Supplier;
  *
  * @param <T> the generic type
  */
-public interface ProductSupplier<T> extends Supplier<T> {
+public interface ProductSupplier<T> extends SerializableSupplier<T> {
 	
 	/**
 	 * The Interface PE.

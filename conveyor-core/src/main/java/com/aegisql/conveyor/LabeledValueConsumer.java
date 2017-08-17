@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.Serializable;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -20,7 +21,7 @@ import java.util.regex.Pattern;
  * @param <B> the generic type
  */
 @FunctionalInterface
-public interface LabeledValueConsumer<L,V,B> {
+public interface LabeledValueConsumer<L,V,B> extends Serializable {
 	
 	/**
 	 * Accept.
