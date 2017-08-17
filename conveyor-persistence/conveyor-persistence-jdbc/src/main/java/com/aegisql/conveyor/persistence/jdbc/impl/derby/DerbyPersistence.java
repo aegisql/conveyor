@@ -29,7 +29,9 @@ import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
@@ -802,13 +804,21 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			while(rs.next()) {
 				K key = (K)rs.getObject(1);
 				Object val = blobConverter.fromPersistence(rs.getBlob(2));
-				L label = (L)labelConverter.fromPersistence(rs.getString(3).trim());
+				String labelString = rs.getString(3);
+				L label = null;
+				if(labelString != null) {
+					label = (L)labelConverter.fromPersistence(labelString.trim());
+				}
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
 				Map<String,Object> properties = (Map<String, Object>) blobConverter.fromPersistence(rs.getBlob(7));
 				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-				cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+				if(loadType == LoadType.BUILDER) {
+					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
+				} else {
+					cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+				}
 				carts.add(cart);
 			}
 		} catch (Exception e) {

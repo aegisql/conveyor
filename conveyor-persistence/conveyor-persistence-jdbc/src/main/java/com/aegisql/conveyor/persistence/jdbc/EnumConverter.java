@@ -17,6 +17,7 @@ public class EnumConverter <E extends Enum<E>> implements ObjectConverter<E, Str
 	
 	@Override
 	public String toPersistence(E obj) {
+		if(obj == null) return null;
 		return obj.toString();
 	}
 

@@ -26,6 +26,7 @@ import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
@@ -120,8 +121,19 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public BuilderLoader<K, OUT, Boolean> build() {
-		// TODO Auto-generated method stub
-		return null;
+		return new BuilderLoader<K, OUT, Boolean>(cl -> {
+			BuilderSupplier<OUT> bs = cl.value;
+			if(bs == null) {
+				//bs = builderSupplier;
+			}
+			final CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime);
+			cl.getAllProperties().forEach((k,v)->{cart.addProperty(k, v);});
+			return place(cart);
+		},
+		cl -> {
+			throw new RuntimeException("Futures not supported in persistent builde suppliers");
+		}
+		);
 	}
 
 	@Override
