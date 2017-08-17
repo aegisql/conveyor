@@ -47,7 +47,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> {
 	public MultiKeyCart(Predicate<K> filter, V v, L label, long creation, long expiration) {
 		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 		this.addProperty("#FILTER", filter);
-		this.addProperty("#CART_BUILDER", (SerializableFunction<K,Cart<K, ?, L>> & Serializable) key->{
+		this.addProperty("#CART_BUILDER", (SerializableFunction<K,Cart<K, ?, L>>) key->{
 			ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue(), getLabel(),getExpirationTime());
 			cart.putAllProperties(this.getAllProperties());
 			return cart;

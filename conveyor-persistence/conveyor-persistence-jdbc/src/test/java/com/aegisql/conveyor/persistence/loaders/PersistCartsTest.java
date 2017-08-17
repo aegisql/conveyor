@@ -2,12 +2,18 @@ package com.aegisql.conveyor.persistence.loaders;
 
 import static org.junit.Assert.*;
 
+import java.util.Collection;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.SerializableFunction;
+import com.aegisql.conveyor.SerializablePredicate;
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.StringConverter;
@@ -53,13 +59,60 @@ public class PersistCartsTest {
 
 	@Test
 	public void testShoppingCarts() {
-
 		Persistence<Integer> p = getPersistence("testShoppingCarts");
+		p.archiveAll();
 
 		ShoppingCart<Integer, String, String> sc1 = new ShoppingCart<Integer, String, String>(1, "sc1", "CART"); 
-		
+		sc1.addProperty("PROPERTY","test");
 		p.savePart(p.nextUniquePartId(), sc1);
 		
+		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
+		
+		assertEquals(1,allCarts.size());
+		
+		Cart<Integer, ?, String> scRestored = allCarts.iterator().next(); 
+		
+		assertEquals(sc1.getKey(), scRestored.getKey());
+		assertEquals(sc1.getValue(), scRestored.getValue());
+		assertEquals(sc1.getLabel(), scRestored.getLabel());
+		assertEquals(sc1.getCreationTime(), scRestored.getCreationTime());
+		assertEquals(sc1.getExpirationTime(), scRestored.getExpirationTime());
+		assertEquals(sc1.getLoadType(), scRestored.getLoadType());
+		assertEquals(sc1.getProperty("PROPERTY", String.class), scRestored.getProperty("PROPERTY", String.class));
+	}
+
+	@Test
+	public void testMultyKeyCarts() {
+		Persistence<Integer> p = getPersistence("testMultyKeyCarts");
+		p.archiveAll();
+
+		MultiKeyCart<Integer, String, String> sc1 = new MultiKeyCart<Integer, String, String>((SerializablePredicate<Integer>)key->true, "sc1", "CART", 0, 0, (SerializableFunction<Integer,Cart<Integer, ?, String>>)key->{
+			return new ShoppingCart<>(key, "sc", "CART");
+		}); 
+		sc1.addProperty("PROPERTY","test");
+		p.savePart(p.nextUniquePartId(), sc1);
+		
+		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
+		
+		assertEquals(1,allCarts.size());
+		
+		Cart<Integer, ?, String> scRestored = allCarts.iterator().next(); 
+		
+		assertNull(scRestored.getKey());
+		assertEquals(sc1.getValue(), scRestored.getValue());
+		assertEquals(sc1.getLabel(), scRestored.getLabel());
+		assertEquals(sc1.getCreationTime(), scRestored.getCreationTime());
+		assertEquals(sc1.getExpirationTime(), scRestored.getExpirationTime());
+		assertEquals(sc1.getLoadType(), scRestored.getLoadType());
+		assertEquals(sc1.getProperty("PROPERTY", String.class), scRestored.getProperty("PROPERTY", String.class));
+		assertNotNull(scRestored.getProperty("#FILTER", SerializablePredicate.class));
+		assertNotNull(scRestored.getProperty("#CART_BUILDER", SerializableFunction.class));
+		
+		assertTrue(scRestored.getProperty("#FILTER", SerializablePredicate.class).test(1));
+		
+		Cart<Integer, ?, ?> produced = (Cart<Integer, ?, ?>) scRestored.getProperty("#CART_BUILDER", SerializableFunction.class).apply(1);
+		System.out.println(produced);
+		assertNotNull(produced);
 	}
 
 }
