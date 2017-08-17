@@ -821,4 +821,10 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		};		
 	}
 
+
+	@Override
+	public ResultConsumer<K, OUT> getResultConsumer() {
+		return resultConsumer;
+	}
+
 }

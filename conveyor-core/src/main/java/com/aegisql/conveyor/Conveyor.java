@@ -114,6 +114,8 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	public ResultConsumerLoader<K, OUT> resultConsumer(ResultConsumer<K,OUT> consumer);
 
+	public ResultConsumer<K,OUT> getResultConsumer();
+	
 	/**
 	 * Gets the collector size.
 	 *

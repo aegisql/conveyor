@@ -1612,5 +1612,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		ackStatusSet = EnumSet.of(first, other);
 		
 	}
+
+	@Override
+	public ResultConsumer<K, OUT> getResultConsumer() {
+		return resultConsumer;
+	}
 	
 }

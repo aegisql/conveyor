@@ -360,5 +360,30 @@ public class PersistentConveyorTest {
 		assertEquals("TEXT1_PERSIST", tc2.results.get(1).getText1());
 	}
 
+
+	@Test
+	public void simpleResultConsumerTest() throws Exception {
+		Persistence<Integer> p = DerbyPersistence
+				.forKeyClass(Integer.class)
+				.schema("testConv")
+				.partTable("simpleResultConsumerTest")
+				.completedLogTable("simpleResultConsumerTestCompleted")
+				.labelConverter(TrioPart.class)
+				.build();
+		TrioConveyor tc = new TrioConveyor();
+		
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
+	
+		pc.resultConsumer().andThen(bin->{
+			System.out.println("PERSISTENT "+bin);
+		}).id(1).set();
+		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
+		pc.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
+		System.out.println(p);
+		pc.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
+		System.out.println(tc);
+		assertEquals(1, tc.results.size());
+	}
+
 	
 }

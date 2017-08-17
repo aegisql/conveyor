@@ -123,7 +123,7 @@ public class ResultConsumerTest {
 		sc.setBuilderSupplier(StringToUserBuulder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		ResultCounter<String,User> rc = ResultCounter.of(sc); 
-		sc.resultConsumer().first(rc.andThen(b->usr.set(b.product))).set();
+		sc.resultConsumer().id("bad").first(rc.andThen(b->usr.set(b.product))).set();
 		ScrapCounter<String> scc = ScrapCounter.of(sc); 
 		sc.scrapConsumer(scc).set();
 		String csv = "John,Dow,1990";

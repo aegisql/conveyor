@@ -26,7 +26,7 @@ public class ResultConsumerCart<K, B, L> extends AbstractCart<K, ResultConsumer 
 	 * @param expiration the expiration time
 	 */
 	public ResultConsumerCart(K k, ResultConsumer <K,B> v, long creation, long expiration) {
-		super(null, v, null, creation,expiration,null,LoadType.RESULT_CONSUMER);
+		super(k, v, null, creation,expiration,null,LoadType.RESULT_CONSUMER);
 		Objects.requireNonNull(k);
 	}
 

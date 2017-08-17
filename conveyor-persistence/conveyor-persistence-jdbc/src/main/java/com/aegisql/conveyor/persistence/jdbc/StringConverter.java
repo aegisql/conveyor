@@ -6,6 +6,7 @@ public abstract class StringConverter <O> implements ObjectConverter<O, String> 
 
 	@Override
 	public String toPersistence(O obj) {
+		if(obj == null) return null;
 		return ""+obj;
 	}
 

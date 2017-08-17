@@ -9,7 +9,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.serial.SerializablePredicate;

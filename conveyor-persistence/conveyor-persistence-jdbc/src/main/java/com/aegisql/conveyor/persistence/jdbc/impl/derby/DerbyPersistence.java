@@ -33,7 +33,9 @@ import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.LoadType;
+import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.Archiver;
@@ -761,14 +763,25 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			if(rs.next()) {
 				K key = (K)rs.getObject(1);
 				Object val = blobConverter.fromPersistence(rs.getBlob(2));
-				L label = (L)labelConverter.fromPersistence(rs.getString(3).trim());
+				String labelString = rs.getString(3);
+				L label = null;
+				if(labelString != null) {
+					label = (L)labelConverter.fromPersistence(labelString.trim());
+				}
 				LOG.debug("getPart LABEL: {} {}",label,label.getClass());
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
 				Map<String,Object> properties = (Map<String, Object>) blobConverter.fromPersistence(rs.getBlob(7));
 				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-				cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+				
+				if(loadType == LoadType.BUILDER) {
+					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
+				} else if(loadType == LoadType.RESULT_CONSUMER) {
+					cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
+				} else {
+					cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+				}
 			}
 		} catch (Exception e) {
 	    	LOG.error("getPart Exception: {}",id,e.getMessage());
@@ -816,6 +829,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
 				if(loadType == LoadType.BUILDER) {
 					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
+				} else if(loadType == LoadType.RESULT_CONSUMER) {
+					cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
 				} else {
 					cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
 				}

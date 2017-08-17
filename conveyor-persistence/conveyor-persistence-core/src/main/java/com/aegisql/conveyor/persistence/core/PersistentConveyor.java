@@ -29,6 +29,7 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.MultiKeyCart;
+import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
@@ -51,6 +52,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	private final AcknowledgeBuildingConveyor<K> ackConveyor;
 	private final PersistenceCleanupBatchConveyor<K> cleaner;
 	private final AcknowledgeBuilder<K> staticAcknowledgeBuilder;
+	private ResultConsumer<K,OUT> resultConsumer = bin->{};
 	
 //	ResultConsumer<K,OUT> resultConsumer = new ThreeStageResultConsumer<>(
 //			bin->{}, 
@@ -71,6 +73,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 			forwardPersistence.saveCompletedBuildKey(k);
 			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
 		});
+		this.resultConsumer = forward.getResultConsumer();
 		this.staticAcknowledgeBuilder = new AcknowledgeBuilder<>(staticPersistence, forward);
 		//not empty only if previous conveyor could not complete.
 		//Pers must be initialized with the previous state
@@ -154,6 +157,11 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 			AcknowledgeBuilder.processCart(staticAcknowledgeBuilder, cart);
 			cart.getFuture().complete(true);
 			return cart.getFuture();
+		} 
+		if(cart.getLoadType() == LoadType.RESULT_CONSUMER) {
+			AcknowledgeBuilder.processCart(staticAcknowledgeBuilder, cart);
+			cart.getFuture().complete(true);
+			return cart.getFuture();
 		}
 		Cart<K, Cart<K,?,?>, SmartLabel<AcknowledgeBuilder<K>>> ackCart = PersistenceCart.of(cart, ackConveyor.CART);
 		LOG.debug("PLACING "+ackCart);
@@ -176,7 +184,22 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public ResultConsumerLoader<K, OUT> resultConsumer() {
-		return forward.resultConsumer();
+		return new ResultConsumerLoader<>(rcl->{
+			final Cart<K,?,L> cart;
+			if(rcl.key != null) {
+				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime);
+			} else {
+				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, k->{
+					return new ResultConsumerCart<K, OUT, L>(k, rcl.consumer, rcl.creationTime, rcl.expirationTime);
+				});
+			}
+			rcl.getAllProperties().forEach((k,v)->{ cart.addProperty(k, v);});
+			return this.place(cart);
+		}, 
+		rc->{
+			this.resultConsumer = rc;
+		}, 
+		resultConsumer );
 	}
 
 	@Override
@@ -407,6 +430,11 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public void autoAcknowledgeOnStatus(Status first, Status... other) {
 		forward.autoAcknowledgeOnStatus(first, other);
+	}
+
+	@Override
+	public ResultConsumer<K, OUT> getResultConsumer() {
+		return resultConsumer;
 	}
 
 }
