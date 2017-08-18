@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -54,6 +55,8 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	private final AcknowledgeBuilder<K> staticAcknowledgeBuilder;
 	private ResultConsumer<K,OUT> resultConsumer = bin->{};
 	
+	private final AtomicBoolean initializationMode = new AtomicBoolean(true);
+	
 	public PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward, int batchSize) {
 		
 		Persistence<K> ackPersistence     = persistence.copy();
@@ -68,6 +71,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 			forwardPersistence.saveCompletedBuildKey(k);
 			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
 		});
+		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(true).place();
 		if(forward != null && forward.getResultConsumer() != null) {
 			this.resultConsumer = forward.getResultConsumer();
 		} else {
@@ -87,6 +91,9 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		} catch (IOException e) {
 			throw new RuntimeException(e.getMessage(),e);
 		}
+		this.initializationMode.set(false);
+		this.ackConveyor.setInitializationMode(false);
+		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(false).place();
 	}
 	
 	public PersistentConveyor(Persistence<K> persistence, int batchSize) {

@@ -2,6 +2,8 @@ package com.aegisql.conveyor.persistence.core;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

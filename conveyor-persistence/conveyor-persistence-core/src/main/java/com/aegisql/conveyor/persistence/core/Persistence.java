@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.persistence.core;
 
 import java.io.Closeable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 
@@ -27,7 +28,14 @@ public interface Persistence <K> extends Closeable{
 	
 	public void archiveAll();
 	
-	
+	default <L> Collection<Cart<K,?,L>> getAllParts(K key) {
+		Collection<Cart<K,?,L>> carts = new ArrayList<>();
+		Collection<Long> allIds = getAllPartIds(key);
+		if(allIds != null && ! allIds.isEmpty() ) {
+			allIds.forEach(id -> carts.add(getPart(id)) );
+		}
+		return carts;
+	}
 	
 	default <L> void absorb(Persistence<K> old) {
 		Set<K> completed                 = old.getCompletedKeys();
@@ -36,7 +44,7 @@ public interface Persistence <K> extends Closeable{
 			K key = cart.getKey();
 			if( ! completed.contains(key) ) {
 				long nextId = nextUniquePartId();
-				cart.addProperty("CART_ID", nextId);
+				cart.addProperty("#CART_ID", nextId);
 				Integer recoveryAttempt = cart.getProperty("RECOVERY_ATTEMPT", Integer.class);
 				if(recoveryAttempt == null) {
 					cart.addProperty("RECOVERY_ATTEMPT", 1);

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -19,20 +20,23 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 
 public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Expireable {
 
+	private static final long serialVersionUID = 1L;
+
 	private final static Logger LOG = LoggerFactory.getLogger(AcknowledgeBuilder.class);
 
 	private final Persistence<K> persistence;
 
 	private final Set<Long> cartIds = new LinkedHashSet<>();
 	private final Conveyor<K, ?, ?> forward;
-
+	
+	private boolean initializationMode = false;
+	
 	private K keyReady = null;
-
 	private boolean complete = false;
 
 	public AcknowledgeBuilder(Persistence<K> persistence, Conveyor<K, ?, ?> forward) {
-		this.persistence = persistence;
-		this.forward = forward;
+		this.persistence        = persistence;
+		this.forward            = forward;
 	}
 
 	@Override
@@ -40,17 +44,27 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 		return new ArrayList<>(cartIds);
 	}
 
+	public static <K, L> void setMode(AcknowledgeBuilder<K> builder, Boolean mode) {
+		builder.initializationMode = mode;
+	}
+	
 	public static <K, L> void processCart(AcknowledgeBuilder<K> builder, Cart<K, ?, L> cart) {
 		LOG.debug("CART " + cart);
 		boolean save = false;
+		K key = cart.getKey();
 		Long id = null;
-		if (!cart.getAllProperties().containsKey("CART_ID")) {
+		if (!cart.getAllProperties().containsKey("#CART_ID")) {
 			id = builder.persistence.nextUniquePartId();
-			cart.addProperty("CART_ID", id);
+			cart.addProperty("#CART_ID", id);
 			save = true;
 		} else {
-			id = (Long) cart.getProperty("CART_ID", Long.class);
+			id = (Long) cart.getProperty("#CART_ID", Long.class);
 		}
+		
+		if( builder.cartIds.isEmpty() ) {
+			Collection<Cart<K,?,L>> oldCarts = builder.persistence.getAllParts(key);
+		}
+		
 		if (!builder.cartIds.contains(id)) {
 			if(save) {
 				LOG.debug("---- SAVING {} {}",id,cart);
