@@ -3,7 +3,8 @@ Asynchronous Builder Framework
 
 [Tutorial](https://github.com/aegisql/conveyor/wiki)
 
-Maven dependency
+###Maven dependencies
+conveyor-core
 ```xml
 <dependency>
   <groupId>com.aegisql</groupId>
@@ -21,16 +22,47 @@ Previous Stable version
 </dependency>
 ```
 
+conveyor-parallel
+```xml
+<dependency>
+  <groupId>com.aegisql</groupId>
+  <artifactId>conveyor-parallel</artifactId>
+  <version>1.3.3</version>
+</dependency>
+```
+
+conveyor-persistence
+```xml
+<groupId>com.aegisql.persistence</groupId>
+  <artifactId>conveyor-persistence-core</artifactId>
+  <version>1.3.4-SNAPSHOT</version>
+</dependency>
+
+<dependency>
+  <groupId>com.aegisql.persistence</groupId>
+  <artifactId>conveyor-persistence-jdbc</artifactId>
+  <version>1.3.4-SNAPSHOT</version>
+</dependency>
+```
+
+
 ## Release History
 
 ### 1.3.4-SNAPSHOT
+* Persistence core module
+* Persistence JDBC module
+* Apache Derby implementation for the Persistence
+* Serializable functional interfaces
+* Changes in the Conveyor API to support persistence
+* Acknowledge added to the ProductBin and ScrapBin
+* General re-factoring
 
 ### 1.3.3
 * Extracted Parallel conveyors into a separate module
 * Added the persistence project - testing deployment, not for use
 * Added runtime properties
 
-### 1.3.1
+### 1.3.2
 * No code changes. Changed project structure. All current code moved into the conveyor-core module 
 
 ### 1.3.1
