@@ -3,7 +3,7 @@ Asynchronous Builder Framework
 
 [Tutorial](https://github.com/aegisql/conveyor/wiki)
 
-###Maven dependencies
+### Maven dependencies
 conveyor-core
 ```xml
 <dependency>
