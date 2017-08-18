@@ -54,11 +54,6 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	private final AcknowledgeBuilder<K> staticAcknowledgeBuilder;
 	private ResultConsumer<K,OUT> resultConsumer = bin->{};
 	
-//	ResultConsumer<K,OUT> resultConsumer = new ThreeStageResultConsumer<>(
-//			bin->{}, 
-//			bin->{}, 
-//			bin->{});
-	
 	public PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward, int batchSize) {
 		
 		Persistence<K> ackPersistence     = persistence.copy();
@@ -145,14 +140,12 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public FutureLoader<K, OUT> future() {
-		// TODO Auto-generated method stub
-		return null;
+		return forward.future();
 	}
 
 	@Override
 	public CommandLoader<K, OUT> command() {
-		// TODO Auto-generated method stub
-		return null;
+		return forward.command();
 	}
 
 	@Override
@@ -182,8 +175,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> command) {
-		// TODO Auto-generated method stub
-		return null;
+		return forward.command(command);
 	}
 
 	@Override
@@ -268,26 +260,24 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit) {
-		// TODO Auto-generated method stub
-		
+		forward.setDefaultBuilderTimeout(builderTimeout, unit);
 	}
 
 	@Override
 	public void setDefaultBuilderTimeout(Duration duration) {
-		// TODO Auto-generated method stub
-		
+		forward.setDefaultBuilderTimeout(duration);
 	}
 
 	@Override
 	public void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit) {
-		// TODO Auto-generated method stub
-		
+		forward.rejectUnexpireableCartsOlderThan(timeout, unit);
+		ackConveyor.rejectUnexpireableCartsOlderThan(timeout, unit);
 	}
 
 	@Override
 	public void rejectUnexpireableCartsOlderThan(Duration duration) {
-		// TODO Auto-generated method stub
-		
+		forward.rejectUnexpireableCartsOlderThan(duration);
+		ackConveyor.rejectUnexpireableCartsOlderThan(duration);		
 	}
 
 	@Override
@@ -391,13 +381,11 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public void setExpirationPostponeTime(long time, TimeUnit unit) {
 		forward.setExpirationPostponeTime(time, unit);
-		//TODO add others too
 	}
 
 	@Override
 	public void setExpirationPostponeTime(Duration duration) {
-		// TODO Auto-generated method stub
-		
+		forward.setExpirationPostponeTime(duration);
 	}
 
 	@Override

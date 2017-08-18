@@ -57,16 +57,25 @@ public class PersistentConveyorTest {
 	@After
 	public void tearDown() throws Exception {
 	}
+	
+	Persistence<Integer> getPersitence(String table) {
+		try {
+			return DerbyPersistence
+					.forKeyClass(Integer.class)
+					.schema("testConv")
+					.partTable(table)
+					.completedLogTable(table+"Completed")
+					.labelConverter(TrioPart.class)
+					.build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
 
 	@Test
 	public void veryBasicTest() throws Exception {
-		Persistence<Integer> p = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
-				.partTable("veryBasicTest")
-				.completedLogTable("veryBasicTestCompleted")
-				.labelConverter(TrioPart.class)
-				.build();
+		Persistence<Integer> p = getPersitence("veryBasicTest");
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
@@ -82,13 +91,8 @@ public class PersistentConveyorTest {
 	
 	@Test
 	public void simpleAckTest() throws Exception {
-		Persistence<Integer> p = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
-				.partTable("simpleAckTest")
-				.completedLogTable("simpleAckTestCompleted")
-				.labelConverter(new EnumConverter<>(TrioPart.class))
-				.build();
+		Persistence<Integer> p = getPersitence("simpleAckTest");
+
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, ()->tc, 3);
@@ -128,13 +132,7 @@ public class PersistentConveyorTest {
 	
 	@Test
 	public void simpleReplayTest() throws Exception {
-		Persistence<Integer> p1 = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
-				.partTable("simpleReplayTest")
-				.completedLogTable("simpleReplayTestCompleted")
-				.labelConverter(new EnumConverter<TrioPart>(TrioPart.class))
-				.build();
+		Persistence<Integer> p1 = getPersitence("simpleReplayTest");
 		TrioConveyor tc1 = new TrioConveyor();
 		tc1.autoAcknowledgeOnStatus(Status.READY);
 		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1, 3);
@@ -147,13 +145,7 @@ public class PersistentConveyorTest {
 		TrioConveyor tc2 = new TrioConveyor();
 		tc2.autoAcknowledgeOnStatus(Status.READY);
 		
-		Persistence<Integer> p2 = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
-				.partTable("simpleReplayTest")
-				.completedLogTable("simpleReplayTestCompleted")
-				.labelConverter(new EnumConverter<>(TrioPart.class))
-				.build();
+		Persistence<Integer> p2 = getPersitence("simpleReplayTest");
 		//Must copy state from the previous persistence
 		//assertFalse(p2.isEmpty());
 		//p1 must be empty after moving data to p1. 
@@ -221,13 +213,7 @@ public class PersistentConveyorTest {
 
 	@Test
 	public void staticBasicTest() throws Exception {
-		Persistence<Integer> p = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
-				.partTable("staticBasicTest")
-				.completedLogTable("staticBasicTestCompleted")
-				.labelConverter(TrioPart.class)
-				.build();
+		Persistence<Integer> p = getPersitence("staticBasicTest");
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
@@ -243,13 +229,7 @@ public class PersistentConveyorTest {
 
 	@Test
 	public void staticReplayTest() throws Exception {
-		Persistence<Integer> p = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
-				.partTable("staticReplayTest")
-				.completedLogTable("staticReplayTestCompleted")
-				.labelConverter(TrioPart.class)
-				.build();
+		Persistence<Integer> p = getPersitence("staticReplayTest");
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
@@ -278,13 +258,7 @@ public class PersistentConveyorTest {
 
 	@Test
 	public void multiBasicTest() throws Exception {
-		Persistence<Integer> p = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
-				.partTable("multiBasicTest")
-				.completedLogTable("multiBasicTestCompleted")
-				.labelConverter(TrioPart.class)
-				.build();
+		Persistence<Integer> p = getPersitence("multiBasicTest");
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
@@ -304,13 +278,7 @@ public class PersistentConveyorTest {
 
 	@Test
 	public void simpleBuilderSupplierTest() throws Exception {
-		Persistence<Integer> p1 = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
-				.partTable("simpleBuilderSupplierTest")
-				.completedLogTable("simpleBuilderSupplierTestCompleted")
-				.labelConverter(new EnumConverter<TrioPart>(TrioPart.class))
-				.build();
+		Persistence<Integer> p1 = getPersitence("simpleBuilderSupplierTest");
 		TrioConveyor tc1 = new TrioConveyor();
 		
 		tc1.setReadinessEvaluator(Conveyor.getTesterFor(tc1).accepted(TrioPart.TEXT2,TrioPart.NUMBER));
@@ -335,13 +303,7 @@ public class PersistentConveyorTest {
 		tc2.autoAcknowledgeOnStatus(Status.READY);
 		tc2.setReadinessEvaluator(Conveyor.getTesterFor(tc1).accepted(TrioPart.TEXT2,TrioPart.NUMBER));
 		
-		Persistence<Integer> p2 = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
-				.partTable("simpleBuilderSupplierTest")
-				.completedLogTable("simpleBuilderSupplierTestCompleted")
-				.labelConverter(new EnumConverter<>(TrioPart.class))
-				.build();
+		Persistence<Integer> p2 = getPersitence("simpleBuilderSupplierTest");
 		//Must copy state from the previous persistence
 		//assertFalse(p2.isEmpty());
 		//p1 must be empty after moving data to p1. 
@@ -363,26 +325,28 @@ public class PersistentConveyorTest {
 
 	@Test
 	public void simpleResultConsumerTest() throws Exception {
-		Persistence<Integer> p = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
-				.partTable("simpleResultConsumerTest")
-				.completedLogTable("simpleResultConsumerTestCompleted")
-				.labelConverter(TrioPart.class)
-				.build();
+		Persistence<Integer> p1 = getPersitence("simpleResultConsumerTest");
 		TrioConveyor tc = new TrioConveyor();
 		
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p1, tc, 3);
 	
 		pc.resultConsumer().andThen(bin->{
-			System.out.println("PERSISTENT "+bin);
+			System.setProperty("PERSISTENT", "PERSISTENT "+bin);
 		}).id(1).set();
 		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
-		pc.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
-		System.out.println(p);
-		pc.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
-		System.out.println(tc);
-		assertEquals(1, tc.results.size());
+
+		Persistence<Integer> p2 = getPersitence("simpleResultConsumerTest");
+		TrioConveyor tc2 = new TrioConveyor();
+		
+		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2, 3);
+		pc2.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
+		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
+		System.out.println(tc2);
+		String sysProperty = System.getProperty("PERSISTENT");
+		System.out.println(sysProperty);
+		assertNotNull(sysProperty);
+
+	
 	}
 
 	
