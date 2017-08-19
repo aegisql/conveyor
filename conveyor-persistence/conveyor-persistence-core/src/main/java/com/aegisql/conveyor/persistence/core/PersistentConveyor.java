@@ -5,6 +5,7 @@ import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -55,22 +56,35 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	private final AcknowledgeBuilder<K> staticAcknowledgeBuilder;
 	private ResultConsumer<K,OUT> resultConsumer = bin->{};
 	
+	private final Persistence<K> ackPersistence;
+	private final Persistence<K> forwardPersistence;
+	private final Persistence<K> cleanPersistence;
+	private final Persistence<K> staticPersistence;
+
+	private final EnumMap<Status,Consumer<K>> onStatus = new EnumMap<>(Status.class);
+	
 	private final AtomicBoolean initializationMode = new AtomicBoolean(true);
 	
 	public PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward, int batchSize) {
 		
-		Persistence<K> ackPersistence     = persistence.copy();
-		Persistence<K> forwardPersistence = persistence.copy();
-		Persistence<K> cleanPersistence   = persistence.copy();
-		Persistence<K> staticPersistence  = persistence.copy();
+		ackPersistence     = persistence.copy();
+		forwardPersistence = persistence.copy();
+		cleanPersistence   = persistence.copy();
+		staticPersistence  = persistence.copy();
 		
 		this.forward = forward;
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(cleanPersistence,batchSize);
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(ackPersistence, forward, cleaner);
+		onStatus.put(Status.READY, this::complete);
+		onStatus.put(Status.CANCELED, this::complete);
+		onStatus.put(Status.INVALID, this::complete);
+		onStatus.put(Status.TIMED_OUT, this::complete);
+		onStatus.put(Status.WAITING_DATA, k->{throw new RuntimeException("Unexpected WAITING_DATA status for key="+k);});
 		forward.setAcknowledgeAction((k,status)->{
 			forwardPersistence.saveCompletedBuildKey(k);
-			ackConveyor.part().id(k).label(ackConveyor.COMPLETE).value(status).place();
+			onStatus.get(status).accept(k);
 		});
+		
 		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(true).place();
 		if(forward != null && forward.getResultConsumer() != null) {
 			this.resultConsumer = forward.getResultConsumer();
@@ -94,6 +108,14 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		this.initializationMode.set(false);
 		this.ackConveyor.setInitializationMode(false);
 		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(false).place();
+	}
+	
+	private void complete(K key) {
+		ackConveyor.part().id(key).label(ackConveyor.COMPLETE).value(key).place();
+	}
+	
+	private void unload(K key) {
+		ackConveyor.part().id(key).label(ackConveyor.UNLOAD).value(key).place();		
 	}
 	
 	public PersistentConveyor(Persistence<K> persistence, int batchSize) {
@@ -412,7 +434,10 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public void setAcknowledgeAction(BiConsumer<K, Status> ackAction) {
-		forward.setAcknowledgeAction(ackAction);
+		forward.setAcknowledgeAction(ackAction.andThen((k,status)->{
+			staticPersistence.saveCompletedBuildKey(k);
+			onStatus.get(status).accept(k);
+		}));
 	}
 	
 	public Conveyor<K, L, OUT> getWorkingConveyor() {

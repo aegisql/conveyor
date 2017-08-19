@@ -49,7 +49,7 @@ public class AckBuilderTest {
 		assertFalse(ab.test());
 		ab.keyReady(ab, 1);
 		assertFalse(ab.test());
-		ab.complete(ab, Status.READY);
+		ab.complete(ab, 1);
 		assertTrue(ab.test());
 		assertEquals(4, ab.get().size());
 		System.out.println(ab.get());

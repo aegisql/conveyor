@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -62,7 +61,7 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 		}
 		
 		if( builder.cartIds.isEmpty() ) {
-			Collection<Cart<K,?,L>> oldCarts = builder.persistence.getAllParts(key);
+			//Collection<Cart<K,?,L>> oldCarts = builder.persistence.getAllParts(key);
 		}
 		
 		if (!builder.cartIds.contains(id)) {
@@ -85,8 +84,14 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 		builder.keyReady = key;
 	}
 
-	public static <K, L> void complete(AcknowledgeBuilder<K> builder, Status status) {
-		LOG.debug("COMPLETE " + status);
+	public static <K, L> void unload(AcknowledgeBuilder<K> builder, K key) {
+		LOG.debug("Unload " + key);
+		builder.cartIds.clear();
+		builder.complete = true;
+	}
+
+	public static <K, L> void complete(AcknowledgeBuilder<K> builder, K key) {
+		LOG.debug("COMPLETE " + key);
 		builder.complete = true;
 	}
 
