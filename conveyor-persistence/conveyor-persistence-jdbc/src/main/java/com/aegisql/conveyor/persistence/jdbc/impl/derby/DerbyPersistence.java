@@ -768,7 +768,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				if(labelString != null) {
 					label = (L)labelConverter.fromPersistence(labelString.trim());
 				}
-				LOG.debug("getPart LABEL: {} {}",label,label.getClass());
+				LOG.debug("getPart LABEL: {}",label);
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());

@@ -61,7 +61,7 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 		}
 		
 		if( builder.cartIds.isEmpty() ) {
-			//Collection<Cart<K,?,L>> oldCarts = builder.persistence.getAllParts(key);
+			Collection<Cart<K,?,L>> oldCarts = builder.persistence.getAllParts(key);
 		}
 		
 		if (!builder.cartIds.contains(id)) {
