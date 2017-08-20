@@ -13,6 +13,8 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 
 public class CleaunupBatchBuilder <K> implements Supplier<Runnable>, Testing, TimeoutAction {
 	
+	private static final long serialVersionUID = 1L;
+
 	private static Logger LOG = LoggerFactory.getLogger(CleaunupBatchBuilder.class);
 
 	private boolean ready = false;

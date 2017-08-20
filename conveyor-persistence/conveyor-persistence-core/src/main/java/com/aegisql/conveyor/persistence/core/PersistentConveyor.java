@@ -99,7 +99,17 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		Collection<Cart<K,?,L>> allParts = persistence.<L>getAllParts();
 		LOG.debug("All parts: {}",allParts);
 		staticParts.forEach(cart->this.place(cart));
-		allParts.forEach(cart->this.place(cart));
+		allParts.forEach(cart->{
+			long cartExpTime = cart.getExpirationTime(); 
+			if( cartExpTime == 0 || cartExpTime > System.currentTimeMillis()) {
+				this.place(cart);
+			} else {
+				if(cleaner != null) {
+					cleaner.part().label(cleaner.KEY).value(cart.getKey()).place();
+					cleaner.part().label(cleaner.CART_ID).value(cart.getProperty("#CART_ID", Long.class)).place();
+				}
+			}
+		});
 		try {
 			persistence.close();
 		} catch (IOException e) {
@@ -169,11 +179,13 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public FutureLoader<K, OUT> future() {
+		//do not save future
 		return forward.future();
 	}
 
 	@Override
 	public CommandLoader<K, OUT> command() {
+		// do not save command
 		return forward.command();
 	}
 
