@@ -474,7 +474,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return resultConsumer;
 	}
 
-	public void unloadOnTimeout(boolean unload) {
+	public void unloadOnBuilderTimeout(boolean unload) {
 		if(unload) {
 			onStatus.put(Status.TIMED_OUT, this::unload);
 		} else {

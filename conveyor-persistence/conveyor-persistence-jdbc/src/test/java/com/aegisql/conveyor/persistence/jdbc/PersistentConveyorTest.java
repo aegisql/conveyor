@@ -373,7 +373,7 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p1 = getPersitenceExp("simpleUnloadTest");
 		TrioConveyorExpireable tc1 = new TrioConveyorExpireable();
 		PersistentConveyor<Integer, TrioPartExpireable, Trio> pc1 = new PersistentConveyor(p1, tc1, 3);
-		pc1.unloadOnTimeout(true);
+		pc1.unloadOnBuilderTimeout(true);
 		pc1.setName("TC1");
 		pc1.part().id(1).label(TrioPartExpireable.TEXT1).value("txt1").ttl(Duration.ofSeconds(100)).place();
 		pc1.part().id(1).label(TrioPartExpireable.TEXT2).value("txt2").ttl(Duration.ofSeconds(100)).place();
