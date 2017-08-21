@@ -748,7 +748,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			st.setObject(1, key);
 			st.execute();
 		} catch (Exception e) {
-	    	LOG.error("SaveCompletedKey Exception: {}",key,e.getMessage());
+	    	LOG.error("SaveCompletedKey {} Exception: {}",key,e.getMessage());
+	    	e.printStackTrace();
 	    	throw new RuntimeException("SaveCompletedKey failed",e);
 		}
 	}

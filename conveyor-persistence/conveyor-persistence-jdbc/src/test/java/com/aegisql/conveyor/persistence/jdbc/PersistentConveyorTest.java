@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -26,7 +27,9 @@ import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
+import com.aegisql.conveyor.persistence.core.harness.TrioConveyorExpireable;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
+import com.aegisql.conveyor.persistence.core.harness.TrioPartExpireable;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 
 public class PersistentConveyorTest {
@@ -66,6 +69,21 @@ public class PersistentConveyorTest {
 					.partTable(table)
 					.completedLogTable(table+"Completed")
 					.labelConverter(TrioPart.class)
+					.build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	Persistence<Integer> getPersitenceExp(String table) {
+		try {
+			return DerbyPersistence
+					.forKeyClass(Integer.class)
+					.schema("testConv")
+					.partTable(table)
+					.completedLogTable(table+"Completed")
+					.labelConverter(TrioPartExpireable.class)
 					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -347,6 +365,28 @@ public class PersistentConveyorTest {
 		assertNotNull(sysProperty);
 
 	
+	}
+
+
+	@Test
+	public void simpleUnloadTest() throws Exception {
+		Persistence<Integer> p1 = getPersitenceExp("simpleUnloadTest");
+		TrioConveyorExpireable tc1 = new TrioConveyorExpireable();
+		PersistentConveyor<Integer, TrioPartExpireable, Trio> pc1 = new PersistentConveyor(p1, tc1, 3);
+		pc1.unloadOnTimeout(true);
+		pc1.setName("TC1");
+		pc1.part().id(1).label(TrioPartExpireable.TEXT1).value("txt1").ttl(Duration.ofSeconds(100)).place();
+		pc1.part().id(1).label(TrioPartExpireable.TEXT2).value("txt2").ttl(Duration.ofSeconds(100)).place();
+
+		Thread.sleep(2000);
+		
+		pc1.part().id(1).label(TrioPartExpireable.NUMBER).value(1).ttl(Duration.ofSeconds(10)).place().join();
+		System.out.println(tc1);
+		assertEquals(1, tc1.results.size());
+		System.out.println(tc1);
+		//p2 must be empty after completion. 
+		Thread.sleep(100);
+		//assertTrue(p2.isEmpty());
 	}
 
 	

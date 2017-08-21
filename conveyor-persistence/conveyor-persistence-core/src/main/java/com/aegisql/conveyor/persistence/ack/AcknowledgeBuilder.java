@@ -60,8 +60,12 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 			id = (Long) cart.getProperty("#CART_ID", Long.class);
 		}
 		
-		if( builder.cartIds.isEmpty() ) {
+		if( ! builder.initializationMode && builder.cartIds.isEmpty() ) {
 			Collection<Cart<K,?,L>> oldCarts = builder.persistence.getAllParts(key);
+			oldCarts.forEach(oldCart->{
+				LOG.debug("---- OldCart {}",oldCart);
+				builder.forward.place((Cart) oldCart);
+			});
 		}
 		
 		if (!builder.cartIds.contains(id)) {

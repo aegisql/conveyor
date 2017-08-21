@@ -81,7 +81,6 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		onStatus.put(Status.TIMED_OUT, this::complete);
 		onStatus.put(Status.WAITING_DATA, k->{throw new RuntimeException("Unexpected WAITING_DATA status for key="+k);});
 		forward.setAcknowledgeAction((k,status)->{
-			forwardPersistence.saveCompletedBuildKey(k);
 			onStatus.get(status).accept(k);
 		});
 		
@@ -121,6 +120,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	}
 	
 	private void complete(K key) {
+		forwardPersistence.saveCompletedBuildKey(key);
 		ackConveyor.part().id(key).label(ackConveyor.COMPLETE).value(key).place();
 	}
 	
@@ -474,4 +474,12 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return resultConsumer;
 	}
 
+	public void unloadOnTimeout(boolean unload) {
+		if(unload) {
+			onStatus.put(Status.TIMED_OUT, this::unload);
+		} else {
+			onStatus.put(Status.TIMED_OUT, this::complete);			
+		}
+	}
+	
 }
