@@ -17,10 +17,10 @@ public class PersistenceCleanupBatchConveyor <K> extends AssemblingConveyor<Sing
 	public final SmartLabel<CleaunupBatchBuilder<K>> CART_IDS = SmartLabel.of("CART_IDS", (b,ids)->CleaunupBatchBuilder.addCartIds(b, (Collection<Long>)ids ));
 	public final SmartLabel<CleaunupBatchBuilder<K>> KEY      = SmartLabel.of("KEY", (b,key)->CleaunupBatchBuilder.addKey(b, (K)key));
 
-	public PersistenceCleanupBatchConveyor(Persistence<K> persistence,int batchSize) {
+	public PersistenceCleanupBatchConveyor(Persistence<K> persistence) {
 		super();
 		this.setName("PersistenceCleanupBatchConveyor");
-		this.setBuilderSupplier( () -> new CleaunupBatchBuilder<K>(persistence,batchSize)  );
+		this.setBuilderSupplier( () -> new CleaunupBatchBuilder<K>(persistence)  );
 		this.resultConsumer(bin->{
 			bin.product.run();
 		}).set();

@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Expireable;
-import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
@@ -63,14 +62,12 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 		if( ! builder.initializationMode && builder.cartIds.isEmpty() ) {
 			Collection<Cart<K,?,L>> oldCarts = builder.persistence.getAllParts(key);
 			oldCarts.forEach(oldCart->{
-				LOG.debug("---- OldCart {}",oldCart);
 				builder.forward.place((Cart) oldCart);
 			});
 		}
 		
 		if (!builder.cartIds.contains(id)) {
 			if(save) {
-				LOG.debug("---- SAVING {} {}",id,cart);
 				builder.persistence.savePart(id, cart);
 				builder.persistence.savePartId(cart.getKey(), id);
 			}

@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongSupplier;
 
@@ -133,6 +135,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			public void archiveCompleteKeys(Connection conn, Collection<K> keys) {}
 			@Override
 			public void archiveAll(Connection conn) {}
+			@Override
+			public void archiveExpiredParts(Connection conn) {}
 		};
 
 		//TODO: remove when all implemented
@@ -145,6 +149,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			public void archiveCompleteKeys(Connection conn, Collection<K> keys) {throw new RuntimeException("Unimplemented archiver");}
 			@Override
 			public void archiveAll(Connection conn) {throw new RuntimeException("Unimplemented archiver");}
+			@Override
+			public void archiveExpiredParts(Connection conn) {throw new RuntimeException("Unimplemented archiver");}
 		};
 
 		private String keyType = "CART_KEY VARCHAR(255)";
@@ -171,6 +177,10 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		private String completedLogTable = "COMPLETED_LOG";
 		
 		private LongSupplier idSupplier;
+		
+		private int maxBatchSize  = 100;
+		private long maxBatchTime = 60_000;
+		
 		
 		
 		private ArchiveStrategy archiveStrategy = ArchiveStrategy.DELETE;
@@ -285,12 +295,28 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			return this;
 		}
 
+		public <L> DerbyPersistenceBuilder<K> maxBatchSize(int maxBatchSize) {
+			this.maxBatchSize = maxBatchSize;
+			return this;
+		}
+
+		public <L> DerbyPersistenceBuilder<K> maxBatchTime(long maxBatchTime, TimeUnit unit) {
+			this.maxBatchTime = TimeUnit.MILLISECONDS.convert(maxBatchTime, unit);
+			return this;
+		}
+
+		public <L> DerbyPersistenceBuilder<K> maxBatchTime(Duration duration) {
+			this.maxBatchTime = duration.toMillis();
+			return this;
+		}
+		
 		private Archiver<K> makeArchivedArchiver(String partTable, String completedTable) {
 			
 			final String deleteFromPartsById      = "UPDATE "+partTable + " SET ARCHIVED = 1 WHERE ID IN(?)";
 			final String deleteFromPartsByCartKey = "UPDATE "+partTable + " SET ARCHIVED = 1 WHERE CART_KEY IN(?)";
 			final String deleteFromCompleted      = "DELETE FROM "+completedTable + " WHERE CART_KEY IN(?)";
 			
+			final String deleteExpiredParts       = "UPDATE "+partTable+" SET ARCHIVED = 1 WHERE EXPIRATION_TIME > TIMESTAMP('19710101000000') AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
 			final String deleteAllParts           = "UPDATE "+partTable+" SET ARCHIVED = 1";
 			final String deleteAllCompleted       = "DELETE FROM "+completedTable;
 			
@@ -305,14 +331,13 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 				@Override
 				public void archiveParts(Connection conn, Collection<Long> ids) {
-					try(PreparedStatement ps = conn.prepareStatement(deleteFromPartsById)) {
+					try(Statement ps = conn.createStatement()) {
 						StringBuilder sb = new StringBuilder();
 						ids.forEach(id->sb.append(id).append(","));
 						if(sb.lastIndexOf(",") > 0) {
 							sb.deleteCharAt(sb.lastIndexOf(","));
 						}
-						ps.setString(1, sb.toString());
-						ps.execute();
+						ps.execute(deleteFromPartsById.replace("?", sb.toString()));
 					} catch (SQLException e) {
 						LOG.error("archiveParts failure",e);
 						throw new RuntimeException("archiveParts failure",e);
@@ -369,6 +394,16 @@ public class DerbyPersistence<K> implements Persistence<K>{
 						LOG.error("archiveAll completed failure",e);
 						throw new RuntimeException("archiveAll completed failure",e);
 					}
+				}
+
+				@Override
+				public void archiveExpiredParts(Connection conn) {
+					try(PreparedStatement ps = conn.prepareStatement(deleteExpiredParts)) {
+						ps.execute();
+					} catch (SQLException e) {
+						LOG.error("archiveExpiredParts failure",e);
+						throw new RuntimeException("archiveExpiredParts failure",e);
+					}
 				}};
 		}
 
@@ -377,7 +412,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			final String deleteFromPartsById      = "DELETE FROM "+partTable + " WHERE ID IN(?)";
 			final String deleteFromPartsByCartKey = "DELETE FROM "+partTable + " WHERE CART_KEY IN(?)";
 			final String deleteFromCompleted      = "DELETE FROM "+completedTable + " WHERE CART_KEY IN(?)";
-			
+			final String deleteExpiredParts       = "DELETE FROM  "+partTable+" SET ARCHIVED = 1 WHERE EXPIRATION_TIME > TIMESTAMP('19710101000000') AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
+
 			final String deleteAllParts           = "DELETE FROM "+partTable;
 			final String deleteAllCompleted       = "DELETE FROM "+completedTable;
 			
@@ -456,6 +492,16 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					} catch (SQLException e) {
 						LOG.error("archiveAll completed failure",e);
 						throw new RuntimeException("archiveAll completed failure",e);
+					}
+				}
+
+				@Override
+				public void archiveExpiredParts(Connection conn) {
+					try(PreparedStatement ps = conn.prepareStatement(deleteExpiredParts)) {
+						ps.execute();
+					} catch (SQLException e) {
+						LOG.error("archiveExpiredParts failure",e);
+						throw new RuntimeException("archiveExpiredParts failure",e);
 					}
 				}};
 		}
@@ -646,6 +692,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,archiver
 					,labelConverter
 					,blobConverter
+					,maxBatchSize
+					,maxBatchTime
 					);
 		}
 	}
@@ -667,6 +715,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	private final String getAllStaticPartsQuery;
 	
 	private final DerbyPersistenceBuilder<K> builder;
+	private final int maxBatchSize;
+	private final long maxBatchTime;
 	
 	private DerbyPersistence(
 			DerbyPersistenceBuilder<K> builder
@@ -680,8 +730,10 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,String getAllCompletedKeysQuery
 			,String getAllStaticPartsQuery
 			,Archiver<K> archiver
-			,ObjectConverter<?,String> labelConverter,
-			BlobConverter blobConverter
+			,ObjectConverter<?,String> labelConverter
+			,BlobConverter blobConverter
+			,int maxBatchSize
+			,long maxBatchTime
 			) {
 		this.builder                      = builder;
 		this.conn                         = conn;
@@ -696,6 +748,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		this.getAllCompletedKeysQuery     = getAllCompletedKeysQuery;
 		this.archiver                     = archiver;
 		this.labelConverter               = labelConverter;
+		this.maxBatchSize                 = maxBatchSize;
+		this.maxBatchTime                 = maxBatchTime;
 	}
 
 	public static <K> DerbyPersistenceBuilder<K> forKeyClass(Class<K> clas) {
@@ -914,6 +968,21 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		} catch (SQLException e) {
 			throw new IOException("SQL Connection close error",e);
 		}
+	}
+
+	@Override
+	public void archiveExpiredParts() {
+		archiver.archiveExpiredParts(conn);
+	}
+	
+	@Override
+	public int getMaxArchiveBatchSize() {
+		return maxBatchSize;
+	}
+
+	@Override
+	public long getMaxArchiveBatchTime() {
+		return maxBatchTime;
 	}
 	
 }

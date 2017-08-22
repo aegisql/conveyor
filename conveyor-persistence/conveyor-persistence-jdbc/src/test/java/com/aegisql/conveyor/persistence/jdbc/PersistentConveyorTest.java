@@ -69,6 +69,8 @@ public class PersistentConveyorTest {
 					.partTable(table)
 					.completedLogTable(table+"Completed")
 					.labelConverter(TrioPart.class)
+					.whenArchiveRecords().markArchived()
+					.maxBatchSize(3)
 					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -84,6 +86,7 @@ public class PersistentConveyorTest {
 					.partTable(table)
 					.completedLogTable(table+"Completed")
 					.labelConverter(TrioPartExpireable.class)
+					.maxBatchSize(3)
 					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -96,7 +99,7 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p = getPersitence("veryBasicTest");
 		TrioConveyor tc = new TrioConveyor();
 		
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
 	
 		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
 		pc.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
@@ -113,7 +116,7 @@ public class PersistentConveyorTest {
 
 		TrioConveyor tc = new TrioConveyor();
 		
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, ()->tc, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, ()->tc);
 		pc.setAutoAcknowledge(false);
 		
 		AtomicReference<Acknowledge> ref = new AtomicReference<>();
@@ -153,7 +156,7 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p1 = getPersitence("simpleReplayTest");
 		TrioConveyor tc1 = new TrioConveyor();
 		tc1.autoAcknowledgeOnStatus(Status.READY);
-		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1);
 		pc1.setName("TC1");
 		pc1.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
 		pc1.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
@@ -168,7 +171,7 @@ public class PersistentConveyorTest {
 		//assertFalse(p2.isEmpty());
 		//p1 must be empty after moving data to p1. 
 		//assertTrue(p1.isEmpty());
-		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2);
 		pc2.setName("TC2");
 		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
 		System.out.println(tc2);
@@ -194,7 +197,7 @@ public class PersistentConveyorTest {
 				.build();
 		TrioConveyor tc1 = new TrioConveyor();
 		tc1.autoAcknowledgeOnStatus(Status.READY);
-		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1);
 		pc1.setName("TC1");
 		pc1.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
 		pc1.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
@@ -215,7 +218,7 @@ public class PersistentConveyorTest {
 		//assertFalse(p2.isEmpty());
 		//p1 must be empty after moving data to p1. 
 		//assertTrue(p1.isEmpty());
-		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2);
 		pc2.setName("TC2");
 		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
 		System.out.println(tc2);
@@ -234,7 +237,7 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p = getPersitence("staticBasicTest");
 		TrioConveyor tc = new TrioConveyor();
 		
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
 		pc.staticPart().label(TrioPart.NUMBER).value(1).place().join();
 	
 		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
@@ -250,7 +253,7 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p = getPersitence("staticReplayTest");
 		TrioConveyor tc = new TrioConveyor();
 		
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
 		pc.staticPart().label(TrioPart.NUMBER).value(1).place().join();
 		pc.staticPart().label(TrioPart.NUMBER).value(2).place().join();
 		pc.staticPart().label(TrioPart.NUMBER).value(3).place().join();
@@ -264,7 +267,7 @@ public class PersistentConveyorTest {
 				.build();
 		TrioConveyor tc2 = new TrioConveyor();
 		
-		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2);
 
 		
 		pc2.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
@@ -279,7 +282,7 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p = getPersitence("multiBasicTest");
 		TrioConveyor tc = new TrioConveyor();
 		
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
 	
 		pc.part().id(1).label(TrioPart.TEXT1).value("txt11").place();
 		pc.part().id(1).label(TrioPart.TEXT2).value("txt21").place();
@@ -303,7 +306,7 @@ public class PersistentConveyorTest {
 
 		
 		tc1.autoAcknowledgeOnStatus(Status.READY);
-		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1);
 		pc1.setName("TC1");
 //		pc1.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
 		
@@ -326,7 +329,7 @@ public class PersistentConveyorTest {
 		//assertFalse(p2.isEmpty());
 		//p1 must be empty after moving data to p1. 
 		//assertTrue(p1.isEmpty());
-		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2);
 		pc2.setName("TC2");
 		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
 		System.out.println(tc2);
@@ -346,7 +349,7 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p1 = getPersitence("simpleResultConsumerTest");
 		TrioConveyor tc = new TrioConveyor();
 		
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p1, tc, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p1, tc);
 	
 		pc.resultConsumer().andThen(bin->{
 			System.setProperty("PERSISTENT", "PERSISTENT "+bin);
@@ -356,7 +359,7 @@ public class PersistentConveyorTest {
 		Persistence<Integer> p2 = getPersitence("simpleResultConsumerTest");
 		TrioConveyor tc2 = new TrioConveyor();
 		
-		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2, 3);
+		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2);
 		pc2.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
 		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
 		System.out.println(tc2);
@@ -372,7 +375,7 @@ public class PersistentConveyorTest {
 	public void simpleUnloadTest() throws Exception {
 		Persistence<Integer> p1 = getPersitenceExp("simpleUnloadTest");
 		TrioConveyorExpireable tc1 = new TrioConveyorExpireable();
-		PersistentConveyor<Integer, TrioPartExpireable, Trio> pc1 = new PersistentConveyor(p1, tc1, 3);
+		PersistentConveyor<Integer, TrioPartExpireable, Trio> pc1 = new PersistentConveyor(p1, tc1);
 		pc1.unloadOnBuilderTimeout(true);
 		pc1.setName("TC1");
 		pc1.part().id(1).label(TrioPartExpireable.TEXT1).value("txt1").ttl(Duration.ofSeconds(100)).place();

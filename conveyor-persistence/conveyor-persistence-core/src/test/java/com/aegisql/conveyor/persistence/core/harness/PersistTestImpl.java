@@ -23,6 +23,8 @@ public class PersistTestImpl implements Persistence<Integer> {
 	Set<Integer> completed = new HashSet<>();
 	
 	AtomicInteger idGen = new AtomicInteger(0);
+	private int maxBatchSize   = 3;
+	private long maxBatchTime  = 60_000;
 	
 	public PersistTestImpl() {
 		
@@ -173,6 +175,28 @@ public class PersistTestImpl implements Persistence<Integer> {
 	@Override
 	public void close() throws IOException {
 		
+	}
+
+	@Override
+	public void archiveExpiredParts() {
+		List<Long> expList = new ArrayList<>();
+		carts.forEach((id,bytes)->{
+			long expTime = getPart(id).getExpirationTime();
+			if(expTime != 0 && expTime < System.currentTimeMillis() ) {
+				expList.add(id);
+			}
+		});
+		expList.forEach(id->carts.remove(id));
+	}
+
+	@Override
+	public int getMaxArchiveBatchSize() {
+		return maxBatchSize;
+	}
+
+	@Override
+	public long getMaxArchiveBatchTime() {
+		return maxBatchTime;
 	}
 	
 }

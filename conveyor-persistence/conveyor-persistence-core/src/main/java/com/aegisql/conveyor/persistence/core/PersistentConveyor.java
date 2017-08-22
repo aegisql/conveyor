@@ -65,7 +65,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	
 	private final AtomicBoolean initializationMode = new AtomicBoolean(true);
 	
-	public PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward, int batchSize) {
+	public PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward) {
 		
 		ackPersistence     = persistence.copy();
 		forwardPersistence = persistence.copy();
@@ -73,7 +73,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		staticPersistence  = persistence.copy();
 		
 		this.forward = forward;
-		this.cleaner = new PersistenceCleanupBatchConveyor<>(cleanPersistence,batchSize);
+		this.cleaner = new PersistenceCleanupBatchConveyor<>(cleanPersistence);
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(ackPersistence, forward, cleaner);
 		onStatus.put(Status.READY, this::complete);
 		onStatus.put(Status.CANCELED, this::complete);
@@ -128,12 +128,12 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		ackConveyor.part().id(key).label(ackConveyor.UNLOAD).value(key).place();		
 	}
 	
-	public PersistentConveyor(Persistence<K> persistence, int batchSize) {
-		this(persistence,new AssemblingConveyor<>(),batchSize);
+	public PersistentConveyor(Persistence<K> persistence) {
+		this(persistence,new AssemblingConveyor<>());
 	}
 	
-	public PersistentConveyor(Persistence<K> persistence, Supplier<Conveyor<K, L, OUT>> forwardSupplier, int batchSize) {
-		this(persistence,forwardSupplier.get(),batchSize);
+	public PersistentConveyor(Persistence<K> persistence, Supplier<Conveyor<K, L, OUT>> forwardSupplier) {
+		this(persistence,forwardSupplier.get());
 	}	
 	
 	@Override

@@ -9,24 +9,29 @@ import com.aegisql.conveyor.cart.Cart;
 
 public interface Persistence <K> extends Closeable{
 
+	//SETTERS
 	public long nextUniquePartId();
 	public <L> void savePart(long id,Cart<K,?,L> cart);
 	public void savePartId(K key, long partId);
 	public void saveCompletedBuildKey(K key);
-	public <L> Cart<K,?,L> getPart(long id);
 	
+	//GETTERS
+	public <L> Cart<K,?,L> getPart(long id);
 	public Collection<Long> getAllPartIds(K key);
 	public <L> Collection<Cart<K,?,L>> getAllParts();
 	public <L> Collection<Cart<K,?,L>> getAllStaticParts();
-	
 	public Set<K> getCompletedKeys();
 	
-	//batch operations
+	//ARCHIVE OPERATIONS
 	public void archiveParts(Collection<Long> ids);
 	public void archiveKeys(Collection<K> keys);
 	public void archiveCompleteKeys(Collection<K> keys);
-	
+	public void archiveExpiredParts();
 	public void archiveAll();
+	
+	//BATCH 
+	public int getMaxArchiveBatchSize();
+	public long getMaxArchiveBatchTime();
 	
 	default <L> Collection<Cart<K,?,L>> getAllParts(K key) {
 		Collection<Cart<K,?,L>> carts = new ArrayList<>();

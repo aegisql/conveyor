@@ -129,4 +129,42 @@ public class DerbyPersistenceTest {
 		assertNull(p.getPart(2));
 	}
 
+	
+	@Test
+	public void testDeleteExpired() throws Exception {
+		DerbyPersistenceBuilder<Integer> pb = DerbyPersistence.forKeyClass(Integer.class);
+		assertNotNull(pb);
+		AtomicLong ids = new AtomicLong(0);
+		pb = pb.idSupplier(ids::incrementAndGet);
+		pb = pb.whenArchiveRecords().markArchived();
+		pb = pb.partTable("exp_test").completedLogTable("exp_test_complete");
+		Persistence<Integer> p = pb.build();
+		assertNotNull(p);
+		p.archiveAll();
+		
+		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(1, "value1", "label",System.currentTimeMillis()+1000);
+		Cart<Integer,String,String> c2 = new ShoppingCart<Integer, String, String>(2, "value2", "label",System.currentTimeMillis()+100000);
+		p.savePart(p.nextUniquePartId(), c1);
+		p.savePart(p.nextUniquePartId(), c2);
+
+		p.archiveExpiredParts();
+		
+		Cart<Integer,?,String> rc1 = p.getPart(1);
+		Cart<Integer,?,String> rc2 = p.getPart(2);
+		System.out.println(rc1);
+		System.out.println(rc2);
+		assertNotNull(rc1);
+		assertNotNull(rc2);
+
+		Thread.sleep(2000);
+		p.archiveExpiredParts();
+
+		Cart<Integer,?,String> rc12 = p.getPart(1);
+		Cart<Integer,?,String> rc22 = p.getPart(2);
+		assertNull(rc12);
+		assertNotNull(rc22);
+		
+	}
+
+	
 }

@@ -45,7 +45,7 @@ public class CleanupBatchConveyorTest {
 		p.savePartId(1, 2);
 		p.saveCompletedBuildKey(1);
 		
-		PersistenceCleanupBatchConveyor<Integer> pcc = new PersistenceCleanupBatchConveyor<>(p, 3);
+		PersistenceCleanupBatchConveyor<Integer> pcc = new PersistenceCleanupBatchConveyor<>(p);
 		
 		CompletableFuture<Runnable> f = pcc.future().get();
 		

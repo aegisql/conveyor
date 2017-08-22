@@ -7,11 +7,12 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.Expireable;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.TimeoutAction;
 import com.aegisql.conveyor.persistence.core.Persistence;
 
-public class CleaunupBatchBuilder <K> implements Supplier<Runnable>, Testing, TimeoutAction {
+public class CleaunupBatchBuilder <K> implements Supplier<Runnable>, Testing, TimeoutAction, Expireable {
 	
 	private static final long serialVersionUID = 1L;
 
@@ -21,12 +22,14 @@ public class CleaunupBatchBuilder <K> implements Supplier<Runnable>, Testing, Ti
 	
 	private final Persistence<K> persistence;
 	private final int summBatchSize;
+	private final long expirationTime;
 	private final Collection<Long> cartIds = new ArrayList<>();
 	private final Collection<K> keys    = new ArrayList<>();
 	
-	public CleaunupBatchBuilder(Persistence<K> persistence, int summBatchSize) {
+	public CleaunupBatchBuilder(Persistence<K> persistence) {
 		this.persistence   = persistence;
-		this.summBatchSize = summBatchSize;
+		this.summBatchSize = persistence.getMaxArchiveBatchSize();
+		this.expirationTime = System.currentTimeMillis() + persistence.getMaxArchiveBatchTime();
 	}
 	
 	@Override
@@ -36,6 +39,7 @@ public class CleaunupBatchBuilder <K> implements Supplier<Runnable>, Testing, Ti
 			persistence.archiveParts(cartIds);
 			persistence.archiveKeys(keys);
 			persistence.archiveCompleteKeys(keys);
+			persistence.archiveExpiredParts();
 		};
 	}
 
@@ -59,6 +63,11 @@ public class CleaunupBatchBuilder <K> implements Supplier<Runnable>, Testing, Ti
 
 	public static <K> void addKey(CleaunupBatchBuilder <K> builder, K key) {
 		builder.keys.add(key);
+	}
+
+	@Override
+	public long getExpirationTime() {
+		return expirationTime;
 	}
 
 }
