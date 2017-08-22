@@ -331,6 +331,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 				@Override
 				public void archiveParts(Connection conn, Collection<Long> ids) {
+					if(ids.isEmpty()) {
+						return;
+					}
 					try(Statement ps = conn.createStatement()) {
 						StringBuilder sb = new StringBuilder();
 						ids.forEach(id->sb.append(id).append(","));
@@ -346,7 +349,10 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 				@Override
 				public void archiveKeys(Connection conn, Collection<K> keys) {
-					try(PreparedStatement ps = conn.prepareStatement(deleteFromPartsByCartKey)) {
+					if(keys.isEmpty()) {
+						return;
+					}
+					try(Statement ps = conn.createStatement()) {
 						StringBuilder sb = new StringBuilder();
 						keys.forEach(id->{
 							sb.append(q).append(id).append(q).append(",");
@@ -354,8 +360,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 						if(sb.lastIndexOf(",") > 0) {
 							sb.deleteCharAt(sb.lastIndexOf(","));
 						}
-						ps.setString(1, sb.toString());
-						ps.execute();
+						ps.execute(deleteFromPartsByCartKey.replace("?", sb.toString()));
 					} catch (SQLException e) {
 						LOG.error("archiveKeys failure",e);
 						throw new RuntimeException("archiveKeys failure",e);
@@ -364,7 +369,10 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 				@Override
 				public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
-					try(PreparedStatement ps = conn.prepareStatement(deleteFromCompleted)) {
+					if(keys.isEmpty()) {
+						return;
+					}
+					try(Statement ps = conn.createStatement()) {
 						StringBuilder sb = new StringBuilder();
 						keys.forEach(id->{
 							sb.append(q).append(id).append(q).append(",");
@@ -372,8 +380,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 						if(sb.lastIndexOf(",") > 0) {
 							sb.deleteCharAt(sb.lastIndexOf(","));
 						}
-						ps.setString(1, sb.toString());
-						ps.execute();
+						ps.execute(deleteFromCompleted.replace("?", sb.toString()));
 					} catch (SQLException e) {
 						LOG.error("archiveCompleteKeys failure",e);
 						throw new RuntimeException("archiveCompleteKeys failure",e);
@@ -431,13 +438,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					if(ids.isEmpty()) {
 						return;
 					}
-					StringBuilder sb = new StringBuilder();
-					ids.forEach(id->sb.append(id).append(","));
-					if(sb.lastIndexOf(",") > 0) {
-						sb.deleteCharAt(sb.lastIndexOf(","));
-					}
-					LOG.debug("IDs to delete: {}",sb.toString());
 					try(Statement ps = conn.createStatement()) {
+						StringBuilder sb = new StringBuilder();
+						ids.forEach(id->sb.append(id).append(","));
+						if(sb.lastIndexOf(",") > 0) {
+							sb.deleteCharAt(sb.lastIndexOf(","));
+						}
 						ps.execute(deleteFromPartsById.replace("?", sb.toString()));
 					} catch (SQLException e) {
 						LOG.error("archiveParts failure",e);
@@ -447,14 +453,17 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 				@Override
 				public void archiveKeys(Connection conn, Collection<K> keys) {
-					StringBuilder sb = new StringBuilder();
-					keys.forEach(id->{
-						sb.append(q).append(id).append(q).append(",");
-						});
-					if(sb.lastIndexOf(",") > 0) {
-						sb.deleteCharAt(sb.lastIndexOf(","));
+					if(keys.isEmpty()) {
+						return;
 					}
 					try(Statement ps = conn.createStatement()) {
+						StringBuilder sb = new StringBuilder();
+						keys.forEach(id->{
+							sb.append(q).append(id).append(q).append(",");
+							});
+						if(sb.lastIndexOf(",") > 0) {
+							sb.deleteCharAt(sb.lastIndexOf(","));
+						}
 						ps.execute(deleteFromPartsByCartKey.replace("?", sb.toString()));
 					} catch (SQLException e) {
 						LOG.error("archiveKeys failure",e);
@@ -464,14 +473,17 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 				@Override
 				public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
-					StringBuilder sb = new StringBuilder();
-					keys.forEach(id->{
-						sb.append(q).append(id).append(q).append(",");
-						});
-					if(sb.lastIndexOf(",") > 0) {
-						sb.deleteCharAt(sb.lastIndexOf(","));
+					if(keys.isEmpty()) {
+						return;
 					}
 					try(Statement ps = conn.createStatement()) {
+						StringBuilder sb = new StringBuilder();
+						keys.forEach(id->{
+							sb.append(q).append(id).append(q).append(",");
+							});
+						if(sb.lastIndexOf(",") > 0) {
+							sb.deleteCharAt(sb.lastIndexOf(","));
+						}
 						ps.execute(deleteFromCompleted.replace("?", sb.toString()));
 					} catch (SQLException e) {
 						LOG.error("archiveCompleteKeys failure",e);
