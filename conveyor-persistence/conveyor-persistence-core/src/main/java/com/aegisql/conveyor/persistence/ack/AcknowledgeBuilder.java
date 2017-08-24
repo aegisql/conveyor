@@ -59,12 +59,17 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 			id = (Long) cart.getProperty("#CART_ID", Long.class);
 		}
 		
-		if( ! builder.initializationMode && builder.cartIds.isEmpty() ) {
-			Collection<Cart<K,?,L>> oldCarts = builder.persistence.getAllParts(key);
-			oldCarts.forEach(oldCart->{
-				LOG.debug("RESTORE {}",oldCart);
-				builder.forward.place((Cart) oldCart);
-			});
+		if( ! builder.initializationMode ) {
+			if(builder.cartIds.isEmpty()) {
+				Collection<Cart<K,?,L>> oldCarts = builder.persistence.getAllParts(key);
+					oldCarts.forEach(oldCart->{
+						LOG.debug("RESTORE {}",oldCart);
+						builder.forward.place((Cart) oldCart);
+						builder.cartIds.add(oldCart.getProperty("#CART_ID", Long.class));
+				});
+			}
+		} else {
+			LOG.debug("INITIALIZING {}",cart.getKey());
 		}
 		
 		if (!builder.cartIds.contains(id)) {
@@ -88,8 +93,17 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 
 	public static <K, L> void unload(AcknowledgeBuilder<K> builder, K key) {
 		LOG.debug("Unload " + key);
-		builder.cartIds.clear();
-		builder.complete = true;
+		if(builder.cartIds.isEmpty()) {
+			Collection<Cart<K,?,L>> oldCarts = builder.persistence.getAllParts(key);
+			oldCarts.forEach(oldCart->{
+				LOG.debug("RESTORE {}",oldCart);
+				builder.forward.place((Cart) oldCart);
+				builder.cartIds.add(oldCart.getProperty("#CART_ID", Long.class));
+		});			
+		} else {
+			builder.cartIds.clear();
+			builder.complete = true;
+		}
 	}
 
 	public static <K, L> void complete(AcknowledgeBuilder<K> builder, K key) {

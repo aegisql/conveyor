@@ -1,5 +1,7 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
+import java.util.concurrent.TimeUnit;
+
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
@@ -16,6 +18,7 @@ public class TrioConveyorExpireable extends AssemblingConveyor<Integer, SmartLab
 	public TrioConveyorExpireable() {
 		this.setName("TrioConveyorExpireable");
 		this.setBuilderSupplier(TrioBuilderExpireable::new);
+		this.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		this.resultConsumer(LogResult.debug(this)).andThen(results).set();
 		this.scrapConsumer(LogScrap.error(this)).andThen(bin->{if(bin.error != null)bin.error.printStackTrace();}).set();
 		this.setReadinessEvaluator(Conveyor.getTesterFor(this).accepted(TrioPartExpireable.TEXT1,TrioPartExpireable.TEXT2,TrioPartExpireable.NUMBER));

@@ -290,6 +290,7 @@ public class PerfTest {
 	Persistence<Integer> p = getPersitenceExp("testParallelUnload");
 	PersistentConveyor<Integer, TrioPartExpireable, Trio> pc = new PersistentConveyor(p, tc);
 	pc.unloadOnBuilderTimeout(true);
+	pc.setName("UL");
 	List<Integer> t1 = new ArrayList<>();
 	for(int i = 1; i<=testSize; i++) {
 		t1.add(i);
