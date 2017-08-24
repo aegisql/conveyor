@@ -62,6 +62,7 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 		if( ! builder.initializationMode && builder.cartIds.isEmpty() ) {
 			Collection<Cart<K,?,L>> oldCarts = builder.persistence.getAllParts(key);
 			oldCarts.forEach(oldCart->{
+				LOG.debug("RESTORE {}",oldCart);
 				builder.forward.place((Cart) oldCart);
 			});
 		}

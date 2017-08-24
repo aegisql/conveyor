@@ -25,7 +25,9 @@ import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.ThreadPool;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
+import com.aegisql.conveyor.persistence.core.harness.TrioConveyorExpireable;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
+import com.aegisql.conveyor.persistence.core.harness.TrioPartExpireable;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 
 public class PerfTest {
@@ -71,9 +73,9 @@ public class PerfTest {
 					.partTable(table)
 					.completedLogTable(table+"Completed")
 					.labelConverter(TrioPart.class)
-					.whenArchiveRecords().markArchived()
+					//.whenArchiveRecords().markArchived()
 					.maxBatchTime(1000,TimeUnit.MILLISECONDS)
-					.maxBatchSize(100)
+					.maxBatchSize(1000)
 					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -82,15 +84,31 @@ public class PerfTest {
 	}
 	
 	
-	
+	Persistence<Integer> getPersitenceExp(String table) {
+		try {
+			return DerbyPersistence
+					.forKeyClass(Integer.class)
+					.schema("perfConv")
+					.partTable(table)
+					.completedLogTable(table+"Completed")
+					.labelConverter(TrioPartExpireable.class)
+					.maxBatchTime(1000,TimeUnit.MILLISECONDS)
+					.maxBatchSize(1000)
+					.build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
 	@Test
-	public void testParallel() throws InterruptedException {
+	public void testParallelAsorted() throws InterruptedException {
 
 	int testSize = 10000;
 	
 	TrioConveyor tc = new TrioConveyor();
 	
-	Persistence<Integer> p = getPersitence("trio");
+	Persistence<Integer> p = getPersitence("testParallelAsorted");
 	PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
 
 	List<Integer> t1 = new ArrayList<>();
@@ -161,7 +179,7 @@ public class PerfTest {
 	fr3.get().join();
 	long end = System.currentTimeMillis();
 
-	Persistence<Integer> p2 = getPersitence("trio");
+	Persistence<Integer> p2 = getPersitence("testParallelAsorted");
 
 	while(p2.getAllParts().size() > 0) {
 		Thread.sleep(500);		
@@ -170,10 +188,187 @@ public class PerfTest {
 	long toComplete = System.currentTimeMillis();
 	
 	System.out.println("Batch "+testSize+" loaded in "+(end-start)+" msec. completed in  "+(toComplete - start)+" msec");
-	
-	
+	assertEquals(testSize, tc.results.size());
+	}
 
 	
+	@Test
+	public void testParallelSorted() throws InterruptedException {
+
+	int testSize = 10000;
+	
+	TrioConveyor tc = new TrioConveyor();
+	
+	Persistence<Integer> p = getPersitence("testParallelSorted");
+	PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+
+	List<Integer> t1 = new ArrayList<>();
+	for(int i = 1; i<=testSize; i++) {
+		t1.add(i);
 	}
+	
+	List<Integer> t2 = new ArrayList<>(t1);
+
+	List<Integer> t3 = new ArrayList<>(t1);
+
+	AtomicReference<CompletableFuture<Boolean>> fr1 = new AtomicReference<>();
+	AtomicReference<CompletableFuture<Boolean>> fr2 = new AtomicReference<>();
+	AtomicReference<CompletableFuture<Boolean>> fr3 = new AtomicReference<>();
+	
+	CompletableFuture<Integer> f1 = new CompletableFuture<Integer>();
+	CompletableFuture<Integer> f2 = new CompletableFuture<Integer>();
+	CompletableFuture<Integer> f3 = new CompletableFuture<Integer>();
+	
+	Runnable r1 = ()->{
+		t1.forEach(key->{
+			fr1.set( pc.part().id(key).label(TrioPart.TEXT1).value("txt1_"+key).place() );
+			try {
+				Thread.sleep(0,100000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		f1.complete(1);
+	};
+	Runnable r2 = ()->{
+		t2.forEach(key->{
+			fr2.set( pc.part().id(key).label(TrioPart.TEXT2).value("txt2_"+key).place() );
+			try {
+				Thread.sleep(0,100000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		f2.complete(1);
+	};
+	Runnable r3 = ()->{
+		t3.forEach(key->{
+			fr3.set( pc.part().id(key).label(TrioPart.NUMBER).value(key).place() );
+			try {
+				Thread.sleep(0,100000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		f3.complete(1);
+	};
+	
+	long start = System.currentTimeMillis();
+	pool.runAsynch(r1);
+	pool.runAsynch(r2);
+	pool.runAsynch(r3);
+
+	f1.join();
+	f2.join();
+	f3.join();
+	
+	fr1.get().join();
+	fr2.get().join();
+	fr3.get().join();
+	long end = System.currentTimeMillis();
+
+	Persistence<Integer> p2 = getPersitence("testParallelSorted");
+
+	while(p2.getAllParts().size() > 0) {
+		Thread.sleep(500);		
+	}
+	
+	long toComplete = System.currentTimeMillis();
+	
+	System.out.println("Batch "+testSize+" loaded in "+(end-start)+" msec. completed in  "+(toComplete - start)+" msec");
+	assertEquals(testSize, tc.results.size());
+	}
+
+
+	@Test
+	public void testParallelUnload() throws InterruptedException {
+
+	int testSize = 1000;
+	
+	TrioConveyorExpireable tc = new TrioConveyorExpireable();
+	
+	Persistence<Integer> p = getPersitenceExp("testParallelUnload");
+	PersistentConveyor<Integer, TrioPartExpireable, Trio> pc = new PersistentConveyor(p, tc);
+	pc.unloadOnBuilderTimeout(true);
+	List<Integer> t1 = new ArrayList<>();
+	for(int i = 1; i<=testSize; i++) {
+		t1.add(i);
+	}
+	Collections.shuffle(t1);
+	
+	List<Integer> t2 = new ArrayList<>(t1);
+	Collections.shuffle(t2);
+
+	List<Integer> t3 = new ArrayList<>(t1);
+	Collections.shuffle(t3);
+
+	AtomicReference<CompletableFuture<Boolean>> fr1 = new AtomicReference<>();
+	AtomicReference<CompletableFuture<Boolean>> fr2 = new AtomicReference<>();
+	AtomicReference<CompletableFuture<Boolean>> fr3 = new AtomicReference<>();
+	
+	CompletableFuture<Integer> f1 = new CompletableFuture<Integer>();
+	CompletableFuture<Integer> f2 = new CompletableFuture<Integer>();
+	CompletableFuture<Integer> f3 = new CompletableFuture<Integer>();
+	
+	Runnable r1 = ()->{
+		t1.forEach(key->{
+			fr1.set( pc.part().id(key).label(TrioPartExpireable.TEXT1).value("txt1_"+key).place() );
+			try {
+				Thread.sleep(0,100000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		f1.complete(1);
+	};
+	Runnable r2 = ()->{
+		t2.forEach(key->{
+			fr2.set( pc.part().id(key).label(TrioPartExpireable.TEXT2).value("txt2_"+key).place() );
+			try {
+				Thread.sleep(0,100000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		f2.complete(1);
+	};
+	Runnable r3 = ()->{
+		t3.forEach(key->{
+			fr3.set( pc.part().id(key).label(TrioPartExpireable.NUMBER).value(key).place() );
+			try {
+				Thread.sleep(0,100000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		f3.complete(1);
+	};
+	
+	long start = System.currentTimeMillis();
+	pool.runAsynch(r1);
+	pool.runAsynch(r2);
+	pool.runAsynch(r3);
+
+	f1.join();
+	f2.join();
+	f3.join();
+	
+	fr1.get().join();
+	fr2.get().join();
+	fr3.get().join();
+	long end = System.currentTimeMillis();
+
+	Persistence<Integer> p2 = getPersitenceExp("testParallelUnload");
+
+	while(p2.getAllParts().size() > 0) {
+		Thread.sleep(500);		
+	}
+	
+	long toComplete = System.currentTimeMillis();
+	
+	System.out.println("Batch unload "+testSize+" loaded in "+(end-start)+" msec. completed in  "+(toComplete - start)+" msec");
+	assertEquals(testSize, tc.results.size());
+	}
+
 
 }

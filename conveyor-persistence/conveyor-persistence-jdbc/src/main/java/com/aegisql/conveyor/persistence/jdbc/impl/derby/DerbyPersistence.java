@@ -419,7 +419,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			final String deleteFromPartsById      = "DELETE FROM "+partTable + " WHERE ID IN(?)";
 			final String deleteFromPartsByCartKey = "DELETE FROM "+partTable + " WHERE CART_KEY IN(?)";
 			final String deleteFromCompleted      = "DELETE FROM "+completedTable + " WHERE CART_KEY IN(?)";
-			final String deleteExpiredParts       = "DELETE FROM  "+partTable+" SET ARCHIVED = 1 WHERE EXPIRATION_TIME > TIMESTAMP('19710101000000') AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
+			final String deleteExpiredParts       = "DELETE FROM "+partTable + " WHERE EXPIRATION_TIME > TIMESTAMP('19710101000000') AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
 
 			final String deleteAllParts           = "DELETE FROM "+partTable;
 			final String deleteAllCompleted       = "DELETE FROM "+completedTable;
@@ -840,7 +840,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
 				Map<String,Object> properties = (Map<String, Object>) blobConverter.fromPersistence(rs.getBlob(7));
-				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+//				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
 				
 				if(loadType == LoadType.BUILDER) {
 					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
@@ -893,7 +893,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
 				Map<String,Object> properties = (Map<String, Object>) blobConverter.fromPersistence(rs.getBlob(7));
-				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+//				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
 				if(loadType == LoadType.BUILDER) {
 					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
 				} else if(loadType == LoadType.RESULT_CONSUMER) {
@@ -962,7 +962,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
 				Map<String,Object> properties = (Map<String, Object>) blobConverter.fromPersistence(rs.getBlob(7));
-				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+//				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
 				cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
 				carts.add(cart);
 			}

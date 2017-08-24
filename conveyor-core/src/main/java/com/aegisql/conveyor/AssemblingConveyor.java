@@ -903,16 +903,18 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param accept
 	 *            the accept
 	 */
+	@SuppressWarnings("unchecked")
 	private void processSite(Cart<K, ?, L> cart, boolean accept) {
 		K key = cart.getKey();
 		if (key == null) {
 			if (cart.getLoadType() == MULTI_KEY_PART) {
 				try {
-					
 					Function<K,Cart<K, ?, L>> cartBuilder = cart.getProperty("#CART_BUILDER", Function.class);
+					Predicate<K> filter = cart.getProperty("#FILTER", Predicate.class);
 					LOG.debug("--- READY TO APPLY MULTY");
-					collector.entrySet().stream().map(entry -> entry.getKey()).filter(cart.getProperty("#FILTER", Predicate.class))
-							.collect(Collectors.toList()).forEach(k -> {
+					collector.entrySet().stream().map(entry -> entry.getKey()).filter(filter)
+							.collect(Collectors.toList())
+					.forEach(k -> {
 								processSite(cartBuilder.apply(k), accept);
 							});
 					cart.getFuture().complete(true);
