@@ -6,12 +6,14 @@ package com.aegisql.conveyor.parallel;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
@@ -169,7 +171,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	}
 
 	@Override
-	public void setAcknowledgeAction(BiConsumer<K, Status> ackAction) {
+	public void setAcknowledgeAction(Consumer<AcknowledgeStatus<K>> ackAction) {
 		for(Conveyor<K, L, OUT> conv: conveyors) {
 			conv.setAcknowledgeAction(ackAction);
 		};		

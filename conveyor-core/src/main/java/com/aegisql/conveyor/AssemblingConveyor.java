@@ -139,19 +139,19 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	protected boolean autoAck = true;
 	
-	protected BiConsumer<K,Status> ackAction = (key,status)->{};
+	protected Consumer<AcknowledgeStatus<K>> ackAction = status->{};
 
 	private EnumSet<Status> ackStatusSet = EnumSet.allOf(Status.class);
 
 	/** The key before eviction. */
-	private BiConsumer<K,Status> keyBeforeEviction = (key,status) -> {
-		LOG.trace("Key is ready to be evicted {} status:{}", key, status);
-		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> bs = collector.remove(key);
+	private Consumer<AcknowledgeStatus<K>> keyBeforeEviction = status -> {
+		LOG.trace("Key is ready to be evicted {} status:{}", status.getKey(), status.getStatus());
+		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> bs = collector.remove(status.getKey());
 		if(autoAck) {
-			if(ackStatusSet.contains(status)) {
-				ackAction.accept(key, status);
+			if(ackStatusSet.contains(status.getStatus())) {
+				ackAction.accept(status);
 			} else {
-				LOG.debug("Auto Acknowledge for key {} not applicable for status {} of {}",key,status,ackStatusSet);
+				LOG.debug("Auto Acknowledge for key {} not applicable for status {} of {}",status.getKey(),status.getStatus(),ackStatusSet);
 			}
 	}
 	};
@@ -985,7 +985,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				failureType = FailureType.RESULT_CONSUMER_FAILED;
 				completeSuccessfully((BuildingSite<K, L, ?, OUT>) buildingSite,res,Status.READY);
 				failureType = FailureType.BEFORE_EVICTION_FAILED;
-				keyBeforeEviction.accept(key,Status.READY);
+				keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.READY, buildingSite.getProperties()));
 			}
 			cart.getFuture().complete(Boolean.TRUE);
 		} catch (Exception e) {
@@ -1004,7 +1004,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			if (!failureType.equals(FailureType.BEFORE_EVICTION_FAILED)) {
 				try {
-					keyBeforeEviction.accept(key,Status.INVALID);
+					keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.INVALID, buildingSite==null?null:buildingSite.getProperties()));
 				} catch (Exception e2) {
 					LOG.error("BeforeEviction failed after processing failure: {} {} {}", failureType, e.getMessage(),
 							e2.getMessage());
@@ -1091,7 +1091,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						buildingSite, "Site expired. No timeout action", null, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
 				buildingSite.cancelFutures();
 			}
-			keyBeforeEviction.accept(key,statusForEviction);
+			keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, statusForEviction, buildingSite.getProperties()));
 			cnt++;
 		}
 		if (cnt > 0) {
@@ -1255,7 +1255,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	static <K> void cancelNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
 		K key = cart.getKey();
 		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
-		conveyor.keyBeforeEviction.accept(key,Status.CANCELED);
+		conveyor.keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.CANCELED, bs.getProperties()));
 		if(bs != null) {
 			bs.cancelFutures();
 		}
@@ -1376,7 +1376,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#addBeforeKeyEvictionAction(java.util.
 	 * function.Consumer)
 	 */
-	public void addBeforeKeyEvictionAction(BiConsumer<K,Status> keyBeforeEviction) {
+	public void addBeforeKeyEvictionAction(Consumer<AcknowledgeStatus<K>> keyBeforeEviction) {
 		if (keyBeforeEviction != null) {
 			this.keyBeforeEviction = keyBeforeEviction.andThen(this.keyBeforeEviction);
 		}
@@ -1605,7 +1605,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	@Override
-	public void setAcknowledgeAction(BiConsumer<K,Status> ackAction) {
+	public void setAcknowledgeAction(Consumer<AcknowledgeStatus<K>> ackAction) {
 		this.ackAction = ackAction;
 	}
 

@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.persistence.cleanup;
 
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.SmartLabel;
@@ -20,6 +21,7 @@ public class PersistenceCleanupBatchConveyor <K> extends AssemblingConveyor<Sing
 	public PersistenceCleanupBatchConveyor(Persistence<K> persistence) {
 		super();
 		this.setName("PersistenceCleanupBatchConveyor");
+		this.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		this.setBuilderSupplier( () -> new CleaunupBatchBuilder<K>(persistence)  );
 		this.resultConsumer(bin->{
 			bin.product.run();

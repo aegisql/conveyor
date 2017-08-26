@@ -272,7 +272,7 @@ public interface Conveyor<K, L, OUT> {
 	 *
 	 * @param keyBeforeEviction the key before eviction
 	 */
-	public void addBeforeKeyEvictionAction(BiConsumer<K,Status> keyBeforeEviction);
+	public void addBeforeKeyEvictionAction(Consumer<AcknowledgeStatus<K>> keyBeforeEviction);
 	
 	/**
 	 * Adds the before key rescheduling action.
@@ -433,7 +433,7 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	void setAutoAcknowledge(boolean auto);
 	
-	void setAcknowledgeAction(BiConsumer<K,Status> ackAction);
+	void setAcknowledgeAction(Consumer<AcknowledgeStatus<K>> ackAction);
 
 	void autoAcknowledgeOnStatus(Status first, Status... other);
 	

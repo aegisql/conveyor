@@ -823,7 +823,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	@Override
 	public <L> Cart<K, ?, L> getPart(long id) {
 		Cart<K, ?, L> cart = null;
-		LOG.debug("getPart: {}",getPartQuery);
+		LOG.debug("getPart: {} {}",id,getPartQuery);
 		try(PreparedStatement st = conn.prepareStatement(getPartQuery) ) {
 			st.setLong(1, id);
 			ResultSet rs = st.executeQuery();

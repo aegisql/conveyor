@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuilder;
@@ -39,7 +40,7 @@ public class AckBuilderTest {
 
 		Persistence<Integer> p = new PersistTestImpl();
 		
-		AcknowledgeBuilder<Integer> ab = new AcknowledgeBuilder<>(p, null);
+		AcknowledgeBuilder<Integer> ab = new AcknowledgeBuilder<>(p, null,null);
 		
 		ab.processCart(ab, new ShoppingCart<>(1, 1, "A"));
 		ab.processCart(ab, new ShoppingCart<>(1, 2, "B"));
@@ -49,7 +50,7 @@ public class AckBuilderTest {
 		assertFalse(ab.test());
 		ab.keyReady(ab, 1);
 		assertFalse(ab.test());
-		ab.complete(ab, 1);
+		ab.complete(ab, new AcknowledgeStatus<>(1, Status.READY, null));
 		assertTrue(ab.test());
 		assertEquals(4, ab.get().size());
 		System.out.println(ab.get());

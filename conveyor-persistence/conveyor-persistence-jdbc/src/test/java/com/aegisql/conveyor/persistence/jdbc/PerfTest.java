@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,6 +21,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
+import com.aegisql.conveyor.parallel.ParallelConveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.ThreadPool;
@@ -283,7 +286,7 @@ public class PerfTest {
 	@Test
 	public void testParallelUnload() throws InterruptedException {
 
-	int testSize = 1000;
+	int testSize = 10000;
 	
 	TrioConveyorExpireable tc = new TrioConveyorExpireable();
 	
@@ -360,16 +363,117 @@ public class PerfTest {
 	long end = System.currentTimeMillis();
 
 	Persistence<Integer> p2 = getPersitenceExp("testParallelUnload");
-
+//	Thread.sleep(10000);
 	while(p2.getAllParts().size() > 0) {
-		Thread.sleep(500);		
+		Thread.sleep(1000);		
+		System.out.println("Batch unload "+testSize+" tc size "+tc.results.size());
 	}
 	
 	long toComplete = System.currentTimeMillis();
 	
 	System.out.println("Batch unload "+testSize+" loaded in "+(end-start)+" msec. completed in  "+(toComplete - start)+" msec");
-	assertEquals(testSize, tc.results.size());
+	assertEquals(tc.results.size(),testSize);
 	}
 
+	@Test
+	public void testParallelParallelAsorted() throws InterruptedException {
 
+	int testSize = 10000;
+	
+	TrioConveyor tc1 = new TrioConveyor();
+	TrioConveyor tc2 = new TrioConveyor();
+	
+	Persistence<Integer> p1 = getPersitence("testParallelAsorted1");
+	Persistence<Integer> p2 = getPersitence("testParallelAsorted2");
+	PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1);
+	PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2);
+	Stack<PersistentConveyor<Integer, TrioPart, Trio>> st = new Stack<>();
+	st.push(pc1);
+	st.push(pc2);
+
+	ParallelConveyor<Integer, TrioPart, Trio> pc = new KBalancedParallelConveyor<>(()->st.pop(), 2);
+	
+	List<Integer> t1 = new ArrayList<>();
+	for(int i = 1; i<=testSize; i++) {
+		t1.add(i);
+	}
+	Collections.shuffle(t1);
+	
+	List<Integer> t2 = new ArrayList<>(t1);
+	Collections.shuffle(t2);
+
+	List<Integer> t3 = new ArrayList<>(t1);
+	Collections.shuffle(t3);
+
+	AtomicReference<CompletableFuture<Boolean>> fr1 = new AtomicReference<>();
+	AtomicReference<CompletableFuture<Boolean>> fr2 = new AtomicReference<>();
+	AtomicReference<CompletableFuture<Boolean>> fr3 = new AtomicReference<>();
+	
+	CompletableFuture<Integer> f1 = new CompletableFuture<Integer>();
+	CompletableFuture<Integer> f2 = new CompletableFuture<Integer>();
+	CompletableFuture<Integer> f3 = new CompletableFuture<Integer>();
+	
+	Runnable r1 = ()->{
+		t1.forEach(key->{
+			fr1.set( pc.part().id(key).label(TrioPart.TEXT1).value("txt1_"+key).place() );
+			try {
+				Thread.sleep(0,100000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		f1.complete(1);
+	};
+	Runnable r2 = ()->{
+		t2.forEach(key->{
+			fr2.set( pc.part().id(key).label(TrioPart.TEXT2).value("txt2_"+key).place() );
+			try {
+				Thread.sleep(0,100000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		f2.complete(1);
+	};
+	Runnable r3 = ()->{
+		t3.forEach(key->{
+			fr3.set( pc.part().id(key).label(TrioPart.NUMBER).value(key).place() );
+			try {
+				Thread.sleep(0,100000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		f3.complete(1);
+	};
+	
+	long start = System.currentTimeMillis();
+	pool.runAsynch(r1);
+	pool.runAsynch(r2);
+	pool.runAsynch(r3);
+
+	f1.join();
+	f2.join();
+	f3.join();
+	
+	fr1.get().join();
+	fr2.get().join();
+	fr3.get().join();
+	long end = System.currentTimeMillis();
+
+	Persistence<Integer> p3 = getPersitence("testParallelAsorted1");
+	Persistence<Integer> p4 = getPersitence("testParallelAsorted2");
+
+	while(p3.getAllParts().size() > 0 || p4.getAllParts().size() > 0) {
+		Thread.sleep(500);		
+	}
+	
+	long toComplete = System.currentTimeMillis();
+	
+	System.out.println("Batch Parallel "+testSize+" loaded in "+(end-start)+" msec. completed in  "+(toComplete - start)+" msec");
+	System.out.println("TC1="+tc1.results.size()+" TC2="+tc2.results.size());
+	assertEquals(testSize, tc1.results.size()+tc2.results.size());
+	}
+
+	
 }

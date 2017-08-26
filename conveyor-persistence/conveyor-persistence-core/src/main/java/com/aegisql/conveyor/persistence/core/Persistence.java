@@ -50,6 +50,7 @@ public interface Persistence <K> extends Closeable{
 			if( ! completed.contains(key) ) {
 				long nextId = nextUniquePartId();
 				cart.addProperty("#CART_ID", nextId);
+				cart.addProperty(nextId+"","#CART_ID");
 				Integer recoveryAttempt = cart.getProperty("RECOVERY_ATTEMPT", Integer.class);
 				if(recoveryAttempt == null) {
 					cart.addProperty("RECOVERY_ATTEMPT", 1);

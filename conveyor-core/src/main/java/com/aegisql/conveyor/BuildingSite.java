@@ -172,7 +172,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			boolean postponeExpirationOnTimeoutEnabled,
 			Map<L,C> staticValues,
 			ResultConsumer<K,OUT> resultConsumer,
-			BiConsumer<K,Status> ackAction
+			Consumer<AcknowledgeStatus<K>> ackAction
 			) {
 		this.initialCart               = cart;
 		this.lastCart                  = cart;
@@ -192,7 +192,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			@Override
 			public synchronized void ack() {
 				if(! acknowledged) {
-					ackAction.accept(getKey(), status);
+					ackAction.accept(new AcknowledgeStatus<>(getKey(),status,properties));
 					acknowledged = true;
 				}
 			}

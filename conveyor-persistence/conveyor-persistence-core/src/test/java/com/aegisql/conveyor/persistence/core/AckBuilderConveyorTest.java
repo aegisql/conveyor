@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuildingConveyor;
@@ -58,7 +59,7 @@ public class AckBuilderConveyorTest {
 		abc.part().id(1).label(abc.CART).value(new ShoppingCart<Integer, Integer, String>(1, 3, "C")).place();
 		
 		abc.part().id(1).label(abc.READY).value(1).place();
-		abc.part().id(1).label(abc.COMPLETE).value(Status.READY).place();
+		abc.part().id(1).label(abc.COMPLETE).value(new AcknowledgeStatus<>(1, Status.READY,null)).place();
 		List<Long> ids = f.join();
 		System.out.println(ids);
 	

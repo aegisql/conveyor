@@ -29,6 +29,7 @@ import javax.management.StandardMBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
@@ -495,7 +496,8 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#addBeforeKeyEvictionAction(java.util.function.Consumer)
 	 */
-	public void addBeforeKeyEvictionAction(BiConsumer<K,Status> keyBeforeEviction) {
+	@Override
+	public void addBeforeKeyEvictionAction(Consumer<AcknowledgeStatus<K>> keyBeforeEviction) {
 		if(keyBeforeEviction != null) {
 			this.conveyors.forEach(conv->conv.addBeforeKeyEvictionAction(keyBeforeEviction));
 		}
