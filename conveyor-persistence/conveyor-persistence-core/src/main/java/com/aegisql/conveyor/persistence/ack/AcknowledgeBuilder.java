@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Expireable;
-import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
@@ -33,7 +32,9 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 	private final AcknowledgeBuildingConveyor<K> ackConveyor;
 	
 	private boolean initializationMode = false;
-	
+
+	private boolean unloadEnabled      = false;
+
 	private Long timestamp = Long.valueOf(0);
 	
 	private K keyReady = null;
@@ -57,7 +58,11 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 	public static <K, L> void setMode(AcknowledgeBuilder<K> builder, Boolean mode) {
 		builder.initializationMode = mode;
 	}
-	
+
+	public static <K, L> void setUnloadMode(AcknowledgeBuilder<K> builder, Boolean mode) {
+		builder.unloadEnabled = mode;
+	}
+
 	public static <K, L> void processCart(AcknowledgeBuilder<K> builder, Cart<K, ?, L> cart) {
 		LOG.debug("CART " + cart);
 		boolean save = false;
@@ -75,7 +80,7 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 		
 		if( ! builder.initializationMode ) {
 			//savedIds.removeAll(builder.cartIds);
-			if(builder.cartIds.isEmpty()) {
+			if(builder.unloadEnabled && builder.cartIds.isEmpty()) {
 				Set<Long> savedIds = new HashSet<>(builder.persistence.getAllPartIds(key));
 				LOG.debug("RESTORE {}",savedIds);
 				savedIds.forEach(i->{

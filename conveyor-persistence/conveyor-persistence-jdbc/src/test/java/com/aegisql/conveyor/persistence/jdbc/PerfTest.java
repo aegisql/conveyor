@@ -286,7 +286,7 @@ public class PerfTest {
 	@Test
 	public void testParallelUnload() throws InterruptedException {
 
-	int testSize = 10000;
+	int testSize = 2000;
 	
 	TrioConveyorExpireable tc = new TrioConveyorExpireable();
 	

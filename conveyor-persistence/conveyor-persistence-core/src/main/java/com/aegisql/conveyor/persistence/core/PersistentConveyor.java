@@ -482,6 +482,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		} else {
 			onStatus.put(Status.TIMED_OUT, this::complete);			
 		}
+		ackConveyor.staticPart().label(ackConveyor.UNLOAD_ENABLED).value(unload).place();
 	}
 	
 }

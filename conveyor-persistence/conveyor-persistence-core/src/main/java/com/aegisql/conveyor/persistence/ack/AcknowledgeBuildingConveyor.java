@@ -20,6 +20,7 @@ public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, Smart
 	public final SmartLabel<AcknowledgeBuilder<K>> COMPLETE = SmartLabel.of("COMPLETE", (b,key)->{ AcknowledgeBuilder.complete(b, (AcknowledgeStatus<K>)key); });
 	public final SmartLabel<AcknowledgeBuilder<K>> REPLAY   = SmartLabel.of("REPLAY", (b,key)->{ AcknowledgeBuilder.replay(b, (K)key); });
 	public final SmartLabel<AcknowledgeBuilder<K>> MODE     = SmartLabel.of("MODE", (b,mode)->{ AcknowledgeBuilder.setMode(b, (Boolean)mode); });
+	public final SmartLabel<AcknowledgeBuilder<K>> UNLOAD_ENABLED = SmartLabel.of("UNLOAD_ENABLED", (b,mode)->{ AcknowledgeBuilder.setUnloadMode(b, (Boolean)mode); });
 	public final SmartLabel<AcknowledgeBuilder<K>> UNLOAD   = SmartLabel.of("UNLOAD", (b,key)->{ AcknowledgeBuilder.unload(b, (AcknowledgeStatus<K>)key); });
 	
 	private final AtomicBoolean initializationMode = new AtomicBoolean(true);
