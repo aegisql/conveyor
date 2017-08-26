@@ -37,7 +37,6 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 
 	private Long timestamp = Long.valueOf(0);
 	
-	private K keyReady = null;
 	private boolean complete = false;
 
 	public AcknowledgeBuilder(Persistence<K> persistence, Conveyor<K, ?, ?> forward, AcknowledgeBuildingConveyor<K> ackConveyor) {
@@ -101,18 +100,13 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 				builder.persistence.savePartId(cart.getKey(), id);
 			}
 			builder.cartIds.add(id);
-			if (builder.keyReady == null && builder.forward != null) {
-				cart.addProperty("#TIMESTAMP", builder.timestamp);
+			cart.addProperty("#TIMESTAMP", builder.timestamp);
+			if (builder.forward != null) {
 				builder.forward.place((Cart) cart);
 			}
 		} else {
 			LOG.debug("Duplicate cart {}",cart.getKey());
 		}
-	}
-
-	public static <K, L> void keyReady(AcknowledgeBuilder<K> builder, K key) {
-		LOG.debug("ACK " + key);
-		builder.keyReady = key;
 	}
 
 	public static <K, L> void unload(AcknowledgeBuilder<K> builder, AcknowledgeStatus<K> status) {
@@ -187,7 +181,7 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 	@Override
 	public String toString() {
 		return "AcknowledgeBuilder [persistence=" + persistence + ", cartIds=" + cartIds + ", forward=" + forward
-				+ ", keyReady=" + keyReady + ", complete=" + complete + "]";
+				 + ", complete=" + complete + "]";
 	}
 
 }
