@@ -1255,7 +1255,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	static <K> void cancelNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
 		K key = cart.getKey();
 		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
-		conveyor.keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.CANCELED, bs.getProperties()));
+		Map<String,Object> properties = bs == null ? new HashMap<>():bs.getProperties();
+		conveyor.keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.CANCELED, properties));
 		if(bs != null) {
 			bs.cancelFutures();
 		}
