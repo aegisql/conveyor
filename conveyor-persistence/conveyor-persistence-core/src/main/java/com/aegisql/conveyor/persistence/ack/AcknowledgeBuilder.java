@@ -134,7 +134,7 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 		LOG.debug("UNLOAD {}={}",status.getKey(),siteIds);
 		builder.complete = true;
 		builder.cartIds = null;
-		if(! timestamp.equals(builder.timestamp)) {
+		if(! builder.initializationMode && ! timestamp.equals(builder.timestamp)) {
 			builder.ackConveyor.part().id(status.getKey()).value(status.getKey()).label(builder.ackConveyor.REPLAY).place();
 		}
 
