@@ -19,7 +19,7 @@ import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 
-public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Expireable {
+public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expireable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -38,6 +38,8 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 	private Long timestamp = Long.valueOf(0);
 	
 	private boolean complete = false;
+	
+	private Boolean completeResult = null;
 
 	public AcknowledgeBuilder(Persistence<K> persistence, Conveyor<K, ?, ?> forward, AcknowledgeBuildingConveyor<K> ackConveyor) {
 		this.persistence        = persistence;
@@ -46,11 +48,11 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 	}
 
 	@Override
-	public List<Long> get() {
-		if(cartIds == null) {
+	public Boolean get() {
+		if(completeResult == null) {
 			return null;
 		} else {
-			return new ArrayList<>(cartIds);
+			return completeResult;
 		}
 	}
 
@@ -127,6 +129,7 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 		}
 		LOG.debug("UNLOAD {}={}",status.getKey(),siteIds);
 		builder.complete = true;
+		builder.completeResult = Boolean.FALSE;
 		builder.cartIds = null;
 		if(! builder.initializationMode && ! timestamp.equals(builder.timestamp)) {
 			builder.ackConveyor.part().id(status.getKey()).value(status.getKey()).label(builder.ackConveyor.REPLAY).place();
@@ -136,15 +139,8 @@ public class AcknowledgeBuilder<K> implements Supplier<List<Long>>, Testing, Exp
 
 	public static <K, L> void complete(AcknowledgeBuilder<K> builder, AcknowledgeStatus<K> status) {
 		builder.complete  = true;
-		Set<Long> siteIds = new HashSet<>();
-		for(Map.Entry<String,Object> en : status.getProperties().entrySet()) {
-			if("#CART_ID".equals(en.getValue())) {
-				Long id = Long.parseLong(en.getKey());
-				siteIds.add(id);
-			}
-		}
-		builder.cartIds.addAll(siteIds);
-		LOG.debug("COMPLETE {}  {}",siteIds,status);
+		builder.completeResult = Boolean.TRUE;
+		LOG.debug("COMPLETE {}",status);
 	}
 
 	public static <K, L> void replay(AcknowledgeBuilder<K> builder, K key) {

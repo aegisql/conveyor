@@ -13,7 +13,7 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;
 
-public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, SmartLabel<AcknowledgeBuilder<K>>, List<Long>> {
+public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, SmartLabel<AcknowledgeBuilder<K>>, Boolean> {
 	
 	public final SmartLabel<AcknowledgeBuilder<K>> CART     = SmartLabel.of("CART", (b,cart)->{ AcknowledgeBuilder.processCart(b, (Cart<K,?,?>)cart); });
 	public final SmartLabel<AcknowledgeBuilder<K>> COMPLETE = SmartLabel.of("COMPLETE", (b,key)->{ AcknowledgeBuilder.complete(b, (AcknowledgeStatus<K>)key); });
@@ -31,10 +31,11 @@ public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, Smart
 		this.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		this.resultConsumer(bin->{
 			if(cleaner != null) {
-				if( bin.product != null) {
-					cleaner.part().label(cleaner.KEY).value(bin.key).place();
-					cleaner.part().label(cleaner.CART_IDS).value(bin.product).place();
-				}
+//				if( bin.product != null) {
+//					cleaner.part().label(cleaner.KEY).value(bin.key).place();
+//					cleaner.part().label(cleaner.CART_IDS).value(bin.product).place();
+//				}
+				LOG.debug("{} {}",bin.key,bin.product?" COMPLETE":" UNLOADED");
 			}
 		}).set();
 	}

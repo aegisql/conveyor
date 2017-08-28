@@ -51,7 +51,7 @@ public class AckBuilderTest {
 		assertFalse(ab.test());
 		ab.complete(ab, new AcknowledgeStatus<>(1, Status.READY, null));
 		assertTrue(ab.test());
-		assertEquals(4, ab.get().size());
+		assertTrue(ab.get());
 		System.out.println(ab.get());
 		
 	}

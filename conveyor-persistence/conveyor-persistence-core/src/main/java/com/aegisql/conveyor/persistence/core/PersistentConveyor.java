@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -123,6 +124,15 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	
 	private void complete(AcknowledgeStatus<K> status) {
 		forwardPersistence.saveCompletedBuildKey(status.getKey());
+		Set<Long> siteIds = new HashSet<>();
+		for(Map.Entry<String,Object> en : status.getProperties().entrySet()) {
+			if("#CART_ID".equals(en.getValue())) {
+				Long id = Long.parseLong(en.getKey());
+				siteIds.add(id);
+			}
+		}
+		cleaner.part().label(cleaner.KEY).value(status.getKey()).place();
+		cleaner.part().label(cleaner.CART_IDS).value(siteIds).place();
 		ackConveyor.part().id(status.getKey()).label(ackConveyor.COMPLETE).value(status).place();
 	}
 	

@@ -77,8 +77,8 @@ public class PerfTest {
 					.completedLogTable(table+"Completed")
 					.labelConverter(TrioPart.class)
 					//.whenArchiveRecords().markArchived()
-					.maxBatchTime(1000,TimeUnit.MILLISECONDS)
-					.maxBatchSize(1000)
+					.maxBatchTime(60000,TimeUnit.MILLISECONDS)
+					.maxBatchSize(10000)
 					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -107,7 +107,7 @@ public class PerfTest {
 	@Test
 	public void testParallelAsorted() throws InterruptedException {
 
-	int testSize = 10000;
+	int testSize = 100000;
 	
 	TrioConveyor tc = new TrioConveyor();
 	
@@ -185,7 +185,7 @@ public class PerfTest {
 	Persistence<Integer> p2 = getPersitence("testParallelAsorted");
 
 	while(p2.getAllParts().size() > 0) {
-		Thread.sleep(500);		
+		Thread.sleep(1000);		
 	}
 	
 	long toComplete = System.currentTimeMillis();

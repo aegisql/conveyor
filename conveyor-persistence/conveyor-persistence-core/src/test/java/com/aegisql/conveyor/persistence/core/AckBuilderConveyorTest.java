@@ -52,14 +52,14 @@ public class AckBuilderConveyorTest {
 		AcknowledgeBuildingConveyor<Integer> abc = new AcknowledgeBuildingConveyor<>(p, null, null); //no forward, no cleaning
 		abc.setIdleHeartBeat(10,TimeUnit.MILLISECONDS);
 		
-		CompletableFuture<List<Long>> f = abc.future().id(1).get();
+		CompletableFuture<Boolean> f = abc.future().id(1).get();
 		
 		abc.part().id(1).label(abc.CART).value(new ShoppingCart<Integer, Integer, String>(1, 1, "A")).place();
 		abc.part().id(1).label(abc.CART).value(new ShoppingCart<Integer, Integer, String>(1, 2, "B")).place();
 		abc.part().id(1).label(abc.CART).value(new ShoppingCart<Integer, Integer, String>(1, 3, "C")).place();
 		
 		abc.part().id(1).label(abc.COMPLETE).value(new AcknowledgeStatus<>(1, Status.READY,null)).place();
-		List<Long> ids = f.join();
+		Boolean ids = f.join();
 		System.out.println(ids);
 	
 	}
