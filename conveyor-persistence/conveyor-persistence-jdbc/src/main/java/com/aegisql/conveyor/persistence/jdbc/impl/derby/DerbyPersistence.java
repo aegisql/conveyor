@@ -767,6 +767,10 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	public static <K> DerbyPersistenceBuilder<K> forKeyClass(Class<K> clas) {
 		return new DerbyPersistenceBuilder<K>(clas);
 	}
+
+	public DerbyPersistenceBuilder<K> getBuilder() {
+		return builder;
+	}
 	
 	@Override
 	public Persistence<K> copy() {
