@@ -1,10 +1,8 @@
 package com.aegisql.conveyor.persistence.ack;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -80,7 +78,6 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 		}
 		
 		if( ! builder.initializationMode ) {
-			//savedIds.removeAll(builder.cartIds);
 			if(builder.unloadEnabled && builder.cartIds.isEmpty()) {
 				Set<Long> savedIds = new HashSet<>(builder.persistence.getAllPartIds(key));
 				LOG.debug("RESTORE {}",savedIds);
@@ -130,7 +127,6 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 		LOG.debug("UNLOAD {}={}",status.getKey(),siteIds);
 		builder.complete = true;
 		builder.completeResult = Boolean.FALSE;
-		builder.cartIds = null;
 		if(! builder.initializationMode && ! timestamp.equals(builder.timestamp)) {
 			builder.ackConveyor.part().id(status.getKey()).value(status.getKey()).label(builder.ackConveyor.REPLAY).place();
 		}
