@@ -64,12 +64,14 @@ public class PerfTest {
 
 	int batchSize;
 	
-	double sleepTime = 0.0;
+	double sleepTime = 0.01;
+	int sleepNumber;
 
 	@Before
 	public void setUp() throws Exception {
 		pool = new ThreadPool(3);
 		batchSize = testSize / 20;
+		sleepNumber = batchSize;
 		System.out.println("--- " + new Date());
 	}
 
@@ -118,8 +120,8 @@ public class PerfTest {
 		return t1;
 	}
 
-	void sleep(double frac) {
-		if(frac == 0.0) {
+	void sleep(int i, double frac) {
+		if(i % sleepNumber !=  0) {
 			return;
 		}
 		int msec = (int) frac;
@@ -142,21 +144,21 @@ public class PerfTest {
 		Runnable r1 = () -> {
 			l1.forEach(key -> {
 				fr1.set(pc.part().id(key).label(TrioPart.TEXT1).value("txt1_" + key).place());
-				sleep(sleepTime);
+				sleep(key,sleepTime);
 			});
 			f1.complete(1);
 		};
 		Runnable r2 = () -> {
 			l2.forEach(key -> {
 				fr2.set(pc.part().id(key).label(TrioPart.TEXT2).value("txt2_" + key).place());
-				sleep(sleepTime);
+				sleep(key,sleepTime);
 			});
 			f2.complete(1);
 		};
 		Runnable r3 = () -> {
 			l3.forEach(key -> {
 				fr3.set(pc.part().id(key).label(TrioPart.NUMBER).value(key).place());
-				sleep(sleepTime);
+				sleep(key,sleepTime);
 			});
 			f3.complete(1);
 		};
@@ -176,7 +178,7 @@ public class PerfTest {
 
 	void waitUntilArchived(Persistence<Integer> p) {
 		while (p.getNumberOfParts() > 0) {
-			sleep(1000.0);
+			sleep(sleepNumber,1000.0);
 		}
 	}
 
@@ -261,21 +263,21 @@ public class PerfTest {
 		Runnable r1 = () -> {
 			t1.forEach(key -> {
 				fr1.set(pc.part().id(key).label(TrioPartExpireable.TEXT1).value("txt1_" + key).place());
-				sleep(sleepTime);
+				sleep(key,sleepTime);
 			});
 			f1.complete(1);
 		};
 		Runnable r2 = () -> {
 			t2.forEach(key -> {
 				fr2.set(pc.part().id(key).label(TrioPartExpireable.TEXT2).value("txt2_" + key).place());
-				sleep(sleepTime);
+				sleep(key,sleepTime);
 			});
 			f2.complete(1);
 		};
 		Runnable r3 = () -> {
 			t3.forEach(key -> {
 				fr3.set(pc.part().id(key).label(TrioPartExpireable.NUMBER).value(key).place());
-				sleep(sleepTime);
+				sleep(key,sleepTime);
 			});
 			f3.complete(1);
 		};
