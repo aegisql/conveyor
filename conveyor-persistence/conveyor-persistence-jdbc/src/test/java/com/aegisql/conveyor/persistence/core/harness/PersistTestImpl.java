@@ -166,4 +166,10 @@ public class PersistTestImpl implements Persistence<Integer> {
 	public long getMaxArchiveBatchTime() {
 		return maxBatchTime;
 	}
+	
+	@Override
+	public long getNumberOfParts() {
+		return cartIds.size();
+	}
+
 }

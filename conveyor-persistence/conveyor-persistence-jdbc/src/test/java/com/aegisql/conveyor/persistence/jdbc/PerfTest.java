@@ -107,7 +107,7 @@ public class PerfTest {
 	@Test
 	public void testParallelAsorted() throws InterruptedException {
 
-	int testSize = 100000;
+	int testSize = 10000;
 	
 	TrioConveyor tc = new TrioConveyor();
 	
@@ -184,7 +184,7 @@ public class PerfTest {
 
 	Persistence<Integer> p2 = getPersitence("testParallelAsorted");
 
-	while(p2.getAllParts().size() > 0) {
+	while(p2.getNumberOfParts() > 0) {
 		Thread.sleep(1000);		
 	}
 	
@@ -272,7 +272,7 @@ public class PerfTest {
 
 	Persistence<Integer> p2 = getPersitence("testParallelSorted");
 
-	while(p2.getAllParts().size() > 0) {
+	while(p2.getNumberOfParts() > 0) {
 		Thread.sleep(500);		
 	}
 	
@@ -286,7 +286,7 @@ public class PerfTest {
 	@Test
 	public void testParallelUnload() throws InterruptedException {
 
-	int testSize = 2000;
+	int testSize = 10000;
 	
 	TrioConveyorExpireable tc = new TrioConveyorExpireable();
 	
@@ -364,8 +364,8 @@ public class PerfTest {
 
 	Persistence<Integer> p2 = getPersitenceExp("testParallelUnload");
 //	Thread.sleep(10000);
-	while(p2.getAllParts().size() > 0) {
-		Thread.sleep(1000);		
+	while(p2.getNumberOfParts() > 0) {
+		Thread.sleep(5000);		
 		System.out.println("Batch unload "+testSize+" tc size "+tc.results.size());
 	}
 	
@@ -464,8 +464,8 @@ public class PerfTest {
 	Persistence<Integer> p3 = getPersitence("testParallelAsorted1");
 	Persistence<Integer> p4 = getPersitence("testParallelAsorted2");
 
-	while(p3.getAllParts().size() > 0 || p4.getAllParts().size() > 0) {
-		Thread.sleep(500);		
+	while(p3.getNumberOfParts() > 0 || p4.getNumberOfParts() > 0) {
+		Thread.sleep(1000);		
 	}
 	
 	long toComplete = System.currentTimeMillis();

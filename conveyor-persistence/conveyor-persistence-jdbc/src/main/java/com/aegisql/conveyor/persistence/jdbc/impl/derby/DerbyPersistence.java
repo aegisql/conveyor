@@ -701,6 +701,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,getAllUnfinishedPartIdsQuery
 					,getAllCompletedKeysQuery
 					,getAllStaticPartsQuery
+					,"SELECT COUNT(*) FROM "+partTable
 					,archiver
 					,labelConverter
 					,blobConverter
@@ -729,6 +730,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	private final DerbyPersistenceBuilder<K> builder;
 	private final int maxBatchSize;
 	private final long maxBatchTime;
+	private final String getNumberOfPartsQuery;
 	
 	private DerbyPersistence(
 			DerbyPersistenceBuilder<K> builder
@@ -741,6 +743,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,String getAllUnfinishedPartIdsQuery
 			,String getAllCompletedKeysQuery
 			,String getAllStaticPartsQuery
+			,String getNumberOfPartsQuery
 			,Archiver<K> archiver
 			,ObjectConverter<?,String> labelConverter
 			,BlobConverter blobConverter
@@ -758,6 +761,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		this.getAllStaticPartsQuery       = getAllStaticPartsQuery;
 		this.getAllUnfinishedPartIdsQuery = getAllUnfinishedPartIdsQuery;
 		this.getAllCompletedKeysQuery     = getAllCompletedKeysQuery;
+		this.getNumberOfPartsQuery        = getNumberOfPartsQuery;
 		this.archiver                     = archiver;
 		this.labelConverter               = labelConverter;
 		this.maxBatchSize                 = maxBatchSize;
@@ -999,6 +1003,21 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	@Override
 	public long getMaxArchiveBatchTime() {
 		return maxBatchTime;
+	}
+
+	@Override
+	public long getNumberOfParts() {
+		long res = -1;
+		try(PreparedStatement st = conn.prepareStatement(getNumberOfPartsQuery) ) {
+			ResultSet rs = st.executeQuery();
+			if(rs.next()) {
+				res = rs.getLong(1);
+			}
+		} catch (Exception e) {
+	    	LOG.error("getNumberOfParts Exception:",e.getMessage());
+	    	throw new RuntimeException("getNumberOfParts failed",e);
+		}
+		return res;
 	}
 	
 }

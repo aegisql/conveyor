@@ -33,6 +33,9 @@ public interface Persistence <K> extends Closeable{
 	public int getMaxArchiveBatchSize();
 	public long getMaxArchiveBatchTime();
 	
+	//HELP
+	public long getNumberOfParts();
+	
 	default <L> Collection<Cart<K,?,L>> getAllParts(K key) {
 		Collection<Cart<K,?,L>> carts = new ArrayList<>();
 		Collection<Long> allIds = getAllPartIds(key);
