@@ -23,6 +23,14 @@ public class PersistTestImpl implements Persistence<Integer> {
 	private int maxBatchSize  = 3;
 	private long maxBatchTime = 60_000;
 	
+	public void setMaxBatchSize(int maxBatchSize) {
+		this.maxBatchSize = maxBatchSize;
+	}
+
+	public void setMaxBatchTime(long maxBatchTime) {
+		this.maxBatchTime = maxBatchTime;
+	}
+
 	public PersistTestImpl() {
 		
 	}

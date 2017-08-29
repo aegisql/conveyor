@@ -27,6 +27,7 @@ import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.ParallelConveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
+import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 import com.aegisql.conveyor.persistence.core.harness.ThreadPool;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
@@ -59,9 +60,11 @@ public class PerfTest {
 
 	ThreadPool pool;
 
-	int testSize = 10000;
+	int testSize = 100000;
 
 	int batchSize;
+	
+	double sleepTime = 0.0;
 
 	@Before
 	public void setUp() throws Exception {
@@ -116,6 +119,9 @@ public class PerfTest {
 	}
 
 	void sleep(double frac) {
+		if(frac == 0.0) {
+			return;
+		}
 		int msec = (int) frac;
 		double nsec = frac - msec;
 		try {
@@ -136,21 +142,21 @@ public class PerfTest {
 		Runnable r1 = () -> {
 			l1.forEach(key -> {
 				fr1.set(pc.part().id(key).label(TrioPart.TEXT1).value("txt1_" + key).place());
-				sleep(0.1);
+				sleep(sleepTime);
 			});
 			f1.complete(1);
 		};
 		Runnable r2 = () -> {
 			l2.forEach(key -> {
 				fr2.set(pc.part().id(key).label(TrioPart.TEXT2).value("txt2_" + key).place());
-				sleep(0.1);
+				sleep(sleepTime);
 			});
 			f2.complete(1);
 		};
 		Runnable r3 = () -> {
 			l3.forEach(key -> {
 				fr3.set(pc.part().id(key).label(TrioPart.NUMBER).value(key).place());
-				sleep(0.1);
+				sleep(sleepTime);
 			});
 			f3.complete(1);
 		};
@@ -225,6 +231,7 @@ public class PerfTest {
 
 		System.out.println("testParallelSorted data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
+		assertEquals(testSize, tc.counter.get());
 
 	}
 
@@ -254,33 +261,21 @@ public class PerfTest {
 		Runnable r1 = () -> {
 			t1.forEach(key -> {
 				fr1.set(pc.part().id(key).label(TrioPartExpireable.TEXT1).value("txt1_" + key).place());
-				try {
-					Thread.sleep(0, 100000);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				sleep(sleepTime);
 			});
 			f1.complete(1);
 		};
 		Runnable r2 = () -> {
 			t2.forEach(key -> {
 				fr2.set(pc.part().id(key).label(TrioPartExpireable.TEXT2).value("txt2_" + key).place());
-				try {
-					Thread.sleep(0, 100000);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				sleep(sleepTime);
 			});
 			f2.complete(1);
 		};
 		Runnable r3 = () -> {
 			t3.forEach(key -> {
 				fr3.set(pc.part().id(key).label(TrioPartExpireable.NUMBER).value(key).place());
-				try {
-					Thread.sleep(0, 100000);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				sleep(sleepTime);
 			});
 			f3.complete(1);
 		};
@@ -306,6 +301,7 @@ public class PerfTest {
 
 		System.out.println("testParallelUnload data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
+		assertEquals(testSize, tc.counter.get());
 	}
 
 	@Test
@@ -342,6 +338,58 @@ public class PerfTest {
 
 		System.out.println("testParallelParallelAsorted data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc1.results.size() + tc2.results.size());
+		assertEquals(testSize, tc1.counter.get()+tc2.counter.get());
+	}
+	
+	@Test
+	public void testOnlyConveyor() {
+		TrioConveyor tc = new TrioConveyor();
+
+
+		List<Integer> t1 = getIdListShuffled();
+		List<Integer> t2 = getIdListShuffled();
+		List<Integer> t3 = getIdListShuffled();
+		System.out.println("testOnlyConveyor " + testSize);
+
+		long start = System.currentTimeMillis();
+		load(tc, t1, t2, t3);
+		long end = System.currentTimeMillis();
+		System.out.println("testOnlyConveyor load complete in " + (end - start) + " msec.");
+
+
+		long toComplete = System.currentTimeMillis();
+
+		System.out.println("testOnlyConveyor data loaded and archived in  " + (toComplete - start) + " msec");
+		assertEquals(testSize, tc.results.size());
+		
+	}
+	
+	@Test
+	public void testInMemoryPersistence() {
+		TrioConveyor tc = new TrioConveyor();
+
+		PersistTestImpl p = new PersistTestImpl();
+		p.setMaxBatchSize(batchSize);
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+		pc.setName("testInMemoryPersistence");
+
+		List<Integer> t1 = getIdListShuffled();
+		List<Integer> t2 = getIdListShuffled();
+		List<Integer> t3 = getIdListShuffled();
+		System.out.println("testInMemoryPersistence " + testSize);
+
+		long start = System.currentTimeMillis();
+		load(pc, t1, t2, t3);
+		long end = System.currentTimeMillis();
+		System.out.println("testInMemoryPersistence load complete in " + (end - start) + " msec.");
+
+		waitUntilArchived(p.copy());
+
+		long toComplete = System.currentTimeMillis();
+
+		System.out.println("testInMemoryPersistence data loaded and archived in  " + (toComplete - start) + " msec");
+		assertEquals(testSize, tc.results.size());
+		
 	}
 
 }
