@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.CompletableFuture;
@@ -21,6 +22,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.ParallelConveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;
@@ -57,10 +59,15 @@ public class PerfTest {
 
 	ThreadPool pool;
 
-	
+	int testSize = 10000;
+
+	int batchSize;
+
 	@Before
 	public void setUp() throws Exception {
 		pool = new ThreadPool(3);
+		batchSize = testSize / 20;
+		System.out.println("--- " + new Date());
 	}
 
 	@After
@@ -70,410 +77,271 @@ public class PerfTest {
 
 	Persistence<Integer> getPersitence(String table) {
 		try {
-			return DerbyPersistence
-					.forKeyClass(Integer.class)
-					.schema("perfConv")
-					.partTable(table)
-					.completedLogTable(table+"Completed")
-					.labelConverter(TrioPart.class)
-					//.whenArchiveRecords().markArchived()
-					.maxBatchTime(60000,TimeUnit.MILLISECONDS)
-					.maxBatchSize(10000)
-					.build();
+			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
+					.completedLogTable(table + "Completed").labelConverter(TrioPart.class)
+					// .whenArchiveRecords().markArchived()
+					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}
-	
-	
+
 	Persistence<Integer> getPersitenceExp(String table) {
 		try {
-			return DerbyPersistence
-					.forKeyClass(Integer.class)
-					.schema("perfConv")
-					.partTable(table)
-					.completedLogTable(table+"Completed")
-					.labelConverter(TrioPartExpireable.class)
-					.maxBatchTime(1000,TimeUnit.MILLISECONDS)
-					.maxBatchSize(1000)
-					.build();
+			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
+					.completedLogTable(table + "Completed").labelConverter(TrioPartExpireable.class)
+					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
+		}
+	}
+
+	List<Integer> getIdList() {
+		List<Integer> t1 = new ArrayList<>();
+		for (int i = 1; i <= testSize; i++) {
+			t1.add(i);
+		}
+		return t1;
+	}
+
+	List<Integer> getIdListShuffled() {
+		List<Integer> t1 = new ArrayList<>();
+		for (int i = 1; i <= testSize; i++) {
+			t1.add(i);
+		}
+		Collections.shuffle(t1);
+		return t1;
+	}
+
+	void sleep(double frac) {
+		int msec = (int) frac;
+		double nsec = frac - msec;
+		try {
+			Thread.sleep(msec, (int) (999999.0 * nsec));
+		} catch (InterruptedException e) {
+		}
+	}
+
+	void load(Conveyor pc, List<Integer> l1, List<Integer> l2, List<Integer> l3) {
+		AtomicReference<CompletableFuture<Boolean>> fr1 = new AtomicReference<>();
+		AtomicReference<CompletableFuture<Boolean>> fr2 = new AtomicReference<>();
+		AtomicReference<CompletableFuture<Boolean>> fr3 = new AtomicReference<>();
+
+		CompletableFuture<Integer> f1 = new CompletableFuture<Integer>();
+		CompletableFuture<Integer> f2 = new CompletableFuture<Integer>();
+		CompletableFuture<Integer> f3 = new CompletableFuture<Integer>();
+
+		Runnable r1 = () -> {
+			l1.forEach(key -> {
+				fr1.set(pc.part().id(key).label(TrioPart.TEXT1).value("txt1_" + key).place());
+				sleep(0.1);
+			});
+			f1.complete(1);
+		};
+		Runnable r2 = () -> {
+			l2.forEach(key -> {
+				fr2.set(pc.part().id(key).label(TrioPart.TEXT2).value("txt2_" + key).place());
+				sleep(0.1);
+			});
+			f2.complete(1);
+		};
+		Runnable r3 = () -> {
+			l3.forEach(key -> {
+				fr3.set(pc.part().id(key).label(TrioPart.NUMBER).value(key).place());
+				sleep(0.1);
+			});
+			f3.complete(1);
+		};
+
+		pool.runAsynch(r1);
+		pool.runAsynch(r2);
+		pool.runAsynch(r3);
+		// wait for loop to complete
+		f1.join();
+		f2.join();
+		f3.join();
+		// wait last cart absorbed
+		fr1.get().join();
+		fr2.get().join();
+		fr3.get().join();
+	}
+
+	void waitUntilArchived(Persistence<Integer> p) {
+		while (p.getNumberOfParts() > 0) {
+			sleep(1000.0);
 		}
 	}
 
 	@Test
 	public void testParallelAsorted() throws InterruptedException {
 
-	int testSize = 10000;
-	
-	TrioConveyor tc = new TrioConveyor();
-	
-	Persistence<Integer> p = getPersitence("testParallelAsorted");
-	PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+		TrioConveyor tc = new TrioConveyor();
 
-	List<Integer> t1 = new ArrayList<>();
-	for(int i = 1; i<=testSize; i++) {
-		t1.add(i);
-	}
-	Collections.shuffle(t1);
-	
-	List<Integer> t2 = new ArrayList<>(t1);
-	Collections.shuffle(t2);
+		Persistence<Integer> p = getPersitence("testParallelAsorted");
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+		pc.setName("testParallelAsorted");
 
-	List<Integer> t3 = new ArrayList<>(t1);
-	Collections.shuffle(t3);
+		List<Integer> t1 = getIdListShuffled();
+		List<Integer> t2 = getIdListShuffled();
+		List<Integer> t3 = getIdListShuffled();
+		System.out.println("testParallelAsorted " + testSize);
 
-	AtomicReference<CompletableFuture<Boolean>> fr1 = new AtomicReference<>();
-	AtomicReference<CompletableFuture<Boolean>> fr2 = new AtomicReference<>();
-	AtomicReference<CompletableFuture<Boolean>> fr3 = new AtomicReference<>();
-	
-	CompletableFuture<Integer> f1 = new CompletableFuture<Integer>();
-	CompletableFuture<Integer> f2 = new CompletableFuture<Integer>();
-	CompletableFuture<Integer> f3 = new CompletableFuture<Integer>();
-	
-	Runnable r1 = ()->{
-		t1.forEach(key->{
-			fr1.set( pc.part().id(key).label(TrioPart.TEXT1).value("txt1_"+key).place() );
-			try {
-				Thread.sleep(0,100000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		f1.complete(1);
-	};
-	Runnable r2 = ()->{
-		t2.forEach(key->{
-			fr2.set( pc.part().id(key).label(TrioPart.TEXT2).value("txt2_"+key).place() );
-			try {
-				Thread.sleep(0,100000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		f2.complete(1);
-	};
-	Runnable r3 = ()->{
-		t3.forEach(key->{
-			fr3.set( pc.part().id(key).label(TrioPart.NUMBER).value(key).place() );
-			try {
-				Thread.sleep(0,100000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		f3.complete(1);
-	};
-	
-	long start = System.currentTimeMillis();
-	pool.runAsynch(r1);
-	pool.runAsynch(r2);
-	pool.runAsynch(r3);
+		long start = System.currentTimeMillis();
+		load(pc, t1, t2, t3);
+		long end = System.currentTimeMillis();
+		System.out.println("testParallelAsorted load complete in " + (end - start) + " msec.");
 
-	f1.join();
-	f2.join();
-	f3.join();
-	
-	fr1.get().join();
-	fr2.get().join();
-	fr3.get().join();
-	long end = System.currentTimeMillis();
+		waitUntilArchived(p.copy());
 
-	Persistence<Integer> p2 = getPersitence("testParallelAsorted");
+		long toComplete = System.currentTimeMillis();
 
-	while(p2.getNumberOfParts() > 0) {
-		Thread.sleep(1000);		
-	}
-	
-	long toComplete = System.currentTimeMillis();
-	
-	System.out.println("Batch "+testSize+" loaded in "+(end-start)+" msec. completed in  "+(toComplete - start)+" msec");
-	assertEquals(testSize, tc.results.size());
+		System.out.println("testParallelAsorted data loaded and archived in  " + (toComplete - start) + " msec");
+		assertEquals(testSize, tc.results.size());
 	}
 
-	
 	@Test
 	public void testParallelSorted() throws InterruptedException {
+		TrioConveyor tc = new TrioConveyor();
 
-	int testSize = 10000;
-	
-	TrioConveyor tc = new TrioConveyor();
-	
-	Persistence<Integer> p = getPersitence("testParallelSorted");
-	PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+		Persistence<Integer> p = getPersitence("testParallelSorted");
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+		pc.setName("testParallelSorted");
 
-	List<Integer> t1 = new ArrayList<>();
-	for(int i = 1; i<=testSize; i++) {
-		t1.add(i);
+		List<Integer> t1 = getIdList();
+		List<Integer> t2 = getIdList();
+		List<Integer> t3 = getIdList();
+		System.out.println("testParallelSorted " + testSize);
+
+		long start = System.currentTimeMillis();
+		load(pc, t1, t2, t3);
+		long end = System.currentTimeMillis();
+		System.out.println("testParallelSorted load complete in " + (end - start) + " msec.");
+
+		waitUntilArchived(p.copy());
+
+		long toComplete = System.currentTimeMillis();
+
+		System.out.println("testParallelSorted data loaded and archived in  " + (toComplete - start) + " msec");
+		assertEquals(testSize, tc.results.size());
+
 	}
-	
-	List<Integer> t2 = new ArrayList<>(t1);
-
-	List<Integer> t3 = new ArrayList<>(t1);
-
-	AtomicReference<CompletableFuture<Boolean>> fr1 = new AtomicReference<>();
-	AtomicReference<CompletableFuture<Boolean>> fr2 = new AtomicReference<>();
-	AtomicReference<CompletableFuture<Boolean>> fr3 = new AtomicReference<>();
-	
-	CompletableFuture<Integer> f1 = new CompletableFuture<Integer>();
-	CompletableFuture<Integer> f2 = new CompletableFuture<Integer>();
-	CompletableFuture<Integer> f3 = new CompletableFuture<Integer>();
-	
-	Runnable r1 = ()->{
-		t1.forEach(key->{
-			fr1.set( pc.part().id(key).label(TrioPart.TEXT1).value("txt1_"+key).place() );
-			try {
-				Thread.sleep(0,100000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		f1.complete(1);
-	};
-	Runnable r2 = ()->{
-		t2.forEach(key->{
-			fr2.set( pc.part().id(key).label(TrioPart.TEXT2).value("txt2_"+key).place() );
-			try {
-				Thread.sleep(0,100000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		f2.complete(1);
-	};
-	Runnable r3 = ()->{
-		t3.forEach(key->{
-			fr3.set( pc.part().id(key).label(TrioPart.NUMBER).value(key).place() );
-			try {
-				Thread.sleep(0,100000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		f3.complete(1);
-	};
-	
-	long start = System.currentTimeMillis();
-	pool.runAsynch(r1);
-	pool.runAsynch(r2);
-	pool.runAsynch(r3);
-
-	f1.join();
-	f2.join();
-	f3.join();
-	
-	fr1.get().join();
-	fr2.get().join();
-	fr3.get().join();
-	long end = System.currentTimeMillis();
-
-	Persistence<Integer> p2 = getPersitence("testParallelSorted");
-
-	while(p2.getNumberOfParts() > 0) {
-		Thread.sleep(500);		
-	}
-	
-	long toComplete = System.currentTimeMillis();
-	
-	System.out.println("Batch "+testSize+" loaded in "+(end-start)+" msec. completed in  "+(toComplete - start)+" msec");
-	assertEquals(testSize, tc.results.size());
-	}
-
 
 	@Test
 	public void testParallelUnload() throws InterruptedException {
 
-	int testSize = 10000;
-	
-	TrioConveyorExpireable tc = new TrioConveyorExpireable();
-	
-	Persistence<Integer> p = getPersitenceExp("testParallelUnload");
-	PersistentConveyor<Integer, TrioPartExpireable, Trio> pc = new PersistentConveyor(p, tc);
-	pc.unloadOnBuilderTimeout(true);
-	pc.setName("UL");
-	List<Integer> t1 = new ArrayList<>();
-	for(int i = 1; i<=testSize; i++) {
-		t1.add(i);
-	}
-	Collections.shuffle(t1);
-	
-	List<Integer> t2 = new ArrayList<>(t1);
-	Collections.shuffle(t2);
+		TrioConveyorExpireable tc = new TrioConveyorExpireable();
 
-	List<Integer> t3 = new ArrayList<>(t1);
-	Collections.shuffle(t3);
+		Persistence<Integer> p = getPersitenceExp("testParallelUnload");
+		PersistentConveyor<Integer, TrioPartExpireable, Trio> pc = new PersistentConveyor(p, tc);
+		pc.unloadOnBuilderTimeout(true);
+		pc.setName("testParallelUnload");
 
-	AtomicReference<CompletableFuture<Boolean>> fr1 = new AtomicReference<>();
-	AtomicReference<CompletableFuture<Boolean>> fr2 = new AtomicReference<>();
-	AtomicReference<CompletableFuture<Boolean>> fr3 = new AtomicReference<>();
-	
-	CompletableFuture<Integer> f1 = new CompletableFuture<Integer>();
-	CompletableFuture<Integer> f2 = new CompletableFuture<Integer>();
-	CompletableFuture<Integer> f3 = new CompletableFuture<Integer>();
-	
-	Runnable r1 = ()->{
-		t1.forEach(key->{
-			fr1.set( pc.part().id(key).label(TrioPartExpireable.TEXT1).value("txt1_"+key).place() );
-			try {
-				Thread.sleep(0,100000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		f1.complete(1);
-	};
-	Runnable r2 = ()->{
-		t2.forEach(key->{
-			fr2.set( pc.part().id(key).label(TrioPartExpireable.TEXT2).value("txt2_"+key).place() );
-			try {
-				Thread.sleep(0,100000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		f2.complete(1);
-	};
-	Runnable r3 = ()->{
-		t3.forEach(key->{
-			fr3.set( pc.part().id(key).label(TrioPartExpireable.NUMBER).value(key).place() );
-			try {
-				Thread.sleep(0,100000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		f3.complete(1);
-	};
-	
-	long start = System.currentTimeMillis();
-	pool.runAsynch(r1);
-	pool.runAsynch(r2);
-	pool.runAsynch(r3);
+		List<Integer> t1 = getIdListShuffled();
+		List<Integer> t2 = getIdListShuffled();
+		List<Integer> t3 = getIdListShuffled();
+		System.out.println("testParallelUnload " + testSize);
 
-	f1.join();
-	f2.join();
-	f3.join();
-	
-	fr1.get().join();
-	fr2.get().join();
-	fr3.get().join();
-	long end = System.currentTimeMillis();
+		AtomicReference<CompletableFuture<Boolean>> fr1 = new AtomicReference<>();
+		AtomicReference<CompletableFuture<Boolean>> fr2 = new AtomicReference<>();
+		AtomicReference<CompletableFuture<Boolean>> fr3 = new AtomicReference<>();
 
-	Persistence<Integer> p2 = getPersitenceExp("testParallelUnload");
-//	Thread.sleep(10000);
-	while(p2.getNumberOfParts() > 0) {
-		Thread.sleep(5000);		
-		System.out.println("Batch unload "+testSize+" tc size "+tc.results.size());
-	}
-	
-	long toComplete = System.currentTimeMillis();
-	
-	System.out.println("Batch unload "+testSize+" loaded in "+(end-start)+" msec. completed in  "+(toComplete - start)+" msec");
-	assertEquals(tc.results.size(),testSize);
+		CompletableFuture<Integer> f1 = new CompletableFuture<Integer>();
+		CompletableFuture<Integer> f2 = new CompletableFuture<Integer>();
+		CompletableFuture<Integer> f3 = new CompletableFuture<Integer>();
+
+		Runnable r1 = () -> {
+			t1.forEach(key -> {
+				fr1.set(pc.part().id(key).label(TrioPartExpireable.TEXT1).value("txt1_" + key).place());
+				try {
+					Thread.sleep(0, 100000);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
+			f1.complete(1);
+		};
+		Runnable r2 = () -> {
+			t2.forEach(key -> {
+				fr2.set(pc.part().id(key).label(TrioPartExpireable.TEXT2).value("txt2_" + key).place());
+				try {
+					Thread.sleep(0, 100000);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
+			f2.complete(1);
+		};
+		Runnable r3 = () -> {
+			t3.forEach(key -> {
+				fr3.set(pc.part().id(key).label(TrioPartExpireable.NUMBER).value(key).place());
+				try {
+					Thread.sleep(0, 100000);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
+			f3.complete(1);
+		};
+
+		long start = System.currentTimeMillis();
+		pool.runAsynch(r1);
+		pool.runAsynch(r2);
+		pool.runAsynch(r3);
+
+		f1.join();
+		f2.join();
+		f3.join();
+
+		fr1.get().join();
+		fr2.get().join();
+		fr3.get().join();
+		long end = System.currentTimeMillis();
+		System.out.println("testParallelUnload load complete in " + (end - start) + " msec.");
+
+		waitUntilArchived(p.copy());
+
+		long toComplete = System.currentTimeMillis();
+
+		System.out.println("testParallelUnload data loaded and archived in  " + (toComplete - start) + " msec");
+		assertEquals(testSize, tc.results.size());
 	}
 
 	@Test
 	public void testParallelParallelAsorted() throws InterruptedException {
 
-	int testSize = 10000;
-	
-	TrioConveyor tc1 = new TrioConveyor();
-	TrioConveyor tc2 = new TrioConveyor();
-	
-	Persistence<Integer> p1 = getPersitence("testParallelAsorted1");
-	Persistence<Integer> p2 = getPersitence("testParallelAsorted2");
-	PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1);
-	PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2);
-	Stack<PersistentConveyor<Integer, TrioPart, Trio>> st = new Stack<>();
-	st.push(pc1);
-	st.push(pc2);
+		TrioConveyor tc1 = new TrioConveyor();
+		TrioConveyor tc2 = new TrioConveyor();
 
-	ParallelConveyor<Integer, TrioPart, Trio> pc = new KBalancedParallelConveyor<>(()->st.pop(), 2);
-	
-	List<Integer> t1 = new ArrayList<>();
-	for(int i = 1; i<=testSize; i++) {
-		t1.add(i);
-	}
-	Collections.shuffle(t1);
-	
-	List<Integer> t2 = new ArrayList<>(t1);
-	Collections.shuffle(t2);
+		Persistence<Integer> p1 = getPersitence("testParallelAsorted1");
+		Persistence<Integer> p2 = getPersitence("testParallelAsorted2");
+		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1);
+		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2);
+		Stack<PersistentConveyor<Integer, TrioPart, Trio>> st = new Stack<>();
+		st.push(pc1);
+		st.push(pc2);
 
-	List<Integer> t3 = new ArrayList<>(t1);
-	Collections.shuffle(t3);
+		ParallelConveyor<Integer, TrioPart, Trio> pc = new KBalancedParallelConveyor<>(() -> st.pop(), 2);
+		pc.setName("testParallelParallelAsorted");
 
-	AtomicReference<CompletableFuture<Boolean>> fr1 = new AtomicReference<>();
-	AtomicReference<CompletableFuture<Boolean>> fr2 = new AtomicReference<>();
-	AtomicReference<CompletableFuture<Boolean>> fr3 = new AtomicReference<>();
-	
-	CompletableFuture<Integer> f1 = new CompletableFuture<Integer>();
-	CompletableFuture<Integer> f2 = new CompletableFuture<Integer>();
-	CompletableFuture<Integer> f3 = new CompletableFuture<Integer>();
-	
-	Runnable r1 = ()->{
-		t1.forEach(key->{
-			fr1.set( pc.part().id(key).label(TrioPart.TEXT1).value("txt1_"+key).place() );
-			try {
-				Thread.sleep(0,100000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		f1.complete(1);
-	};
-	Runnable r2 = ()->{
-		t2.forEach(key->{
-			fr2.set( pc.part().id(key).label(TrioPart.TEXT2).value("txt2_"+key).place() );
-			try {
-				Thread.sleep(0,100000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		f2.complete(1);
-	};
-	Runnable r3 = ()->{
-		t3.forEach(key->{
-			fr3.set( pc.part().id(key).label(TrioPart.NUMBER).value(key).place() );
-			try {
-				Thread.sleep(0,100000);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-		f3.complete(1);
-	};
-	
-	long start = System.currentTimeMillis();
-	pool.runAsynch(r1);
-	pool.runAsynch(r2);
-	pool.runAsynch(r3);
+		List<Integer> t1 = getIdListShuffled();
+		List<Integer> t2 = getIdListShuffled();
+		List<Integer> t3 = getIdListShuffled();
+		System.out.println("testParallelParallelAsorted " + testSize);
 
-	f1.join();
-	f2.join();
-	f3.join();
-	
-	fr1.get().join();
-	fr2.get().join();
-	fr3.get().join();
-	long end = System.currentTimeMillis();
+		long start = System.currentTimeMillis();
+		load(pc, t1, t2, t3);
+		long end = System.currentTimeMillis();
+		System.out.println("testParallelParallelAsorted load complete in " + (end - start) + " msec.");
 
-	Persistence<Integer> p3 = getPersitence("testParallelAsorted1");
-	Persistence<Integer> p4 = getPersitence("testParallelAsorted2");
+		waitUntilArchived(p1.copy());
+		waitUntilArchived(p2.copy());
 
-	while(p3.getNumberOfParts() > 0 || p4.getNumberOfParts() > 0) {
-		Thread.sleep(1000);		
-	}
-	
-	long toComplete = System.currentTimeMillis();
-	
-	System.out.println("Batch Parallel "+testSize+" loaded in "+(end-start)+" msec. completed in  "+(toComplete - start)+" msec");
-	System.out.println("TC1="+tc1.results.size()+" TC2="+tc2.results.size());
-	assertEquals(testSize, tc1.results.size()+tc2.results.size());
+		long toComplete = System.currentTimeMillis();
+
+		System.out.println("testParallelParallelAsorted data loaded and archived in  " + (toComplete - start) + " msec");
+		assertEquals(testSize, tc1.results.size() + tc2.results.size());
 	}
 
-	
 }
