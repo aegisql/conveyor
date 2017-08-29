@@ -60,7 +60,7 @@ public class PerfTest {
 
 	ThreadPool pool;
 
-	int testSize = 100000;
+	int testSize = 10000;
 
 	int batchSize;
 	
