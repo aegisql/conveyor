@@ -84,7 +84,7 @@ public class PerfTest {
 		try {
 			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
 					.completedLogTable(table + "Completed").labelConverter(TrioPart.class)
-					// .whenArchiveRecords().markArchived()
+					.whenArchiveRecords().markArchived()
 					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -96,6 +96,7 @@ public class PerfTest {
 		try {
 			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
 					.completedLogTable(table + "Completed").labelConverter(TrioPartExpireable.class)
+					.whenArchiveRecords().markArchived()
 					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
 		} catch (Exception e) {
 			e.printStackTrace();

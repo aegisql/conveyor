@@ -701,7 +701,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,getAllUnfinishedPartIdsQuery
 					,getAllCompletedKeysQuery
 					,getAllStaticPartsQuery
-					,"SELECT COUNT(*) FROM "+partTable
+					,"SELECT COUNT(*) FROM " + partTable + " WHERE ARCHIVED = 0"
 					,archiver
 					,labelConverter
 					,blobConverter
