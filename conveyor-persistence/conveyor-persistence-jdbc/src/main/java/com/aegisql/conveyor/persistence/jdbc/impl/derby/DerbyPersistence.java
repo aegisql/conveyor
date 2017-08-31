@@ -46,45 +46,118 @@ import com.aegisql.conveyor.persistence.jdbc.EncryptingBlobConverter;
 import com.aegisql.conveyor.persistence.jdbc.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.StringConverter;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class DerbyPersistence.
+ *
+ * @param <K> the key type
+ */
 public class DerbyPersistence<K> implements Persistence<K>{
 	
+	/**
+	 * The Enum ArchiveStrategy.
+	 */
 	private static enum ArchiveStrategy {
-		CUSTOM, //set strategy
+		
+		/** The custom. */
+		CUSTOM, 
+ /** The delete. */
+ //set strategy
 		DELETE,
+		
+		/** The set archived. */
 		SET_ARCHIVED,
-		MOVE_TO_SCHEMA_TABLE, //schema,table
-		MOVE_TO_FILE, //path,file
+		
+		/** The move to schema table. */
+		MOVE_TO_SCHEMA_TABLE, 
+ /** The move to file. */
+ //schema,table
+		MOVE_TO_FILE, 
+ /** The no action. */
+ //path,file
 		NO_ACTION //external archive strategy
 	}
 
+	/**
+	 * The Class ArchiveBuilder.
+	 *
+	 * @param <K> the key type
+	 */
 	public static class ArchiveBuilder<K> {
+		
+		/** The dpb. */
 		private final DerbyPersistenceBuilder<K> dpb;
+		
+		/**
+		 * Instantiates a new archive builder.
+		 *
+		 * @param dpb the dpb
+		 */
 		public ArchiveBuilder(DerbyPersistenceBuilder<K> dpb) {
 			this.dpb = dpb;
 		}
 		
+		/**
+		 * Do nothing.
+		 *
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> doNothing() {
 			dpb.archiveStrategy = ArchiveStrategy.NO_ACTION;
 			return dpb;
 		}
+		
+		/**
+		 * Delete.
+		 *
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> delete() {
 			dpb.archiveStrategy = ArchiveStrategy.DELETE;
 			return dpb;
 		}
+		
+		/**
+		 * Mark archived.
+		 *
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> markArchived() {
 			dpb.archiveStrategy = ArchiveStrategy.SET_ARCHIVED;
 			return dpb;
 		}
+		
+		/**
+		 * Custom strategy.
+		 *
+		 * @param archiver the archiver
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> customStrategy(Archiver<K> archiver) {
 			dpb.archiveStrategy = ArchiveStrategy.CUSTOM;
 			dpb.archiver = archiver;
 			return dpb;
 		}
+		
+		/**
+		 * Move to table.
+		 *
+		 * @param archiveTable the archive table
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> moveToTable(String archiveTable) {
 			dpb.archiveStrategy = ArchiveStrategy.MOVE_TO_SCHEMA_TABLE;
 			dpb.archiveTable = archiveTable;
 			return dpb;
 		}
+		
+		/**
+		 * Move to file.
+		 *
+		 * @param archiveFileTemplate the archive file template
+		 * @param maxFileSize the max file size
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> moveToFile(String archiveFileTemplate,long maxFileSize) {
 			dpb.archiveStrategy = ArchiveStrategy.MOVE_TO_FILE;
 			dpb.archiveFileTemplate = archiveFileTemplate;
@@ -94,15 +167,33 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		
 	}
 	
+	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(DerbyPersistence.class);
 	
+	/**
+	 * The Class DerbyPersistenceBuilder.
+	 *
+	 * @param <K> the key type
+	 */
 	public static class DerbyPersistenceBuilder<K> {
 		
+		/** The max file size. */
 		public long maxFileSize;
+		
+		/** The archive file template. */
 		public String archiveFileTemplate;
+		
+		/** The archive table. */
 		public String archiveTable;
+		
+		/** The archiver. */
 		public Archiver<K> archiver;
 
+		/**
+		 * Instantiates a new derby persistence builder.
+		 *
+		 * @param clas the clas
+		 */
 		private DerbyPersistenceBuilder(Class<K> clas) {
 			this.keyClass = clas;
 			if(clas == Integer.class) {
@@ -124,8 +215,10 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			idSupplier = idGen::incrementAndGet;
 		}
 		
+		/** The key class. */
 		private Class<K> keyClass;
 		
+		/** The do nothing archiver. */
 		private Archiver<K> DO_NOTHING_ARCHIVER = new Archiver<K>(){
 			@Override
 			public void archiveParts(Connection conn, Collection<Long> ids) {}
@@ -139,6 +232,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			public void archiveExpiredParts(Connection conn) {}
 		};
 
+		/** The unimplemented archiver. */
 		//TODO: remove when all implemented
 		private Archiver<K> UNIMPLEMENTED_ARCHIVER = new Archiver<K>(){
 			@Override
@@ -153,45 +247,93 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			public void archiveExpiredParts(Connection conn) {throw new RuntimeException("Unimplemented archiver");}
 		};
 
+		/** The key type. */
 		private String keyType = "CART_KEY VARCHAR(255)";
+		
+		/** The Constant PROTOCOL. */
 		private final static String PROTOCOL = "jdbc:derby:";
+		
+		/** The Constant PORT. */
 		private final static int PORT = 1527;
 		
+		/** The Constant EMBEDDED. */
 		private final static String EMBEDDED = "org.apache.derby.jdbc.EmbeddedDriver";
+		
+		/** The Constant CLIENT. */
 		private final static String CLIENT   = "org.apache.derby.jdbc.ClientDriver";
 		
+		/** The Constant EMBEDDED_URL_PATTERN. */
 		private final static String EMBEDDED_URL_PATTERN = PROTOCOL+"{schema}";
+		
+		/** The Constant CLIENT_URL_PATTERN. */
 		private final static String CLIENT_URL_PATTERN   = PROTOCOL+"//{host}:{port}/{schema}";//;user=judy;password=no12see";
 		
+		/** The embedded. */
 		private boolean embedded  = true;
+		
+		/** The driver. */
 		private String driver     = EMBEDDED; //default
+		
+		/** The url pattern. */
 		private String urlPattern = EMBEDDED_URL_PATTERN; //default
+		
+		/** The host. */
 		private String host       = "localhost"; //default
+		
+		/** The username. */
 		private String username   = "";
+		
+		/** The password. */
 		private String password   = "";
+		
+		/** The port. */
 		private int port          = 0; //default
+		
+		/** The create. */
 		private boolean create    = true;
 		
+		/** The schema. */
 		private String schema      = "conveyor_db";
+		
+		/** The part table. */
 		private String partTable   = "PART";
+		
+		/** The completed log table. */
 		private String completedLogTable = "COMPLETED_LOG";
 		
+		/** The id supplier. */
 		private LongSupplier idSupplier;
 		
+		/** The max batch size. */
 		private int maxBatchSize  = 100;
+		
+		/** The max batch time. */
 		private long maxBatchTime = 60_000;
 		
 		
 		
+		/** The archive strategy. */
 		private ArchiveStrategy archiveStrategy = ArchiveStrategy.DELETE;
 		
+		/** The encryption secret. */
 		private String encryptionSecret = null;
+		
+		/** The secret key. */
 		private SecretKey secretKey;
+		
+		/** The encryption algorithm. */
 		private String encryptionAlgorithm = "AES";
+		
+		/** The encryption transformation. */
 		private String encryptionTransformation = "AES/ECB/PKCS5Padding";
+		
+		/** The encryption cipher. */
 		private Cipher encryptionCipher;
+		
+		/** The encryption key length. */
 		private int encryptionKeyLength = 16;
 		
+		/** The label converter. */
 		private ObjectConverter<?,String> labelConverter = new StringConverter<String>() {
 			@Override
 			public String fromPersistence(String p) {
@@ -199,6 +341,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			}
 		};
 		
+		/**
+		 * Embedded.
+		 *
+		 * @param embedded the embedded
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> embedded(boolean embedded) {
 			if(embedded) {
 				this.embedded = true;
@@ -216,100 +364,226 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			return this;
 		}
 
+		/**
+		 * Username.
+		 *
+		 * @param username the username
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> username(String username) {
 			this.username = username;
 			return this;
 		}
 		
+		/**
+		 * Password.
+		 *
+		 * @param password the password
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> password(String password) {
 			this.password = password;
 			return this;
 		}
 
+		/**
+		 * Schema.
+		 *
+		 * @param schema the schema
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> schema(String schema) {
 			this.schema = schema;
 			return this;
 		}
 
+		/**
+		 * Part table.
+		 *
+		 * @param table the table
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> partTable(String table) {
 			this.partTable = table;
 			return this;
 		}
 
+		/**
+		 * Completed log table.
+		 *
+		 * @param table the table
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> completedLogTable(String table) {
 			this.completedLogTable = table;
 			return this;
 		}
 
+		/**
+		 * Port.
+		 *
+		 * @param port the port
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> port(int port) {
 			this.port = port;
 			return this;
 		}
 
+		/**
+		 * Id supplier.
+		 *
+		 * @param idSupplier the id supplier
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> idSupplier(LongSupplier idSupplier) {
 			this.idSupplier = idSupplier;
 			return this;
 		}
 		
+		/**
+		 * When archive records.
+		 *
+		 * @return the archive builder
+		 */
 		public ArchiveBuilder<K> whenArchiveRecords() {
 			return new ArchiveBuilder<>(this);
 		}
 		
+		/**
+		 * Encryption secret.
+		 *
+		 * @param secret the secret
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> encryptionSecret(String secret) {
 			this.encryptionSecret = secret;
 			return this;
 		}
 
+		/**
+		 * Encryption secret.
+		 *
+		 * @param secret the secret
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> encryptionSecret(SecretKey secret) {
 			this.secretKey = secret;
 			return this;
 		}
 
+		/**
+		 * Encryption algorithm.
+		 *
+		 * @param algorithm the algorithm
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> encryptionAlgorithm(String algorithm) {
 			this.encryptionAlgorithm = algorithm;
 			return this;
 		}
 
+		/**
+		 * Encryption transformation.
+		 *
+		 * @param algorithm the algorithm
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> encryptionTransformation(String algorithm) {
 			this.encryptionTransformation = algorithm;
 			return this;
 		}
 
+		/**
+		 * Encryption key length.
+		 *
+		 * @param keyLenght the key lenght
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> encryptionKeyLength(int keyLenght) {
 			this.encryptionKeyLength = keyLenght;
 			return this;			
 		}
 
+		/**
+		 * Encryption cipher.
+		 *
+		 * @param cipher the cipher
+		 * @return the derby persistence builder
+		 */
 		public DerbyPersistenceBuilder<K> encryptionCipher(Cipher cipher) {
 			this.encryptionCipher = cipher;
 			return this;
 		}
 
+		/**
+		 * Label converter.
+		 *
+		 * @param <L> the generic type
+		 * @param enClass the en class
+		 * @return the derby persistence builder
+		 */
 		public <L extends Enum<L>> DerbyPersistenceBuilder<K> labelConverter(Class<L> enClass) {
 			this.labelConverter = new EnumConverter<>(enClass);
 			return this;
 		}
 		
+		/**
+		 * Label converter.
+		 *
+		 * @param <L> the generic type
+		 * @param labelConverter the label converter
+		 * @return the derby persistence builder
+		 */
 		public <L> DerbyPersistenceBuilder<K> labelConverter(ObjectConverter<L,String> labelConverter) {
 			this.labelConverter = labelConverter;
 			return this;
 		}
 
+		/**
+		 * Max batch size.
+		 *
+		 * @param <L> the generic type
+		 * @param maxBatchSize the max batch size
+		 * @return the derby persistence builder
+		 */
 		public <L> DerbyPersistenceBuilder<K> maxBatchSize(int maxBatchSize) {
 			this.maxBatchSize = maxBatchSize;
 			return this;
 		}
 
+		/**
+		 * Max batch time.
+		 *
+		 * @param <L> the generic type
+		 * @param maxBatchTime the max batch time
+		 * @param unit the unit
+		 * @return the derby persistence builder
+		 */
 		public <L> DerbyPersistenceBuilder<K> maxBatchTime(long maxBatchTime, TimeUnit unit) {
 			this.maxBatchTime = TimeUnit.MILLISECONDS.convert(maxBatchTime, unit);
 			return this;
 		}
 
+		/**
+		 * Max batch time.
+		 *
+		 * @param <L> the generic type
+		 * @param duration the duration
+		 * @return the derby persistence builder
+		 */
 		public <L> DerbyPersistenceBuilder<K> maxBatchTime(Duration duration) {
 			this.maxBatchTime = duration.toMillis();
 			return this;
 		}
 		
+		/**
+		 * Make archived archiver.
+		 *
+		 * @param partTable the part table
+		 * @param completedTable the completed table
+		 * @return the archiver
+		 */
 		private Archiver<K> makeArchivedArchiver(String partTable, String completedTable) {
 			
 			final String deleteFromPartsById      = "UPDATE "+partTable + " SET ARCHIVED = 1 WHERE ID IN(?)";
@@ -414,6 +688,13 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				}};
 		}
 
+		/**
+		 * Make delete archiver.
+		 *
+		 * @param partTable the part table
+		 * @param completedTable the completed table
+		 * @return the archiver
+		 */
 		private Archiver<K> makeDeleteArchiver(String partTable, String completedTable) {
 			
 			final String deleteFromPartsById      = "DELETE FROM "+partTable + " WHERE ID IN(?)";
@@ -518,6 +799,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				}};
 		}
 
+		/**
+		 * Builds the.
+		 *
+		 * @return the derby persistence
+		 * @throws Exception the exception
+		 */
 		public DerbyPersistence<K> build() throws Exception {
 			LOG.debug("DERBY PERSISTENCE");
 
@@ -710,28 +997,79 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					);
 		}
 	}
+
+/** The conn. */
 ///////////////////////////////////////////////////////////////////////////////
 	private final Connection   conn;
+	
+	/** The id supplier. */
 	private final LongSupplier idSupplier;
+	
+	/** The blob converter. */
 	private final BlobConverter blobConverter;
+	
+	/** The load type converter. */
 	private final EnumConverter<LoadType> loadTypeConverter = new EnumConverter<>(LoadType.class);
+	
+	/** The label converter. */
 	private final ObjectConverter labelConverter;
 	
+	/** The save cart query. */
 	private final String saveCartQuery;
+	
+	/** The save completed build key query. */
 	private final String saveCompletedBuildKeyQuery;
+	
+	/** The get part query. */
 	private final String getPartQuery;
+	
+	/** The get all part ids query. */
 	private final String getAllPartIdsQuery;
+	
+	/** The get all unfinished part ids query. */
 	private final String getAllUnfinishedPartIdsQuery;
+	
+	/** The get all completed keys query. */
 	private final String getAllCompletedKeysQuery;
 	
+	/** The archiver. */
 	private final Archiver<K> archiver;
+	
+	/** The get all static parts query. */
 	private final String getAllStaticPartsQuery;
 	
+	/** The builder. */
 	private final DerbyPersistenceBuilder<K> builder;
+	
+	/** The max batch size. */
 	private final int maxBatchSize;
+	
+	/** The max batch time. */
 	private final long maxBatchTime;
+	
+	/** The get number of parts query. */
 	private final String getNumberOfPartsQuery;
 	
+	/**
+	 * Instantiates a new derby persistence.
+	 *
+	 * @param builder the builder
+	 * @param conn the conn
+	 * @param idSupplier the id supplier
+	 * @param saveCartQuery the save cart query
+	 * @param saveCompletedBuildKeyQuery the save completed build key query
+	 * @param getPartQuery the get part query
+	 * @param getAllPartIdsQuery the get all part ids query
+	 * @param getAllUnfinishedPartIdsQuery the get all unfinished part ids query
+	 * @param getAllCompletedKeysQuery the get all completed keys query
+	 * @param getAllStaticPartsQuery the get all static parts query
+	 * @param getNumberOfPartsQuery the get number of parts query
+	 * @param archiver the archiver
+	 * @param labelConverter the label converter
+	 * @param blobConverter the blob converter
+	 * @param maxBatchSize the max batch size
+	 * @param maxBatchTime the max batch time
+	 */
 	private DerbyPersistence(
 			DerbyPersistenceBuilder<K> builder
 			,Connection conn
@@ -768,14 +1106,29 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		this.maxBatchTime                 = maxBatchTime;
 	}
 
+	/**
+	 * For key class.
+	 *
+	 * @param <K> the key type
+	 * @param clas the clas
+	 * @return the derby persistence builder
+	 */
 	public static <K> DerbyPersistenceBuilder<K> forKeyClass(Class<K> clas) {
 		return new DerbyPersistenceBuilder<K>(clas);
 	}
 
+	/**
+	 * Gets the builder.
+	 *
+	 * @return the builder
+	 */
 	public DerbyPersistenceBuilder<K> getBuilder() {
 		return builder;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#copy()
+	 */
 	@Override
 	public Persistence<K> copy() {
 		try {
@@ -785,11 +1138,17 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#nextUniquePartId()
+	 */
 	@Override
 	public long nextUniquePartId() {
 		return idSupplier.getAsLong();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#savePart(long, com.aegisql.conveyor.cart.Cart)
+	 */
 	@Override
 	public <L> void savePart(long id, Cart<K, ?, L> cart) {
 		LOG.debug("SAVING: {}",cart);
@@ -811,11 +1170,17 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#savePartId(java.lang.Object, long)
+	 */
 	@Override
 	public void savePartId(K key, long partId) {
 		// DO NOTHING. SUPPORTED BY SECONDARY INDEX ON THE PART TABLE
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#saveCompletedBuildKey(java.lang.Object)
+	 */
 	@Override
 	public void saveCompletedBuildKey(K key) {
 		try(PreparedStatement st = conn.prepareStatement(saveCompletedBuildKeyQuery) ) {
@@ -828,6 +1193,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#getPart(long)
+	 */
 	@Override
 	public <L> Cart<K, ?, L> getPart(long id) {
 		Cart<K, ?, L> cart = null;
@@ -865,6 +1233,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		return cart;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#getAllPartIds(java.lang.Object)
+	 */
 	@Override
 	public Collection<Long> getAllPartIds(K key) {
 		Set<Long> res = new LinkedHashSet<>();
@@ -882,6 +1253,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		return res;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#getAllParts()
+	 */
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getAllParts() {
 		LOG.debug("getAllParts: {}",getAllUnfinishedPartIdsQuery);
@@ -918,6 +1292,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		return carts;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#getCompletedKeys()
+	 */
 	@Override
 	public Set<K> getCompletedKeys() {
 		Set<K> res = new LinkedHashSet<>();
@@ -935,26 +1312,41 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		return res;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#archiveParts(java.util.Collection)
+	 */
 	@Override
 	public void archiveParts(Collection<Long> ids) {
 		archiver.archiveParts(conn,ids);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#archiveKeys(java.util.Collection)
+	 */
 	@Override
 	public void archiveKeys(Collection<K> keys) {
 		archiver.archiveKeys(conn, keys);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#archiveCompleteKeys(java.util.Collection)
+	 */
 	@Override
 	public void archiveCompleteKeys(Collection<K> keys) {
 		archiver.archiveCompleteKeys(conn, keys);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#archiveAll()
+	 */
 	@Override
 	public void archiveAll() {
 		archiver.archiveAll(conn);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#getAllStaticParts()
+	 */
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getAllStaticParts() {
 		LOG.debug("getAllStaticParts: {}",getAllStaticPartsQuery);
@@ -981,6 +1373,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		return carts;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.io.Closeable#close()
+	 */
 	@Override
 	public void close() throws IOException {
 		try {
@@ -990,21 +1385,33 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#archiveExpiredParts()
+	 */
 	@Override
 	public void archiveExpiredParts() {
 		archiver.archiveExpiredParts(conn);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#getMaxArchiveBatchSize()
+	 */
 	@Override
 	public int getMaxArchiveBatchSize() {
 		return maxBatchSize;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#getMaxArchiveBatchTime()
+	 */
 	@Override
 	public long getMaxArchiveBatchTime() {
 		return maxBatchTime;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#getNumberOfParts()
+	 */
 	@Override
 	public long getNumberOfParts() {
 		long res = -1;

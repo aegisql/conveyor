@@ -16,19 +16,38 @@ import javax.crypto.SecretKey;
 
 import org.apache.commons.io.IOUtils;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class EncryptingBlobConverter.
+ *
+ * @param <T> the generic type
+ */
 public class EncryptingBlobConverter <T extends Serializable> extends BlobConverter<T> {
 
 //	private final static Logger LOG = LoggerFactory.getLogger(EncryptingBlobConverter.class);
 	
-	private final SecretKey key;
+	/** The key. */
+private final SecretKey key;
+	
+	/** The cipher. */
 	private final Cipher cipher;
 	
+	/**
+	 * Instantiates a new encrypting blob converter.
+	 *
+	 * @param conn the conn
+	 * @param key the key
+	 * @param cipher the cipher
+	 */
 	public EncryptingBlobConverter(Connection conn, SecretKey key, Cipher cipher) {
 		super(conn);
 		this.key = key;
 		this.cipher = cipher;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.BlobConverter#toPersistence(java.io.Serializable)
+	 */
 	@Override
 	public Blob toPersistence(T obj) {
     	Blob blob       = null;
@@ -49,6 +68,9 @@ public class EncryptingBlobConverter <T extends Serializable> extends BlobConver
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.BlobConverter#fromPersistence(java.sql.Blob)
+	 */
 	@Override
 	public T fromPersistence(Blob blb) {
 		

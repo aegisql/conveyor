@@ -7,8 +7,17 @@ import java.io.ObjectOutputStream;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ByteArrayConverter.
+ *
+ * @param <O> the generic type
+ */
 public class ByteArrayConverter<O> implements ObjectConverter<O, byte[]> {
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(O obj) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -20,6 +29,9 @@ public class ByteArrayConverter<O> implements ObjectConverter<O, byte[]> {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public O fromPersistence(byte[] p) {
 		ByteArrayInputStream bis = new ByteArrayInputStream(p);

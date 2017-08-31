@@ -12,16 +12,33 @@ import org.apache.commons.io.IOUtils;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class BlobConverter.
+ *
+ * @param <T> the generic type
+ */
 public class BlobConverter <T extends Serializable> implements ObjectConverter<T, Blob> {
 
 	
+	/** The byte converter. */
 	protected final ByteArrayConverter<T> byteConverter = new ByteArrayConverter<>();
+	
+	/** The conn. */
 	protected final Connection conn;
 
+	/**
+	 * Instantiates a new blob converter.
+	 *
+	 * @param conn the conn
+	 */
 	public BlobConverter(Connection conn) {
 		this.conn = conn;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public Blob toPersistence(T obj) {
     	Blob blob       = null;
@@ -40,6 +57,9 @@ public class BlobConverter <T extends Serializable> implements ObjectConverter<T
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public T fromPersistence(Blob blb) {
 		try(InputStream in = blb.getBinaryStream(1, blb.length())) {
