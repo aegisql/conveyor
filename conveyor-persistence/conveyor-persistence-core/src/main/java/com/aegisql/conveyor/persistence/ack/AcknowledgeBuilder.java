@@ -17,34 +17,63 @@ import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class AcknowledgeBuilder.
+ *
+ * @param <K> the key type
+ */
 public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expireable {
 
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
+	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(AcknowledgeBuilder.class);
 
+	/** The persistence. */
 	private final Persistence<K> persistence;
 
+	/** The cart ids. */
 	private Set<Long> cartIds = new LinkedHashSet<>();
+	
+	/** The forward. */
 	private final Conveyor<K, ?, ?> forward;
+	
+	/** The ack conveyor. */
 	private final AcknowledgeBuildingConveyor<K> ackConveyor;
 	
+	/** The initialization mode. */
 	private boolean initializationMode = false;
 
+	/** The unload enabled. */
 	private boolean unloadEnabled      = false;
 
+	/** The timestamp. */
 	private Long timestamp = Long.valueOf(0);
 	
+	/** The complete. */
 	private boolean complete = false;
 	
+	/** The complete result. */
 	private Boolean completeResult = null;
 
+	/**
+	 * Instantiates a new acknowledge builder.
+	 *
+	 * @param persistence the persistence
+	 * @param forward the forward
+	 * @param ackConveyor the ack conveyor
+	 */
 	public AcknowledgeBuilder(Persistence<K> persistence, Conveyor<K, ?, ?> forward, AcknowledgeBuildingConveyor<K> ackConveyor) {
 		this.persistence        = persistence;
 		this.forward            = forward;
 		this.ackConveyor        = ackConveyor;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.util.function.Supplier#get()
+	 */
 	@Override
 	public Boolean get() {
 		if(completeResult == null) {
@@ -54,14 +83,38 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 		}
 	}
 
+	/**
+	 * Sets the mode.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param builder the builder
+	 * @param mode the mode
+	 */
 	public static <K, L> void setMode(AcknowledgeBuilder<K> builder, Boolean mode) {
 		builder.initializationMode = mode;
 	}
 
+	/**
+	 * Sets the unload mode.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param builder the builder
+	 * @param mode the mode
+	 */
 	public static <K, L> void setUnloadMode(AcknowledgeBuilder<K> builder, Boolean mode) {
 		builder.unloadEnabled = mode;
 	}
 
+	/**
+	 * Process cart.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param builder the builder
+	 * @param cart the cart
+	 */
 	public static <K, L> void processCart(AcknowledgeBuilder<K> builder, Cart<K, ?, L> cart) {
 		LOG.debug("CART " + cart);
 		boolean save = false;
@@ -108,6 +161,14 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 		}
 	}
 
+	/**
+	 * Unload.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param builder the builder
+	 * @param status the status
+	 */
 	public static <K, L> void unload(AcknowledgeBuilder<K> builder, AcknowledgeStatus<K> status) {
 		Set<Long> siteIds    = new HashSet<>();
 //		Set<Long> builderIds = new HashSet<>(builder.cartIds);
@@ -133,12 +194,28 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 
 	}
 
+	/**
+	 * Complete.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param builder the builder
+	 * @param status the status
+	 */
 	public static <K, L> void complete(AcknowledgeBuilder<K> builder, AcknowledgeStatus<K> status) {
 		builder.complete  = true;
 		builder.completeResult = Boolean.TRUE;
 		LOG.debug("COMPLETE {}",status);
 	}
 
+	/**
+	 * Replay.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param builder the builder
+	 * @param key the key
+	 */
 	public static <K, L> void replay(AcknowledgeBuilder<K> builder, K key) {
 			Set<K> completed = builder.persistence.getCompletedKeys();
 			if(completed.contains(key)) {
@@ -157,6 +234,9 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 			}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Testing#test()
+	 */
 	@Override
 	public boolean test() {
 		return complete;// && keyReady != null;
@@ -164,12 +244,18 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 
 	// This build never expires.
 	// Expiration is managed by receiving the COMPLETED message
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Expireable#getExpirationTime()
+	 */
 	// From the working conveyor.
 	@Override
 	public long getExpirationTime() {
 		return Long.MAX_VALUE;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "AcknowledgeBuilder [persistence=" + persistence + ", cartIds=" + cartIds + ", forward=" + forward
