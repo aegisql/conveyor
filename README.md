@@ -9,7 +9,7 @@ conveyor-core
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-core</artifactId>
-  <version>1.3.3</version>
+  <version>1.3.4</version>
 </dependency>
 ```
 
@@ -27,7 +27,7 @@ conveyor-parallel
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-parallel</artifactId>
-  <version>1.3.3</version>
+  <version>1.3.4</version>
 </dependency>
 ```
 
@@ -35,20 +35,22 @@ conveyor-persistence
 ```xml
 <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.3.4-SNAPSHOT</version>
+  <version>1.3.4</version>
 </dependency>
 
 <dependency>
   <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-jdbc</artifactId>
-  <version>1.3.4-SNAPSHOT</version>
+  <version>1.3.4</version>
 </dependency>
 ```
 
 
 ## Release History
 
-### 1.3.4-SNAPSHOT
+### 1.3.5-SNAPSHOT
+
+### 1.3.4
 * Persistence core module
 * Persistence JDBC module
 * Apache Derby implementation for the Persistence
@@ -56,6 +58,7 @@ conveyor-persistence
 * Changes in the Conveyor API to support persistence
 * Acknowledge added to the ProductBin and ScrapBin
 * General re-factoring
+* Tests and bugfixes
 
 ### 1.3.3
 * Extracted Parallel conveyors into a separate module
