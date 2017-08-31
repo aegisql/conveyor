@@ -83,7 +83,6 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		onStatus.put(Status.TIMED_OUT, this::complete);
 		onStatus.put(Status.WAITING_DATA, k->{throw new RuntimeException("Unexpected WAITING_DATA status for key="+k);});
 		forward.setAcknowledgeAction(status->{
-			LOG.debug("{}",status);
 			onStatus.get(status.getStatus()).accept(status);
 		});
 		
@@ -254,7 +253,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public ResultConsumerLoader<K, OUT> resultConsumer(ResultConsumer<K, OUT> consumer) {
-		return forward.resultConsumer(consumer);
+		return this.resultConsumer().first(consumer);
 	}
 
 	@Override
@@ -458,10 +457,8 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public void setAcknowledgeAction(Consumer<AcknowledgeStatus<K>> ackAction) {
-		forward.setAcknowledgeAction(ackAction.andThen(status->{
-			staticPersistence.saveCompletedBuildKey(status.getKey());
-			onStatus.get(status.getStatus()).accept(status);
-		}));
+		Consumer<AcknowledgeStatus<K>> first = status->	onStatus.get(status.getStatus()).accept(status) ;
+		forward.setAcknowledgeAction( first.andThen(ackAction) );
 	}
 	
 	public Conveyor<K, L, OUT> getWorkingConveyor() {

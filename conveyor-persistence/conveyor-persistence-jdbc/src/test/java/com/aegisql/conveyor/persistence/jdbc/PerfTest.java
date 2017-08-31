@@ -46,7 +46,7 @@ public class PerfTest {
 		File f = new File(conveyor_db_path);
 		try {
 			FileUtils.deleteDirectory(f);
-			System.out.println("Directory has been deleted recursively !");
+			System.out.println("Directory perfConv has been deleted!");
 		} catch (IOException e) {
 			System.err.println("Problem occurs when deleting the directory : " + conveyor_db_path);
 			e.printStackTrace();
