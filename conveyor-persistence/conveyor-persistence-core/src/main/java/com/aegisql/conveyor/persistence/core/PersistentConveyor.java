@@ -53,59 +53,64 @@ import com.aegisql.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
 /**
  * The Class PersistentConveyor.
  *
- * @param <K> the key type
- * @param <L> the generic type
- * @param <OUT> the generic type
+ * @param <K>
+ *            the key type
+ * @param <L>
+ *            the generic type
+ * @param <OUT>
+ *            the generic type
  */
-public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
+public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
-	
 	/** The forward. */
 	private final Conveyor<K, L, OUT> forward;
-	
+
 	/** The ack conveyor. */
 	private final AcknowledgeBuildingConveyor<K> ackConveyor;
-	
+
 	/** The cleaner. */
 	private final PersistenceCleanupBatchConveyor<K> cleaner;
-	
+
 	/** The static acknowledge builder. */
 	private final AcknowledgeBuilder<K> staticAcknowledgeBuilder;
-	
+
 	/** The result consumer. */
-	private ResultConsumer<K,OUT> resultConsumer = bin->{};
-	
+	private ResultConsumer<K, OUT> resultConsumer = bin -> {
+	};
+
 	/** The ack persistence. */
 	private final Persistence<K> ackPersistence;
-	
+
 	/** The forward persistence. */
 	private final Persistence<K> forwardPersistence;
-	
+
 	/** The clean persistence. */
 	private final Persistence<K> cleanPersistence;
-	
+
 	/** The static persistence. */
 	private final Persistence<K> staticPersistence;
 
 	/** The on status. */
-	private final EnumMap<Status,Consumer<AcknowledgeStatus<K>>> onStatus = new EnumMap<>(Status.class);
-	
+	private final EnumMap<Status, Consumer<AcknowledgeStatus<K>>> onStatus = new EnumMap<>(Status.class);
+
 	/** The initialization mode. */
 	private final AtomicBoolean initializationMode = new AtomicBoolean(true);
-	
+
 	/**
 	 * Instantiates a new persistent conveyor.
 	 *
-	 * @param persistence the persistence
-	 * @param forward the forward
+	 * @param persistence
+	 *            the persistence
+	 * @param forward
+	 *            the forward
 	 */
 	public PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward) {
-		
-		ackPersistence     = persistence.copy();
+
+		ackPersistence = persistence.copy();
 		forwardPersistence = persistence.copy();
-		cleanPersistence   = persistence.copy();
-		staticPersistence  = persistence.copy();
-		
+		cleanPersistence = persistence.copy();
+		staticPersistence = persistence.copy();
+
 		this.forward = forward;
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(cleanPersistence);
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(ackPersistence, forward, cleaner);
@@ -113,31 +118,34 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		onStatus.put(Status.CANCELED, this::complete);
 		onStatus.put(Status.INVALID, this::complete);
 		onStatus.put(Status.TIMED_OUT, this::complete);
-		onStatus.put(Status.WAITING_DATA, k->{throw new RuntimeException("Unexpected WAITING_DATA status for key="+k);});
-		forward.setAcknowledgeAction(status->{
+		onStatus.put(Status.WAITING_DATA, k -> {
+			throw new RuntimeException("Unexpected WAITING_DATA status for key=" + k);
+		});
+		forward.setAcknowledgeAction(status -> {
 			onStatus.get(status.getStatus()).accept(status);
 		});
-		
+
 		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(true).place();
-		if(forward != null && forward.getResultConsumer() != null) {
+		if (forward != null && forward.getResultConsumer() != null) {
 			this.resultConsumer = forward.getResultConsumer();
 		} else {
-			this.resultConsumer = bin->{};
+			this.resultConsumer = bin -> {
+			};
 		}
-		this.staticAcknowledgeBuilder = new AcknowledgeBuilder<>(staticPersistence, forward,ackConveyor);
-		//not empty only if previous conveyor could not complete.
-		//Pers must be initialized with the previous state
-		Collection<Cart<K,?,L>> staticParts = persistence.<L>getAllStaticParts();
-		LOG.debug("Static parts: {}",staticParts);
-		Collection<Cart<K,?,L>> allParts = persistence.<L>getAllParts();
-		LOG.debug("All parts: {}",allParts);
-		staticParts.forEach(cart->this.place(cart));
-		allParts.forEach(cart->{
-			long cartExpTime = cart.getExpirationTime(); 
-			if( cartExpTime == 0 || cartExpTime > System.currentTimeMillis()) {
+		this.staticAcknowledgeBuilder = new AcknowledgeBuilder<>(staticPersistence, forward, ackConveyor);
+		// not empty only if previous conveyor could not complete.
+		// Pers must be initialized with the previous state
+		Collection<Cart<K, ?, L>> staticParts = persistence.<L> getAllStaticParts();
+		LOG.debug("Static parts: {}", staticParts);
+		Collection<Cart<K, ?, L>> allParts = persistence.<L> getAllParts();
+		LOG.debug("All parts: {}", allParts);
+		staticParts.forEach(cart -> this.place(cart));
+		allParts.forEach(cart -> {
+			long cartExpTime = cart.getExpirationTime();
+			if (cartExpTime == 0 || cartExpTime > System.currentTimeMillis()) {
 				this.place(cart);
 			} else {
-				if(cleaner != null) {
+				if (cleaner != null) {
 					cleaner.part().label(cleaner.KEY).value(cart.getKey()).place();
 					cleaner.part().label(cleaner.CART_ID).value(cart.getProperty("#CART_ID", Long.class)).place();
 				}
@@ -146,23 +154,24 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		try {
 			persistence.close();
 		} catch (IOException e) {
-			throw new RuntimeException(e.getMessage(),e);
+			throw new RuntimeException(e.getMessage(), e);
 		}
 		this.initializationMode.set(false);
 		this.ackConveyor.setInitializationMode(false);
 		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(false).place();
 	}
-	
+
 	/**
 	 * Complete.
 	 *
-	 * @param status the status
+	 * @param status
+	 *            the status
 	 */
 	private void complete(AcknowledgeStatus<K> status) {
 		forwardPersistence.saveCompletedBuildKey(status.getKey());
 		Set<Long> siteIds = new HashSet<>();
-		for(Map.Entry<String,Object> en : status.getProperties().entrySet()) {
-			if("#CART_ID".equals(en.getValue())) {
+		for (Map.Entry<String, Object> en : status.getProperties().entrySet()) {
+			if ("#CART_ID".equals(en.getValue())) {
 				Long id = Long.parseLong(en.getKey());
 				siteIds.add(id);
 			}
@@ -171,95 +180,114 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		cleaner.part().label(cleaner.CART_IDS).value(siteIds).place();
 		ackConveyor.part().id(status.getKey()).label(ackConveyor.COMPLETE).value(status).place();
 	}
-	
+
 	/**
 	 * Unload.
 	 *
-	 * @param status the status
+	 * @param status
+	 *            the status
 	 */
 	private void unload(AcknowledgeStatus<K> status) {
-			ackConveyor.part().id(status.getKey()).label(ackConveyor.UNLOAD).value(status).place();
+		ackConveyor.part().id(status.getKey()).label(ackConveyor.UNLOAD).value(status).place();
 	}
-	
+
 	/**
 	 * Instantiates a new persistent conveyor.
 	 *
-	 * @param persistence the persistence
+	 * @param persistence
+	 *            the persistence
 	 */
 	public PersistentConveyor(Persistence<K> persistence) {
-		this(persistence,new AssemblingConveyor<>());
+		this(persistence, new AssemblingConveyor<>());
 	}
-	
+
 	/**
 	 * Instantiates a new persistent conveyor.
 	 *
-	 * @param persistence the persistence
-	 * @param forwardSupplier the forward supplier
+	 * @param persistence
+	 *            the persistence
+	 * @param forwardSupplier
+	 *            the forward supplier
 	 */
 	public PersistentConveyor(Persistence<K> persistence, Supplier<Conveyor<K, L, OUT>> forwardSupplier) {
-		this(persistence,forwardSupplier.get());
-	}	
-	
-	/* (non-Javadoc)
+		this(persistence, forwardSupplier.get());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#part()
 	 */
 	@Override
 	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
 		return new PartLoader<K, L, X, OUT, Boolean>(cl -> {
-			Cart <K, Object, L> cart;
-			if(cl.filter != null) {
-				cart = new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime);
+			Cart<K, Object, L> cart;
+			if (cl.filter != null) {
+				cart = new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime,
+						cl.expirationTime);
 			} else {
-				cart = new ShoppingCart<K, Object, L>(cl.key, cl.partValue, cl.label,cl.creationTime ,cl.expirationTime);
+				cart = new ShoppingCart<K, Object, L>(cl.key, cl.partValue, cl.label, cl.creationTime,
+						cl.expirationTime);
 			}
-			cl.getAllProperties().forEach((k,v)->cart.addProperty(k, v));
+			cl.getAllProperties().forEach((k, v) -> cart.addProperty(k, v));
 
 			return place(cart);
-		});	}
+		});
+	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#staticPart()
 	 */
 	@Override
 	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart() {
-		return  new StaticPartLoader<L, X, OUT, Boolean>(cl -> {
-			Map<String,Object> properties = new HashMap<>();
+		return new StaticPartLoader<L, X, OUT, Boolean>(cl -> {
+			Map<String, Object> properties = new HashMap<>();
 			properties.put("CREATE", cl.create);
-			Cart<K,?,L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART);
+			Cart<K, ?, L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label,
+					System.currentTimeMillis(), 0, properties, STATIC_PART);
 			return place(staticPart);
 		});
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#build()
 	 */
 	@Override
 	public BuilderLoader<K, OUT, Boolean> build() {
 		return new BuilderLoader<K, OUT, Boolean>(cl -> {
 			BuilderSupplier<OUT> bs = cl.value;
-			if(bs == null) {
-				//bs = builderSupplier;
+			if (bs == null) {
+				// bs = builderSupplier;
 			}
-			final CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime);
-			cl.getAllProperties().forEach((k,v)->{cart.addProperty(k, v);});
+			final CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime,
+					cl.expirationTime);
+			cl.getAllProperties().forEach((k, v) -> {
+				cart.addProperty(k, v);
+			});
 			return place(cart);
-		},
-		cl -> {
+		}, cl -> {
 			throw new RuntimeException("Futures not supported in persistent builde suppliers");
-		}
-		);
+		});
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#future()
 	 */
 	@Override
 	public FutureLoader<K, OUT> future() {
-		//do not save future
+		// do not save future
 		return forward.future();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#command()
 	 */
 	@Override
@@ -268,75 +296,88 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return forward.command();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#place(com.aegisql.conveyor.cart.Cart)
 	 */
 	@Override
 	public <V> CompletableFuture<Boolean> place(Cart<K, V, L> cart) {
-		if(cart.getKey() == null) {
-			AcknowledgeBuilder.processCart(staticAcknowledgeBuilder, cart);
-			cart.getFuture().complete(true);
-			return cart.getFuture();
-		} 
-		if(cart.getLoadType() == LoadType.RESULT_CONSUMER) {
-			AcknowledgeBuilder.processCart(staticAcknowledgeBuilder, cart);
-			cart.getFuture().complete(true);
-			return cart.getFuture();
+		if (cart.getKey() == null || cart.getLoadType() == LoadType.RESULT_CONSUMER) {
+			CompletableFuture<Boolean> f = cart.getFuture();
+			try {
+				AcknowledgeBuilder.processCart(staticAcknowledgeBuilder, cart);
+				f.complete(true);
+			} catch (Exception e) {
+				f.completeExceptionally(e);
+			}
+			return f;
 		}
-		Cart<K, Cart<K,?,?>, SmartLabel<AcknowledgeBuilder<K>>> ackCart = PersistenceCart.of(cart, ackConveyor.CART);
-		LOG.debug("PLACING "+ackCart);
+		Cart<K, Cart<K, ?, ?>, SmartLabel<AcknowledgeBuilder<K>>> ackCart = PersistenceCart.of(cart, ackConveyor.CART);
+		LOG.debug("PLACING " + ackCart);
 		CompletableFuture<Boolean> forwardFuture = cart.getFuture();
 		CompletableFuture<Boolean> ackFuture = ackCart.getFuture();
-		CompletableFuture<Boolean> bothFutures = ackFuture.thenCombine(forwardFuture,(a,b)->a&&b);
+		CompletableFuture<Boolean> bothFutures = ackFuture.thenCombine(forwardFuture, (a, b) -> a && b);
 		ackConveyor.place(ackCart);
-		if(cart.getLoadType()==LoadType.STATIC_PART) {
+		if (cart.getLoadType() == LoadType.STATIC_PART) {
 			return ackFuture;
 		} else {
 			return bothFutures;
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#command(com.aegisql.conveyor.cart.command.GeneralCommand)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.Conveyor#command(com.aegisql.conveyor.cart.command.
+	 * GeneralCommand)
 	 */
 	@Override
 	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> command) {
 		return forward.command(command);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#resultConsumer()
 	 */
 	@Override
 	public ResultConsumerLoader<K, OUT> resultConsumer() {
-		return new ResultConsumerLoader<>(rcl->{
-			final Cart<K,?,L> cart;
-			if(rcl.key != null) {
+		return new ResultConsumerLoader<>(rcl -> {
+			final Cart<K, ?, L> cart;
+			if (rcl.key != null) {
 				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime);
 			} else {
-				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, k->{
+				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, k -> {
 					return new ResultConsumerCart<K, OUT, L>(k, rcl.consumer, rcl.creationTime, rcl.expirationTime);
 				});
 			}
-			rcl.getAllProperties().forEach((k,v)->{ cart.addProperty(k, v);});
+			rcl.getAllProperties().forEach((k, v) -> {
+				cart.addProperty(k, v);
+			});
 			return this.place(cart);
-		}, 
-		rc->{
+		}, rc -> {
 			this.resultConsumer = rc;
 			this.forward.resultConsumer(rc).set();
-		}, 
-		resultConsumer );
+		}, resultConsumer);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#resultConsumer(com.aegisql.conveyor.consumers.result.ResultConsumer)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#resultConsumer(com.aegisql.conveyor.
+	 * consumers.result.ResultConsumer)
 	 */
 	@Override
 	public ResultConsumerLoader<K, OUT> resultConsumer(ResultConsumer<K, OUT> consumer) {
 		return this.resultConsumer().first(consumer);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#getCollectorSize()
 	 */
 	@Override
@@ -344,7 +385,9 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return ackConveyor.getCollectorSize();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#getInputQueueSize()
 	 */
 	@Override
@@ -352,7 +395,9 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return ackConveyor.getInputQueueSize();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#getDelayedQueueSize()
 	 */
 	@Override
@@ -360,7 +405,9 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return ackConveyor.getDelayedQueueSize();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#scrapConsumer()
 	 */
 	@Override
@@ -368,15 +415,20 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return forward.scrapConsumer();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#scrapConsumer(com.aegisql.conveyor.consumers.scrap.ScrapConsumer)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#scrapConsumer(com.aegisql.conveyor.
+	 * consumers.scrap.ScrapConsumer)
 	 */
 	@Override
 	public ScrapConsumerLoader<K> scrapConsumer(ScrapConsumer<K, ?> scrapConsumer) {
 		return forward.scrapConsumer(scrapConsumer);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#stop()
 	 */
 	@Override
@@ -386,7 +438,9 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		cleaner.stop();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#completeAndStop()
 	 */
 	@Override
@@ -394,20 +448,25 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		CompletableFuture<Boolean> fFuture = forward.completeAndStop();
 		CompletableFuture<Boolean> aFuture = ackConveyor.completeAndStop();
 		CompletableFuture<Boolean> cFuture = cleaner.completeAndStop();
-		return fFuture.thenCombine(aFuture, (a,b)->a&&b).thenCombine(cFuture, (a,b)->a&&b);
+		return fFuture.thenCombine(aFuture, (a, b) -> a && b).thenCombine(cFuture, (a, b) -> a && b);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#setIdleHeartBeat(long, java.util.concurrent.TimeUnit)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#setIdleHeartBeat(long,
+	 * java.util.concurrent.TimeUnit)
 	 */
 	@Override
 	public void setIdleHeartBeat(long heartbeat, TimeUnit unit) {
-		forward.setIdleHeartBeat(heartbeat,unit);
-		ackConveyor.setIdleHeartBeat(heartbeat,unit);
-		cleaner.setIdleHeartBeat(heartbeat,unit);
+		forward.setIdleHeartBeat(heartbeat, unit);
+		ackConveyor.setIdleHeartBeat(heartbeat, unit);
+		cleaner.setIdleHeartBeat(heartbeat, unit);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#setIdleHeartBeat(java.time.Duration)
 	 */
 	@Override
@@ -417,24 +476,33 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		cleaner.setIdleHeartBeat(duration);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#setDefaultBuilderTimeout(long, java.util.concurrent.TimeUnit)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#setDefaultBuilderTimeout(long,
+	 * java.util.concurrent.TimeUnit)
 	 */
 	@Override
 	public void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit) {
 		forward.setDefaultBuilderTimeout(builderTimeout, unit);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#setDefaultBuilderTimeout(java.time.Duration)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#setDefaultBuilderTimeout(java.time.
+	 * Duration)
 	 */
 	@Override
 	public void setDefaultBuilderTimeout(Duration duration) {
 		forward.setDefaultBuilderTimeout(duration);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#rejectUnexpireableCartsOlderThan(long, java.util.concurrent.TimeUnit)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#rejectUnexpireableCartsOlderThan(long,
+	 * java.util.concurrent.TimeUnit)
 	 */
 	@Override
 	public void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit) {
@@ -442,66 +510,93 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		ackConveyor.rejectUnexpireableCartsOlderThan(timeout, unit);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#rejectUnexpireableCartsOlderThan(java.time.Duration)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.Conveyor#rejectUnexpireableCartsOlderThan(java.time.
+	 * Duration)
 	 */
 	@Override
 	public void rejectUnexpireableCartsOlderThan(Duration duration) {
 		forward.rejectUnexpireableCartsOlderThan(duration);
-		ackConveyor.rejectUnexpireableCartsOlderThan(duration);		
+		ackConveyor.rejectUnexpireableCartsOlderThan(duration);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#setOnTimeoutAction(java.util.function.Consumer)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#setOnTimeoutAction(java.util.function.
+	 * Consumer)
 	 */
 	@Override
 	public void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction) {
 		forward.setOnTimeoutAction(timeoutAction);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#setDefaultCartConsumer(com.aegisql.conveyor.LabeledValueConsumer)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.Conveyor#setDefaultCartConsumer(com.aegisql.conveyor
+	 * .LabeledValueConsumer)
 	 */
 	@Override
 	public <B extends Supplier<? extends OUT>> void setDefaultCartConsumer(LabeledValueConsumer<L, ?, B> cartConsumer) {
 		forward.setDefaultCartConsumer(cartConsumer);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#setReadinessEvaluator(java.util.function.BiPredicate)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.Conveyor#setReadinessEvaluator(java.util.function.
+	 * BiPredicate)
 	 */
 	@Override
 	public void setReadinessEvaluator(BiPredicate<State<K, L>, Supplier<? extends OUT>> ready) {
 		forward.setReadinessEvaluator(ready);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#setReadinessEvaluator(java.util.function.Predicate)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.Conveyor#setReadinessEvaluator(java.util.function.
+	 * Predicate)
 	 */
 	@Override
 	public void setReadinessEvaluator(Predicate<Supplier<? extends OUT>> readiness) {
 		forward.setReadinessEvaluator(readiness);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#setBuilderSupplier(com.aegisql.conveyor.BuilderSupplier)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.Conveyor#setBuilderSupplier(com.aegisql.conveyor.
+	 * BuilderSupplier)
 	 */
 	@Override
 	public void setBuilderSupplier(BuilderSupplier<OUT> builderSupplier) {
 		forward.setBuilderSupplier(builderSupplier);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#setName(java.lang.String)
 	 */
 	@Override
 	public void setName(String string) {
 		forward.setName(string);
-		ackConveyor.setName("AcknowledgeBuildingConveyor<"+string+">");
-		cleaner.setName("PersistenceCleanupBatchConveyor<"+string+">");
+		ackConveyor.setName("AcknowledgeBuildingConveyor<" + string + ">");
+		cleaner.setName("PersistenceCleanupBatchConveyor<" + string + ">");
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#isRunning()
 	 */
 	@Override
@@ -509,31 +604,44 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return forward.isRunning() && ackConveyor.isRunning() && cleaner.isRunning();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#addCartBeforePlacementValidator(java.util.function.Consumer)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.Conveyor#addCartBeforePlacementValidator(java.util.
+	 * function.Consumer)
 	 */
 	@Override
 	public void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator) {
 		forward.addCartBeforePlacementValidator(cartBeforePlacementValidator);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#addBeforeKeyEvictionAction(java.util.function.Consumer)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#addBeforeKeyEvictionAction(java.util.
+	 * function.Consumer)
 	 */
 	@Override
 	public void addBeforeKeyEvictionAction(Consumer<AcknowledgeStatus<K>> keyBeforeEviction) {
 		forward.addBeforeKeyEvictionAction(keyBeforeEviction);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#addBeforeKeyReschedulingAction(java.util.function.BiConsumer)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.Conveyor#addBeforeKeyReschedulingAction(java.util.
+	 * function.BiConsumer)
 	 */
 	@Override
 	public void addBeforeKeyReschedulingAction(BiConsumer<K, Long> keyBeforeRescheduling) {
 		forward.addBeforeKeyReschedulingAction(keyBeforeRescheduling);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#getExpirationTime(java.lang.Object)
 	 */
 	@Override
@@ -541,7 +649,9 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return forward.getExpirationTime(key);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#isLBalanced()
 	 */
 	@Override
@@ -549,7 +659,9 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return forward.isLBalanced();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#getAcceptedLabels()
 	 */
 	@Override
@@ -557,7 +669,9 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return forward.getAcceptedLabels();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#acceptLabels(java.lang.Object[])
 	 */
 	@Override
@@ -565,24 +679,32 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		forward.acceptLabels(labels);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#getName()
 	 */
 	@Override
 	public String getName() {
-		return "PersistentConveyor<"+forward.getName()+">";
+		return "PersistentConveyor<" + forward.getName() + ">";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#forwardResultTo(com.aegisql.conveyor.Conveyor, java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#forwardResultTo(com.aegisql.conveyor.
+	 * Conveyor, java.lang.Object)
 	 */
 	@Override
 	public <L2, OUT2> void forwardResultTo(Conveyor<K, L2, OUT2> destination, L2 label) {
 		forward.forwardResultTo(destination, label);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#forwardResultTo(com.aegisql.conveyor.Conveyor, java.util.function.Function, java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#forwardResultTo(com.aegisql.conveyor.
+	 * Conveyor, java.util.function.Function, java.lang.Object)
 	 */
 	@Override
 	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination,
@@ -590,7 +712,9 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		forward.forwardResultTo(destination, keyConverter, label);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#enablePostponeExpiration(boolean)
 	 */
 	@Override
@@ -598,31 +722,42 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		forward.enablePostponeExpiration(flag);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#enablePostponeExpirationOnTimeout(boolean)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.Conveyor#enablePostponeExpirationOnTimeout(boolean)
 	 */
 	@Override
 	public void enablePostponeExpirationOnTimeout(boolean flag) {
 		forward.enablePostponeExpirationOnTimeout(flag);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#setExpirationPostponeTime(long, java.util.concurrent.TimeUnit)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#setExpirationPostponeTime(long,
+	 * java.util.concurrent.TimeUnit)
 	 */
 	@Override
 	public void setExpirationPostponeTime(long time, TimeUnit unit) {
 		forward.setExpirationPostponeTime(time, unit);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#setExpirationPostponeTime(java.time.Duration)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#setExpirationPostponeTime(java.time.
+	 * Duration)
 	 */
 	@Override
 	public void setExpirationPostponeTime(Duration duration) {
 		forward.setExpirationPostponeTime(duration);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#isForwardingResults()
 	 */
 	@Override
@@ -630,7 +765,9 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return forward.isForwardingResults();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#getCartCounter()
 	 */
 	@Override
@@ -638,7 +775,9 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return forward.getCartCounter();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#setAutoAcknowledge(boolean)
 	 */
 	@Override
@@ -646,15 +785,19 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		forward.setAutoAcknowledge(auto);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#setAcknowledgeAction(java.util.function.Consumer)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.Conveyor#setAcknowledgeAction(java.util.function.
+	 * Consumer)
 	 */
 	@Override
 	public void setAcknowledgeAction(Consumer<AcknowledgeStatus<K>> ackAction) {
-		Consumer<AcknowledgeStatus<K>> first = status->	onStatus.get(status.getStatus()).accept(status) ;
-		forward.setAcknowledgeAction( first.andThen(ackAction) );
+		Consumer<AcknowledgeStatus<K>> first = status -> onStatus.get(status.getStatus()).accept(status);
+		forward.setAcknowledgeAction(first.andThen(ackAction));
 	}
-	
+
 	/**
 	 * Gets the working conveyor.
 	 *
@@ -663,7 +806,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	public Conveyor<K, L, OUT> getWorkingConveyor() {
 		return forward;
 	}
-	
+
 	/**
 	 * Gets the acknowledge building conveyor.
 	 *
@@ -672,7 +815,7 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	public AcknowledgeBuildingConveyor<K> getAcknowledgeBuildingConveyor() {
 		return ackConveyor;
 	}
-	
+
 	/**
 	 * Gets the cleaning conveyor.
 	 *
@@ -682,15 +825,20 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 		return cleaner;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#autoAcknowledgeOnStatus(com.aegisql.conveyor.Status, com.aegisql.conveyor.Status[])
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.Conveyor#autoAcknowledgeOnStatus(com.aegisql.
+	 * conveyor.Status, com.aegisql.conveyor.Status[])
 	 */
 	@Override
 	public void autoAcknowledgeOnStatus(Status first, Status... other) {
 		forward.autoAcknowledgeOnStatus(first, other);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.Conveyor#getResultConsumer()
 	 */
 	@Override
@@ -701,15 +849,16 @@ public class PersistentConveyor<K,L,OUT> implements Conveyor<K, L, OUT> {
 	/**
 	 * Unload on builder timeout.
 	 *
-	 * @param unload the unload
+	 * @param unload
+	 *            the unload
 	 */
 	public void unloadOnBuilderTimeout(boolean unload) {
-		if(unload) {
+		if (unload) {
 			onStatus.put(Status.TIMED_OUT, this::unload);
 		} else {
-			onStatus.put(Status.TIMED_OUT, this::complete);			
+			onStatus.put(Status.TIMED_OUT, this::complete);
 		}
 		ackConveyor.staticPart().label(ackConveyor.UNLOAD_ENABLED).value(unload).place();
 	}
-	
+
 }
