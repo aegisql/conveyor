@@ -53,6 +53,7 @@ conveyor-persistence
 ### 1.3.4
 * Persistence core module
 * Persistence JDBC module
+* Uses TimeHostIdGenerator by default
 * Apache Derby implementation for the Persistence
 * Serializable functional interfaces
 * Changes in the Conveyor API to support persistence
