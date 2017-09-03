@@ -21,7 +21,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongSupplier;
 
 import javax.crypto.Cipher;
@@ -45,6 +44,8 @@ import com.aegisql.conveyor.persistence.jdbc.BlobConverter;
 import com.aegisql.conveyor.persistence.jdbc.EncryptingBlobConverter;
 import com.aegisql.conveyor.persistence.jdbc.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.StringConverter;
+import com.aegisql.id_builder.IdSource;
+import com.aegisql.id_builder.impl.TimeHostIdGenerator;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -211,8 +212,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			} else {
 				this.keyType = "CART_KEY VARCHAR(255)";
 			}
-			final AtomicLong idGen = new AtomicLong(System.currentTimeMillis() * 1000000);
-			idSupplier = idGen::incrementAndGet;
+			
+			if(idSupplier == null) {
+				final IdSource idGen = TimeHostIdGenerator.idGenerator_10x8(System.currentTimeMillis()/1000);
+				idSupplier = idGen::getId;
+			}
 		}
 		
 		/** The key class. */

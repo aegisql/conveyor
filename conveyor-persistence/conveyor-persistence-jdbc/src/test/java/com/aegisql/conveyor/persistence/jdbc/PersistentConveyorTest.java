@@ -63,6 +63,7 @@ public class PersistentConveyorTest {
 	
 	Persistence<Integer> getPersitence(String table) {
 		try {
+			Thread.sleep(1000);
 			return DerbyPersistence
 					.forKeyClass(Integer.class)
 					.schema("testConv")
@@ -80,6 +81,7 @@ public class PersistentConveyorTest {
 
 	Persistence<Integer> getPersitenceExp(String table) {
 		try {
+			Thread.sleep(1000);
 			return DerbyPersistence
 					.forKeyClass(Integer.class)
 					.schema("testConv")
@@ -266,6 +268,8 @@ public class PersistentConveyorTest {
 				.labelConverter(TrioPart.class)
 				.build();
 		TrioConveyor tc2 = new TrioConveyor();
+		
+		Thread.sleep(1000);
 		
 		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2);
 

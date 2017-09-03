@@ -50,6 +50,8 @@ public class PersistCartsTest {
 	
 	public Persistence<Integer> getPersistence(String table) {
 		try {
+			Thread.sleep(1000);
+
 			return DerbyPersistence
 					.forKeyClass(Integer.class)
 					.schema("carts_db")

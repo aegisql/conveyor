@@ -82,6 +82,8 @@ public class PerfTest {
 
 	Persistence<Integer> getPersitence(String table) {
 		try {
+			Thread.sleep(1000);
+
 			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
 					.completedLogTable(table + "Completed").labelConverter(TrioPart.class)
 					.whenArchiveRecords().markArchived()
@@ -94,6 +96,8 @@ public class PerfTest {
 
 	Persistence<Integer> getPersitenceExp(String table) {
 		try {
+			Thread.sleep(1000);
+
 			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
 					.completedLogTable(table + "Completed").labelConverter(TrioPartExpireable.class)
 					.whenArchiveRecords().markArchived()
