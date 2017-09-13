@@ -1,0 +1,27 @@
+package com.aegisql.conveyor.persistence.converters;
+
+import java.nio.ByteBuffer;
+
+import com.aegisql.conveyor.persistence.core.ObjectConverter;
+
+public class CharToBytesConverter implements ObjectConverter<Character, byte[]> {
+
+	@Override
+	public byte[] toPersistence(Character obj) {
+		if(obj==null) {
+			return null;
+		}
+		byte[] bytes = new byte[2];
+		ByteBuffer.wrap(bytes).putChar(obj.charValue());
+		return bytes;
+	}
+
+	@Override
+	public Character fromPersistence(byte[] p) {
+		if(p == null || p.length == 0) {
+			return null;
+		}
+		return ByteBuffer.wrap(p).getChar();
+	}
+
+}
