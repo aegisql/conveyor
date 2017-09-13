@@ -22,8 +22,10 @@ import com.aegisql.conveyor.persistence.converters.DoubleToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.FloatToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.IntegerToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.LongToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ShortToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.StringToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.sql.SqlDateToBytesConverter;
 
 public class ConvertersTest {
 
@@ -106,7 +108,6 @@ public class ConvertersTest {
 		assertEquals(100, x);
 	}
 
-	
 	@Test
 	public void testDate() {
 		DateToBytesConverter ic = new DateToBytesConverter();
@@ -115,6 +116,17 @@ public class ConvertersTest {
 		assertNotNull(b);
 		assertEquals(8, b.length);
 		Date x = ic.fromPersistence(b);
+		assertEquals(now, x);
+	}
+
+	@Test
+	public void testSqlDate() {
+		SqlDateToBytesConverter ic = new SqlDateToBytesConverter();
+		java.sql.Date now = java.sql.Date.valueOf("2017-09-01");
+		byte[] b = ic.toPersistence(now);
+		assertNotNull(b);
+		assertEquals(8, b.length);
+		java.sql.Date x = ic.fromPersistence(b);
 		assertEquals(now, x);
 	}
 
@@ -139,6 +151,27 @@ public class ConvertersTest {
 		assertEquals("test", x);
 	}
 
+	@Test
+	public void testSerializedString() {
+		SerializableToBytesConverter<String> ic = new SerializableToBytesConverter<>();
+		byte[] b = ic.toPersistence("test");
+		System.out.println(new String(b));
+		assertNotNull(b);
+		String x = ic.fromPersistence(b);
+		assertEquals("test", x);
+	}
+
+	@Test
+	public void testSerializedLong() {
+		SerializableToBytesConverter<Long> ic = new SerializableToBytesConverter<>();
+		byte[] b = ic.toPersistence(100L);
+		System.out.println(new String(b));
+		assertNotNull(b);
+		long x = ic.fromPersistence(b);
+		assertEquals(100L, x);
+	}
+
+	
 	@Test
 	public void testBigInt() {
 		BigIntegerToBytesConverter ic = new BigIntegerToBytesConverter();
