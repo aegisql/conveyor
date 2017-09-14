@@ -2,6 +2,9 @@ package com.aegisql.conveyor.persistence.core;
 
 import static org.junit.Assert.*;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
@@ -268,6 +271,17 @@ public class ConvertersTest {
 		assertEquals(ia[1], ia2[1]);
 		assertEquals(ia[2], ia2[2]);
 
+	}
+	
+	@Test
+	public void typeTest() {
+		Class<IntPrimToBytesConverter> cc = IntPrimToBytesConverter.class;
+		
+		Type[] tt = cc.getGenericInterfaces();
+		System.out.println(tt[0]);
+		ParameterizedType t = (ParameterizedType) tt[0];
+		Type[] at = t.getActualTypeArguments();
+		System.out.println(((Class)at[0]).getName());
 	}
 	
 }

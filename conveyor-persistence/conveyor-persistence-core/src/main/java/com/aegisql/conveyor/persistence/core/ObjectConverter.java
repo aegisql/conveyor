@@ -24,4 +24,5 @@ public interface ObjectConverter <O,P> {
 	 * @return the o
 	 */
 	O fromPersistence(P p);
+	
 }
