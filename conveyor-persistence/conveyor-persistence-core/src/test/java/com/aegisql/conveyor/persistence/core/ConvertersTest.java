@@ -25,7 +25,11 @@ import com.aegisql.conveyor.persistence.converters.LongToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ShortToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.StringToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.arrays.IntPrimToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.arrays.IntegersToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlDateToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.sql.SqlTimeToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.sql.SqlTimestampToBytesConverter;
 
 public class ConvertersTest {
 
@@ -55,7 +59,6 @@ public class ConvertersTest {
 		assertEquals(100, x);
 	}
 
-	
 	@Test
 	public void testChar() {
 		CharToBytesConverter ic = new CharToBytesConverter();
@@ -76,7 +79,6 @@ public class ConvertersTest {
 		assertEquals(5, x);
 	}
 
-	
 	@Test
 	public void testInteger() {
 		IntegerToBytesConverter ic = new IntegerToBytesConverter();
@@ -94,10 +96,9 @@ public class ConvertersTest {
 		assertNotNull(b);
 		assertEquals(4, b.length);
 		float x = ic.fromPersistence(b);
-		assertEquals(3.14, x,0.00001);
+		assertEquals(3.14, x, 0.00001);
 	}
 
-	
 	@Test
 	public void testLong() {
 		LongToBytesConverter ic = new LongToBytesConverter();
@@ -130,7 +131,28 @@ public class ConvertersTest {
 		assertEquals(now, x);
 	}
 
-	
+	@Test
+	public void testSqlTime() {
+		SqlTimeToBytesConverter ic = new SqlTimeToBytesConverter();
+		java.sql.Time now = java.sql.Time.valueOf("12:00:00");
+		byte[] b = ic.toPersistence(now);
+		assertNotNull(b);
+		assertEquals(8, b.length);
+		java.sql.Time x = ic.fromPersistence(b);
+		assertEquals(now, x);
+	}
+
+	@Test
+	public void testSqlTimestamp() {
+		SqlTimestampToBytesConverter ic = new SqlTimestampToBytesConverter();
+		java.sql.Timestamp now = java.sql.Timestamp.valueOf("2017-01-01 12:00:00");
+		byte[] b = ic.toPersistence(now);
+		assertNotNull(b);
+		assertEquals(8, b.length);
+		java.sql.Timestamp x = ic.fromPersistence(b);
+		assertEquals(now, x);
+	}
+
 	@Test
 	public void testDouble() {
 		DoubleToBytesConverter ic = new DoubleToBytesConverter();
@@ -138,7 +160,7 @@ public class ConvertersTest {
 		assertNotNull(b);
 		assertEquals(8, b.length);
 		double x = ic.fromPersistence(b);
-		assertEquals(3.14, x,0.00001);
+		assertEquals(3.14, x, 0.00001);
 	}
 
 	@Test
@@ -171,7 +193,6 @@ public class ConvertersTest {
 		assertEquals(100L, x);
 	}
 
-	
 	@Test
 	public void testBigInt() {
 		BigIntegerToBytesConverter ic = new BigIntegerToBytesConverter();
@@ -212,5 +233,41 @@ public class ConvertersTest {
 		assertFalse(x);
 	}
 
+	@Test
+	public void testIntegerArray() {
+		Integer[] ia = new Integer[]{1,2,3};
+		System.out.println(ia.getClass().getName());
+		
+		IntegersToBytesConverter bc = new IntegersToBytesConverter();
+		byte[] b = bc.toPersistence(ia);
+		assertNotNull(b);
+		assertEquals(12, b.length);
+		Integer[] ia2 = bc.fromPersistence(b);
+		assertNotNull(ia2);
+		assertEquals(3, ia2.length);
+		assertEquals(ia[0], ia2[0]);
+		assertEquals(ia[1], ia2[1]);
+		assertEquals(ia[2], ia2[2]);
+
+	}
+
+	
+	@Test
+	public void testIntArray() {
+		int[] ia = new int[]{1,2,3};
+		System.out.println(ia.getClass().getName());
+		
+		IntPrimToBytesConverter bc = new IntPrimToBytesConverter();
+		byte[] b = bc.toPersistence(ia);
+		assertNotNull(b);
+		assertEquals(12, b.length);
+		int[] ia2 = bc.fromPersistence(b);
+		assertNotNull(ia2);
+		assertEquals(3, ia2.length);
+		assertEquals(ia[0], ia2[0]);
+		assertEquals(ia[1], ia2[1]);
+		assertEquals(ia[2], ia2[2]);
+
+	}
 	
 }

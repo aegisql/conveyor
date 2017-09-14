@@ -1,14 +1,14 @@
 package com.aegisql.conveyor.persistence.converters.sql;
 
 import java.nio.ByteBuffer;
-import java.sql.Timestamp;
+import java.sql.Time;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
-public class SqlTimeToBytesConverter implements ObjectConverter<Timestamp, byte[]> {
+public class SqlTimeToBytesConverter implements ObjectConverter<Time, byte[]> {
 
 	@Override
-	public byte[] toPersistence(Timestamp obj) {
+	public byte[] toPersistence(Time obj) {
 		if(obj==null) {
 			return null;
 		}
@@ -18,11 +18,11 @@ public class SqlTimeToBytesConverter implements ObjectConverter<Timestamp, byte[
 	}
 
 	@Override
-	public Timestamp fromPersistence(byte[] p) {
+	public Time fromPersistence(byte[] p) {
 		if(p == null || p.length == 0) {
 			return null;
 		}
-		return new Timestamp(ByteBuffer.wrap(p).getLong());
+		return new Time(ByteBuffer.wrap(p).getLong());
 	}
 
 }
