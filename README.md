@@ -13,15 +13,6 @@ conveyor-core
 </dependency>
 ```
 
-Previous Stable version
-```xml
-<dependency>
-  <groupId>com.aegisql</groupId>
-  <artifactId>conveyor</artifactId>
-  <version>1.2.5</version>
-</dependency>
-```
-
 conveyor-parallel
 ```xml
 <dependency>
@@ -31,7 +22,7 @@ conveyor-parallel
 </dependency>
 ```
 
-conveyor-persistence
+conveyor-persistence (beta)
 ```xml
 <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
@@ -49,6 +40,7 @@ conveyor-persistence
 ## Release History
 
 ### 1.3.5-SNAPSHOT
+* Further development of the conveyor persistence
 
 ### 1.3.4
 * Persistence core module
