@@ -8,6 +8,7 @@ import java.lang.reflect.TypeVariable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.UUID;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -28,6 +29,7 @@ import com.aegisql.conveyor.persistence.converters.LongToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ShortToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.StringToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.UuidToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntPrimToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntegersToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlDateToBytesConverter;
@@ -217,6 +219,18 @@ public class ConvertersTest {
 	}
 
 	@Test
+	public void testUuid() {
+		UUID u1 = new UUID(Long.MAX_VALUE,Long.MAX_VALUE);
+		UuidToBytesConverter uc = new UuidToBytesConverter();
+		byte[] b = uc.toPersistence(u1);
+		assertNotNull(b);
+		assertEquals(16, b.length);
+		UUID x = uc.fromPersistence(b);
+		assertEquals(u1, x);
+	}
+
+	
+	@Test
 	public void testBoolean1() {
 		BooleanToBytesConverter ic = new BooleanToBytesConverter();
 		byte[] b = ic.toPersistence(true);
@@ -239,7 +253,7 @@ public class ConvertersTest {
 	@Test
 	public void testIntegerArray() {
 		Integer[] ia = new Integer[]{1,2,3};
-		System.out.println(ia.getClass().getName());
+		System.out.println(ia.getClass().getCanonicalName());
 		
 		IntegersToBytesConverter bc = new IntegersToBytesConverter();
 		byte[] b = bc.toPersistence(ia);
@@ -258,7 +272,7 @@ public class ConvertersTest {
 	@Test
 	public void testIntArray() {
 		int[] ia = new int[]{1,2,3};
-		System.out.println(ia.getClass().getName());
+		System.out.println(ia.getClass().getCanonicalName());
 		
 		IntPrimToBytesConverter bc = new IntPrimToBytesConverter();
 		byte[] b = bc.toPersistence(ia);
@@ -281,7 +295,7 @@ public class ConvertersTest {
 		System.out.println(tt[0]);
 		ParameterizedType t = (ParameterizedType) tt[0];
 		Type[] at = t.getActualTypeArguments();
-		System.out.println(((Class)at[0]).getName());
+		System.out.println(((Class)at[0]).getCanonicalName());
 	}
 	
 }
