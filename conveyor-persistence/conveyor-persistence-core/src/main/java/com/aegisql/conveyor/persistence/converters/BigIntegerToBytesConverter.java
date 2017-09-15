@@ -2,9 +2,7 @@ package com.aegisql.conveyor.persistence.converters;
 
 import java.math.BigInteger;
 
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
-
-public class BigIntegerToBytesConverter implements ObjectConverter<BigInteger, byte[]> {
+public class BigIntegerToBytesConverter implements ObjectToByteArrayConverter<BigInteger> {
 
 	@Override
 	public byte[] toPersistence(BigInteger obj) {

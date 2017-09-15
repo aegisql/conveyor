@@ -2,9 +2,7 @@ package com.aegisql.conveyor.persistence.converters.arrays;
 
 import java.nio.ByteBuffer;
 
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
-
-public class IntegersToBytesConverter implements ObjectConverter<Integer[], byte[]> {
+public class IntegersToBytesConverter implements ObjectArrayToByteArrayConverter<Integer> {
 
 	@Override
 	public byte[] toPersistence(Integer[] obj) {

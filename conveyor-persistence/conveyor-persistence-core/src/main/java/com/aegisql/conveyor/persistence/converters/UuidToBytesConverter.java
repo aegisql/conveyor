@@ -3,9 +3,7 @@ package com.aegisql.conveyor.persistence.converters;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
-
-public class UuidToBytesConverter implements ObjectConverter<UUID, byte[]> {
+public class UuidToBytesConverter implements ObjectToByteArrayConverter<UUID> {
 
 	@Override
 	public byte[] toPersistence(UUID obj) {

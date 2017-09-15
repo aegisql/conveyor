@@ -1,10 +1,6 @@
 package com.aegisql.conveyor.persistence.converters.arrays;
 
-import java.nio.ByteBuffer;
-
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
-
-public class BooleansToBytesConverter implements ObjectConverter<Boolean[], byte[]> {
+public class BooleansToBytesConverter implements ObjectArrayToByteArrayConverter<Boolean> {
 
 	@Override
 	public byte[] toPersistence(Boolean[] obj) {

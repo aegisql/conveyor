@@ -3,9 +3,7 @@ package com.aegisql.conveyor.persistence.converters;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
-
-public class DateToBytesConverter implements ObjectConverter<Date, byte[]> {
+public class DateToBytesConverter implements ObjectToByteArrayConverter<Date> {
 
 	@Override
 	public byte[] toPersistence(Date obj) {

@@ -2,9 +2,7 @@ package com.aegisql.conveyor.persistence.converters;
 
 import java.io.UnsupportedEncodingException;
 
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
-
-public class StringToBytesConverter implements ObjectConverter<String, byte[]> {
+public class StringToBytesConverter implements ObjectToByteArrayConverter<String> {
 
 	@Override
 	public byte[] toPersistence(String obj) {

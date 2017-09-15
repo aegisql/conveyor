@@ -3,9 +3,9 @@ package com.aegisql.conveyor.persistence.converters.arrays.sql;
 import java.nio.ByteBuffer;
 import java.sql.Time;
 
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
+import com.aegisql.conveyor.persistence.converters.arrays.ObjectArrayToByteArrayConverter;
 
-public class SqlTimesToBytesConverter implements ObjectConverter<Time[], byte[]> {
+public class SqlTimesToBytesConverter implements ObjectArrayToByteArrayConverter<Time> {
 
 	@Override
 	public byte[] toPersistence(Time[] obj) {

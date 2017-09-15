@@ -1,12 +1,16 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.UUID;
 
@@ -32,6 +36,7 @@ import com.aegisql.conveyor.persistence.converters.StringToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.UuidToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntPrimToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntegersToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.collections.CollectionToByteArrayConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlDateToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimeToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimestampToBytesConverter;
@@ -296,6 +301,23 @@ public class ConvertersTest {
 		ParameterizedType t = (ParameterizedType) tt[0];
 		Type[] at = t.getActualTypeArguments();
 		System.out.println(((Class)at[0]).getCanonicalName());
+	}
+	
+	@Test
+	public void collectionConverterTest() {
+		CollectionToByteArrayConverter<Integer> cc = new CollectionToByteArrayConverter<>(ArrayList::new, new IntegerToBytesConverter());
+		
+		ArrayList<Integer> l = new ArrayList<>();
+		l.add(100);
+		l.add(200);
+		l.add(null);
+		l.add(400);
+		
+		byte[] b = cc.toPersistence(l);
+		assertNotNull(b);
+		Collection<Integer> l2 = cc.fromPersistence(b);
+		assertNotNull(l2);
+		System.out.println(l2);
 	}
 	
 }

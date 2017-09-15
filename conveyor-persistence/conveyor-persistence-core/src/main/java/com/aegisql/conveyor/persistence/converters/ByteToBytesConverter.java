@@ -1,8 +1,6 @@
 package com.aegisql.conveyor.persistence.converters;
 
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
-
-public class ByteToBytesConverter implements ObjectConverter<Byte, byte[]> {
+public class ByteToBytesConverter implements ObjectToByteArrayConverter<Byte> {
 
 	@Override
 	public byte[] toPersistence(Byte obj) {

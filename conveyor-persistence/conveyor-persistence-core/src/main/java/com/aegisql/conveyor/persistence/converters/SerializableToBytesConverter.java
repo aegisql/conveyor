@@ -6,15 +6,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
-
 // TODO: Auto-generated Javadoc
 /**
  * The Class SerializableToBytesConverter.
  *
  * @param <O> the generic type
  */
-public class SerializableToBytesConverter<O extends Serializable> implements ObjectConverter<O, byte[]> {
+public class SerializableToBytesConverter<O extends Serializable> implements ObjectToByteArrayConverter<O> {
 
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)

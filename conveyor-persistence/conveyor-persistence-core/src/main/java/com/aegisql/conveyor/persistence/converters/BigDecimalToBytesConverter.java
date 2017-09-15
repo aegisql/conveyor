@@ -3,9 +3,7 @@ package com.aegisql.conveyor.persistence.converters;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
-
-public class BigDecimalToBytesConverter implements ObjectConverter<BigDecimal, byte[]> {
+public class BigDecimalToBytesConverter implements ObjectToByteArrayConverter<BigDecimal> {
 
 	@Override
 	public byte[] toPersistence(BigDecimal obj) {
