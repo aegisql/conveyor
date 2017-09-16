@@ -38,6 +38,7 @@ import com.aegisql.conveyor.persistence.converters.StringToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.UuidToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntPrimToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntegersToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.arrays.StringsToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.collections.CollectionToByteArrayConverter;
 import com.aegisql.conveyor.persistence.converters.collections.MapToByteArrayConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlDateToBytesConverter;
@@ -352,6 +353,28 @@ public class ConvertersTest {
 		System.out.println("size="+b.length);
 	}
 
+	@Test
+	public void arrayConverterStringTest() {
+		StringsToBytesConverter cc = new StringsToBytesConverter();
+		
+		String[] l = new String[]{
+		"one",
+		"two",
+		"three",
+		"four"
+		};
+		
+		byte[] b = cc.toPersistence(l);
+		assertNotNull(b);
+		String[] l2 = cc.fromPersistence(b);
+		assertNotNull(l2);
+		assertEquals(4,l2.length);
+		assertEquals("two",l2[1]);
+		System.out.println(l2);
+		System.out.println("size="+b.length);
+	}
+
+	
 	@Test
 	public void collectionConverterEmptyStringTest() {
 		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<>(ArrayList::new, new StringToBytesConverter());
