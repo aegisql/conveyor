@@ -304,7 +304,7 @@ public class ConvertersTest {
 	}
 	
 	@Test
-	public void collectionConverterTest() {
+	public void collectionConverterIntTest() {
 		CollectionToByteArrayConverter<Integer> cc = new CollectionToByteArrayConverter<>(ArrayList::new, new IntegerToBytesConverter());
 		
 		ArrayList<Integer> l = new ArrayList<>();
@@ -318,6 +318,75 @@ public class ConvertersTest {
 		Collection<Integer> l2 = cc.fromPersistence(b);
 		assertNotNull(l2);
 		System.out.println(l2);
+		System.out.println("size="+b.length);
 	}
+
+	private String bigString(int size) {
+		StringBuilder sb = new StringBuilder();
+		
+		for(int i = 0; i < size; i++) {
+			sb.append('a');
+		}
+		
+		return sb.toString();
+	}
+	
+	@Test
+	public void collectionConverterStringTest() {
+		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<>(ArrayList::new, new StringToBytesConverter());
+		
+		ArrayList<String> l = new ArrayList<>();
+		l.add("one");
+		l.add("two");
+		l.add("three");
+		l.add("four");
+		
+		byte[] b = cc.toPersistence(l);
+		assertNotNull(b);
+		Collection<String> l2 = cc.fromPersistence(b);
+		assertNotNull(l2);
+		System.out.println(l2);
+		System.out.println("size="+b.length);
+	}
+
+	@Test
+	public void collectionConverterEmptyStringTest() {
+		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<>(ArrayList::new, new StringToBytesConverter());
+		
+		ArrayList<String> l = new ArrayList<>();
+		byte[] b = cc.toPersistence(l);
+		assertNotNull(b);
+		assertEquals(0, b.length);
+		Collection<String> l2 = cc.fromPersistence(b);
+		assertNotNull(l2);
+		assertEquals(0, l2.size());
+		System.out.println(l2);
+		System.out.println("size="+b.length);
+	}
+
+	
+	@Test
+	public void collectionConverterBigStringTest() {
+		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<>(ArrayList::new, new StringToBytesConverter());
+		
+		ArrayList<String> l = new ArrayList<>();
+		l.add(bigString(100));
+		l.add(bigString(1000));
+		l.add(bigString(100_000));
+		l.add(bigString(17_000_000));
+		
+		byte[] b = cc.toPersistence(l);
+		assertNotNull(b);
+		Collection<String> l2 = cc.fromPersistence(b);
+		assertNotNull(l2);
+		String[] s = l2.toArray(new String[4]);
+		assertEquals(4, s.length);
+		assertEquals(100, s[0].length());
+		assertEquals(1000, s[1].length());
+		assertEquals(100_000, s[2].length());
+		assertEquals(17_000_000, s[3].length());
+		System.out.println("size="+b.length);
+	}
+
 	
 }
