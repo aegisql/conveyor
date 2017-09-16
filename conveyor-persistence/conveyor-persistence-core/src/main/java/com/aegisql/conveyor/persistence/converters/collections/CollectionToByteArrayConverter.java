@@ -18,18 +18,18 @@ public class CollectionToByteArrayConverter <O> implements ObjectConverter<Colle
 	}
 	
 	@Override
-	public byte[] toPersistence(Collection<O> obj) {
-		if(obj == null) {
+	public byte[] toPersistence(Collection<O> collection) {
+		if(collection == null) {
 			return null;
 		}
-		int size  = obj.size();
+		int size  = collection.size();
 		if(size == 0) {
 			return new byte[0];
 		}
 		int totalBytes = 0;
 		int maxObjSize = 0;
 		ArrayList<byte[]> allBytes = new ArrayList<>();
-		for(O o:obj) {
+		for(O o:collection) {
 			if(o==null) {
 				allBytes.add(null);
 			} else {

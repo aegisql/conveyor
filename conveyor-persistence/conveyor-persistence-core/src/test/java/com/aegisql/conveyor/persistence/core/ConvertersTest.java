@@ -12,6 +12,8 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.After;
@@ -37,6 +39,7 @@ import com.aegisql.conveyor.persistence.converters.UuidToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntPrimToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntegersToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.collections.CollectionToByteArrayConverter;
+import com.aegisql.conveyor.persistence.converters.collections.MapToByteArrayConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlDateToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimeToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimestampToBytesConverter;
@@ -388,5 +391,55 @@ public class ConvertersTest {
 		System.out.println("size="+b.length);
 	}
 
-	
+	@Test
+	public void basicMapTest() {
+		MapToByteArrayConverter<Integer, String> mc = new MapToByteArrayConverter<>(HashMap::new, new IntegerToBytesConverter(), new StringToBytesConverter());
+		
+		Map<Integer,String> m = new HashMap<>();
+		
+		m.put(1, "one");
+		m.put(2, "two");
+		m.put(3, "three");
+		
+		byte[] b = mc.toPersistence(m);
+		assertNotNull(b);
+		
+		Map<Integer,String> m2 = mc.fromPersistence(b);
+		System.out.println(m2);
+		assertEquals(3, m2.size());
+		assertTrue(m2.containsKey(1));
+		assertTrue(m2.containsKey(2));
+		assertTrue(m2.containsKey(3));
+		assertEquals("one", m2.get(1));
+		assertEquals("two", m2.get(2));
+		assertEquals("three", m2.get(3));
+		
+	}
+
+	@Test
+	public void basicMapTest2() {
+		MapToByteArrayConverter<String,Integer> mc = new MapToByteArrayConverter<>(HashMap::new, new StringToBytesConverter(), new IntegerToBytesConverter());
+		
+		Map<String,Integer> m = new HashMap<>();
+		
+		m.put("one",1);
+		m.put("two",2);
+		m.put("three",3);
+		
+		byte[] b = mc.toPersistence(m);
+		assertNotNull(b);
+		
+		Map<String,Integer> m2 = mc.fromPersistence(b);
+		System.out.println("size="+b.length);
+		System.out.println(m2);
+		assertEquals(3, m2.size());
+		assertTrue(m2.containsKey("one"));
+		assertTrue(m2.containsKey("two"));
+		assertTrue(m2.containsKey("three"));
+		assertEquals(new Integer(1), m2.get("one"));
+		assertEquals(new Integer(2), m2.get("two"));
+		assertEquals(new Integer(3), m2.get("three"));
+		
+	}
+
 }
