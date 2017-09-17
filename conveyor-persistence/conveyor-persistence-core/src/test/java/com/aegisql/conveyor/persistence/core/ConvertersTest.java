@@ -32,6 +32,7 @@ import com.aegisql.conveyor.persistence.converters.DoubleToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.FloatToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.IntegerToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.LongToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.ObjectToJsonBytesConverter;
 import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ShortToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.StringToBytesConverter;
@@ -44,6 +45,7 @@ import com.aegisql.conveyor.persistence.converters.collections.MapToByteArrayCon
 import com.aegisql.conveyor.persistence.converters.sql.SqlDateToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimeToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimestampToBytesConverter;
+import com.aegisql.conveyor.persistence.core.harness.Trio;
 
 public class ConvertersTest {
 
@@ -465,4 +467,13 @@ public class ConvertersTest {
 		
 	}
 
+	@Test
+	public void jsonTest() {
+		Trio t1 = new Trio("one", "two", 100);
+		ObjectToJsonBytesConverter<Trio> oc = new ObjectToJsonBytesConverter<>(Trio.class);
+		byte[] b = oc.toPersistence(t1);
+		System.out.println(new String(b));
+		Trio t2 = oc.fromPersistence(b);
+		assertEquals(t1, t2);
+	}
 }

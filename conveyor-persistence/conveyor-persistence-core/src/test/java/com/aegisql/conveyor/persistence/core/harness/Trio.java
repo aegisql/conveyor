@@ -1,13 +1,16 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
 import com.aegisql.conveyor.persistence.core.harness.Trio;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Trio {
 
 	private final String text1;
 	private final String text2;
 	private final int number;
-	public Trio(String text1, String text2, int number) {
+	@JsonCreator
+	public Trio(@JsonProperty("text1") String text1, @JsonProperty("text2") String text2, @JsonProperty("number") int number) {
 		super();
 		this.text1 = text1;
 		this.text2 = text2;
