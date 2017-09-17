@@ -12,6 +12,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
+import com.aegisql.conveyor.persistence.converters.ObjectToJsonBytesConverter;
+import com.aegisql.conveyor.persistence.core.harness.Trio;
 
 public class ConverterAdviserTest implements Serializable {
 
@@ -77,6 +79,19 @@ public class ConverterAdviserTest implements Serializable {
 		ConverterAdviser<String> ca = new ConverterAdviser<>();
 		ObjectConverter<Object, byte[]> oc = ca.getConverter("test", this.getClass());
 		byte[] res = oc.toPersistence(this);
+		assertNotNull(res);
+		System.out.println(new String(res));
+		Object other = oc.fromPersistence(res);
+		assertNotNull(other);
+		System.out.println(other.getClass().getName());
+	}
+
+	@Test
+	public void testJson() {
+		ConverterAdviser<String> ca = new ConverterAdviser<>();
+		ca.addConverter(Trio.class, new ObjectToJsonBytesConverter<>(Trio.class));
+		ObjectConverter<Object, byte[]> oc = ca.getConverter("test", Trio.class);
+		byte[] res = oc.toPersistence(new Trio("one","two",100));
 		assertNotNull(res);
 		System.out.println(new String(res));
 		Object other = oc.fromPersistence(res);
