@@ -25,4 +25,7 @@ public interface ObjectConverter <O,P> {
 	 */
 	O fromPersistence(P p);
 	
+	default String getHint(O obj) {
+		return this.getClass().getSimpleName()+":"+obj.getClass().getCanonicalName();
+	}
 }

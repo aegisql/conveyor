@@ -472,6 +472,7 @@ public class ConvertersTest {
 		Trio t1 = new Trio("one", "two", 100);
 		ObjectToJsonBytesConverter<Trio> oc = new ObjectToJsonBytesConverter<>(Trio.class);
 		byte[] b = oc.toPersistence(t1);
+		System.out.println(oc.getHint(t1));
 		System.out.println(new String(b));
 		Trio t2 = oc.fromPersistence(b);
 		assertEquals(t1, t2);

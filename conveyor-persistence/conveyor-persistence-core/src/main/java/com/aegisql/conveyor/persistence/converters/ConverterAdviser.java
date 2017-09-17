@@ -40,6 +40,8 @@ public class ConverterAdviser <L> {
 	private final Map<String,ObjectConverter<Object, byte[]>> primeConverters = new HashMap<>();
 	private final Map<L,ObjectConverter<Object, byte[]>> labelConverters = new HashMap<>();
 	
+	private final NullConverter nc = new NullConverter();
+	
 	private ObjectConverter<Object, byte[]> defaultConverter = (ObjectConverter)new SerializableToBytesConverter<>();
 	
 	public ConverterAdviser() {

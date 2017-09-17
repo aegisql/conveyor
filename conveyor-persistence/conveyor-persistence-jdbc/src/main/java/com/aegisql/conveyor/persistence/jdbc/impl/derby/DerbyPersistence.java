@@ -860,6 +860,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 								+",CREATION_TIME TIMESTAMP NOT NULL"
 								+",EXPIRATION_TIME TIMESTAMP NOT NULL"
 								+",CART_VALUE BLOB"
+								+",VALUE_TYPE VARCHAR(255)"
 								+",CART_PROPERTIES BLOB"
 								+",ARCHIVED SMALLINT NOT NULL DEFAULT 0"
 								+")";
@@ -898,7 +899,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+",EXPIRATION_TIME"
 					+",CART_VALUE"
 					+",CART_PROPERTIES"
-					+") VALUES (?,?,?,?,?,?,?,?)"
+					+",VALUE_TYPE"					
+					+") VALUES (?,?,?,?,?,?,?,?,?)"
 					;
 			
 			String saveCompletedBuildKeyQuery = "INSERT INTO " + completedLogTable + "( CART_KEY ) VALUES( ? )"
@@ -911,6 +913,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+",EXPIRATION_TIME"
 					+",LOAD_TYPE"
 					+",CART_PROPERTIES"
+					+",VALUE_TYPE"
 					+" FROM " + partTable + " WHERE ID = ? AND ARCHIVED = 0"
 					;
 			String getAllPartIdsQuery = "SELECT"
@@ -925,6 +928,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+",EXPIRATION_TIME"
 					+",LOAD_TYPE"
 					+",CART_PROPERTIES"
+					+",VALUE_TYPE"
 					+" FROM " + partTable + " WHERE ARCHIVED = 0  AND LOAD_TYPE <> 'STATIC_PART' ORDER BY ID ASC"
 					;
 			String getAllCompletedKeysQuery = "SELECT CART_KEY FROM "+completedLogTable;
@@ -937,6 +941,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+",EXPIRATION_TIME"
 					+",LOAD_TYPE"
 					+",CART_PROPERTIES"
+					+",VALUE_TYPE"
 					+" FROM " + partTable + " WHERE ARCHIVED = 0 AND LOAD_TYPE = 'STATIC_PART' ORDER BY ID ASC";
 			
 			switch(archiveStrategy) {
@@ -1157,6 +1162,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	public <L> void savePart(long id, Cart<K, ?, L> cart) {
 		LOG.debug("SAVING: {}",cart);
 		try(PreparedStatement st = conn.prepareStatement(saveCartQuery) ) {
+			Object value = cart.getValue();
+			
 			st.setLong(1, id);
 			st.setString(2, loadTypeConverter.toPersistence(cart.getLoadType()));
 			st.setObject(3, cart.getKey());
@@ -1164,8 +1171,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			st.setObject(4, labelConverter.toPersistence(label));
 			st.setTimestamp(5, new Timestamp(cart.getCreationTime()));
 			st.setTimestamp(6, new Timestamp(cart.getExpirationTime()));
-			st.setBlob(7, blobConverter.toPersistence((Serializable) cart.getValue()));
+			st.setBlob(7, blobConverter.toPersistence((Serializable) value));
 			st.setBlob(8, blobConverter.toPersistence((Serializable) cart.getAllProperties()));
+			st.setString(9, value==null?null:value.getClass().getCanonicalName());
 			st.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
