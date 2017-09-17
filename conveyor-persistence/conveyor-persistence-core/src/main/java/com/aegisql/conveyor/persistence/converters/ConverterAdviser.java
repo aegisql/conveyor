@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.aegisql.conveyor.persistence.converters.arrays.BigDecimalsToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.arrays.BigIntegersToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.BoolPrimToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.BooleansToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.BytesPrimToBytesConverter;
@@ -23,6 +25,7 @@ import com.aegisql.conveyor.persistence.converters.arrays.LongPrimToBytesConvert
 import com.aegisql.conveyor.persistence.converters.arrays.LongsToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.ShortPrimToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.ShortsToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.arrays.StringsToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.UuidsToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.sql.SqlDatesToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.sql.SqlTimesToBytesConverter;
@@ -57,6 +60,9 @@ public class ConverterAdviser <L> {
 		this.addConverter(java.sql.Date.class, new SqlDateToBytesConverter());
 		this.addConverter(java.sql.Time.class, new SqlTimeToBytesConverter());
 		this.addConverter(java.sql.Timestamp.class, new SqlTimestampToBytesConverter());
+		this.addConverter(String.class, new StringToBytesConverter());
+		this.addConverter(BigInteger.class, new BigIntegerToBytesConverter());
+		this.addConverter(BigDecimal.class, new BigDecimalToBytesConverter());
 
 		this.addConverter(UUID[].class, new UuidsToBytesConverter());
 		this.addConverter(Short[].class, new ShortsToBytesConverter());
@@ -79,6 +85,10 @@ public class ConverterAdviser <L> {
 		this.addConverter(java.sql.Date[].class, new SqlDatesToBytesConverter());
 		this.addConverter(java.sql.Time[].class, new SqlTimesToBytesConverter());
 		this.addConverter(java.sql.Timestamp[].class, new SqlTimestampsToBytesConverter());
+		
+		this.addConverter(String[].class, new StringsToBytesConverter());
+		this.addConverter(BigInteger[].class, new BigIntegersToBytesConverter());
+		this.addConverter(BigDecimal[].class, new BigDecimalsToBytesConverter());
 
 	}
 	
