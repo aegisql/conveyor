@@ -34,5 +34,11 @@ public class DoublesToBytesConverter implements ObjectArrayToByteArrayConverter<
 
 		return res;
 	}
+	
+	@Override
+	public String conversionHint() {
+		return "Double[]:byte[]";
+	}
+
 
 }

@@ -42,4 +42,10 @@ public class ByteArrayConverter<O> implements ObjectConverter<O, byte[]> {
 		}
 	}
 
+	@Override
+	public String conversionHint() {
+		return "O:byte[]";
+	}
+
+	
 }

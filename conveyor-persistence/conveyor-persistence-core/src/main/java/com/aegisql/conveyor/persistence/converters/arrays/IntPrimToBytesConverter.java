@@ -37,4 +37,9 @@ public class IntPrimToBytesConverter implements ObjectConverter<int[], byte[]> {
 		return res;
 	}
 
+	@Override
+	public String conversionHint() {
+		return "int[]:byte[]";
+	}
+
 }

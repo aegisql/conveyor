@@ -36,5 +36,11 @@ public class ShortPrimToBytesConverter implements ObjectConverter<short[], byte[
 
 		return res;
 	}
+	
+	@Override
+	public String conversionHint() {
+		return "short[]:byte[]";
+	}
+
 
 }

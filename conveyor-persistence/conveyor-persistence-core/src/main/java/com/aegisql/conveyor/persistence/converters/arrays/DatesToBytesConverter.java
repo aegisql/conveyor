@@ -36,4 +36,10 @@ public class DatesToBytesConverter implements ObjectArrayToByteArrayConverter<Da
 		return res;
 	}
 
+	@Override
+	public String conversionHint() {
+		return "java.util.Date[]:byte[]";
+	}
+
+	
 }

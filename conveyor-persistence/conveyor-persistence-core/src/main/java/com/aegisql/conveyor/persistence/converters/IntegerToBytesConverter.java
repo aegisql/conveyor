@@ -21,5 +21,11 @@ public class IntegerToBytesConverter implements ObjectToByteArrayConverter<Integ
 		}
 		return ByteBuffer.wrap(p).getInt();
 	}
+	
+	@Override
+	public String conversionHint() {
+		return "Integer:byte[]";
+	}
+
 
 }

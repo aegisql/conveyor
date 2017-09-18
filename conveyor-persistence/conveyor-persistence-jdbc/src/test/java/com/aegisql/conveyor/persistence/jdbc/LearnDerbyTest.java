@@ -85,6 +85,11 @@ public class LearnDerbyTest {
 					@Override
 					public String fromPersistence(String p) {
 						return p;
+					}
+
+					@Override
+					public String conversionHint() {
+						return "L:String";
 					}})
 				.build();
 		p.archiveAll();
@@ -120,6 +125,11 @@ public class LearnDerbyTest {
 					@Override
 					public String fromPersistence(String p) {
 						return p;
+					}
+
+					@Override
+					public String conversionHint() {
+						return "L:String";
 					}})
 				.build();
 		p1.archiveAll();
@@ -148,6 +158,11 @@ public class LearnDerbyTest {
 					@Override
 					public String fromPersistence(String p) {
 						return p;
+					}
+
+					@Override
+					public String conversionHint() {
+						return "L:String";
 					}})
 				.build();
 

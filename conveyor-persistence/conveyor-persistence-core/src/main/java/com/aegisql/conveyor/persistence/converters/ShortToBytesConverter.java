@@ -22,4 +22,9 @@ public class ShortToBytesConverter implements ObjectToByteArrayConverter<Short> 
 		return ByteBuffer.wrap(p).getShort();
 	}
 
+	@Override
+	public String conversionHint() {
+		return "Short:byte[]";
+	}
+
 }

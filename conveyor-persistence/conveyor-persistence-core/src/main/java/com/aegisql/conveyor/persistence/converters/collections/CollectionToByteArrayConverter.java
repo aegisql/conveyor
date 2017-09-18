@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
-public class CollectionToByteArrayConverter <O> implements ObjectConverter<Collection<O>, byte[]> {
+public abstract class CollectionToByteArrayConverter <O> implements ObjectConverter<Collection<O>, byte[]> {
 
 	private final Supplier<Collection<O>> collectionSupplier;
 	private final ObjectConverter<O, byte[]> objectConverter;

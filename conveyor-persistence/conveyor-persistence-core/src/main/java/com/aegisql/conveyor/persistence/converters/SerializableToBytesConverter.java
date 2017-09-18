@@ -41,4 +41,9 @@ public class SerializableToBytesConverter<O extends Serializable> implements Obj
 		}
 	}
 
+	@Override
+	public String conversionHint() {
+		return "Serializable:byte[]";
+	}
+
 }

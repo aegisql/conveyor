@@ -17,5 +17,11 @@ public class BooleanToBytesConverter implements ObjectToByteArrayConverter<Boole
 		}
 		return p[0] != 0;
 	}
+	
+	@Override
+	public String conversionHint() {
+		return "Boolean:byte[]";
+	}
+
 
 }

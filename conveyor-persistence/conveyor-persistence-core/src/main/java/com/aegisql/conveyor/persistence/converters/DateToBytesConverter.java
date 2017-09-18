@@ -23,4 +23,9 @@ public class DateToBytesConverter implements ObjectToByteArrayConverter<Date> {
 		return new Date(ByteBuffer.wrap(p).getLong());
 	}
 
+	@Override
+	public String conversionHint() {
+		return "java.util.Date:byte[]";
+	}
+
 }

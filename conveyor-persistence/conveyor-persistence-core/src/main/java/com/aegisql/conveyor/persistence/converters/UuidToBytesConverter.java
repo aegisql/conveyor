@@ -27,4 +27,9 @@ public class UuidToBytesConverter implements ObjectToByteArrayConverter<UUID> {
 		return new UUID(most, least);
 	}
 
+	@Override
+	public String conversionHint() {
+		return "UUID:byte[]";
+	}
+
 }

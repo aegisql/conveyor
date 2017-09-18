@@ -44,4 +44,9 @@ public class EnumConverter <E extends Enum<E>> implements ObjectConverter<E, Str
 		return map.get(p);
 	}
 
+	@Override
+	public String conversionHint() {
+		return "E:String";
+	}
+
 }

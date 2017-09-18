@@ -35,4 +35,9 @@ public class CharactersToBytesConverter implements ObjectArrayToByteArrayConvert
 		return res;
 	}
 
+	@Override
+	public String conversionHint() {
+		return "Character[]:byte[]";
+	}
+
 }

@@ -32,5 +32,11 @@ public class BoolPrimToBytesConverter implements ObjectConverter<boolean[], byte
 
 		return res;
 	}
+	
+	@Override
+	public String conversionHint() {
+		return "boolean[]:byte[]";
+	}
+
 
 }

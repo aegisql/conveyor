@@ -14,4 +14,9 @@ public class BytesPrimToBytesConverter implements ObjectConverter<byte[], byte[]
 		return p;
 	}
 
+	@Override
+	public String conversionHint() {
+		return "byte[]:byte[]";
+	}
+
 }

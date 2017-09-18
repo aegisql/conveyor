@@ -22,4 +22,9 @@ public class FloatToBytesConverter implements ObjectToByteArrayConverter<Float> 
 		return ByteBuffer.wrap(p).getFloat();
 	}
 
+	@Override
+	public String conversionHint() {
+		return "Float:byte[]";
+	}
+
 }

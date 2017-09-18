@@ -62,6 +62,11 @@ public class PersistCartsTest {
 						public String fromPersistence(String p) {
 							return p;
 						}
+
+						@Override
+						public String conversionHint() {
+							return "L:String";
+						}
 					})
 					.build();
 		} catch (Exception e) {

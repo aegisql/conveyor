@@ -343,6 +343,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			public String fromPersistence(String p) {
 				return p;
 			}
+
+			@Override
+			public String conversionHint() {
+				return "?:String";
+			}
 		};
 		
 		/**

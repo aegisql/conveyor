@@ -50,7 +50,6 @@ public class ConverterAdviserTest implements Serializable {
 	public void testLabel() {
 		ConverterAdviser<String> ca = new ConverterAdviser<>();
 		ca.addConverter("test", new ObjectConverter<Object, byte[]>() {
-
 			@Override
 			public byte[] toPersistence(Object obj) {
 				byte[] orig = obj.toString().getBytes();
@@ -64,6 +63,11 @@ public class ConverterAdviserTest implements Serializable {
 			@Override
 			public Object fromPersistence(byte[] p) {
 				return new String(p);
+			}
+
+			@Override
+			public String conversionHint() {
+				return "Object:byte[]";
 			}
 		});
 		ObjectConverter<Object, byte[]> oc = ca.getConverter("test", String.class);
@@ -89,7 +93,13 @@ public class ConverterAdviserTest implements Serializable {
 	@Test
 	public void testJson() {
 		ConverterAdviser<String> ca = new ConverterAdviser<>();
-		ca.addConverter(Trio.class, new ObjectToJsonBytesConverter<>(Trio.class));
+		ca.addConverter(Trio.class, new ObjectToJsonBytesConverter<Trio>(Trio.class){
+			@Override
+			public String conversionHint() {
+				return "Trio:byte[]";
+			}
+		}
+				);
 		ObjectConverter<Object, byte[]> oc = ca.getConverter("test", Trio.class);
 		byte[] res = oc.toPersistence(new Trio("one","two",100));
 		assertNotNull(res);

@@ -34,5 +34,11 @@ public class LongsToBytesConverter implements ObjectArrayToByteArrayConverter<Lo
 
 		return res;
 	}
+	
+	@Override
+	public String conversionHint() {
+		return "Long[]:byte[]";
+	}
+
 
 }

@@ -25,4 +25,9 @@ public class SqlTimeToBytesConverter implements ObjectToByteArrayConverter<Time>
 		return new Time(ByteBuffer.wrap(p).getLong());
 	}
 
+	@Override
+	public String conversionHint() {
+		return "java.sql.Time:byte[]";
+	}
+
 }

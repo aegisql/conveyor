@@ -36,5 +36,11 @@ public class FloatPrimToBytesConverter implements ObjectConverter<float[], byte[
 
 		return res;
 	}
+	
+	@Override
+	public String conversionHint() {
+		return "float[]:byte[]";
+	}
+
 
 }

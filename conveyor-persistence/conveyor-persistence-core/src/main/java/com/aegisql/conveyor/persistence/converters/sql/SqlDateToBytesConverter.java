@@ -25,4 +25,9 @@ public class SqlDateToBytesConverter implements ObjectToByteArrayConverter<Date>
 		return new Date(ByteBuffer.wrap(p).getLong());
 	}
 
+	@Override
+	public String conversionHint() {
+		return "java.sql.Date:byte[]";
+	}
+
 }

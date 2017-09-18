@@ -18,4 +18,9 @@ public class ByteToBytesConverter implements ObjectToByteArrayConverter<Byte> {
 		return p[0];
 	}
 
+	@Override
+	public String conversionHint() {
+		return "Byte:byte[]";
+	}
+
 }

@@ -19,5 +19,11 @@ public class BigIntegerToBytesConverter implements ObjectToByteArrayConverter<Bi
 		}
 		return new BigInteger(p);
 	}
+	
+	@Override
+	public String conversionHint() {
+		return "BigInteger:byte[]";
+	}
+
 
 }

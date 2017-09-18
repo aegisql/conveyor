@@ -307,11 +307,18 @@ public class ConvertersTest {
 		ParameterizedType t = (ParameterizedType) tt[0];
 		Type[] at = t.getActualTypeArguments();
 		System.out.println(((Class)at[0]).getCanonicalName());
+		
+		
 	}
 	
 	@Test
 	public void collectionConverterIntTest() {
-		CollectionToByteArrayConverter<Integer> cc = new CollectionToByteArrayConverter<>(ArrayList::new, new IntegerToBytesConverter());
+		CollectionToByteArrayConverter<Integer> cc = new CollectionToByteArrayConverter<Integer>(ArrayList::new, new IntegerToBytesConverter()){
+			@Override
+			public String conversionHint() {
+				return "ArrayList<Integer>[]:byte[]";
+			}
+		};
 		
 		ArrayList<Integer> l = new ArrayList<>();
 		l.add(100);
@@ -339,7 +346,12 @@ public class ConvertersTest {
 	
 	@Test
 	public void collectionConverterStringTest() {
-		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<>(ArrayList::new, new StringToBytesConverter());
+		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<String>(ArrayList::new, new StringToBytesConverter()){
+			@Override
+			public String conversionHint() {
+				return "";
+			}			
+		};
 		
 		ArrayList<String> l = new ArrayList<>();
 		l.add("one");
@@ -379,7 +391,12 @@ public class ConvertersTest {
 	
 	@Test
 	public void collectionConverterEmptyStringTest() {
-		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<>(ArrayList::new, new StringToBytesConverter());
+		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<String>(ArrayList::new, new StringToBytesConverter()){
+			@Override
+			public String conversionHint() {
+				return "";
+			}			
+		};
 		
 		ArrayList<String> l = new ArrayList<>();
 		byte[] b = cc.toPersistence(l);
@@ -395,7 +412,12 @@ public class ConvertersTest {
 	
 	@Test
 	public void collectionConverterBigStringTest() {
-		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<>(ArrayList::new, new StringToBytesConverter());
+		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<String>(ArrayList::new, new StringToBytesConverter()){
+			@Override
+			public String conversionHint() {
+				return "";
+			}			
+		};
 		
 		ArrayList<String> l = new ArrayList<>();
 		l.add(bigString(100));
@@ -418,7 +440,12 @@ public class ConvertersTest {
 
 	@Test
 	public void basicMapTest() {
-		MapToByteArrayConverter<Integer, String> mc = new MapToByteArrayConverter<>(HashMap::new, new IntegerToBytesConverter(), new StringToBytesConverter());
+		MapToByteArrayConverter<Integer, String> mc = new MapToByteArrayConverter<Integer,String>(HashMap::new, new IntegerToBytesConverter(), new StringToBytesConverter()){
+			@Override
+			public String conversionHint() {
+				return "";
+			}
+		};
 		
 		Map<Integer,String> m = new HashMap<>();
 		
@@ -443,7 +470,12 @@ public class ConvertersTest {
 
 	@Test
 	public void basicMapTest2() {
-		MapToByteArrayConverter<String,Integer> mc = new MapToByteArrayConverter<>(HashMap::new, new StringToBytesConverter(), new IntegerToBytesConverter());
+		MapToByteArrayConverter<String,Integer> mc = new MapToByteArrayConverter<String,Integer>(HashMap::new, new StringToBytesConverter(), new IntegerToBytesConverter()){
+			@Override
+			public String conversionHint() {
+				return "";
+			}
+		};
 		
 		Map<String,Integer> m = new HashMap<>();
 		
@@ -470,9 +502,14 @@ public class ConvertersTest {
 	@Test
 	public void jsonTest() {
 		Trio t1 = new Trio("one", "two", 100);
-		ObjectToJsonBytesConverter<Trio> oc = new ObjectToJsonBytesConverter<>(Trio.class);
+		ObjectToJsonBytesConverter<Trio> oc = new ObjectToJsonBytesConverter<Trio>(Trio.class){
+			@Override
+			public String conversionHint() {
+				return "Trio:byte[]";
+			}
+		};
 		byte[] b = oc.toPersistence(t1);
-		System.out.println(oc.getHint(t1));
+		System.out.println(oc.conversionHint());
 		System.out.println(new String(b));
 		Trio t2 = oc.fromPersistence(b);
 		assertEquals(t1, t2);

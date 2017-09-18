@@ -36,5 +36,11 @@ public class LongPrimToBytesConverter implements ObjectConverter<long[], byte[]>
 
 		return res;
 	}
+	
+	@Override
+	public String conversionHint() {
+		return "long[]:byte[]";
+	}
+
 
 }

@@ -21,5 +21,11 @@ public class BigDecimalToBytesConverter implements ObjectToByteArrayConverter<Bi
 		BigInteger bi = new BigInteger(p);
 		return new BigDecimal(bi);
 	}
+	
+	@Override
+	public String conversionHint() {
+		return "BigDecimal:byte[]";
+	}
+
 
 }

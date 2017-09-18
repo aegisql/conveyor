@@ -22,4 +22,9 @@ public class DoubleToBytesConverter implements ObjectToByteArrayConverter<Double
 		return ByteBuffer.wrap(p).getDouble();
 	}
 
+	@Override
+	public String conversionHint() {
+		return "Double:byte[]";
+	}
+
 }

@@ -25,4 +25,9 @@ public class SqlTimestampToBytesConverter implements ObjectToByteArrayConverter<
 		return new Timestamp(ByteBuffer.wrap(p).getLong());
 	}
 
+	@Override
+	public String conversionHint() {
+		return "java.sql.Timestamp:byte[]";
+	}
+
 }

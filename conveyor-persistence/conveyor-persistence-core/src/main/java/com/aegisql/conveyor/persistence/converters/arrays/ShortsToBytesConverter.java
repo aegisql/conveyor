@@ -35,4 +35,9 @@ public class ShortsToBytesConverter implements ObjectArrayToByteArrayConverter<S
 		return res;
 	}
 
+	@Override
+	public String conversionHint() {
+		return "Short[]:byte[]";
+	}
+
 }

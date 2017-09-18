@@ -15,8 +15,8 @@ public class NullConverter implements ObjectConverter<Object, byte[]> {
 	}
 	
 	@Override
-	public String getHint(Object obj) {
-		return "NullConverter:";
+	public String conversionHint() {
+		return "null:null";
 	}
 
 }

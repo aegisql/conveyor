@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class ObjectToJsonBytesConverter <O> implements ObjectToByteArrayConverter<O> {
+public abstract class ObjectToJsonBytesConverter <O> implements ObjectToByteArrayConverter<O> {
 
 	private final Class<O> valueType;
 	

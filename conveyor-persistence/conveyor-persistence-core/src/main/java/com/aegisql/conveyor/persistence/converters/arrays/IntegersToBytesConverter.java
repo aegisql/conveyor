@@ -34,5 +34,11 @@ public class IntegersToBytesConverter implements ObjectArrayToByteArrayConverter
 
 		return res;
 	}
+	
+	@Override
+	public String conversionHint() {
+		return "Integer[]:byte[]";
+	}
+
 
 }

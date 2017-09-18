@@ -37,4 +37,10 @@ public class CharPrimToBytesConverter implements ObjectConverter<char[], byte[]>
 		return res;
 	}
 
+	@Override
+	public String conversionHint() {
+		return "char[]:byte[]";
+	}
+
+	
 }

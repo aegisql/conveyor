@@ -37,4 +37,9 @@ public class DoublePrimToBytesConverter implements ObjectConverter<double[], byt
 		return res;
 	}
 
+	@Override
+	public String conversionHint() {
+		return "double[]:byte[]";
+	}
+
 }

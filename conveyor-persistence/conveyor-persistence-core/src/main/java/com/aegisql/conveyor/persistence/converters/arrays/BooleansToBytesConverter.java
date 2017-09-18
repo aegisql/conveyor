@@ -30,5 +30,11 @@ public class BooleansToBytesConverter implements ObjectArrayToByteArrayConverter
 
 		return res;
 	}
+	
+	@Override
+	public String conversionHint() {
+		return "Boolean[]:byte[]";
+	}
+
 
 }

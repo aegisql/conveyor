@@ -22,4 +22,9 @@ public class CharToBytesConverter implements ObjectToByteArrayConverter<Characte
 		return ByteBuffer.wrap(p).getChar();
 	}
 
+	@Override
+	public String conversionHint() {
+		return "Character:byte[]";
+	}
+
 }

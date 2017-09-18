@@ -22,4 +22,9 @@ public class LongToBytesConverter implements ObjectToByteArrayConverter<Long> {
 		return ByteBuffer.wrap(p).getLong();
 	}
 
+	@Override
+	public String conversionHint() {
+		return "Long:byte[]";
+	}
+
 }

@@ -35,4 +35,9 @@ public class FloatsToBytesConverter implements ObjectArrayToByteArrayConverter<F
 		return res;
 	}
 
+	@Override
+	public String conversionHint() {
+		return "Float[]:byte[]";
+	}
+
 }

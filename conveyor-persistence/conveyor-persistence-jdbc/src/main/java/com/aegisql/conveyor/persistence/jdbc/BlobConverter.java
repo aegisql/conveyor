@@ -71,4 +71,9 @@ public class BlobConverter <T extends Serializable> implements ObjectConverter<T
 		}
 	}
 
+	@Override
+	public String conversionHint() {
+		return "T:Blob";
+	}
+
 }

@@ -2,14 +2,13 @@ package com.aegisql.conveyor.persistence.converters.collections;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
-public class MapToByteArrayConverter <K,V> implements ObjectConverter<Map<K,V>, byte[]> {
+public abstract class MapToByteArrayConverter <K,V> implements ObjectConverter<Map<K,V>, byte[]> {
 
 	private final Supplier<Map<K,V>> mapSupplier;
 	private final ObjectConverter<K, byte[]> keyConverter;

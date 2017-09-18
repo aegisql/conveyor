@@ -24,4 +24,9 @@ public class StringToBytesConverter implements ObjectToByteArrayConverter<String
 		return new String(p);
 	}
 
+	@Override
+	public String conversionHint() {
+		return "String:byte[]";
+	}
+
 }
