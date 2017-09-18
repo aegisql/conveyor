@@ -93,13 +93,7 @@ public class ConverterAdviserTest implements Serializable {
 	@Test
 	public void testJson() {
 		ConverterAdviser<String> ca = new ConverterAdviser<>();
-		ca.addConverter(Trio.class, new ObjectToJsonBytesConverter<Trio>(Trio.class){
-			@Override
-			public String conversionHint() {
-				return "Trio:byte[]";
-			}
-		}
-				);
+		ca.addConverter(Trio.class, new ObjectToJsonBytesConverter<Trio>(Trio.class));
 		ObjectConverter<Object, byte[]> oc = ca.getConverter("test", Trio.class);
 		byte[] res = oc.toPersistence(new Trio("one","two",100));
 		assertNotNull(res);

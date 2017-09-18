@@ -33,6 +33,7 @@ import com.aegisql.conveyor.persistence.converters.FloatToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.IntegerToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.LongToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ObjectToJsonBytesConverter;
+import com.aegisql.conveyor.persistence.converters.ObjectToJsonStringConverter;
 import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ShortToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.StringToBytesConverter;
@@ -502,16 +503,25 @@ public class ConvertersTest {
 	@Test
 	public void jsonTest() {
 		Trio t1 = new Trio("one", "two", 100);
-		ObjectToJsonBytesConverter<Trio> oc = new ObjectToJsonBytesConverter<Trio>(Trio.class){
-			@Override
-			public String conversionHint() {
-				return "Trio:byte[]";
-			}
-		};
+		ObjectToJsonBytesConverter<Trio> oc = new ObjectToJsonBytesConverter<Trio>(Trio.class);
 		byte[] b = oc.toPersistence(t1);
 		System.out.println(oc.conversionHint());
 		System.out.println(new String(b));
 		Trio t2 = oc.fromPersistence(b);
 		assertEquals(t1, t2);
+	}
+	
+	@Test
+	public void testJsonMap() {
+		Map<String,Object> m = new HashMap<>();
+		m.put("one", "one");
+		m.put("two", 2);
+		ObjectToJsonStringConverter<Map> oc = new ObjectToJsonStringConverter<Map>(Map.class);
+		String s = oc.toPersistence(m);
+		System.out.println(oc.conversionHint());
+		System.out.println(s);
+		Map m2 = oc.fromPersistence(s);
+		assertEquals(m, m2);
+
 	}
 }
