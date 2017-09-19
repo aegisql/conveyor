@@ -43,6 +43,7 @@ public class ConverterAdviser <L> {
 	private final NullConverter nc = new NullConverter();
 	
 	private ObjectConverter<Object, byte[]> defaultConverter = (ObjectConverter)new SerializableToBytesConverter<>();
+	private final static ObjectConverter<Object, byte[]> NULL_CONVERTER = new NullConverter();
 	
 	public ConverterAdviser() {
 		
@@ -96,16 +97,19 @@ public class ConverterAdviser <L> {
 	
 	public void addConverter(Class<?> clas,ObjectConverter<?, byte[]> conv) {
 		primeConverters.put(clas.getCanonicalName(), (ObjectConverter<Object, byte[]>) conv);
-		primeConverters.put(conv.getClass().getCanonicalName(), (ObjectConverter<Object, byte[]>) conv);
+		primeConverters.put(conv.conversionHint(), (ObjectConverter<Object, byte[]>) conv);
 	}
 
 	public void addConverter(L label,ObjectConverter<?, byte[]> conv) {
 		labelConverters.put(label, (ObjectConverter<Object, byte[]>) conv);
-		primeConverters.put(conv.getClass().getCanonicalName(), (ObjectConverter<Object, byte[]>) conv);
+		primeConverters.put(conv.conversionHint(), (ObjectConverter<Object, byte[]>) conv);
 	}
 
 	public ObjectConverter<Object, byte[]> getConverter(L label, String name) {
-		
+		if(name == null) {
+			return NULL_CONVERTER ;
+		}
+
 		if(labelConverters.containsKey(label)) {
 			return labelConverters.get(label);
 		}
@@ -129,7 +133,6 @@ public class ConverterAdviser <L> {
 	public void setDefaultConverter(ObjectConverter<Object, byte[]> defaultConverter) {
 		this.defaultConverter = defaultConverter;
 	}
-	
 	
 
 }

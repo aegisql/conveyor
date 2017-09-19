@@ -38,7 +38,7 @@ public class ObjectToJsonStringConverter <O> implements ObjectConverter<O, Strin
 
 	@Override
 	public String conversionHint() {
-		return "JSON<"+valueType.getCanonicalName()+">:byte[]";
+		return "JSON<"+valueType.getCanonicalName()+">:String";
 	}
 
 }

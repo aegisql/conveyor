@@ -9,12 +9,7 @@ import com.aegisql.conveyor.persistence.converters.collections.CollectionToByteA
 
 public class StringsToBytesConverter implements ObjectArrayToByteArrayConverter<String> {
 	
-	CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<String>(ArrayList::new, new StringToBytesConverter()){
-		@Override
-		public String conversionHint() {
-			return "ArrayList<String>:byte[]";
-		}
-		};
+	CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<String>(ArrayList::new, new StringToBytesConverter());
 
 	@Override
 	public byte[] toPersistence(String[] obj) {

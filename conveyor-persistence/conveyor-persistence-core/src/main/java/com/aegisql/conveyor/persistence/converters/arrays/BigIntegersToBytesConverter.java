@@ -10,12 +10,7 @@ import com.aegisql.conveyor.persistence.converters.collections.CollectionToByteA
 
 public class BigIntegersToBytesConverter implements ObjectArrayToByteArrayConverter<BigInteger> {
 	
-	CollectionToByteArrayConverter<BigInteger> cc = new CollectionToByteArrayConverter<BigInteger>(ArrayList::new, new BigIntegerToBytesConverter()){
-		@Override
-		public String conversionHint() {
-			return "ArrayList<BigInteger>[]:byte[]";
-		}
-	};
+	CollectionToByteArrayConverter<BigInteger> cc = new CollectionToByteArrayConverter<BigInteger>(ArrayList::new, new BigIntegerToBytesConverter());
 
 	@Override
 	public byte[] toPersistence(BigInteger[] obj) {

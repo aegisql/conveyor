@@ -314,12 +314,7 @@ public class ConvertersTest {
 	
 	@Test
 	public void collectionConverterIntTest() {
-		CollectionToByteArrayConverter<Integer> cc = new CollectionToByteArrayConverter<Integer>(ArrayList::new, new IntegerToBytesConverter()){
-			@Override
-			public String conversionHint() {
-				return "ArrayList<Integer>[]:byte[]";
-			}
-		};
+		CollectionToByteArrayConverter<Integer> cc = new CollectionToByteArrayConverter<Integer>(ArrayList::new, new IntegerToBytesConverter());
 		
 		ArrayList<Integer> l = new ArrayList<>();
 		l.add(100);
@@ -347,12 +342,7 @@ public class ConvertersTest {
 	
 	@Test
 	public void collectionConverterStringTest() {
-		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<String>(ArrayList::new, new StringToBytesConverter()){
-			@Override
-			public String conversionHint() {
-				return "";
-			}			
-		};
+		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<String>(ArrayList::new, new StringToBytesConverter());
 		
 		ArrayList<String> l = new ArrayList<>();
 		l.add("one");
@@ -392,13 +382,8 @@ public class ConvertersTest {
 	
 	@Test
 	public void collectionConverterEmptyStringTest() {
-		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<String>(ArrayList::new, new StringToBytesConverter()){
-			@Override
-			public String conversionHint() {
-				return "";
-			}			
-		};
-		
+		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<String>(ArrayList::new, new StringToBytesConverter());
+		System.out.println(cc.conversionHint());
 		ArrayList<String> l = new ArrayList<>();
 		byte[] b = cc.toPersistence(l);
 		assertNotNull(b);
@@ -413,12 +398,7 @@ public class ConvertersTest {
 	
 	@Test
 	public void collectionConverterBigStringTest() {
-		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<String>(ArrayList::new, new StringToBytesConverter()){
-			@Override
-			public String conversionHint() {
-				return "";
-			}			
-		};
+		CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<String>(ArrayList::new, new StringToBytesConverter());
 		
 		ArrayList<String> l = new ArrayList<>();
 		l.add(bigString(100));
@@ -521,6 +501,7 @@ public class ConvertersTest {
 		System.out.println(oc.conversionHint());
 		System.out.println(s);
 		Map m2 = oc.fromPersistence(s);
+		
 		assertEquals(m, m2);
 
 	}

@@ -7,14 +7,17 @@ import java.util.function.Supplier;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
-public abstract class CollectionToByteArrayConverter <O> implements ObjectConverter<Collection<O>, byte[]> {
+public class CollectionToByteArrayConverter <O> implements ObjectConverter<Collection<O>, byte[]> {
 
 	private final Supplier<Collection<O>> collectionSupplier;
 	private final ObjectConverter<O, byte[]> objectConverter;
+	private final String hint;
 	
 	public CollectionToByteArrayConverter(Supplier<Collection<O>> collectionSupplier, ObjectConverter<O, byte[]> objectConverter) {
 		this.collectionSupplier = collectionSupplier;
 		this.objectConverter    = objectConverter;
+		Collection<O> col = collectionSupplier.get();
+		this.hint = col.getClass().getCanonicalName()+"<"+objectConverter.conversionHint()+">:byte[]";
 	}
 	
 	@Override
@@ -101,6 +104,11 @@ public abstract class CollectionToByteArrayConverter <O> implements ObjectConver
 			}
 		}
 		return col;
+	}
+
+	@Override
+	public String conversionHint() {
+		return hint;
 	}
 
 }

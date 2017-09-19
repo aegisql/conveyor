@@ -1,8 +1,11 @@
 package com.aegisql.conveyor.persistence.jdbc.impl.derby;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.security.MessageDigest;
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -27,6 +30,7 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +41,14 @@ import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.Archiver;
 import com.aegisql.conveyor.persistence.jdbc.BlobConverter;
 import com.aegisql.conveyor.persistence.jdbc.EncryptingBlobConverter;
 import com.aegisql.conveyor.persistence.jdbc.EnumConverter;
+import com.aegisql.conveyor.persistence.jdbc.MapToClobConverter;
 import com.aegisql.conveyor.persistence.jdbc.StringConverter;
 import com.aegisql.id_builder.IdSource;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
@@ -314,7 +320,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		/** The max batch time. */
 		private long maxBatchTime = 60_000;
 		
-		
+		private ConverterAdviser converterAdviser;
 		
 		/** The archive strategy. */
 		private ArchiveStrategy archiveStrategy = ArchiveStrategy.DELETE;
@@ -866,7 +872,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 								+",EXPIRATION_TIME TIMESTAMP NOT NULL"
 								+",CART_VALUE BLOB"
 								+",VALUE_TYPE VARCHAR(255)"
-								+",CART_PROPERTIES BLOB"
+								+",CART_PROPERTIES CLOB"
 								+",ARCHIVED SMALLINT NOT NULL DEFAULT 0"
 								+")";
 					LOG.debug("Table '{}' not found. Trying to create...\n{}",partTable,sql);
@@ -991,6 +997,10 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				blobConverter = new BlobConverter<>(conn);
 			}
 			
+			if(converterAdviser == null) {
+				converterAdviser = new ConverterAdviser<>();
+			}
+			
 			return new DerbyPersistence<K>(
 					this
 					,conn
@@ -1005,7 +1015,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,"SELECT COUNT(*) FROM " + partTable + " WHERE ARCHIVED = 0"
 					,archiver
 					,labelConverter
-					,blobConverter
+					//,blobConverter
+					,converterAdviser
 					,maxBatchSize
 					,maxBatchTime
 					);
@@ -1020,7 +1031,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	private final LongSupplier idSupplier;
 	
 	/** The blob converter. */
-	private final BlobConverter blobConverter;
+//	private final BlobConverter blobConverter;
+	
+	private final ConverterAdviser converterAdviser;
+	
+	private final MapToClobConverter mapConverter;
 	
 	/** The load type converter. */
 	private final EnumConverter<LoadType> loadTypeConverter = new EnumConverter<>(LoadType.class);
@@ -1098,14 +1113,16 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,String getNumberOfPartsQuery
 			,Archiver<K> archiver
 			,ObjectConverter<?,String> labelConverter
-			,BlobConverter blobConverter
+			//,BlobConverter blobConverter
+			,ConverterAdviser<?> converterAdviser
 			,int maxBatchSize
 			,long maxBatchTime
 			) {
 		this.builder                      = builder;
 		this.conn                         = conn;
 		this.idSupplier                   = idSupplier;
-		this.blobConverter                = blobConverter;
+		//this.blobConverter                = blobConverter;
+		this.converterAdviser             = converterAdviser;
 		this.saveCartQuery                = saveCartQuery;
 		this.saveCompletedBuildKeyQuery   = saveCompletedBuildKeyQuery;
 		this.getPartQuery                 = getPartQuery;
@@ -1118,6 +1135,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		this.labelConverter               = labelConverter;
 		this.maxBatchSize                 = maxBatchSize;
 		this.maxBatchTime                 = maxBatchTime;
+		this.mapConverter                 = new MapToClobConverter(conn);
 	}
 
 	/**
@@ -1168,22 +1186,51 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		LOG.debug("SAVING: {}",cart);
 		try(PreparedStatement st = conn.prepareStatement(saveCartQuery) ) {
 			Object value = cart.getValue();
+			L label      = cart.getLabel();
+			ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, value == null?null:value.getClass().getCanonicalName());
+			String hint = byteConverter.conversionHint();
 			
 			st.setLong(1, id);
 			st.setString(2, loadTypeConverter.toPersistence(cart.getLoadType()));
 			st.setObject(3, cart.getKey());
-			L label = cart.getLabel();
 			st.setObject(4, labelConverter.toPersistence(label));
 			st.setTimestamp(5, new Timestamp(cart.getCreationTime()));
 			st.setTimestamp(6, new Timestamp(cart.getExpirationTime()));
-			st.setBlob(7, blobConverter.toPersistence((Serializable) value));
-			st.setBlob(8, blobConverter.toPersistence((Serializable) cart.getAllProperties()));
-			st.setString(9, value==null?null:value.getClass().getCanonicalName());
+			st.setBlob(7, toBlob( byteConverter.toPersistence(value)));
+			st.setClob(8, mapConverter.toPersistence(cart.getAllProperties()));
+			st.setString(9, hint);
 			st.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
 	    	LOG.error("SavePart Exception: {} {}",cart,e.getMessage());
 	    	throw new RuntimeException("Save Part failed for "+cart,e);
+		}
+	}
+	
+	private Blob toBlob(byte[] bytes) {
+    	Blob blob       = null;
+    	OutputStream os = null;
+		try {
+			blob = conn.createBlob();
+	    	os = blob.setBinaryStream(1);
+		} catch (SQLException e) {
+			throw new RuntimeException("SQL Runntime Exception",e);
+		}
+		try {
+			os.write( bytes );
+			return blob;
+		} catch (IOException e) {
+			throw new RuntimeException("IO Runntime Exception",e);
+		}
+	}
+
+	private byte[] fromBlob(Blob blob) {
+		try(InputStream in = blob.getBinaryStream(1, blob.length())) {
+			return IOUtils.toByteArray(in);
+		} catch (SQLException e) {
+			throw new RuntimeException("SQL Runntime Exception",e);
+		} catch (IOException e) {
+			throw new RuntimeException("IO Runntime Exception",e);
 		}
 	}
 
@@ -1222,17 +1269,20 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			ResultSet rs = st.executeQuery();
 			if(rs.next()) {
 				K key = (K)rs.getObject(1);
-				Object val = blobConverter.fromPersistence(rs.getBlob(2));
 				String labelString = rs.getString(3);
 				L label = null;
 				if(labelString != null) {
 					label = (L)labelConverter.fromPersistence(labelString.trim());
 				}
+				String hint = rs.getString(8);
+				ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
+				Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
+
 				LOG.debug("getPart LABEL: {}",label);
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-				Map<String,Object> properties = (Map<String, Object>) blobConverter.fromPersistence(rs.getBlob(7));
+				Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
 //				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
 				
 				if(loadType == LoadType.BUILDER) {
@@ -1282,16 +1332,20 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
 				K key = (K)rs.getObject(1);
-				Object val = blobConverter.fromPersistence(rs.getBlob(2));
 				String labelString = rs.getString(3);
 				L label = null;
 				if(labelString != null) {
 					label = (L)labelConverter.fromPersistence(labelString.trim());
 				}
+				
+				String hint = rs.getString(8);
+				ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
+				Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
+
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-				Map<String,Object> properties = (Map<String, Object>) blobConverter.fromPersistence(rs.getBlob(7));
+				Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
 //				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
 				if(loadType == LoadType.BUILDER) {
 					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
@@ -1373,12 +1427,14 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
 				K key = (K)rs.getObject(1);
-				Object val = blobConverter.fromPersistence(rs.getBlob(2));
 				L label = (L)labelConverter.fromPersistence(rs.getString(3).trim());
+				String hint = rs.getString(8);
+				ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
+				Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-				Map<String,Object> properties = (Map<String, Object>) blobConverter.fromPersistence(rs.getBlob(7));
+				Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
 //				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
 				cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
 				carts.add(cart);
