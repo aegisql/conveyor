@@ -18,6 +18,9 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 4055225191822888396L;
 
+	private final SerializablePredicate<K> filter;
+	private final SerializableFunction<K,Cart<K, ?, L>> cartBuilder;
+	
 	/**
 	 * Instantiates a new shopping cart.
 	 *
@@ -28,12 +31,20 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> {
 	 */
 	public MultiKeyCart(V v, L label, long creation, long expiration) {
 		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
-		this.addProperty("#FILTER", (SerializablePredicate)entry->true);
-		this.addProperty("#CART_BUILDER", (SerializableFunction<K,Cart<K, ?, L>> & Serializable) key->{
+		this.filter      = (SerializablePredicate<K>)entry->true;
+		this.cartBuilder = (SerializableFunction<K,Cart<K, ?, L>> & Serializable) key->{
 			ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue(), getLabel(),getExpirationTime());
 			cart.putAllProperties(this.getAllProperties());
 			return cart;
-		});
+		};
+	}
+
+	public SerializablePredicate<K> getFilter() {
+		return filter;
+	}
+
+	public SerializableFunction<K, Cart<K, ?, L>> getCartBuilder() {
+		return cartBuilder;
 	}
 
 	/**
@@ -47,18 +58,18 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> {
 	 */
 	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration) {
 		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
-		this.addProperty("#FILTER", filter);
-		this.addProperty("#CART_BUILDER", (SerializableFunction<K,Cart<K, ?, L>>) key->{
+		this.filter = filter;
+		this.cartBuilder = (SerializableFunction<K,Cart<K, ?, L>>) key->{
 			ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue(), getLabel(),getExpirationTime());
 			cart.putAllProperties(this.getAllProperties());
 			return cart;
-		});
+		};
 	}
 
 	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, SerializableFunction<K,Cart<K, ?, L>> cartBuilder) {
 		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
-		this.addProperty("#FILTER", filter);
-		this.addProperty("#CART_BUILDER", cartBuilder);
+		this.filter = filter;
+		this.cartBuilder = cartBuilder; //BUG - do not copy properties
 	}
 
 	/* (non-Javadoc)

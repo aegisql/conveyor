@@ -346,6 +346,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if (rcl.key != null) {
 				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime);
 			} else {
+				//BUG - do not copy properties
 				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, k -> {
 					return new ResultConsumerCart<K, OUT, L>(k, rcl.consumer, rcl.creationTime, rcl.expirationTime);
 				});

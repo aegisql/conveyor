@@ -750,6 +750,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(rcl.key != null) {
 				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime);
 			} else {
+				//BUG - do not copy properties
 				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, k->{
 					return new ResultConsumerCart<K, OUT, L>(k, rcl.consumer, rcl.creationTime, rcl.expirationTime);
 				});
@@ -909,8 +910,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if (key == null) {
 			if (cart.getLoadType() == MULTI_KEY_PART) {
 				try {
-					Function<K,Cart<K, ?, L>> cartBuilder = cart.getProperty("#CART_BUILDER", Function.class);
-					Predicate<K> filter = cart.getProperty("#FILTER", Predicate.class);
+					Function<K,Cart<K, ?, L>> cartBuilder = ((MultiKeyCart<K,?,L>)cart).getCartBuilder();
+					Predicate<K> filter = ((MultiKeyCart<K,?,L>)cart).getFilter();
 					LOG.debug("--- READY TO APPLY MULTY");
 					collector.entrySet().stream().map(entry -> entry.getKey()).filter(filter)
 							.collect(Collectors.toList())
