@@ -125,7 +125,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			onStatus.get(status.getStatus()).accept(status);
 		});
 
-		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(true).place();
+		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(true).place().join();
 		if (forward != null && forward.getResultConsumer() != null) {
 			this.resultConsumer = forward.getResultConsumer();
 		} else {
@@ -158,7 +158,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 		this.initializationMode.set(false);
 		this.ackConveyor.setInitializationMode(false);
-		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(false).place();
+		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(false).place().join();
 	}
 
 	/**

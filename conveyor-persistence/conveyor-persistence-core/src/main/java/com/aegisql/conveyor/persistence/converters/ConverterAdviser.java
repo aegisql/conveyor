@@ -6,6 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.aegisql.conveyor.persistence.converters.arrays.BigDecimalsToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.BigIntegersToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.BoolPrimToBytesConverter;
@@ -37,6 +43,8 @@ import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
 public class ConverterAdviser <L> {
 
+	private final static Logger LOG = LoggerFactory.getLogger(ConverterAdviser.class);
+	
 	private final Map<String,ObjectConverter<Object, byte[]>> primeConverters = new HashMap<>();
 	private final Map<L,ObjectConverter<Object, byte[]>> labelConverters = new HashMap<>();
 	
@@ -45,6 +53,13 @@ public class ConverterAdviser <L> {
 	private ObjectConverter<Object, byte[]> defaultConverter = (ObjectConverter)new SerializableToBytesConverter<>();
 	private final static ObjectConverter<Object, byte[]> NULL_CONVERTER = new NullConverter();
 	
+	private EncryptingConverter encryptor = null;
+	
+	public void setEncryptor(SecretKey key, Cipher cipher) {
+		this.encryptor = new EncryptingConverter(key, cipher);
+		primeConverters.put(this.encryptor.conversionHint(), (ObjectConverter)this.encryptor);
+	}
+
 	public ConverterAdviser() {
 		
 		this.addConverter(UUID.class, new UuidToBytesConverter());
@@ -109,16 +124,39 @@ public class ConverterAdviser <L> {
 		if(name == null) {
 			return NULL_CONVERTER ;
 		}
-
+		ObjectConverter<Object, byte[]> converter = defaultConverter;
 		if(labelConverters.containsKey(label)) {
-			return labelConverters.get(label);
-		}
-		
-		ObjectConverter<Object, byte[]> conv = primeConverters.get(name);
-		if(conv != null) {
-			return conv;
+			converter = labelConverters.get(label);
 		} else {
-			return defaultConverter;
+			ObjectConverter<Object, byte[]> conv = primeConverters.get(name.replace("__##", ""));
+			if(conv != null) {
+				converter = conv;
+			}	
+		}
+		if(encryptor == null) {
+			if(name.startsWith("__##")) {
+				throw new RuntimeException("Encryption is not set "+name);
+			}
+			return converter;
+		} else {
+			final ObjectConverter<byte[], byte[]> eConverter = encryptor;
+			final ObjectConverter<Object, byte[]> oConverter = converter;
+			return new ObjectConverter<Object, byte[]>(){
+
+				@Override
+				public byte[] toPersistence(Object obj) {
+					return eConverter.toPersistence(oConverter.toPersistence(obj));
+				}
+
+				@Override
+				public Object fromPersistence(byte[] p) {
+					return oConverter.fromPersistence(eConverter.fromPersistence(p));
+				}
+
+				@Override
+				public String conversionHint() {
+					return "__##"+oConverter.conversionHint();
+				}};
 		}
 	}
 

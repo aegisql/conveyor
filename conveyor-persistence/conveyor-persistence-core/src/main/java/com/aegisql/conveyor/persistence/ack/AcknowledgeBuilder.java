@@ -126,7 +126,9 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 			cart.addProperty("#CART_ID", id);
 			cart.addProperty(id.toString(),"#CART_ID");
 			save = true;
+			LOG.debug("NEW ID {}",id);
 		} else {
+			LOG.debug("RESTORED ID {}",id);
 			id = (Long) cart.getProperty("#CART_ID", Long.class);
 		}
 		
@@ -143,7 +145,7 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 			});
 			}
 		} else {
-			LOG.debug("INITIALIZING {}",cart.getKey());
+			LOG.debug("INITIALIZING {} {}",cart.getKey(),id);
 		}
 		
 		if ( ! builder.cartIds.contains(id)) {
@@ -157,7 +159,7 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 				builder.forward.place((Cart) cart);
 			}
 		} else {
-			LOG.debug("Duplicate cart {}",cart.getKey());
+			LOG.debug("Duplicate cart {} {}",cart.getKey(),id);
 		}
 	}
 

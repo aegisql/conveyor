@@ -203,7 +203,7 @@ public class PersistentConveyorTest {
 		pc1.setName("TC1");
 		pc1.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
 		pc1.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
-		System.out.println(p1);
+		System.out.println("P1 "+p1);
 		
 		pc1.stop();
 		TrioConveyor tc2 = new TrioConveyor();
@@ -216,12 +216,15 @@ public class PersistentConveyorTest {
 				.completedLogTable("failingEncryptionReplayTestCompleted")
 				.labelConverter(new EnumConverter<>(TrioPart.class))
 				.build();
+		Thread.sleep(1000);
 		//Must copy state from the previous persistence
 		//assertFalse(p2.isEmpty());
 		//p1 must be empty after moving data to p1. 
 		//assertTrue(p1.isEmpty());
 		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2);
 		pc2.setName("TC2");
+
+		System.out.println("------------");
 		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
 		System.out.println(tc2);
 		assertEquals(0, tc1.results.size());

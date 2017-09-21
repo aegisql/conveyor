@@ -123,7 +123,7 @@ public class PersistCartsTest {
 		assertEquals(sc1.getProperty("PROPERTY", String.class), scRestored.getProperty("PROPERTY", String.class));
 		assertNotNull(scRestored.getProperty("#FILTER", SerializablePredicate.class));
 		assertNotNull(scRestored.getProperty("#CART_BUILDER", SerializableFunction.class));
-		
+		System.out.println("---"+scRestored.getProperty("#CART_BUILDER",Object.class));
 		assertTrue(scRestored.getProperty("#FILTER", SerializablePredicate.class).test(1));
 		
 		Cart<Integer, ?, ?> produced = (Cart<Integer, ?, ?>) scRestored.getProperty("#CART_BUILDER", SerializableFunction.class).apply(1);

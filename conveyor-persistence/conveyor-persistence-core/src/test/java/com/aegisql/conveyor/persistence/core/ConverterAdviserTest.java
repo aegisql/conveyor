@@ -39,11 +39,11 @@ public class ConverterAdviserTest implements Serializable {
 	public void testAdv() {
 		ConverterAdviser<String> ca = new ConverterAdviser<>();
 		ObjectConverter<Object, byte[]> oc = ca.getConverter("test", Integer.class);
-		ObjectConverter<Object, byte[]> oc2 = ca.getConverter("test", oc.getClass().getCanonicalName());
+		ObjectConverter<Object, byte[]> oc2 = ca.getConverter("test", oc.conversionHint());
 		byte[] res = oc.toPersistence(new Integer(1));
 		Integer x = (Integer) oc.fromPersistence(res);
 		assertEquals(new Integer(1), x);
-		assertEquals(oc,oc2);
+		assertEquals(oc.conversionHint(),oc2.conversionHint());
 	}
 
 	@Test

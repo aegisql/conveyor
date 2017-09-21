@@ -977,9 +977,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				default:
 					
 			}
-			
-			@SuppressWarnings("unused")
-			BlobConverter<?> blobConverter;
+
+			if(converterAdviser == null) {
+				converterAdviser = new ConverterAdviser<>();
+			}
+
 			if(encryptionSecret != null) {
 				LOG.debug("VALUES ENCRIPTION ON");
 				if(secretKey == null) {
@@ -988,18 +990,13 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					key = sha.digest(key);
 					key = Arrays.copyOf(key, encryptionKeyLength);
 					secretKey = new SecretKeySpec(key, encryptionAlgorithm);
-
 					encryptionCipher = Cipher.getInstance(encryptionTransformation);
+					converterAdviser.setEncryptor(secretKey, encryptionCipher);
 				}
-				blobConverter = new EncryptingBlobConverter<>(conn,secretKey,encryptionCipher);
 			} else {
 				LOG.debug("VALUES ENCRIPTION OFF");
-				blobConverter = new BlobConverter<>(conn);
 			}
 			
-			if(converterAdviser == null) {
-				converterAdviser = new ConverterAdviser<>();
-			}
 			
 			return new DerbyPersistence<K>(
 					this
