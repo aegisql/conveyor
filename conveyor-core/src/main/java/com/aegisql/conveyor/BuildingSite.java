@@ -37,7 +37,7 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
  * @param <C> the generic type
  * @param <OUT> the generic type
  */
-public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expireable {
+public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expireable, Interruptable {
 
 	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(BuildingSite.class);
@@ -694,6 +694,16 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	public Acknowledge getAcknowledge() {
 		return acknowledge;
+	}
+
+	@Override
+	public void interrupt(Thread conveyorThread) {
+		if(builder instanceof Interruptable) {
+			((Interruptable)builder).interrupt(conveyorThread);
+		} else {
+			conveyorThread.interrupt();
+		}
+		
 	}
 		
 }

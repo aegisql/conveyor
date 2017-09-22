@@ -112,7 +112,7 @@ public class PersistCartsTest {
 		
 		assertEquals(1,allCarts.size());
 		
-		Cart<Integer, ?, String> scRestored = allCarts.iterator().next(); 
+		MultiKeyCart<Integer, String, String> scRestored = (MultiKeyCart<Integer, String, String>) allCarts.iterator().next(); 
 		
 		assertNull(scRestored.getKey());
 		assertEquals(sc1.getValue(), scRestored.getValue());
@@ -121,39 +121,34 @@ public class PersistCartsTest {
 		assertEquals(sc1.getExpirationTime(), scRestored.getExpirationTime());
 		assertEquals(sc1.getLoadType(), scRestored.getLoadType());
 		assertEquals(sc1.getProperty("PROPERTY", String.class), scRestored.getProperty("PROPERTY", String.class));
-		assertNotNull(scRestored.getProperty("#FILTER", SerializablePredicate.class));
-		assertNotNull(scRestored.getProperty("#CART_BUILDER", SerializableFunction.class));
 		System.out.println("---"+scRestored.getProperty("#CART_BUILDER",Object.class));
-		assertTrue(scRestored.getProperty("#FILTER", SerializablePredicate.class).test(1));
+		assertTrue(scRestored.getValue().getFilter().test(1));
 		
-		Cart<Integer, ?, ?> produced = (Cart<Integer, ?, ?>) scRestored.getProperty("#CART_BUILDER", SerializableFunction.class).apply(1);
-		System.out.println(produced);
-		assertNotNull(produced);
 	}
 
 	
-	@Test
-	public void testPersistentKeyCarts() {
-		Persistence<Integer> p = getPersistence("testMultyKeyCarts");
-		p.archiveAll();
-
-		MultiKeyCart<Integer, String, String> sc1 = new MultiKeyCart<Integer, String, String>(key->true, "sc1", "CART", 0, 0); 
-		sc1.addProperty("PROPERTY","test");
-		
-		AcknowledgeBuildingConveyor<Integer> ab = new AcknowledgeBuildingConveyor<>(p, null, null);
-		PersistenceCart<Integer> pc1 = PersistenceCart.of(sc1,ab.CART);
-		
-		p.savePart(p.nextUniquePartId(), pc1);
-		
-		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
-		
-		assertEquals(1,allCarts.size());
-		
-		Cart<Integer, ?, String> scRestored = allCarts.iterator().next(); 
-		
-		assertNull(scRestored.getKey());
-		System.out.println(scRestored);
-	}
+//	@Test
+//	public void testPersistentKeyCarts() {
+//		Persistence<Integer> p = getPersistence("testMultyKeyCarts");
+//		p.archiveAll();
+//
+//		MultiKeyCart<Integer, String, String> sc1 = new MultiKeyCart<Integer, String, String>(key->true, "sc1", "CART", 0, 0); 
+//		sc1.addProperty("PROPERTY","test");
+//		
+//		AcknowledgeBuildingConveyor<Integer> ab = new AcknowledgeBuildingConveyor<>(p, null, null);
+//		PersistenceCart<Integer> pc1 = PersistenceCart.of(sc1,ab.CART);
+//		
+//		p.savePart(p.nextUniquePartId(), pc1);
+//		
+//		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
+//		
+//		assertEquals(1,allCarts.size());
+//		
+//		Cart<Integer, ?, String> scRestored = allCarts.iterator().next(); 
+//		
+//		assertNull(scRestored.getKey());
+//		System.out.println(scRestored);
+//	}
 
 	@Test
 	public void testResultConsumerCarts() {

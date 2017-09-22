@@ -433,8 +433,25 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	void setAutoAcknowledge(boolean auto);
 	
+	/**
+	 * Sets the acknowledge action.
+	 *
+	 * @param ackAction the new acknowledge action
+	 */
 	void setAcknowledgeAction(Consumer<AcknowledgeStatus<K>> ackAction);
 
+	/**
+	 * Auto acknowledge on status.
+	 *
+	 * @param first the first
+	 * @param other the other
+	 */
 	void autoAcknowledgeOnStatus(Status first, Status... other);
 	
+	/**
+	 * Interrupt.
+	 *
+	 * @param conveyorName the conveyor name
+	 */
+	void interrupt(String conveyorName);
 }

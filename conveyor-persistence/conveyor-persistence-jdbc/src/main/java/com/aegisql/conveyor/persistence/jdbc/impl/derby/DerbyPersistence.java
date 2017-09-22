@@ -3,7 +3,6 @@ package com.aegisql.conveyor.persistence.jdbc.impl.derby;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.security.MessageDigest;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -37,7 +36,9 @@ import org.slf4j.LoggerFactory;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
+import com.aegisql.conveyor.cart.Load;
 import com.aegisql.conveyor.cart.LoadType;
+import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
@@ -45,8 +46,6 @@ import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.Archiver;
-import com.aegisql.conveyor.persistence.jdbc.BlobConverter;
-import com.aegisql.conveyor.persistence.jdbc.EncryptingBlobConverter;
 import com.aegisql.conveyor.persistence.jdbc.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.MapToClobConverter;
 import com.aegisql.conveyor.persistence.jdbc.StringConverter;
@@ -1186,7 +1185,6 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			L label      = cart.getLabel();
 			ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, value == null?null:value.getClass().getCanonicalName());
 			String hint = byteConverter.conversionHint();
-			
 			st.setLong(1, id);
 			st.setString(2, loadTypeConverter.toPersistence(cart.getLoadType()));
 			st.setObject(3, cart.getKey());
@@ -1286,6 +1284,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
 				} else if(loadType == LoadType.RESULT_CONSUMER) {
 					cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
+				} else if(loadType == LoadType.MULTI_KEY_PART) {
+					Load load = (Load)val;
+					cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
 				} else {
 					cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
 				}
@@ -1348,6 +1349,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
 				} else if(loadType == LoadType.RESULT_CONSUMER) {
 					cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
+				} else if(loadType == LoadType.MULTI_KEY_PART) {
+					Load load = (Load)val;
+					cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
 				} else {
 					cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
 				}

@@ -14,6 +14,7 @@ import com.aegisql.conveyor.ProductBin;
  */
 public class LastResultReference <K,V> implements ResultConsumer<K,V> {
 
+	private static final long serialVersionUID = 1L;
 	/** The ref. */
 	AtomicReference<V> ref = new AtomicReference<>();
 	

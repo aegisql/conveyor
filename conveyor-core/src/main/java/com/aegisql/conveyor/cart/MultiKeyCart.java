@@ -1,9 +1,7 @@
 package com.aegisql.conveyor.cart;
 
-import java.io.Serializable;
-import java.util.function.Predicate;
+import java.util.Map;
 
-import com.aegisql.conveyor.serial.SerializableFunction;
 import com.aegisql.conveyor.serial.SerializablePredicate;
 
 // TODO: Auto-generated Javadoc
@@ -14,12 +12,15 @@ import com.aegisql.conveyor.serial.SerializablePredicate;
  * @param <V> the value type
  * @param <L> the generic type
  */
-public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> {
+public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
+	
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 4055225191822888396L;
 
-	private final SerializablePredicate<K> filter;
-	private final SerializableFunction<K,Cart<K, ?, L>> cartBuilder;
+	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, LoadType loadType,Map<String,Object> properties) {
+		super(null, new Load<>(v, filter, loadType), label, creation,expiration,properties,LoadType.MULTI_KEY_PART);
+	}
+
 	
 	/**
 	 * Instantiates a new shopping cart.
@@ -30,21 +31,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> {
 	 * @param expiration the expiration time
 	 */
 	public MultiKeyCart(V v, L label, long creation, long expiration) {
-		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
-		this.filter      = (SerializablePredicate<K>)entry->true;
-		this.cartBuilder = (SerializableFunction<K,Cart<K, ?, L>> & Serializable) key->{
-			ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue(), getLabel(),getExpirationTime());
-			cart.putAllProperties(this.getAllProperties());
-			return cart;
-		};
-	}
-
-	public SerializablePredicate<K> getFilter() {
-		return filter;
-	}
-
-	public SerializableFunction<K, Cart<K, ?, L>> getCartBuilder() {
-		return cartBuilder;
+		super(null, new Load<>(v, x->true, LoadType.PART), label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 	}
 
 	/**
@@ -57,33 +44,25 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, V, L> {
 	 * @param expiration the expiration time
 	 */
 	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration) {
-		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
-		this.filter = filter;
-		this.cartBuilder = (SerializableFunction<K,Cart<K, ?, L>>) key->{
-			ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue(), getLabel(),getExpirationTime());
-			cart.putAllProperties(this.getAllProperties());
-			return cart;
-		};
+		super(null, new Load<>(v, filter, LoadType.PART), label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 	}
 
-	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, SerializableFunction<K,Cart<K, ?, L>> cartBuilder) {
-		super(null, v, label, creation,expiration,null,LoadType.MULTI_KEY_PART);
-		this.filter = filter;
-		this.cartBuilder = cartBuilder; //BUG - do not copy properties
+	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, LoadType loadType) {
+		super(null, new Load<>(v, filter, loadType), label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.cart.Cart#copy()
 	 */
 	@Override
-	public Cart <K,V,L> copy() {
-		MultiKeyCart<K,V,L> cart = new MultiKeyCart<K,V,L>(getValue(), getLabel(),getCreationTime(),getExpirationTime());
+	public Cart <K,Load<K,V>,L> copy() {
+		MultiKeyCart<K,V,L> cart = new MultiKeyCart<K,V,L>(getValue().getFilter(),getValue().getValue(), getLabel(),getCreationTime(),getExpirationTime(),getValue().getLoadType());
 		cart.putAllProperties(this.getAllProperties());
 		return cart;
 	}
 
 	public ShoppingCart<K, V, L> toShoppingCart(K key) {
-		ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue(), getLabel(),getExpirationTime());
+		ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue().getValue(), getLabel(),getExpirationTime());
 		cart.putAllProperties(this.getAllProperties());
 		return cart;
 	}

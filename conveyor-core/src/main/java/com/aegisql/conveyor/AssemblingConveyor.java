@@ -36,6 +36,9 @@ import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
+import com.aegisql.conveyor.cart.Load;
+import com.aegisql.conveyor.cart.LoadType;
+
 import static com.aegisql.conveyor.cart.LoadType.*;
 import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ResultConsumerCart;
@@ -293,6 +296,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The postpone expiration on timeout enabled. */
 	private boolean postponeExpirationOnTimeoutEnabled;
+
+	private volatile BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT>  currentSite;
 
 	/**
 	 * Wait data.
@@ -635,7 +640,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
 		return new PartLoader<K, L, X, OUT, Boolean>(cl -> {
-			Cart <K, Object, L> cart;
+			Cart <K, ?, L> cart;
 			if(cl.filter != null) {
 				cart = new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime);
 			} else {
@@ -750,10 +755,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(rcl.key != null) {
 				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime);
 			} else {
-				//BUG - do not copy properties
-				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, k->{
-					return new ResultConsumerCart<K, OUT, L>(k, rcl.consumer, rcl.creationTime, rcl.expirationTime);
-				});
+				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, LoadType.RESULT_CONSUMER);
 			}
 			rcl.getAllProperties().forEach((k,v)->{ cart.addProperty(k, v);});
 			return this.place(cart);
@@ -910,8 +912,26 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if (key == null) {
 			if (cart.getLoadType() == MULTI_KEY_PART) {
 				try {
-					Function<K,Cart<K, ?, L>> cartBuilder = ((MultiKeyCart<K,?,L>)cart).getCartBuilder();
-					Predicate<K> filter = ((MultiKeyCart<K,?,L>)cart).getFilter();
+					MultiKeyCart<K,?,L> mc = ((MultiKeyCart<K,?,L>)cart);
+					final L label = cart.getLabel();
+					final Load<K,?> load = mc.getValue();
+					final Predicate<K> filter = load.getFilter();
+					final Function<K,Cart<K, ?, L>> cartBuilder;
+					switch(load.getLoadType()) {
+						case RESULT_CONSUMER:
+							cartBuilder = k->{
+								ResultConsumerCart rcc = new ResultConsumerCart(k, (ResultConsumer)load.getValue(), cart.getCreationTime(), cart.getExpirationTime());
+								rcc.putAllProperties(cart.getAllProperties());
+								return rcc;
+							};
+						break;
+						default:
+							cartBuilder = k->{
+								ShoppingCart<K,?,L> c = new ShoppingCart<>(k, load.getValue(), label,cart.getCreationTime(), cart.getExpirationTime());
+								c.putAllProperties(mc.getAllProperties());
+								return c;
+							};
+					}
 					LOG.debug("--- READY TO APPLY MULTY");
 					collector.entrySet().stream().map(entry -> entry.getKey()).filter(filter)
 							.collect(Collectors.toList())
@@ -933,7 +953,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			return;
 		}
-		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> buildingSite = null;
+		currentSite = null;
 		CompletableFuture resultFuture = null;
 		ResultConsumer newConsumer     = null;
 		if (cart.getLoadType() == FUTURE) {
@@ -949,8 +969,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if (LOG.isTraceEnabled()) {
 				LOG.trace("Read " + cart);
 			}
-			buildingSite = getBuildingSite(cart);
-			if (buildingSite == null) {
+			currentSite = getBuildingSite(cart);
+			if (currentSite == null) {
 				if (cart.getLoadType() == BUILDER) {
 					cart.getFuture().complete(Boolean.TRUE);
 				} else {
@@ -961,51 +981,51 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 				return;
 			}
-			buildingSite.addProperties(cart.getAllProperties());
+			currentSite.addProperties(cart.getAllProperties());
 			if (resultFuture != null) {
-				buildingSite.addFuture(resultFuture);
+				currentSite.addFuture(resultFuture);
 				cart.getFuture().complete(true);
 				return;
 			}
 			if (newConsumer != null) {
-				buildingSite.setResultConsumer(newConsumer);
+				currentSite.setResultConsumer(newConsumer);
 				cart.getFuture().complete(true);
 				return;
 			}
 			if (Status.TIMED_OUT.equals(cart.getValue())) {
 				failureType = FailureType.ON_TIMEOUT_FAILED;
-				buildingSite.timeout((Cart<K, ?, L>) cart);
+				currentSite.timeout((Cart<K, ?, L>) cart);
 			} else if (accept) {
 				failureType = FailureType.DATA_REJECTED;
-				buildingSite.accept((Cart<K, ?, L>) cart);
+				currentSite.accept((Cart<K, ?, L>) cart);
 			}
 			failureType = FailureType.READY_FAILED;
-			if (buildingSite.ready()) {
+			if (currentSite.ready()) {
 				failureType = FailureType.BUILD_FAILED;
-				OUT res = buildingSite.unsafeBuild();
+				OUT res = currentSite.unsafeBuild();
 				failureType = FailureType.RESULT_CONSUMER_FAILED;
-				completeSuccessfully((BuildingSite<K, L, ?, OUT>) buildingSite,res,Status.READY);
+				completeSuccessfully((BuildingSite<K, L, ?, OUT>) currentSite,res,Status.READY);
 				failureType = FailureType.BEFORE_EVICTION_FAILED;
-				keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.READY, buildingSite.getProperties()));
+				keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.READY, currentSite.getProperties()));
 			}
 			cart.getFuture().complete(Boolean.TRUE);
 		} catch (Exception e) {
-			if (buildingSite != null) {
-				buildingSite.setStatus(Status.INVALID);
-				buildingSite.setLastError(e);
-				buildingSite.setLastCart(cart);
+			if (currentSite != null) {
+				currentSite.setStatus(Status.INVALID);
+				currentSite.setLastError(e);
+				currentSite.setLastCart(cart);
 				cart.getScrapConsumer().accept(new ScrapBin(cart.getKey(), cart,
 						"Site Processor failed", e, failureType,cart.getAllProperties(), null));
-				scrapConsumer.accept(new ScrapBin(cart.getKey(), buildingSite,
-						"Site Processor failed", e, failureType,cart.getAllProperties(), buildingSite.getAcknowledge()));
-				buildingSite.completeFuturesExceptionaly(e);
+				scrapConsumer.accept(new ScrapBin(cart.getKey(), currentSite,
+						"Site Processor failed", e, failureType,cart.getAllProperties(), currentSite.getAcknowledge()));
+				currentSite.completeFuturesExceptionaly(e);
 			} else {
 				cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(
 						new ScrapBin(cart.getKey(), cart, "Cart Processor Failed", e, failureType,cart.getAllProperties(), null));
 			}
 			if (!failureType.equals(FailureType.BEFORE_EVICTION_FAILED)) {
 				try {
-					keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.INVALID, buildingSite==null?null:buildingSite.getProperties()));
+					keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.INVALID, currentSite==null?null:currentSite.getProperties()));
 				} catch (Exception e2) {
 					LOG.error("BeforeEviction failed after processing failure: {} {} {}", failureType, e.getMessage(),
 							e2.getMessage());
@@ -1620,6 +1640,22 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public ResultConsumer<K, OUT> getResultConsumer() {
 		return resultConsumer;
+	}
+
+	@Override
+	public void interrupt(String conveyorName) {
+		if(name.equals(conveyorName)) {
+			BuildingSite bs = currentSite;
+			if(bs != null) {
+				bs.interrupt(innerThread);
+				LOG.info("interrupted "+conveyorName);
+			} else {
+				LOG.warn("No active build found for "+conveyorName);				
+			}
+		} else {
+			LOG.warn(name + " ignored interruption for "+conveyorName);
+		}
+		
 	}
 	
 }

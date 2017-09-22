@@ -186,7 +186,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		return properties;
 	}
 	
-	protected void putAllProperties(Map<String,Object> other) {
+	public void putAllProperties(Map<String,Object> other) {
 		properties.putAll(other);
 	}
 
