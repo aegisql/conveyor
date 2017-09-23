@@ -444,6 +444,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						this.conveyorFuture.complete(true);
 						LOG.info("No pending messages or commands. Ready to leave {}", Thread.currentThread().getName());
 					}
+					currentSite = null;
 				}
 				LOG.info("Leaving {}", Thread.currentThread().getName());
 				drainQueues();

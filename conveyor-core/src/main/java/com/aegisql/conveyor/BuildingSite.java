@@ -137,7 +137,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	private final Acknowledge acknowledge;
 	
-	
 	/**
 	 * Instantiates a new building site.
 	 *
@@ -292,30 +291,30 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param cart the cart
 	 */
 	public void accept(C cart) {
-		this.lastCart = cart;
-		if( saveCarts) {
-			allCarts.add(cart);
-		}
-		L label      = cart.getLabel();
-		Object value = cart.getValue();
-
 		lock.lock();
 		try {
+			this.lastCart     = cart;
+			if( saveCarts) {
+				allCarts.add(cart);
+			}
+			L label      = cart.getLabel();
+			Object value = cart.getValue();
+
 			getValueConsumer(label, value, builder).accept(label, value, builder);
+			acceptCount++;
+			if (eventHistory.containsKey(label)) {
+				eventHistory.get(label).incrementAndGet();
+			} else {
+				eventHistory.put(label, new AtomicInteger(1));
+			}
+			// this itself does not affect expiration time
+			// it should be enabled
+			// enabling may affect performance
+			if(acceptCount > 1) {
+				postponeAlg.accept(this, cart);
+			}
 		} finally {
 			lock.unlock();
-		}
-		acceptCount++;
-		if (eventHistory.containsKey(label)) {
-			eventHistory.get(label).incrementAndGet();
-		} else {
-			eventHistory.put(label, new AtomicInteger(1));
-		}
-		// this itself does not affect expiration time
-		// it should be enabled
-		// enabling may affect performance
-		if(acceptCount > 1) {
-			postponeAlg.accept(this, cart);
 		}
 	}
 
@@ -325,9 +324,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param cart the cart
 	 */
 	public void timeout(C cart) {
-		this.lastCart = cart;
 		lock.lock();
 		try {
+			this.lastCart = cart;
 			if(postponeExpirationOnTimeoutEnabled) {
 				timeoutAction.accept(builder);
 				postponeAlg.accept(this, cart);
@@ -703,7 +702,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		} else {
 			conveyorThread.interrupt();
 		}
-		
 	}
 		
 }
