@@ -40,7 +40,9 @@ conveyor-persistence (beta)
 ## Release History
 
 ### 1.3.5-SNAPSHOT
-* Further development of the conveyor persistence
+* Added converters for all basic Java types
+* Improved restoring from persistence
+* Added interruption to the Conveyor interface
 
 ### 1.3.4
 * Persistence core module
