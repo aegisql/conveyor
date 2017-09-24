@@ -933,10 +933,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 								return c;
 							};
 					}
-					LOG.debug("--- READY TO APPLY MULTY");
+					LOG.trace("READY TO APPLY MULTY");
 					collector.entrySet().stream().map(entry -> entry.getKey()).filter(filter)
 							.collect(Collectors.toList())
 					.forEach(k -> {
+						LOG.trace("MULTI FILTER MATCH {}",k);
 								processSite(cartBuilder.apply(k), accept);
 							});
 					cart.getFuture().complete(true);

@@ -288,18 +288,47 @@ public class PersistentConveyorTest {
 	public void multiBasicTest() throws Exception {
 		Persistence<Integer> p = getPersitence("multiBasicTest");
 		TrioConveyor tc = new TrioConveyor();
-		
+		tc.setDefaultBuilderTimeout(Duration.ofMillis(1000));
 		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+
 	
 		pc.part().id(1).label(TrioPart.TEXT1).value("txt11").place();
 		pc.part().id(1).label(TrioPart.TEXT2).value("txt21").place();
 		pc.part().id(2).label(TrioPart.TEXT1).value("txt12").place();
-		pc.part().id(2).label(TrioPart.TEXT2).value("txt22").place();
+		pc.part().id(2).label(TrioPart.TEXT2).value("txt22").place().join();
 		pc.part().foreach().label(TrioPart.NUMBER).value(1).place().join();
-		Thread.sleep(1000);
-
+		Thread.sleep(1500);
 		System.out.println(tc);
+		assertEquals(2, tc.counter.get());
+		//pc.stop();
+	}
 
+	@Test
+	public void multiReloadTest() throws Exception {
+		Persistence<Integer> p = getPersitence("multiBasicTest");
+		TrioConveyor tc1 = new TrioConveyor();
+		
+		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p, tc1);
+		pc1.setName("TC1");
+	
+		pc1.part().id(1).label(TrioPart.TEXT1).value("txt11").place();
+		pc1.part().id(2).label(TrioPart.TEXT1).value("txt12").place().join();
+
+		pc1.part().foreach().label(TrioPart.NUMBER).value(1).place().join();
+		Thread.sleep(1000);
+		//pc1.stop();
+		System.out.println("------------------------");
+		p = getPersitence("multiBasicTest");
+		TrioConveyor tc2 = new TrioConveyor();
+		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p, tc2);
+		pc2.setName("TC2");
+		pc2.part().id(1).label(TrioPart.TEXT2).value("txt21").place();
+		pc2.part().id(2).label(TrioPart.TEXT2).value("txt22").place().join();
+		Thread.sleep(1000);
+		System.out.println(tc1);
+		System.out.println(tc2);
+		System.out.println("collector="+pc2.getCollectorSize());
+		assertEquals(2, tc2.counter.get());
 		//pc.stop();
 	}
 

@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.persistence.ack;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -8,7 +7,6 @@ import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
-import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;

@@ -143,7 +143,8 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		allParts.forEach(cart -> {
 			long cartExpTime = cart.getExpirationTime();
 			if (cartExpTime == 0 || cartExpTime > System.currentTimeMillis()) {
-				this.place(cart);
+				cart.addProperty("#TIMESTAMP", System.nanoTime());
+				forward.place(cart);
 			} else {
 				if (cleaner != null) {
 					cleaner.part().label(cleaner.KEY).value(cart.getKey()).place();
