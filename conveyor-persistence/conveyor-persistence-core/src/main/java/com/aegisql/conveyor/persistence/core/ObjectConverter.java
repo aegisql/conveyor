@@ -25,5 +25,11 @@ public interface ObjectConverter <O,P> {
 	 */
 	O fromPersistence(P p);
 	
+	/**
+	 * Conversion hint.
+	 * 
+	 *
+	 * @return the string
+	 */
 	String conversionHint();
 }
