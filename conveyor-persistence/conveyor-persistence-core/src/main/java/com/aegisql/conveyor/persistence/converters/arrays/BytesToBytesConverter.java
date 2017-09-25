@@ -1,7 +1,14 @@
 package com.aegisql.conveyor.persistence.converters.arrays;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class BytesToBytesConverter.
+ */
 public class BytesToBytesConverter implements ObjectArrayToByteArrayConverter<Byte> {
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(Byte[] obj) {
 		if(obj == null) {
@@ -14,6 +21,9 @@ public class BytesToBytesConverter implements ObjectArrayToByteArrayConverter<By
 		return res;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public Byte[] fromPersistence(byte[] p) {
 		if(p == null) {
@@ -26,6 +36,9 @@ public class BytesToBytesConverter implements ObjectArrayToByteArrayConverter<By
 		return res;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return "Byte[]:byte[]";

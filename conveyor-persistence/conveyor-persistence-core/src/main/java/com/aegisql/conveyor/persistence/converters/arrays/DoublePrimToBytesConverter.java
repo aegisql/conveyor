@@ -4,8 +4,15 @@ import java.nio.ByteBuffer;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class DoublePrimToBytesConverter.
+ */
 public class DoublePrimToBytesConverter implements ObjectConverter<double[], byte[]> {
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(double[] obj) {
 		if(obj == null) {
@@ -22,6 +29,9 @@ public class DoublePrimToBytesConverter implements ObjectConverter<double[], byt
 		return res;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public double[] fromPersistence(byte[] p) {
 		if(p == null) {
@@ -37,6 +47,9 @@ public class DoublePrimToBytesConverter implements ObjectConverter<double[], byt
 		return res;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return "double[]:byte[]";

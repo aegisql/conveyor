@@ -5,8 +5,15 @@ import java.sql.Date;
 
 import com.aegisql.conveyor.persistence.converters.ObjectToByteArrayConverter;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SqlDateToBytesConverter.
+ */
 public class SqlDateToBytesConverter implements ObjectToByteArrayConverter<Date> {
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(Date obj) {
 		if(obj==null) {
@@ -17,6 +24,9 @@ public class SqlDateToBytesConverter implements ObjectToByteArrayConverter<Date>
 		return bytes;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public Date fromPersistence(byte[] p) {
 		if(p == null || p.length == 0) {
@@ -25,6 +35,9 @@ public class SqlDateToBytesConverter implements ObjectToByteArrayConverter<Date>
 		return new Date(ByteBuffer.wrap(p).getLong());
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return "java.sql.Date:byte[]";

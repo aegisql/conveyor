@@ -4,8 +4,15 @@ import java.nio.ByteBuffer;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ShortPrimToBytesConverter.
+ */
 public class ShortPrimToBytesConverter implements ObjectConverter<short[], byte[]> {
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(short[] obj) {
 		if(obj == null) {
@@ -22,6 +29,9 @@ public class ShortPrimToBytesConverter implements ObjectConverter<short[], byte[
 		return res;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public short[] fromPersistence(byte[] p) {
 		if(p == null) {
@@ -37,6 +47,9 @@ public class ShortPrimToBytesConverter implements ObjectConverter<short[], byte[
 		return res;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return "short[]:byte[]";

@@ -3,8 +3,15 @@ package com.aegisql.conveyor.persistence.converters.arrays;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class UuidsToBytesConverter.
+ */
 public class UuidsToBytesConverter implements ObjectArrayToByteArrayConverter<UUID> {
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(UUID[] obj) {
 		if(obj == null) {
@@ -22,6 +29,9 @@ public class UuidsToBytesConverter implements ObjectArrayToByteArrayConverter<UU
 		return res;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public UUID[] fromPersistence(byte[] p) {
 		if(p == null) {
@@ -39,6 +49,9 @@ public class UuidsToBytesConverter implements ObjectArrayToByteArrayConverter<UU
 		return res;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return "UUID[]:byte[]";

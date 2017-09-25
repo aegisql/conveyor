@@ -8,10 +8,18 @@ import java.util.Collection;
 import com.aegisql.conveyor.persistence.converters.BigDecimalToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.collections.CollectionToByteArrayConverter;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class BigDecimalsToBytesConverter.
+ */
 public class BigDecimalsToBytesConverter implements ObjectArrayToByteArrayConverter<BigDecimal> {
 	
+	/** The cc. */
 	CollectionToByteArrayConverter<BigDecimal> cc = new CollectionToByteArrayConverter<BigDecimal>(ArrayList::new, new BigDecimalToBytesConverter());
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(BigDecimal[] obj) {
 		if(obj == null) {
@@ -20,6 +28,9 @@ public class BigDecimalsToBytesConverter implements ObjectArrayToByteArrayConver
 		return cc.toPersistence(Arrays.asList(obj));
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public BigDecimal[] fromPersistence(byte[] p) {
 		if(p == null) {
@@ -29,6 +40,9 @@ public class BigDecimalsToBytesConverter implements ObjectArrayToByteArrayConver
 		return c.toArray(new BigDecimal[0]);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return "BigDecimal[]:byte[]";

@@ -41,6 +41,9 @@ public class SerializableToBytesConverter<O extends Serializable> implements Obj
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return "Serializable:byte[]";

@@ -7,12 +7,29 @@ import java.util.function.Supplier;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class CollectionToByteArrayConverter.
+ *
+ * @param <O> the generic type
+ */
 public class CollectionToByteArrayConverter <O> implements ObjectConverter<Collection<O>, byte[]> {
 
+	/** The collection supplier. */
 	private final Supplier<Collection<O>> collectionSupplier;
+	
+	/** The object converter. */
 	private final ObjectConverter<O, byte[]> objectConverter;
+	
+	/** The hint. */
 	private final String hint;
 	
+	/**
+	 * Instantiates a new collection to byte array converter.
+	 *
+	 * @param collectionSupplier the collection supplier
+	 * @param objectConverter the object converter
+	 */
 	public CollectionToByteArrayConverter(Supplier<Collection<O>> collectionSupplier, ObjectConverter<O, byte[]> objectConverter) {
 		this.collectionSupplier = collectionSupplier;
 		this.objectConverter    = objectConverter;
@@ -20,6 +37,9 @@ public class CollectionToByteArrayConverter <O> implements ObjectConverter<Colle
 		this.hint = col.getClass().getCanonicalName()+"<"+objectConverter.conversionHint()+">:byte[]";
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(Collection<O> collection) {
 		if(collection == null) {
@@ -70,6 +90,9 @@ public class CollectionToByteArrayConverter <O> implements ObjectConverter<Colle
 		return buff;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public Collection<O> fromPersistence(byte[] p) {
 		if(p == null) {
@@ -106,6 +129,9 @@ public class CollectionToByteArrayConverter <O> implements ObjectConverter<Colle
 		return col;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return hint;

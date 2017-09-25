@@ -8,18 +8,40 @@ import java.util.function.Supplier;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class MapToByteArrayConverter.
+ *
+ * @param <K> the key type
+ * @param <V> the value type
+ */
 public abstract class MapToByteArrayConverter <K,V> implements ObjectConverter<Map<K,V>, byte[]> {
 
+	/** The map supplier. */
 	private final Supplier<Map<K,V>> mapSupplier;
+	
+	/** The key converter. */
 	private final ObjectConverter<K, byte[]> keyConverter;
+	
+	/** The value converter. */
 	private final ObjectConverter<V, byte[]> valueConverter;
 	
+	/**
+	 * Instantiates a new map to byte array converter.
+	 *
+	 * @param mapSupplier the map supplier
+	 * @param keyConverter the key converter
+	 * @param valueConverter the value converter
+	 */
 	public MapToByteArrayConverter(Supplier<Map<K,V>> mapSupplier, ObjectConverter<K, byte[]> keyConverter, ObjectConverter<V, byte[]> valueConverter) {
 		this.mapSupplier = mapSupplier;
 		this.keyConverter       = keyConverter;
 		this.valueConverter     = valueConverter;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(Map<K,V> map) {
 		if(map == null) {
@@ -100,6 +122,9 @@ public abstract class MapToByteArrayConverter <K,V> implements ObjectConverter<M
 		return buff;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public Map<K,V> fromPersistence(byte[] p) {
 		if(p == null) {

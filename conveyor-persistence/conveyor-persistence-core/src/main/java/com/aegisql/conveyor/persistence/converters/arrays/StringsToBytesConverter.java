@@ -7,10 +7,18 @@ import java.util.Collection;
 import com.aegisql.conveyor.persistence.converters.StringToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.collections.CollectionToByteArrayConverter;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class StringsToBytesConverter.
+ */
 public class StringsToBytesConverter implements ObjectArrayToByteArrayConverter<String> {
 	
+	/** The cc. */
 	CollectionToByteArrayConverter<String> cc = new CollectionToByteArrayConverter<String>(ArrayList::new, new StringToBytesConverter());
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(String[] obj) {
 		if(obj == null) {
@@ -19,6 +27,9 @@ public class StringsToBytesConverter implements ObjectArrayToByteArrayConverter<
 		return cc.toPersistence(Arrays.asList(obj));
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public String[] fromPersistence(byte[] p) {
 		if(p == null) {
@@ -28,6 +39,9 @@ public class StringsToBytesConverter implements ObjectArrayToByteArrayConverter<
 		return c.toArray(new String[0]);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return "String[]:byte[]";

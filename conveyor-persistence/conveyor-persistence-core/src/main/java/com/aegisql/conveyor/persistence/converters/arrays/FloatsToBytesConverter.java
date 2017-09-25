@@ -2,8 +2,15 @@ package com.aegisql.conveyor.persistence.converters.arrays;
 
 import java.nio.ByteBuffer;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class FloatsToBytesConverter.
+ */
 public class FloatsToBytesConverter implements ObjectArrayToByteArrayConverter<Float> {
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(Float[] obj) {
 		if(obj == null) {
@@ -20,6 +27,9 @@ public class FloatsToBytesConverter implements ObjectArrayToByteArrayConverter<F
 		return res;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public Float[] fromPersistence(byte[] p) {
 		if(p == null) {
@@ -35,6 +45,9 @@ public class FloatsToBytesConverter implements ObjectArrayToByteArrayConverter<F
 		return res;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return "Float[]:byte[]";

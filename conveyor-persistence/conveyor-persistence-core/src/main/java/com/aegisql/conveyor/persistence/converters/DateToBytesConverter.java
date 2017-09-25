@@ -3,8 +3,15 @@ package com.aegisql.conveyor.persistence.converters;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class DateToBytesConverter.
+ */
 public class DateToBytesConverter implements ObjectToByteArrayConverter<Date> {
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(Date obj) {
 		if(obj==null) {
@@ -15,6 +22,9 @@ public class DateToBytesConverter implements ObjectToByteArrayConverter<Date> {
 		return bytes;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public Date fromPersistence(byte[] p) {
 		if(p == null || p.length == 0) {
@@ -23,6 +33,9 @@ public class DateToBytesConverter implements ObjectToByteArrayConverter<Date> {
 		return new Date(ByteBuffer.wrap(p).getLong());
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return "java.util.Date:byte[]";

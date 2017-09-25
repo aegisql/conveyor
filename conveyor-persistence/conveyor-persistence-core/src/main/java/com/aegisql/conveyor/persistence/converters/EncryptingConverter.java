@@ -5,18 +5,32 @@ import javax.crypto.SecretKey;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class EncryptingConverter.
+ */
 public class EncryptingConverter implements ObjectConverter<byte[], byte[]> {
 
+	/** The key. */
 	private final SecretKey key;
 	
 	/** The cipher. */
 	private final Cipher cipher;
 	
+	/**
+	 * Instantiates a new encrypting converter.
+	 *
+	 * @param key the key
+	 * @param cipher the cipher
+	 */
 	public EncryptingConverter(SecretKey key, Cipher cipher) {
 		this.key    = key;
 		this.cipher = cipher;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(byte[] obj) {
 		try {
@@ -28,6 +42,9 @@ public class EncryptingConverter implements ObjectConverter<byte[], byte[]> {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] fromPersistence(byte[] p) {
 		try {
@@ -38,6 +55,9 @@ public class EncryptingConverter implements ObjectConverter<byte[], byte[]> {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return "byte[]:Encrypted(byte[])";

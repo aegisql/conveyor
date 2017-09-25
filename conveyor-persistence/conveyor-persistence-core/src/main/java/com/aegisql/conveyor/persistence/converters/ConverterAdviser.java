@@ -41,25 +41,49 @@ import com.aegisql.conveyor.persistence.converters.sql.SqlTimeToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimestampToBytesConverter;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ConverterAdviser.
+ *
+ * @param <L> the generic type
+ */
 public class ConverterAdviser <L> {
 
+	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(ConverterAdviser.class);
 	
+	/** The prime converters. */
 	private final Map<String,ObjectConverter<Object, byte[]>> primeConverters = new HashMap<>();
+	
+	/** The label converters. */
 	private final Map<L,ObjectConverter<Object, byte[]>> labelConverters = new HashMap<>();
 	
+	/** The nc. */
 	private final NullConverter nc = new NullConverter();
 	
+	/** The default converter. */
 	private ObjectConverter<Object, byte[]> defaultConverter = (ObjectConverter)new SerializableToBytesConverter<>();
+	
+	/** The Constant NULL_CONVERTER. */
 	private final static ObjectConverter<Object, byte[]> NULL_CONVERTER = new NullConverter();
 	
+	/** The encryptor. */
 	private EncryptingConverter encryptor = null;
 	
+	/**
+	 * Sets the encryptor.
+	 *
+	 * @param key the key
+	 * @param cipher the cipher
+	 */
 	public void setEncryptor(SecretKey key, Cipher cipher) {
 		this.encryptor = new EncryptingConverter(key, cipher);
 		primeConverters.put(this.encryptor.conversionHint(), (ObjectConverter)this.encryptor);
 	}
 
+	/**
+	 * Instantiates a new converter adviser.
+	 */
 	public ConverterAdviser() {
 		
 		this.addConverter(UUID.class, new UuidToBytesConverter());
@@ -110,16 +134,35 @@ public class ConverterAdviser <L> {
 
 	}
 	
+	/**
+	 * Adds the converter.
+	 *
+	 * @param clas the clas
+	 * @param conv the conv
+	 */
 	public void addConverter(Class<?> clas,ObjectConverter<?, byte[]> conv) {
 		primeConverters.put(clas.getCanonicalName(), (ObjectConverter<Object, byte[]>) conv);
 		primeConverters.put(conv.conversionHint(), (ObjectConverter<Object, byte[]>) conv);
 	}
 
+	/**
+	 * Adds the converter.
+	 *
+	 * @param label the label
+	 * @param conv the conv
+	 */
 	public void addConverter(L label,ObjectConverter<?, byte[]> conv) {
 		labelConverters.put(label, (ObjectConverter<Object, byte[]>) conv);
 		primeConverters.put(conv.conversionHint(), (ObjectConverter<Object, byte[]>) conv);
 	}
 
+	/**
+	 * Gets the converter.
+	 *
+	 * @param label the label
+	 * @param name the name
+	 * @return the converter
+	 */
 	public ObjectConverter<Object, byte[]> getConverter(L label, String name) {
 		if(name == null) {
 			return NULL_CONVERTER ;
@@ -160,14 +203,31 @@ public class ConverterAdviser <L> {
 		}
 	}
 
+	/**
+	 * Gets the converter.
+	 *
+	 * @param label the label
+	 * @param clas the clas
+	 * @return the converter
+	 */
 	public ObjectConverter<Object, byte[]> getConverter(L label, Class<?> clas) {
 		return (ObjectConverter<Object, byte[]>) getConverter(label,clas.getCanonicalName());
 	}
 
+	/**
+	 * Gets the default converter.
+	 *
+	 * @return the default converter
+	 */
 	public ObjectConverter<?, byte[]> getDefaultConverter() {
 		return defaultConverter;
 	}
 
+	/**
+	 * Sets the default converter.
+	 *
+	 * @param defaultConverter the default converter
+	 */
 	public void setDefaultConverter(ObjectConverter<Object, byte[]> defaultConverter) {
 		this.defaultConverter = defaultConverter;
 	}

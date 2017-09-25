@@ -2,8 +2,15 @@ package com.aegisql.conveyor.persistence.converters.arrays;
 
 import java.nio.ByteBuffer;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class LongsToBytesConverter.
+ */
 public class LongsToBytesConverter implements ObjectArrayToByteArrayConverter<Long> {
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
+	 */
 	@Override
 	public byte[] toPersistence(Long[] obj) {
 		if(obj == null) {
@@ -20,6 +27,9 @@ public class LongsToBytesConverter implements ObjectArrayToByteArrayConverter<Lo
 		return res;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
+	 */
 	@Override
 	public Long[] fromPersistence(byte[] p) {
 		if(p == null) {
@@ -35,6 +45,9 @@ public class LongsToBytesConverter implements ObjectArrayToByteArrayConverter<Lo
 		return res;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
+	 */
 	@Override
 	public String conversionHint() {
 		return "Long[]:byte[]";
