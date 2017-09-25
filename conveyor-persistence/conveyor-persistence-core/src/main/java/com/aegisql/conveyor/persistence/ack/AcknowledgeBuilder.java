@@ -16,6 +16,7 @@ import com.aegisql.conveyor.Expireable;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.core.PersistenceCart;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -117,6 +118,11 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 	 */
 	public static <K, L> void processCart(AcknowledgeBuilder<K> builder, Cart<K, ?, L> cart) {
 		LOG.debug("CART " + cart);
+		
+		if(cart instanceof PersistenceCart) {
+			cart = (Cart<K, ?, L>) cart.getValue();
+		}
+		
 		boolean save = false;
 		K key = cart.getKey();
 		Long id = null;

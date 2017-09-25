@@ -304,16 +304,6 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public <V> CompletableFuture<Boolean> place(Cart<K, V, L> cart) {
-		if (cart.getKey() == null || cart.getLoadType() == LoadType.RESULT_CONSUMER) {
-			CompletableFuture<Boolean> f = cart.getFuture();
-			try {
-				AcknowledgeBuilder.processCart(staticAcknowledgeBuilder, cart);
-				f.complete(true);
-			} catch (Exception e) {
-				f.completeExceptionally(e);
-			}
-			return f;
-		}
 		Cart<K, Cart<K, ?, ?>, SmartLabel<AcknowledgeBuilder<K>>> ackCart = PersistenceCart.of(cart, ackConveyor.CART);
 		LOG.debug("PLACING " + ackCart);
 		CompletableFuture<Boolean> forwardFuture = cart.getFuture();

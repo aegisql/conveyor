@@ -325,7 +325,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> buildingSite = null;
 		boolean returnNull = false;
 		K key = cart.getKey();
-		if (key == null) {
+		if (key == null && (cart.getValue() != null && !(cart.getValue() instanceof Cart))) {
 			returnNull = true;
 		} else if (Status.TIMED_OUT.equals(cart.getValue())) {
 			returnNull = true;
@@ -953,7 +953,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 				cart.getFuture().complete(true);
 			}
-			return;
+			if( ! (cart.getLoadType() == PART && cart.getValue() instanceof Cart)) {
+				return;
+			}
 		}
 		currentSite = null;
 		CompletableFuture resultFuture = null;

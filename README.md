@@ -43,6 +43,7 @@ conveyor-persistence (beta)
 * Added converters for all basic Java types
 * Improved restoring from persistence
 * Added interruption to the Conveyor interface
+* Added Interruptable interface.
 
 ### 1.3.4
 * Persistence core module
