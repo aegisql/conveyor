@@ -557,11 +557,10 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		/**
 		 * Max batch size.
 		 *
-		 * @param <L> the generic type
 		 * @param maxBatchSize the max batch size
 		 * @return the derby persistence builder
 		 */
-		public <L> DerbyPersistenceBuilder<K> maxBatchSize(int maxBatchSize) {
+		public DerbyPersistenceBuilder<K> maxBatchSize(int maxBatchSize) {
 			this.maxBatchSize = maxBatchSize;
 			return this;
 		}
@@ -569,12 +568,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		/**
 		 * Max batch time.
 		 *
-		 * @param <L> the generic type
 		 * @param maxBatchTime the max batch time
 		 * @param unit the unit
 		 * @return the derby persistence builder
 		 */
-		public <L> DerbyPersistenceBuilder<K> maxBatchTime(long maxBatchTime, TimeUnit unit) {
+		public DerbyPersistenceBuilder<K> maxBatchTime(long maxBatchTime, TimeUnit unit) {
 			this.maxBatchTime = TimeUnit.MILLISECONDS.convert(maxBatchTime, unit);
 			return this;
 		}
@@ -582,15 +580,31 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		/**
 		 * Max batch time.
 		 *
-		 * @param <L> the generic type
 		 * @param duration the duration
 		 * @return the derby persistence builder
 		 */
-		public <L> DerbyPersistenceBuilder<K> maxBatchTime(Duration duration) {
+		public DerbyPersistenceBuilder<K> maxBatchTime(Duration duration) {
 			this.maxBatchTime = duration.toMillis();
 			return this;
 		}
 		
+		private ConverterAdviser getConverterAdviser() {
+			if(converterAdviser == null) {
+				converterAdviser = new ConverterAdviser<>();
+			}
+			return converterAdviser;
+		}
+		
+		public <T> DerbyPersistenceBuilder<K> addBinaryConverter(Class<T> clas, ObjectConverter<T, byte[]> conv) {
+			getConverterAdviser().addConverter(clas, conv);
+			return this;
+		}
+
+		public <L,T> DerbyPersistenceBuilder<K> addBinaryConverter(L label, ObjectConverter<T, byte[]> conv) {
+			getConverterAdviser().addConverter(label, conv);
+			return this;
+		}
+
 		/**
 		 * Make archived archiver.
 		 *
@@ -977,10 +991,6 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					
 			}
 
-			if(converterAdviser == null) {
-				converterAdviser = new ConverterAdviser<>();
-			}
-
 			if(encryptionSecret != null) {
 				LOG.debug("VALUES ENCRIPTION ON");
 				if(secretKey == null) {
@@ -990,7 +1000,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					key = Arrays.copyOf(key, encryptionKeyLength);
 					secretKey = new SecretKeySpec(key, encryptionAlgorithm);
 					encryptionCipher = Cipher.getInstance(encryptionTransformation);
-					converterAdviser.setEncryptor(secretKey, encryptionCipher);
+					getConverterAdviser().setEncryptor(secretKey, encryptionCipher);
 				}
 			} else {
 				LOG.debug("VALUES ENCRIPTION OFF");
@@ -1012,7 +1022,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,archiver
 					,labelConverter
 					//,blobConverter
-					,converterAdviser
+					,getConverterAdviser()
 					,maxBatchSize
 					,maxBatchTime
 					);
