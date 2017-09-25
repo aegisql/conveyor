@@ -3,6 +3,13 @@
  */
 package com.aegisql.conveyor;
 
+import static com.aegisql.conveyor.cart.LoadType.BUILDER;
+import static com.aegisql.conveyor.cart.LoadType.FUTURE;
+import static com.aegisql.conveyor.cart.LoadType.MULTI_KEY_PART;
+import static com.aegisql.conveyor.cart.LoadType.PART;
+import static com.aegisql.conveyor.cart.LoadType.RESULT_CONSUMER;
+import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
+
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.EnumSet;
@@ -38,11 +45,8 @@ import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.Load;
 import com.aegisql.conveyor.cart.LoadType;
-
-import static com.aegisql.conveyor.cart.LoadType.*;
 import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ResultConsumerCart;
-
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;

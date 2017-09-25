@@ -5,7 +5,6 @@ package com.aegisql.conveyor;
 
 import java.io.Serializable;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.serial.SerializableBiConsumer;
