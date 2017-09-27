@@ -9,7 +9,7 @@ conveyor-core
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-core</artifactId>
-  <version>1.3.4</version>
+  <version>1.3.6</version>
 </dependency>
 ```
 
@@ -18,7 +18,7 @@ conveyor-parallel
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-parallel</artifactId>
-  <version>1.3.4</version>
+  <version>1.3.6</version>
 </dependency>
 ```
 
@@ -26,22 +26,22 @@ conveyor-persistence (beta)
 ```xml
 <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.3.4</version>
+  <version>1.3.6</version>
 </dependency>
 
 <dependency>
   <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-jdbc</artifactId>
-  <version>1.3.4</version>
+  <version>1.3.6</version>
 </dependency>
 ```
 
 
 ## Release History
 
-### 1.3.6-SNAPSHOT
+### 1.3.7-SNAPSHOT
 
-### 1.3.5
+### 1.3.6
 * Added converters for all basic Java types, collections, maps and arrays
 * Improved restoring from persistence
 * Added interrupt method to the Conveyor interface
