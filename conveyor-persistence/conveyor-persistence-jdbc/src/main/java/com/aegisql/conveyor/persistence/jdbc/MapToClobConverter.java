@@ -12,7 +12,6 @@ import com.aegisql.conveyor.persistence.core.ObjectConverter;
 /**
  * The Class BlobConverter.
  *
- * @param <T> the generic type
  */
 public class MapToClobConverter implements ObjectConverter<Map<String,Object>, Clob> {
 
