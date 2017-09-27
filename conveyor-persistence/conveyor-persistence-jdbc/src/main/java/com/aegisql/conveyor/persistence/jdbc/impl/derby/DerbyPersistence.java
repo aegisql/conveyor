@@ -341,7 +341,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		
 		/** The encryption key length. */
 		private int encryptionKeyLength = 16;
-		
+
+		private StringBuilder infoBuilder = new StringBuilder("DerbyPersistence ");
+
 		/** The label converter. */
 		private ObjectConverter<?,String> labelConverter = new StringConverter<String>() {
 			@Override
@@ -1006,6 +1008,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				LOG.debug("VALUES ENCRIPTION OFF");
 			}
 			
+			infoBuilder.append("[schema=").append(schema).append(" ");
+			infoBuilder.append("partsTable=").append(partTable).append(" ");
+			infoBuilder.append("completedTable=").append(completedLogTable).append(" ");
+			infoBuilder.append("archiveStrategy=").append(archiveStrategy).append(" ");
+			infoBuilder.append("encryption=").append(encryptionSecret != null?"ON":"OFF").append("]");
 			
 			return new DerbyPersistence<K>(
 					this
@@ -1025,6 +1032,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,getConverterAdviser()
 					,maxBatchSize
 					,maxBatchTime
+					,infoBuilder .toString()
 					);
 		}
 	}
@@ -1084,6 +1092,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	
 	/** The get number of parts query. */
 	private final String getNumberOfPartsQuery;
+
+	private final String info;
 	
 	/**
 	 * Instantiates a new derby persistence.
@@ -1123,6 +1133,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,ConverterAdviser<?> converterAdviser
 			,int maxBatchSize
 			,long maxBatchTime
+			,String info
 			) {
 		this.builder                      = builder;
 		this.conn                         = conn;
@@ -1142,6 +1153,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		this.maxBatchSize                 = maxBatchSize;
 		this.maxBatchTime                 = maxBatchTime;
 		this.mapConverter                 = new MapToClobConverter(conn);
+		this.info                         = info;
 	}
 
 	/**
@@ -1510,5 +1522,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		}
 		return res;
 	}
+
+	@Override
+	public String toString() {
+		return info;
+	}
+	
 	
 }

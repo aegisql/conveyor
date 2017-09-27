@@ -55,13 +55,7 @@ public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, Smart
 		this.setBuilderSupplier( () -> new AcknowledgeBuilder<>(persistence, forward, this)  );
 		this.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		this.resultConsumer(bin->{
-			if(cleaner != null) {
-//				if( bin.product != null) {
-//					cleaner.part().label(cleaner.KEY).value(bin.key).place();
-//					cleaner.part().label(cleaner.CART_IDS).value(bin.product).place();
-//				}
-				LOG.debug("{} {}",bin.key,bin.product?" COMPLETE":" UNLOADED");
-			}
+			LOG.debug("{} {}",bin.key,bin.product ?" COMPLETE":" UNLOADED");
 		}).set();
 	}
 	
