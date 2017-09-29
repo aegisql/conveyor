@@ -7,7 +7,7 @@ import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class EnumConverter.
+ * The Class EnumToBytesConverter.
  *
  * @param <E> the element type
  */

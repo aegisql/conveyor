@@ -12,8 +12,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
+import com.aegisql.conveyor.persistence.converters.EnumToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ObjectToJsonBytesConverter;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
+import com.aegisql.conveyor.persistence.core.harness.TrioPart;
 
 public class ConverterAdviserTest implements Serializable {
 
@@ -90,6 +92,20 @@ public class ConverterAdviserTest implements Serializable {
 		System.out.println(other.getClass().getName());
 	}
 
+	@Test
+	public void testEnum() {
+		ConverterAdviser<String> ca = new ConverterAdviser<>();
+		ObjectConverter<Object, byte[]> oc = ca.getConverter("test", TrioPart.class);
+		assertTrue(oc instanceof EnumToBytesConverter);
+		byte[] res = oc.toPersistence(TrioPart.NUMBER);
+		assertNotNull(res);
+		System.out.println(new String(res));
+		Object other = oc.fromPersistence(res);
+		assertNotNull(other);
+		assertEquals(TrioPart.NUMBER, other);
+		System.out.println(other);
+	}	
+	
 	@Test
 	public void testJson() {
 		ConverterAdviser<String> ca = new ConverterAdviser<>();

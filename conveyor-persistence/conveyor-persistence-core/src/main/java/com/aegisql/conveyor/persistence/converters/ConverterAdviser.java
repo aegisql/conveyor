@@ -174,7 +174,7 @@ public class ConverterAdviser <L> {
 			ObjectConverter<Object, byte[]> conv = primeConverters.get(name.replace("__##", ""));
 			if(conv != null) {
 				converter = conv;
-			}	
+			}
 		}
 		if(encryptor == null) {
 			if(name.startsWith("__##")) {
@@ -211,6 +211,14 @@ public class ConverterAdviser <L> {
 	 * @return the converter
 	 */
 	public ObjectConverter<Object, byte[]> getConverter(L label, Class<?> clas) {
+		
+		if(Enum.class.isAssignableFrom(clas)) {
+			String hint = EnumToBytesConverter.suggestHint((Class)clas);
+			if( ! primeConverters.containsKey(hint)) {
+				EnumToBytesConverter ec = new EnumToBytesConverter(clas);
+				this.addConverter(clas, ec);
+			}
+		}
 		return (ObjectConverter<Object, byte[]>) getConverter(label,clas.getCanonicalName());
 	}
 
