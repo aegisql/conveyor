@@ -123,6 +123,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected LabeledValueConsumer<L, Cart<K,?,L>, Supplier<? extends OUT>> cartConsumer = (l, v, b) -> {
 		throw new IllegalStateException("Cart Consumer is not set");
 	};
+	
+	protected Function<Cart<K,?,L>,Object> payloadFunction = cart->cart.getValue();
 
 	/** The ready. */
 	protected BiPredicate<State<K, L>, Supplier<? extends OUT>> readiness = null;
@@ -1669,7 +1671,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 	
 	protected Object getPayload(Cart<K,?,L> cart) {
-		return cart.getValue();
+		return payloadFunction.apply(cart);
+	}
+
+	@Override
+	public void setCartPayloadAccessor(Function<Cart<K, ?, L>, Object> payloadFunction) {
+		this.payloadFunction = payloadFunction;
 	}
 	
 }

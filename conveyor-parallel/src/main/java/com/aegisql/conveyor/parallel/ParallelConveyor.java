@@ -835,5 +835,10 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		
 	}
 
+	@Override
+	public void setCartPayloadAccessor(Function<Cart<K, ?, L>, Object> payloadFunction) {
+		conveyors.forEach(c->c.setCartPayloadAccessor(payloadFunction));
+	}
+
 	
 }
