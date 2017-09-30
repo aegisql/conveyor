@@ -120,7 +120,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected ScrapConsumer<K,?> scrapConsumer = scrapLogger;
 	
 	/** The cart consumer. */
-	protected LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer = (l, v, b) -> {
+	protected LabeledValueConsumer<L, Cart<K,?,L>, Supplier<? extends OUT>> cartConsumer = (l, v, b) -> {
 		throw new IllegalStateException("Cart Consumer is not set");
 	};
 
@@ -1209,7 +1209,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public <B extends Supplier<? extends OUT>> void setDefaultCartConsumer(LabeledValueConsumer<L, ?, B> cartConsumer) {
-		this.cartConsumer = (LabeledValueConsumer<L, ?, Supplier<? extends OUT>>) cartConsumer;
+		this.cartConsumer = (l,c,b)->{
+			((LabeledValueConsumer)cartConsumer).accept(l, getPayload(c), b);
+		};
 	}
 
 	/**
@@ -1664,6 +1666,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			LOG.warn(name + " ignored interruption for "+conveyorName);
 		}
 		
+	}
+	
+	protected Object getPayload(Cart<K,?,L> cart) {
+		return cart.getValue();
 	}
 	
 }

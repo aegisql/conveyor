@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.serial.SerializableBiConsumer;
 import com.aegisql.conveyor.serial.SerializableConsumer;
 import com.aegisql.conveyor.serial.SerializableRunnable;
@@ -315,6 +316,9 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 		};
 	}
 
-	
+	@SuppressWarnings("rawtypes")
+	default Object getPayload(Cart cart) {
+		return cart.getValue();
+	}
 	
 }

@@ -62,10 +62,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private final Supplier<? extends OUT> builder;
 	
 	/** The value consumer. */
-	private final LabeledValueConsumer<L, Object, Supplier<? extends OUT>> defaultValueConsumer;
+	private final LabeledValueConsumer<L, Cart<K,?,L>, Supplier<? extends OUT>> defaultValueConsumer;
 
 	/** The value consumer. */
-	private LabeledValueConsumer<L, Object, Supplier<? extends OUT>> valueConsumer = null;
+	private LabeledValueConsumer<L, Cart<K,?,L>, Supplier<? extends OUT>> valueConsumer = null;
 
 	/** The readiness. */
 	private final BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness;
@@ -179,7 +179,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.saveCarts                 = saveCarts;
 		this.postponeExpirationOnTimeoutEnabled = postponeExpirationOnTimeoutEnabled;
 		this.addExpirationTimeMsec     = addExpirationTimeMsec;
-		this.defaultValueConsumer      = (LabeledValueConsumer<L, Object, Supplier<? extends OUT>>) cartConsumer;
+		this.defaultValueConsumer      = (LabeledValueConsumer<L, Cart<K,?,L>, Supplier<? extends OUT>>) cartConsumer;
 		this.acknowledge               = new Acknowledge() {
 			
 			private volatile boolean acknowledged = false;
@@ -298,9 +298,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				allCarts.add(cart);
 			}
 			L label      = cart.getLabel();
-			Object value = cart.getValue();
 
-			getValueConsumer(label, value, builder).accept(label, value, builder);
+			getValueConsumer(label).accept(label, cart, builder);
 			acceptCount++;
 			if (eventHistory.containsKey(label)) {
 				eventHistory.get(label).incrementAndGet();
@@ -649,18 +648,17 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * Gets the value consumer.
 	 *
 	 * @param label the label
-	 * @param value the value
-	 * @param builder the builder
 	 * @return the value consumer
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private LabeledValueConsumer<L, Object, Supplier<? extends OUT>> getValueConsumer(L label, Object value, Supplier<? extends OUT> builder) {
+	private LabeledValueConsumer<L, Cart<K,?,L>, Supplier<? extends OUT>> getValueConsumer(L label) {
 		if(label == null) {
 			return defaultValueConsumer;
 		} else if(valueConsumer == null) {
 			if( label instanceof SmartLabel ) {
 				valueConsumer = (l,v,b) -> {
-					((SmartLabel) l).get().accept(b, v);
+					SmartLabel sl = (SmartLabel)l;
+					sl.get().accept(b, sl.getPayload(v));
 				};
 			} else {
 				valueConsumer = defaultValueConsumer;
