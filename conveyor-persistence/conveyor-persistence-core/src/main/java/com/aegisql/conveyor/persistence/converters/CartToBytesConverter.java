@@ -1,8 +1,12 @@
 package com.aegisql.conveyor.persistence.converters;
 
+import java.nio.ByteBuffer;
+import java.util.Map;
+
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.LoadType;
-import com.aegisql.conveyor.persistence.converters.arrays.LongPrimToBytesConverter;
+import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.persistence.converters.LongToBytesConverter;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
 public class CartToBytesConverter <K,V,L> implements ObjectConverter<Cart<K,V,L>, byte[]> {
@@ -36,9 +40,7 @@ Cart record format
 	  
 	 */
 	
-	private final LongPrimToBytesConverter longConverter           = new LongPrimToBytesConverter();
-	private final StringToBytesConverter   stringConverter         = new StringToBytesConverter();
-	private final EnumToBytesConverter<LoadType> loadTypeConverter = new EnumToBytesConverter<>(LoadType.class);
+	private final ObjectToJsonBytesConverter<Map<String,Object>>   propertiesConverter     = new ObjectToJsonBytesConverter(Map.class);
 		
 	private final ConverterAdviser<L> adviser;
 	
@@ -47,18 +49,159 @@ Cart record format
 	}
 	
 	@Override
-	public byte[] toPersistence(Cart<K, V, L> obj) {
-		return null;
+	public byte[] toPersistence(Cart<K, V, L> cart) {
+
+		K key                  = cart.getKey();
+		L label                = cart.getLabel();
+		V value                = cart.getValue();
+
+		byte type              = (byte)cart.getLoadType().ordinal();
+		byte[] keyBytes        = convertObject(key);
+		byte[] valueBytes      = convertObject(value);
+		byte[] labelBytes      = convertObject(label);
+		byte[] propertiesBytes = propertiesConverter.toPersistence(cart.getAllProperties());
+
+		int totalSize = 1 + 8 + 8 + keyBytes.length + valueBytes.length + labelBytes.length + 4 + propertiesBytes.length;
+		int pos       = 0;
+
+		byte[] buff = new byte[totalSize];
+		ByteBuffer bb = ByteBuffer.wrap(buff);
+		bb.put(type); pos++;
+		bb.putLong(pos,cart.getCreationTime()); pos+=8;
+		bb.putLong(pos,cart.getExpirationTime()); pos+=8;
+		for(int i = 0; i < keyBytes.length; i++) {
+			bb.put(pos++,keyBytes[i]);
+		}
+		for(int i = 0; i < valueBytes.length; i++) {
+			bb.put(pos++,valueBytes[i]);
+		}
+		for(int i = 0; i < labelBytes.length; i++) {
+			bb.put(pos++,labelBytes[i]);
+		}
+		bb.putInt(pos,propertiesBytes.length); pos+=4;
+		for(int i = 0; i < propertiesBytes.length; i++) {
+			bb.put(pos++,propertiesBytes[i]);
+		}
+		
+		return buff;
 	}
 
+	private byte[] convertObject(Object o) {
+		if(o == null) {
+			return new byte[] {0};
+		} else {
+			ObjectConverter<Object, byte[]> oc = adviser.getConverter(null, o.getClass());
+			byte[] hint = oc.conversionHint().getBytes();
+			assert hint.length < 256 : oc.conversionHint();
+			byte hLength = (byte)hint.length;
+			byte[] objBytes  = oc.toPersistence(o);
+			int total = 1 + hint.length + 4 + objBytes.length;
+			byte[] buff = new byte[total];
+			ByteBuffer bb = ByteBuffer.wrap(buff);
+			int pos = 0;
+			
+			bb.put(pos,hLength); pos++;			
+			for(int i = 0; i < hint.length; i++) {
+				bb.put(pos++,hint[i]);
+			}
+
+			bb.putInt(pos,objBytes.length); pos+=4;
+			for(int i = 0; i < objBytes.length; i++) {
+				bb.put(pos++,objBytes[i]);
+			}
+			
+			return buff;
+		}
+	}
+	
 	@Override
 	public Cart<K, V, L> fromPersistence(byte[] p) {
-		return null;
+		
+		ByteBuffer bb = ByteBuffer.wrap(p);
+		
+		int pos = 0;
+		LoadType loadType = LoadType.values()[bb.get(pos++)];
+		System.out.println(loadType);
+		long creationTime = bb.getLong(pos);pos+=8;
+		System.out.println(creationTime);
+		long expirationTime = bb.getLong(pos);pos+=8;
+		System.out.println(expirationTime);
+		//-------------- KEY 
+		byte keyHintLength = bb.get(pos++);
+		System.out.println(keyHintLength);
+		byte[] keyHintBytes = new byte[keyHintLength];
+		for(int i = 0; i < keyHintLength; i++) {
+			keyHintBytes[i] = bb.get(pos++);
+		}
+		String keyHint = new String(keyHintBytes);
+		System.out.println(keyHint);
+		ObjectConverter<Object, byte[]> kc = adviser.getConverter(null, keyHint);
+		int keyLength = bb.getInt(pos); pos+=4;
+		System.out.println(keyLength);
+		byte[] keyBytes = new byte[keyLength];
+		for(int i = 0; i < keyLength; i++) {
+			keyBytes[i] = bb.get(pos++);
+		}
+		Object key = kc.fromPersistence(keyBytes);
+		System.out.println(key);
+		//-------------- VALUE 
+		byte valHintLength = bb.get(pos++);
+		System.out.println(valHintLength);
+		byte[] valHintBytes = new byte[valHintLength];
+		for(int i = 0; i < valHintLength; i++) {
+			valHintBytes[i] = bb.get(pos++);
+		}
+		String valHint = new String(valHintBytes);
+		System.out.println(valHint);
+		ObjectConverter<Object, byte[]> vc = adviser.getConverter(null, valHint);
+		int valLength = bb.getInt(pos); pos+=4;
+		System.out.println(valLength);
+		byte[] valBytes = new byte[valLength];
+		for(int i = 0; i < valLength; i++) {
+			valBytes[i] = bb.get(pos++);
+		}
+		Object val = vc.fromPersistence(valBytes);
+		System.out.println(val);
+		//-------------- LABEL
+		byte lHintLength = bb.get(pos++);
+		System.out.println(lHintLength);
+		byte[] lHintBytes = new byte[lHintLength];
+		for(int i = 0; i < lHintLength; i++) {
+			lHintBytes[i] = bb.get(pos++);
+		}
+		String lHint = new String(lHintBytes);
+		System.out.println(lHint);
+		ObjectConverter<Object, byte[]> lc = adviser.getConverter(null, lHint);
+		int lLength = bb.getInt(pos); pos+=4;
+		System.out.println(lLength);
+		byte[] lBytes = new byte[lLength];
+		for(int i = 0; i < lLength; i++) {
+			lBytes[i] = bb.get(pos++);
+		}
+		Object label = vc.fromPersistence(lBytes);
+		System.out.println(label);
+		//-------------- PROPERTIES
+		int propLength = bb.getInt(pos); pos+=4;
+		System.out.println(propLength);
+		byte[] pBytes = new byte[propLength];
+		for(int i = 0; i < propLength; i++) {
+			pBytes[i] = bb.get(pos++);
+		}
+		Map<String,Object> properties = propertiesConverter.fromPersistence(pBytes);
+		System.out.println(properties);
+		switch (loadType) {
+		case PART:
+			return new ShoppingCart(key, val, label, creationTime, expirationTime, properties, loadType);
+		default:
+			break;
+		}
+		
+		return null;//new ShoppingCart<K,V,L>(null, null, null);
 	}
 
 	@Override
 	public String conversionHint() {
-		return null;
+		return "Cart:byte[]";
 	}
 
 }
