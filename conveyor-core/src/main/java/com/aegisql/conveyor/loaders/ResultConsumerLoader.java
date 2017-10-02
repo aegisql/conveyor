@@ -204,7 +204,17 @@ public final class ResultConsumerLoader<K,OUT> {
 	public ResultConsumerLoader<K,OUT>  expirationTime(long et) {
 		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,et,0,key,consumer,filter,properties);
 	}
-	
+
+	/**
+	 * Creation time.
+	 *
+	 * @param ct the ct
+	 * @return the result consumer loader
+	 */
+	public ResultConsumerLoader<K,OUT>  creationTime(long ct) {
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,ct,expirationTime,0,key,consumer,filter,properties);
+	}
+
 	/**
 	 * Expiration time.
 	 *
@@ -214,7 +224,17 @@ public final class ResultConsumerLoader<K,OUT> {
 	public ResultConsumerLoader<K,OUT>  expirationTime(Instant instant) {
 		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,instant.toEpochMilli(),0,key,consumer,filter,properties);
 	}
-	
+
+	/**
+	 * Creation time.
+	 *
+	 * @param instant the instant
+	 * @return the result consumer loader
+	 */
+	public ResultConsumerLoader<K,OUT>  creationTime(Instant instant) {
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,instant.toEpochMilli(),expirationTime,0,key,consumer,filter,properties);
+	}
+
 	/**
 	 * Ttl.
 	 *

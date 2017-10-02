@@ -33,6 +33,7 @@ public final class FutureLoader<K,OUT> {
 	/** The key. */
 	public final K key;
 
+	/** The properties. */
 	private final Map<String,Object> properties = new HashMap<>();
 
 	/**
@@ -43,6 +44,7 @@ public final class FutureLoader<K,OUT> {
 	 * @param expirationTime the expiration time
 	 * @param ttlMsec the ttl msec
 	 * @param key the key
+	 * @param properties the properties
 	 */
 	private FutureLoader(
 			Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer,
@@ -66,6 +68,7 @@ public final class FutureLoader<K,OUT> {
 	 * @param creationTime the creation time
 	 * @param ttl the ttl
 	 * @param key the key
+	 * @param properties the properties
 	 * @param dumb the dumb
 	 */
 	private FutureLoader(
@@ -111,7 +114,17 @@ public final class FutureLoader<K,OUT> {
 	public FutureLoader<K,OUT>  expirationTime(long et) {
 		return new FutureLoader<K,OUT>(placer,creationTime,et,ttlMsec,key,properties);
 	}
-	
+
+	/**
+	 * Creation time.
+	 *
+	 * @param ct the ct
+	 * @return the future loader
+	 */
+	public FutureLoader<K,OUT>  creationTime(long ct) {
+		return new FutureLoader<K,OUT>(placer,ct,expirationTime,ttlMsec,key,properties);
+	}
+
 	/**
 	 * Expiration time.
 	 *
@@ -121,7 +134,17 @@ public final class FutureLoader<K,OUT> {
 	public FutureLoader<K,OUT>  expirationTime(Instant instant) {
 		return new FutureLoader<K,OUT>(placer,creationTime,instant.toEpochMilli(),ttlMsec,key,properties);
 	}
-	
+
+	/**
+	 * Creation time.
+	 *
+	 * @param instant the instant
+	 * @return the future loader
+	 */
+	public FutureLoader<K,OUT>  creationTime(Instant instant) {
+		return new FutureLoader<K,OUT>(placer,instant.toEpochMilli(),expirationTime,ttlMsec,key,properties);
+	}
+
 	/**
 	 * Ttl.
 	 *
@@ -143,10 +166,21 @@ public final class FutureLoader<K,OUT> {
 		return new FutureLoader<K,OUT>(placer,creationTime,duration.toMillis(),key,properties,true);
 	}
 	
+	/**
+	 * Clear properties.
+	 *
+	 * @return the future loader
+	 */
 	public FutureLoader<K,OUT> clearProperties() {
 		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,Collections.EMPTY_MAP);
 	}
 
+	/**
+	 * Clear property.
+	 *
+	 * @param k the k
+	 * @return the future loader
+	 */
 	public FutureLoader<K,OUT> clearProperty(String k) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
@@ -154,6 +188,13 @@ public final class FutureLoader<K,OUT> {
 		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,newMap);
 	}
 
+	/**
+	 * Adds the property.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @return the future loader
+	 */
 	public FutureLoader<K,OUT> addProperty(String k, Object v) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
@@ -161,6 +202,12 @@ public final class FutureLoader<K,OUT> {
 		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,newMap);
 	}
 
+	/**
+	 * Adds the properties.
+	 *
+	 * @param moreProperties the more properties
+	 * @return the future loader
+	 */
 	public FutureLoader<K,OUT> addProperties(Map<String,Object> moreProperties) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
@@ -168,10 +215,23 @@ public final class FutureLoader<K,OUT> {
 		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,newMap);
 	}
 	
+	/**
+	 * Gets the property.
+	 *
+	 * @param <X> the generic type
+	 * @param key the key
+	 * @param cls the cls
+	 * @return the property
+	 */
 	public <X> X getProperty(String key, Class<X> cls) {
 		return (X) properties.get(key);
 	}
 
+	/**
+	 * Gets the all properties.
+	 *
+	 * @return the all properties
+	 */
 	public Map<String,Object> getAllProperties() {
 		return Collections.unmodifiableMap(properties);
 	}

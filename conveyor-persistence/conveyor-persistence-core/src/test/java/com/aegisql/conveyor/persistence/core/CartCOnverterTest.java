@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.LoadType;
+import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
@@ -73,4 +74,57 @@ public class CartCOnverterTest {
 		assertEquals("propVal", c2.getProperty("testProp", String.class));
 	}
 
+	@Test
+	public void testMultyCartWithProperty() {
+		Cart c1 = new MultiKeyCart<Integer,String,String>(k->true, "value", "label", System.currentTimeMillis()-1000, System.currentTimeMillis()+1000);
+		c1.addProperty("testProp", "propVal");
+		ConverterAdviser<String> ca = new ConverterAdviser<>();
+		
+		CartToBytesConverter<Integer, ?, String> cc = new CartToBytesConverter<>(ca);
+		
+		byte[] bytes = cc.toPersistence(c1);
+		assertNotNull(bytes);
+		System.out.println("length: "+bytes.length);
+		
+		Cart c2 = cc.fromPersistence(bytes);
+		assertNotNull(c2);
+		System.out.println("cart: "+c1);
+		System.out.println("cart: "+c2);
+		assertEquals(c1.getKey(), c2.getKey());
+		assertEquals(c1.getValue(), c2.getValue());
+		assertEquals(c1.getLabel(), c2.getLabel());
+		assertEquals(c1.getCreationTime(), c2.getCreationTime());
+		assertEquals(c1.getExpirationTime(), c2.getExpirationTime());
+		assertEquals(LoadType.MULTI_KEY_PART, c2.getLoadType());
+		assertEquals("propVal", c2.getProperty("testProp", String.class));
+	}
+
+	@Test
+	public void testStaticCartWithProperty() {
+		
+		long time = System.currentTimeMillis();
+		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(null, "value", "label", time-1000, time+1000,null,LoadType.STATIC_PART);
+		c1.addProperty("testProp", "propVal");
+		ConverterAdviser<String> ca = new ConverterAdviser<>();
+		
+		CartToBytesConverter<Integer, String, String> cc = new CartToBytesConverter<>(ca);
+		
+		byte[] bytes = cc.toPersistence(c1);
+		assertNotNull(bytes);
+		System.out.println("length: "+bytes.length);
+		
+		Cart<Integer,String,String> c2 = cc.fromPersistence(bytes);
+		assertNotNull(c2);
+		System.out.println("cart: "+c1);
+		System.out.println("cart: "+c2);
+		assertEquals(c1.getKey(), c2.getKey());
+		assertEquals(c1.getValue(), c2.getValue());
+		assertEquals(c1.getLabel(), c2.getLabel());
+		assertEquals(c1.getCreationTime(), c2.getCreationTime());
+		assertEquals(0, c2.getExpirationTime());
+		assertEquals(LoadType.STATIC_PART, c2.getLoadType());
+		assertEquals("propVal", c2.getProperty("testProp", String.class));
+	}
+
+	
 }

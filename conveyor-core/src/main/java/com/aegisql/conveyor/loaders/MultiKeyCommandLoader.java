@@ -105,7 +105,17 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	public MultiKeyCommandLoader<K,OUT>  expirationTime(long et) {
 		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,et,ttlMsec,filter);
 	}
-	
+
+	/**
+	 * Creation time.
+	 *
+	 * @param ct the ct
+	 * @return the multi key command loader
+	 */
+	public MultiKeyCommandLoader<K,OUT>  creationTime(long ct) {
+		return new MultiKeyCommandLoader<K,OUT>(conveyor,ct,expirationTime,ttlMsec,filter);
+	}
+
 	/**
 	 * Expiration time.
 	 *
@@ -115,7 +125,17 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	public MultiKeyCommandLoader<K,OUT>  expirationTime(Instant instant) {
 		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,instant.toEpochMilli(),ttlMsec,filter);
 	}
-	
+
+	/**
+	 * Creation time.
+	 *
+	 * @param instant the instant
+	 * @return the multi key command loader
+	 */
+	public MultiKeyCommandLoader<K,OUT>  creationTime(Instant instant) {
+		return new MultiKeyCommandLoader<K,OUT>(conveyor,instant.toEpochMilli(),expirationTime,ttlMsec,filter);
+	}
+
 	/**
 	 * Ttl.
 	 *

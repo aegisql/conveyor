@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.loaders;
 
-import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -9,7 +8,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import com.aegisql.conveyor.serial.SerializablePredicate;
 
@@ -185,7 +183,17 @@ public final class PartLoader<K,L,V,OUT,F> {
 	public PartLoader<K,L,V,OUT,F>  expirationTime(long et) {
 		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,et,0,key,label,partValue,filter,properties);
 	}
-	
+
+	/**
+	 * Creation time.
+	 *
+	 * @param ct the ct
+	 * @return the part loader
+	 */
+	public PartLoader<K,L,V,OUT,F>  creationTime(long ct) {
+		return new PartLoader<K,L,V,OUT,F>(placer,ct,expirationTime,0,key,label,partValue,filter,properties);
+	}
+
 	/**
 	 * Expiration time.
 	 *
@@ -195,7 +203,17 @@ public final class PartLoader<K,L,V,OUT,F> {
 	public PartLoader<K,L,V,OUT,F>  expirationTime(Instant instant) {
 		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,instant.toEpochMilli(),0,key,label,partValue,filter,properties);
 	}
-	
+
+	/**
+	 * Creation time.
+	 *
+	 * @param instant the instant
+	 * @return the part loader
+	 */
+	public PartLoader<K,L,V,OUT,F>  creationTime(Instant instant) {
+		return new PartLoader<K,L,V,OUT,F>(placer,instant.toEpochMilli(),expirationTime,0,key,label,partValue,filter,properties);
+	}
+
 	/**
 	 * Ttl.
 	 *

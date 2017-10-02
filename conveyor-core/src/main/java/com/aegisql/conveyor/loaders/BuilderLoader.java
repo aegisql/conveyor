@@ -146,7 +146,17 @@ public final class BuilderLoader<K,OUT,F> {
 	public BuilderLoader<K,OUT,F>  expirationTime(long et) {
 		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,et,ttlMsec,key,value,properties);
 	}
-	
+
+	/**
+	 * Creation time.
+	 *
+	 * @param ct the ct
+	 * @return the builder loader
+	 */
+	public BuilderLoader<K,OUT,F>  creationTime(long ct) {
+		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,ct,expirationTime,ttlMsec,key,value,properties);
+	}
+
 	/**
 	 * Expiration time.
 	 *
@@ -156,7 +166,17 @@ public final class BuilderLoader<K,OUT,F> {
 	public BuilderLoader<K,OUT,F>  expirationTime(Instant instant) {
 		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,instant.toEpochMilli(),ttlMsec,key,value,properties);
 	}
-	
+
+	/**
+	 * Creation time.
+	 *
+	 * @param instant the instant
+	 * @return the builder loader
+	 */
+	public BuilderLoader<K,OUT,F>  creationTime(Instant instant) {
+		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,instant.toEpochMilli(),expirationTime,ttlMsec,key,value,properties);
+	}
+
 	/**
 	 * Ttl.
 	 *

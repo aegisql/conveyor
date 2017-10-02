@@ -118,7 +118,17 @@ public final class CommandLoader<K,OUT> {
 	public CommandLoader<K,OUT>  expirationTime(long et) {
 		return new CommandLoader<K,OUT>(conveyor,creationTime,et,ttlMsec,key);
 	}
-	
+
+	/**
+	 * Creation time.
+	 *
+	 * @param ct the ct
+	 * @return the command loader
+	 */
+	public CommandLoader<K,OUT>  creationTime(long ct) {
+		return new CommandLoader<K,OUT>(conveyor,ct,expirationTime,ttlMsec,key);
+	}
+
 	/**
 	 * Expiration time.
 	 *
@@ -128,7 +138,17 @@ public final class CommandLoader<K,OUT> {
 	public CommandLoader<K,OUT>  expirationTime(Instant instant) {
 		return new CommandLoader<K,OUT>(conveyor,creationTime,instant.toEpochMilli(),ttlMsec,key);
 	}
-	
+
+	/**
+	 * Creation time.
+	 *
+	 * @param instant the instant
+	 * @return the command loader
+	 */
+	public CommandLoader<K,OUT>  creationTime(Instant instant) {
+		return new CommandLoader<K,OUT>(conveyor,instant.toEpochMilli(),expirationTime,ttlMsec,key);
+	}
+
 	/**
 	 * Ttl.
 	 *
