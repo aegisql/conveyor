@@ -58,14 +58,14 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 		byte[] labelBytes = convertObject(label);
 		byte[] propertiesBytes = propertiesConverter.toPersistence(cart.getAllProperties());
 
-		int totalSize = 1 + 8 + 8 + keyBytes.length + valueBytes.length + labelBytes.length + 4
+		int totalSize = 4 + 1 + 8 + 8 + keyBytes.length + valueBytes.length + labelBytes.length + 4
 				+ propertiesBytes.length;
 		int pos = 0;
 
 		byte[] buff = new byte[totalSize];
 		ByteBuffer bb = ByteBuffer.wrap(buff);
-		bb.put(type);
-		pos++;
+		bb.putInt(pos,totalSize); pos+=4;
+		bb.put(pos++,type);
 		bb.putLong(pos, cart.getCreationTime());
 		pos += 8;
 		bb.putLong(pos, cart.getExpirationTime());
@@ -124,6 +124,8 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 		ByteBuffer bb = ByteBuffer.wrap(p);
 
 		int pos = 0;
+		int totalSize = bb.getInt(pos);
+		pos += 4;
 		LoadType loadType = LoadType.values()[bb.get(pos++)];
 		long creationTime = bb.getLong(pos);
 		pos += 8;
