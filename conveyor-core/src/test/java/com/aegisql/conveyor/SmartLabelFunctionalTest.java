@@ -345,5 +345,22 @@ public class SmartLabelFunctionalTest {
 		assertNull(b.get().getFirst());
 		
 	}
+	
+	@Test
+	public void peekTest() throws InterruptedException, ExecutionException {
+		UserBuilderSmart b = new UserBuilderSmart();
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.peek();
+		assertNotNull(l1);
+		l1 = l1.labelName("P");
+		assertNotNull(l1);
+		System.out.println(l1);
+		assertNotNull(l1.get());
+		CompletableFuture<User> f = new CompletableFuture<>();
+		l1.get().accept(b, f);
+		assertNotNull(b.get());
+		assertNull(b.get().getFirst());
+		assertTrue(f.isDone());
+		System.out.println(f.get());
+	}
 
 }

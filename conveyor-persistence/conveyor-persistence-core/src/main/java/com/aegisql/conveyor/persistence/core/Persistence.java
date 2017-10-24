@@ -176,4 +176,12 @@ public interface Persistence <K> extends Closeable{
 	 */
 	Persistence<K> copy();
 	
+	/**
+	 * Non persistent properties.
+	 *
+	 * @param property the property
+	 * @return true, if is persistent property
+	 */
+	boolean isPersistentProperty(String property);
+	
 }

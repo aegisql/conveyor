@@ -17,6 +17,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -343,6 +345,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		private int encryptionKeyLength = 16;
 
 		private StringBuilder infoBuilder = new StringBuilder("DerbyPersistence ");
+		
+		private Set<String> nonPersistentProperties = new HashSet<>();
 
 		/** The label converter. */
 		private ObjectConverter<?,String> labelConverter = new StringConverter<String>() {
@@ -604,6 +608,14 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 		public <L,T> DerbyPersistenceBuilder<K> addBinaryConverter(L label, ObjectConverter<T, byte[]> conv) {
 			getConverterAdviser().addConverter(label, conv);
+			return this;
+		}
+
+		public <L,T> DerbyPersistenceBuilder<K> doNotSaveProperties(String property,String... properties) {
+			nonPersistentProperties.add(property);
+			if(properties != null) {
+				nonPersistentProperties.addAll(Arrays.asList(properties));
+			}
 			return this;
 		}
 
@@ -1033,6 +1045,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,maxBatchSize
 					,maxBatchTime
 					,infoBuilder .toString()
+					,nonPersistentProperties
 					);
 		}
 	}
@@ -1095,6 +1108,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 
 	private final String info;
 	
+	private final Set<String> nonPersistentProperties;
+	
 	/**
 	 * Instantiates a new derby persistence.
 	 *
@@ -1134,6 +1149,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,int maxBatchSize
 			,long maxBatchTime
 			,String info
+			,Set<String> nonPersistentProperties
 			) {
 		this.builder                      = builder;
 		this.conn                         = conn;
@@ -1154,6 +1170,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		this.maxBatchTime                 = maxBatchTime;
 		this.mapConverter                 = new MapToClobConverter(conn);
 		this.info                         = info;
+		this.nonPersistentProperties      = nonPersistentProperties;
 	}
 
 	/**
@@ -1214,7 +1231,15 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			st.setTimestamp(5, new Timestamp(cart.getCreationTime()));
 			st.setTimestamp(6, new Timestamp(cart.getExpirationTime()));
 			st.setBlob(7, toBlob( byteConverter.toPersistence(value)));
-			st.setClob(8, mapConverter.toPersistence(cart.getAllProperties()));
+			
+			Map<String,Object> properties = new HashMap<>();
+			cart.getAllProperties().forEach((k,v)->{
+				if(isPersistentProperty(k)) {
+					properties.put(k, v);
+				}
+			});
+			
+			st.setClob(8, mapConverter.toPersistence(properties));
 			st.setString(9, hint);
 			st.execute();
 		} catch (Exception e) {
@@ -1526,6 +1551,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	@Override
 	public String toString() {
 		return info;
+	}
+
+	@Override
+	public boolean isPersistentProperty(String property) {
+		return ! nonPersistentProperties.contains(property);
 	}
 	
 	

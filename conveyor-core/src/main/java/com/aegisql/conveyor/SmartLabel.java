@@ -4,6 +4,7 @@
 package com.aegisql.conveyor;
 
 import java.io.Serializable;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -321,4 +322,24 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 		return cart.getValue();
 	}
 	
+	static <B extends Supplier<T>,T> SmartLabel<B> peek() {
+		return of((b,future)->{
+			try {
+				((CompletableFuture<T>) future).complete(b.get());
+			} catch (Exception e) {
+				((CompletableFuture<T>) future).completeExceptionally(e);
+			}
+		});
+	}
+
+	static <B extends Supplier<T>,T> SmartLabel<B> peek(String name) {
+		return of(name,(b,future)->{
+			try {
+				((CompletableFuture<T>) future).complete(b.get());
+			} catch (Exception e) {
+				((CompletableFuture<T>) future).completeExceptionally(e);
+			}
+		});
+	}
+
 }

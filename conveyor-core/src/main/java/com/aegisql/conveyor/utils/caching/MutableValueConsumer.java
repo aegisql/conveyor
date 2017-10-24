@@ -14,6 +14,7 @@ import com.aegisql.conveyor.LabeledValueConsumer;
  */
 public class MutableValueConsumer<T> implements LabeledValueConsumer<Object, Object, MutableReference<T>>{
 
+	private static final long serialVersionUID = 1L;
 	/** The Constant LOG. */
 	protected final static Logger LOG = LoggerFactory.getLogger(MutableValueConsumer.class);
 	

@@ -96,6 +96,12 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The initialization mode. */
 	private final AtomicBoolean initializationMode = new AtomicBoolean(true);
 
+	private String doNotPersist = "~";
+
+	public void setSkipPersistencePropertyKey(String doNotPersist) {
+		this.doNotPersist = doNotPersist;
+	}
+
 	/**
 	 * Instantiates a new persistent conveyor.
 	 *
@@ -304,6 +310,11 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public <V> CompletableFuture<Boolean> place(Cart<K, V, L> cart) {
+		
+		if(cart.getAllProperties() != null && cart.getAllProperties().containsKey(doNotPersist )) {
+			return forward.place(cart);
+		}
+		
 		Cart<K, Cart<K, ?, ?>, SmartLabel<AcknowledgeBuilder<K>>> ackCart = PersistenceCart.of(cart, ackConveyor.CART);
 		LOG.debug("PLACING " + ackCart);
 		CompletableFuture<Boolean> forwardFuture = cart.getFuture();

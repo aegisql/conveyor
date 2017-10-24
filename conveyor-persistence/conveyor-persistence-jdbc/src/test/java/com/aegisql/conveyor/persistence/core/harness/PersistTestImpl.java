@@ -180,4 +180,10 @@ public class PersistTestImpl implements Persistence<Integer> {
 		return cartIds.size();
 	}
 
+	@Override
+	public boolean isPersistentProperty(String property) {
+		return true;
+	}
+
+
 }

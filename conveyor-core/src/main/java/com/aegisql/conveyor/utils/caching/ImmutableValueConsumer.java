@@ -13,6 +13,7 @@ import com.aegisql.conveyor.LabeledValueConsumer;
  */
 public class ImmutableValueConsumer<T> implements LabeledValueConsumer<Object, Object, ImmutableReference<T>>{
 
+	private static final long serialVersionUID = 1L;
 	/** The Constant LOG. */
 	protected final static Logger LOG = LoggerFactory.getLogger(ImmutableValueConsumer.class);
 	

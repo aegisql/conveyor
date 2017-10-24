@@ -203,5 +203,11 @@ public class PersistTestImpl implements Persistence<Integer> {
 	public long getNumberOfParts() {
 		return cartIds.size();
 	}
+
+	@Override
+	public boolean isPersistentProperty(String property) {
+		return true;
+	}
+
 	
 }
