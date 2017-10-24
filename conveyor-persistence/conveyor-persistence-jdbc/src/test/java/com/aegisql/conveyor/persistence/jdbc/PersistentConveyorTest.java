@@ -72,6 +72,7 @@ public class PersistentConveyorTest {
 					.labelConverter(TrioPart.class)
 					.whenArchiveRecords().markArchived()
 					.maxBatchSize(3)
+					.doNotSaveProperties("ignore_me","ignore_me_too")
 					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -111,6 +112,21 @@ public class PersistentConveyorTest {
 		assertEquals(1, tc.results.size());
 	}
 
+	@Test
+	public void veryBasicTedbstWithIgnoredCart() throws Exception {
+		Persistence<Integer> p = getPersitence("veryBasicTestIgnoreNumber");
+		TrioConveyor tc = new TrioConveyor();
+		
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+	
+		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
+		pc.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
+		System.out.println(p);
+		pc.part().id(1).label(TrioPart.NUMBER).value(1).addProperty("~", null).place().join();
+		System.out.println(p);
+		assertEquals(1, tc.results.size());
+	}
+	
 	
 	@Test
 	public void simpleAckTest() throws Exception {
@@ -160,8 +176,8 @@ public class PersistentConveyorTest {
 		tc1.autoAcknowledgeOnStatus(Status.READY);
 		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1);
 		pc1.setName("TC1");
-		pc1.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
-		pc1.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
+		pc1.part().id(1).label(TrioPart.TEXT1).value("txt1").addProperty("ignore_me", "a").addProperty("ignore_me_too", "b").place();
+		pc1.part().id(1).label(TrioPart.TEXT2).value("txt2").addProperty("do_not_ignore_me", "x").place().join();
 		System.out.println(p1);
 		
 		pc1.stop();
