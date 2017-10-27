@@ -2,6 +2,7 @@ package com.aegisql.conveyor.persistence.core;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -199,6 +200,12 @@ public class CartCOnverterTest {
 		
 		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(100, "value", "label");
 		c1.addProperty("testProp", "propVal");
+
+		Cart<Integer,String,String> c2 = new ShoppingCart<Integer, String, String>(100, "OtherValue", "OtherLabel");
+
+		Cart<Integer,Integer,String> c3 = new ShoppingCart<>(100, 1000, "intLabel");
+		c1.addProperty("testProp", "propVal");
+
 		ConverterAdviser<String> ca = new ConverterAdviser<>();
 		
 		CartToBytesConverter<Integer, String, String> cc = new CartToBytesConverter<>(ca);
@@ -207,15 +214,29 @@ public class CartCOnverterTest {
 		CartOutputStream<Integer, String> cos = new CartOutputStream<>(cc, fos);
 		
 		cos.writeCart(c1);
+		cos.writeCart(c2);
+		cos.writeCart(c3);
 		cos.close();
 		
 		FileInputStream fis = new FileInputStream("cartOSStream.bin");
+		BufferedInputStream bis = new BufferedInputStream(fis);
 		
-		CartInputStream<Integer, String> cis = new CartInputStream<>(cc, fis);
+		CartInputStream<Integer, String> cis = new CartInputStream<>(cc, bis);
 		
-		Cart<Integer,?,String> c2 = cis.readCart();
-		assertNotNull(c2);
-		System.out.println(c2);
+		Cart<Integer,?,String> c11 = cis.readCart();
+		assertNotNull(c11);
+		System.out.println(c11);
+
+		Cart<Integer,?,String> c12 = cis.readCart();
+		assertNotNull(c12);
+		System.out.println(c12);
+		
+		Cart<Integer,?,String> c13 = cis.readCart();
+		assertNotNull(c13);
+		System.out.println(c13);
+
+		assertNull(cis.readCart());
+		
 		cis.close();
 	}
 
