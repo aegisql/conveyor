@@ -2,6 +2,8 @@ package com.aegisql.conveyor.persistence.core;
 
 import static org.junit.Assert.*;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -17,6 +19,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.converters.EnumToBytesConverter;
+import com.aegisql.conveyor.persistence.utils.CartInputStream;
 
 public class CartCOnverterTest {
 
@@ -124,6 +127,68 @@ public class CartCOnverterTest {
 		assertEquals(0, c2.getExpirationTime());
 		assertEquals(LoadType.STATIC_PART, c2.getLoadType());
 		assertEquals("propVal", c2.getProperty("testProp", String.class));
+	}
+
+	@Test
+	public void testCartInputStream() throws IOException {
+		
+		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(100, "value", "label");
+		c1.addProperty("testProp", "propVal");
+		ConverterAdviser<String> ca = new ConverterAdviser<>();
+		
+		CartToBytesConverter<Integer, String, String> cc = new CartToBytesConverter<>(ca);
+		
+		byte[] bytes = cc.toPersistence(c1);
+		assertNotNull(bytes);
+		System.out.println("length: "+bytes.length);
+
+		ByteArrayInputStream is = new ByteArrayInputStream(bytes);
+		
+		CartInputStream<Integer, String> cis = new CartInputStream<>(cc, is);
+		
+		Cart<Integer,?,String> c2 = cis.getCart();
+		assertNotNull(c2);
+		System.out.println(c2);
+	}
+
+	@Test
+	public void testManyCartInputStream() throws IOException {
+		
+		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(100, "value", "label");
+		c1.addProperty("testProp", "propVal");
+		ConverterAdviser<String> ca = new ConverterAdviser<>();
+		
+		CartToBytesConverter<Integer, String, String> cc = new CartToBytesConverter<>(ca);
+		
+		byte[] bytes1 = cc.toPersistence(c1);
+		assertNotNull(bytes1);
+
+		Cart<Integer,String,String> c2 = new ShoppingCart<Integer, String, String>(101, "valueMore", "otherLabel");
+		c1.addProperty("testPropToo", "propValOther");
+				
+		byte[] bytes2 = cc.toPersistence(c2);
+		assertNotNull(bytes2);
+
+		byte[] bytes = new byte[bytes1.length+bytes2.length];
+		
+		int pos = 0;
+		for(int i = 0; i<bytes1.length;i++) {
+			bytes[pos++] = bytes1[i];
+		}
+		for(int i = 0; i<bytes2.length;i++) {
+			bytes[pos++] = bytes2[i];
+		}
+		
+		ByteArrayInputStream is = new ByteArrayInputStream(bytes);
+		
+		CartInputStream<Integer, String> cis = new CartInputStream<>(cc, is);
+		
+		Cart<Integer,?,String> c3 = cis.getCart();
+		assertNotNull(c3);
+		System.out.println(c3);
+		Cart<Integer,?,String> c4 = cis.getCart();
+		assertNotNull(c4);
+		System.out.println(c4);
 	}
 
 	
