@@ -3,6 +3,8 @@ package com.aegisql.conveyor.persistence.core;
 import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -20,6 +22,7 @@ import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.converters.EnumToBytesConverter;
 import com.aegisql.conveyor.persistence.utils.CartInputStream;
+import com.aegisql.conveyor.persistence.utils.CartOutputStream;
 
 public class CartCOnverterTest {
 
@@ -146,7 +149,7 @@ public class CartCOnverterTest {
 		
 		CartInputStream<Integer, String> cis = new CartInputStream<>(cc, is);
 		
-		Cart<Integer,?,String> c2 = cis.getCart();
+		Cart<Integer,?,String> c2 = cis.readCart();
 		assertNotNull(c2);
 		System.out.println(c2);
 	}
@@ -183,13 +186,39 @@ public class CartCOnverterTest {
 		
 		CartInputStream<Integer, String> cis = new CartInputStream<>(cc, is);
 		
-		Cart<Integer,?,String> c3 = cis.getCart();
+		Cart<Integer,?,String> c3 = cis.readCart();
 		assertNotNull(c3);
 		System.out.println(c3);
-		Cart<Integer,?,String> c4 = cis.getCart();
+		Cart<Integer,?,String> c4 = cis.readCart();
 		assertNotNull(c4);
 		System.out.println(c4);
 	}
 
+	@Test
+	public void testCartInputOutputStream() throws IOException {
+		
+		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(100, "value", "label");
+		c1.addProperty("testProp", "propVal");
+		ConverterAdviser<String> ca = new ConverterAdviser<>();
+		
+		CartToBytesConverter<Integer, String, String> cc = new CartToBytesConverter<>(ca);
+		
+		FileOutputStream fos = new FileOutputStream("cartOSStream.bin");
+		CartOutputStream<Integer, String> cos = new CartOutputStream<>(cc, fos);
+		
+		cos.writeCart(c1);
+		cos.close();
+		
+		FileInputStream fis = new FileInputStream("cartOSStream.bin");
+		
+		CartInputStream<Integer, String> cis = new CartInputStream<>(cc, fis);
+		
+		Cart<Integer,?,String> c2 = cis.readCart();
+		assertNotNull(c2);
+		System.out.println(c2);
+		cis.close();
+	}
+
+	
 	
 }
