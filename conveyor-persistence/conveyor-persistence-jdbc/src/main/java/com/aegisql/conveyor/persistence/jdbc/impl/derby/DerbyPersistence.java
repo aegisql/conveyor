@@ -618,6 +618,37 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			}
 			return this;
 		}
+		
+
+		private Archiver<K> makeToFileArchiver(String partTable, String completedTable, Archiver<K> deleteArchiver) {
+			return new Archiver<K>() {
+
+				@Override
+				public void archiveParts(Connection conn, Collection<Long> ids) {
+					deleteArchiver.archiveParts(conn, ids);
+				}
+
+				@Override
+				public void archiveKeys(Connection conn, Collection<K> keys) {
+					deleteArchiver.archiveKeys(conn, keys);
+				}
+
+				@Override
+				public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
+					deleteArchiver.archiveCompleteKeys(conn, keys);
+				}
+
+				@Override
+				public void archiveExpiredParts(Connection conn) {
+					deleteArchiver.archiveExpiredParts(conn);
+				}
+
+				@Override
+				public void archiveAll(Connection conn) {
+					deleteArchiver.archiveAll(conn);
+				}
+			};
+		}
 
 		/**
 		 * Make archived archiver.

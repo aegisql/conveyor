@@ -10,6 +10,8 @@ import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 public class CartOutputStream <K,L> extends FilterOutputStream {
 	
 	private final CartToBytesConverter<K, ?, L> converter;
+	
+	private long totalSize = 0;
 
 	public CartOutputStream(CartToBytesConverter<K, ?, L> converter, OutputStream out) {
 		super(out);
@@ -20,6 +22,11 @@ public class CartOutputStream <K,L> extends FilterOutputStream {
 		byte[] bytes = converter.toPersistence((Cart)cart);
 		write(bytes);
 		flush();
+		totalSize += bytes.length;
+	}
+	
+	public long getTotalWrittenBytes() {
+		return totalSize;
 	}
 
 }
