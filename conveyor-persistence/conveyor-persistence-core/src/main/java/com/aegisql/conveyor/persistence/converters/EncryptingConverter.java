@@ -4,6 +4,7 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -37,7 +38,7 @@ public class EncryptingConverter implements ObjectConverter<byte[], byte[]> {
 			cipher.init(Cipher.ENCRYPT_MODE, key);
 			return cipher.doFinal( obj );
 		} catch (Exception e) {
-			throw new RuntimeException("Encryption Exception",e);
+			throw new PersistenceException("Encryption Exception",e);
 		}
 
 	}
@@ -51,7 +52,7 @@ public class EncryptingConverter implements ObjectConverter<byte[], byte[]> {
 			cipher.init(Cipher.DECRYPT_MODE, key);
 			return cipher.doFinal(p);
 		} catch (Exception e) {
-			throw new RuntimeException("Decryption Exception",e);
+			throw new PersistenceException("Decryption Exception",e);
 		}
 	}
 

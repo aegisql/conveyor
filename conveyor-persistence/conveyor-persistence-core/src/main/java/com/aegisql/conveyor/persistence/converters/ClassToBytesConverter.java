@@ -1,5 +1,7 @@
 package com.aegisql.conveyor.persistence.converters;
 
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+
 public class ClassToBytesConverter implements ObjectToByteArrayConverter<Class> {
 
 	public ClassToBytesConverter() {
@@ -19,7 +21,7 @@ public class ClassToBytesConverter implements ObjectToByteArrayConverter<Class> 
 		try {
 			return Class.forName(new String(p));
 		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(conversionHint()+" conversion error",e);
+			throw new PersistenceException(conversionHint()+" conversion error",e);
 		}
 	}
 

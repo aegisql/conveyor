@@ -125,7 +125,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		onStatus.put(Status.INVALID, this::complete);
 		onStatus.put(Status.TIMED_OUT, this::complete);
 		onStatus.put(Status.WAITING_DATA, k -> {
-			throw new RuntimeException("Unexpected WAITING_DATA status for key=" + k);
+			throw new PersistenceException("Unexpected WAITING_DATA status for key=" + k);
 		});
 		forward.setAcknowledgeAction(status -> {
 			onStatus.get(status.getStatus()).accept(status);
@@ -161,7 +161,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		try {
 			persistence.close();
 		} catch (IOException e) {
-			throw new RuntimeException(e.getMessage(), e);
+			throw new PersistenceException(e.getMessage(), e);
 		}
 		this.initializationMode.set(false);
 		this.ackConveyor.setInitializationMode(false);
@@ -277,7 +277,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			});
 			return place(cart);
 		}, cl -> {
-			throw new RuntimeException("Futures not supported in persistent builde suppliers");
+			throw new PersistenceException("Futures not supported in persistent builde suppliers");
 		});
 	}
 

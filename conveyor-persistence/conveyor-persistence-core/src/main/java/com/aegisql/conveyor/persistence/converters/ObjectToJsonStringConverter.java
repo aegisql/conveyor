@@ -3,6 +3,7 @@ package com.aegisql.conveyor.persistence.converters;
 import java.io.IOException;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -36,7 +37,7 @@ public class ObjectToJsonStringConverter <O> implements ObjectConverter<O, Strin
 		try {
 			return om.writeValueAsString(obj);
 		} catch (JsonProcessingException e) {
-			throw new RuntimeException("Failed "+valueType.getCanonicalName()+" -> JSON String conversion: "+obj,e);
+			throw new PersistenceException("Failed "+valueType.getCanonicalName()+" -> JSON String conversion: "+obj,e);
 		}
 	}
 
@@ -49,7 +50,7 @@ public class ObjectToJsonStringConverter <O> implements ObjectConverter<O, Strin
 		try {
 			return om.readValue(p, valueType);
 		} catch (IOException e) {
-			throw new RuntimeException("Failed JSON String -> "+valueType.getCanonicalName()+" conversion: ",e);
+			throw new PersistenceException("Failed JSON String -> "+valueType.getCanonicalName()+" conversion: ",e);
 		}
 	}
 

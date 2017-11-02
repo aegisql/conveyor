@@ -15,6 +15,7 @@ import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V, L>, byte[]> {
 
@@ -205,11 +206,11 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 		case BUILDER:
 			return new CreatingCart(key, (BuilderSupplier) val, creationTime, expirationTime);
 		case FUTURE:
-			throw new RuntimeException("Unsupported cart converter " + loadType);
+			throw new PersistenceException("Unsupported cart converter " + loadType);
 		case COMMAND:
-			throw new RuntimeException("Unsupported cart converter " + loadType);
+			throw new PersistenceException("Unsupported cart converter " + loadType);
 		default:
-			throw new RuntimeException("Unsupported cart converter " + loadType);
+			throw new PersistenceException("Unsupported cart converter " + loadType);
 		}
 	}
 

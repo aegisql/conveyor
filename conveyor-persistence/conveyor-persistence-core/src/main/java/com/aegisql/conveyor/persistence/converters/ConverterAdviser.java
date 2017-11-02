@@ -40,6 +40,7 @@ import com.aegisql.conveyor.persistence.converters.sql.SqlDateToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimeToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimestampToBytesConverter;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -178,7 +179,7 @@ public class ConverterAdviser <L> {
 		}
 		if(encryptor == null) {
 			if(name.startsWith("__##")) {
-				throw new RuntimeException("Encryption is not set "+name);
+				throw new PersistenceException("Encryption is not set "+name);
 			}
 			return converter;
 		} else {

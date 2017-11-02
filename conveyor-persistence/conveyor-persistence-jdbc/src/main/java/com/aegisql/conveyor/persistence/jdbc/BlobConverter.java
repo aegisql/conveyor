@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import org.apache.commons.io.IOUtils;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -47,13 +48,13 @@ public class BlobConverter <T extends Serializable> implements ObjectConverter<T
 			blob = conn.createBlob();
 	    	os = blob.setBinaryStream(1);
 		} catch (SQLException e) {
-			throw new RuntimeException("SQL Runntime Exception for "+obj,e);
+			throw new PersistenceException("SQL Runntime Exception for "+obj,e);
 		}
 		try {
 			os.write( byteConverter.toPersistence(obj));
 			return blob;
 		} catch (IOException e) {
-			throw new RuntimeException("IO Runntime Exception",e);
+			throw new PersistenceException("IO Runntime Exception",e);
 		}
 	}
 
@@ -65,9 +66,9 @@ public class BlobConverter <T extends Serializable> implements ObjectConverter<T
 		try(InputStream in = blb.getBinaryStream(1, blb.length())) {
 			return byteConverter.fromPersistence( IOUtils.toByteArray(in) );
 		} catch (SQLException e) {
-			throw new RuntimeException("SQL Runntime Exception",e);
+			throw new PersistenceException("SQL Runntime Exception",e);
 		} catch (IOException e) {
-			throw new RuntimeException("IO Runntime Exception",e);
+			throw new PersistenceException("IO Runntime Exception",e);
 		}
 	}
 

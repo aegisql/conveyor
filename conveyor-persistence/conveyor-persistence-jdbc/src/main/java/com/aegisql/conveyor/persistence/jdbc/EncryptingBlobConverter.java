@@ -16,6 +16,8 @@ import javax.crypto.SecretKey;
 
 import org.apache.commons.io.IOUtils;
 
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class EncryptingBlobConverter.
@@ -56,7 +58,7 @@ private final SecretKey key;
 			blob = conn.createBlob();
 	    	os = blob.setBinaryStream(1);
 		} catch (SQLException e) {
-			throw new RuntimeException("SQL Runntime Exception",e);
+			throw new PersistenceException("SQL Runntime Exception",e);
 		}
 		try {
 			cipher.init(Cipher.ENCRYPT_MODE, key);
@@ -64,7 +66,7 @@ private final SecretKey key;
 			os.write(encrypted);
 			return blob;
 		} catch (Exception e) {
-			throw new RuntimeException("IO Runntime Exception",e);
+			throw new PersistenceException("IO Runntime Exception",e);
 		}
 	}
 
@@ -80,15 +82,15 @@ private final SecretKey key;
 			bytes = cipher.doFinal(bytes);
 			return byteConverter.fromPersistence(bytes);
 		} catch (SQLException e) {
-			throw new RuntimeException("SQL Runntime Exception",e);
+			throw new PersistenceException("SQL Runntime Exception",e);
 		} catch (IOException e) {
-			throw new RuntimeException("IO Runntime Exception",e);
+			throw new PersistenceException("IO Runntime Exception",e);
 		} catch (InvalidKeyException e) {
-			throw new RuntimeException("InvalidKeyException Runntime Exception",e);
+			throw new PersistenceException("InvalidKeyException Runntime Exception",e);
 		} catch (IllegalBlockSizeException e) {
-			throw new RuntimeException("IllegalBlockSizeException Runntime Exception",e);
+			throw new PersistenceException("IllegalBlockSizeException Runntime Exception",e);
 		} catch (BadPaddingException e) {
-			throw new RuntimeException("BadPaddingException Runntime Exception",e);
+			throw new PersistenceException("BadPaddingException Runntime Exception",e);
 		}
 	}
 

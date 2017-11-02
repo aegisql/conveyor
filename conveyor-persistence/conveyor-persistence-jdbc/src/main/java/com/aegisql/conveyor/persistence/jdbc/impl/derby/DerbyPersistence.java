@@ -47,13 +47,19 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.jdbc.Archiver;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.MapToClobConverter;
 import com.aegisql.conveyor.persistence.jdbc.StringConverter;
 import com.aegisql.id_builder.IdSource;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
-
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.ArchiveStrategy;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.Archiver;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.DeleteArchiver;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.DoNothingArchiver;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.FileArchiver;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.SetArchivedArchiver;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.UnimplementedArchiver;
 // TODO: Auto-generated Javadoc
 /**
  * The Class DerbyPersistence.
@@ -62,30 +68,6 @@ import com.aegisql.id_builder.impl.TimeHostIdGenerator;
  */
 public class DerbyPersistence<K> implements Persistence<K>{
 	
-	/**
-	 * The Enum ArchiveStrategy.
-	 */
-	private static enum ArchiveStrategy {
-		
-		/** The custom. */
-		CUSTOM, 
- /** The delete. */
- //set strategy
-		DELETE,
-		
-		/** The set archived. */
-		SET_ARCHIVED,
-		
-		/** The move to schema table. */
-		MOVE_TO_SCHEMA_TABLE, 
- /** The move to file. */
- //schema,table
-		MOVE_TO_FILE, 
- /** The no action. */
- //path,file
-		NO_ACTION //external archive strategy
-	}
-
 	/**
 	 * The Class ArchiveBuilder.
 	 *
@@ -230,33 +212,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		private Class<K> keyClass;
 		
 		/** The do nothing archiver. */
-		private Archiver<K> DO_NOTHING_ARCHIVER = new Archiver<K>(){
-			@Override
-			public void archiveParts(Connection conn, Collection<Long> ids) {}
-			@Override
-			public void archiveKeys(Connection conn, Collection<K> keys) {}
-			@Override
-			public void archiveCompleteKeys(Connection conn, Collection<K> keys) {}
-			@Override
-			public void archiveAll(Connection conn) {}
-			@Override
-			public void archiveExpiredParts(Connection conn) {}
-		};
+		private Archiver<K> DO_NOTHING_ARCHIVER = new DoNothingArchiver<>();
 
 		/** The unimplemented archiver. */
 		//TODO: remove when all implemented
-		private Archiver<K> UNIMPLEMENTED_ARCHIVER = new Archiver<K>(){
-			@Override
-			public void archiveParts(Connection conn, Collection<Long> ids) {throw new RuntimeException("Unimplemented archiver");}
-			@Override
-			public void archiveKeys(Connection conn, Collection<K> keys) {throw new RuntimeException("Unimplemented archiver");}
-			@Override
-			public void archiveCompleteKeys(Connection conn, Collection<K> keys) {throw new RuntimeException("Unimplemented archiver");}
-			@Override
-			public void archiveAll(Connection conn) {throw new RuntimeException("Unimplemented archiver");}
-			@Override
-			public void archiveExpiredParts(Connection conn) {throw new RuntimeException("Unimplemented archiver");}
-		};
+		private Archiver<K> UNIMPLEMENTED_ARCHIVER = new UnimplementedArchiver();
 
 		/** The key type. */
 		private String keyType = "CART_KEY VARCHAR(255)";
@@ -620,258 +580,6 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		}
 		
 
-		private Archiver<K> makeToFileArchiver(String partTable, String completedTable, Archiver<K> deleteArchiver) {
-			return new Archiver<K>() {
-
-				@Override
-				public void archiveParts(Connection conn, Collection<Long> ids) {
-					deleteArchiver.archiveParts(conn, ids);
-				}
-
-				@Override
-				public void archiveKeys(Connection conn, Collection<K> keys) {
-					deleteArchiver.archiveKeys(conn, keys);
-				}
-
-				@Override
-				public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
-					deleteArchiver.archiveCompleteKeys(conn, keys);
-				}
-
-				@Override
-				public void archiveExpiredParts(Connection conn) {
-					deleteArchiver.archiveExpiredParts(conn);
-				}
-
-				@Override
-				public void archiveAll(Connection conn) {
-					deleteArchiver.archiveAll(conn);
-				}
-			};
-		}
-
-		/**
-		 * Make archived archiver.
-		 *
-		 * @param partTable the part table
-		 * @param completedTable the completed table
-		 * @return the archiver
-		 */
-		private Archiver<K> makeArchivedArchiver(String partTable, String completedTable) {
-			
-			final String deleteFromPartsById      = "UPDATE "+partTable + " SET ARCHIVED = 1 WHERE ID IN(?)";
-			final String deleteFromPartsByCartKey = "UPDATE "+partTable + " SET ARCHIVED = 1 WHERE CART_KEY IN(?)";
-			final String deleteFromCompleted      = "DELETE FROM "+completedTable + " WHERE CART_KEY IN(?)";
-			
-			final String deleteExpiredParts       = "UPDATE "+partTable+" SET ARCHIVED = 1 WHERE EXPIRATION_TIME > TIMESTAMP('19710101000000') AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
-			final String deleteAllParts           = "UPDATE "+partTable+" SET ARCHIVED = 1";
-			final String deleteAllCompleted       = "DELETE FROM "+completedTable;
-			
-			final String q;
-			if(Number.class.isAssignableFrom(keyClass)) {
-				q = "";
-			} else {
-				q = "'";
-			}
-			
-			return new Archiver<K>(){
-
-				@Override
-				public void archiveParts(Connection conn, Collection<Long> ids) {
-					if(ids.isEmpty()) {
-						return;
-					}
-					try(Statement ps = conn.createStatement()) {
-						StringBuilder sb = new StringBuilder();
-						ids.forEach(id->sb.append(id).append(","));
-						if(sb.lastIndexOf(",") > 0) {
-							sb.deleteCharAt(sb.lastIndexOf(","));
-						}
-						ps.execute(deleteFromPartsById.replace("?", sb.toString()));
-					} catch (SQLException e) {
-						LOG.error("archiveParts failure",e);
-						throw new RuntimeException("archiveParts failure",e);
-					}
-				}
-
-				@Override
-				public void archiveKeys(Connection conn, Collection<K> keys) {
-					if(keys.isEmpty()) {
-						return;
-					}
-					try(Statement ps = conn.createStatement()) {
-						StringBuilder sb = new StringBuilder();
-						keys.forEach(id->{
-							sb.append(q).append(id).append(q).append(",");
-							});
-						if(sb.lastIndexOf(",") > 0) {
-							sb.deleteCharAt(sb.lastIndexOf(","));
-						}
-						ps.execute(deleteFromPartsByCartKey.replace("?", sb.toString()));
-					} catch (SQLException e) {
-						LOG.error("archiveKeys failure",e);
-						throw new RuntimeException("archiveKeys failure",e);
-					}
-				}
-
-				@Override
-				public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
-					if(keys.isEmpty()) {
-						return;
-					}
-					try(Statement ps = conn.createStatement()) {
-						StringBuilder sb = new StringBuilder();
-						keys.forEach(id->{
-							sb.append(q).append(id).append(q).append(",");
-							});
-						if(sb.lastIndexOf(",") > 0) {
-							sb.deleteCharAt(sb.lastIndexOf(","));
-						}
-						ps.execute(deleteFromCompleted.replace("?", sb.toString()));
-					} catch (SQLException e) {
-						LOG.error("archiveCompleteKeys failure",e);
-						throw new RuntimeException("archiveCompleteKeys failure",e);
-					}
-				}
-
-				@Override
-				public void archiveAll(Connection conn) {
-					try(PreparedStatement ps = conn.prepareStatement(deleteAllParts)) {
-						ps.execute();
-					} catch (SQLException e) {
-						LOG.error("archiveAll parts failure",e);
-						throw new RuntimeException("archiveAll parts failure",e);
-					}
-					try(PreparedStatement ps = conn.prepareStatement(deleteAllCompleted)) {
-						ps.execute();
-					} catch (SQLException e) {
-						LOG.error("archiveAll completed failure",e);
-						throw new RuntimeException("archiveAll completed failure",e);
-					}
-				}
-
-				@Override
-				public void archiveExpiredParts(Connection conn) {
-					try(PreparedStatement ps = conn.prepareStatement(deleteExpiredParts)) {
-						ps.execute();
-					} catch (SQLException e) {
-						LOG.error("archiveExpiredParts failure",e);
-						throw new RuntimeException("archiveExpiredParts failure",e);
-					}
-				}};
-		}
-
-		/**
-		 * Make delete archiver.
-		 *
-		 * @param partTable the part table
-		 * @param completedTable the completed table
-		 * @return the archiver
-		 */
-		private Archiver<K> makeDeleteArchiver(String partTable, String completedTable) {
-			
-			final String deleteFromPartsById      = "DELETE FROM "+partTable + " WHERE ID IN(?)";
-			final String deleteFromPartsByCartKey = "DELETE FROM "+partTable + " WHERE CART_KEY IN(?)";
-			final String deleteFromCompleted      = "DELETE FROM "+completedTable + " WHERE CART_KEY IN(?)";
-			final String deleteExpiredParts       = "DELETE FROM "+partTable + " WHERE EXPIRATION_TIME > TIMESTAMP('19710101000000') AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
-
-			final String deleteAllParts           = "DELETE FROM "+partTable;
-			final String deleteAllCompleted       = "DELETE FROM "+completedTable;
-			
-			final String q;
-			if(Number.class.isAssignableFrom(keyClass)) {
-				q = "";
-			} else {
-				q = "'";
-			}
-			
-			return new Archiver<K>(){
-
-				@Override
-				public void archiveParts(Connection conn, Collection<Long> ids) {
-					if(ids.isEmpty()) {
-						return;
-					}
-					try(Statement ps = conn.createStatement()) {
-						StringBuilder sb = new StringBuilder();
-						ids.forEach(id->sb.append(id).append(","));
-						if(sb.lastIndexOf(",") > 0) {
-							sb.deleteCharAt(sb.lastIndexOf(","));
-						}
-						ps.execute(deleteFromPartsById.replace("?", sb.toString()));
-					} catch (SQLException e) {
-						LOG.error("archiveParts failure",e);
-						throw new RuntimeException("archiveParts failure",e);
-					}
-				}
-
-				@Override
-				public void archiveKeys(Connection conn, Collection<K> keys) {
-					if(keys.isEmpty()) {
-						return;
-					}
-					try(Statement ps = conn.createStatement()) {
-						StringBuilder sb = new StringBuilder();
-						keys.forEach(id->{
-							sb.append(q).append(id).append(q).append(",");
-							});
-						if(sb.lastIndexOf(",") > 0) {
-							sb.deleteCharAt(sb.lastIndexOf(","));
-						}
-						ps.execute(deleteFromPartsByCartKey.replace("?", sb.toString()));
-					} catch (SQLException e) {
-						LOG.error("archiveKeys failure",e);
-						throw new RuntimeException("archiveKeys failure",e);
-					}
-				}
-
-				@Override
-				public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
-					if(keys.isEmpty()) {
-						return;
-					}
-					try(Statement ps = conn.createStatement()) {
-						StringBuilder sb = new StringBuilder();
-						keys.forEach(id->{
-							sb.append(q).append(id).append(q).append(",");
-							});
-						if(sb.lastIndexOf(",") > 0) {
-							sb.deleteCharAt(sb.lastIndexOf(","));
-						}
-						ps.execute(deleteFromCompleted.replace("?", sb.toString()));
-					} catch (SQLException e) {
-						LOG.error("archiveCompleteKeys failure",e);
-						throw new RuntimeException("archiveCompleteKeys failure",e);
-					}
-				}
-
-				@Override
-				public void archiveAll(Connection conn) {
-					try(PreparedStatement ps = conn.prepareStatement(deleteAllParts)) {
-						ps.execute();
-					} catch (SQLException e) {
-						LOG.error("archiveAll parts failure",e);
-						throw new RuntimeException("archiveAll parts failure",e);
-					}
-					try(PreparedStatement ps = conn.prepareStatement(deleteAllCompleted)) {
-						ps.execute();
-					} catch (SQLException e) {
-						LOG.error("archiveAll completed failure",e);
-						throw new RuntimeException("archiveAll completed failure",e);
-					}
-				}
-
-				@Override
-				public void archiveExpiredParts(Connection conn) {
-					try(PreparedStatement ps = conn.prepareStatement(deleteExpiredParts)) {
-						ps.execute();
-					} catch (SQLException e) {
-						LOG.error("archiveExpiredParts failure",e);
-						throw new RuntimeException("archiveExpiredParts failure",e);
-					}
-				}};
-		}
-
 		/**
 		 * Builds the.
 		 *
@@ -1018,16 +726,16 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					//defined by user
 					break;
 				case DELETE:
-					archiver = makeDeleteArchiver(partTable,completedLogTable);
+					archiver = new DeleteArchiver<>(keyClass, partTable,completedLogTable);
 					break;
 				case SET_ARCHIVED:
-					archiver = makeArchivedArchiver(partTable,completedLogTable);
+					archiver = new SetArchivedArchiver<>(keyClass, partTable,completedLogTable);
 					break;
 				case MOVE_TO_SCHEMA_TABLE:
 					archiver = UNIMPLEMENTED_ARCHIVER;
 					break;
 				case MOVE_TO_FILE: 
-					archiver = UNIMPLEMENTED_ARCHIVER;
+					archiver = new FileArchiver<>(keyClass, partTable, completedLogTable);
 					break;
 				case NO_ACTION:
 					archiver = DO_NOTHING_ARCHIVER;
@@ -1232,7 +940,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		try {
 			return builder.build();
 		} catch (Exception e) {
-			throw new RuntimeException("Failed copying persistence object",e);
+			throw new PersistenceException("Failed copying persistence object",e);
 		}
 	}
 	
@@ -1276,7 +984,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		} catch (Exception e) {
 			e.printStackTrace();
 	    	LOG.error("SavePart Exception: {} {}",cart,e.getMessage());
-	    	throw new RuntimeException("Save Part failed for "+cart,e);
+	    	throw new PersistenceException("Save Part failed for "+cart,e);
 		}
 	}
 	
@@ -1287,13 +995,13 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			blob = conn.createBlob();
 	    	os = blob.setBinaryStream(1);
 		} catch (SQLException e) {
-			throw new RuntimeException("SQL Runntime Exception",e);
+			throw new PersistenceException("SQL Runntime Exception",e);
 		}
 		try {
 			os.write( bytes );
 			return blob;
 		} catch (IOException e) {
-			throw new RuntimeException("IO Runntime Exception",e);
+			throw new PersistenceException("IO Runntime Exception",e);
 		}
 	}
 
@@ -1301,9 +1009,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		try(InputStream in = blob.getBinaryStream(1, blob.length())) {
 			return IOUtils.toByteArray(in);
 		} catch (SQLException e) {
-			throw new RuntimeException("SQL Runntime Exception",e);
+			throw new PersistenceException("SQL Runntime Exception",e);
 		} catch (IOException e) {
-			throw new RuntimeException("IO Runntime Exception",e);
+			throw new PersistenceException("IO Runntime Exception",e);
 		}
 	}
 
@@ -1326,7 +1034,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		} catch (Exception e) {
 	    	LOG.error("SaveCompletedKey {} Exception: {}",key,e.getMessage());
 	    	e.printStackTrace();
-	    	throw new RuntimeException("SaveCompletedKey failed",e);
+	    	throw new PersistenceException("SaveCompletedKey failed",e);
 		}
 	}
 
@@ -1371,7 +1079,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			}
 		} catch (Exception e) {
 	    	LOG.error("getPart Exception: {}",id,e.getMessage());
-	    	throw new RuntimeException("getPart failed",e);
+	    	throw new PersistenceException("getPart failed",e);
 		}
 		return cart;
 	}
@@ -1391,7 +1099,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			}
 		} catch (Exception e) {
 	    	LOG.error("getAllPartIds Exception: {}",key,e.getMessage());
-	    	throw new RuntimeException("getAllPartIds failed",e);
+	    	throw new PersistenceException("getAllPartIds failed",e);
 		}
 		return res;
 	}
@@ -1437,7 +1145,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			}
 		} catch (Exception e) {
 	    	LOG.error("getAllUnfinishedPartIdsQuery exception: ",e.getMessage());
-	    	throw new RuntimeException("getAllUnfinishedPartIdsQuery failed",e);
+	    	throw new PersistenceException("getAllUnfinishedPartIdsQuery failed",e);
 		}
 		return carts;
 	}
@@ -1457,7 +1165,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			}
 		} catch (Exception e) {
 	    	LOG.error("getCompletedKeys Exception:",e.getMessage());
-	    	throw new RuntimeException("getCompletedKeys failed",e);
+	    	throw new PersistenceException("getCompletedKeys failed",e);
 		}
 		return res;
 	}
@@ -1520,7 +1228,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			}
 		} catch (Exception e) {
 	    	LOG.error("getAllStaticParts exception: ",e.getMessage());
-	    	throw new RuntimeException("getAllStaticParts failed",e);
+	    	throw new PersistenceException("getAllStaticParts failed",e);
 		}
 		return carts;
 	}
@@ -1574,7 +1282,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			}
 		} catch (Exception e) {
 	    	LOG.error("getNumberOfParts Exception:",e.getMessage());
-	    	throw new RuntimeException("getNumberOfParts failed",e);
+	    	throw new PersistenceException("getNumberOfParts failed",e);
 		}
 		return res;
 	}

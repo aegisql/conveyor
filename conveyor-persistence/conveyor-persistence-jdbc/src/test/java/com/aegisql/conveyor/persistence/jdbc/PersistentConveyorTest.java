@@ -23,6 +23,7 @@ import com.aegisql.conveyor.Acknowledge;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;

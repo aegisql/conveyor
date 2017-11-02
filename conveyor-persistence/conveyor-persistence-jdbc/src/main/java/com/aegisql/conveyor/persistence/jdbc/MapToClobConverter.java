@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.aegisql.conveyor.persistence.converters.ObjectToJsonStringConverter;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -41,7 +42,7 @@ public class MapToClobConverter implements ObjectConverter<Map<String,Object>, C
 			blob.setString(1, byteConverter.toPersistence(obj));
 			return blob;
 		} catch (SQLException e) {
-			throw new RuntimeException("SQL Runntime Exception for "+obj,e);
+			throw new PersistenceException("SQL Runntime Exception for "+obj,e);
 		}
 	}
 
@@ -53,7 +54,7 @@ public class MapToClobConverter implements ObjectConverter<Map<String,Object>, C
 		try {
 			return byteConverter.fromPersistence( blb.getSubString(1, (int) blb.length()) );
 		} catch (SQLException e) {
-			throw new RuntimeException("SQL Runntime Exception",e);
+			throw new PersistenceException("SQL Runntime Exception",e);
 		}
 	}
 

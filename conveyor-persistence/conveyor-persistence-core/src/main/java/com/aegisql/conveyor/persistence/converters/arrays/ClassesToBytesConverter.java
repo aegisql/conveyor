@@ -2,6 +2,8 @@ package com.aegisql.conveyor.persistence.converters.arrays;
 
 import java.util.Arrays;
 
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+
 public class ClassesToBytesConverter implements ObjectArrayToByteArrayConverter<Class>{
 
 	StringsToBytesConverter sc = new StringsToBytesConverter();
@@ -28,7 +30,7 @@ public class ClassesToBytesConverter implements ObjectArrayToByteArrayConverter<
 			try {
 				classes[i] = Class.forName(name);
 			} catch (ClassNotFoundException e) {
-				throw new RuntimeException(conversionHint()+" conversion error when converting '"+name+"'",e);
+				throw new PersistenceException(conversionHint()+" conversion error when converting '"+name+"'",e);
 			}
 		}
 		
