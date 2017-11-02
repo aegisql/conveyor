@@ -27,6 +27,7 @@ import com.aegisql.conveyor.persistence.converters.BigIntegerToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.BooleanToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ByteToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.CharToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.ClassToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.DateToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.DoubleToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.FloatToBytesConverter;
@@ -38,6 +39,7 @@ import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ShortToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.StringToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.UuidToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.arrays.ClassesToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntPrimToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntegersToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.StringsToBytesConverter;
@@ -191,6 +193,15 @@ public class ConvertersTest {
 	}
 
 	@Test
+	public void testClass() {
+		ClassToBytesConverter ic = new ClassToBytesConverter();
+		byte[] b = ic.toPersistence(Integer.class);
+		assertNotNull(b);
+		Class x = ic.fromPersistence(b);
+		assertEquals(Integer.class, x);
+	}
+
+	@Test
 	public void testSerializedString() {
 		SerializableToBytesConverter<String> ic = new SerializableToBytesConverter<>();
 		byte[] b = ic.toPersistence("test");
@@ -298,6 +309,24 @@ public class ConvertersTest {
 		assertEquals(ia[2], ia2[2]);
 
 	}
+
+	@Test
+	public void testClassArray() {
+		Class[] ia = new Class[]{String.class,Integer.class,Double.class};
+		System.out.println(ia.getClass().getCanonicalName());
+		
+		ClassesToBytesConverter bc = new ClassesToBytesConverter();
+		byte[] b = bc.toPersistence(ia);
+		assertNotNull(b);
+		Class[] ia2 = bc.fromPersistence(b);
+		assertNotNull(ia2);
+		assertEquals(3, ia2.length);
+		assertEquals(ia[0], ia2[0]);
+		assertEquals(ia[1], ia2[1]);
+		assertEquals(ia[2], ia2[2]);
+
+	}
+
 	
 	@Test
 	public void typeTest() {
