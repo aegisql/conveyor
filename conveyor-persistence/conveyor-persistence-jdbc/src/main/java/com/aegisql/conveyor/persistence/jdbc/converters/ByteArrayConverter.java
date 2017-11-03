@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.persistence.jdbc;
+package com.aegisql.conveyor.persistence.jdbc.converters;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

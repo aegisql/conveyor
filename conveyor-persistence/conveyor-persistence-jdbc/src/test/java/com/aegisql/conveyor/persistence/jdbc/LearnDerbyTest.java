@@ -19,6 +19,7 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.jdbc.converters.StringConverter;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 
 public class LearnDerbyTest {

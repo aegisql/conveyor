@@ -31,6 +31,7 @@ import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyorExpireable;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
 import com.aegisql.conveyor.persistence.core.harness.TrioPartExpireable;
+import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 
 public class PersistentConveyorTest {

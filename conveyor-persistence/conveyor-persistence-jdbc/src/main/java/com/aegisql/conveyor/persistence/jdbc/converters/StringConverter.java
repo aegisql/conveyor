@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.persistence.jdbc;
+package com.aegisql.conveyor.persistence.jdbc.converters;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 

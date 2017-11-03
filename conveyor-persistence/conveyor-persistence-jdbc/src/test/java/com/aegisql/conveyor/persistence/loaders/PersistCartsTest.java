@@ -25,7 +25,7 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceCart;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
-import com.aegisql.conveyor.persistence.jdbc.StringConverter;
+import com.aegisql.conveyor.persistence.jdbc.converters.StringConverter;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 import com.aegisql.conveyor.serial.SerializableFunction;
 import com.aegisql.conveyor.serial.SerializablePredicate;

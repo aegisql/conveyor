@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.persistence.jdbc;
+package com.aegisql.conveyor.persistence.jdbc.converters;
 
 import java.sql.Clob;
 import java.sql.Connection;
