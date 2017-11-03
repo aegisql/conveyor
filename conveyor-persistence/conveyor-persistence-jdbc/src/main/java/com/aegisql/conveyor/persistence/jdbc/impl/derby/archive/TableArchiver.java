@@ -6,6 +6,7 @@ import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.archive.Archiver;
 
 public class TableArchiver<K> implements Archiver<K> {
@@ -42,6 +43,12 @@ public class TableArchiver<K> implements Archiver<K> {
 
 	@Override
 	public void archiveAll(Connection conn) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setPersistence(Persistence<K> persistence) {
 		// TODO Auto-generated method stub
 		
 	}

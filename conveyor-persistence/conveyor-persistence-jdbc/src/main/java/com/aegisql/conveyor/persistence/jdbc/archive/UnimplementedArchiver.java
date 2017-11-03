@@ -3,6 +3,7 @@ package com.aegisql.conveyor.persistence.jdbc.archive;
 import java.sql.Connection;
 import java.util.Collection;
 
+import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 public class UnimplementedArchiver<K> implements Archiver<K> {
@@ -24,5 +25,8 @@ public class UnimplementedArchiver<K> implements Archiver<K> {
 
 	@Override
 	public void archiveAll(Connection conn) {throw new PersistenceException("Unimplemented archiver");}
+
+	@Override
+	public void setPersistence(Persistence<K> persistence) {}
 
 }

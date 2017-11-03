@@ -910,6 +910,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		this.mapConverter                 = new MapToClobConverter(conn);
 		this.info                         = info;
 		this.nonPersistentProperties      = nonPersistentProperties;
+		
+		this.archiver.setPersistence(this);
+		
 	}
 
 	/**

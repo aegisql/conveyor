@@ -3,6 +3,8 @@ package com.aegisql.conveyor.persistence.jdbc.archive;
 import java.sql.Connection;
 import java.util.Collection;
 
+import com.aegisql.conveyor.persistence.core.Persistence;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Interface Archiver.
@@ -48,6 +50,8 @@ public interface Archiver<K> {
 	 * @param conn the conn
 	 */
 	public void archiveAll(Connection conn);
+	
+	public void setPersistence(Persistence<K> persistence);
 
 }
 

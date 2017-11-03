@@ -9,6 +9,7 @@ import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.archive.Archiver;
 
@@ -125,4 +126,6 @@ public class DeleteArchiver<K> implements Archiver<K> {
 			throw new PersistenceException("archiveExpiredParts failure",e);
 		}
 	}
+	@Override
+	public void setPersistence(Persistence<K> persistence) {}
 }
