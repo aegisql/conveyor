@@ -20,6 +20,7 @@ import com.aegisql.conveyor.persistence.converters.arrays.BytesPrimToBytesConver
 import com.aegisql.conveyor.persistence.converters.arrays.BytesToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.CharPrimToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.CharactersToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.arrays.ClassesToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.DatesToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.DoublePrimToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.DoublesToBytesConverter;
@@ -106,6 +107,7 @@ public class ConverterAdviser <L> {
 		this.addConverter(String.class, new StringToBytesConverter());
 		this.addConverter(BigInteger.class, new BigIntegerToBytesConverter());
 		this.addConverter(BigDecimal.class, new BigDecimalToBytesConverter());
+		this.addConverter(Class.class, new ClassToBytesConverter());
 
 		this.addConverter(UUID[].class, new UuidsToBytesConverter());
 		this.addConverter(Short[].class, new ShortsToBytesConverter());
@@ -132,6 +134,7 @@ public class ConverterAdviser <L> {
 		this.addConverter(String[].class, new StringsToBytesConverter());
 		this.addConverter(BigInteger[].class, new BigIntegersToBytesConverter());
 		this.addConverter(BigDecimal[].class, new BigDecimalsToBytesConverter());
+		this.addConverter(Class[].class, new ClassesToBytesConverter());
 
 	}
 	

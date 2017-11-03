@@ -51,15 +51,15 @@ import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.MapToClobConverter;
 import com.aegisql.conveyor.persistence.jdbc.StringConverter;
+import com.aegisql.conveyor.persistence.jdbc.archive.ArchiveStrategy;
+import com.aegisql.conveyor.persistence.jdbc.archive.Archiver;
+import com.aegisql.conveyor.persistence.jdbc.archive.DoNothingArchiver;
+import com.aegisql.conveyor.persistence.jdbc.archive.UnimplementedArchiver;
 import com.aegisql.id_builder.IdSource;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.ArchiveStrategy;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.Archiver;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.DeleteArchiver;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.DoNothingArchiver;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.FileArchiver;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.SetArchivedArchiver;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.UnimplementedArchiver;
 // TODO: Auto-generated Javadoc
 /**
  * The Class DerbyPersistence.

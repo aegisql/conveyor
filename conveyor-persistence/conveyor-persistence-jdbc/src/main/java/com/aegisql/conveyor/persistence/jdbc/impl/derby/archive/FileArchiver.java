@@ -6,6 +6,8 @@ import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.persistence.jdbc.archive.Archiver;
+
 public class FileArchiver<K> implements Archiver<K> {
 	
 	private final static Logger LOG = LoggerFactory.getLogger(FileArchiver.class);

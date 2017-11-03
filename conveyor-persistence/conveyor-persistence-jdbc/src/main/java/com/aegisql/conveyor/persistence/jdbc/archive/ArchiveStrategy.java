@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.persistence.jdbc.impl.derby.archive;
+package com.aegisql.conveyor.persistence.jdbc.archive;
 
 /**
 	 * The Enum ArchiveStrategy.
