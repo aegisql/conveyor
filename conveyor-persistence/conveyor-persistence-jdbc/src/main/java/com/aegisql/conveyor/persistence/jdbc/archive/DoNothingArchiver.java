@@ -3,6 +3,7 @@ package com.aegisql.conveyor.persistence.jdbc.archive;
 import java.sql.Connection;
 import java.util.Collection;
 
+import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.core.Persistence;
 
 public class DoNothingArchiver<K> implements Archiver<K> {

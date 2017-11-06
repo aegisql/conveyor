@@ -13,11 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.archive.Archiver;
 import com.aegisql.conveyor.persistence.utils.CartOutputStream;
 
 public class FileArchiver<K> implements Archiver<K> {

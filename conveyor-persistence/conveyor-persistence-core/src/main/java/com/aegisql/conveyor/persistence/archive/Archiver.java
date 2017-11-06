@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.persistence.jdbc.archive;
+package com.aegisql.conveyor.persistence.archive;
 
 import java.sql.Connection;
 import java.util.Collection;
