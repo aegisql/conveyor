@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.persistence.jdbc.archive;
+package com.aegisql.conveyor.persistence.archive;
 
 /**
 	 * The Enum ArchiveStrategy.
