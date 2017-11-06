@@ -1,6 +1,6 @@
 package com.aegisql.conveyor.persistence.jdbc;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.io.FileUtils;
@@ -56,6 +55,12 @@ public class PerfTest {
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
+		try {
+			File blog = new File("./testParallelSortedFile.blog");
+			blog.delete();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	ThreadPool pool;
@@ -108,6 +113,21 @@ public class PerfTest {
 		}
 	}
 
+	Persistence<Integer> getPersitenceFile(String table) {
+		try {
+			Thread.sleep(1000);
+
+			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
+					.completedLogTable(table + "Completed").labelConverter(TrioPart.class)
+					.whenArchiveRecords().moveToFile("./", 1000)
+					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	
 	List<Integer> getIdList() {
 		List<Integer> t1 = new ArrayList<>();
 		for (int i = 1; i <= testSize; i++) {
@@ -398,5 +418,34 @@ public class PerfTest {
 		assertEquals(testSize, tc.results.size());
 		
 	}
+	
+	@Test
+	public void testParallelSortedToFile() throws InterruptedException {
+		TrioConveyor tc = new TrioConveyor();
+
+		Persistence<Integer> p = getPersitenceFile("testParallelSortedFile");
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+		pc.setName("testParallelSortedFile");
+
+		List<Integer> t1 = getIdList();
+		List<Integer> t2 = getIdList();
+		List<Integer> t3 = getIdList();
+		System.out.println("testParallelSortedFile " + testSize);
+
+		long start = System.currentTimeMillis();
+		load(pc, t1, t2, t3);
+		long end = System.currentTimeMillis();
+		System.out.println("testParallelSortedFile load complete in " + (end - start) + " msec.");
+
+		waitUntilArchived(p.copy());
+
+		long toComplete = System.currentTimeMillis();
+
+		System.out.println("testParallelSortedFile data loaded and archived in  " + (toComplete - start) + " msec");
+		assertEquals(testSize, tc.results.size());
+		assertEquals(testSize, tc.counter.get());
+
+	}
+
 
 }

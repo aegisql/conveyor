@@ -144,13 +144,13 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		/**
 		 * Move to file.
 		 *
-		 * @param archiveFileTemplate the archive file template
+		 * @param archivePath the archive file template
 		 * @param maxFileSize the max file size
 		 * @return the derby persistence builder
 		 */
-		public DerbyPersistenceBuilder<K> moveToFile(String archiveFileTemplate,long maxFileSize) {
+		public DerbyPersistenceBuilder<K> moveToFile(String archivePath,long maxFileSize) {
 			dpb.archiveStrategy = ArchiveStrategy.MOVE_TO_FILE;
-			dpb.archiveFileTemplate = archiveFileTemplate;
+			dpb.archivePath = archivePath;
 			dpb.maxFileSize = maxFileSize;
 			return dpb;
 		}
@@ -171,7 +171,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		public long maxFileSize;
 		
 		/** The archive file template. */
-		public String archiveFileTemplate;
+		public String archivePath;
 		
 		/** The archive table. */
 		public String archiveTable;
@@ -735,7 +735,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					archiver = UNIMPLEMENTED_ARCHIVER;
 					break;
 				case MOVE_TO_FILE: 
-					archiver = new FileArchiver<>(keyClass, partTable, completedLogTable);
+					archiver = new FileArchiver<>(keyClass, partTable, completedLogTable, archivePath, converterAdviser);
 					break;
 				case NO_ACTION:
 					archiver = DO_NOTHING_ARCHIVER;

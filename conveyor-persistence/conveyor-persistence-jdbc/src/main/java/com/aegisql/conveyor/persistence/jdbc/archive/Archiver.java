@@ -51,6 +51,11 @@ public interface Archiver<K> {
 	 */
 	public void archiveAll(Connection conn);
 	
+	/**
+	 * Sets the persistence.
+	 *
+	 * @param persistence the new persistence
+	 */
 	public void setPersistence(Persistence<K> persistence);
 
 }
