@@ -1104,6 +1104,17 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	}
 
 	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#getParts(java.util.Collection)
+	 */
+	@Override
+	public <L> Collection<Cart<K, ?, L>> getParts(Collection<Long> ids) {
+		//TODO finish
+		LOG.debug("getAllParts for: {}",ids);
+		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
+		return carts;
+	}
+	
+	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.persistence.core.Persistence#getAllParts()
 	 */
 	@Override
@@ -1295,6 +1306,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	public boolean isPersistentProperty(String property) {
 		return ! nonPersistentProperties.contains(property);
 	}
+
 	
 	
 }

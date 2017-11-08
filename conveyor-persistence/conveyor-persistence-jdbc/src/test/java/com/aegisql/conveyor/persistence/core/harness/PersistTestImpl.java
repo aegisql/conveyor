@@ -1,6 +1,8 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -184,6 +186,13 @@ public class PersistTestImpl implements Persistence<Integer> {
 	public boolean isPersistentProperty(String property) {
 		return true;
 	}
-
+	@Override
+	public <L> Collection<Cart<Integer, ?, L>> getParts(Collection<Long> ids) {
+		List<Cart<Integer, ?, L>> cartsList = new ArrayList<>();
+		ids.forEach(id->{
+			cartsList.add((Cart<Integer, ?, L>) carts.get(id));
+		});
+		return cartsList;
+	}
 
 }

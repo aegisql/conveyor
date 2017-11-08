@@ -24,6 +24,7 @@ import org.junit.Test;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.ParallelConveyor;
+import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
@@ -119,7 +120,7 @@ public class PerfTest {
 
 			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
 					.completedLogTable(table + "Completed").labelConverter(TrioPart.class)
-					.whenArchiveRecords().moveToFile("./", 1000)
+					.whenArchiveRecords().moveToFile(BinaryLogConfiguration.builder().path("./").partTableName(table).build())
 					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
 		} catch (Exception e) {
 			e.printStackTrace();

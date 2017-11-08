@@ -209,5 +209,21 @@ public class PersistTestImpl implements Persistence<Integer> {
 		return true;
 	}
 
-	
+	@Override
+	public <L> Collection<Cart<Integer, ?, L>> getParts(Collection<Long> ids) {
+		List<Cart<Integer, ?, L>> cartsList = new ArrayList<>();
+		ids.forEach(id->{
+			byte[] bytes = carts.get(id);
+			ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+			ObjectInputStream ois;
+			try {
+				ois = new ObjectInputStream(bis);
+				cartsList.add( (Cart<Integer, ?, L>) ois.readObject() );
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		});
+		return cartsList;
+	}
+
 }

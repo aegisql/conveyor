@@ -55,6 +55,16 @@ public interface Persistence <K> extends Closeable{
 	 */
 	//GETTERS
 	public <L> Cart<K,?,L> getPart(long id);
+
+	/**
+	 * Gets the parts.
+	 *
+	 * @param <L> the generic type
+	 * @param id the id
+	 * @return the parts
+	 */
+	public <L> Collection<Cart<K,?,L>> getParts(Collection<Long> id);
+	
 	
 	/**
 	 * Gets the all part ids.
