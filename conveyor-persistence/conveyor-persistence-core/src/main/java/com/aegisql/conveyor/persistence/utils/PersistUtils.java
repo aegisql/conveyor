@@ -7,6 +7,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -14,7 +17,7 @@ import org.apache.commons.io.FileUtils;
 
 import com.aegisql.conveyor.cart.Cart;
 
-public class PersistFiles {
+public class PersistUtils {
 
 	private static String tempDir;
 
@@ -93,4 +96,24 @@ public class PersistFiles {
 		}
 	}
 
+	public static Collection<Collection<Long>> balanceIdList(Collection<Long> col, int partSize) {
+		int buckets = col.size() / partSize;
+		if( col.size() % partSize > 0) {
+			buckets++;
+		}
+		Collection<Collection<Long>> res = new ArrayList<Collection<Long>>(buckets);
+		Iterator<Long> it = col.iterator();
+		for(int i = 0; i < buckets; i++) {
+			Collection<Long> bucket = new ArrayList<>(partSize);
+			for(int j = 0; j < partSize; j++) {
+				if(! it.hasNext()) {
+					break;
+				}
+				bucket.add(it.next());
+			}
+			res.add(bucket);
+		}
+		return res;
+	}
+	
 }

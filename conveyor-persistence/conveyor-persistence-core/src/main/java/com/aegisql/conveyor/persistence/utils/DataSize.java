@@ -50,7 +50,7 @@ public enum DataSize {
 				}
 			}
 			
-			this.ds  = DataSize.valueOf(dsTypeBulder.toString());
+			this.ds  = dsTypeBulder.length() == 0 ? B: DataSize.valueOf(dsTypeBulder.toString());
 			this.val = valBulder.toString();
 		}
 

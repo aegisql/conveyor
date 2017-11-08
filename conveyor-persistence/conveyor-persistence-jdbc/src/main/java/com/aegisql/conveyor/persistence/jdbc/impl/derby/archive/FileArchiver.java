@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.archive.Archiver;
+import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.Persistence;
@@ -29,20 +30,21 @@ public class FileArchiver<K> implements Archiver<K> {
 	private final String completedTable;
 	private final DeleteArchiver<K> deleteArchiver;
 	private final String archivePath;
-
+	private final BinaryLogConfiguration bLogConf;
 	private final String fileNameTmpl;
 
 	private Persistence<K> persistence;
 
 	private CartToBytesConverter<K, ?, ?> converter;
 
-	public FileArchiver(Class<K> keyClass, String partTable, String completedTable, String path,
+	public FileArchiver(Class<K> keyClass, String partTable, String completedTable, BinaryLogConfiguration bLogConf,
 			ConverterAdviser<?> adviser) {
 		this.partTable = partTable;
 		this.completedTable = completedTable;
 		this.keyClass = keyClass;
+		this.bLogConf = bLogConf;
 		this.deleteArchiver = new DeleteArchiver<>(keyClass, partTable, completedTable);
-		this.archivePath = path.endsWith(File.separator) ? path : path + File.separator;
+		this.archivePath = bLogConf.getPath().endsWith(File.separator) ? bLogConf.getPath() : bLogConf.getPath() + File.separator;
 
 		this.fileNameTmpl = archivePath + partTable + ".blog";
 		this.converter = new CartToBytesConverter<>(adviser);

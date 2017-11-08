@@ -46,6 +46,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
 import com.aegisql.conveyor.persistence.archive.Archiver;
+import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.archive.DoNothingArchiver;
 import com.aegisql.conveyor.persistence.archive.UnimplementedArchiver;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
@@ -148,10 +149,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		 * @param maxFileSize the max file size
 		 * @return the derby persistence builder
 		 */
-		public DerbyPersistenceBuilder<K> moveToFile(String archivePath,long maxFileSize) {
+		public DerbyPersistenceBuilder<K> moveToFile(BinaryLogConfiguration bLogConf) {
 			dpb.archiveStrategy = ArchiveStrategy.MOVE_TO_FILE;
-			dpb.archivePath = archivePath;
-			dpb.maxFileSize = maxFileSize;
+			dpb.bLogConf = bLogConf;
 			return dpb;
 		}
 		
@@ -167,12 +167,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	public static class DerbyPersistenceBuilder<K> {
 		
-		/** The max file size. */
-		public long maxFileSize;
-		
-		/** The archive file template. */
-		public String archivePath;
-		
+		public BinaryLogConfiguration bLogConf;
+	
 		/** The archive table. */
 		public String archiveTable;
 		
@@ -735,7 +731,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					archiver = UNIMPLEMENTED_ARCHIVER;
 					break;
 				case MOVE_TO_FILE: 
-					archiver = new FileArchiver<>(keyClass, partTable, completedLogTable, archivePath, converterAdviser);
+					archiver = new FileArchiver<>(keyClass, partTable, completedLogTable, bLogConf, converterAdviser);
 					break;
 				case NO_ACTION:
 					archiver = DO_NOTHING_ARCHIVER;

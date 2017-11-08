@@ -38,6 +38,7 @@ public class DataSizeTest {
 		assertEquals(1024,DataSize.KB.toBytes(1).longValue());
 		assertEquals(1024,DataSize.toBytes("1KB").longValue());
 		assertEquals(10240,DataSize.toBytes("10 kb").longValue());
+		assertEquals(10,DataSize.toKBytes("10240").longValue());
 	}
 
 	
