@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
+import java.util.stream.Collectors;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -687,7 +688,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+",LOAD_TYPE"
 					+",CART_PROPERTIES"
 					+",VALUE_TYPE"
-					+" FROM " + partTable + " WHERE ID = ? AND ARCHIVED = 0"
+					+" FROM " + partTable + " WHERE ID IN ( ? ) AND ARCHIVED = 0"
 					;
 			String getAllPartIdsQuery = "SELECT"
 					+" ID"
@@ -1042,45 +1043,16 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public <L> Cart<K, ?, L> getPart(long id) {
-		Cart<K, ?, L> cart = null;
 		LOG.debug("getPart: {} {}",id,getPartQuery);
-		try(PreparedStatement st = conn.prepareStatement(getPartQuery) ) {
-			st.setLong(1, id);
-			ResultSet rs = st.executeQuery();
-			if(rs.next()) {
-				K key = (K)rs.getObject(1);
-				String labelString = rs.getString(3);
-				L label = null;
-				if(labelString != null) {
-					label = (L)labelConverter.fromPersistence(labelString.trim());
-				}
-				String hint = rs.getString(8);
-				ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
-				Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
-
-				LOG.debug("getPart LABEL: {}",label);
-				long creationTime = rs.getTimestamp(4).getTime();
-				long expirationTime = rs.getTimestamp(5).getTime();
-				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-				Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
-//				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-				
-				if(loadType == LoadType.BUILDER) {
-					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
-				} else if(loadType == LoadType.RESULT_CONSUMER) {
-					cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
-				} else if(loadType == LoadType.MULTI_KEY_PART) {
-					Load load = (Load)val;
-					cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
-				} else {
-					cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
-				}
-			}
-		} catch (Exception e) {
-	    	LOG.error("getPart Exception: {}",id,e.getMessage());
-	    	throw new PersistenceException("getPart failed",e);
+		Collection<Cart<K, ?, L>> res = getParts(Arrays.asList(new Long(id)));
+		switch(res.size()) {
+		case 1:
+			return res.iterator().next();
+		case 0:
+			return null;
+		default:
+			throw new PersistenceException("Unexpected number of results for a single ID="+id+" "+res);
 		}
-		return cart;
 	}
 
 	/* (non-Javadoc)
@@ -1111,6 +1083,48 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		//TODO finish
 		LOG.debug("getAllParts for: {}",ids);
 		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
+		
+		Cart<K, ?, L> cart = null;
+		LOG.debug("getPart: {} {}",ids,getPartQuery);
+		try(PreparedStatement st = conn.prepareStatement(getPartQuery) ) {
+			st.setString(1, ids.stream().map(n->n.toString()).collect(Collectors.joining( "," )));
+			ResultSet rs = st.executeQuery();
+			while(rs.next()) {
+				K key = (K)rs.getObject(1);
+				String labelString = rs.getString(3);
+				L label = null;
+				if(labelString != null) {
+					label = (L)labelConverter.fromPersistence(labelString.trim());
+				}
+				String hint = rs.getString(8);
+				ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
+				Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
+
+				LOG.debug("getPart LABEL: {}",label);
+				long creationTime = rs.getTimestamp(4).getTime();
+				long expirationTime = rs.getTimestamp(5).getTime();
+				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
+				Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
+//				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+				
+				if(loadType == LoadType.BUILDER) {
+					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
+				} else if(loadType == LoadType.RESULT_CONSUMER) {
+					cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
+				} else if(loadType == LoadType.MULTI_KEY_PART) {
+					Load load = (Load)val;
+					cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
+				} else {
+					cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+				}
+				carts.add(cart);
+			}
+		} catch (Exception e) {
+	    	LOG.error("getPart Exception: {}",ids,e.getMessage());
+	    	throw new PersistenceException("getPart failed",e);
+		}
+
+		
 		return carts;
 	}
 	
