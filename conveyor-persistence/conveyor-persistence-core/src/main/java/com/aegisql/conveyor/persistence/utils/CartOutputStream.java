@@ -18,11 +18,12 @@ public class CartOutputStream <K,L> extends FilterOutputStream {
 		this.converter = converter;
 	}
 	
-	public void writeCart(Cart<K,?,L> cart) throws IOException {
+	public long writeCart(Cart<K,?,L> cart) throws IOException {
 		byte[] bytes = converter.toPersistence((Cart)cart);
 		write(bytes);
 		flush();
 		totalSize += bytes.length;
+		return bytes.length;
 	}
 	
 	public long getTotalWrittenBytes() {

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -57,8 +58,10 @@ public class PerfTest {
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		try {
-			File blog = new File("./testParallelSortedFile.blog");
-			blog.delete();
+			File dir = new File("./");
+			
+			Arrays.stream(dir.listFiles()).map(f->f.getName()).filter(f->f.endsWith(".blog")).forEach(f->new File(f).delete());
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -120,7 +123,7 @@ public class PerfTest {
 
 			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
 					.completedLogTable(table + "Completed").labelConverter(TrioPart.class)
-					.whenArchiveRecords().moveToFile(BinaryLogConfiguration.builder().path("./").partTableName(table).bucketSize(500).build())
+					.whenArchiveRecords().moveToFile(BinaryLogConfiguration.builder().path("./").partTableName(table).bucketSize(500).maxFileSize("1MB").build())
 					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
 		} catch (Exception e) {
 			e.printStackTrace();

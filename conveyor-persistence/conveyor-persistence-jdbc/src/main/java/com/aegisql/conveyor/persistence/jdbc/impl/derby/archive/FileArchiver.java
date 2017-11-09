@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.derby.tools.sysinfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,13 +34,14 @@ public class FileArchiver<K> implements Archiver<K> {
 	private final DeleteArchiver<K> deleteArchiver;
 	private final String archivePath;
 	private final BinaryLogConfiguration bLogConf;
-	private final String fileNameTmpl;
 
 	private Persistence<K> persistence;
 
 	private CartToBytesConverter<K, ?, ?> converter;
 
 	private final int saveBucketSize;
+	
+	private long readBytes;
 
 	public FileArchiver(Class<K> keyClass, String partTable, String completedTable, BinaryLogConfiguration bLogConf,
 			ConverterAdviser<?> adviser) {
@@ -49,14 +52,15 @@ public class FileArchiver<K> implements Archiver<K> {
 		this.deleteArchiver = new DeleteArchiver<>(keyClass, partTable, completedTable);
 		this.archivePath = bLogConf.getPath();
 		this.saveBucketSize = bLogConf.getBucketSize();
-		this.fileNameTmpl = archivePath + partTable + ".blog";
 		this.converter = new CartToBytesConverter<>(adviser);
 
 	}
 
 	private CartOutputStream<K, ?> getCartOutputStream() {
 		try {
-			FileOutputStream fos = new FileOutputStream(fileNameTmpl, true);
+			File f = new File(bLogConf.getFilePath());
+			readBytes = f.length();
+			FileOutputStream fos = new FileOutputStream(f, true);
 			return new CartOutputStream<>(converter, fos);
 		} catch (FileNotFoundException e) {
 			throw new PersistenceException("Error opening file " + archivePath, e);
@@ -75,7 +79,14 @@ public class FileArchiver<K> implements Archiver<K> {
 			for(Collection<Long> bucket: balanced) {
 				Collection<Cart<K, ?, Object>> carts = persistence.getParts(bucket);
 				for (Cart cart: carts) {
-					cos.writeCart(cart);
+					readBytes += cos.writeCart(cart);
+					if(readBytes > bLogConf.getMaxSize()) {
+						cos.close();
+						String originalName = bLogConf.getFilePath();
+						String renameName = bLogConf.getStampedFilePath();
+						FileUtils.moveFile(new File(originalName), new File(renameName));
+						cos = getCartOutputStream();
+					}
 				}
 			}
 			cos.close();
