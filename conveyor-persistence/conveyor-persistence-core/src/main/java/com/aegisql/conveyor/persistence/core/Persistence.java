@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.persistence.core;
 
 import java.io.Closeable;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -46,15 +47,17 @@ public interface Persistence <K> extends Closeable{
 	 */
 	public void saveCompletedBuildKey(K key);
 	
-	/**
-	 * Gets the part.
-	 *
-	 * @param <L> the generic type
-	 * @param id the id
-	 * @return the part
-	 */
-	//GETTERS
-	public <L> Cart<K,?,L> getPart(long id);
+	default public <L> Cart<K, ?, L> getPart(long id) {
+		Collection<Cart<K, ?, L>> res = getParts(Arrays.asList(new Long(id)));
+		switch(res.size()) {
+		case 1:
+			return res.iterator().next();
+		case 0:
+			return null;
+		default:
+			throw new PersistenceException("Unexpected number of results for a single ID="+id+" "+res);
+		}
+	}
 
 	/**
 	 * Gets the parts.

@@ -1039,23 +1039,6 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	}
 
 	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.Persistence#getPart(long)
-	 */
-	@Override
-	public <L> Cart<K, ?, L> getPart(long id) {
-		LOG.debug("getPart: {} {}",id,getPartQuery);
-		Collection<Cart<K, ?, L>> res = getParts(Arrays.asList(new Long(id)));
-		switch(res.size()) {
-		case 1:
-			return res.iterator().next();
-		case 0:
-			return null;
-		default:
-			throw new PersistenceException("Unexpected number of results for a single ID="+id+" "+res);
-		}
-	}
-
-	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.persistence.core.Persistence#getAllPartIds(java.lang.Object)
 	 */
 	@Override
@@ -1081,16 +1064,19 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getParts(Collection<Long> ids) {
 		//TODO finish
+
 		LOG.debug("getAllParts for: {}",ids);
 		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
 		
 		Cart<K, ?, L> cart = null;
+		String idList = ids.stream().map(n->n.toString()).collect(Collectors.joining( "," ));
+		String query = getPartQuery.replace("?", idList);
 		LOG.debug("getPart: {} {}",ids,getPartQuery);
-		try(PreparedStatement st = conn.prepareStatement(getPartQuery) ) {
-			st.setString(1, ids.stream().map(n->n.toString()).collect(Collectors.joining( "," )));
+		try(PreparedStatement st = conn.prepareStatement(query) ) {
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
 				K key = (K)rs.getObject(1);
+
 				String labelString = rs.getString(3);
 				L label = null;
 				if(labelString != null) {
@@ -1100,7 +1086,6 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
 				Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
 
-				LOG.debug("getPart LABEL: {}",label);
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
@@ -1117,6 +1102,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				} else {
 					cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
 				}
+				LOG.debug("Read cart: {}",cart);
 				carts.add(cart);
 			}
 		} catch (Exception e) {

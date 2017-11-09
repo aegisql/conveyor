@@ -11,12 +11,14 @@ public class BinaryLogConfiguration {
 		private String file = "part";
 		private String path = "."+File.separator;
 		private long maxSize = 0;
+		private int bucketSize = 100;
 		
 		public BinaryLogConfiguration build() {
 			return new BinaryLogConfiguration(
 					 path
 					,file
 					,maxSize
+					,bucketSize
 					);
 		}
 		
@@ -45,6 +47,10 @@ public class BinaryLogConfiguration {
 			this.file = part;
 			return this;
 		}
+		public BinaryLogConfigurationBuilder bucketSize(int size) {
+			this.bucketSize = size;
+			return this;
+		}
 
 		
 	}
@@ -52,15 +58,18 @@ public class BinaryLogConfiguration {
 	private final String path;
 	private final long maxSize;
 	private final String file;
+	private final int bucketSize;
 	
 	private BinaryLogConfiguration(
 			 String path
 			,String file
 			,long maxSize
+			,int bucketSize
 			) {
-		this.path = path;
-		this.file = file;
-		this.maxSize = maxSize;
+		this.path       = path;
+		this.file       = file;
+		this.maxSize    = maxSize;
+		this.bucketSize = bucketSize;
 	}
 	
 	public static BinaryLogConfigurationBuilder builder() {
@@ -82,6 +91,10 @@ public class BinaryLogConfiguration {
 		Timestamp ts = new Timestamp(System.currentTimeMillis());
 		String datetime = ts.toString().replace(" ", "T");
 		return path+file+"."+datetime+".blog";
+	}
+
+	public int getBucketSize() {
+		return bucketSize;
 	}
 
 	

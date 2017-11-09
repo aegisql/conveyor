@@ -120,7 +120,7 @@ public class PerfTest {
 
 			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
 					.completedLogTable(table + "Completed").labelConverter(TrioPart.class)
-					.whenArchiveRecords().moveToFile(BinaryLogConfiguration.builder().path("./").partTableName(table).build())
+					.whenArchiveRecords().moveToFile(BinaryLogConfiguration.builder().path("./").partTableName(table).bucketSize(500).build())
 					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -203,7 +203,9 @@ public class PerfTest {
 	}
 
 	void waitUntilArchived(Persistence<Integer> p) {
-		while (p.getNumberOfParts() > 0) {
+		long parts;
+		while ((parts = p.getNumberOfParts()) > 0) {
+			System.out.println(parts);
 			sleep(sleepNumber,1000.0);
 		}
 	}

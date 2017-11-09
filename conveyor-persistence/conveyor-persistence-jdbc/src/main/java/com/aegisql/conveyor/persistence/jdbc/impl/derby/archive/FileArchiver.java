@@ -20,6 +20,7 @@ import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.utils.CartOutputStream;
+import com.aegisql.conveyor.persistence.utils.PersistUtils;
 
 public class FileArchiver<K> implements Archiver<K> {
 
@@ -37,6 +38,8 @@ public class FileArchiver<K> implements Archiver<K> {
 
 	private CartToBytesConverter<K, ?, ?> converter;
 
+	private final int saveBucketSize;
+
 	public FileArchiver(Class<K> keyClass, String partTable, String completedTable, BinaryLogConfiguration bLogConf,
 			ConverterAdviser<?> adviser) {
 		this.partTable = partTable;
@@ -44,8 +47,8 @@ public class FileArchiver<K> implements Archiver<K> {
 		this.keyClass = keyClass;
 		this.bLogConf = bLogConf;
 		this.deleteArchiver = new DeleteArchiver<>(keyClass, partTable, completedTable);
-		this.archivePath = bLogConf.getPath().endsWith(File.separator) ? bLogConf.getPath() : bLogConf.getPath() + File.separator;
-
+		this.archivePath = bLogConf.getPath();
+		this.saveBucketSize = bLogConf.getBucketSize();
 		this.fileNameTmpl = archivePath + partTable + ".blog";
 		this.converter = new CartToBytesConverter<>(adviser);
 
@@ -68,13 +71,17 @@ public class FileArchiver<K> implements Archiver<K> {
 
 		try {
 			CartOutputStream<K, ?> cos = getCartOutputStream();
-
-			for (long id : ids) {
-				Cart cart = persistence.getPart(id);
-				cos.writeCart(cart);
+			Collection<Collection<Long>> balanced = PersistUtils.balanceIdList(ids, saveBucketSize);
+			for(Collection<Long> bucket: balanced) {
+				Collection<Cart<K, ?, Object>> carts = persistence.getParts(bucket);
+				for (Cart cart: carts) {
+					cos.writeCart(cart);
+				}
 			}
 			cos.close();
+
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new PersistenceException("Error saving carts", e);
 		}
 		LOG.debug("Archived parts successfully. About to delete data from {}", partTable);

@@ -78,11 +78,6 @@ public class PersistTestImpl implements Persistence<Integer> {
 	}
 
 	@Override
-	public <L> Cart<Integer, ?, L> getPart(long id) {
-		return (Cart<Integer, ?, L>) carts.get(id);
-	}
-
-	@Override
 	public Collection<Long> getAllPartIds(Integer key) {
 		ArrayList<Long> newList = new ArrayList<>();
 		
