@@ -123,7 +123,13 @@ public class PerfTest {
 
 			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
 					.completedLogTable(table + "Completed").labelConverter(TrioPart.class)
-					.whenArchiveRecords().moveToFile(BinaryLogConfiguration.builder().path("./").partTableName(table).bucketSize(500).maxFileSize("1MB").build())
+					.whenArchiveRecords().moveToFile(BinaryLogConfiguration.builder()
+							.path("./")
+							.partTableName(table)
+							.bucketSize(500)
+							.maxFileSize("1MB")
+							.zipFile(false)
+							.build())
 					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
 		} catch (Exception e) {
 			e.printStackTrace();

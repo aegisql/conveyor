@@ -2,16 +2,22 @@ package com.aegisql.conveyor.persistence.archive;
 
 import java.io.File;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import com.aegisql.conveyor.persistence.utils.DataSize;
 
 public class BinaryLogConfiguration {
 	
+	private final static String dateFormat = "yyyy-MM-dd'T'HH_mm_ss.SSS";
 	public static class BinaryLogConfigurationBuilder {
+		
+		
 		private String file = "part";
 		private String path = "."+File.separator;
 		private long maxSize = 0;
 		private int bucketSize = 100;
+		private boolean zipFile = false;
 		
 		public BinaryLogConfiguration build() {
 			return new BinaryLogConfiguration(
@@ -19,6 +25,7 @@ public class BinaryLogConfiguration {
 					,file
 					,maxSize
 					,bucketSize
+					,zipFile
 					);
 		}
 		
@@ -52,6 +59,11 @@ public class BinaryLogConfiguration {
 			return this;
 		}
 
+		public BinaryLogConfigurationBuilder zipFile(boolean zip) {
+			this.zipFile = zip;
+			return this;
+		}
+
 		
 	}
 	
@@ -59,17 +71,20 @@ public class BinaryLogConfiguration {
 	private final long maxSize;
 	private final String file;
 	private final int bucketSize;
+	private final boolean zipFile;
 	
 	private BinaryLogConfiguration(
 			 String path
 			,String file
 			,long maxSize
 			,int bucketSize
+			,boolean zipFile
 			) {
 		this.path       = path;
 		this.file       = file;
 		this.maxSize    = maxSize;
 		this.bucketSize = bucketSize;
+		this.zipFile    = zipFile;
 	}
 	
 	public static BinaryLogConfigurationBuilder builder() {
@@ -88,13 +103,18 @@ public class BinaryLogConfiguration {
 	}
 
 	public String getStampedFilePath() {
-		Timestamp ts = new Timestamp(System.currentTimeMillis());
-		String datetime = ts.toString().replace(" ", "T");
+		Date date = new Date();
+		SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+		String datetime = format.format(date);
 		return path+file+"."+datetime+".blog";
 	}
 
 	public int getBucketSize() {
 		return bucketSize;
+	}
+
+	public boolean isZipFile() {
+		return zipFile;
 	}
 
 	

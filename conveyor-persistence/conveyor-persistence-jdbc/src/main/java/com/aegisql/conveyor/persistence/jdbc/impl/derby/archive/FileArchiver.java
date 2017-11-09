@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.derby.tools.sysinfo;
@@ -82,9 +84,27 @@ public class FileArchiver<K> implements Archiver<K> {
 					readBytes += cos.writeCart(cart);
 					if(readBytes > bLogConf.getMaxSize()) {
 						cos.close();
+						
 						String originalName = bLogConf.getFilePath();
 						String renameName = bLogConf.getStampedFilePath();
-						FileUtils.moveFile(new File(originalName), new File(renameName));
+						if(bLogConf.isZipFile()) {
+							String zipName = renameName + ".zip";
+							File of = new File(originalName);
+							FileOutputStream fileOS = new FileOutputStream(zipName);
+							try (ZipOutputStream zipOS = new ZipOutputStream(fileOS)) {
+								byte[] buf = new byte[1024];
+								int len;
+								try (FileInputStream in = new FileInputStream(of)) {
+									zipOS.putNextEntry(new ZipEntry(renameName));
+									while ((len = in.read(buf)) > 0) {
+										zipOS.write(buf, 0, len);
+									}
+								}
+								of.delete();
+							}
+						} else {
+							FileUtils.moveFile(new File(originalName), new File(renameName));
+						}
 						cos = getCartOutputStream();
 					}
 				}
