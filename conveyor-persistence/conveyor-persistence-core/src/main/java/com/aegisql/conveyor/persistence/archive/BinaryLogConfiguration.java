@@ -1,7 +1,6 @@
 package com.aegisql.conveyor.persistence.archive;
 
 import java.io.File;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -13,10 +12,10 @@ public class BinaryLogConfiguration {
 	public static class BinaryLogConfigurationBuilder {
 		
 		
-		private String file = "part";
-		private String path = "."+File.separator;
-		private long maxSize = 0;
-		private int bucketSize = 100;
+		private String file     = "part";
+		private String path     = "."+File.separator;
+		private long maxSize    = Long.MAX_VALUE;
+		private int bucketSize  = 100;
 		private boolean zipFile = false;
 		
 		public BinaryLogConfiguration build() {
