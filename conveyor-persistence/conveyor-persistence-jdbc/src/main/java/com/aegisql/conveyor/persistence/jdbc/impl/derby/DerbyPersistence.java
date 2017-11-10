@@ -690,6 +690,19 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					+",VALUE_TYPE"
 					+" FROM " + partTable + " WHERE ID IN ( ? ) AND ARCHIVED = 0"
 					;
+
+			String getExpiredPartQuery = "SELECT"
+					+" CART_KEY"
+					+",CART_VALUE"
+					+",CART_LABEL"
+					+",CREATION_TIME"
+					+",EXPIRATION_TIME"
+					+",LOAD_TYPE"
+					+",CART_PROPERTIES"
+					+",VALUE_TYPE"
+					+" FROM " + partTable + " WHERE EXPIRATION_TIME > TIMESTAMP('19710101000000') AND EXPIRATION_TIME < CURRENT_TIMESTAMP"
+					;
+
 			String getAllPartIdsQuery = "SELECT"
 					+" ID"
 					+" FROM " + partTable + " WHERE CART_KEY = ? AND ARCHIVED = 0 ORDER BY ID ASC"
@@ -769,6 +782,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,saveCartQuery
 					,saveCompletedBuildKeyQuery
 					,getPartQuery
+					,getExpiredPartQuery
 					,getAllPartIdsQuery
 					,getAllUnfinishedPartIdsQuery
 					,getAllCompletedKeysQuery
@@ -814,6 +828,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	
 	/** The get part query. */
 	private final String getPartQuery;
+	
+	private final String getExpiredPartQuery;
 	
 	/** The get all part ids query. */
 	private final String getAllPartIdsQuery;
@@ -873,6 +889,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,String saveCartQuery
 			,String saveCompletedBuildKeyQuery
 			,String getPartQuery
+			,String getExpiredPartQuery
 			,String getAllPartIdsQuery
 			,String getAllUnfinishedPartIdsQuery
 			,String getAllCompletedKeysQuery
@@ -895,6 +912,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		this.saveCartQuery                = saveCartQuery;
 		this.saveCompletedBuildKeyQuery   = saveCompletedBuildKeyQuery;
 		this.getPartQuery                 = getPartQuery;
+		this.getExpiredPartQuery          = getExpiredPartQuery;
 		this.getAllPartIdsQuery           = getAllPartIdsQuery;
 		this.getAllStaticPartsQuery       = getAllStaticPartsQuery;
 		this.getAllUnfinishedPartIdsQuery = getAllUnfinishedPartIdsQuery;
@@ -1109,7 +1127,6 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	    	LOG.error("getPart Exception: {}",ids,e.getMessage());
 	    	throw new PersistenceException("getPart failed",e);
 		}
-
 		
 		return carts;
 	}
@@ -1156,6 +1173,52 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		} catch (Exception e) {
 	    	LOG.error("getAllUnfinishedPartIdsQuery exception: ",e.getMessage());
 	    	throw new PersistenceException("getAllUnfinishedPartIdsQuery failed",e);
+		}
+		return carts;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#getExpiredParts()
+	 */
+	@Override
+	public <L> Collection<Cart<K, ?, L>> getExpiredParts() {
+		LOG.debug("getExpiredParts: {}",getExpiredPartQuery);
+		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
+		try(PreparedStatement st = conn.prepareStatement(getExpiredPartQuery) ) {
+			Cart<K, ?, L> cart = null;
+			ResultSet rs = st.executeQuery();
+			while(rs.next()) {
+				K key = (K)rs.getObject(1);
+				String labelString = rs.getString(3);
+				L label = null;
+				if(labelString != null) {
+					label = (L)labelConverter.fromPersistence(labelString.trim());
+				}
+				
+				String hint = rs.getString(8);
+				ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
+				Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
+
+				long creationTime = rs.getTimestamp(4).getTime();
+				long expirationTime = rs.getTimestamp(5).getTime();
+				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
+				Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
+//				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+				if(loadType == LoadType.BUILDER) {
+					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
+				} else if(loadType == LoadType.RESULT_CONSUMER) {
+					cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
+				} else if(loadType == LoadType.MULTI_KEY_PART) {
+					Load load = (Load)val;
+					cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
+				} else {
+					cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+				}
+				carts.add(cart);
+			}
+		} catch (Exception e) {
+	    	LOG.error("getExpiredParts exception: ",e.getMessage());
+	    	throw new PersistenceException("getExpiredParts failed",e);
 		}
 		return carts;
 	}
@@ -1306,7 +1369,5 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	public boolean isPersistentProperty(String property) {
 		return ! nonPersistentProperties.contains(property);
 	}
-
-	
 	
 }

@@ -84,7 +84,15 @@ public interface Persistence <K> extends Closeable{
 	 * @return the all parts
 	 */
 	public <L> Collection<Cart<K,?,L>> getAllParts();
-	
+
+	/**
+	 * Gets the expired parts.
+	 *
+	 * @param <L> the generic type
+	 * @return the expired parts
+	 */
+	public <L> Collection<Cart<K,?,L>> getExpiredParts();
+
 	/**
 	 * Gets the all static parts.
 	 *

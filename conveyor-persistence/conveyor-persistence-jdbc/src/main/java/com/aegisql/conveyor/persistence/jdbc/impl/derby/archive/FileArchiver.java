@@ -12,7 +12,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.derby.tools.sysinfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +44,8 @@ public class FileArchiver<K> implements Archiver<K> {
 	
 	private long readBytes;
 
+	private final String getExpiredParts;
+
 	public FileArchiver(Class<K> keyClass, String partTable, String completedTable, BinaryLogConfiguration bLogConf,
 			ConverterAdviser<?> adviser) {
 		this.partTable = partTable;
@@ -55,7 +56,16 @@ public class FileArchiver<K> implements Archiver<K> {
 		this.archivePath = bLogConf.getPath();
 		this.saveBucketSize = bLogConf.getBucketSize();
 		this.converter = new CartToBytesConverter<>(adviser);
-
+		this.getExpiredParts = "SELECT"
+				+" CART_KEY"
+				+",CART_VALUE"
+				+",CART_LABEL"
+				+",CREATION_TIME"
+				+",EXPIRATION_TIME"
+				+",LOAD_TYPE"
+				+",CART_PROPERTIES"
+				+",VALUE_TYPE"
+				+" FROM " + partTable + " WHERE EXPIRATION_TIME > TIMESTAMP('19710101000000') AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
 	}
 
 	private CartOutputStream<K, ?> getCartOutputStream() {
@@ -69,6 +79,41 @@ public class FileArchiver<K> implements Archiver<K> {
 		}
 	}
 
+	private void archiveCarts(Collection<Cart<K, ?, Object>> carts,CartOutputStream<K, ?> cos) throws IOException {
+		for (Cart cart: carts) {
+			readBytes += cos.writeCart(cart);
+			if(readBytes > bLogConf.getMaxSize()) {
+				cos.close();
+				
+				String originalName = bLogConf.getFilePath();
+				String renameName   = bLogConf.getStampedFilePath();
+
+				FileUtils.moveFile(new File(originalName), new File(renameName));
+
+				if(bLogConf.isZipFile()) {
+					String zipName = renameName + ".zip";
+					FileOutputStream fileOS = new FileOutputStream(zipName);
+					try (ZipOutputStream zipOS = new ZipOutputStream(fileOS)) {
+						byte[] buf = new byte[1024];
+						int len;
+						try (FileInputStream in = new FileInputStream(renameName)) {
+							zipOS.putNextEntry(new ZipEntry(renameName));
+							while ((len = in.read(buf)) > 0) {
+								zipOS.write(buf, 0, len);
+							}
+						}
+					}
+					new File(renameName).delete();
+					LOG.debug("{} file reached limit of {} and were moved to {}",originalName,bLogConf.getMaxSize(),zipName);
+				} else {
+					LOG.debug("{} file reached limit of {} and were moved to {}",originalName,bLogConf.getMaxSize(),renameName);
+				}
+				cos = getCartOutputStream();
+			}
+		}
+
+	}
+	
 	@Override
 	public void archiveParts(Connection conn, Collection<Long> ids) {
 		if (ids == null || ids.isEmpty()) {
@@ -80,37 +125,7 @@ public class FileArchiver<K> implements Archiver<K> {
 			Collection<Collection<Long>> balanced = PersistUtils.balanceIdList(ids, saveBucketSize);
 			for(Collection<Long> bucket: balanced) {
 				Collection<Cart<K, ?, Object>> carts = persistence.getParts(bucket);
-				for (Cart cart: carts) {
-					readBytes += cos.writeCart(cart);
-					if(readBytes > bLogConf.getMaxSize()) {
-						cos.close();
-						
-						String originalName = bLogConf.getFilePath();
-						String renameName   = bLogConf.getStampedFilePath();
-
-						FileUtils.moveFile(new File(originalName), new File(renameName));
-
-						if(bLogConf.isZipFile()) {
-							String zipName = renameName + ".zip";
-							FileOutputStream fileOS = new FileOutputStream(zipName);
-							try (ZipOutputStream zipOS = new ZipOutputStream(fileOS)) {
-								byte[] buf = new byte[1024];
-								int len;
-								try (FileInputStream in = new FileInputStream(renameName)) {
-									zipOS.putNextEntry(new ZipEntry(renameName));
-									while ((len = in.read(buf)) > 0) {
-										zipOS.write(buf, 0, len);
-									}
-								}
-							}
-							new File(renameName).delete();
-							LOG.debug("{} file reached limit of {} and were moved to {}",originalName,bLogConf.getMaxSize(),zipName);
-						} else {
-							LOG.debug("{} file reached limit of {} and were moved to {}",originalName,bLogConf.getMaxSize(),renameName);
-						}
-						cos = getCartOutputStream();
-					}
-				}
+				archiveCarts(carts,cos);
 			}
 			cos.close();
 
@@ -145,16 +160,33 @@ public class FileArchiver<K> implements Archiver<K> {
 		deleteArchiver.archiveCompleteKeys(conn, keys);
 	}
 
+	
 	@Override
 	public void archiveExpiredParts(Connection conn) {
-		// TODO - impl body
+		try {
+			CartOutputStream<K, ?> cos = getCartOutputStream();
+			Collection<Cart<K, ?, Object>> carts = persistence.getExpiredParts();
+			archiveCarts(carts,cos);
+			cos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new PersistenceException("Error saving expired carts", e);
+		}
 		LOG.debug("Archived expired parts successfully. About to delete data from {}", partTable);
 		deleteArchiver.archiveExpiredParts(conn);
 	}
 
 	@Override
 	public void archiveAll(Connection conn) {
-		// TODO - impl body
+		try {
+			CartOutputStream<K, ?> cos = getCartOutputStream();
+			Collection<Cart<K, ?, Object>> carts = persistence.getAllParts();
+			archiveCarts(carts,cos);
+			cos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new PersistenceException("Error saving expired carts", e);
+		}
 		LOG.debug("Archived all parts successfully. About to delete data from {}", partTable);
 		deleteArchiver.archiveAll(conn);
 	}

@@ -226,4 +226,9 @@ public class PersistTestImpl implements Persistence<Integer> {
 		return cartsList;
 	}
 
+	@Override
+	public <L> Collection<Cart<Integer, ?, L>> getExpiredParts() {
+		return new ArrayList<>();
+	}
+
 }
