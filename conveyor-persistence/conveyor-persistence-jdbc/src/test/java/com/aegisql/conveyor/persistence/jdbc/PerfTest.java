@@ -60,7 +60,7 @@ public class PerfTest {
 		try {
 			File dir = new File("./");
 			
-			Arrays.stream(dir.listFiles()).map(f->f.getName()).filter(f->f.endsWith(".blog")).forEach(f->new File(f).delete());
+			Arrays.stream(dir.listFiles()).map(f->f.getName()).filter(f->(f.endsWith(".blog")||f.endsWith(".blog.zip"))).forEach(f->new File(f).delete());
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -128,7 +128,7 @@ public class PerfTest {
 							.partTableName(table)
 							.bucketSize(500)
 							.maxFileSize("1MB")
-							.zipFile(false)
+							.zipFile(true)
 							.build())
 					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
 		} catch (Exception e) {

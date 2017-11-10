@@ -86,24 +86,27 @@ public class FileArchiver<K> implements Archiver<K> {
 						cos.close();
 						
 						String originalName = bLogConf.getFilePath();
-						String renameName = bLogConf.getStampedFilePath();
+						String renameName   = bLogConf.getStampedFilePath();
+
+						FileUtils.moveFile(new File(originalName), new File(renameName));
+
 						if(bLogConf.isZipFile()) {
 							String zipName = renameName + ".zip";
-							File of = new File(originalName);
 							FileOutputStream fileOS = new FileOutputStream(zipName);
 							try (ZipOutputStream zipOS = new ZipOutputStream(fileOS)) {
 								byte[] buf = new byte[1024];
 								int len;
-								try (FileInputStream in = new FileInputStream(of)) {
+								try (FileInputStream in = new FileInputStream(renameName)) {
 									zipOS.putNextEntry(new ZipEntry(renameName));
 									while ((len = in.read(buf)) > 0) {
 										zipOS.write(buf, 0, len);
 									}
 								}
-								of.delete();
 							}
+							new File(renameName).delete();
+							LOG.debug("{} file reached limit of {} and were moved to {}",originalName,bLogConf.getMaxSize(),zipName);
 						} else {
-							FileUtils.moveFile(new File(originalName), new File(renameName));
+							LOG.debug("{} file reached limit of {} and were moved to {}",originalName,bLogConf.getMaxSize(),renameName);
 						}
 						cos = getCartOutputStream();
 					}
