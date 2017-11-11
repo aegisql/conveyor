@@ -745,7 +745,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					archiver = UNIMPLEMENTED_ARCHIVER;
 					break;
 				case MOVE_TO_FILE: 
-					archiver = new FileArchiver<>(keyClass, partTable, completedLogTable, bLogConf, converterAdviser);
+					archiver = new FileArchiver<>(keyClass, partTable, completedLogTable, bLogConf, converterAdviser,new DeleteArchiver<>(keyClass, partTable, completedLogTable));
 					break;
 				case NO_ACTION:
 					archiver = DO_NOTHING_ARCHIVER;

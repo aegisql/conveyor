@@ -1,8 +1,6 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -13,11 +11,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 
 public class PersistTestImpl implements Persistence<Integer> {
 
 	ConcurrentHashMap<Long,Cart<Integer,?,?>> carts = new ConcurrentHashMap<>();
+	ConcurrentHashMap<Long,Cart<Integer,?,?>> expiredCarts = new ConcurrentHashMap<>();
 	ConcurrentHashMap<Integer,List<Long>> cartIds   = new ConcurrentHashMap<>();
 	Set<Integer> completed = new HashSet<>();
 	
@@ -64,7 +62,11 @@ public class PersistTestImpl implements Persistence<Integer> {
 
 	@Override
 	public <L> void savePart(long id, Cart<Integer, ?, L> cart) {
+		if(cart.expired()) {
+			expiredCarts.put(id, cart);
+		}
 		carts.put(id, cart);
+		savePartId(cart.getKey(),id);
 	}
 
 	@Override
@@ -91,6 +93,7 @@ public class PersistTestImpl implements Persistence<Integer> {
 	@Override
 	public void archiveParts(Collection<Long> ids) {
 		ids.forEach(id->carts.remove(id));
+		ids.forEach(id->expiredCarts.remove(id));
 	}
 
 	@Override
@@ -192,7 +195,9 @@ public class PersistTestImpl implements Persistence<Integer> {
 
 	@Override
 	public <L> Collection<Cart<Integer, ?, L>> getExpiredParts() {
-		return new ArrayList<>();
+		List<Cart<Integer, ?, L>> cartsList = new ArrayList<>();
+		cartsList.addAll((Collection<? extends Cart<Integer, ?, L>>) expiredCarts.values());
+		return cartsList;
 	}
 
 }

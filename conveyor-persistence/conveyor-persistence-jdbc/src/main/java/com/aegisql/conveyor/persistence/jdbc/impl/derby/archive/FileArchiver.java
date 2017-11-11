@@ -32,7 +32,7 @@ public class FileArchiver<K> implements Archiver<K> {
 	private final Class<K> keyClass;
 	private final String partTable;
 	private final String completedTable;
-	private final DeleteArchiver<K> deleteArchiver;
+	private final Archiver<K> deleteArchiver;
 	private final String archivePath;
 	private final BinaryLogConfiguration bLogConf;
 
@@ -47,12 +47,12 @@ public class FileArchiver<K> implements Archiver<K> {
 	private final String getExpiredParts;
 
 	public FileArchiver(Class<K> keyClass, String partTable, String completedTable, BinaryLogConfiguration bLogConf,
-			ConverterAdviser<?> adviser) {
+			ConverterAdviser<?> adviser,Archiver<K> deleteArchiver) {
 		this.partTable = partTable;
 		this.completedTable = completedTable;
 		this.keyClass = keyClass;
 		this.bLogConf = bLogConf;
-		this.deleteArchiver = new DeleteArchiver<>(keyClass, partTable, completedTable);
+		this.deleteArchiver = deleteArchiver;
 		this.archivePath = bLogConf.getPath();
 		this.saveBucketSize = bLogConf.getBucketSize();
 		this.converter = new CartToBytesConverter<>(adviser);
