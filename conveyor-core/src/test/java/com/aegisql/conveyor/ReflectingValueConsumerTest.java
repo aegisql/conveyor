@@ -168,5 +168,24 @@ public class ReflectingValueConsumerTest {
 		assertEquals("test 100 hide", f.get());
 
 	}
+
 	
+	@Test
+	public void testWithSimpleConveyor() throws InterruptedException, ExecutionException {
+		SimpleConveyor<Integer,String> c = new SimpleConveyor<>();
+		
+		c.setBuilderSupplier(D::new);
+		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted("setVal", "setX","hidden"));
+		
+		Future<String> f = c.build().id(1).createFuture();
+		
+		c.part().id(1).value("test").label("setVal").place();
+		c.part().id(1).value(100).label("setX").place();
+		c.part().id(1).value("hide").label("hidden").place().get();
+		
+		System.out.println(f.get());
+		assertEquals("test 100 hide", f.get());
+
+	}
+
 }
