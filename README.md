@@ -42,6 +42,8 @@ conveyor-persistence (beta)
 ### 1.3.7-SNAPSHOT
 * More converters for basic types
 * File Archiver
+* ReflectingValueConsumer
+* Simple Conveyor - uses reflection to match String labels to the Builder API
 * Improvements and bugfixes
 
 ### 1.3.6

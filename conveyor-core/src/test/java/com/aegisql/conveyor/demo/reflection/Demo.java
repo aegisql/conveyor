@@ -11,9 +11,9 @@ import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 
 import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.SimpleConveyor;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.demo.ThreadPool;
+import com.aegisql.conveyor.reflection.SimpleConveyor;
 
 public class Demo {
 

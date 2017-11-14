@@ -1,8 +1,9 @@
-package com.aegisql.conveyor;
+package com.aegisql.conveyor.reflection;
 
 import java.util.Queue;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.cart.Cart;
 
 public class SimpleConveyor<K,OUT> extends AssemblingConveyor<K, String, OUT> {

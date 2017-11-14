@@ -12,6 +12,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.reflection.ReflectingValueConsumer;
+import com.aegisql.conveyor.reflection.SimpleConveyor;
+
 public class ReflectingValueConsumerTest {
 
 	@BeforeClass
