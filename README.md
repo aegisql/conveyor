@@ -44,6 +44,7 @@ conveyor-persistence (beta)
 * File Archiver
 * ReflectingValueConsumer
 * Simple Conveyor - uses reflection to match String labels to the Builder API
+* @Label and @NoLabel annotations for builder setters
 * Improvements and bugfixes
 
 ### 1.3.6
