@@ -12,6 +12,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.reflection.Label;
+import com.aegisql.conveyor.reflection.NoLabel;
 import com.aegisql.conveyor.reflection.ReflectingValueConsumer;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
 
@@ -34,12 +36,14 @@ public class ReflectingValueConsumerTest {
 	}
 
 	public static class A {
+		@Label("value")
 		private String val;
 
 		public String getVal() {
 			return val;
 		}
 
+		@Label({"VALUE","SET_VALUE"})
 		public void setVal(String val) {
 			this.val = val;
 		}
@@ -64,6 +68,7 @@ public class ReflectingValueConsumerTest {
 			return x;
 		}
 
+		@Label("X")
 		private void setX(Integer x) {
 			this.x = x;
 		}
@@ -77,6 +82,16 @@ public class ReflectingValueConsumerTest {
 		}
 
 	}
+	
+	public static class BE extends B {
+		@Label("X") //duplicate
+		private String other;
+
+		public String getOther() {
+			return other;
+		}
+
+	}
 
 	public static class D extends C implements Supplier<String> {
 
@@ -87,6 +102,44 @@ public class ReflectingValueConsumerTest {
 
 	}
 
+	public static class DUP1 {
+		private String sVal;
+		private Integer iVal;
+
+		public String getSVal() {
+			return sVal;
+		}
+		public Integer getIVal() {
+			return iVal;
+		}
+
+		public void setVal(String val) {
+			this.sVal = val;
+		}
+		public void setVal(Integer val) {
+			this.iVal = val;
+		}
+	}
+
+	public static class DUP2 {
+		private String sVal;
+		private Integer iVal;
+
+		public String getSVal() {
+			return sVal;
+		}
+		public Integer getIVal() {
+			return iVal;
+		}
+
+		public void setVal(String val) {
+			this.sVal = val;
+		}
+		@NoLabel
+		public void setVal(Integer val) {
+			this.iVal = val;
+		}
+	}
 	
 	@Test
 	public void testA() {
@@ -191,4 +244,63 @@ public class ReflectingValueConsumerTest {
 
 	}
 
+	@Test
+	public void testAWithSetterAnnotation() {
+	ReflectingValueConsumer vc = new ReflectingValueConsumer();
+	A a = new A();
+	vc.accept("VALUE", "test", a);
+	assertEquals("test",a.getVal());
+	}
+
+	@Test
+	public void testAWithFieldAnnotation() {
+	ReflectingValueConsumer vc = new ReflectingValueConsumer();
+	A a = new A();
+	vc.accept("value", "test", a);
+	assertEquals("test",a.getVal());
+	}
+	
+	@Test
+	public void testBWithSetterLabel() {
+	ReflectingValueConsumer vc = new ReflectingValueConsumer();
+	B a = new B();
+	vc.accept("SET_VALUE", "test", a);
+	vc.accept("X", 100, a);
+	assertEquals("test",a.getVal());
+	assertEquals(100,a.getX());
+	}
+
+	@Test(expected=RuntimeException.class)
+	public void testBEWithDuplicatedAnnotation() {
+	ReflectingValueConsumer vc = new ReflectingValueConsumer();
+	BE a = new BE();
+	vc.accept("value", "test", a);
+	}
+
+
+	@Test(expected=RuntimeException.class)
+	public void testDup1WithNull() {
+	ReflectingValueConsumer vc = new ReflectingValueConsumer();
+	DUP1 a = new DUP1();
+	a.setVal("NO");
+	a.setVal(100);
+	assertNotNull(a.getSVal());
+	assertNotNull(a.getIVal());
+	vc.accept("setVal", null, a);
+	}
+
+	@Test
+	public void testDup2WithNull() {
+	ReflectingValueConsumer vc = new ReflectingValueConsumer();
+	DUP2 a = new DUP2();
+	a.setVal("NO");
+	a.setVal(100);
+	assertNotNull(a.getSVal());
+	assertNotNull(a.getIVal());
+	vc.accept("setVal", null, a);
+	assertNull(a.getSVal());
+	assertNotNull(a.getIVal());
+	}
+
+	
 }
