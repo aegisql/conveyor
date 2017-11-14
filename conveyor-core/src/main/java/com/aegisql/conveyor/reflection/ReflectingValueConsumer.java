@@ -13,14 +13,26 @@ import java.util.function.BiConsumer;
 
 import com.aegisql.conveyor.LabeledValueConsumer;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ReflectingValueConsumer.
+ *
+ * @param <B> the generic type
+ */
 public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, Object, B> {
 
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
+	/** The saved setters. */
 	private final Map<String, BiConsumer<Object, Object>> savedSetters = new HashMap<>();
 
+	/** The init. */
 	private boolean init = true;
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.LabeledValueConsumer#accept(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
 	@Override
 	public void accept(String label, Object value, Object builder) {
 		Objects.requireNonNull(builder, "Builder required");
@@ -39,6 +51,11 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 		setter.accept(builder, value);
 	}
 
+	/**
+	 * Seed fields with annotations.
+	 *
+	 * @param bClass the b class
+	 */
 	private void seedFieldsWithAnnotations(Class<? extends Object> bClass) {
 		for (Field f : bClass.getDeclaredFields()) {
 			Label label = f.getAnnotation(Label.class);
@@ -66,6 +83,11 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 		}
 	}
 
+	/**
+	 * Seed methods with annotations.
+	 *
+	 * @param bClass the b class
+	 */
 	private void seedMethodsWithAnnotations(Class bClass) {
 		for (Method m : bClass.getDeclaredMethods()) {
 			Label label = m.getAnnotation(Label.class);
@@ -117,6 +139,14 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 		}
 	}
 
+	/**
+	 * Offer setter.
+	 *
+	 * @param label the label
+	 * @param value the value
+	 * @param builder the builder
+	 * @return the bi consumer
+	 */
 	private BiConsumer<Object, Object> offerSetter(String label, Object value, Object builder) {
 		Class bClass = builder.getClass();
 
@@ -239,6 +269,14 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 		return setter;
 	}
 
+	/**
+	 * Try method deep.
+	 *
+	 * @param name the name
+	 * @param bClass the b class
+	 * @param params the params
+	 * @return the method
+	 */
 	private Method tryMethodDeep(String name, Class bClass, Class... params) {
 
 		Method m = null;
@@ -254,6 +292,13 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 		return m;
 	}
 
+	/**
+	 * Try field deep.
+	 *
+	 * @param name the name
+	 * @param bClass the b class
+	 * @return the field
+	 */
 	private Field tryFieldDeep(String name, Class bClass) {
 
 		Field f = null;
