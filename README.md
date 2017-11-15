@@ -44,6 +44,8 @@ conveyor-persistence (beta)
 ### 1.3.7
 * More converters for basic types
 * File Archiver
+* CartInputStream
+* CartOurputStream
 * ReflectingValueConsumer
 * Simple Conveyor - uses reflection to match String labels to the Builder API
 * @Label and @NoLabel annotations for builder setters
