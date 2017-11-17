@@ -14,6 +14,7 @@ import com.aegisql.conveyor.ProductBin;
  */
 public class ResultCounter <K,V> implements ResultConsumer<K,V> {
 
+	private static final long serialVersionUID = 1L;
 	/** The counter. */
 	private final AtomicLong counter = new AtomicLong(0);
 	

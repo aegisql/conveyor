@@ -196,7 +196,7 @@ public class PersistTestImpl implements Persistence<Integer> {
 	@Override
 	public <L> Collection<Cart<Integer, ?, L>> getExpiredParts() {
 		List<Cart<Integer, ?, L>> cartsList = new ArrayList<>();
-		cartsList.addAll((Collection<? extends Cart<Integer, ?, L>>) expiredCarts.values());
+		cartsList.addAll((Collection) expiredCarts.values());
 		return cartsList;
 	}
 
