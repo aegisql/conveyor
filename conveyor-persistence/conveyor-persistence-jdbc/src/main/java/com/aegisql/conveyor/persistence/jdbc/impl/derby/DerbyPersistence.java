@@ -146,8 +146,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		/**
 		 * Move to file.
 		 *
-		 * @param archivePath the archive file template
-		 * @param maxFileSize the max file size
+		 * @param bLogConf the b log conf
 		 * @return the derby persistence builder
 		 */
 		public DerbyPersistenceBuilder<K> moveToFile(BinaryLogConfiguration bLogConf) {
