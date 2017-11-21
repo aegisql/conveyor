@@ -25,13 +25,9 @@ public class Demo {
 		// I - Create conveyor
 		// Generic types:
 		// Integer - type of the unique build ID
-		// String  - type of the message labels
 		// Person  - type of the Product
-		SimpleConveyor<Integer,Person> conveyor = new SimpleConveyor<>();
-		
-		// II - Tell conveyor how to create the Builder
-		conveyor.setBuilderSupplier(PersonBuilder::new);
-		
+		// II - Tell conveyor how to create the Builder		
+		SimpleConveyor<Integer,Person> conveyor = new SimpleConveyor<>(PersonBuilder::new);		
 		
 		// III - Build is ready when builder accepted three different pieces of data
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted("firstName","lastName","dateOfBirth"));

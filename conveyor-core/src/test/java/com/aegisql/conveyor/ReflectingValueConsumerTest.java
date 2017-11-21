@@ -228,9 +228,8 @@ public class ReflectingValueConsumerTest {
 	
 	@Test
 	public void testWithSimpleConveyor() throws InterruptedException, ExecutionException {
-		SimpleConveyor<Integer,String> c = new SimpleConveyor<>();
+		SimpleConveyor<Integer,String> c = new SimpleConveyor<>(D::new);
 		
-		c.setBuilderSupplier(D::new);
 		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted("setVal", "setX","hidden"));
 		
 		Future<String> f = c.build().id(1).createFuture();

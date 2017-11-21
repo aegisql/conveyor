@@ -49,7 +49,6 @@ import com.aegisql.conveyor.persistence.ack.AcknowledgeBuilder;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuildingConveyor;
 import com.aegisql.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class PersistentConveyor.
  *
@@ -71,9 +70,6 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The cleaner. */
 	private final PersistenceCleanupBatchConveyor<K> cleaner;
 
-	/** The static acknowledge builder. */
-	private final AcknowledgeBuilder<K> staticAcknowledgeBuilder;
-
 	/** The result consumer. */
 	private ResultConsumer<K, OUT> resultConsumer = bin -> {
 	};
@@ -86,9 +82,6 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The clean persistence. */
 	private final Persistence<K> cleanPersistence;
-
-	/** The static persistence. */
-	private final Persistence<K> staticPersistence;
 
 	/** The on status. */
 	private final EnumMap<Status, Consumer<AcknowledgeStatus<K>>> onStatus = new EnumMap<>(Status.class);
@@ -115,11 +108,15 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		ackPersistence = persistence.copy();
 		forwardPersistence = persistence.copy();
 		cleanPersistence = persistence.copy();
-		staticPersistence = persistence.copy();
 
 		this.forward = forward;
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(cleanPersistence);
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(ackPersistence, forward, cleaner);
+		
+		String name = forward.getName();
+		ackConveyor.setName("AcknowledgeBuildingConveyor<" + name + ">");
+		cleaner.setName("PersistenceCleanupBatchConveyor<" + name + ">");
+		
 		onStatus.put(Status.READY, this::complete);
 		onStatus.put(Status.CANCELED, this::complete);
 		onStatus.put(Status.INVALID, this::complete);
@@ -138,7 +135,6 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			this.resultConsumer = bin -> {
 			};
 		}
-		this.staticAcknowledgeBuilder = new AcknowledgeBuilder<>(staticPersistence, forward, ackConveyor);
 		// not empty only if previous conveyor could not complete.
 		// Pers must be initialized with the previous state
 		Collection<Cart<K, ?, L>> staticParts = persistence.<L> getAllStaticParts();
@@ -670,6 +666,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * 
 	 * @see com.aegisql.conveyor.Conveyor#acceptLabels(java.lang.Object[])
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void acceptLabels(L... labels) {
 		forward.acceptLabels(labels);
