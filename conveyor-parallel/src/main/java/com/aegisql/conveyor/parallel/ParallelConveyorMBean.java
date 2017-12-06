@@ -3,6 +3,8 @@
  */
 package com.aegisql.conveyor.parallel;
 
+import com.aegisql.conveyor.Conveyor;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Interface ParallelConveyorMBean.
@@ -36,5 +38,7 @@ public interface ParallelConveyorMBean {
 	 * @return true, if is running
 	 */
 	public boolean isRunning();
+
+	public <K,L,OUT> Conveyor<K, L, OUT> conveyor();
 
 }

@@ -704,6 +704,10 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 				public boolean isRunning() {
 					return thisConv.running;
 				}
+				@Override
+				public <K, L, OUT> Conveyor<K, L, OUT> conveyor() {
+					return (Conveyor<K, L, OUT>) thisConv;
+				}
 			}, ParallelConveyorMBean.class, false);
 			
 			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type="+name);

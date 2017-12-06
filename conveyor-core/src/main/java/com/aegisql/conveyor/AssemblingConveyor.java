@@ -559,6 +559,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				public long getCommandCounter() {
 					return thisConv.commandCounter;
 				}
+
+				@Override
+				public <K, L, OUT> Conveyor<K, L, OUT> conveyor() {
+					return (Conveyor<K, L, OUT>) thisConv;
+				}
 			}, AssemblingConveyorMBean.class, false);
 			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type=" + name);
 			synchronized (mBeanServer) {

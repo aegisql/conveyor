@@ -113,4 +113,7 @@ public interface AssemblingConveyorMBean {
 	 * @return the command counter
 	 */
 	public long getCommandCounter();
+	
+	public <K,L,OUT> Conveyor<K, L, OUT> conveyor();
+	
 }

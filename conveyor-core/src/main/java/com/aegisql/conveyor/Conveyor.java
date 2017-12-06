@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor;
 
+import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -13,6 +14,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -461,4 +466,18 @@ public interface Conveyor<K, L, OUT> {
 	 * @param payloadFunction the payload function
 	 */
 	void setCartPayloadAccessor(Function<Cart<K,?,L>,Object> payloadFunction);
+	
+	final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+	
+	public static Conveyor byName(String name) {
+		ObjectName objectName;
+		try {
+			objectName = new ObjectName("com.aegisql.conveyor:type=" + name);
+			Object res = mBeanServer.invoke(objectName, "conveyor", null, null);
+			return (Conveyor) res;
+		} catch (Exception e) {
+			throw new RuntimeException("Conveyor with name '"+name +"' not found",e);
+		}
+	}
+	
 }

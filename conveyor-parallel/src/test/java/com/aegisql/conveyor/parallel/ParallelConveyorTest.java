@@ -23,6 +23,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
@@ -452,5 +454,15 @@ public class ParallelConveyorTest {
 
 	}
 
-	
+	@Test
+	public void testAccessByName() {
+		KBalancedParallelConveyor<String, String, User>
+		ac1 = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
+		
+		ac1.setName("test_name");
+		
+		Conveyor<String,String,User> ac2 = Conveyor.byName("test_name");
+		
+		assertTrue(ac1==ac2);
+	}
 }

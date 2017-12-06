@@ -714,4 +714,26 @@ public class AssemblingConveyorTest {
 		
 	}
 	
+	@Test
+	public void testAccessByName() {
+		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
+		
+		ac1.setName("test_name");
+		
+		Conveyor<Integer,String,User> ac2 = Conveyor.byName("test_name");
+		
+		assertTrue(ac1==ac2);
+		
+	}
+
+	@Test(expected=RuntimeException.class)
+	public void testAccessByWrongName() {
+		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
+		
+		ac1.setName("test_name");
+		
+		Conveyor<Integer,String,User> ac2 = Conveyor.byName("bad_name");
+		
+	}
+
 }
