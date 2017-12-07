@@ -20,6 +20,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
+
 import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
@@ -90,6 +93,9 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private final AtomicBoolean initializationMode = new AtomicBoolean(true);
 
 	private String doNotPersist = "~";
+	
+	private ObjectName objectName;
+
 
 	public void setSkipPersistencePropertyKey(String doNotPersist) {
 		this.doNotPersist = doNotPersist;
@@ -116,7 +122,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		String name = forward.getName();
 		ackConveyor.setName("AcknowledgeBuildingConveyor<" + name + ">");
 		cleaner.setName("PersistenceCleanupBatchConveyor<" + name + ">");
-		
+		setMbean(name);
 		onStatus.put(Status.READY, this::complete);
 		onStatus.put(Status.CANCELED, this::complete);
 		onStatus.put(Status.INVALID, this::complete);
@@ -581,6 +587,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public void setName(String string) {
+		this.setMbean(string);
 		forward.setName(string);
 		ackConveyor.setName("AcknowledgeBuildingConveyor<" + string + ">");
 		cleaner.setName("PersistenceCleanupBatchConveyor<" + string + ">");
@@ -863,5 +870,55 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public void setCartPayloadAccessor(Function<Cart<K, ?, L>, Object> payloadFunction) {
 		forward.setCartPayloadAccessor(payloadFunction);
 	}
+	
+	/**
+	 * Sets the mbean.
+	 *
+	 * @param name the new mbean
+	 */
+	protected void setMbean(String name) {
+		try {
+			final PersistentConveyor<K,L,OUT> thisConv = this;
+
+			Object mbean = new StandardMBean(new PersistentConveyorMBean() {
+				@Override
+				public String getName() {
+					return name;
+				}
+				@Override
+				public String getType() {
+					return thisConv.getClass().getSimpleName();
+				}
+				@Override
+				public boolean isRunning() {
+					return thisConv.forward.isRunning();
+				}
+				@Override
+				public <K, L, OUT> Conveyor<K, L, OUT> conveyor() {
+					return (Conveyor<K, L, OUT>) thisConv;
+				}
+			}, PersistentConveyorMBean.class, false);
+			
+			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor.persistence:type="+name);
+			synchronized(mBeanServer) {
+				if(this.objectName == null) {
+					this.objectName = newObjectName;
+					this.setMbean(name);
+				}
+				if(mBeanServer.isRegistered(this.objectName)) {
+					mBeanServer.unregisterMBean(objectName);
+					this.objectName = newObjectName;
+					this.setMbean(name);
+				} else {
+					mBeanServer.registerMBean(mbean, newObjectName);
+					this.objectName = newObjectName;
+				}
+			}
+		} catch (Exception e) {
+			LOG.error("MBEAN error",e);
+			throw new RuntimeException(e);
+		}
+	}
+
 
 }

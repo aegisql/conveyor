@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -774,6 +776,64 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			infoBuilder.append("archiveStrategy=").append(archiveStrategy).append(" ");
 			infoBuilder.append("encryption=").append(encryptionSecret != null?"ON":"OFF").append("]");
 			
+			ObjectName objectName = new ObjectName("com.aegisql.conveyor.persistence.derby."+schema+":type=" + partTable);
+			if( ! DerbyPersistenceMBean.mBeanServer.isRegistered(objectName) ) {
+				DerbyPersistenceMBean derbyMBean = new DerbyPersistenceMBean() {
+					
+					@Override
+					public String getSchema() {
+						return schema;
+					}
+					
+					@Override
+					public String getPartTable() {
+						return partTable;
+					}
+					
+					@Override
+					public String getCompleteTable() {
+						return completedLogTable;
+					}
+					
+					@Override
+					public String getArchiveStrategy() {
+						return archiveStrategy.name();
+					}
+
+					@Override
+					public boolean isEncrypted() {
+						return encryptionSecret != null;
+					}
+
+					@Override
+					public String getDriver() {
+						return driver;
+					}
+
+					@Override
+					public String getHost() {
+						return host;
+					}
+
+					@Override
+					public int getPort() {
+						return port;
+					}
+
+					@Override
+					public int getMaxBatchSize() {
+						return maxBatchSize;
+					}
+
+					@Override
+					public long getMaxBatchTime() {
+						return maxBatchTime;
+					}
+				};
+				StandardMBean mbean = new StandardMBean(derbyMBean, DerbyPersistenceMBean.class);
+				DerbyPersistenceMBean.mBeanServer.registerMBean(mbean, objectName);
+			}
+			
 			return new DerbyPersistence<K>(
 					this
 					,conn
@@ -860,7 +920,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	private final String info;
 	
 	private final Set<String> nonPersistentProperties;
-	
+		
 	/**
 	 * Instantiates a new derby persistence.
 	 *

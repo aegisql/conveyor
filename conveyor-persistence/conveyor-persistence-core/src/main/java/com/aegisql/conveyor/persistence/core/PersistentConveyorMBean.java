@@ -1,16 +1,8 @@
-/*
- * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
- */
-package com.aegisql.conveyor.parallel;
+package com.aegisql.conveyor.persistence.core;
 
 import com.aegisql.conveyor.Conveyor;
 
-// TODO: Auto-generated Javadoc
-/**
- * The Interface ParallelConveyorMBean.
- */
-public interface ParallelConveyorMBean {
-	
+public interface PersistentConveyorMBean {
 	/**
 	 * Gets the name.
 	 *
@@ -25,12 +17,6 @@ public interface ParallelConveyorMBean {
 	 */
 	public String getType();
 	
-	/**
-	 * Gets the inner conveyors count.
-	 *
-	 * @return the inner conveyors count
-	 */
-	public int getInnerConveyorsCount();
 	
 	/**
 	 * Checks if is running.

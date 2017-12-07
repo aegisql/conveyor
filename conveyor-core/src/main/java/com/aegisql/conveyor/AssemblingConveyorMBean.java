@@ -114,6 +114,29 @@ public interface AssemblingConveyorMBean {
 	 */
 	public long getCommandCounter();
 	
+	/**
+	 * Conveyor.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param <OUT> the generic type
+	 * @return the conveyor
+	 */
 	public <K,L,OUT> Conveyor<K, L, OUT> conveyor();
+	
+	/**
+	 * Stop.
+	 */
+	public void stop();
+	
+	/**
+	 * Complete and stop.
+	 */
+	public void completeAndStop();
+	
+	/**
+	 * Interrupt.
+	 */
+	public void interrupt();
 	
 }

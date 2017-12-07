@@ -279,9 +279,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The name. */
 	private String name;
 
-	/** The Constant mBeanServer. */
-	private final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-
 	/** The l balanced. */
 	private boolean lBalanced = false;
 
@@ -563,6 +560,23 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				@Override
 				public <K, L, OUT> Conveyor<K, L, OUT> conveyor() {
 					return (Conveyor<K, L, OUT>) thisConv;
+				}
+
+				@Override
+				public void stop() {
+					thisConv.stop();
+					
+				}
+
+				@Override
+				public void completeAndStop() {
+					thisConv.completeAndStop();
+				}
+
+				@Override
+				public void interrupt() {
+					thisConv.interrupt(name);
+					
 				}
 			}, AssemblingConveyorMBean.class, false);
 			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type=" + name);

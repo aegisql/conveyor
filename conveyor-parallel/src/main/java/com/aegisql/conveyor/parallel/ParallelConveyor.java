@@ -117,9 +117,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	/** The object name. */
 	private ObjectName objectName;
 	
-	/** The Constant mBeanServer. */
-	private final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-
 	/** The builder supplier. */
 	protected BuilderSupplier<OUT> builderSupplier = () -> {
 		throw new IllegalStateException("Builder Supplier is not set");
