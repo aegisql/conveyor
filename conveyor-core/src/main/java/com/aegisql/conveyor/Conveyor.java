@@ -16,7 +16,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import org.slf4j.Logger;

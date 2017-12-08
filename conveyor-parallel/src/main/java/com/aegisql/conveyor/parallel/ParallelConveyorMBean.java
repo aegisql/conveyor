@@ -48,5 +48,15 @@ public interface ParallelConveyorMBean {
 	 * @return the conveyor
 	 */
 	public <K,L,OUT> Conveyor<K, L, OUT> conveyor();
-
+	
+	/**
+	 * Stop.
+	 */
+	public void stop();
+	
+	/**
+	 * Complete and stop.
+	 */
+	public void completeAndStop();
+	
 }
