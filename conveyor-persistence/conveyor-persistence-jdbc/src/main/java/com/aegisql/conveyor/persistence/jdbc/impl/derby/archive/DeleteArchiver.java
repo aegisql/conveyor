@@ -25,9 +25,14 @@ public class DeleteArchiver<K> implements Archiver<K> {
 	final String deleteAllParts;
 	final String deleteAllCompleted;
 	
+	private final String partTable;
+	private final String completedTable;
+	
 	final String q;
 
 	public DeleteArchiver(Class<K> keyClass, String partTable, String completedTable) {
+		this.partTable           = partTable;
+		this.completedTable      = completedTable;
 		deleteFromPartsById      = "DELETE FROM "+partTable + " WHERE ID IN(?)";
 		deleteFromPartsByCartKey = "DELETE FROM "+partTable + " WHERE CART_KEY IN(?)";
 		deleteFromCompleted      = "DELETE FROM "+completedTable + " WHERE CART_KEY IN(?)";
@@ -128,4 +133,10 @@ public class DeleteArchiver<K> implements Archiver<K> {
 	}
 	@Override
 	public void setPersistence(Persistence<K> persistence) {}
+	@Override
+	public String toString() {
+		return "Delete records from "+partTable+" and "+completedTable;
+	}
+	
+	
 }

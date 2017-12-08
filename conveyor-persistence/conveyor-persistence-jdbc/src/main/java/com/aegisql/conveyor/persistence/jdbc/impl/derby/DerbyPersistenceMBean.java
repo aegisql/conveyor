@@ -12,6 +12,7 @@ public interface DerbyPersistenceMBean {
 	public String getPartTable();
 	public String getCompleteTable();
 	public String getArchiveStrategy();
+	public String getArchiveStrategyProperties();
 	public boolean isEncrypted();
 	public String getDriver();
 	public String getHost();

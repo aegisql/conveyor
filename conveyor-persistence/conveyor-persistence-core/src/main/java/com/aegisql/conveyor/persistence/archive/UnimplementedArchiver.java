@@ -29,4 +29,11 @@ public class UnimplementedArchiver<K> implements Archiver<K> {
 	@Override
 	public void setPersistence(Persistence<K> persistence) {}
 
+	@Override
+	public String toString() {
+		return "UnimplementedArchiver: throws exception on any method call";
+	}
+	
+	
+
 }

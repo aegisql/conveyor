@@ -829,6 +829,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					public long getMaxBatchTime() {
 						return maxBatchTime;
 					}
+
+					@Override
+					public String getArchiveStrategyProperties() {
+						return archiver.toString();
+					}
 				};
 				StandardMBean mbean = new StandardMBean(derbyMBean, DerbyPersistenceMBean.class);
 				DerbyPersistenceMBean.mBeanServer.registerMBean(mbean, objectName);

@@ -131,5 +131,12 @@ public class BinaryLogConfiguration {
 		return zipFile;
 	}
 
+	@Override
+	public String toString() {
+		return "path=" + path + ", moveToPath=" + moveToPath + ", maxSize=" + maxSize
+				+ ", file=" + file + ", bucketSize=" + bucketSize + ", zipFile=" + zipFile;
+	}
+
+	
 	
 }

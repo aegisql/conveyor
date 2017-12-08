@@ -28,4 +28,11 @@ public class DoNothingArchiver<K> implements Archiver<K> {
 	@Override
 	public void setPersistence(Persistence<K> persistence) {}
 
+	@Override
+	public String toString() {
+		return "DoNothingArchiver: no action on archive commands";
+	}
+	
+	
+
 }

@@ -196,4 +196,11 @@ public class FileArchiver<K> implements Archiver<K> {
 		this.persistence = persistence;
 	}
 
+	@Override
+	public String toString() {
+		return "FileArchiver: "+bLogConf;
+	}
+	
+	
+
 }

@@ -27,7 +27,13 @@ public class SetArchivedArchiver<K> implements Archiver<K> {
 	
 	private final String q;
 
+	private final String partTable;
+	private final String completedTable;
+
 	public SetArchivedArchiver(Class<K> keyClass, String partTable, String completedTable) {
+		this.partTable           = partTable;
+		this.completedTable      = completedTable;
+
 		deleteFromPartsById      = "UPDATE "+partTable + " SET ARCHIVED = 1 WHERE ID IN(?)";
 		deleteFromPartsByCartKey = "UPDATE "+partTable + " SET ARCHIVED = 1 WHERE CART_KEY IN(?)";
 		deleteFromCompleted      = "DELETE FROM "+completedTable + " WHERE CART_KEY IN(?)";
@@ -132,4 +138,11 @@ public class SetArchivedArchiver<K> implements Archiver<K> {
 	@Override
 	public void setPersistence(Persistence<K> persistence) {}
 
+
+	@Override
+	public String toString() {
+		return "Set ARCHIVED=1 in "+partTable+"; delete from "+completedTable;
+	}
+
+	
 }
