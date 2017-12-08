@@ -96,6 +96,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	
 	private ObjectName objectName;
 
+	private String name;
 
 	public void setSkipPersistencePropertyKey(String doNotPersist) {
 		this.doNotPersist = doNotPersist;
@@ -120,9 +121,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(ackPersistence, forward, cleaner);
 		
 		String name = forward.getName();
-		ackConveyor.setName("AcknowledgeBuildingConveyor<" + name + ">");
-		cleaner.setName("PersistenceCleanupBatchConveyor<" + name + ">");
-		setMbean(name);
+		setName(name);
 		onStatus.put(Status.READY, this::complete);
 		onStatus.put(Status.CANCELED, this::complete);
 		onStatus.put(Status.INVALID, this::complete);
@@ -587,8 +586,9 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public void setName(String string) {
+		this.name = string;
+		forward.setName("Persistent<"+string+">");
 		this.setMbean(string);
-		forward.setName(string);
 		ackConveyor.setName("AcknowledgeBuildingConveyor<" + string + ">");
 		cleaner.setName("PersistenceCleanupBatchConveyor<" + string + ">");
 	}
@@ -686,7 +686,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public String getName() {
-		return "PersistentConveyor<" + forward.getName() + ">";
+		return name;
 	}
 
 	/*
@@ -899,7 +899,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 			}, PersistentConveyorMBean.class, false);
 			
-			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor.persistence:type="+name);
+			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type="+name);
 			synchronized(mBeanServer) {
 				if(this.objectName == null) {
 					this.objectName = newObjectName;

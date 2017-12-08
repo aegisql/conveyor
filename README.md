@@ -40,6 +40,10 @@ conveyor-persistence (beta)
 ## Release History
 
 ### 1.3.8-SNAPSHOT
+* MBeans improvements
+* MBean for the DerbyPersistence
+* Conveyor.byName(name) method
+
 
 ### 1.3.7
 * More converters for basic types

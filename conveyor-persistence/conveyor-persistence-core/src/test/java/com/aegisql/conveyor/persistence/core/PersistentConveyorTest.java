@@ -12,12 +12,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.Acknowledge;
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
+import com.aegisql.conveyor.user.User;
 
 public class PersistentConveyorTest {
 
@@ -117,6 +120,18 @@ public class PersistentConveyorTest {
 		assertTrue(p2.isEmpty());
 	}
 
-	
+	@Test
+	public void testAccessByName() {
+		PersistTestImpl p1 = new PersistTestImpl();
+		TrioConveyor tc1 = new TrioConveyor();
+		
+		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1);
+		
+		pc1.setName("test_name");
+		
+		Conveyor pc2 = Conveyor.byName("test_name");
+		assertEquals(pc1,pc2);
+		
+	}
 	
 }
