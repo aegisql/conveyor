@@ -59,4 +59,32 @@ public interface ParallelConveyorMBean {
 	 */
 	public void completeAndStop();
 	
+	/**
+	 * Sets the idle heart beat msec.
+	 *
+	 * @param msec the new idle heart beat msec
+	 */
+	void setIdleHeartBeatMsec(long msec);
+	
+	/**
+	 * Sets the default builder timeout msec.
+	 *
+	 * @param msec the new default builder timeout msec
+	 */
+	void setDefaultBuilderTimeoutMsec(long msec);
+	
+	/**
+	 * Reject unexpireable carts older than msec.
+	 *
+	 * @param msec the msec
+	 */
+	void rejectUnexpireableCartsOlderThanMsec(long msec);
+	
+	/**
+	 * Sets the expiration postpone time msec.
+	 *
+	 * @param msec the new expiration postpone time msec
+	 */
+	void setExpirationPostponeTimeMsec(long msec);
+
 }

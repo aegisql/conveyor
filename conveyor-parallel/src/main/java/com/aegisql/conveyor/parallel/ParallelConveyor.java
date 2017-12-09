@@ -713,7 +713,33 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 				public void completeAndStop() {
 					thisConv.completeAndStop();
 				}
-				
+				@Override
+				public void setIdleHeartBeatMsec(long msec) {
+					if(msec > 0) {
+						thisConv.setIdleHeartBeat(msec, TimeUnit.MILLISECONDS);
+					}					
+				}
+
+				@Override
+				public void setDefaultBuilderTimeoutMsec(long msec) {
+					if(msec > 0) {
+						thisConv.setDefaultBuilderTimeout(msec, TimeUnit.MILLISECONDS);
+					}
+				}
+
+				@Override
+				public void rejectUnexpireableCartsOlderThanMsec(long msec) {
+					if(msec > 0) {
+						thisConv.rejectUnexpireableCartsOlderThan(msec, TimeUnit.MILLISECONDS);
+					}
+				}
+
+				@Override
+				public void setExpirationPostponeTimeMsec(long msec) {
+					if(msec > 0) {
+						thisConv.setExpirationPostponeTime(msec, TimeUnit.MILLISECONDS);
+					}					
+				}
 			}, ParallelConveyorMBean.class, false);
 			
 			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type="+name);

@@ -468,6 +468,12 @@ public interface Conveyor<K, L, OUT> {
 	
 	final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 	
+	/**
+	 * By name.
+	 *
+	 * @param name the name
+	 * @return the conveyor
+	 */
 	public static Conveyor byName(String name) {
 		ObjectName objectName;
 		try {
