@@ -15,7 +15,7 @@ package com.aegisql.conveyor.persistence.archive;
 		SET_ARCHIVED,
 		
 		/** The move to schema table. */
-		MOVE_TO_SCHEMA_TABLE, 
+		MOVE_TO_PERSISTENCE, 
  /** The move to file. */
  //schema,table
 		MOVE_TO_FILE, 

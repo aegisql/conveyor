@@ -63,6 +63,7 @@ import com.aegisql.id_builder.IdSource;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.DeleteArchiver;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.FileArchiver;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.PersistenceArchiver;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.SetArchivedArchiver;
 // TODO: Auto-generated Javadoc
 /**
@@ -136,12 +137,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		/**
 		 * Move to table.
 		 *
-		 * @param archiveTable the archive table
+		 * @param archivePersistence the archive table
 		 * @return the derby persistence builder
 		 */
-		public DerbyPersistenceBuilder<K> moveToTable(String archiveTable) {
-			dpb.archiveStrategy = ArchiveStrategy.MOVE_TO_SCHEMA_TABLE;
-			dpb.archiveTable = archiveTable;
+		public DerbyPersistenceBuilder<K> moveToOtherPersistence(Persistence<K> p) {
+			dpb.archiveStrategy = ArchiveStrategy.MOVE_TO_PERSISTENCE;
+			dpb.archivePersistence = p;
 			return dpb;
 		}
 		
@@ -172,7 +173,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		public BinaryLogConfiguration bLogConf;
 	
 		/** The archive table. */
-		public String archiveTable;
+		public Persistence<K> archivePersistence;
 		
 		/** The archiver. */
 		public Archiver<K> archiver;
@@ -742,8 +743,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				case SET_ARCHIVED:
 					archiver = new SetArchivedArchiver<>(keyClass, partTable,completedLogTable);
 					break;
-				case MOVE_TO_SCHEMA_TABLE:
-					archiver = UNIMPLEMENTED_ARCHIVER;
+				case MOVE_TO_PERSISTENCE:
+					archiver = new PersistenceArchiver<>(keyClass, partTable, completedLogTable, archivePersistence, converterAdviser, new DeleteArchiver<>(keyClass, partTable, completedLogTable));
 					break;
 				case MOVE_TO_FILE: 
 					archiver = new FileArchiver<>(keyClass, partTable, completedLogTable, bLogConf, converterAdviser,new DeleteArchiver<>(keyClass, partTable, completedLogTable));
