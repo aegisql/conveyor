@@ -86,5 +86,5 @@ public interface ParallelConveyorMBean {
 	 * @param msec the new expiration postpone time msec
 	 */
 	void expirationPostponeTimeMsec(long msec);
-
+	
 }

@@ -72,6 +72,13 @@ public interface PersistentConveyorMBean {
 	 * @param msec the new expiration postpone time msec
 	 */
 	void expirationPostponeTimeMsec(long msec);
+	
+	/**
+	 * Gets the persistence description.
+	 *
+	 * @return the persistence description
+	 */
+	String getPersistenceDescription();
 
 	
 }

@@ -932,6 +932,10 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						thisConv.setExpirationPostponeTime(msec, TimeUnit.MILLISECONDS);
 					}					
 				}
+				@Override
+				public String getPersistenceDescription() {
+					return ""+forwardPersistence;
+				}
 			}, PersistentConveyorMBean.class, false);
 			
 			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type="+name);
