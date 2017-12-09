@@ -84,7 +84,7 @@ public interface AssemblingConveyorMBean {
 	 *
 	 * @return the expiration pospone time msec
 	 */
-	public String getExpirationPosponeTimeMsec();
+	public long getExpirationPostponeTimeMsec();
 	
 	/**
 	 * Gets the forwarding results to.

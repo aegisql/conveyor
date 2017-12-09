@@ -520,11 +520,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 
 				@Override
-				public String getExpirationPosponeTimeMsec() {
+				public long getExpirationPostponeTimeMsec() {
 					if (thisConv.postponeExpirationEnabled) {
-						return "" + thisConv.postponeExpirationMills;
+						return thisConv.postponeExpirationMills;
 					} else {
-						return "not enabled";
+						return 0;
 					}
 				}
 

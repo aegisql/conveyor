@@ -906,14 +906,14 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					thisConv.completeAndStop();
 				}
 				@Override
-				public void setIdleHeartBeatMsec(long msec) {
+				public void idleHeartBeatMsec(long msec) {
 					if(msec > 0) {
 						thisConv.setIdleHeartBeat(msec, TimeUnit.MILLISECONDS);
 					}					
 				}
 
 				@Override
-				public void setDefaultBuilderTimeoutMsec(long msec) {
+				public void defaultBuilderTimeoutMsec(long msec) {
 					if(msec > 0) {
 						thisConv.setDefaultBuilderTimeout(msec, TimeUnit.MILLISECONDS);
 					}
@@ -927,7 +927,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 
 				@Override
-				public void setExpirationPostponeTimeMsec(long msec) {
+				public void expirationPostponeTimeMsec(long msec) {
 					if(msec > 0) {
 						thisConv.setExpirationPostponeTime(msec, TimeUnit.MILLISECONDS);
 					}					

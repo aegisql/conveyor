@@ -50,14 +50,14 @@ public interface PersistentConveyorMBean {
 	 *
 	 * @param msec the new idle heart beat msec
 	 */
-	void setIdleHeartBeatMsec(long msec);
+	void idleHeartBeatMsec(long msec);
 	
 	/**
 	 * Sets the default builder timeout msec.
 	 *
 	 * @param msec the new default builder timeout msec
 	 */
-	void setDefaultBuilderTimeoutMsec(long msec);
+	void defaultBuilderTimeoutMsec(long msec);
 	
 	/**
 	 * Reject unexpireable carts older than msec.
@@ -71,7 +71,7 @@ public interface PersistentConveyorMBean {
 	 *
 	 * @param msec the new expiration postpone time msec
 	 */
-	void setExpirationPostponeTimeMsec(long msec);
+	void expirationPostponeTimeMsec(long msec);
 
 	
 }
