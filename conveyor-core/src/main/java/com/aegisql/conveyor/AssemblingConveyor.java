@@ -661,7 +661,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private void processManagementCommand(GeneralCommand<K, ?> cmdCart) {
 		commandCounter++;
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("processing command " + cmdCart);
+			LOG.debug("processing command {}", cmdCart);
 		}
 		CommandLabel l = cmdCart.getLabel();
 		try {
