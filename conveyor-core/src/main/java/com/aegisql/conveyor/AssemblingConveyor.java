@@ -10,7 +10,6 @@ import static com.aegisql.conveyor.cart.LoadType.PART;
 import static com.aegisql.conveyor.cart.LoadType.RESULT_CONSUMER;
 import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
 
-import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -32,7 +31,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
@@ -311,7 +309,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		try {
 			lock.waitData(inQueue);
 		} catch (InterruptedException e) {
-			LOG.error("Interrupted ", e);
+			LOG.info("Interrupted {}",name,e);
 			stop();
 		}
 		return running;
@@ -451,8 +449,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 				LOG.info("Leaving {}", Thread.currentThread().getName());
 				drainQueues();
-			} catch (Throwable e) { // Let it crash, but don't pretend its
-									// running
+			} catch (Throwable e) { // Let it crash, but don't pretend it is running
 				stop();
 				throw e;
 			}
@@ -564,25 +561,28 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 				@Override
 				public void stop() {
+					LOG.info("Conveyor {} received JMX stop",name);
 					thisConv.stop();
 					
 				}
 
 				@Override
 				public void completeAndStop() {
+					LOG.info("Conveyor {} received JMX completeAndStop",name);
 					thisConv.completeAndStop();
 				}
 
 				@Override
 				public void interrupt() {
+					LOG.info("Conveyor {} changed received JMX interrupt command",name);
 					thisConv.interrupt(name);
-					
 				}
 
 				@Override
 				public void setIdleHeartBeatMsec(long msec) {
 					if(msec > 0) {
 						thisConv.setIdleHeartBeat(msec, TimeUnit.MILLISECONDS);
+						LOG.info("Conveyor {} changed IdleHeartBeat to {}msec",name,msec);
 					}					
 				}
 
@@ -590,6 +590,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				public void setDefaultBuilderTimeoutMsec(long msec) {
 					if(msec > 0) {
 						thisConv.setDefaultBuilderTimeout(msec, TimeUnit.MILLISECONDS);
+						LOG.info("Conveyor {} changed DefaultBuilderTimeout to {}msec",name,msec);
 					}
 				}
 
@@ -597,6 +598,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				public void rejectUnexpireableCartsOlderThanMsec(long msec) {
 					if(msec > 0) {
 						thisConv.rejectUnexpireableCartsOlderThan(msec, TimeUnit.MILLISECONDS);
+						LOG.info("Conveyor {} changed rejectUnexpireableCartsOlderThan to {}msec",name,msec);
 					}
 				}
 
@@ -604,6 +606,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				public void setExpirationPostponeTimeMsec(long msec) {
 					if(msec > 0) {
 						thisConv.setExpirationPostponeTime(msec, TimeUnit.MILLISECONDS);
+						LOG.info("Conveyor {} changed ExpirationPostponeTime to {}msec",name,msec);
 					}					
 				}
 			}, AssemblingConveyorMBean.class, false);
@@ -904,6 +907,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			this.conveyorFuture.complete(false);
 		}
 		lock.tell();
+		LOG.info("Conveyor {} has stopped!",name);
 	}
 	
 	/**
@@ -911,6 +915,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public CompletableFuture<Boolean> completeAndStop() {
+		LOG.info("Conveyor {} is about to stop",name);
 		if(this.conveyorFuture == null) {
 			synchronized (this.conveyorFutureLock) {
 				if(this.conveyorFuture == null) {
