@@ -300,6 +300,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	private volatile BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT>  currentSite;
 
+	protected String statusLine = "Accepting Parts";
+
 	/**
 	 * Wait data.
 	 *
@@ -443,6 +445,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					if(this.conveyorFuture != null && (inQueue.peek() == null) && (mQueue.peek() == null) && (collector.size() == 0)) {
 						running = false;
 						this.conveyorFuture.complete(true);
+						statusLine = "completed all tasks and stopped";
 						LOG.info("No pending messages or commands. Ready to leave {}", Thread.currentThread().getName());
 					}
 					currentSite = null;
@@ -451,6 +454,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				drainQueues();
 			} catch (Throwable e) { // Let it crash, but don't pretend it is running
 				stop();
+				statusLine = "Unrecoverable error: "+e.getMessage();
 				throw e;
 			}
 		});
@@ -608,6 +612,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						thisConv.setExpirationPostponeTime(msec, TimeUnit.MILLISECONDS);
 						LOG.info("Conveyor {} changed ExpirationPostponeTime to {}msec",name,msec);
 					}					
+				}
+
+				@Override
+				public String getStatus() {
+					return thisConv.statusLine ;
 				}
 			}, AssemblingConveyorMBean.class, false);
 			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type=" + name);
@@ -907,6 +916,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			this.conveyorFuture.complete(false);
 		}
 		lock.tell();
+		statusLine = "stopped";
 		LOG.info("Conveyor {} has stopped!",name);
 	}
 	
@@ -935,6 +945,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 			}
 		}
+		statusLine = "Stopping...";
 		lock.tell();
 		return this.conveyorFuture;
 	}

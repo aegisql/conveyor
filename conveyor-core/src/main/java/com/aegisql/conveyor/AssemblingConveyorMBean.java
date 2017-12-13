@@ -10,6 +10,13 @@ package com.aegisql.conveyor;
 public interface AssemblingConveyorMBean {
 	
 	/**
+	 * Gets the status.
+	 *
+	 * @return the status
+	 */
+	public String getStatus();
+	
+	/**
 	 * Gets the name.
 	 *
 	 * @return the name
