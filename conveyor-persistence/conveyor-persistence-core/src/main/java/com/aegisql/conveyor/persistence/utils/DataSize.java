@@ -64,7 +64,7 @@ public enum DataSize {
 		
 	}
 	
-	BigDecimal multiplier;
+	private final BigDecimal multiplier;
 	
 	DataSize(BigDecimal multiplier) {
 		this.multiplier = multiplier;
