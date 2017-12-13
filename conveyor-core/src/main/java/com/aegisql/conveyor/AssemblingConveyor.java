@@ -445,7 +445,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					if(this.conveyorFuture != null && (inQueue.peek() == null) && (mQueue.peek() == null) && (collector.size() == 0)) {
 						running = false;
 						this.conveyorFuture.complete(true);
-						statusLine = "completed all tasks and stopped";
+						statusLine = "Completed all tasks and stopped";
 						LOG.info("No pending messages or commands. Ready to leave {}", Thread.currentThread().getName());
 					}
 					currentSite = null;
@@ -916,7 +916,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			this.conveyorFuture.complete(false);
 		}
 		lock.tell();
-		statusLine = "stopped";
+		statusLine = "Stopped";
 		LOG.info("Conveyor {} has stopped!",name);
 	}
 	
