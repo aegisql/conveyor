@@ -58,8 +58,8 @@ public class FileArchiverTest {
 			.bucketSize(1000)
 			.maxFileSize(1, DataSize.KB)
 			.partTableName("table")
-			.path("./test")
-			.moveToPath("./archive")
+			.path("."+File.separator+"test")
+			.moveToPath("."+File.separator+"archive")
 			.zipFile(true)
 			.build();
 	
@@ -67,9 +67,9 @@ public class FileArchiverTest {
 	assertTrue(blc.isZipFile());
 	assertEquals(1000, blc.getBucketSize());
 	assertEquals(1024, blc.getMaxSize());
-	assertEquals("./test/", blc.getPath());
-	assertEquals("./test/table.blog", blc.getFilePath());
-	assertTrue(blc.getStampedFilePath().startsWith("./archive/table.20"));
+	assertEquals("."+File.separator+"test"+File.separator, blc.getPath());
+	assertEquals("."+File.separator+"test"+File.separator+"table.blog", blc.getFilePath());
+	assertTrue(blc.getStampedFilePath().startsWith("."+File.separator+"archive"+File.separator+"table.20"));
 	assertTrue(blc.getStampedFilePath().endsWith(".blog"));
 	
 	}
@@ -84,9 +84,9 @@ public class FileArchiverTest {
 	assertFalse(blc.isZipFile());
 	assertEquals(100, blc.getBucketSize());
 	assertEquals(Long.MAX_VALUE, blc.getMaxSize());
-	assertEquals("./", blc.getPath());
-	assertEquals("./part.blog", blc.getFilePath());
-	assertTrue(blc.getStampedFilePath().startsWith("./part.20"));
+	assertEquals("."+File.separator, blc.getPath());
+	assertEquals("."+File.separator+"part.blog", blc.getFilePath());
+	assertTrue(blc.getStampedFilePath().startsWith("."+File.separator+"part.20"));
 	assertTrue(blc.getStampedFilePath().endsWith(".blog"));
 	
 	}

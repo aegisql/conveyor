@@ -80,11 +80,11 @@ public class DelayLineConveyorTest {
 		}).set();
 		c.setIdleHeartBeat(50, TimeUnit.MILLISECONDS);
 				
-		c.part().id(1).value(1).ttl(Duration.ofMillis(11)).place();
-		c.part().id(4).value(4).ttl(Duration.ofMillis(14)).place();
-		c.part().id(2).value(2).ttl(Duration.ofMillis(12)).place();
-		c.part().id(3).value(3).ttl(Duration.ofMillis(13)).place();
-		CompletableFuture<Integer> last = c.future().ttl(Duration.ofMillis(15)).id(5).get();
+		c.part().id(1).value(1).ttl(Duration.ofMillis(110)).place();
+		c.part().id(4).value(4).ttl(Duration.ofMillis(140)).place();
+		c.part().id(2).value(2).ttl(Duration.ofMillis(120)).place();
+		c.part().id(3).value(3).ttl(Duration.ofMillis(130)).place();
+		CompletableFuture<Integer> last = c.future().ttl(Duration.ofMillis(150)).id(5).get();
 		c.part().id(5).value(5).place();
 		
 		assertEquals(new Integer(5), last.get());
