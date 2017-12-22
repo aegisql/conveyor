@@ -1,6 +1,9 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -12,15 +15,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.Acknowledge;
-import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
-import com.aegisql.conveyor.user.User;
 
 public class PersistentConveyorTest {
 
