@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.persistence.jdbc.impl.derby.archive;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,9 +12,12 @@ import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.utils.CartOutputStream;
 
+/**
+ * The Class PersistenceArchiver.
+ *
+ * @param <K> the key type
+ */
 public class PersistenceArchiver<K> implements Archiver<K> {
 	
 	private final static Logger LOG = LoggerFactory.getLogger(PersistenceArchiver.class);

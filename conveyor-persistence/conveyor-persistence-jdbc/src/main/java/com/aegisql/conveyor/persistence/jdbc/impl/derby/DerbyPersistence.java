@@ -137,7 +137,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		/**
 		 * Move to table.
 		 *
-		 * @param archivePersistence the archive table
+		 * @param p the p
 		 * @return the derby persistence builder
 		 */
 		public DerbyPersistenceBuilder<K> moveToOtherPersistence(Persistence<K> p) {
