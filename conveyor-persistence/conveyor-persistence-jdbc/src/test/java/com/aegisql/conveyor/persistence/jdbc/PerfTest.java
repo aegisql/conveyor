@@ -137,6 +137,27 @@ public class PerfTest {
 		}
 	}
 
+	Persistence<Integer> getPersitencePersistence(String table) {
+		try {
+			Thread.sleep(1000);
+
+			Persistence<Integer> archive = DerbyPersistence.forKeyClass(Integer.class)
+					.schema("perfConvArchive")
+					.partTable(table)
+					.completedLogTable(table+"Completed")
+					.labelConverter(TrioPart.class)
+					.build();
+			
+			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
+					.completedLogTable(table + "Completed").labelConverter(TrioPart.class)
+					.whenArchiveRecords().moveToOtherPersistence(archive)
+					.build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
 	
 	List<Integer> getIdList() {
 		List<Integer> t1 = new ArrayList<>();
@@ -454,6 +475,34 @@ public class PerfTest {
 		long toComplete = System.currentTimeMillis();
 
 		System.out.println("testParallelSortedFile data loaded and archived in  " + (toComplete - start) + " msec");
+		assertEquals(testSize, tc.results.size());
+		assertEquals(testSize, tc.counter.get());
+
+	}
+
+	@Test
+	public void testParallelSortedToPersistence() throws InterruptedException {
+		TrioConveyor tc = new TrioConveyor();
+
+		Persistence<Integer> p = getPersitencePersistence("testParallelSortedPersistence");
+		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+		pc.setName("testParallelSortedFile");
+
+		List<Integer> t1 = getIdList();
+		List<Integer> t2 = getIdList();
+		List<Integer> t3 = getIdList();
+		System.out.println("testParallelSortedPersistence " + testSize);
+
+		long start = System.currentTimeMillis();
+		load(pc, t1, t2, t3);
+		long end = System.currentTimeMillis();
+		System.out.println("testParallelSortedPersistence load complete in " + (end - start) + " msec.");
+
+		waitUntilArchived(p.copy());
+
+		long toComplete = System.currentTimeMillis();
+
+		System.out.println("testParallelSortedPersistence data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
 		assertEquals(testSize, tc.counter.get());
 

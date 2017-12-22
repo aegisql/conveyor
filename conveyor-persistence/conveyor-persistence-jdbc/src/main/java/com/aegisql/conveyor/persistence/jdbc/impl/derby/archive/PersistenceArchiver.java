@@ -1,15 +1,20 @@
 package com.aegisql.conveyor.persistence.jdbc.impl.derby.archive;
 
+import java.io.IOException;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.utils.CartOutputStream;
 
 public class PersistenceArchiver<K> implements Archiver<K> {
 	
@@ -46,32 +51,69 @@ public class PersistenceArchiver<K> implements Archiver<K> {
 
 	@Override
 	public void archiveParts(Connection conn, Collection<Long> ids) {
-		// TODO Auto-generated method stub
-		
+		if (ids == null || ids.isEmpty()) {
+			return;
+		}
+		Collection<Cart<K, ?, Object>> parts = persistence.getParts(ids);
+		if(parts != null) {
+			parts.forEach(cart->{
+				archivePersistence.savePart(archivePersistence.nextUniquePartId(), cart);
+			});
+			LOG.debug("Archived parts successfully. About to delete data from {}", partTable);
+			deleteArchiver.archiveParts(conn, ids);
+		}		
 	}
 
 	@Override
 	public void archiveKeys(Connection conn, Collection<K> keys) {
-		// TODO Auto-generated method stub
-		
+		if (keys == null || keys.isEmpty()) {
+			return;
+		}		
+		ArrayList<Long> ids = new ArrayList<>();
+		for(K key:keys) {
+			ids.addAll(persistence.getAllPartIds(key));
+		}
+		archiveParts(conn, ids);
+		LOG.debug("Archived parts for keys successfully. About to delete data from {}", partTable);
+		deleteArchiver.archiveKeys(conn, keys);
+
 	}
 
 	@Override
 	public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
-		// TODO Auto-generated method stub
-		
+		if (keys == null || keys.isEmpty()) {
+			return;
+		}
+		// nothing else required. Just delete completed keys
+		deleteArchiver.archiveCompleteKeys(conn, keys);
 	}
 
 	@Override
 	public void archiveExpiredParts(Connection conn) {
-		// TODO Auto-generated method stub
-		
+		Collection<Cart<K, ?, Object>> parts = persistence.getExpiredParts();
+		Collection<K> keys = new ArrayList<>();
+		if(parts != null) {
+			parts.forEach(cart->{
+				archivePersistence.savePart(archivePersistence.nextUniquePartId(), cart);
+				keys.add(cart.getKey());
+			});
+			archiveKeys(conn, keys);
+			LOG.debug("Archived expired parts successfully. {}", partTable);
+		}		
 	}
 
 	@Override
 	public void archiveAll(Connection conn) {
-		// TODO Auto-generated method stub
-		
+		Collection<Cart<K, ?, Object>> parts = persistence.getAllParts();
+		Collection<K> keys = new ArrayList<>();
+		if(parts != null) {
+			parts.forEach(cart->{
+				archivePersistence.savePart(archivePersistence.nextUniquePartId(), cart);
+				keys.add(cart.getKey());
+			});
+			archiveKeys(conn, keys);
+			LOG.debug("Archived all parts successfully. {}", partTable);
+		}		
 	}
 
 	@Override
