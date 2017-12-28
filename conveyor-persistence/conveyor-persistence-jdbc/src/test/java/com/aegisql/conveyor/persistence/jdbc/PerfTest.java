@@ -23,6 +23,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.ParallelConveyor;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
@@ -31,6 +32,8 @@ import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 import com.aegisql.conveyor.persistence.core.harness.ThreadPool;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
+import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
+import com.aegisql.conveyor.persistence.core.harness.TrioBuilderExpireable;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyorExpireable;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
@@ -256,7 +259,7 @@ public class PerfTest {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitence("testParallelAsorted");
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p.wrapConveyor(tc);
 		pc.setName("testParallelAsorted");
 
 		List<Integer> t1 = getIdListShuffled();
@@ -282,7 +285,7 @@ public class PerfTest {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitence("testParallelSorted");
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p.wrapConveyor(tc);
 		pc.setName("testParallelSorted");
 
 		List<Integer> t1 = getIdList();
@@ -311,7 +314,7 @@ public class PerfTest {
 		TrioConveyorExpireable tc = new TrioConveyorExpireable();
 
 		Persistence<Integer> p = getPersitenceExp("testParallelUnload");
-		PersistentConveyor<Integer, TrioPartExpireable, Trio> pc = new PersistentConveyor(p, tc);
+		PersistentConveyor<Integer, SmartLabel<TrioBuilderExpireable>, Trio> pc = p.wrapConveyor(tc);
 		pc.unloadOnBuilderTimeout(true);
 		pc.setName("testParallelUnload");
 
@@ -382,13 +385,13 @@ public class PerfTest {
 
 		Persistence<Integer> p1 = getPersitence("testParallelAsorted1");
 		Persistence<Integer> p2 = getPersitence("testParallelAsorted2");
-		PersistentConveyor<Integer, TrioPart, Trio> pc1 = new PersistentConveyor(p1, tc1);
-		PersistentConveyor<Integer, TrioPart, Trio> pc2 = new PersistentConveyor(p2, tc2);
-		Stack<PersistentConveyor<Integer, TrioPart, Trio>> st = new Stack<>();
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc1 = p1.wrapConveyor(tc1);
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc2 = p2.wrapConveyor(tc2);
+		Stack<PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio>> st = new Stack<>();
 		st.push(pc1);
 		st.push(pc2);
 
-		ParallelConveyor<Integer, TrioPart, Trio> pc = new KBalancedParallelConveyor<>(() -> st.pop(), 2);
+		ParallelConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = new KBalancedParallelConveyor<>(() -> st.pop(), 2);
 		pc.setName("testParallelParallelAsorted");
 
 		List<Integer> t1 = getIdListShuffled();
@@ -440,7 +443,7 @@ public class PerfTest {
 
 		PersistTestImpl p = new PersistTestImpl();
 		p.setMaxBatchSize(batchSize);
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p.wrapConveyor(tc);
 		pc.setName("testInMemoryPersistence");
 
 		List<Integer> t1 = getIdListShuffled();
@@ -467,7 +470,7 @@ public class PerfTest {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitenceFile("testParallelSortedFile");
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p.wrapConveyor(tc);
 		pc.setName("testParallelSortedFile");
 
 		List<Integer> t1 = getIdList();
@@ -495,7 +498,7 @@ public class PerfTest {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitencePersistence("testParallelSortedPersistence");
-		PersistentConveyor<Integer, TrioPart, Trio> pc = new PersistentConveyor(p, tc);
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p.wrapConveyor(tc);
 		pc.setName("testParallelSortedFile");
 
 		List<Integer> t1 = getIdList();

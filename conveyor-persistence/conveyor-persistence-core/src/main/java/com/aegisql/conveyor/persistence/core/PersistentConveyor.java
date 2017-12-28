@@ -110,7 +110,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param forward
 	 *            the forward
 	 */
-	public PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward) {
+	PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward) {
 
 		ackPersistence = persistence.copy();
 		forwardPersistence = persistence.copy();
@@ -205,7 +205,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param persistence
 	 *            the persistence
 	 */
-	public PersistentConveyor(Persistence<K> persistence) {
+	PersistentConveyor(Persistence<K> persistence) {
 		this(persistence, new AssemblingConveyor<>());
 	}
 
@@ -217,7 +217,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param forwardSupplier
 	 *            the forward supplier
 	 */
-	public PersistentConveyor(Persistence<K> persistence, Supplier<Conveyor<K, L, OUT>> forwardSupplier) {
+	PersistentConveyor(Persistence<K> persistence, Supplier<Conveyor<K, L, OUT>> forwardSupplier) {
 		this(persistence, forwardSupplier.get());
 	}
 

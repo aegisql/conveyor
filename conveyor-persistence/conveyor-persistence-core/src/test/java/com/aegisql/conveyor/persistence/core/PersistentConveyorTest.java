@@ -15,6 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.Acknowledge;
+import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
@@ -133,4 +134,17 @@ public class PersistentConveyorTest {
 		
 	}
 	
+	@Test
+	public void testConveyorCreationApi() {
+		PersistTestImpl p1 = new PersistTestImpl();
+		
+		PersistentConveyor<Integer, TrioPart, Trio> pc1 = p1.getConveyor();
+		
+		pc1.setName("test_name");
+		
+		Conveyor pc2 = Conveyor.byName("test_name");
+		assertEquals(pc1,pc2);
+		
+		
+	}
 }

@@ -4,7 +4,10 @@ import java.io.Closeable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Supplier;
 
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 
 // TODO: Auto-generated Javadoc
@@ -204,5 +207,41 @@ public interface Persistence <K> extends Closeable{
 	 * @return true, if is persistent property
 	 */
 	boolean isPersistentProperty(String property);
+	
+	/**
+	 * Wrap conveyor.
+	 *
+	 * @param <L> the generic type
+	 * @param <OUT> the generic type
+	 * @param conveyor the conveyor
+	 * @return the persistent conveyor
+	 */
+	default <L,OUT> PersistentConveyor<K,L,OUT> wrapConveyor(Conveyor<K,L,OUT> conveyor) {
+		return new PersistentConveyor<>(this,conveyor);
+	}
+
+	/**
+	 * Gets the assembling conveyor.
+	 *
+	 * @param <L> the generic type
+	 * @param <OUT> the generic type
+	 * @return the assembling conveyor
+	 */
+	default <L,OUT> PersistentConveyor<K,L,OUT> getConveyor() {
+		return new PersistentConveyor<>(this,new AssemblingConveyor<>());
+	}
+
+	/**
+	 * Gets the conveyor.
+	 *
+	 * @param <L> the generic type
+	 * @param <OUT> the generic type
+	 * @param conveyor the conveyor
+	 * @return the conveyor
+	 */
+	default <L,OUT> PersistentConveyor<K,L,OUT> getConveyor(Supplier<Conveyor<K,L,OUT>> conveyor) {
+		return new PersistentConveyor<>(this,conveyor.get());
+	}
+
 	
 }
