@@ -30,6 +30,12 @@ public class ConveyorConfiguration {
 	}
 
 	private static void processConfFile(String file) throws IOException {
+		
+		if(file.toLowerCase().startsWith("classpath:")) {
+			String fileSub = file.substring(10);
+			file = ConveyorConfiguration.class.getClassLoader().getResource(fileSub).getPath();
+		}
+		
 		if (file.toLowerCase().endsWith(".properties")) {
 			processProperties(file);
 		} else if (file.toLowerCase().endsWith(".yaml")) {
