@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,8 @@ import com.aegisql.conveyor.Conveyor;
 public class ConveyorConfiguration {
 
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorConfiguration.class);
+
+	private final static Lock lock = new ReentrantLock();
 
 	public static void build(String conf, String... moreConf) throws IOException {
 
@@ -30,18 +34,23 @@ public class ConveyorConfiguration {
 	}
 
 	private static void processConfFile(String file) throws IOException {
-		
-		if(file.toLowerCase().startsWith("classpath:")) {
-			String fileSub = file.substring(10);
-			file = ConveyorConfiguration.class.getClassLoader().getResource(fileSub).getPath();
-		}
-		
-		if (file.toLowerCase().endsWith(".properties")) {
-			processProperties(file);
-		} else if (file.toLowerCase().endsWith(".yaml")) {
-			processYaml(file);
-		} else {
-			throw new ConveyorConfigurationException("Unsupported file type " + file);
+
+		lock.lock();
+		try {
+			if (file.toLowerCase().startsWith("classpath:")) {
+				String fileSub = file.substring(10);
+				file = ConveyorConfiguration.class.getClassLoader().getResource(fileSub).getPath();
+			}
+
+			if (file.toLowerCase().endsWith(".properties")) {
+				processProperties(file);
+			} else if (file.toLowerCase().endsWith(".yaml")) {
+				processYaml(file);
+			} else {
+				throw new ConveyorConfigurationException("Unsupported file type " + file);
+			}
+		} finally {
+			lock.unlock();
 		}
 	}
 
@@ -65,7 +74,6 @@ public class ConveyorConfiguration {
 		for (Object o : p.entrySet()) {
 			LOG.info("Object {} {}", o.getClass(), o);
 		}
-
 
 	}
 
