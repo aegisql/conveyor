@@ -1,6 +1,6 @@
 test:
   testName: test1
 conveyor.test1:
-  idleHeartBeat: 0.5s
-  setDefaultBuilderTimeout: 1s
-  rejectUnexpireableCartsOlderThan: 10s 
+  idleHeartBeat: 2 SECONDS
+  defaultBuilderTimeout: 1  SECONDS
+  rejectUnexpireableCartsOlderThan: 10  SECONDS 

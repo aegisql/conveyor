@@ -32,15 +32,15 @@ public class ConveyorConfigurationTest {
 	}
 
 	@Test
-	public void testSimpleYamlFileByAbsolutePath() throws IOException {
+	public void testSimpleYamlFileByAbsolutePathAndExtYAML() throws IOException {
 		ConveyorConfiguration.build("src/test/resources/test1.yaml");
 		Conveyor<Integer,String,String> c = Conveyor.byName("test1");
 		assertNotNull(c);
 	}
 
 	@Test
-	public void testSimpleYamlFileByClassPath() throws IOException {
-		ConveyorConfiguration.build("classpath:test1.yaml");
+	public void testSimpleYamlFileByClassPathAndExtYML() throws IOException {
+		ConveyorConfiguration.build("classpath:test1.yml");
 		Conveyor<Integer,String,String> c = Conveyor.byName("test1");
 		assertNotNull(c);
 	}

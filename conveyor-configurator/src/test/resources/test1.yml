@@ -1,0 +1,7 @@
+test:
+  testName: test1
+conveyor:
+  test1:
+    idleHeartBeat: 2 SECONDS
+    defaultBuilderTimeout: 1  SECONDS
+    rejectUnexpireableCartsOlderThan: 10 SECONDS 

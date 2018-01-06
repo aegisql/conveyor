@@ -1709,7 +1709,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public void autoAcknowledgeOnStatus(Status first, Status... other) {
 		ackStatusSet = EnumSet.of(first, other);
-		
 	}
 
 	@Override
