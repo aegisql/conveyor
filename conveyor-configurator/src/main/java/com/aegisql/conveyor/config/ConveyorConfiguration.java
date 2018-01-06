@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Status;
 
@@ -40,6 +41,7 @@ public class ConveyorConfiguration {
 		stringConverters.put("enablePostponeExpirationOnTimeout", Boolean::valueOf);
 		stringConverters.put("autoAcknowledge", Boolean::valueOf);
 		stringConverters.put("autoAcknowledgeOnStatus", ConfigUtils.stringToStatusConverter);
+		stringConverters.put("builderSupplier", ConfigUtils.stringToBuilderSupplier);
 				
 	}
 	
@@ -185,7 +187,6 @@ public class ConveyorConfiguration {
 							break;
 						}
 						Status first  = statuses[0];
-						System.err.println("---"+first);
 						Status[] more = null;
 						if(statuses.length > 1) {
 							more = new Status[statuses.length-1];
@@ -194,6 +195,11 @@ public class ConveyorConfiguration {
 							}
 						}
 						c.autoAcknowledgeOnStatus(first, more);
+						break;
+					case "builderSupplier":
+						BuilderSupplier bs = (BuilderSupplier)values.get("builderSupplier");
+						LOG.debug("Apply {}.autoAcknowledge({})",name,bs.getClass());
+						c.setBuilderSupplier(bs);
 						break;
 					default:
 						LOG.warn("Unexpected property name {} in conveyor {} in {}",property,name,file);

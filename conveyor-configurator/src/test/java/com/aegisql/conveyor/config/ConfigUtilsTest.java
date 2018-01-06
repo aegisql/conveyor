@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Status;
 
 public class ConfigUtilsTest {
@@ -116,4 +117,15 @@ public class ConfigUtilsTest {
 
 	}
 
+	@Test
+	public void builderSupplierSupplierTest() {
+		BuilderSupplier bs = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply("new com.aegisql.conveyor.config.StringSupplier()");
+		assertNotNull(bs);
+		StringSupplier o1 = (StringSupplier) bs.get();
+		assertNotNull(o1);
+		StringSupplier o2 = (StringSupplier) bs.get();
+		assertNotNull(o2);
+		assertFalse(o2==o1);
+	}
+	
 }

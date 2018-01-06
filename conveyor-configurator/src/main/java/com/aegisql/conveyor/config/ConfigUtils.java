@@ -3,6 +3,12 @@ package com.aegisql.conveyor.config;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+
+import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Status;
 
 class ConfigUtils {
@@ -34,5 +40,35 @@ class ConfigUtils {
 		return res;
 	};
 
+	private final static String sbjs = "var getStringBuilder = function() {\n" + 
+			"    return %s;" + 
+			"};\n" + 
+			"";
+	
+	public final static Function<String,Object> stringToBuilderSupplier = js-> {
+		
+		ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+		try {
+			engine.eval(String.format(sbjs, js));
+			Invocable invocable = (Invocable) engine;
+			return new BuilderSupplier() {
+				@Override
+				public Object get() {
+					Object result;
+					try {
+						result = invocable.invokeFunction("getStringBuilder");
+						return result;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					return null;
+				}};
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	};
+	
 	
 }
