@@ -3,7 +3,9 @@ package com.aegisql.conveyor.config;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -24,7 +26,7 @@ import com.aegisql.conveyor.Status;
 
 public class ConveyorConfiguration {
 
-	private final Map<String,Map<String,Object>> properties = new HashMap<String, Map<String,Object>>();
+	private final Map<String,Map<String,List<Object>>> properties = new HashMap<String, Map<String,List<Object>>>();
 	
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorConfiguration.class);
 
@@ -125,10 +127,11 @@ public class ConveyorConfiguration {
 			cc.applyPropertyValue(name, propertyName,value);
 			
 		}
-		final Map<String,Object> defaults = cc.properties.get(null);
+		final Map<String,List<Object>> defaults = cc.properties.get(null);
 		
 		cc.properties.forEach((name,values)->{
 			//apply defaults
+			//????? do I want to merge it here
 			for(String defProperty:defaults.keySet()) {
 				if( ! values.containsKey(defProperty)) {
 					values.put(defProperty, defaults.get(defProperty));
@@ -144,62 +147,80 @@ public class ConveyorConfiguration {
 					c = new AssemblingConveyor<>();
 					c.setName(name);
 				}
+				final Conveyor conv = c;
 				for(String property:values.keySet()) {
 					switch (property) {
 					case "idleHeartBeat":
-						long time1 = (long)values.get("idleHeartBeat");
-						LOG.debug("Apply {}.setIdleHeartBeat({},TimeUnit.MILLISECONDS)",name,time1);
-						c.setIdleHeartBeat(time1,TimeUnit.MILLISECONDS);
+						values.get("idleHeartBeat").forEach(obj->{
+							long time1 = (long)obj;
+							LOG.debug("Apply {}.setIdleHeartBeat({},TimeUnit.MILLISECONDS)",name,time1);
+							conv.setIdleHeartBeat(time1,TimeUnit.MILLISECONDS);
+						});
 						break;
 					case "defaultBuilderTimeout":
-						long time2 = (long)values.get("defaultBuilderTimeout");
-						LOG.debug("Apply {}.setDefaultBuilderTimeout({},TimeUnit.MILLISECONDS)",name,time2);
-						c.setDefaultBuilderTimeout(time2,TimeUnit.MILLISECONDS);
+						values.get("defaultBuilderTimeout").forEach(obj->{
+							long time2 = (long)obj;
+							LOG.debug("Apply {}.setDefaultBuilderTimeout({},TimeUnit.MILLISECONDS)",name,time2);
+							conv.setDefaultBuilderTimeout(time2,TimeUnit.MILLISECONDS);
+						});
 						break;
 					case "rejectUnexpireableCartsOlderThan":
-						long time3 = (long)values.get("rejectUnexpireableCartsOlderThan");
-						LOG.debug("Apply {}.rejectUnexpireableCartsOlderThan({},TimeUnit.MILLISECONDS)",name,time3);
-						c.rejectUnexpireableCartsOlderThan(time3,TimeUnit.MILLISECONDS);
+						values.get("rejectUnexpireableCartsOlderThan").forEach(obj->{
+							long time3 = (long)obj;
+							LOG.debug("Apply {}.rejectUnexpireableCartsOlderThan({},TimeUnit.MILLISECONDS)",name,time3);
+							conv.rejectUnexpireableCartsOlderThan(time3,TimeUnit.MILLISECONDS);
+						});
 						break;
 					case "expirationPostponeTime":
-						long time4 = (long)values.get("expirationPostponeTime");
-						LOG.debug("Apply {}.expirationPostponeTime({},TimeUnit.MILLISECONDS)",name,time4);
-						c.setExpirationPostponeTime(time4,TimeUnit.MILLISECONDS);
+						values.get("expirationPostponeTime").forEach(obj->{
+							long time4 = (long)obj;
+							LOG.debug("Apply {}.expirationPostponeTime({},TimeUnit.MILLISECONDS)",name,time4);
+							conv.setExpirationPostponeTime(time4,TimeUnit.MILLISECONDS);
+						});
 						break;
 					case "enablePostponeExpiration":
-						boolean flag1 = (boolean)values.get("enablePostponeExpiration");
-						LOG.debug("Apply {}.enablePostponeExpiration({})",name,flag1);
-						c.enablePostponeExpiration(flag1);
+						values.get("enablePostponeExpiration").forEach(obj->{
+							boolean flag1 = (boolean)obj;
+							LOG.debug("Apply {}.enablePostponeExpiration({})",name,flag1);
+							conv.enablePostponeExpiration(flag1);
+						});
 						break;
 					case "enablePostponeExpirationOnTimeout":
-						boolean flag2 = (boolean)values.get("enablePostponeExpirationOnTimeout");
-						LOG.debug("Apply {}.enablePostponeExpirationOnTimeout({})",name,flag2);
-						c.enablePostponeExpirationOnTimeout(flag2);
+						values.get("enablePostponeExpirationOnTimeout").forEach(obj->{
+							boolean flag2 = (boolean)obj;
+							LOG.debug("Apply {}.enablePostponeExpirationOnTimeout({})",name,flag2);
+							conv.enablePostponeExpirationOnTimeout(flag2);
+						});
 						break;
 					case "autoAcknowledge":
-						boolean flag3 = (boolean)values.get("autoAcknowledge");
-						LOG.debug("Apply {}.autoAcknowledge({})",name,flag3);
-						c.setAutoAcknowledge(flag3);
+						values.get("autoAcknowledge").forEach(obj->{
+							boolean flag3 = (boolean)obj;
+							LOG.debug("Apply {}.autoAcknowledge({})",name,flag3);
+							conv.setAutoAcknowledge(flag3);
+						});
 						break;
 					case "autoAcknowledgeOnStatus":
-						Status[] statuses = (Status[]) values.get("autoAcknowledgeOnStatus");
-						if(statuses.length == 0) {
-							break;
-						}
-						Status first  = statuses[0];
-						Status[] more = null;
-						if(statuses.length > 1) {
-							more = new Status[statuses.length-1];
-							for(int i = 1; i < statuses.length; i++) {
-								more[i-1] = statuses[i];
+						values.get("autoAcknowledgeOnStatus").forEach(obj->{
+							Status[] statuses = (Status[])obj;
+							if(statuses.length != 0) {
+								Status first  = statuses[0];
+								Status[] more = null;
+								if(statuses.length > 1) {
+									more = new Status[statuses.length-1];
+									for(int i = 1; i < statuses.length; i++) {
+										more[i-1] = statuses[i];
+									}
+								}
+								conv.autoAcknowledgeOnStatus(first, more);
 							}
-						}
-						c.autoAcknowledgeOnStatus(first, more);
+						});
 						break;
 					case "builderSupplier":
-						BuilderSupplier bs = (BuilderSupplier)values.get("builderSupplier");
-						LOG.debug("Apply {}.autoAcknowledge({})",name,bs.getClass());
-						c.setBuilderSupplier(bs);
+						values.get("builderSupplier").forEach(obj->{
+							BuilderSupplier bs = (BuilderSupplier)obj;
+							LOG.debug("Apply {}.builderSupplier({})",name,bs.getClass());
+							conv.setBuilderSupplier(bs);
+						});
 						break;
 					default:
 						LOG.warn("Unexpected property name {} in conveyor {} in {}",property,name,file);
@@ -211,12 +232,17 @@ public class ConveyorConfiguration {
 	}
 
 	private void applyPropertyValue(String name, String propertyName, String value) {
-		Map<String,Object> property = properties.get(name);
+		Map<String,List<Object>> property = properties.get(name);
 		if(property == null) {
 			property = new HashMap<>();
 			properties.put(name, property);
 		}
-		property.put(propertyName, stringConverters.get(propertyName).apply(value));
+		List<Object> list = property.get(propertyName);
+		if(list == null) {
+			list = new ArrayList<>();
+			property.put(propertyName, list);
+		}
+		list.add(stringConverters.get(propertyName).apply(value));
 	}
 
 	@Override
