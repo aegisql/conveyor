@@ -40,10 +40,15 @@ class ConfigUtils {
 		return res;
 	};
 
-	private final static String sbjs = "var getStringBuilder = function() {\n" + 
-			"    return %s;" + 
-			"};\n" + 
-			"";
+	private final static String sbjs = 
+			  "var getBuilderSupplier = function() {\n" 
+			+ "		var BuilderSupplier = Java.type('com.aegisql.conveyor.BuilderSupplier');\n"
+			+ "		var SupplierImpl = Java.extend(BuilderSupplier, {\n"
+			+ "			get: function() {\n"
+	        + "				return %s\n;"
+	    		+ "			}});\n"
+			+ "    return new SupplierImpl();\n" 
+			+ "};\n";
 	
 	public final static Function<String,Object> stringToBuilderSupplier = js-> {
 		
@@ -51,18 +56,8 @@ class ConfigUtils {
 		try {
 			engine.eval(String.format(sbjs, js));
 			Invocable invocable = (Invocable) engine;
-			return new BuilderSupplier() {
-				@Override
-				public Object get() {
-					Object result;
-					try {
-						result = invocable.invokeFunction("getStringBuilder");
-						return result;
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					return null;
-				}};
+			Object result = invocable.invokeFunction("getBuilderSupplier");
+			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

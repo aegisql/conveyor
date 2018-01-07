@@ -119,7 +119,7 @@ public class ConfigUtilsTest {
 
 	@Test
 	public void builderSupplierSupplierTest() {
-		BuilderSupplier bs = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply("new com.aegisql.conveyor.config.StringSupplier()");
+		BuilderSupplier bs = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply("new com.aegisql.conveyor.config.StringSupplier('test2')");
 		assertNotNull(bs);
 		StringSupplier o1 = (StringSupplier) bs.get();
 		assertNotNull(o1);
