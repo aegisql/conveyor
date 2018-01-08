@@ -68,7 +68,7 @@ public class ConveyorConfiguration {
 
 	}
 
-	private static void processConfFile(String file) throws IOException {
+	private static void processConfFile(String file) {
 
 		lock.lock();
 		try {
@@ -85,6 +85,8 @@ public class ConveyorConfiguration {
 				throw new ConveyorConfigurationException("Unsupported file type " + file);
 			}
 			LOG.info("COMPLETE {}",cc);
+		} catch(Exception e) {
+			throw new ConveyorConfigurationException("Error while processing file "+file,e);
 		} finally {
 			lock.unlock();
 		}
@@ -104,7 +106,7 @@ public class ConveyorConfiguration {
 
 	private static ConveyorConfiguration processProperties(String file) throws IOException {
 		ConveyorConfiguration cc = new ConveyorConfiguration();
-		Properties p = new Properties();
+		OrderedProperties p = new OrderedProperties();
 		FileReader reader = new FileReader(file);
 		p.load(reader);
 		for (Entry<Object, Object> o : p.entrySet()) {
