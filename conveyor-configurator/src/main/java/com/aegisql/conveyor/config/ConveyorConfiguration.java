@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -23,16 +23,18 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Status;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
 public class ConveyorConfiguration {
 
-	private final Map<String,Map<String,List<Object>>> properties = new HashMap<String, Map<String,List<Object>>>();
+	private final Map<String,Map<String,List<Object>>> properties = new LinkedHashMap<String, Map<String,List<Object>>>();
 	
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorConfiguration.class);
 
 	private final static Lock lock = new ReentrantLock();
 	
-	private final static Map<String,Function<String,Object>> stringConverters = new HashMap<>();
+	private final static Map<String,Function<String,Object>> stringConverters = new LinkedHashMap<>();
 	
 	static {
 		stringConverters.put("idleHeartBeat", ConfigUtils.timeToMillsConverter);
@@ -44,11 +46,14 @@ public class ConveyorConfiguration {
 		stringConverters.put("autoAcknowledge", Boolean::valueOf);
 		stringConverters.put("autoAcknowledgeOnStatus", ConfigUtils.stringToStatusConverter);
 		stringConverters.put("builderSupplier", ConfigUtils.stringToBuilderSupplier);
-				
+		stringConverters.put("firstResultConsumer", ConfigUtils.stringToResultConsumerSupplier);
+		stringConverters.put("nextResultConsumer", ConfigUtils.stringToResultConsumerSupplier);
+		stringConverters.put("firstScrapConsumer", ConfigUtils.stringToScrapConsumerSupplier);
+		stringConverters.put("nextScrapConsumer", ConfigUtils.stringToScrapConsumerSupplier);
 	}
 	
 	ConveyorConfiguration() {
-		properties.put(null, new HashMap<>());
+		properties.put(null, new LinkedHashMap<>());
 	}
 
 	public static void build(String conf, String... moreConf) throws IOException {
@@ -222,6 +227,34 @@ public class ConveyorConfiguration {
 							conv.setBuilderSupplier(bs);
 						});
 						break;
+					case "firstResultConsumer":
+						values.get("firstResultConsumer").forEach(obj->{
+							ResultConsumer rc = (ResultConsumer) obj;
+							LOG.debug("Apply {}.firstResultConsumer({})",name,rc);
+							conv.resultConsumer(rc).set();
+						});
+						break;
+					case "nextResultConsumer":
+						values.get("nextResultConsumer").forEach(obj->{
+							ResultConsumer rc = (ResultConsumer) obj;
+							LOG.debug("Apply {}.nextResultConsumer({})",name,rc);
+							conv.resultConsumer().andThen(rc).set();
+						});
+						break;
+					case "firstScrapConsumer":
+						values.get("firstScrapConsumer").forEach(obj->{
+							ScrapConsumer sc = (ScrapConsumer) obj;
+							LOG.debug("Apply {}.firstScrapConsumer({})",name,sc);
+							conv.scrapConsumer(sc).set();
+						});
+						break;
+					case "nextScrapConsumer":
+						values.get("nextScrapConsumer").forEach(obj->{
+							ScrapConsumer sc = (ScrapConsumer) obj;
+							LOG.debug("Apply {}.nextScrapConsumer({})",name,sc);
+							conv.scrapConsumer().andThen(sc).set();
+						});
+						break;
 					default:
 						LOG.warn("Unexpected property name {} in conveyor {} in {}",property,name,file);
 					}
@@ -234,7 +267,7 @@ public class ConveyorConfiguration {
 	private void applyPropertyValue(String name, String propertyName, String value) {
 		Map<String,List<Object>> property = properties.get(name);
 		if(property == null) {
-			property = new HashMap<>();
+			property = new LinkedHashMap<>();
 			properties.put(name, property);
 		}
 		List<Object> list = property.get(propertyName);

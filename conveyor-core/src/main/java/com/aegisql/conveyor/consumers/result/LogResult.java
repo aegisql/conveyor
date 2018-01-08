@@ -1,7 +1,5 @@
 package com.aegisql.conveyor.consumers.result;
 
-import java.util.function.Consumer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +14,8 @@ import com.aegisql.conveyor.ProductBin;
  * @param <E> the element type
  */
 public class LogResult <K,E> implements ResultConsumer<K,E> {
+
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The Enum Level.

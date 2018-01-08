@@ -9,7 +9,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.ScrapBin;
+import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.Status;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.consumers.result.ResultCounter;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+import com.aegisql.conveyor.consumers.scrap.ScrapCounter;
 
 public class ConfigUtilsTest {
 
@@ -126,6 +133,44 @@ public class ConfigUtilsTest {
 		StringSupplier o2 = (StringSupplier) bs.get();
 		assertNotNull(o2);
 		assertFalse(o2==o1);
+		assertEquals("test2", o1.get());
+		assertEquals("test2", o2.get());
 	}
+
+	public static ResultCounter rCounter = new ResultCounter<>();
+	public static ScrapCounter  sCounter = new ScrapCounter<>();
+	
+	@Test
+	public void resultConsumerSupplierTest() {
+		ResultConsumer rc = (ResultConsumer)ConfigUtils.stringToResultConsumerSupplier.apply("new com.aegisql.conveyor.consumers.result.LogResult()");
+		assertNotNull(rc);
+		rc.accept(new ProductBin(1, "test", 10000, Status.READY, null, null));
+	}
+
+	@Test
+	public void resultConsumerSupplierTest2() {
+		ResultConsumer rc = (ResultConsumer)ConfigUtils.stringToResultConsumerSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.rCounter");
+		assertNotNull(rc);
+		assertEquals(0, rCounter.get());
+		rc.accept(null);
+		assertEquals(1, rCounter.get());
+	}
+
+	@Test
+	public void scrapConsumerSupplierTest() {
+		ScrapConsumer rc = (ScrapConsumer)ConfigUtils.stringToScrapConsumerSupplier.apply("new com.aegisql.conveyor.consumers.scrap.LogScrap()");
+		assertNotNull(rc);
+		rc.accept(new ScrapBin(1, "scrap", "test", null	, FailureType.BUILD_EXPIRED, null, null));
+	}
+
+	@Test
+	public void scrapConsumerSupplierTest2() {
+		ScrapConsumer rc = (ScrapConsumer)ConfigUtils.stringToScrapConsumerSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.sCounter");
+		assertNotNull(rc);
+		assertEquals(0, sCounter.get());
+		rc.accept(null);
+		assertEquals(1, sCounter.get());
+	}
+
 	
 }
