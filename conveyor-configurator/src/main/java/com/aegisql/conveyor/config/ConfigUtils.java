@@ -198,5 +198,27 @@ class ConfigUtils {
 			throw new ConveyorConfigurationException("stringToReadinessEvaluatorSupplier error",e);
 		}		
 	};
-	
+
+	private final static String biConsumerJs = 
+			  "var getBiConsumer = function() {\n" 
+			+ "		var BiConsumer = Java.type('java.util.function.BiConsumer');\n"
+			+ "     var consumer = %s;"
+			+ "		var SupplierImpl = Java.extend(BiConsumer, {\n"
+			+ "			accept: function(a,b) {\n"
+	        + "				consumer.accept(a,b)\n;"
+	    		+ "			}});\n"
+			+ "    return new SupplierImpl();\n" 
+			+ "};\n";
+
+	public final static Function<String,Object> stringToBiConsumerSupplier = js -> {
+		try {
+			engine.eval(String.format(biConsumerJs, js));
+			Invocable invocable = (Invocable) engine;
+			Object result = invocable.invokeFunction("getBiConsumer");
+			return result;
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("stringToBiConsumerSupplier error",e);
+		}
+	};
+
 }

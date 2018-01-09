@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -58,6 +59,7 @@ public class ConveyorConfiguration {
 		stringConverters.put("readinessEvaluator", ConfigUtils.stringToReadinessEvaluatorSupplier);
 		stringConverters.put("addCartBeforePlacementValidator", ConfigUtils.stringToConsumerSupplier);
 		stringConverters.put("addBeforeKeyEvictionAction", ConfigUtils.stringToConsumerSupplier);
+		stringConverters.put("addBeforeKeyReschedulingAction", ConfigUtils.stringToBiConsumerSupplier);
 		
 	}
 	
@@ -313,6 +315,13 @@ public class ConveyorConfiguration {
 							Consumer cons = (Consumer) obj;
 							LOG.debug("Apply {}.addBeforeKeyEvictionAction({})",name,cons);
 							conv.addBeforeKeyEvictionAction(cons);
+						});
+						break;
+					case "addBeforeKeyReschedulingAction":
+						values.get("addBeforeKeyReschedulingAction").forEach(obj->{
+							BiConsumer cons = (BiConsumer) obj;
+							LOG.debug("Apply {}.addBeforeKeyReschedulingAction({})",name,cons);
+							conv.addBeforeKeyReschedulingAction(cons);
 						});
 						break;
 					default:

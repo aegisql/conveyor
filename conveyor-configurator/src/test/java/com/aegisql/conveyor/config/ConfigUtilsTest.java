@@ -2,6 +2,7 @@ package com.aegisql.conveyor.config;
 
 import static org.junit.Assert.*;
 
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -285,6 +286,19 @@ public class ConfigUtilsTest {
 	public static Consumer<AcknowledgeStatus> beforeEviction = status->{
 		System.out.println("ack status "+status);
 	};
+
+	public static BiConsumer<Integer,String> beforeReschedule = (k,v)->{
+		System.out.println("reschedule "+k+" "+v);
+	};
+
+	@Test
+	public void testBiconsValidator() {
+		BiConsumer ta = (BiConsumer) ConfigUtils.stringToBiConsumerSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.beforeReschedule");
+		assertNotNull(ta);
+		System.out.println(ta.getClass());
+		beforeReschedule.accept(1,"a");
+		ta.accept(1,"b");
+	}
 
 	
 }
