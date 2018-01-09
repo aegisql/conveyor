@@ -2,7 +2,9 @@ package com.aegisql.conveyor.config;
 
 import static org.junit.Assert.*;
 
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -15,6 +17,7 @@ import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.ScrapBin.FailureType;
+import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.config.harness.IntegerSupplier;
 import com.aegisql.conveyor.config.harness.StringSupplier;
 import com.aegisql.conveyor.Status;
@@ -226,4 +229,38 @@ public class ConfigUtilsTest {
 		lvc.accept("label","value",new StringSupplier("A"));
 		lc.accept("label","value",new StringSupplier("B"));
 	}
+	
+	public static Predicate<StringSupplier> predRE = ss -> {
+		System.out.println("PREDICATE TEST "+ss.get());
+		return true;
+	};
+
+	public static BiPredicate<State, StringSupplier> biPredRE = (state,ss)->{
+		System.out.println("BI-PREDICATE TEST "+ss.get());
+		return true;
+	};
+	
+	@Test
+	public void readinessEvaluatorPredicateTest() {
+
+		System.out.println(Predicate.class.isAssignableFrom(predRE.getClass()));
+		System.out.println(Predicate.class.isAssignableFrom(biPredRE.getClass()));
+
+		System.out.println(BiPredicate.class.isAssignableFrom(predRE.getClass()));
+		System.out.println(BiPredicate.class.isAssignableFrom(biPredRE.getClass()));
+		
+		Predicate p = (Predicate)ConfigUtils.stringToReadinessEvaluatorSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.predRE");
+		assertNotNull(p);
+		assertTrue(p.test(new StringSupplier("A")));
+		//conveyor.test2.readinessEvaluator = com.aegisql.conveyor.config.ConfigUtilsTest.biPredRE
+		//conveyor.test2.readinessEvaluator = com.aegisql.conveyor.config.ConfigUtilsTest.predRE
+	}
+
+	@Test
+	public void readinessEvaluatorBiPredicateTest() {
+		BiPredicate p = (BiPredicate)ConfigUtils.stringToReadinessEvaluatorSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.biPredRE");
+		assertNotNull(p);
+		assertTrue(p.test(new State(p, 0, 0, 0, 0, 0, null, null),new StringSupplier("A")));
+	}
+
 }

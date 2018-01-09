@@ -169,5 +169,34 @@ class ConfigUtils {
 		}		
 	};
 
+	private final static String getReadinessEvaluatorJs = 
+			  "var getReadinessEvaluator = function() {\n" 
+			+ "		var Predicate = Java.type('java.util.function.Predicate');\n"
+			+ "		var BiPredicate = Java.type('java.util.function.BiPredicate');\n"
+			+ "     var re = %s;"
+			+ "		var REImpl;\n"
+			+ "		if(BiPredicate.class.isAssignableFrom(re.getClass())) {\n"
+			+ "			REImpl = Java.extend(BiPredicate, {\n"
+			+ "				test: function(a,b) {\n"
+	        + "					return re.test(a,b)\n;"
+	    		+ "				}});}\n"
+			+ "		if(Predicate.class.isAssignableFrom(re.getClass())) {\n"
+			+ "			REImpl = Java.extend(Predicate, {\n"
+			+ "				test: function(a) {\n"
+	        + "					return re.test(a)\n;"
+	    		+ "				}});}\n"
+			+ "    return new REImpl();\n" 
+			+ "};\n";
+
+	public static final Function<String, Object> stringToReadinessEvaluatorSupplier = js -> {
+		try {
+			engine.eval(String.format(getReadinessEvaluatorJs, js));
+			Invocable invocable = (Invocable) engine;
+			Object result = invocable.invokeFunction("getReadinessEvaluator");
+			return result;
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("stringToReadinessEvaluatorSupplier error",e);
+		}		
+	};
 	
 }

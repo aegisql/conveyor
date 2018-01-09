@@ -11,8 +11,10 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +55,7 @@ public class ConveyorConfiguration {
 		stringConverters.put("staticPart", ConfigUtils.stringToLabelValuePairSupplier);
 		stringConverters.put("onTimeoutAction", ConfigUtils.stringToOnTimeoutActionSupplier);
 		stringConverters.put("defaultCartConsumer", ConfigUtils.stringToLabeledValueConsumerSupplier);
+		stringConverters.put("readinessEvaluator", ConfigUtils.stringToReadinessEvaluatorSupplier);
 		
 	}
 	
@@ -279,6 +282,21 @@ public class ConveyorConfiguration {
 							LabeledValueConsumer ta = (LabeledValueConsumer) obj;
 							LOG.debug("Apply {}.defaultCartConsumer({})",name,ta);
 							conv.setDefaultCartConsumer(ta);
+						});
+						break;
+					case "readinessEvaluator":
+						values.get("readinessEvaluator").forEach(obj->{
+							if(obj instanceof BiPredicate) {
+								BiPredicate re = (BiPredicate) obj;
+								LOG.debug("Apply {}.readinessEvaluator(BiPredicate {})",name,re);
+								conv.setReadinessEvaluator(re);
+							} else if(obj instanceof Predicate) {
+								Predicate re = (Predicate) obj;
+								LOG.debug("Apply {}.readinessEvaluator(Predicate {})",name,re);
+								conv.setReadinessEvaluator(re);
+							} else {
+								throw new ConveyorConfigurationException("Unexpected readinessEvaluator type "+obj.getClass());
+							}
 						});
 						break;
 					default:
