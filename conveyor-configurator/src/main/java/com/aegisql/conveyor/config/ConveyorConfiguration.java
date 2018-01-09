@@ -7,9 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -23,6 +21,7 @@ import org.yaml.snakeyaml.Yaml;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
@@ -53,6 +52,7 @@ public class ConveyorConfiguration {
 		stringConverters.put("nextScrapConsumer", ConfigUtils.stringToScrapConsumerSupplier);
 		stringConverters.put("staticPart", ConfigUtils.stringToLabelValuePairSupplier);
 		stringConverters.put("onTimeoutAction", ConfigUtils.stringToOnTimeoutActionSupplier);
+		stringConverters.put("defaultCartConsumer", ConfigUtils.stringToLabeledValueConsumerSupplier);
 		
 	}
 	
@@ -272,6 +272,13 @@ public class ConveyorConfiguration {
 							Consumer ta = (Consumer) obj;
 							LOG.debug("Apply {}.onTimeoutAction({})",name,ta);
 							conv.setOnTimeoutAction(ta);
+						});
+						break;
+					case "defaultCartConsumer":
+						values.get("defaultCartConsumer").forEach(obj->{
+							LabeledValueConsumer ta = (LabeledValueConsumer) obj;
+							LOG.debug("Apply {}.defaultCartConsumer({})",name,ta);
+							conv.setDefaultCartConsumer(ta);
 						});
 						break;
 					default:

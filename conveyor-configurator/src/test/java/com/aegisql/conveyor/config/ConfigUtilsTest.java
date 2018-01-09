@@ -11,6 +11,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.ScrapBin.FailureType;
@@ -204,15 +205,25 @@ public class ConfigUtilsTest {
 	public static Consumer<StringSupplier> timeoutAction = ss->{
 		System.out.println("timeout "+ss.get());
 	};
-	
+		
 	@Test
 	public void testOnTimeoutActionSupplier() {
 		Consumer<StringSupplier> ta = (Consumer<StringSupplier>) ConfigUtils.stringToOnTimeoutActionSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.timeoutAction");
 		assertNotNull(ta);
 		System.out.println(ta.getClass());
-		timeoutAction.accept(new StringSupplier());
-		ta.accept(new StringSupplier());
+		timeoutAction.accept(new StringSupplier("A"));
+		ta.accept(new StringSupplier("B"));
 	}
  	
-	
+	public static LabeledValueConsumer<String,String,StringSupplier> lvc = (l,v,ss)->{
+		System.out.println("consume "+l+" = "+v+": "+ss.get());
+	};
+
+	@Test
+	public void labeledValueConsumerTest() {
+		LabeledValueConsumer lc = (LabeledValueConsumer)ConfigUtils.stringToLabeledValueConsumerSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.lvc");
+		assertNotNull(lc);
+		lvc.accept("label","value",new StringSupplier("A"));
+		lc.accept("label","value",new StringSupplier("B"));
+	}
 }

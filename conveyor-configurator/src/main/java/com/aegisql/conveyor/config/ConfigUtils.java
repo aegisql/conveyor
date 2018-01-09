@@ -147,5 +147,27 @@ class ConfigUtils {
 		}
 	};
 
+	private final static String getLabeledValueConsumerJs = 
+			  "var getLabeledValueConsumer = function() {\n" 
+			+ "		var LabeledValueConsumer = Java.type('com.aegisql.conveyor.LabeledValueConsumer');\n"
+			+ "     var consumer = %s;"
+			+ "		var SupplierImpl = Java.extend(LabeledValueConsumer, {\n"
+			+ "			accept: function(l,v,b) {\n"
+	        + "				consumer.accept(l,v,b)\n;"
+	    		+ "			}});\n"
+			+ "    return new SupplierImpl();\n" 
+			+ "};\n";
+
+	public static final Function<String,Object> stringToLabeledValueConsumerSupplier = js -> {
+		try {
+			engine.eval(String.format(getLabeledValueConsumerJs, js));
+			Invocable invocable = (Invocable) engine;
+			Object result = invocable.invokeFunction("getLabeledValueConsumer");
+			return result;
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("stringToLabeledValueConsumerSupplier error",e);
+		}		
+	};
+
 	
 }
