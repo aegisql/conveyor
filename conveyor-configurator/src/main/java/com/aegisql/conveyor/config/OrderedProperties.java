@@ -1,46 +1,35 @@
 package com.aegisql.conveyor.config;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.LinkedHashMap;
-import java.util.Set;
+import java.util.LinkedList;
 
-/**Copy of original Java8 Properties class with LinkedHashMap support and removed XML and write support*/
-class OrderedProperties extends LinkedHashMap<Object,Object> {
+/**Loader is a copy of original Java8 Properties class with LinkedList support and removed XML and write support
+ * @author  Arthur van Hoff
+ * @author  Michael McCloskey
+ * @author  Xueming Shen
+ * @author  Mikhail Teplitskiy
+ * */
+class OrderedProperties extends LinkedList<Pair<String,String>> {
 
 	private static final long serialVersionUID = 1L;
-
-    /**
-     * A property list that contains default values for any keys not
-     * found in this property list.
-     *
-     * @serial
-     */
-    protected OrderedProperties defaults;
 
     /**
      * Creates an empty property list with no default values.
      */
     public OrderedProperties() {
-    		this(null);
+    		super();
     }
 
-    /**
-     * Creates an empty property list with the specified defaults.
-     *
-     * @param   defaults   the defaults.
-     */
-    public OrderedProperties(OrderedProperties defaults) {
-        this.defaults = defaults;
+    public synchronized Object addProperty(String key, String value) {
+        return add(new Pair<String,String>(key, value));
     }
 
-    public synchronized Object setProperty(String key, String value) {
-        return put(key, value);
+    public synchronized void load(String file) throws IOException {
+        load0(new LineReader(new FileReader(file)));
     }
-
 
     public synchronized void load(Reader reader) throws IOException {
         load0(new LineReader(reader));
@@ -65,7 +54,6 @@ class OrderedProperties extends LinkedHashMap<Object,Object> {
             valueStart = limit;
             hasSep = false;
 
-            //System.out.println("line=<" + new String(lineBuf, 0, limit) + ">");
             precedingBackslash = false;
             while (keyLen < limit) {
                 c = lr.lineBuf[keyLen];
@@ -98,7 +86,7 @@ class OrderedProperties extends LinkedHashMap<Object,Object> {
             }
             String key = loadConvert(lr.lineBuf, 0, keyLen, convtBuf);
             String value = loadConvert(lr.lineBuf, valueStart, limit - valueStart, convtBuf);
-            put(key, value);
+            add(new Pair<String,String>(key, value));
         }
     }
 
@@ -297,50 +285,6 @@ class OrderedProperties extends LinkedHashMap<Object,Object> {
             }
         }
         return new String (out, 0, outLen);
-    }
-
-    public String getProperty(String key) {
-        Object oval = super.get(key);
-        String sval = (oval instanceof String) ? (String)oval : null;
-        return ((sval == null) && (defaults != null)) ? defaults.getProperty(key) : sval;
-    }
-
-    public String getProperty(String key, String defaultValue) {
-        String val = getProperty(key);
-        return (val == null) ? defaultValue : val;
-    }
-
-    public Enumeration<?> propertyNames() {
-        Hashtable<String,Object> h = new Hashtable<>();
-        enumerate(h);
-        return h.keys();
-    }
-
-    public Set<String> stringPropertyNames() {
-        Hashtable<String, String> h = new Hashtable<>();
-        enumerateStringProperties(h);
-        return h.keySet();
-    }
-
-    private synchronized void enumerate(Hashtable<String,Object> h) {
-        if (defaults != null) {
-            defaults.enumerate(h);
-        }
-        for (Object key:keySet()) {
-            h.put((String)key, get(key));
-        }
-    }
-
-    private synchronized void enumerateStringProperties(Hashtable<String, String> h) {
-        if (defaults != null) {
-            defaults.enumerateStringProperties(h);
-        }
-        for (Object k:keySet()) {
-            Object v = get(k);
-            if (k instanceof String && v instanceof String) {
-                h.put((String) k, (String) v);
-            }
-        }
     }
 
 }

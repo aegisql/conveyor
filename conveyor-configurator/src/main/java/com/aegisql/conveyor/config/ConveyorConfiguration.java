@@ -50,6 +50,8 @@ public class ConveyorConfiguration {
 		stringConverters.put("nextResultConsumer", ConfigUtils.stringToResultConsumerSupplier);
 		stringConverters.put("firstScrapConsumer", ConfigUtils.stringToScrapConsumerSupplier);
 		stringConverters.put("nextScrapConsumer", ConfigUtils.stringToScrapConsumerSupplier);
+		stringConverters.put("staticPart", ConfigUtils.stringToLabelValuePairSupplier);
+		
 	}
 	
 	ConveyorConfiguration() {
@@ -107,11 +109,10 @@ public class ConveyorConfiguration {
 	private static ConveyorConfiguration processProperties(String file) throws IOException {
 		ConveyorConfiguration cc = new ConveyorConfiguration();
 		OrderedProperties p = new OrderedProperties();
-		FileReader reader = new FileReader(file);
-		p.load(reader);
-		for (Entry<Object, Object> o : p.entrySet()) {
-			String key   = o.getKey().toString();
-			String value = o.getValue().toString();
+		p.load(file);
+		for (Pair<String, String> o : p) {
+			String key   = o.label;
+			String value = o.value;
 			if( ! key.toUpperCase().startsWith("CONVEYOR.") ){
 				continue;
 			}
@@ -255,6 +256,13 @@ public class ConveyorConfiguration {
 							ScrapConsumer sc = (ScrapConsumer) obj;
 							LOG.debug("Apply {}.nextScrapConsumer({})",name,sc);
 							conv.scrapConsumer().andThen(sc).set();
+						});
+						break;
+					case "staticPart":
+						values.get("staticPart").forEach(obj->{
+							Pair pair = (Pair)obj;
+							LOG.debug("Apply {}.staticPart({})",name,pair);
+							conv.staticPart().label(pair.label).value(pair.value).place();
 						});
 						break;
 					default:

@@ -12,6 +12,8 @@ import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.ScrapBin.FailureType;
+import com.aegisql.conveyor.config.harness.IntegerSupplier;
+import com.aegisql.conveyor.config.harness.StringSupplier;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.result.ResultCounter;
@@ -124,9 +126,11 @@ public class ConfigUtilsTest {
 
 	}
 
+	
+	
 	@Test
 	public void builderSupplierSupplierTest() {
-		BuilderSupplier bs = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply("new com.aegisql.conveyor.config.StringSupplier('test2')");
+		BuilderSupplier bs = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply("new com.aegisql.conveyor.config.harness.StringSupplier('test2')");
 		assertNotNull(bs);
 		StringSupplier o1 = (StringSupplier) bs.get();
 		assertNotNull(o1);
@@ -137,6 +141,29 @@ public class ConfigUtilsTest {
 		assertEquals("test2", o2.get());
 	}
 
+	@Test
+	public void builderSupplierSupplierTestWithConcurency() {
+		BuilderSupplier stringSupplier  = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply("new com.aegisql.conveyor.config.harness.StringSupplier('test2')");
+		BuilderSupplier integerSupplier = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply("new com.aegisql.conveyor.config.harness.IntegerSupplier(3)");
+		assertNotNull(stringSupplier);
+		assertNotNull(integerSupplier);
+		StringSupplier s1 = (StringSupplier) stringSupplier.get();
+		IntegerSupplier i1 = (IntegerSupplier) integerSupplier.get();
+		assertNotNull(s1);
+		assertNotNull(i1);
+		StringSupplier s2 = (StringSupplier) stringSupplier.get();
+		IntegerSupplier i2 = (IntegerSupplier) integerSupplier.get();
+		assertNotNull(s2);
+		assertNotNull(i2);
+		assertFalse(s2==s1);
+		assertFalse(i2==i1);
+		assertEquals("test2", s1.get());
+		assertEquals("test2", s2.get());
+		assertEquals(new Integer(3), i1.get());
+		assertEquals(new Integer(3), i2.get());
+	}
+
+	
 	public static ResultCounter rCounter = new ResultCounter<>();
 	public static ScrapCounter  sCounter = new ScrapCounter<>();
 	

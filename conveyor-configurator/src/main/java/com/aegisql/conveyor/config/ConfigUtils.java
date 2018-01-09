@@ -107,5 +107,23 @@ class ConfigUtils {
 		}
 	};
 
+	private final static String getLabelValuePairJs = 
+			  "var getLabelValuePair = function() {\n" 
+			+ "		var Pair = Java.type('com.aegisql.conveyor.config.Pair');\n"
+			+ "     %s;"
+			+ "    return new Pair(label,value);\n" 
+			+ "};\n";
+
+	public final static Function<String,Object> stringToLabelValuePairSupplier = js -> {
+		try {
+			engine.eval(String.format(getLabelValuePairJs, js));
+			Invocable invocable = (Invocable) engine;
+			Object result = invocable.invokeFunction("getLabelValuePair");
+			return result;
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("stringToLabelValuePairSupplier error",e);
+		}
+	};
+
 	
 }

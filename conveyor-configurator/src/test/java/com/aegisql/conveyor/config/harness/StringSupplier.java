@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.config;
+package com.aegisql.conveyor.config.harness;
 
 import java.util.function.Supplier;
 
@@ -20,6 +20,14 @@ public class StringSupplier implements Supplier<String> {
 	@Override
 	public String get() {
 		return s;
+	}
+	
+	public static void first(StringSupplier ss, String first) {
+		ss.s = first+ss.s;
+	}
+
+	public static void last(StringSupplier ss, String last) {
+		ss.s = ss.s+last;
 	}
 
 }
