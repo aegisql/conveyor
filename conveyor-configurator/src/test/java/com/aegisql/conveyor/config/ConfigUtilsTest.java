@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ProductBin;
@@ -21,6 +22,8 @@ import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.config.harness.IntegerSupplier;
 import com.aegisql.conveyor.config.harness.StringSupplier;
 import com.aegisql.conveyor.Status;
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.result.ResultCounter;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
@@ -211,7 +214,7 @@ public class ConfigUtilsTest {
 		
 	@Test
 	public void testOnTimeoutActionSupplier() {
-		Consumer<StringSupplier> ta = (Consumer<StringSupplier>) ConfigUtils.stringToOnTimeoutActionSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.timeoutAction");
+		Consumer<StringSupplier> ta = (Consumer<StringSupplier>) ConfigUtils.stringToConsumerSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.timeoutAction");
 		assertNotNull(ta);
 		System.out.println(ta.getClass());
 		timeoutAction.accept(new StringSupplier("A"));
@@ -263,4 +266,25 @@ public class ConfigUtilsTest {
 		assertTrue(p.test(new State(p, 0, 0, 0, 0, 0, null, null),new StringSupplier("A")));
 	}
 
+	public static Consumer<Cart> cartValidator1 = cart->{
+		System.out.println("cart "+cart);
+	};
+	public static Consumer<Cart> cartValidator2 = cart->{
+		System.out.println("cart "+cart);
+	};
+
+	@Test
+	public void testCartValidator() {
+		Consumer<Cart> ta = (Consumer<Cart>) ConfigUtils.stringToConsumerSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator1");
+		assertNotNull(ta);
+		System.out.println(ta.getClass());
+		cartValidator1.accept(new ShoppingCart(1,"value","label"));
+		ta.accept(new ShoppingCart(1,"value","label"));
+	}
+
+	public static Consumer<AcknowledgeStatus> beforeEviction = status->{
+		System.out.println("ack status "+status);
+	};
+
+	
 }

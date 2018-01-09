@@ -125,8 +125,8 @@ class ConfigUtils {
 		}
 	};
 
-	private final static String getOnTimeoutActionJs = 
-			  "var getOnTimeoutAction = function() {\n" 
+	private final static String consumerJs = 
+			  "var getConsumer = function() {\n" 
 			+ "		var Consumer = Java.type('java.util.function.Consumer');\n"
 			+ "     var consumer = %s;"
 			+ "		var SupplierImpl = Java.extend(Consumer, {\n"
@@ -136,14 +136,14 @@ class ConfigUtils {
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
 
-	public final static Function<String,Object> stringToOnTimeoutActionSupplier = js -> {
+	public final static Function<String,Object> stringToConsumerSupplier = js -> {
 		try {
-			engine.eval(String.format(getOnTimeoutActionJs, js));
+			engine.eval(String.format(consumerJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getOnTimeoutAction");
+			Object result = invocable.invokeFunction("getConsumer");
 			return result;
 		} catch (Exception e) {
-			throw new ConveyorConfigurationException("stringToOnTimeoutActionSupplier error",e);
+			throw new ConveyorConfigurationException("stringToConsumerSupplier error",e);
 		}
 	};
 

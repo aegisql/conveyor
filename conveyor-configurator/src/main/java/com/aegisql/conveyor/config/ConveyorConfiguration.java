@@ -53,9 +53,11 @@ public class ConveyorConfiguration {
 		stringConverters.put("firstScrapConsumer", ConfigUtils.stringToScrapConsumerSupplier);
 		stringConverters.put("nextScrapConsumer", ConfigUtils.stringToScrapConsumerSupplier);
 		stringConverters.put("staticPart", ConfigUtils.stringToLabelValuePairSupplier);
-		stringConverters.put("onTimeoutAction", ConfigUtils.stringToOnTimeoutActionSupplier);
+		stringConverters.put("onTimeoutAction", ConfigUtils.stringToConsumerSupplier);
 		stringConverters.put("defaultCartConsumer", ConfigUtils.stringToLabeledValueConsumerSupplier);
 		stringConverters.put("readinessEvaluator", ConfigUtils.stringToReadinessEvaluatorSupplier);
+		stringConverters.put("addCartBeforePlacementValidator", ConfigUtils.stringToConsumerSupplier);
+		stringConverters.put("addBeforeKeyEvictionAction", ConfigUtils.stringToConsumerSupplier);
 		
 	}
 	
@@ -297,6 +299,20 @@ public class ConveyorConfiguration {
 							} else {
 								throw new ConveyorConfigurationException("Unexpected readinessEvaluator type "+obj.getClass());
 							}
+						});
+						break;
+					case "addCartBeforePlacementValidator":
+						values.get("addCartBeforePlacementValidator").forEach(obj->{
+							Consumer cons = (Consumer) obj;
+							LOG.debug("Apply {}.addCartBeforePlacementValidator({})",name,cons);
+							conv.addCartBeforePlacementValidator(cons);
+						});
+						break;
+					case "addBeforeKeyEvictionAction":
+						values.get("addBeforeKeyEvictionAction").forEach(obj->{
+							Consumer cons = (Consumer) obj;
+							LOG.debug("Apply {}.addBeforeKeyEvictionAction({})",name,cons);
+							conv.addBeforeKeyEvictionAction(cons);
 						});
 						break;
 					default:
