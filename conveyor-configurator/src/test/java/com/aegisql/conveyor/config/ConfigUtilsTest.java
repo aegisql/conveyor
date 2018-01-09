@@ -2,6 +2,8 @@ package com.aegisql.conveyor.config;
 
 import static org.junit.Assert.*;
 
+import java.util.function.Consumer;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -199,5 +201,18 @@ public class ConfigUtilsTest {
 		assertEquals(1, sCounter.get());
 	}
 
+	public static Consumer<StringSupplier> timeoutAction = ss->{
+		System.out.println("timeout "+ss.get());
+	};
+	
+	@Test
+	public void testOnTimeoutActionSupplier() {
+		Consumer<StringSupplier> ta = (Consumer<StringSupplier>) ConfigUtils.stringToOnTimeoutActionSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.timeoutAction");
+		assertNotNull(ta);
+		System.out.println(ta.getClass());
+		timeoutAction.accept(new StringSupplier());
+		ta.accept(new StringSupplier());
+	}
+ 	
 	
 }

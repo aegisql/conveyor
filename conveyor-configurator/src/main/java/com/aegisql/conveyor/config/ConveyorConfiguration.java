@@ -13,6 +13,7 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -51,6 +52,7 @@ public class ConveyorConfiguration {
 		stringConverters.put("firstScrapConsumer", ConfigUtils.stringToScrapConsumerSupplier);
 		stringConverters.put("nextScrapConsumer", ConfigUtils.stringToScrapConsumerSupplier);
 		stringConverters.put("staticPart", ConfigUtils.stringToLabelValuePairSupplier);
+		stringConverters.put("onTimeoutAction", ConfigUtils.stringToOnTimeoutActionSupplier);
 		
 	}
 	
@@ -263,6 +265,13 @@ public class ConveyorConfiguration {
 							Pair pair = (Pair)obj;
 							LOG.debug("Apply {}.staticPart({})",name,pair);
 							conv.staticPart().label(pair.label).value(pair.value).place();
+						});
+						break;
+					case "onTimeoutAction":
+						values.get("onTimeoutAction").forEach(obj->{
+							Consumer ta = (Consumer) obj;
+							LOG.debug("Apply {}.onTimeoutAction({})",name,ta);
+							conv.setOnTimeoutAction(ta);
 						});
 						break;
 					default:

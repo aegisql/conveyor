@@ -125,5 +125,27 @@ class ConfigUtils {
 		}
 	};
 
+	private final static String getOnTimeoutActionJs = 
+			  "var getOnTimeoutAction = function() {\n" 
+			+ "		var Consumer = Java.type('java.util.function.Consumer');\n"
+			+ "     var consumer = %s;"
+			+ "		var SupplierImpl = Java.extend(Consumer, {\n"
+			+ "			accept: function(builder) {\n"
+	        + "				consumer.accept(builder)\n;"
+	    		+ "			}});\n"
+			+ "    return new SupplierImpl();\n" 
+			+ "};\n";
+
+	public final static Function<String,Object> stringToOnTimeoutActionSupplier = js -> {
+		try {
+			engine.eval(String.format(getOnTimeoutActionJs, js));
+			Invocable invocable = (Invocable) engine;
+			Object result = invocable.invokeFunction("getOnTimeoutAction");
+			return result;
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("stringToOnTimeoutActionSupplier error",e);
+		}
+	};
+
 	
 }
