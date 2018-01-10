@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.junit.After;
@@ -337,5 +338,18 @@ public class ConfigUtilsTest {
 		ev.accept(new AcknowledgeStatus(1,Status.CANCELED,null));
 	}
 
+	public final static Function<Cart,Object> payloadFunction = cart->{
+		return "VALUE="+cart.getValue();
+	};
 	
+	@Test
+	public void cartPayloadAccessTest() {
+		Function<Cart,String> pf = (Function<Cart,String>)ConfigUtils.stringToCartPayloadFunctionSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.payloadFunction");
+		assertNotNull(pf);
+		Object s1 = payloadFunction.apply(new ShoppingCart(1, "test1", "label"));
+		Object s2 = pf.apply(new ShoppingCart(1, "test2", "label"));
+		System.out.println(s1);
+		System.out.println(s2);
+		assertEquals("VALUE=test2", s2);
+	}
 }

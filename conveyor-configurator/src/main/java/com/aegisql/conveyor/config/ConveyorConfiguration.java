@@ -62,6 +62,7 @@ public class ConveyorConfiguration {
 		stringConverters.put("addBeforeKeyReschedulingAction", ConfigUtils.stringToBiConsumerSupplier);
 		stringConverters.put("acceptLabels", ConfigUtils.stringToLabelArraySupplier);
 		stringConverters.put("acknowledgeAction", ConfigUtils.stringToConsumerSupplier);
+		stringConverters.put("cartPayloadAccessor", ConfigUtils.stringToCartPayloadFunctionSupplier);
 		
 	}
 	
@@ -338,6 +339,13 @@ public class ConveyorConfiguration {
 							Consumer cons = (Consumer) obj;
 							LOG.debug("Apply {}.acknowledgeAction({})",name,cons);
 							conv.setAcknowledgeAction(cons);
+						});
+						break;
+					case "cartPayloadAccessor":
+						values.get("cartPayloadAccessor").forEach(obj->{
+							Function f = (Function) obj;
+							LOG.debug("Apply {}.cartPayloadAccessor({})",name,f);
+							conv.setCartPayloadAccessor(f);;
 						});
 						break;
 					default:

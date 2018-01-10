@@ -10,6 +10,7 @@ import javax.script.ScriptException;
 
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Status;
+import com.aegisql.conveyor.cart.Cart;
 
 class ConfigUtils {
 
@@ -238,6 +239,28 @@ class ConfigUtils {
 			return result;
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToLabelArraySupplier error",e);
+		}
+	};
+
+	private final static String functionJs = 
+			  "var getFunction = function() {\n" 
+			+ "		var Function = Java.type('java.util.function.Function');\n"
+			+ "     var f = %s;"
+			+ "		var SupplierImpl = Java.extend(Function, {\n"
+			+ "			apply: function(x) {\n"
+	        + "				return f.apply(x)\n;"
+	    		+ "			}});\n"
+			+ "    return new SupplierImpl();\n" 
+			+ "};\n";
+
+	public static final Function<String, Object> stringToCartPayloadFunctionSupplier = js -> {
+		try {
+			engine.eval(String.format(functionJs, js));
+			Invocable invocable = (Invocable) engine;
+			Object result = invocable.invokeFunction("getFunction");
+			return result;
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("stringToCartPayloadFunctionSupplier error",e);
 		}
 	};
 
