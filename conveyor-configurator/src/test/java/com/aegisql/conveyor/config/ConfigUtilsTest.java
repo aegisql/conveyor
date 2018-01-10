@@ -21,6 +21,7 @@ import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.config.harness.IntegerSupplier;
+import com.aegisql.conveyor.config.harness.NameLabel;
 import com.aegisql.conveyor.config.harness.StringSupplier;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
@@ -309,5 +310,14 @@ public class ConfigUtilsTest {
 		assertEquals("B",arr[1]);
 		assertEquals("C",arr[2]);
 	}
-	
+
+	@Test
+	public void labelArrayTestObjects() {
+		Object[] arr = (Object[])ConfigUtils.stringToLabelArraySupplier.apply("com.aegisql.conveyor.config.harness.NameLabel.FIRST,com.aegisql.conveyor.config.harness.NameLabel.LAST");
+		assertNotNull(arr);
+		assertEquals(2,arr.length);
+		assertEquals(NameLabel.FIRST, arr[0]);
+		assertEquals(NameLabel.LAST, arr[1]);
+	}
+
 }
