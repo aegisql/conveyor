@@ -287,6 +287,10 @@ public class ConfigUtilsTest {
 	public static Consumer<AcknowledgeStatus> beforeEviction = status->{
 		System.out.println("ack status "+status);
 	};
+	
+	public static Consumer<AcknowledgeStatus> acknowledgeAction = status->{
+		System.out.println("ack action on "+status);
+	};
 
 	public static BiConsumer<Integer,String> beforeReschedule = (k,v)->{
 		System.out.println("reschedule "+k+" "+v);
@@ -320,4 +324,18 @@ public class ConfigUtilsTest {
 		assertEquals(NameLabel.LAST, arr[1]);
 	}
 
+	@Test
+	public void testAckActionAndEviction() {
+		Consumer<AcknowledgeStatus> ta = (Consumer<AcknowledgeStatus>) ConfigUtils.stringToConsumerSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.acknowledgeAction");
+		Consumer<AcknowledgeStatus> ev = (Consumer<AcknowledgeStatus>) ConfigUtils.stringToConsumerSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.beforeEviction");
+		assertNotNull(ta);
+		assertNotNull(ev);
+		System.out.println(ta.getClass());
+		acknowledgeAction.accept(new AcknowledgeStatus(1,Status.READY,null));
+		ta.accept(new AcknowledgeStatus(1,Status.INVALID,null));
+		beforeEviction.accept(new AcknowledgeStatus(1,Status.TIMED_OUT,null));
+		ev.accept(new AcknowledgeStatus(1,Status.CANCELED,null));
+	}
+
+	
 }
