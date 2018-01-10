@@ -221,4 +221,24 @@ class ConfigUtils {
 		}
 	};
 
+	private final static String getLabelArrayConsumerJs = 
+			  "var getLabelArrayConsumer = function() {\n" 
+			+ "		var ObjectArray = Java.type('java.lang.Object[]');\n"
+			+ "     var array = [%s];"
+			+ "     var res = new ObjectArray(array.length);\n" 
+			+ "     for(i = 0; i < array.length; i++) { res[i] = array[i];};\n" 
+			+ "     return res;\n" 
+			+ "};\n";
+
+	public static final Function<String, Object> stringToLabelArraySupplier = js -> {
+		try {
+			engine.eval(String.format(getLabelArrayConsumerJs, js));
+			Invocable invocable = (Invocable) engine;
+			Object result = invocable.invokeFunction("getLabelArrayConsumer");
+			return result;
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("stringToLabelArraySupplier error",e);
+		}
+	};
+
 }

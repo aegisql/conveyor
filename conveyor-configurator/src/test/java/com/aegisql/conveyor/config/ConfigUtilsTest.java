@@ -300,5 +300,14 @@ public class ConfigUtilsTest {
 		ta.accept(1,"b");
 	}
 
+	@Test
+	public void labelArrayTest() {
+		Object[] arr = (Object[])ConfigUtils.stringToLabelArraySupplier.apply("'A','B','C'");
+		assertNotNull(arr);
+		assertEquals(3,arr.length);
+		assertEquals("A",arr[0]);
+		assertEquals("B",arr[1]);
+		assertEquals("C",arr[2]);
+	}
 	
 }
