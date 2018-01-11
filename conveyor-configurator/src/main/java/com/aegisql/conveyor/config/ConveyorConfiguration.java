@@ -1,38 +1,23 @@
 package com.aegisql.conveyor.config;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.LabeledValueConsumer;
-import com.aegisql.conveyor.Status;
-import com.aegisql.conveyor.consumers.result.ResultConsumer;
-import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
 public class ConveyorConfiguration {
 
-	private final Map<String,Map<String,List<Object>>> properties = new LinkedHashMap<String, Map<String,List<Object>>>();
-	
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorConfiguration.class);
 
 	private final static Lock lock = new ReentrantLock();
@@ -67,10 +52,9 @@ public class ConveyorConfiguration {
 	}
 	
 	ConveyorConfiguration() {
-		properties.put(null, new LinkedHashMap<>());
 	}
 
-	public static void build(String conf, String... moreConf) throws IOException {
+	public static void build(String conf, String... moreConf) throws Exception {
 
 		Objects.requireNonNull(conf, "At least one configuration file must be provided");
 		processConfFile(conf);
@@ -79,7 +63,8 @@ public class ConveyorConfiguration {
 				processConfFile(file);
 			}
 		}
-
+		getBuildingConveyor().part().foreach().label("complete_configuration").place();
+		getBuildingConveyor().completeAndStop().get();
 	}
 
 	private static void processConfFile(String file) {
@@ -106,7 +91,59 @@ public class ConveyorConfiguration {
 		}
 	}
 
-	private static ConveyorConfiguration processYaml(String file) throws FileNotFoundException {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private static Conveyor<String,String,Conveyor> getBuildingConveyor() {
+		
+		Conveyor<String,String,Conveyor> instance = null;
+		try {
+			instance = Conveyor.byName("conveyorConfigurationBuilder");
+			if(! instance.isRunning() ) {
+				throw new RuntimeException("conveyorConfigurationBuilder is not running");
+			}
+		} catch(RuntimeException e) {
+			instance = new AssemblingConveyor<>();
+			instance.setBuilderSupplier(ConveyorBuilder::new);
+			instance.setName("conveyorConfigurationBuilder");
+			instance.resultConsumer(new ConveyorNameSetter()).set();
+			instance.setIdleHeartBeat(Duration.ofMillis(100));
+			
+			instance.setDefaultCartConsumer(Conveyor.getConsumerFor(instance, ConveyorBuilder.class)
+					.<String>match(".*", (b,s)->LOG.info("Unprocessed value {}",s))
+					.<String>when("defaultBuilderTimeout", (b,s)->{ConveyorBuilder.defaultBuilderTimeout(b,s);})
+					.<String>when("idleHeartBeat", (b,s)->{ConveyorBuilder.idleHeartBeat(b,s);})
+					.<String>when("rejectUnexpireableCartsOlderThan", (b,s)->{ConveyorBuilder.rejectUnexpireableCartsOlderThan(b,s);})
+					.<String>when("expirationPostponeTime", (b,s)->{ConveyorBuilder.expirationPostponeTime(b,s);})
+					.<String>when("staticPart", (b,s)->{ConveyorBuilder.staticPart(b,s);})
+					.<String>when("firstResultConsumer", (b,s)->{ConveyorBuilder.firstResultConsumer(b,s);})
+					.<String>when("nextResultConsumer", (b,s)->{ConveyorBuilder.nextResultConsumer(b,s);})
+					.<String>when("firstScrapConsumer", (b,s)->{ConveyorBuilder.firstScrapConsumer(b,s);})
+					.<String>when("nextScrapConsumer", (b,s)->{ConveyorBuilder.nextScrapConsumer(b,s);})
+					.<String>when("onTimeoutAction", (b,s)->{ConveyorBuilder.timeoutAction(b,s);})
+					.<String>when("defaultCartConsumer", (b,s)->{ConveyorBuilder.defaultCartConsumer(b,s);})
+					.<String>when("readinessEvaluator", (b,s)->{ConveyorBuilder.readinessEvaluator(b,s);})
+					.<String>when("builderSupplier", (b,s)->{ConveyorBuilder.builderSupplier(b,s);})
+					.<String>when("addBeforeKeyEvictionAction", (b,s)->{ConveyorBuilder.addBeforeKeyEvictionAction(b,s);})
+					.<String>when("addCartBeforePlacementValidator", (b,s)->{ConveyorBuilder.addCartBeforePlacementValidator(b,s);})
+					.<String>when("addBeforeKeyReschedulingAction", (b,s)->{ConveyorBuilder.addBeforeKeyReschedulingAction(b,s);})
+					.<String>when("acceptLabels", (b,s)->ConveyorBuilder.acceptLabels(b,s))
+					.<String>when("enablePostponeExpiration", (b,s)->ConveyorBuilder.enablePostponeExpiration(b,s))
+					.<String>when("enablePostponeExpirationOnTimeout", (b,s)->ConveyorBuilder.enablePostponeExpirationOnTimeout(b,s))
+					.<String>when("autoAcknowledge", (b,s)->ConveyorBuilder.autoAcknowledge(b,s))
+					.<String>when("acknowledgeAction", (b,s)->ConveyorBuilder.acknowledgeAction(b,s))
+					.<String>when("autoAcknowledgeOnStatus", (b,s)->ConveyorBuilder.autoAcknowledgeOnStatus(b,s))
+					.<String>when("cartPayloadAccessor", (b,s)->ConveyorBuilder.cartPayloadAccessor(b,s))
+					
+					.when("complete_configuration", ()->LOG.info("complete_configuration received"))
+					);
+			
+			instance.setReadinessEvaluator(Conveyor.getTesterFor(instance).accepted("complete_configuration"));
+			
+		}
+		
+		return instance;
+	}
+	
+	private static ConveyorConfiguration processYaml(String file) throws Exception {
 		ConveyorConfiguration cc = new ConveyorConfiguration();
 		Conveyor c = new AssemblingConveyor<>();
 		c.setName("test1");
@@ -118,7 +155,7 @@ public class ConveyorConfiguration {
 		return cc;
 	}
 
-	private static ConveyorConfiguration processProperties(String file) throws IOException {
+	private static ConveyorConfiguration processProperties(String file) throws Exception {
 		ConveyorConfiguration cc = new ConveyorConfiguration();
 		OrderedProperties p = new OrderedProperties();
 		p.load(file);
@@ -134,7 +171,6 @@ public class ConveyorConfiguration {
 			if(fields.length == 2) {
 				name = null;
 				propertyName = fields[1];
-				LOG.info("CONV DEFAULT PROPERTY NAME {}={}", propertyName,value);
 			} else {
 				String[] nameParts = new String[fields.length-2];
 				for(int i = 1; i < fields.length-1; i++) {
@@ -142,238 +178,19 @@ public class ConveyorConfiguration {
 				}
 				name = String.join("", nameParts);
 				propertyName = fields[fields.length-1];
-				LOG.info("CONV {} PROPERTY NAME {}={}", name,propertyName,value);
 			}
-			cc.applyPropertyValue(name, propertyName,value);
-			
+			if(name == null) {
+				getBuildingConveyor().staticPart().label(propertyName).value(value).place();
+			} else {
+				getBuildingConveyor().part().id(name).label(propertyName).value(value).place();
+			}
 		}
-		final Map<String,List<Object>> defaults = cc.properties.get(null);
-		
-		cc.properties.forEach((name,values)->{
-			//apply defaults
-			//????? do I want to merge it here
-			for(String defProperty:defaults.keySet()) {
-				if( ! values.containsKey(defProperty)) {
-					values.put(defProperty, defaults.get(defProperty));
-				}
-			}
-			if(name != null) {
-				Conveyor c = null;
-				try {
-					c = Conveyor.byName(name);
-				} catch (Exception e) {
-				}
-				if(c==null) {
-					c = new AssemblingConveyor<>();
-					c.setName(name);
-				}
-				final Conveyor conv = c;
-				for(String property:values.keySet()) {
-					switch (property) {
-					case "idleHeartBeat":
-						values.get("idleHeartBeat").forEach(obj->{
-							long time1 = (long)obj;
-							LOG.debug("Apply {}.setIdleHeartBeat({},TimeUnit.MILLISECONDS)",name,time1);
-							conv.setIdleHeartBeat(time1,TimeUnit.MILLISECONDS);
-						});
-						break;
-					case "defaultBuilderTimeout":
-						values.get("defaultBuilderTimeout").forEach(obj->{
-							long time2 = (long)obj;
-							LOG.debug("Apply {}.setDefaultBuilderTimeout({},TimeUnit.MILLISECONDS)",name,time2);
-							conv.setDefaultBuilderTimeout(time2,TimeUnit.MILLISECONDS);
-						});
-						break;
-					case "rejectUnexpireableCartsOlderThan":
-						values.get("rejectUnexpireableCartsOlderThan").forEach(obj->{
-							long time3 = (long)obj;
-							LOG.debug("Apply {}.rejectUnexpireableCartsOlderThan({},TimeUnit.MILLISECONDS)",name,time3);
-							conv.rejectUnexpireableCartsOlderThan(time3,TimeUnit.MILLISECONDS);
-						});
-						break;
-					case "expirationPostponeTime":
-						values.get("expirationPostponeTime").forEach(obj->{
-							long time4 = (long)obj;
-							LOG.debug("Apply {}.expirationPostponeTime({},TimeUnit.MILLISECONDS)",name,time4);
-							conv.setExpirationPostponeTime(time4,TimeUnit.MILLISECONDS);
-						});
-						break;
-					case "enablePostponeExpiration":
-						values.get("enablePostponeExpiration").forEach(obj->{
-							boolean flag1 = (boolean)obj;
-							LOG.debug("Apply {}.enablePostponeExpiration({})",name,flag1);
-							conv.enablePostponeExpiration(flag1);
-						});
-						break;
-					case "enablePostponeExpirationOnTimeout":
-						values.get("enablePostponeExpirationOnTimeout").forEach(obj->{
-							boolean flag2 = (boolean)obj;
-							LOG.debug("Apply {}.enablePostponeExpirationOnTimeout({})",name,flag2);
-							conv.enablePostponeExpirationOnTimeout(flag2);
-						});
-						break;
-					case "autoAcknowledge":
-						values.get("autoAcknowledge").forEach(obj->{
-							boolean flag3 = (boolean)obj;
-							LOG.debug("Apply {}.autoAcknowledge({})",name,flag3);
-							conv.setAutoAcknowledge(flag3);
-						});
-						break;
-					case "autoAcknowledgeOnStatus":
-						values.get("autoAcknowledgeOnStatus").forEach(obj->{
-							Status[] statuses = (Status[])obj;
-							if(statuses.length != 0) {
-								Status first  = statuses[0];
-								Status[] more = null;
-								if(statuses.length > 1) {
-									more = new Status[statuses.length-1];
-									for(int i = 1; i < statuses.length; i++) {
-										more[i-1] = statuses[i];
-									}
-								}
-								conv.autoAcknowledgeOnStatus(first, more);
-							}
-						});
-						break;
-					case "builderSupplier":
-						values.get("builderSupplier").forEach(obj->{
-							BuilderSupplier bs = (BuilderSupplier)obj;
-							LOG.debug("Apply {}.builderSupplier({})",name,bs.getClass());
-							conv.setBuilderSupplier(bs);
-						});
-						break;
-					case "firstResultConsumer":
-						values.get("firstResultConsumer").forEach(obj->{
-							ResultConsumer rc = (ResultConsumer) obj;
-							LOG.debug("Apply {}.firstResultConsumer({})",name,rc);
-							conv.resultConsumer(rc).set();
-						});
-						break;
-					case "nextResultConsumer":
-						values.get("nextResultConsumer").forEach(obj->{
-							ResultConsumer rc = (ResultConsumer) obj;
-							LOG.debug("Apply {}.nextResultConsumer({})",name,rc);
-							conv.resultConsumer().andThen(rc).set();
-						});
-						break;
-					case "firstScrapConsumer":
-						values.get("firstScrapConsumer").forEach(obj->{
-							ScrapConsumer sc = (ScrapConsumer) obj;
-							LOG.debug("Apply {}.firstScrapConsumer({})",name,sc);
-							conv.scrapConsumer(sc).set();
-						});
-						break;
-					case "nextScrapConsumer":
-						values.get("nextScrapConsumer").forEach(obj->{
-							ScrapConsumer sc = (ScrapConsumer) obj;
-							LOG.debug("Apply {}.nextScrapConsumer({})",name,sc);
-							conv.scrapConsumer().andThen(sc).set();
-						});
-						break;
-					case "staticPart":
-						values.get("staticPart").forEach(obj->{
-							Pair pair = (Pair)obj;
-							LOG.debug("Apply {}.staticPart({})",name,pair);
-							conv.staticPart().label(pair.label).value(pair.value).place();
-						});
-						break;
-					case "onTimeoutAction":
-						values.get("onTimeoutAction").forEach(obj->{
-							Consumer ta = (Consumer) obj;
-							LOG.debug("Apply {}.onTimeoutAction({})",name,ta);
-							conv.setOnTimeoutAction(ta);
-						});
-						break;
-					case "defaultCartConsumer":
-						values.get("defaultCartConsumer").forEach(obj->{
-							LabeledValueConsumer ta = (LabeledValueConsumer) obj;
-							LOG.debug("Apply {}.defaultCartConsumer({})",name,ta);
-							conv.setDefaultCartConsumer(ta);
-						});
-						break;
-					case "readinessEvaluator":
-						values.get("readinessEvaluator").forEach(obj->{
-							if(obj instanceof BiPredicate) {
-								BiPredicate re = (BiPredicate) obj;
-								LOG.debug("Apply {}.readinessEvaluator(BiPredicate {})",name,re);
-								conv.setReadinessEvaluator(re);
-							} else if(obj instanceof Predicate) {
-								Predicate re = (Predicate) obj;
-								LOG.debug("Apply {}.readinessEvaluator(Predicate {})",name,re);
-								conv.setReadinessEvaluator(re);
-							} else {
-								throw new ConveyorConfigurationException("Unexpected readinessEvaluator type "+obj.getClass());
-							}
-						});
-						break;
-					case "addCartBeforePlacementValidator":
-						values.get("addCartBeforePlacementValidator").forEach(obj->{
-							Consumer cons = (Consumer) obj;
-							LOG.debug("Apply {}.addCartBeforePlacementValidator({})",name,cons);
-							conv.addCartBeforePlacementValidator(cons);
-						});
-						break;
-					case "addBeforeKeyEvictionAction":
-						values.get("addBeforeKeyEvictionAction").forEach(obj->{
-							Consumer cons = (Consumer) obj;
-							LOG.debug("Apply {}.addBeforeKeyEvictionAction({})",name,cons);
-							conv.addBeforeKeyEvictionAction(cons);
-						});
-						break;
-					case "addBeforeKeyReschedulingAction":
-						values.get("addBeforeKeyReschedulingAction").forEach(obj->{
-							BiConsumer cons = (BiConsumer) obj;
-							LOG.debug("Apply {}.addBeforeKeyReschedulingAction({})",name,cons);
-							conv.addBeforeKeyReschedulingAction(cons);
-						});
-						break;
-					case "acceptLabels":
-						values.get("acceptLabels").forEach(obj->{
-							Object[] array = (Object[]) obj;
-							LOG.debug("Apply {}.acceptLabels({})",name,array);
-							conv.acceptLabels(array);
-						});
-						break;
-					case "acknowledgeAction":
-						values.get("acknowledgeAction").forEach(obj->{
-							Consumer cons = (Consumer) obj;
-							LOG.debug("Apply {}.acknowledgeAction({})",name,cons);
-							conv.setAcknowledgeAction(cons);
-						});
-						break;
-					case "cartPayloadAccessor":
-						values.get("cartPayloadAccessor").forEach(obj->{
-							Function f = (Function) obj;
-							LOG.debug("Apply {}.cartPayloadAccessor({})",name,f);
-							conv.setCartPayloadAccessor(f);;
-						});
-						break;
-					default:
-						LOG.warn("Unexpected property name {} in conveyor {} in {}",property,name,file);
-					}
-				}
-			}
-		});
 		return cc;
-	}
-
-	private void applyPropertyValue(String name, String propertyName, String value) {
-		Map<String,List<Object>> property = properties.get(name);
-		if(property == null) {
-			property = new LinkedHashMap<>();
-			properties.put(name, property);
-		}
-		List<Object> list = property.get(propertyName);
-		if(list == null) {
-			list = new ArrayList<>();
-			property.put(propertyName, list);
-		}
-		list.add(stringConverters.get(propertyName).apply(value));
 	}
 
 	@Override
 	public String toString() {
-		return "ConveyorConfiguration [properties=" + properties + "]";
+		return "ConveyorConfiguration";
 	}
 	
 	
