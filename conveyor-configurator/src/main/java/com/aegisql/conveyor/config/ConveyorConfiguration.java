@@ -159,6 +159,7 @@ public class ConveyorConfiguration {
 		ConveyorConfiguration cc = new ConveyorConfiguration();
 		OrderedProperties p = new OrderedProperties();
 		p.load(file);
+		Conveyor<String,String,Conveyor> buildingConveyor = getBuildingConveyor();
 		for (Pair<String, String> o : p) {
 			String key   = o.label;
 			String value = o.value;
@@ -180,9 +181,10 @@ public class ConveyorConfiguration {
 				propertyName = fields[fields.length-1];
 			}
 			if(name == null) {
-				getBuildingConveyor().staticPart().label(propertyName).value(value).place();
+				buildingConveyor.staticPart().label(propertyName).value(value).place();
+				buildingConveyor.part().foreach().label(propertyName).value(value).place();
 			} else {
-				getBuildingConveyor().part().id(name).label(propertyName).value(value).place();
+				buildingConveyor.part().id(name).label(propertyName).value(value).place();
 			}
 		}
 		return cc;
