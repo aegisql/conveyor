@@ -18,6 +18,7 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
+import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
@@ -49,6 +50,8 @@ private Boolean autoAcknowledge                               = null;
 private Consumer acknowledgeAction                            = null;
 private Status[] autoAcknowledgeOnStatus                      = null;
 private Function cartPayloadAccessor                          = null;
+//TODO:
+//forwardResultTo: (Conveyor<K2,L2,OUT2> destination, [Function<ProductBin<K,OUT>,K2>keyConverter,] L2 label) 
 
 /*
 * conveyor.idleHeartBeat = 1.5 SECONDS

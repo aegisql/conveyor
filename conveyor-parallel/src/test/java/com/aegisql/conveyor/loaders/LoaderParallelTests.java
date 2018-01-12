@@ -15,6 +15,7 @@ import org.junit.Test;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.multichannel.UserBuilder;
 import com.aegisql.conveyor.multichannel.UserBuilderEvents;
@@ -109,7 +110,7 @@ public class LoaderParallelTests {
 		
 		AssemblingConveyor<Integer, UserBuilderEvents, User> ch1 = ac.detach();
 		ch1.acceptLabels(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST);
-		ch1.forwardResultTo(ac,UserBuilderEvents.MERGE_A);
+		ForwardResult.from(ch1).to("main").label(UserBuilderEvents.MERGE_A).bind();
 		ch1.setReadinessEvaluator(Conveyor.getTesterFor(ac).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST));
 		ch1.setName("CH1");
 
@@ -124,7 +125,7 @@ public class LoaderParallelTests {
 		}).set();
 		
 		ch2.acceptLabels(UserBuilderEvents.SET_YEAR);
-		ch2.forwardResultTo(ac,UserBuilderEvents.MERGE_B);
+		ForwardResult.from(ch2).to("main").label(UserBuilderEvents.MERGE_B).bind();
 		ch2.setReadinessEvaluator(Conveyor.getTesterFor(ac).accepted(UserBuilderEvents.SET_YEAR));
 		ch2.setName("CH2");
 		

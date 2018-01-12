@@ -1,8 +1,9 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -14,6 +15,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuulder;
 import com.aegisql.conveyor.utils.batch.BatchCollectingBuilder;
@@ -97,7 +99,7 @@ public class ChainTest {
 		}).set();
 		batchConveyor.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);		
 				
-		scalarConveyor.forwardResultTo(batchConveyor, k->"BATCH", batchConveyor.BATCH);//aggregation of all keys
+		ForwardResult.from(scalarConveyor).to(batchConveyor).label(batchConveyor.BATCH).transformKey(k->"BATCH").bind();
 		
 		scalarConveyor.part().ttl(100, TimeUnit.MILLISECONDS).id("test1").value(csv1).place();
 		scalarConveyor.part().ttl(100, TimeUnit.MILLISECONDS).id("test2").value(csv2).place();
@@ -106,6 +108,7 @@ public class ChainTest {
 		//Thread.sleep(2000);
 		assertEquals(2,aii.get());//two elements
 		assertEquals(1,ai.get());//called once
+		assertTrue(scalarConveyor.isForwardingResults());
 	}
 
 }

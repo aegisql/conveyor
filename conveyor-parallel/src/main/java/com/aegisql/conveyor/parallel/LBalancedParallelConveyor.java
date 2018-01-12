@@ -251,24 +251,24 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		return "L-Balanced ParallelConveyor [name=" + name + ", pf=" + pf + ", lBalanced=" + lBalanced + "]";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#forwardPartialResultTo(java.lang.Object, com.aegisql.conveyor.Conveyor)
-	 */
-	@Override
-	public <L2,OUT2> void forwardResultTo(Conveyor<K,L2,OUT2> destination, L2 label) {
-		forwardResultTo(destination,k->k.key,label);
-	}
-
-	@Override
-	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>, K2> keyConverter,
-			L2 label) {
-		this.forwardingResults   = true;
-		this.resultConsumer().first(bin->{
-			LOG.debug("Forward {} from {} to {} {}",label,this.name,destination.getName(),bin.product);
-			Cart<K2,OUT,L2> partialResult = new ShoppingCart<>(keyConverter.apply(bin), bin.product, label, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
-			destination.place( partialResult );
-		}).set();		
-	}
+//	/* (non-Javadoc)
+//	 * @see com.aegisql.conveyor.utils.parallel.ParallelConveyor#forwardPartialResultTo(java.lang.Object, com.aegisql.conveyor.Conveyor)
+//	 */
+//	@Override
+//	public <L2,OUT2> void forwardResultTo(Conveyor<K,L2,OUT2> destination, L2 label) {
+//		forwardResultTo(destination,k->k.key,label);
+//	}
+//
+//	@Override
+//	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>, K2> keyConverter,
+//			L2 label) {
+//		this.forwardingResults   = true;
+//		this.resultConsumer().first(bin->{
+//			LOG.debug("Forward {} from {} to {} {}",label,this.name,destination.getName(),bin.product);
+//			Cart<K2,OUT,L2> partialResult = new ShoppingCart<>(keyConverter.apply(bin), bin.product, label, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
+//			destination.place( partialResult );
+//		}).set();		
+//	}
 
 	@Override
 	public void setAcknowledgeAction(Consumer<AcknowledgeStatus<K>> ackAction) {

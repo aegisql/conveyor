@@ -11,9 +11,11 @@ import static com.aegisql.conveyor.cart.LoadType.RESULT_CONSUMER;
 import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -47,7 +49,9 @@ import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.delay.DelayProvider;
 import com.aegisql.conveyor.loaders.BuilderLoader;
@@ -293,7 +297,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected ObjectName objectName;
 
 	/** The forwarding to. */
-	private String forwardingTo = "not forwarding";
+	private List<String> forwardingTo = new ArrayList<>();
 
 	/** The postpone expiration on timeout enabled. */
 	private boolean postponeExpirationOnTimeoutEnabled;
@@ -531,7 +535,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 				@Override
 				public String getForwardingResultsTo() {
-					return thisConv.forwardingTo;
+					return thisConv.forwardingTo.toString();
 				}
 
 				@Override
@@ -828,6 +832,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}, 
 		rc->{
 			this.resultConsumer = rc;
+			if(rc instanceof ForwardingConsumer) {
+				this.forwardingResults = true;
+				this.forwardingTo.add(((ForwardingConsumer)rc).getToConvName());
+			}
 		}, 
 		resultConsumer);
 	}
@@ -1528,31 +1536,21 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.aegisql.conveyor.Conveyor#forwardPartialResultTo(java.lang.Object,
-	 * com.aegisql.conveyor.Conveyor)
-	 */
-	public <L2,OUT2> void forwardResultTo(Conveyor<K, L2, OUT2> destination, L2 label) {
-		forwardResultTo(destination,b->b.key,label);
-	}
-	
-	@Override
-	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>,K2> keyConverter, L2 label) {
-		this.forwardingResults = true;
-		this.forwardingTo = destination.toString();
-		this.resultConsumer().andThen(bin -> {
-			LOG.debug("Forward {} from {} to {} {}", label, this.name, destination.getName(), bin);
-			PartLoader<K2, L2, OUT, OUT2, Boolean> part = destination.part()
-			.id(keyConverter.apply(bin))
-			.label(label)
-			.value(bin.product)
-			.ttl( bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
-			part.place();
-		}).set();
-	}
+//	/*
+//	 * (non-Javadoc)
+//	 * 
+//	 * @see
+//	 * com.aegisql.conveyor.Conveyor#forwardPartialResultTo(java.lang.Object,
+//	 * com.aegisql.conveyor.Conveyor)
+//	 */
+//	public <L2,OUT2> void forwardResultTo(Conveyor<K, L2, OUT2> destination, L2 label) {
+//		forwardResultTo(destination,b->b.key,label);
+//	}
+//	
+//	@Override
+//	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>,K2> keyConverter, L2 label) {
+//		ForwardResult.from(this).<K2,L2>to(destination).label(label).transformKey(keyConverter).bind();
+//	}
 
 	/**
 	 * Creates a close copy of current conveyor set readiness evaluator and

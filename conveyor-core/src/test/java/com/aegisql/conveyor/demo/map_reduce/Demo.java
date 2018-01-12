@@ -12,6 +12,7 @@ import java.util.concurrent.Future;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.demo.ThreadPool;
 import com.aegisql.conveyor.loaders.PartLoader;
@@ -43,7 +44,7 @@ public class Demo {
 			//Giving conveyor a distinctive name is a good practice 
 			source.setName("COUNTER_"+Thread.currentThread().getId());
 			//Results will be forwrded to collectingConveyor with the MERGE label
-			source.forwardResultTo(collectingConveyor,MERGE);
+			ForwardResult.from(source).to(collectingConveyor).label(MERGE).bind();
 			//Ready when "DONE" command is received
 			source.setReadinessEvaluator(Conveyor.getTesterFor(source).accepted(DONE));
 			//Extract "common" part of the word loader into a variable

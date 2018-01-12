@@ -689,28 +689,28 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return name;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.aegisql.conveyor.Conveyor#forwardResultTo(com.aegisql.conveyor.
-	 * Conveyor, java.lang.Object)
-	 */
-	@Override
-	public <L2, OUT2> void forwardResultTo(Conveyor<K, L2, OUT2> destination, L2 label) {
-		forward.forwardResultTo(destination, label);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.aegisql.conveyor.Conveyor#forwardResultTo(com.aegisql.conveyor.
-	 * Conveyor, java.util.function.Function, java.lang.Object)
-	 */
-	@Override
-	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination,
-			Function<ProductBin<K, OUT>, K2> keyConverter, L2 label) {
-		forward.forwardResultTo(destination, keyConverter, label);
-	}
+//	/*
+//	 * (non-Javadoc)
+//	 * 
+//	 * @see com.aegisql.conveyor.Conveyor#forwardResultTo(com.aegisql.conveyor.
+//	 * Conveyor, java.lang.Object)
+//	 */
+//	@Override
+//	public <L2, OUT2> void forwardResultTo(Conveyor<K, L2, OUT2> destination, L2 label) {
+//		forward.forwardResultTo(destination, label);
+//	}
+//
+//	/*
+//	 * (non-Javadoc)
+//	 * 
+//	 * @see com.aegisql.conveyor.Conveyor#forwardResultTo(com.aegisql.conveyor.
+//	 * Conveyor, java.util.function.Function, java.lang.Object)
+//	 */
+//	@Override
+//	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination,
+//			Function<ProductBin<K, OUT>, K2> keyConverter, L2 label) {
+//		forward.forwardResultTo(destination, keyConverter, label);
+//	}
 
 	/*
 	 * (non-Javadoc)

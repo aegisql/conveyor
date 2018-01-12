@@ -322,28 +322,6 @@ public interface Conveyor<K, L, OUT> {
 	public String getName();
 	
 	/**
-	 * Forward partial result to.
-	 *
-	 * @param <L2> the generic type
-	 * @param <OUT2> the generic type
-	 * @param destination the destination
-	 * @param label the label
-	 */
-	public <L2,OUT2> void forwardResultTo(Conveyor<K,L2,OUT2> destination, L2 label);
-
-	/**
-	 * Forward partial result to.
-	 *
-	 * @param <K2> the generic type
-	 * @param <L2> the generic type
-	 * @param <OUT2> the generic type
-	 * @param destination the destination
-	 * @param keyConverter the keyConverter
-	 * @param label the label
-	 */
-	public <K2,L2,OUT2> void forwardResultTo(Conveyor<K2,L2,OUT2> destination, Function<ProductBin<K,OUT>,K2>keyConverter, L2 label);
-
-	/**
 	 * Enable postpone expiration.
 	 *
 	 * @param flag the flag
