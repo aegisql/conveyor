@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -21,7 +20,6 @@ import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
@@ -46,6 +44,19 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	/** The final consumer. */
 	protected Conveyor<K, L, OUT> finalConsumer = null;
 	
+	public LBalancedParallelConveyor(String... conveyors) {
+		super();
+		Objects.requireNonNull(conveyors,"List of conveyors is null");
+		if(conveyors.length == 0) {
+			throw new RuntimeException("List of conveyors is empty");
+		}
+		
+		Conveyor<K, L, OUT>[] array = new Conveyor[conveyors.length];
+		for(int i = 0; i < conveyors.length; i++) {
+			array[i] = Conveyor.byName(conveyors[i]);
+		}
+		init(array);
+	}
 	/**
 	 * Instantiates a new parallel conveyor.
 	 *
@@ -53,6 +64,10 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 */
 	public LBalancedParallelConveyor(Conveyor<K, L, OUT>... conveyors) {
 		super();
+		init(conveyors);
+	}
+	
+	private void init(Conveyor<K, L, OUT>... conveyors) {
 		this.pf = conveyors.length;
 		if( this.pf == 0 ) {
 			throw new IllegalArgumentException("Parallelism Factor must be >=1");
@@ -124,7 +139,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			};
 			this.lBalanced = true;
 		}
-		this.setMbean(this.name);
+		this.setMbean(this.name);		
 	}
 	
 	//TODO: UNIMPLEMENTED!!!!

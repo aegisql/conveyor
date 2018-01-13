@@ -137,6 +137,69 @@ public class MultichannelTest {
 		assertNotNull(user.get());
 	}
 
+	@Test
+	public void testWithParallelConveyorBoundByNames() throws InterruptedException {
+		AtomicReference<User> user = new AtomicReference<User>(null);
+		AssemblingConveyor<Integer, UserBuilderEvents, User> ac = new AssemblingConveyor<>();
+		ac.setName("main");
+		ac.setBuilderSupplier(UserBuilder::new);
+		ac.setDefaultBuilderTimeout(Duration.ofMillis(50));
+		ac.scrapConsumer(LogScrap.error(ac)).set();
+		ac.resultConsumer().first(bin->{
+			System.out.println("AC result: "+bin);
+			user.set(bin.product);
+		}).set();
+		ac.setReadinessEvaluator(b->{
+			UserBuilder ub = (UserBuilder)b;
+			return ub.first != null && ub.last != null && ub.yearOfBirth != null;
+		});
+
+		assertFalse(ac.isLBalanced());
+		ac.acceptLabels(UserBuilderEvents.MERGE_A,UserBuilderEvents.MERGE_B);
+		assertTrue(ac.isLBalanced());
+		
+		AssemblingConveyor<Integer, UserBuilderEvents, User> ch1 = ac.detach();
+		ch1.acceptLabels(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST);
+		ForwardResult.from(ch1).to(ac).label(UserBuilderEvents.MERGE_A).bind();
+		ch1.setReadinessEvaluator(b->{
+			UserBuilder ub = (UserBuilder)b;
+			return ub.first != null && ub.last != null;
+		});
+		ch1.setName("CH1");
+
+		assertTrue(ch1.isLBalanced());
+
+		AssemblingConveyor<Integer, UserBuilderEvents, User> ch2 = ac.detach();
+		ch2.acceptLabels(UserBuilderEvents.SET_YEAR);
+		ForwardResult.from(ch2).to(ac).label(UserBuilderEvents.MERGE_B).bind();
+		ch2.setReadinessEvaluator(b->{
+			UserBuilder ub = (UserBuilder)b;
+			return ub.yearOfBirth != null;
+		});
+		ch2.setName("CH2");
+		assertTrue(ch2.isLBalanced());
+		
+		Conveyor<Integer, UserBuilderEvents, User> pc = new LBalancedParallelConveyor<>("main","CH1","CH2");
+		assertTrue(pc.isLBalanced());
+	
+		ShoppingCart<Integer, String, UserBuilderEvents> cartA1 = new ShoppingCart<>(1,"John", UserBuilderEvents.SET_FIRST,100,TimeUnit.MILLISECONDS);
+		ShoppingCart<Integer, String, UserBuilderEvents> cartA2 = new ShoppingCart<>(1,"Silver", UserBuilderEvents.SET_LAST,100,TimeUnit.MILLISECONDS);
+		ShoppingCart<Integer, Integer, UserBuilderEvents> cartB1 = new ShoppingCart<>(1,1695, UserBuilderEvents.SET_YEAR,100,TimeUnit.MILLISECONDS);
+
+		System.out.println("AC  "+ac);
+		System.out.println("CH1 "+ch1);
+		System.out.println("CH2 "+ch2);
+		System.out.println("PC  "+pc);
+		
+		pc.place(cartA1);
+		pc.place(cartA2);
+		pc.place(cartB1);
+		
+		Thread.sleep(100);
+
+		assertNotNull(user.get());
+	}
+
 	/**
 	 * Test with parallel conveyor and default.
 	 *
