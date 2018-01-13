@@ -104,7 +104,7 @@ public class ConveyorConfiguration {
 			instance = new AssemblingConveyor<>();
 			instance.setBuilderSupplier(ConveyorBuilder::new);
 			instance.setName("conveyorConfigurationBuilder");
-			instance.resultConsumer(new ConveyorNameSetter()).set();
+			instance.resultConsumer(new ConveyorNameSetter(instance)).set();
 			instance.setIdleHeartBeat(Duration.ofMillis(100));
 			
 			instance.setDefaultCartConsumer(Conveyor.getConsumerFor(instance, ConveyorBuilder.class)
@@ -132,6 +132,8 @@ public class ConveyorConfiguration {
 					.<String>when("acknowledgeAction", (b,s) -> ConveyorBuilder.acknowledgeAction(b,s))
 					.<String>when("autoAcknowledgeOnStatus", (b,s) -> ConveyorBuilder.autoAcknowledgeOnStatus(b,s))
 					.<String>when("cartPayloadAccessor", (b,s) -> ConveyorBuilder.cartPayloadAccessor(b,s))
+					.<String>when("completed", (b,s) -> ConveyorBuilder.completed(b,s))
+					.<String>when("dependency", (b,s) -> ConveyorBuilder.dependency(b,s))
 					.<Boolean>when("complete_configuration", (b,s)-> ConveyorBuilder.allFilesReadSuccessfully(b, s))
 					);
 						

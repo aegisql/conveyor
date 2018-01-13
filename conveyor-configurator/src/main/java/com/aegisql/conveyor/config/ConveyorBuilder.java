@@ -108,7 +108,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Conveyor get() {
-		
+		try {
 		LOG.debug("{}",this);
 		Conveyor instance = null;
 		
@@ -134,7 +134,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		setIfNotNull(acknowledgeAction, c::setAcknowledgeAction);
 		setIfNotNull(cartPayloadAccessor, c::setCartPayloadAccessor);
 		
-		if(autoAcknowledgeOnStatus.length != 0) {
+		if(autoAcknowledgeOnStatus != null && autoAcknowledgeOnStatus.length != 0) {
 			Status first  = autoAcknowledgeOnStatus[0];
 			Status[] more = null;
 			if(autoAcknowledgeOnStatus.length > 1) {
@@ -153,6 +153,10 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		addBeforeKeyReschedulingAction.forEach(ra -> c.addBeforeKeyReschedulingAction(ra) );
 		
 		return c;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 	
 	public static void idleHeartBeat(ConveyorBuilder b, String s) {
