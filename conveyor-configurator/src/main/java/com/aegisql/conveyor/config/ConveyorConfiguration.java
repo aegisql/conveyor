@@ -63,7 +63,7 @@ public class ConveyorConfiguration {
 				processConfFile(file);
 			}
 		}
-		getBuildingConveyor().part().foreach().label("complete_configuration").place();
+		getBuildingConveyor().part().foreach().label("complete_configuration").value(true).place();
 		getBuildingConveyor().completeAndStop().get();
 	}
 
@@ -132,12 +132,9 @@ public class ConveyorConfiguration {
 					.<String>when("acknowledgeAction", (b,s) -> ConveyorBuilder.acknowledgeAction(b,s))
 					.<String>when("autoAcknowledgeOnStatus", (b,s) -> ConveyorBuilder.autoAcknowledgeOnStatus(b,s))
 					.<String>when("cartPayloadAccessor", (b,s) -> ConveyorBuilder.cartPayloadAccessor(b,s))
-					
-					.when("complete_configuration", ()->LOG.info("complete_configuration received"))
+					.<Boolean>when("complete_configuration", (b,s)-> ConveyorBuilder.allFilesReadSuccessfully(b, s))
 					);
-			
-			instance.setReadinessEvaluator(Conveyor.getTesterFor(instance).accepted("complete_configuration"));
-			
+						
 		}
 		
 		return instance;

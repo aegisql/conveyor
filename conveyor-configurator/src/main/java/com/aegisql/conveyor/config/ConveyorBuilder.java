@@ -3,7 +3,9 @@ package com.aegisql.conveyor.config;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -18,38 +20,45 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
-import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.Status;
+import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
 @SuppressWarnings("rawtypes")
-public class ConveyorBuilder implements Supplier<Conveyor>{
+public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
-private Duration idleHeartBeat                                = null;
-private Duration defaultBuilderTimeout                        = null;
-private Duration rejectUnexpireableCartsOlderThan             = null;
-private Duration expirationPostponeTime                       = null;
-private Collection<Pair> staticParts                          = new LinkedList<>();
-private ResultConsumer firstResultConsumer                    = null;
-private Collection<ResultConsumer> nextResultConsumers        = new LinkedList<>();
-private ScrapConsumer firstScrapConsumer                      = null;
-private Collection<ScrapConsumer> nextScrapConsumers          = new LinkedList<>();
-private Consumer timeoutAction                                = null;
-private LabeledValueConsumer defaultCartConsumer              = null;
-private BiPredicate readinessEvaluatorBiP                     = null;
-private Predicate readinessEvaluatorP                         = null;
-private BuilderSupplier builderSupplier                       = null;
-private Collection<Consumer> addCartBeforePlacementValidator  = new LinkedList<>();
-private Collection<Consumer> addBeforeKeyEvictionAction       = new LinkedList<>();
-private Collection<BiConsumer> addBeforeKeyReschedulingAction = new LinkedList<>();
-private Object[] acceptLabels                                 = null;
-private Boolean enablePostponeExpiration                      = null;
-private Boolean enablePostponeExpirationOnTimeout             = null;
-private Boolean autoAcknowledge                               = null;
-private Consumer acknowledgeAction                            = null;
-private Status[] autoAcknowledgeOnStatus                      = null;
-private Function cartPayloadAccessor                          = null;
+	//readiness
+	private boolean allFilesRead = false;
+	private Set<String> dependencies = new HashSet<>();
+	private Set<String> completed    = new HashSet<>();
+	
+	//setters
+	private static final long serialVersionUID = 1L;
+	private Duration idleHeartBeat                                = null;
+	private Duration defaultBuilderTimeout                        = null;
+	private Duration rejectUnexpireableCartsOlderThan             = null;
+	private Duration expirationPostponeTime                       = null;
+	private Collection<Pair> staticParts                          = new LinkedList<>();
+	private ResultConsumer firstResultConsumer                    = null;
+	private Collection<ResultConsumer> nextResultConsumers        = new LinkedList<>();
+	private ScrapConsumer firstScrapConsumer                      = null;
+	private Collection<ScrapConsumer> nextScrapConsumers          = new LinkedList<>();
+	private Consumer timeoutAction                                = null;
+	private LabeledValueConsumer defaultCartConsumer              = null;
+	private BiPredicate readinessEvaluatorBiP                     = null;
+	private Predicate readinessEvaluatorP                         = null;
+	private BuilderSupplier builderSupplier                       = null;
+	private Collection<Consumer> addCartBeforePlacementValidator  = new LinkedList<>();
+	private Collection<Consumer> addBeforeKeyEvictionAction       = new LinkedList<>();
+	private Collection<BiConsumer> addBeforeKeyReschedulingAction = new LinkedList<>();
+	private Object[] acceptLabels                                 = null;
+	private Boolean enablePostponeExpiration                      = null;
+	private Boolean enablePostponeExpirationOnTimeout             = null;
+	private Boolean autoAcknowledge                               = null;
+	private Consumer acknowledgeAction                            = null;
+	private Status[] autoAcknowledgeOnStatus                      = null;
+	private Function cartPayloadAccessor                          = null;
 //TODO:
 //forwardResultTo: (Conveyor<K2,L2,OUT2> destination, [Function<ProductBin<K,OUT>,K2>keyConverter,] L2 label) 
 
@@ -293,7 +302,35 @@ private Function cartPayloadAccessor                          = null;
 		Function value = (Function) ConfigUtils.stringToCartPayloadFunctionSupplier.apply(s);
 		b.cartPayloadAccessor = value;
 	}
+	
+	//Readiness management
+	public static void allFilesReadSuccessfully(ConveyorBuilder b, Boolean readOk) {
+		LOG.debug("Applying allFilesReadSuccessfully={}",readOk);
+		if(readOk) {
+			b.allFilesRead = readOk;
+		} else {
+			throw new ConveyorConfigurationException("Conveyor initialization terminated because of file reading issue");
+		}
+	}
 
+	public static void dependency(ConveyorBuilder b, String s) {
+		LOG.debug("Applying dependency={}",s);
+		String[] parts = s.split(",");
+		for(String p:parts) {
+			String clean = p.trim();
+			if( ! "".equals(clean) ) {
+				b.dependencies.add(clean);
+			}
+		}
+	}
+
+	public static void completed(ConveyorBuilder b, String s) {
+		LOG.debug("Applying completed={}",s);
+		if( b.dependencies.remove(s) ) {
+			b.completed.add(s);
+		}
+	}
+	
 	@Override
 	public String toString() {
 		return "ConveyorBuilder [" + (idleHeartBeat != null ? "idleHeartBeat=" + idleHeartBeat + ", " : "")
@@ -333,6 +370,11 @@ private Function cartPayloadAccessor                          = null;
 						? "autoAcknowledgeOnStatus=" + Arrays.toString(autoAcknowledgeOnStatus) + ", "
 						: "")
 				+ (cartPayloadAccessor != null ? "cartPayloadAccessor=" + cartPayloadAccessor : "") + "]";
+	}
+
+	@Override
+	public boolean test() {
+		return allFilesRead && dependencies.size() == 0;
 	}
 	
 	
