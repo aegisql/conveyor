@@ -22,6 +22,8 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.Testing;
+import com.aegisql.conveyor.consumers.result.ForwardResult;
+import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
@@ -61,6 +63,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	private Function cartPayloadAccessor                          = null;
 //TODO:
 //forwardResultTo: (Conveyor<K2,L2,OUT2> destination, [Function<ProductBin<K,OUT>,K2>keyConverter,] L2 label) 
+	private Trio forward;
 
 /*
 * conveyor.idleHeartBeat = 1.5 SECONDS
@@ -68,10 +71,10 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 * conveyor.test2.rejectUnexpireableCartsOlderThan = 10000
 * conveyor.test2.staticPart = \
 	label = com.aegisql.conveyor.config.harness.NameLabel.FIRST;\
-	value = "preffix-";
+	value1 = "preffix-";
 * conveyor.test2.staticPart = \
 	label = com.aegisql.conveyor.config.harness.NameLabel.LAST;\
-	value = "-suffix";
+	value1 = "-suffix";
 * conveyor.test2.firstResultConsumer = new com.aegisql.conveyor.consumers.result.LogResult()
 * conveyor.test2.nextResultConsumer = com.aegisql.conveyor.config.ConfigUtilsTest.rCounter
 * conveyor.test2.firstScrapConsumer = new com.aegisql.conveyor.consumers.scrap.LogScrap()
@@ -151,6 +154,13 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		addCartBeforePlacementValidator.forEach(pv -> c.addCartBeforePlacementValidator(pv) );
 		addBeforeKeyEvictionAction.forEach(pv -> c.addBeforeKeyEvictionAction(pv) );
 		addBeforeKeyReschedulingAction.forEach(ra -> c.addBeforeKeyReschedulingAction(ra) );
+		if(forward != null) {
+			ForwardResult fr = ForwardResult.from(c).to((String)forward.value1).label(forward.label);
+			if(forward.value2 != null) {
+				fr = fr.transformKey((Function) forward.value2);
+			}
+			fr.bind();
+		}
 		
 		return c;
 		} catch (Exception e) {
@@ -239,7 +249,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 	public static void defaultCartConsumer(ConveyorBuilder b, String s) {
 		LOG.debug("Applying defaultCartConsumer={}",s);
-		LabeledValueConsumer value = (LabeledValueConsumer) ConfigUtils.stringToConsumerSupplier.apply(s);
+		LabeledValueConsumer value = (LabeledValueConsumer) ConfigUtils.stringToLabeledValueConsumerSupplier.apply(s);
 		b.defaultCartConsumer = value;
 	}
 	
@@ -305,6 +315,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		LOG.debug("Applying cartPayloadAccessor={}",s);
 		Function value = (Function) ConfigUtils.stringToCartPayloadFunctionSupplier.apply(s);
 		b.cartPayloadAccessor = value;
+	}
+
+	public static void forward(ConveyorBuilder b, String s) {
+		LOG.debug("Applying forward={}",s);
+		Trio value = (Trio) ConfigUtils.stringToForwardTrioSupplier.apply(s);
+		b.forward = value;
 	}
 	
 	//Readiness management

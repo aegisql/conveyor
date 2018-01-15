@@ -232,8 +232,8 @@ public class ConfigUtilsTest {
 	public void labeledValueConsumerTest() {
 		LabeledValueConsumer lc = (LabeledValueConsumer)ConfigUtils.stringToLabeledValueConsumerSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.lvc");
 		assertNotNull(lc);
-		lvc.accept("label","value",new StringSupplier("A"));
-		lc.accept("label","value",new StringSupplier("B"));
+		lvc.accept("label","value1",new StringSupplier("A"));
+		lc.accept("label","value1",new StringSupplier("B"));
 	}
 	
 	public static Predicate<StringSupplier> predRE = ss -> {
@@ -281,8 +281,8 @@ public class ConfigUtilsTest {
 		Consumer<Cart> ta = (Consumer<Cart>) ConfigUtils.stringToConsumerSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator1");
 		assertNotNull(ta);
 		System.out.println(ta.getClass());
-		cartValidator1.accept(new ShoppingCart(1,"value","label"));
-		ta.accept(new ShoppingCart(1,"value","label"));
+		cartValidator1.accept(new ShoppingCart(1,"value1","label"));
+		ta.accept(new ShoppingCart(1,"value1","label"));
 	}
 
 	public static Consumer<AcknowledgeStatus> beforeEviction = status->{
@@ -350,6 +350,30 @@ public class ConfigUtilsTest {
 		Object s2 = pf.apply(new ShoppingCart(1, "test2", "label"));
 		System.out.println(s1);
 		System.out.println(s2);
-		assertEquals("VALUE=test2", s2);
+		assertEquals("VALUE=test2", s2);		
 	}
+	
+	@Test
+	public void forwardTrioWithDefaultTransformer() {
+		Trio t = (Trio)ConfigUtils.stringToForwardTrioSupplier.apply("var label = \"A\"; var name = \"test1\";");
+		assertNotNull(t);
+		assertEquals("A",t.label);
+		assertEquals("test1",t.value1);
+		assertNull(t.value2);
+	}
+
+	@Test
+	public void forwardTrioWithFunctionTransformer() {
+		Trio t = (Trio)ConfigUtils.stringToForwardTrioSupplier.apply("var label = \"A\"; var name = \"test1\"; var keyTransformer = function(k){return 'X'+k};");
+		assertNotNull(t);
+		assertEquals("A",t.label);
+		assertEquals("test1",t.value1);
+		assertNotNull(t.value2);
+		assertTrue(t.value2 instanceof Function);
+		Function f = (Function)t.value2;
+		
+		assertEquals("XA", f.apply("A"));
+		
+	}
+
 }

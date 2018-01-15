@@ -38,10 +38,13 @@ conveyor-persistence (beta)
 
 
 ## Release History
-* Started conveyor-configurator sub-project
-* Create conveyors from .properties files
 
 ### 1.3.10-SNAPSHOT
+* Started conveyor-configurator sub-project
+* Create conveyors from .properties files
+* Create instance of L balanced conveyor from a list of conveyor names
+* Created ForwardResult consumer factory
+* removed forwardTo methods from interface
 
 ### 1.3.9
 * MBeans improvements

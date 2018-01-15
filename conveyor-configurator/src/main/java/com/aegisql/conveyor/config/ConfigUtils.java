@@ -115,6 +115,22 @@ class ConfigUtils {
 			+ "    return new Pair(label,value);\n" 
 			+ "};\n";
 
+	private final static String getLabelForwardTrioJs = 
+			  "var getLabelValueTrio = function() {\n" 
+			+ "%s;\n"
+			+ "var Trio = Java.type('com.aegisql.conveyor.config.Trio');\n"
+			+ "if(typeof keyTransformer === \"undefined\") {return new Trio(label,name,null);}\n"
+			
+			
+			+ "		var Function = Java.type('java.util.function.Function');\n"
+			+ "		var FunctionImpl = Java.extend(Function, {\n"
+			+ "			apply: function(x) {\n"
+	        + "				return keyTransformer(x)\n;"
+	    		+ "			}});\n"
+//			+ "		var keyTransformer = function(k){return k}; var x =  keyTransformer('a');\n"
+			+ "    return new Trio(label,name,new FunctionImpl());\n" 
+			+ "};\n";
+
 	public final static Function<String,Object> stringToLabelValuePairSupplier = js -> {
 		try {
 			engine.eval(String.format(getLabelValuePairJs, js));
@@ -123,6 +139,18 @@ class ConfigUtils {
 			return result;
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToLabelValuePairSupplier error",e);
+		}
+	};
+
+	public final static Function<String,Object> stringToForwardTrioSupplier = js -> {
+		try {
+			engine.eval(String.format(getLabelForwardTrioJs, js));
+			Invocable invocable = (Invocable) engine;
+			Object result = invocable.invokeFunction("getLabelValueTrio");
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ConveyorConfigurationException("stringToForwardTrioSupplier error",e);
 		}
 	};
 
