@@ -67,7 +67,7 @@ class ConfigUtils {
 	private final static String getResultConsumerJs = 
 			  "var getResultConsumer = function() {\n" 
 			+ "		var ResultConsumer = Java.type('com.aegisql.conveyor.consumers.result.ResultConsumer');\n"
-			+ "     var rc = %s;"
+			+ "     var rc = %s;\n"
 			+ "		var SupplierImpl = Java.extend(ResultConsumer, {\n"
 			+ "			accept: function(bin) {\n"
 	        + "				rc.accept(bin)\n;"
@@ -77,11 +77,13 @@ class ConfigUtils {
 
 	public final static Function<String,Object> stringToResultConsumerSupplier = js -> {
 		try {
+			
 			engine.eval(String.format(getResultConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getResultConsumer");
 			return result;
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new ConveyorConfigurationException("stringToResultConsumerSupplier error",e);
 		}
 	};
@@ -89,7 +91,7 @@ class ConfigUtils {
 	private final static String getScrapConsumerJs = 
 			  "var getScrapConsumer = function() {\n" 
 			+ "		var ScrapConsumer = Java.type('com.aegisql.conveyor.consumers.scrap.ScrapConsumer');\n"
-			+ "     var sc = %s;"
+			+ "     var sc = %s;\n"
 			+ "		var SupplierImpl = Java.extend(ScrapConsumer, {\n"
 			+ "			accept: function(bin) {\n"
 	        + "				sc.accept(bin)\n;"

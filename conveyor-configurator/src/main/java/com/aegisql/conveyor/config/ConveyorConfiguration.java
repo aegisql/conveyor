@@ -15,6 +15,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
 
 public class ConveyorConfiguration {
 
@@ -181,10 +182,18 @@ public class ConveyorConfiguration {
 				propertyName = fields[fields.length-1];
 			}
 			if(name == null) {
-				buildingConveyor.staticPart().label(propertyName).value(value).place();
-				buildingConveyor.part().foreach().label(propertyName).value(value).place();
+				if("postInit".equals(propertyName)) {
+					buildingConveyor.resultConsumer().andThen((ResultConsumer<String, Conveyor>) ConfigUtils.stringToResultConsumerSupplier.apply(value)).set();
+				} else {
+					buildingConveyor.staticPart().label(propertyName).value(value).place();
+					buildingConveyor.part().foreach().label(propertyName).value(value).place();
+				}
 			} else {
-				buildingConveyor.part().id(name).label(propertyName).value(value).place();
+				if("postInit".equals(propertyName)) {
+					buildingConveyor.resultConsumer().andThen((ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(value)).id(name).set();
+				} else {
+					buildingConveyor.part().id(name).label(propertyName).value(value).place();
+				}
 			}
 		}
 		return cc;
