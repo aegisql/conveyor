@@ -15,6 +15,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 
 public class ConveyorConfiguration {
@@ -108,8 +109,11 @@ public class ConveyorConfiguration {
 			instance.resultConsumer(new ConveyorNameSetter(instance)).set();
 			instance.setIdleHeartBeat(Duration.ofMillis(100));
 			
-			instance.setDefaultCartConsumer(Conveyor.getConsumerFor(instance, ConveyorBuilder.class)
-					.<String>match(".*", (b,s)->LOG.info("Unprocessed value {}",s))
+			LabeledValueConsumer<String, ?, ConveyorBuilder> lvc = (l,v,b)->{
+				LOG.info("Unprocessed value {}={}",l,v);
+			};
+			
+			instance.setDefaultCartConsumer(lvc
 					.<String>when("defaultBuilderTimeout", ConveyorBuilder::defaultBuilderTimeout )
 					.<String>when("idleHeartBeat", ConveyorBuilder::idleHeartBeat )
 					.<String>when("rejectUnexpireableCartsOlderThan", ConveyorBuilder::rejectUnexpireableCartsOlderThan )

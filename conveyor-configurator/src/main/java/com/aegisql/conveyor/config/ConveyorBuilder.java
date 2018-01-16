@@ -37,6 +37,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	
 	//setters
 	private static final long serialVersionUID = 1L;
+	private Supplier<Conveyor> constructor                        = AssemblingConveyor::new;
 	private Duration idleHeartBeat                                = null;
 	private Duration defaultBuilderTimeout                        = null;
 	private Duration rejectUnexpireableCartsOlderThan             = null;
@@ -115,7 +116,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		LOG.debug("{}",this);
 		Conveyor instance = null;
 		
-		instance = new AssemblingConveyor<>();
+		instance = constructor.get();
 		
 		final Conveyor c = instance;
 		
