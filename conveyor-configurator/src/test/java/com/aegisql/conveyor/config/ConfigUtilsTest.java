@@ -377,7 +377,7 @@ public class ConfigUtilsTest {
 	}
 
 public static ResultConsumer test2PostCreation = bin -> {
-	System.out.println("---- TEST2 POST consumer");
+	System.out.println("---- TEST2 POST consumer "+bin);
 };	
 	
 }

@@ -41,7 +41,6 @@ class ConfigUtils {
 		return res;
 	};
 
-	private final static ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 
 	private final static String getBuilderSupplierJs = 
 			  "var getBuilderSupplier = function() {\n" 
@@ -55,6 +54,7 @@ class ConfigUtils {
 	
 	public final static Function<String,Object> stringToBuilderSupplier = js-> {
 		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 			engine.eval(String.format(getBuilderSupplierJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getBuilderSupplier");
@@ -76,8 +76,8 @@ class ConfigUtils {
 			+ "};\n";
 
 	public final static Function<String,Object> stringToResultConsumerSupplier = js -> {
-		try {
-			
+		try {			
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 			engine.eval(String.format(getResultConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getResultConsumer");
@@ -101,6 +101,7 @@ class ConfigUtils {
 
 	public final static Function<String,Object> stringToScrapConsumerSupplier = js -> {
 		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 			engine.eval(String.format(getScrapConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getScrapConsumer");
@@ -135,6 +136,7 @@ class ConfigUtils {
 
 	public final static Function<String,Object> stringToLabelValuePairSupplier = js -> {
 		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 			engine.eval(String.format(getLabelValuePairJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getLabelValuePair");
@@ -146,6 +148,7 @@ class ConfigUtils {
 
 	public final static Function<String,Object> stringToForwardTrioSupplier = js -> {
 		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 			engine.eval(String.format(getLabelForwardTrioJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getLabelValueTrio");
@@ -169,6 +172,7 @@ class ConfigUtils {
 
 	public final static Function<String,Object> stringToConsumerSupplier = js -> {
 		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 			engine.eval(String.format(consumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getConsumer");
@@ -191,6 +195,7 @@ class ConfigUtils {
 
 	public static final Function<String,Object> stringToLabeledValueConsumerSupplier = js -> {
 		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 			engine.eval(String.format(getLabeledValueConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getLabeledValueConsumer");
@@ -221,6 +226,7 @@ class ConfigUtils {
 
 	public static final Function<String, Object> stringToReadinessEvaluatorSupplier = js -> {
 		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 			engine.eval(String.format(getReadinessEvaluatorJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getReadinessEvaluator");
@@ -243,6 +249,7 @@ class ConfigUtils {
 
 	public final static Function<String,Object> stringToBiConsumerSupplier = js -> {
 		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 			engine.eval(String.format(biConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getBiConsumer");
@@ -263,6 +270,7 @@ class ConfigUtils {
 
 	public static final Function<String, Object> stringToLabelArraySupplier = js -> {
 		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 			engine.eval(String.format(getLabelArrayConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getLabelArrayConsumer");
@@ -285,6 +293,7 @@ class ConfigUtils {
 
 	public static final Function<String, Object> stringToCartPayloadFunctionSupplier = js -> {
 		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 			engine.eval(String.format(functionJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getFunction");

@@ -109,7 +109,7 @@ public class ConveyorConfiguration {
 			instance.setIdleHeartBeat(Duration.ofMillis(100));
 			
 			instance.setDefaultCartConsumer(Conveyor.getConsumerFor(instance, ConveyorBuilder.class)
-					.<String>match(".*", (b,s)->LOG.info("Unprocessed value1 {}",s))
+					.<String>match(".*", (b,s)->LOG.info("Unprocessed value {}",s))
 					.<String>when("defaultBuilderTimeout", ConveyorBuilder::defaultBuilderTimeout )
 					.<String>when("idleHeartBeat", ConveyorBuilder::idleHeartBeat )
 					.<String>when("rejectUnexpireableCartsOlderThan", ConveyorBuilder::rejectUnexpireableCartsOlderThan )
