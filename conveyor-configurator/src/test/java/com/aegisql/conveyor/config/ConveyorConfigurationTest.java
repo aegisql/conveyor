@@ -17,6 +17,7 @@ public class ConveyorConfigurationTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		ConveyorConfiguration.DEFAULT_TIMEOUT_MSEC = 10*1000;
 	}
 
 	@AfterClass

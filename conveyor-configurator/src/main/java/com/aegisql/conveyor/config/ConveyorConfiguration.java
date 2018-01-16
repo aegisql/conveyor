@@ -24,34 +24,11 @@ public class ConveyorConfiguration {
 
 	private final static Lock lock = new ReentrantLock();
 	
-	private final static Map<String,Function<String,Object>> stringConverters = new LinkedHashMap<>();
+	public static String SCRIPT_ENGINE = "nashorn";
 	
-	static {
-		stringConverters.put("idleHeartBeat", ConfigUtils.timeToMillsConverter);
-		stringConverters.put("defaultBuilderTimeout", ConfigUtils.timeToMillsConverter);
-		stringConverters.put("rejectUnexpireableCartsOlderThan", ConfigUtils.timeToMillsConverter);
-		stringConverters.put("expirationPostponeTime", ConfigUtils.timeToMillsConverter);
-		stringConverters.put("enablePostponeExpiration", Boolean::valueOf);
-		stringConverters.put("enablePostponeExpirationOnTimeout", Boolean::valueOf);
-		stringConverters.put("autoAcknowledge", Boolean::valueOf);
-		stringConverters.put("autoAcknowledgeOnStatus", ConfigUtils.stringToStatusConverter);
-		stringConverters.put("builderSupplier", ConfigUtils.stringToBuilderSupplier);
-		stringConverters.put("firstResultConsumer", ConfigUtils.stringToResultConsumerSupplier);
-		stringConverters.put("nextResultConsumer", ConfigUtils.stringToResultConsumerSupplier);
-		stringConverters.put("firstScrapConsumer", ConfigUtils.stringToScrapConsumerSupplier);
-		stringConverters.put("nextScrapConsumer", ConfigUtils.stringToScrapConsumerSupplier);
-		stringConverters.put("staticPart", ConfigUtils.stringToLabelValuePairSupplier);
-		stringConverters.put("onTimeoutAction", ConfigUtils.stringToConsumerSupplier);
-		stringConverters.put("defaultCartConsumer", ConfigUtils.stringToLabeledValueConsumerSupplier);
-		stringConverters.put("readinessEvaluator", ConfigUtils.stringToReadinessEvaluatorSupplier);
-		stringConverters.put("addCartBeforePlacementValidator", ConfigUtils.stringToConsumerSupplier);
-		stringConverters.put("addBeforeKeyEvictionAction", ConfigUtils.stringToConsumerSupplier);
-		stringConverters.put("addBeforeKeyReschedulingAction", ConfigUtils.stringToBiConsumerSupplier);
-		stringConverters.put("acceptLabels", ConfigUtils.stringToLabelArraySupplier);
-		stringConverters.put("acknowledgeAction", ConfigUtils.stringToConsumerSupplier);
-		stringConverters.put("cartPayloadAccessor", ConfigUtils.stringToCartPayloadFunctionSupplier);
-		
-	}
+	public static String PROPERTY_PREFIX = "CONVEYOR";
+	
+	public static long DEFAULT_TIMEOUT_MSEC = 0;
 	
 	ConveyorConfiguration() {
 	}
@@ -108,6 +85,7 @@ public class ConveyorConfiguration {
 			instance.setName("conveyorConfigurationBuilder");
 			instance.resultConsumer(new ConveyorNameSetter(instance)).set();
 			instance.setIdleHeartBeat(Duration.ofMillis(100));
+			instance.setDefaultBuilderTimeout(Duration.ofMillis(DEFAULT_TIMEOUT_MSEC));
 			
 			LabeledValueConsumer<String, ?, ConveyorBuilder> lvc = (l,v,b)->{
 				LOG.info("Unprocessed value {}={}",l,v);
@@ -168,7 +146,7 @@ public class ConveyorConfiguration {
 		for (Pair<String, String> o : p) {
 			String key   = o.label;
 			String value = o.value;
-			if( ! key.toUpperCase().startsWith("CONVEYOR.") ){
+			if( ! key.toUpperCase().startsWith(PROPERTY_PREFIX+".".toUpperCase()) ){
 				continue;
 			}
 			String[] fields = key.split("\\.");
