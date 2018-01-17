@@ -160,7 +160,7 @@ public class ConveyorConfiguration {
 				for(int i = 1; i < fields.length-1; i++) {
 					nameParts[i-1] = fields[i];
 				}
-				name = String.join("", nameParts);
+				name = String.join(".", nameParts);
 				propertyName = fields[fields.length-1];
 			}
 			if(name == null) {
