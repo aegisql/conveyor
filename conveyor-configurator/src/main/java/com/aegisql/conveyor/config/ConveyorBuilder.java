@@ -26,6 +26,7 @@ import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 
 @SuppressWarnings("rawtypes")
 public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
@@ -65,6 +66,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 //TODO:
 //forwardResultTo: (Conveyor<K2,L2,OUT2> destination, [Function<ProductBin<K,OUT>,K2>keyConverter,] L2 label) 
 	private Trio forward;
+	private int parallelFactor = 1;
 
 /*
 * conveyor.idleHeartBeat = 1.5 SECONDS
@@ -116,8 +118,11 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		LOG.debug("{}",this);
 		Conveyor instance = null;
 		
-		instance = constructor.get();
-		
+		if(parallelFactor > 1) {
+			instance = new KBalancedParallelConveyor(constructor, parallelFactor);
+		} else {
+			instance = constructor.get();
+		}
 		final Conveyor c = instance;
 		
 		setIfNotNull(idleHeartBeat, c::setIdleHeartBeat);
@@ -324,6 +329,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		b.forward = value;
 	}
 	
+	public static void supplier(ConveyorBuilder b, String s) {
+		LOG.debug("Applying conveyor supplier={}",s);
+		Supplier<Conveyor> value = ConfigUtils.stringToConveyorSupplier.apply(s);
+		b.constructor = value;
+	}
+	
 	//Readiness management
 	public static void allFilesReadSuccessfully(ConveyorBuilder b, Boolean readOk) {
 		LOG.debug("Applying allFilesReadSuccessfully={}",readOk);
@@ -349,6 +360,17 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		LOG.debug("Applying completed={}",s);
 		if( b.dependencies.remove(s) ) {
 			b.completed.add(s);
+		}
+	}
+	
+	public static void parallel(ConveyorBuilder b, String s) {
+		LOG.debug("Applying parallel={}",s);
+		try {
+			Integer pf = Integer.parseInt(s.split("\\s+")[0]);
+			b.parallelFactor = pf;
+		} catch (Exception e) {
+			LOG.warn("Unimplemented for {}",s,e);
+			// TODO: non-numeral parallel
 		}
 	}
 	

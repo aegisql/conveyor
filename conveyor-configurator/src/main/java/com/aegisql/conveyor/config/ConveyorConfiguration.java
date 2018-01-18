@@ -92,6 +92,7 @@ public class ConveyorConfiguration {
 			};
 			
 			instance.setDefaultCartConsumer(lvc
+					.<String>when("supplier", ConveyorBuilder::supplier )
 					.<String>when("defaultBuilderTimeout", ConveyorBuilder::defaultBuilderTimeout )
 					.<String>when("idleHeartBeat", ConveyorBuilder::idleHeartBeat )
 					.<String>when("rejectUnexpireableCartsOlderThan", ConveyorBuilder::rejectUnexpireableCartsOlderThan )
@@ -118,6 +119,7 @@ public class ConveyorConfiguration {
 					.<String>when("forward", ConveyorBuilder::forward )
 					.<String>when("completed", ConveyorBuilder::completed )
 					.<String>when("dependency", ConveyorBuilder::dependency )
+					.<String>when("parallel", ConveyorBuilder::parallel )
 					.<Boolean>when("complete_configuration", ConveyorBuilder::allFilesReadSuccessfully )
 					);
 						

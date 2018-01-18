@@ -7,6 +7,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -16,6 +17,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.ScrapBin;
@@ -380,4 +382,12 @@ public static ResultConsumer test2PostCreation = bin -> {
 	System.out.println("---- TEST2 POST consumer "+bin);
 };	
 	
+@Test
+public void testConveyorSupplier() {
+	Supplier<Conveyor> s = ConfigUtils.stringToConveyorSupplier.apply("new com.aegisql.conveyor.AssemblingConveyor()");
+	assertNotNull(s);
+	assertNotNull(s.get());
+	
+}
+
 }

@@ -2,6 +2,7 @@ package com.aegisql.conveyor.config;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -9,6 +10,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
 
@@ -63,7 +65,7 @@ class ConfigUtils {
 			throw new ConveyorConfigurationException("stringToBuilderSupplier error",e);
 		}
 	};
-
+	
 	private final static String getResultConsumerJs = 
 			  "var getResultConsumer = function() {\n" 
 			+ "		var ResultConsumer = Java.type('com.aegisql.conveyor.consumers.result.ResultConsumer');\n"
@@ -300,6 +302,27 @@ class ConfigUtils {
 			return result;
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToCartPayloadFunctionSupplier error",e);
+		}
+	};
+
+	private final static String getSupplierJs = 
+			  "var getSupplier = function() {\n" 
+			+ "		var Supplier = Java.type('java.util.function.Supplier');\n"
+			+ "		var SupplierImpl = Java.extend(Supplier, {\n"
+			+ "			get: function() {\n"
+	        + "				return %s\n;"
+	    		+ "			}});\n"
+			+ "    return new SupplierImpl();\n" 
+			+ "};\n";
+	
+	public final static Function<String,Supplier<Conveyor>> stringToConveyorSupplier = js-> {
+		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			engine.eval(String.format(getSupplierJs, js));
+			Invocable invocable = (Invocable) engine;
+			return (Supplier<Conveyor>) invocable.invokeFunction("getSupplier");
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("stringToConveyorSupplier error",e);
 		}
 	};
 
