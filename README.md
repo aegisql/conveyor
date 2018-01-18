@@ -44,7 +44,8 @@ conveyor-persistence (beta)
 * Create conveyors from .properties files
 * Create instance of L balanced conveyor from a list of conveyor names
 * Created ForwardResult consumer factory
-* removed forwardTo methods from interface
+* Removed forwardTo methods from interface
+* Bugfixes
 
 ### 1.3.9
 * MBeans improvements
