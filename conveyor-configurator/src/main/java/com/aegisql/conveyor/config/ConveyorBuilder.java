@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -27,12 +28,14 @@ import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
+import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 
 @SuppressWarnings("rawtypes")
 public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 	//readiness
 	private boolean allFilesRead = false;
+	private Set<String> lParallel    = new LinkedHashSet<>();
 	private Set<String> dependencies = new HashSet<>();
 	private Set<String> completed    = new HashSet<>();
 	
@@ -63,45 +66,8 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	private Consumer acknowledgeAction                            = null;
 	private Status[] autoAcknowledgeOnStatus                      = null;
 	private Function cartPayloadAccessor                          = null;
-//TODO:
-//forwardResultTo: (Conveyor<K2,L2,OUT2> destination, [Function<ProductBin<K,OUT>,K2>keyConverter,] L2 label) 
-	private Trio forward;
-	private int parallelFactor = 1;
-
-/*
-* conveyor.idleHeartBeat = 1.5 SECONDS
-* conveyor.test2.defaultBuilderTimeout = 1 SECONDS
-* conveyor.test2.rejectUnexpireableCartsOlderThan = 10000
-* conveyor.test2.staticPart = \
-	label = com.aegisql.conveyor.config.harness.NameLabel.FIRST;\
-	value1 = "preffix-";
-* conveyor.test2.staticPart = \
-	label = com.aegisql.conveyor.config.harness.NameLabel.LAST;\
-	value1 = "-suffix";
-* conveyor.test2.firstResultConsumer = new com.aegisql.conveyor.consumers.result.LogResult()
-* conveyor.test2.nextResultConsumer = com.aegisql.conveyor.config.ConfigUtilsTest.rCounter
-* conveyor.test2.firstScrapConsumer = new com.aegisql.conveyor.consumers.scrap.LogScrap()
-* conveyor.test2.nextScrapConsumer = com.aegisql.conveyor.config.ConfigUtilsTest.sCounter
-* conveyor.test2.onTimeoutAction = com.aegisql.conveyor.config.ConfigUtilsTest.timeoutAction
-* conveyor.test2.defaultCartConsumer = com.aegisql.conveyor.config.ConfigUtilsTest.lvc
-* conveyor.test2.readinessEvaluator = com.aegisql.conveyor.config.ConfigUtilsTest.biPredRE; //BiPredicate
-* conveyor.test2.readinessEvaluator = com.aegisql.conveyor.config.ConfigUtilsTest.predRE; //Predicate
-* conveyor.test2.builderSupplier = com.aegisql.conveyor.config.harness.StringSupplier("test2"); //JavaScript
-* conveyor.test2.addCartBeforePlacementValidator = com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator1
-* conveyor.test2.addCartBeforePlacementValidator = com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator2
-* conveyor.test2.addBeforeKeyEvictionAction = com.aegisql.conveyor.config.ConfigUtilsTest.beforeEviction
-* conveyor.test2.addBeforeKeyReschedulingAction = com.aegisql.conveyor.config.ConfigUtilsTest.beforeReschedule
-* conveyor.test2.acceptLabels = "A","B","C"
-* conveyor.test2.acceptLabels = com.aegisql.conveyor.config.harness.NameLabel.FIRST,com.aegisql.conveyor.config.harness.NameLabel.LAST
-#forwardResultTo
-* conveyor.test2.enablePostponeExpiration = false
-* conveyor.enablePostponeExpirationOnTimeout = false
-* conveyor.test2.expirationPostponeTime = 1000
-* conveyor.test2.autoAcknowledge = true
-* conveyor.test2.acknowledgeAction = com.aegisql.conveyor.config.ConfigUtilsTest.acknowledgeAction
-* conveyor.test2.autoAcknowledgeOnStatus = READY,TIMED_OUT,CANCELED
-* conveyor.test2.cartPayloadAccessor = com.aegisql.conveyor.config.ConfigUtilsTest.payloadFunction
-*/
+	private Collection<Trio> forward                              = new LinkedList<>();
+	private int parallelFactor                                    = 1;
 
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorBuilder.class);
 		
@@ -120,8 +86,15 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		
 		if(parallelFactor > 1) {
 			instance = new KBalancedParallelConveyor(constructor, parallelFactor);
+			LOG.info("Instantiate K-Balanced conveyor with parallelizm={}",parallelFactor);
+		} else if(lParallel.size() > 1){
+			LOG.info("Instantiate L-Balanced conveyor with parallelizm={}",lParallel);
+			String[] lConveyors = new String[lParallel.size()];
+			lConveyors = lParallel.toArray(lConveyors);
+			instance = new LBalancedParallelConveyor<>(lConveyors);
 		} else {
 			instance = constructor.get();
+			LOG.info("Instantiate {}",instance.getClass().getName());
 		}
 		final Conveyor c = instance;
 		
@@ -160,17 +133,18 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		addCartBeforePlacementValidator.forEach(pv -> c.addCartBeforePlacementValidator(pv) );
 		addBeforeKeyEvictionAction.forEach(pv -> c.addBeforeKeyEvictionAction(pv) );
 		addBeforeKeyReschedulingAction.forEach(ra -> c.addBeforeKeyReschedulingAction(ra) );
-		if(forward != null) {
-			ForwardResult fr = ForwardResult.from(c).to((String)forward.value1).label(forward.label);
-			if(forward.value2 != null) {
-				fr = fr.transformKey((Function) forward.value2);
+		forward.forEach(f->{
+			ForwardResult fr = ForwardResult.from(c).to((String)f.value1).label(f.label);
+			if(f.value2 != null) {
+				fr = fr.transformKey((Function) f.value2);
 			}
-			fr.bind();
-		}
+			fr.bind();			
+		});
+
 		
 		return c;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("Error constructing Conveyor",e);
 			throw e;
 		}
 	}
@@ -326,7 +300,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	public static void forward(ConveyorBuilder b, String s) {
 		LOG.debug("Applying forward={}",s);
 		Trio value = (Trio) ConfigUtils.stringToForwardTrioSupplier.apply(s);
-		b.forward = value;
+		b.forward.add(value);
 	}
 	
 	public static void supplier(ConveyorBuilder b, String s) {
@@ -368,9 +342,19 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		try {
 			Integer pf = Integer.parseInt(s.split("\\s+")[0]);
 			b.parallelFactor = pf;
+			b.lParallel.clear();
 		} catch (Exception e) {
-			LOG.warn("Unimplemented for {}",s,e);
-			// TODO: non-numeral parallel
+			String[] parts = s.split(",");
+			if(parts.length > 0) {
+				b.parallelFactor = 1;
+				for(String part:parts) {
+					String trimmed = part.trim();
+					b.dependencies.add(trimmed);
+					b.lParallel.add(trimmed);
+				}
+			} else {
+				throw e;
+			}
 		}
 	}
 	

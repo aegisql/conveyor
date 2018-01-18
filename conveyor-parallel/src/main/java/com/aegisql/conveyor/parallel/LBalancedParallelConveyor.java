@@ -117,7 +117,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 				throw new RuntimeException("L-Balanced parallel conveyor cannot have more than one K-balanced default assembling conveyor");
 			} else if(kBalanced == 1) {
 				LOG.debug("L-Balanced Parallel conveyor with default labels. {}",map);
-				this.balancingCart = cart -> { 
+				this.balancingCart = cart -> {
 					if(map.containsKey(cart.getLabel())) {
 						return map.get(cart.getLabel());
 					} else {
