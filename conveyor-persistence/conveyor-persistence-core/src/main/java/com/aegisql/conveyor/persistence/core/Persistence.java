@@ -1,10 +1,14 @@
 package com.aegisql.conveyor.persistence.core;
 
 import java.io.Closeable;
+import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Supplier;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
@@ -243,5 +247,16 @@ public interface Persistence <K> extends Closeable{
 		return new PersistentConveyor<>(this,conveyor.get());
 	}
 
+	final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 	
+	public static Persistence byName(String name) {
+		ObjectName objectName;
+		try {
+			objectName = new ObjectName(name);
+			Object res = mBeanServer.invoke(objectName, "get", null, null);
+			return (Persistence) res;
+		} catch (Exception e) {
+			throw new RuntimeException("Persistence with name '"+name +"' not found",e);
+		}
+	}
 }

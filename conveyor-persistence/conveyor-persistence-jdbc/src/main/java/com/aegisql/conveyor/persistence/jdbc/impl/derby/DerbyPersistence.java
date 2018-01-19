@@ -777,9 +777,33 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			infoBuilder.append("archiveStrategy=").append(archiveStrategy).append(" ");
 			infoBuilder.append("encryption=").append(encryptionSecret != null?"ON":"OFF").append("]");
 			
-			ObjectName objectName = new ObjectName("com.aegisql.conveyor.persistence.derby."+schema+":type=" + partTable);
+			DerbyPersistence<K> result = new DerbyPersistence<K>(
+					this
+					,conn
+					,idSupplier
+					,saveCartQuery
+					,saveCompletedBuildKeyQuery
+					,getPartQuery
+					,getExpiredPartQuery
+					,getAllPartIdsQuery
+					,getAllUnfinishedPartIdsQuery
+					,getAllCompletedKeysQuery
+					,getAllStaticPartsQuery
+					,"SELECT COUNT(*) FROM " + partTable + " WHERE ARCHIVED = 0"
+					,archiver
+					,labelConverter
+					//,blobConverter
+					,getConverterAdviser()
+					,maxBatchSize
+					,maxBatchTime
+					,infoBuilder .toString()
+					,nonPersistentProperties
+					);
+
+			String objName = "com.aegisql.conveyor.persistence.derby."+schema+":type=" + partTable;
+			ObjectName objectName = new ObjectName(objName);
 			if( ! DerbyPersistenceMBean.mBeanServer.isRegistered(objectName) ) {
-				DerbyPersistenceMBean derbyMBean = new DerbyPersistenceMBean() {
+				DerbyPersistenceMBean<K> derbyMBean = new DerbyPersistenceMBean<K>() {
 					
 					@Override
 					public String getSchema() {
@@ -835,33 +859,17 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					public String getArchiveStrategyProperties() {
 						return archiver.toString();
 					}
+
+					@Override
+					public Persistence<K> get() {
+						return result;
+					}
 				};
 				StandardMBean mbean = new StandardMBean(derbyMBean, DerbyPersistenceMBean.class);
 				DerbyPersistenceMBean.mBeanServer.registerMBean(mbean, objectName);
 			}
 			
-			return new DerbyPersistence<K>(
-					this
-					,conn
-					,idSupplier
-					,saveCartQuery
-					,saveCompletedBuildKeyQuery
-					,getPartQuery
-					,getExpiredPartQuery
-					,getAllPartIdsQuery
-					,getAllUnfinishedPartIdsQuery
-					,getAllCompletedKeysQuery
-					,getAllStaticPartsQuery
-					,"SELECT COUNT(*) FROM " + partTable + " WHERE ARCHIVED = 0"
-					,archiver
-					,labelConverter
-					//,blobConverter
-					,getConverterAdviser()
-					,maxBatchSize
-					,maxBatchTime
-					,infoBuilder .toString()
-					,nonPersistentProperties
-					);
+			return result;
 		}
 	}
 

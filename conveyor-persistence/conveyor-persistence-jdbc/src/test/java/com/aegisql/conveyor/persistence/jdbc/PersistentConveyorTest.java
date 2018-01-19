@@ -67,6 +67,7 @@ public class PersistentConveyorTest {
 	
 	Persistence<Integer> getPersitence(String table) {
 		try {
+						
 			Thread.sleep(1000);
 			return DerbyPersistence
 					.forKeyClass(Integer.class)
@@ -447,5 +448,11 @@ public class PersistentConveyorTest {
 		//assertTrue(p2.isEmpty());
 	}
 
-	
+	@Test
+	public void testByName() throws Exception{
+		Persistence<Integer> p1 = getPersitence("nameTest");
+		Persistence<Integer> p2 = Persistence.byName("com.aegisql.conveyor.persistence.derby.testConv:type=nameTest");
+		assertNotNull(p2);
+		assertTrue(p1==p2);
+	}
 }

@@ -29,6 +29,8 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
+import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 
 @SuppressWarnings("rawtypes")
 public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
@@ -68,7 +70,8 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	private Function cartPayloadAccessor                          = null;
 	private Collection<Trio> forward                              = new LinkedList<>();
 	private int parallelFactor                                    = 1;
-
+	private String persistence                                    = null;
+	
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorBuilder.class);
 		
 	private <T> void setIfNotNull(T value,Consumer<T> consumer) {
@@ -96,6 +99,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 			instance = constructor.get();
 			LOG.info("Instantiate {}",instance.getClass().getName());
 		}
+		
+		if(persistence != null) {
+			Persistence p = Persistence.byName(persistence);
+			instance = new PersistentConveyor(p,instance);
+		}
+		
 		final Conveyor c = instance;
 		
 		setIfNotNull(idleHeartBeat, c::setIdleHeartBeat);
@@ -308,7 +317,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		Supplier<Conveyor> value = ConfigUtils.stringToConveyorSupplier.apply(s);
 		b.constructor = value;
 	}
-	
+
+	public static void persitence(ConveyorBuilder b, String s) {
+		LOG.debug("Applying conveyor persitence={}",s);
+		b.persistence = s;
+	}
+
 	//Readiness management
 	public static void allFilesReadSuccessfully(ConveyorBuilder b, Boolean readOk) {
 		LOG.debug("Applying allFilesReadSuccessfully={}",readOk);

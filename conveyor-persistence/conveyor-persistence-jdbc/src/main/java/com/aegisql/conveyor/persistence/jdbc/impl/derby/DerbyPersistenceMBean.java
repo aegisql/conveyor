@@ -1,10 +1,13 @@
 package com.aegisql.conveyor.persistence.jdbc.impl.derby;
 
 import java.lang.management.ManagementFactory;
+import java.util.function.Supplier;
 
 import javax.management.MBeanServer;
 
-public interface DerbyPersistenceMBean {
+import com.aegisql.conveyor.persistence.core.Persistence;
+
+public interface DerbyPersistenceMBean<K> extends Supplier<Persistence<K>>{
 	
 	final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 	
