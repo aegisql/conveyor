@@ -134,8 +134,17 @@ public class ConveyorConfiguration {
 		c.setName("test1");
 		Yaml yaml = new Yaml();
 		FileReader reader = new FileReader(file);
-		for (Object o : yaml.loadAll(reader)) {
-			LOG.info("YAML Object {} {}", o.getClass(), o);
+		Conveyor<String,String,Conveyor> buildingConveyor = getBuildingConveyor();
+		Iterable iter = (Iterable) yaml.loadAll(reader);
+		for (Object o : iter) {
+			LOG.info("YAML Iter {} {}", o.getClass(), o);
+			Map<String,Object> map = (Map<String, Object>) o;
+			map.forEach((key,value)->{
+				LOG.info("Value {} {} {}", key,value.getClass(), value);
+				if( key.toUpperCase().startsWith(PROPERTY_PREFIX+".".toUpperCase()) ){
+					processPair(buildingConveyor,key,""+value);
+				}
+			});
 		}
 		return cc;
 	}
@@ -150,39 +159,44 @@ public class ConveyorConfiguration {
 			String value = o.value;
 			if( ! key.toUpperCase().startsWith(PROPERTY_PREFIX+".".toUpperCase()) ){
 				continue;
-			}
-			String[] fields = key.split("\\.");
-			String name         = null;
-			String propertyName = null;
-			if(fields.length == 2) {
-				name = null;
-				propertyName = fields[1];
 			} else {
-				String[] nameParts = new String[fields.length-2];
-				for(int i = 1; i < fields.length-1; i++) {
-					nameParts[i-1] = fields[i];
-				}
-				name = String.join(".", nameParts);
-				propertyName = fields[fields.length-1];
-			}
-			if(name == null) {
-				if("postInit".equals(propertyName)) {
-					buildingConveyor.resultConsumer().andThen((ResultConsumer<String, Conveyor>) ConfigUtils.stringToResultConsumerSupplier.apply(value)).set();
-				} else {
-					buildingConveyor.staticPart().label(propertyName).value(value).place();
-					buildingConveyor.part().foreach().label(propertyName).value(value).place();
-				}
-			} else {
-				if("postInit".equals(propertyName)) {
-					buildingConveyor.resultConsumer().andThen((ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(value)).id(name).set();
-				} else {
-					buildingConveyor.part().id(name).label(propertyName).value(value).place();
-				}
+				processPair(buildingConveyor,key,value);
 			}
 		}
 		return cc;
 	}
 
+	private static void processPair(Conveyor<String,String,Conveyor> buildingConveyor,String key,String value) {
+		String[] fields = key.split("\\.");
+		String name         = null;
+		String propertyName = null;
+		if(fields.length == 2) {
+			name = null;
+			propertyName = fields[1];
+		} else {
+			String[] nameParts = new String[fields.length-2];
+			for(int i = 1; i < fields.length-1; i++) {
+				nameParts[i-1] = fields[i];
+			}
+			name = String.join(".", nameParts);
+			propertyName = fields[fields.length-1];
+		}
+		if(name == null) {
+			if("postInit".equals(propertyName)) {
+				buildingConveyor.resultConsumer().andThen((ResultConsumer<String, Conveyor>) ConfigUtils.stringToResultConsumerSupplier.apply(value)).set();
+			} else {
+				buildingConveyor.staticPart().label(propertyName).value(value).place();
+				buildingConveyor.part().foreach().label(propertyName).value(value).place();
+			}
+		} else {
+			if("postInit".equals(propertyName)) {
+				buildingConveyor.resultConsumer().andThen((ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(value)).id(name).set();
+			} else {
+				buildingConveyor.part().id(name).label(propertyName).value(value).place();
+			}
+		}
+	}
+	
 	@Override
 	public String toString() {
 		return "ConveyorConfiguration";

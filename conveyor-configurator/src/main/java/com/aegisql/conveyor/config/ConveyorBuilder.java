@@ -374,7 +374,11 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	
 	@Override
 	public String toString() {
-		return "ConveyorBuilder [" + (idleHeartBeat != null ? "idleHeartBeat=" + idleHeartBeat + ", " : "")
+		return "ConveyorBuilder [" + (dependencies != null ? "dependencies=" + dependencies + ", " : "")
+				+ "allFilesRead=" + allFilesRead + ", " + (lParallel != null ? "lParallel=" + lParallel + ", " : "")
+				+ (completed != null ? "completed=" + completed + ", " : "")
+				+ (constructor != null ? "constructor=" + constructor + ", " : "")
+				+ (idleHeartBeat != null ? "idleHeartBeat=" + idleHeartBeat + ", " : "")
 				+ (defaultBuilderTimeout != null ? "defaultBuilderTimeout=" + defaultBuilderTimeout + ", " : "")
 				+ (rejectUnexpireableCartsOlderThan != null
 						? "rejectUnexpireableCartsOlderThan=" + rejectUnexpireableCartsOlderThan + ", "
@@ -410,7 +414,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				+ (autoAcknowledgeOnStatus != null
 						? "autoAcknowledgeOnStatus=" + Arrays.toString(autoAcknowledgeOnStatus) + ", "
 						: "")
-				+ (cartPayloadAccessor != null ? "cartPayloadAccessor=" + cartPayloadAccessor : "") + "]";
+				+ (cartPayloadAccessor != null ? "cartPayloadAccessor=" + cartPayloadAccessor + ", " : "")
+				+ (forward != null ? "forward=" + forward + ", " : "") + "parallelFactor=" + parallelFactor + ", "
+				+ (persistence != null ? "persistence=" + persistence : "") + "]";
 	}
 
 	@Override

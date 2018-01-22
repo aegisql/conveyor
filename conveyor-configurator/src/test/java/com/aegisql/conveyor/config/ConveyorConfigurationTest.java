@@ -87,4 +87,14 @@ public class ConveyorConfigurationTest {
 		assertNotNull(Conveyor.byName("test.part"));
 	}
 
+	@Test
+	public void testSimpleYampFile() throws Exception {
+		ConveyorConfiguration.build("CLASSPATH:test3.yml");
+		//assertNotNull(Conveyor.byName("test0"));
+		//assertNotNull(Conveyor.byName("test1"));
+		assertNotNull(Conveyor.byName("c3-1"));
+		assertNotNull(Conveyor.byName("c3.p1"));
+	}
+
+	
 }

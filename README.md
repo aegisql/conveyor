@@ -45,6 +45,7 @@ conveyor-persistence (beta)
 * Create instance of L balanced conveyor from a list of conveyor names
 * Created ForwardResult consumer factory
 * Removed forwardTo methods from interface
+* Resolving persistence by name
 * Bugfixes
 
 ### 1.3.9

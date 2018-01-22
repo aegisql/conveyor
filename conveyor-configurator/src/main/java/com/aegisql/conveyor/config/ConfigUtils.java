@@ -278,6 +278,7 @@ class ConfigUtils {
 			Object result = invocable.invokeFunction("getLabelArrayConsumer");
 			return result;
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new ConveyorConfigurationException("stringToLabelArraySupplier error",e);
 		}
 	};
