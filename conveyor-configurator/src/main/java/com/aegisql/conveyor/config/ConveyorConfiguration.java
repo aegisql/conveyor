@@ -23,13 +23,13 @@ public class ConveyorConfiguration {
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorConfiguration.class);
 
 	private final static Lock lock = new ReentrantLock();
-	
+
 	public static String SCRIPT_ENGINE = "nashorn";
-	
+
 	public static String PROPERTY_PREFIX = "CONVEYOR";
-	
+
 	public static long DEFAULT_TIMEOUT_MSEC = 0;
-	
+
 	ConveyorConfiguration() {
 	}
 
@@ -62,87 +62,87 @@ public class ConveyorConfiguration {
 			} else {
 				throw new ConveyorConfigurationException("Unsupported file type " + file);
 			}
-			LOG.info("COMPLETE {}",cc);
-		} catch(Exception e) {
-			throw new ConveyorConfigurationException("Error while processing file "+file,e);
+			LOG.info("COMPLETE {}", cc);
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("Error while processing file " + file, e);
 		} finally {
 			lock.unlock();
 		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static Conveyor<String,String,Conveyor> getBuildingConveyor() {
-		
-		Conveyor<String,String,Conveyor> instance = null;
+	private static Conveyor<String, String, Conveyor> getBuildingConveyor() {
+
+		Conveyor<String, String, Conveyor> instance = null;
 		try {
 			instance = Conveyor.byName("conveyorConfigurationBuilder");
-			if(! instance.isRunning() ) {
+			if (!instance.isRunning()) {
 				throw new RuntimeException("conveyorConfigurationBuilder is not running");
 			}
-		} catch(RuntimeException e) {
+		} catch (RuntimeException e) {
 			instance = new AssemblingConveyor<>();
 			instance.setBuilderSupplier(ConveyorBuilder::new);
 			instance.setName("conveyorConfigurationBuilder");
 			instance.resultConsumer(new ConveyorNameSetter(instance)).set();
 			instance.setIdleHeartBeat(Duration.ofMillis(100));
 			instance.setDefaultBuilderTimeout(Duration.ofMillis(DEFAULT_TIMEOUT_MSEC));
-			
-			LabeledValueConsumer<String, ?, ConveyorBuilder> lvc = (l,v,b)->{
-				LOG.info("Unprocessed value {}={}",l,v);
+
+			LabeledValueConsumer<String, ?, ConveyorBuilder> lvc = (l, v, b) -> {
+				LOG.info("Unprocessed value {}={}", l, v);
 			};
-			
-			instance.setDefaultCartConsumer(lvc
-					.<String>when("supplier", ConveyorBuilder::supplier )
-					.<String>when("defaultBuilderTimeout", ConveyorBuilder::defaultBuilderTimeout )
-					.<String>when("idleHeartBeat", ConveyorBuilder::idleHeartBeat )
-					.<String>when("rejectUnexpireableCartsOlderThan", ConveyorBuilder::rejectUnexpireableCartsOlderThan )
-					.<String>when("expirationPostponeTime", ConveyorBuilder::expirationPostponeTime )
-					.<String>when("staticPart", ConveyorBuilder::staticPart )
-					.<String>when("firstResultConsumer", ConveyorBuilder::firstResultConsumer )
-					.<String>when("nextResultConsumer", ConveyorBuilder::nextResultConsumer )
-					.<String>when("firstScrapConsumer", ConveyorBuilder::firstScrapConsumer )
-					.<String>when("nextScrapConsumer", ConveyorBuilder::nextScrapConsumer )
-					.<String>when("onTimeoutAction", ConveyorBuilder::timeoutAction )
-					.<String>when("defaultCartConsumer", ConveyorBuilder::defaultCartConsumer )
-					.<String>when("readinessEvaluator", ConveyorBuilder::readinessEvaluator )
-					.<String>when("builderSupplier", ConveyorBuilder::builderSupplier )
-					.<String>when("addBeforeKeyEvictionAction", ConveyorBuilder::addBeforeKeyEvictionAction )
-					.<String>when("addCartBeforePlacementValidator", ConveyorBuilder::addCartBeforePlacementValidator )
-					.<String>when("addBeforeKeyReschedulingAction", ConveyorBuilder::addBeforeKeyReschedulingAction )
+
+			instance.setDefaultCartConsumer(lvc.<String>when("supplier", ConveyorBuilder::supplier)
+					.<String>when("defaultBuilderTimeout", ConveyorBuilder::defaultBuilderTimeout)
+					.<String>when("idleHeartBeat", ConveyorBuilder::idleHeartBeat)
+					.<String>when("rejectUnexpireableCartsOlderThan", ConveyorBuilder::rejectUnexpireableCartsOlderThan)
+					.<String>when("expirationPostponeTime", ConveyorBuilder::expirationPostponeTime)
+					.<String>when("staticPart", ConveyorBuilder::staticPart)
+					.<String>when("firstResultConsumer", ConveyorBuilder::firstResultConsumer)
+					.<String>when("nextResultConsumer", ConveyorBuilder::nextResultConsumer)
+					.<String>when("firstScrapConsumer", ConveyorBuilder::firstScrapConsumer)
+					.<String>when("nextScrapConsumer", ConveyorBuilder::nextScrapConsumer)
+					.<String>when("onTimeoutAction", ConveyorBuilder::timeoutAction)
+					.<String>when("defaultCartConsumer", ConveyorBuilder::defaultCartConsumer)
+					.<String>when("readinessEvaluator", ConveyorBuilder::readinessEvaluator)
+					.<String>when("builderSupplier", ConveyorBuilder::builderSupplier)
+					.<String>when("addBeforeKeyEvictionAction", ConveyorBuilder::addBeforeKeyEvictionAction)
+					.<String>when("addCartBeforePlacementValidator", ConveyorBuilder::addCartBeforePlacementValidator)
+					.<String>when("addBeforeKeyReschedulingAction", ConveyorBuilder::addBeforeKeyReschedulingAction)
 					.<String>when("acceptLabels", ConveyorBuilder::acceptLabels)
-					.<String>when("enablePostponeExpiration", ConveyorBuilder::enablePostponeExpiration )
-					.<String>when("enablePostponeExpirationOnTimeout", ConveyorBuilder::enablePostponeExpirationOnTimeout )
-					.<String>when("autoAcknowledge", ConveyorBuilder::autoAcknowledge )
-					.<String>when("acknowledgeAction", ConveyorBuilder::acknowledgeAction )
-					.<String>when("autoAcknowledgeOnStatus", ConveyorBuilder::autoAcknowledgeOnStatus )
-					.<String>when("cartPayloadAccessor", ConveyorBuilder::cartPayloadAccessor )
-					.<String>when("forward", ConveyorBuilder::forward )
-					.<String>when("completed", ConveyorBuilder::completed )
-					.<String>when("dependency", ConveyorBuilder::dependency )
-					.<String>when("parallel", ConveyorBuilder::parallel )
-					.<Boolean>when("complete_configuration", ConveyorBuilder::allFilesReadSuccessfully )
-					);
-						
+					.<String>when("enablePostponeExpiration", ConveyorBuilder::enablePostponeExpiration)
+					.<String>when("enablePostponeExpirationOnTimeout",
+							ConveyorBuilder::enablePostponeExpirationOnTimeout)
+					.<String>when("autoAcknowledge", ConveyorBuilder::autoAcknowledge)
+					.<String>when("acknowledgeAction", ConveyorBuilder::acknowledgeAction)
+					.<String>when("autoAcknowledgeOnStatus", ConveyorBuilder::autoAcknowledgeOnStatus)
+					.<String>when("cartPayloadAccessor", ConveyorBuilder::cartPayloadAccessor)
+					.<String>when("forward", ConveyorBuilder::forward)
+					.<String>when("completed", ConveyorBuilder::completed)
+					.<String>when("dependency", ConveyorBuilder::dependency)
+					.<String>when("parallel", ConveyorBuilder::parallel)
+					.<Boolean>when("complete_configuration", ConveyorBuilder::allFilesReadSuccessfully));
+
 		}
-		
+
 		return instance;
 	}
-	
+
 	private static ConveyorConfiguration processYaml(String file) throws Exception {
 		ConveyorConfiguration cc = new ConveyorConfiguration();
 		Conveyor c = new AssemblingConveyor<>();
 		c.setName("test1");
 		Yaml yaml = new Yaml();
 		FileReader reader = new FileReader(file);
-		Conveyor<String,String,Conveyor> buildingConveyor = getBuildingConveyor();
+		Conveyor<String, String, Conveyor> buildingConveyor = getBuildingConveyor();
 		Iterable iter = (Iterable) yaml.loadAll(reader);
 		for (Object o : iter) {
 			LOG.info("YAML Iter {} {}", o.getClass(), o);
-			Map<String,Object> map = (Map<String, Object>) o;
-			map.forEach((key,value)->{
-				LOG.info("Value {} {} {}", key,value.getClass(), value);
-				if( key.toUpperCase().startsWith(PROPERTY_PREFIX+".".toUpperCase()) ){
-					processPair(buildingConveyor,key,""+value);
+			Map<String, Object> map = (Map<String, Object>) o;
+			map.forEach((key, value) -> {
+				LOG.info("Value {} {} {}", key, value.getClass(), value);
+				if (key.toUpperCase().equalsIgnoreCase(PROPERTY_PREFIX)
+						|| key.toUpperCase().startsWith(PROPERTY_PREFIX + ".".toUpperCase())) {
+					processPair(buildingConveyor, key, value);
 				}
 			});
 		}
@@ -153,55 +153,68 @@ public class ConveyorConfiguration {
 		ConveyorConfiguration cc = new ConveyorConfiguration();
 		OrderedProperties p = new OrderedProperties();
 		p.load(file);
-		Conveyor<String,String,Conveyor> buildingConveyor = getBuildingConveyor();
+		Conveyor<String, String, Conveyor> buildingConveyor = getBuildingConveyor();
 		for (Pair<String, String> o : p) {
-			String key   = o.label;
+			String key = o.label;
 			String value = o.value;
-			if( ! key.toUpperCase().startsWith(PROPERTY_PREFIX+".".toUpperCase()) ){
+			if (!key.toUpperCase().startsWith(PROPERTY_PREFIX + ".".toUpperCase())) {
 				continue;
 			} else {
-				processPair(buildingConveyor,key,value);
+				processPair(buildingConveyor, key, value);
 			}
 		}
 		return cc;
 	}
 
-	private static void processPair(Conveyor<String,String,Conveyor> buildingConveyor,String key,String value) {
+	private static void processPair(Conveyor<String, String, Conveyor> buildingConveyor, String key, Object obj) {
 		String[] fields = key.split("\\.");
-		String name         = null;
+		String name = null;
 		String propertyName = null;
-		if(fields.length == 2) {
-			name = null;
-			propertyName = fields[1];
+		if (obj instanceof Map) {
+			Map<String,Object> map = (Map<String, Object>) obj;
+			map.forEach((k,v)->{
+				processPair(buildingConveyor, key+"."+k, v);
+			});
 		} else {
-			String[] nameParts = new String[fields.length-2];
-			for(int i = 1; i < fields.length-1; i++) {
-				nameParts[i-1] = fields[i];
+			String value = null;
+			if (obj != null) {
+				value = obj.toString();
 			}
-			name = String.join(".", nameParts);
-			propertyName = fields[fields.length-1];
-		}
-		if(name == null) {
-			if("postInit".equals(propertyName)) {
-				buildingConveyor.resultConsumer().andThen((ResultConsumer<String, Conveyor>) ConfigUtils.stringToResultConsumerSupplier.apply(value)).set();
+			if (fields.length == 2) {
+				name = null;
+				propertyName = fields[1];
 			} else {
-				buildingConveyor.staticPart().label(propertyName).value(value).place();
-				buildingConveyor.part().foreach().label(propertyName).value(value).place();
+				String[] nameParts = new String[fields.length - 2];
+				for (int i = 1; i < fields.length - 1; i++) {
+					nameParts[i - 1] = fields[i];
+				}
+				name = String.join(".", nameParts);
+				propertyName = fields[fields.length - 1];
 			}
-		} else {
-			if("postInit".equals(propertyName)) {
-				buildingConveyor.resultConsumer().andThen((ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(value)).id(name).set();
+			if (name == null) {
+				if ("postInit".equals(propertyName)) {
+					buildingConveyor.resultConsumer().andThen(
+							(ResultConsumer<String, Conveyor>) ConfigUtils.stringToResultConsumerSupplier.apply(value))
+							.set();
+				} else {
+					buildingConveyor.staticPart().label(propertyName).value(value).place();
+					buildingConveyor.part().foreach().label(propertyName).value(value).place();
+				}
 			} else {
-				buildingConveyor.part().id(name).label(propertyName).value(value).place();
+				if ("postInit".equals(propertyName)) {
+					buildingConveyor.resultConsumer()
+							.andThen((ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(value)).id(name)
+							.set();
+				} else {
+					buildingConveyor.part().id(name).label(propertyName).value(value).place();
+				}
 			}
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		return "ConveyorConfiguration";
 	}
-	
-	
 
 }

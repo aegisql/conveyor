@@ -88,12 +88,21 @@ public class ConveyorConfigurationTest {
 	}
 
 	@Test
-	public void testSimpleYampFile() throws Exception {
+	public void testSimpleYampFileIdenticalToProperties() throws Exception {
 		ConveyorConfiguration.build("CLASSPATH:test3.yml");
 		//assertNotNull(Conveyor.byName("test0"));
 		//assertNotNull(Conveyor.byName("test1"));
 		assertNotNull(Conveyor.byName("c3-1"));
 		assertNotNull(Conveyor.byName("c3.p1"));
+	}
+
+	@Test
+	public void testSimpleYampFileWithStructure() throws Exception {
+		ConveyorConfiguration.build("CLASSPATH:test4.yml");
+		//assertNotNull(Conveyor.byName("test0"));
+		//assertNotNull(Conveyor.byName("test1"));
+		assertNotNull(Conveyor.byName("c4-1"));
+		assertNotNull(Conveyor.byName("c4.p1"));
 	}
 
 	

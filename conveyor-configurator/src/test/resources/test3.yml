@@ -1,0 +1,50 @@
+test.testName: yaml properties
+conveyor.idleHeartBeat:  1.5 SECONDS
+conveyor.c3-0.defaultBuilderTimeout:  1 SECONDS
+conveyor.c3-0.forward: >
+  var label = "Y";
+  var name = 'c3-2';
+  var keyTransformer = function(k){return 'X'+k};
+conveyor.c3-0.acceptLabels: '"X"'
+conveyor.c3-2.defaultBuilderTimeout: 1 SECONDS
+conveyor.c3-2.parallel:  2
+conveyor.c3-1.defaultBuilderTimeout:  1 SECONDS
+conveyor.c3-1.rejectUnexpireableCartsOlderThan:  10000
+conveyor.c3-1.staticPart:  >
+  label = com.aegisql.conveyor.config.harness.NameLabel.FIRST;
+  value = "preffix-";
+conveyor.c3-1.staticPart: >
+  label = com.aegisql.conveyor.config.harness.NameLabel.LAST;
+  value = "-suffix";
+conveyor.c3-1.firstResultConsumer:  new com.aegisql.conveyor.consumers.result.LogResult()
+conveyor.c3-1.nextResultConsumer:  com.aegisql.conveyor.config.ConfigUtilsTest.rCounter
+conveyor.c3-1.firstScrapConsumer:  new com.aegisql.conveyor.consumers.scrap.LogScrap()
+conveyor.c3-1.nextScrapConsumer:  com.aegisql.conveyor.config.ConfigUtilsTest.sCounter
+conveyor.c3-1.onTimeoutAction:  com.aegisql.conveyor.config.ConfigUtilsTest.timeoutAction
+conveyor.c3-1.defaultCartConsumer:  com.aegisql.conveyor.config.ConfigUtilsTest.lvc
+conveyor.c3-1.readinessEvaluator:  com.aegisql.conveyor.config.ConfigUtilsTest.biPredRE; //BiPredicate
+conveyor.c3-1.readinessEvaluator:  com.aegisql.conveyor.config.ConfigUtilsTest.predRE; //Predicate
+conveyor.c3-1.builderSupplier:  com.aegisql.conveyor.config.harness.StringSupplier("c3-1"); //JavaScript
+conveyor.c3-1.addCartBeforePlacementValidator:  com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator1
+conveyor.c3-1.addCartBeforePlacementValidator:  com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator2
+conveyor.c3-1.addBeforeKeyEvictionAction:  com.aegisql.conveyor.config.ConfigUtilsTest.beforeEviction
+conveyor.c3-1.addBeforeKeyReschedulingAction:  com.aegisql.conveyor.config.ConfigUtilsTest.beforeReschedule
+conveyor.c3-1.enablePostponeExpiration:  false
+conveyor.enablePostponeExpirationOnTimeout:  false
+conveyor.c3-1.expirationPostponeTime:  1000
+conveyor.c3-1.autoAcknowledge:  true
+conveyor.c3-1.acknowledgeAction:  com.aegisql.conveyor.config.ConfigUtilsTest.acknowledgeAction
+conveyor.c3-1.autoAcknowledgeOnStatus:  READY,TIMED_OUT,CANCELED
+conveyor.c3-1.cartPayloadAccessor:  com.aegisql.conveyor.config.ConfigUtilsTest.payloadFunction
+conveyor.c3-1.dependency:  c3-0,c3-2
+conveyor.c3-1.postInit:  com.aegisql.conveyor.config.ConfigUtilsTest.test2PostCreation; //custom post-creation init
+conveyor.c3-1.persistence:  com.aegisql.conveyor.persistence.derby.testConv:type=c3-1
+
+#more
+conveyor.c3-1.supplier:  new com.aegisql.conveyor.AssemblingConveyor();
+conveyor.c3-1.parallel:  c3-0,c3-2
+
+#circle dependency
+#conveyor.test3.dependency :  test4
+#conveyor.test4.dependency :  test3
+conveyor.c3.p1.defaultBuilderTimeout:  1 SECONDS
