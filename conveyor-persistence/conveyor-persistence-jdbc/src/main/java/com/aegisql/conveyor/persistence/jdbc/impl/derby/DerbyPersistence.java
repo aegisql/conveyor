@@ -801,6 +801,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					);
 
 			String objName = "com.aegisql.conveyor.persistence.derby."+schema+":type=" + partTable;
+			LOG.debug("JMX name {}",objName);
 			ObjectName objectName = new ObjectName(objName);
 			if( ! DerbyPersistenceMBean.mBeanServer.isRegistered(objectName) ) {
 				DerbyPersistenceMBean<K> derbyMBean = new DerbyPersistenceMBean<K>() {

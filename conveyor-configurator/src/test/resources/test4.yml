@@ -43,7 +43,7 @@ conveyor.c4-1:
   cartPayloadAccessor:  com.aegisql.conveyor.config.ConfigUtilsTest.payloadFunction
   dependency:  c4-0,c4-2
   postInit:  com.aegisql.conveyor.config.ConfigUtilsTest.test2PostCreation; //custom post-creation init
-  persistence:  com.aegisql.conveyor.persistence.derby.testConv:type=c4-1
+  #persistence:  com.aegisql.conveyor.persistence.derby.testConv:type=c4-1
 
 #more
 conveyor.c4-1.supplier:  new com.aegisql.conveyor.AssemblingConveyor();
@@ -52,4 +52,4 @@ conveyor.c4-1.parallel:  c4-0,c4-2
 #circle dependency
 #conveyor.test3.dependency :  test4
 #conveyor.test4.dependency :  test3
-conveyor.c4.p1.defaultBuilderTimeout:  1 SECONDS
+conveyor.c4.p1.x.defaultBuilderTimeout:  1 SECONDS

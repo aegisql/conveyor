@@ -38,7 +38,7 @@ conveyor.c3-1.autoAcknowledgeOnStatus:  READY,TIMED_OUT,CANCELED
 conveyor.c3-1.cartPayloadAccessor:  com.aegisql.conveyor.config.ConfigUtilsTest.payloadFunction
 conveyor.c3-1.dependency:  c3-0,c3-2
 conveyor.c3-1.postInit:  com.aegisql.conveyor.config.ConfigUtilsTest.test2PostCreation; //custom post-creation init
-conveyor.c3-1.persistence:  com.aegisql.conveyor.persistence.derby.testConv:type=c3-1
+#conveyor.c3-1.persistence:  com.aegisql.conveyor.persistence.derby.testConv:type=c3-1
 
 #more
 conveyor.c3-1.supplier:  new com.aegisql.conveyor.AssemblingConveyor();

@@ -35,7 +35,7 @@ public class ConveyorConfigurationTest {
 		
 		DerbyPersistence
 		.forKeyClass(Integer.class)
-		.schema("testConf")
+		.schema("testConv")
 		.partTable("test2")
 		.completedLogTable("test2Completed")
 		.whenArchiveRecords().markArchived()
@@ -102,7 +102,7 @@ public class ConveyorConfigurationTest {
 		//assertNotNull(Conveyor.byName("test0"));
 		//assertNotNull(Conveyor.byName("test1"));
 		assertNotNull(Conveyor.byName("c4-1"));
-		assertNotNull(Conveyor.byName("c4.p1"));
+		assertNotNull(Conveyor.byName("c4.p1.x"));
 	}
 
 	
