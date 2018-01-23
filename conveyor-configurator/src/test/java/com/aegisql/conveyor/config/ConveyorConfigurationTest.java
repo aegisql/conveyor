@@ -2,6 +2,7 @@ package com.aegisql.conveyor.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,9 +15,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.config.harness.NameLabel;
 import com.aegisql.conveyor.config.harness.StringSupplier;
+import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
+import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 
 public class ConveyorConfigurationTest {
@@ -81,6 +85,7 @@ public class ConveyorConfigurationTest {
 		assertNotNull(Conveyor.byName("test.part"));
 		Conveyor<Integer,NameLabel,String> c = Conveyor.byName("test2");
 		assertNotNull(c);
+		assertTrue(c instanceof PersistentConveyor);
 	}
 
 	@Test
@@ -123,8 +128,9 @@ public class ConveyorConfigurationTest {
 		CompletableFuture<String> f3 = c.build().id(3).createFuture();
 		c.part().id(2).label(NameLabel.END).value("END").place();
 		String res3 = f3.get();
-		System.out.println(res3);
 		assertEquals("preffix-c4-1-suffix", res3);
+		assertTrue(c instanceof AssemblingConveyor);
+
 	}
 
 	

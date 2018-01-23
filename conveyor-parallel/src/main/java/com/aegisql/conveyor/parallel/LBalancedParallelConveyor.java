@@ -44,6 +44,11 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	/** The final consumer. */
 	protected Conveyor<K, L, OUT> finalConsumer = null;
 	
+	/**
+	 * Instantiates a new l balanced parallel conveyor.
+	 *
+	 * @param conveyors the conveyors
+	 */
 	public LBalancedParallelConveyor(String... conveyors) {
 		super();
 		Objects.requireNonNull(conveyors,"List of conveyors is null");

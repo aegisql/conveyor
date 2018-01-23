@@ -32,54 +32,133 @@ import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ConveyorBuilder.
+ */
 @SuppressWarnings("rawtypes")
 public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
+	/** The all files read. */
 	//readiness
 	private boolean allFilesRead = false;
+	
+	/** The l parallel. */
 	private Set<String> lParallel    = new LinkedHashSet<>();
+	
+	/** The dependencies. */
 	private Set<String> dependencies = new HashSet<>();
+	
+	/** The completed. */
 	private Set<String> completed    = new HashSet<>();
 	
+	/** The Constant serialVersionUID. */
 	//setters
 	private static final long serialVersionUID = 1L;
+	
+	/** The constructor. */
 	private Supplier<Conveyor> constructor                        = AssemblingConveyor::new;
+	
+	/** The idle heart beat. */
 	private Duration idleHeartBeat                                = null;
+	
+	/** The default builder timeout. */
 	private Duration defaultBuilderTimeout                        = null;
+	
+	/** The reject unexpireable carts older than. */
 	private Duration rejectUnexpireableCartsOlderThan             = null;
+	
+	/** The expiration postpone time. */
 	private Duration expirationPostponeTime                       = null;
+	
+	/** The static parts. */
 	private Collection<Pair> staticParts                          = new LinkedList<>();
+	
+	/** The first result consumer. */
 	private ResultConsumer firstResultConsumer                    = null;
+	
+	/** The next result consumers. */
 	private Collection<ResultConsumer> nextResultConsumers        = new LinkedList<>();
+	
+	/** The first scrap consumer. */
 	private ScrapConsumer firstScrapConsumer                      = null;
+	
+	/** The next scrap consumers. */
 	private Collection<ScrapConsumer> nextScrapConsumers          = new LinkedList<>();
+	
+	/** The timeout action. */
 	private Consumer timeoutAction                                = null;
+	
+	/** The default cart consumer. */
 	private LabeledValueConsumer defaultCartConsumer              = null;
+	
+	/** The readiness evaluator bi P. */
 	private BiPredicate readinessEvaluatorBiP                     = null;
+	
+	/** The readiness evaluator P. */
 	private Predicate readinessEvaluatorP                         = null;
+	
+	/** The builder supplier. */
 	private BuilderSupplier builderSupplier                       = null;
+	
+	/** The add cart before placement validator. */
 	private Collection<Consumer> addCartBeforePlacementValidator  = new LinkedList<>();
+	
+	/** The add before key eviction action. */
 	private Collection<Consumer> addBeforeKeyEvictionAction       = new LinkedList<>();
+	
+	/** The add before key rescheduling action. */
 	private Collection<BiConsumer> addBeforeKeyReschedulingAction = new LinkedList<>();
+	
+	/** The accepted labels. */
 	private Set acceptedLabels                                    = new HashSet<>();
+	
+	/** The enable postpone expiration. */
 	private Boolean enablePostponeExpiration                      = null;
+	
+	/** The enable postpone expiration on timeout. */
 	private Boolean enablePostponeExpirationOnTimeout             = null;
+	
+	/** The auto acknowledge. */
 	private Boolean autoAcknowledge                               = null;
+	
+	/** The acknowledge action. */
 	private Consumer acknowledgeAction                            = null;
+	
+	/** The auto acknowledge on status. */
 	private Status[] autoAcknowledgeOnStatus                      = null;
+	
+	/** The cart payload accessor. */
 	private Function cartPayloadAccessor                          = null;
+	
+	/** The forward. */
 	private Collection<Trio> forward                              = new LinkedList<>();
+	
+	/** The parallel factor. */
 	private int parallelFactor                                    = 1;
+	
+	/** The persistence. */
 	private String persistence                                    = null;
 	
+	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorBuilder.class);
 		
+	/**
+	 * Sets the if not null.
+	 *
+	 * @param <T> the generic type
+	 * @param value the value
+	 * @param consumer the consumer
+	 */
 	private <T> void setIfNotNull(T value,Consumer<T> consumer) {
 		if(value != null) {
 			consumer.accept(value);
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.util.function.Supplier#get()
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public Conveyor get() {
@@ -162,90 +241,180 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		}
 	}
 	
+	/**
+	 * Idle heart beat.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void idleHeartBeat(ConveyorBuilder b, String s) {
 		LOG.debug("Applying idleHeartBeat={}",s);
 		Long value = (Long) ConfigUtils.timeToMillsConverter.apply(s);
 		b.idleHeartBeat = Duration.ofMillis(value.longValue());
 	}
 	
+	/**
+	 * Default builder timeout.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void defaultBuilderTimeout(ConveyorBuilder b, String s) {
 		LOG.debug("Applying defaultBuilderTimeout={}",s);
 		Long value = (Long) ConfigUtils.timeToMillsConverter.apply(s);
 		b.defaultBuilderTimeout = Duration.ofMillis(value.longValue());
 	}
 	
+	/**
+	 * Reject unexpireable carts older than.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void rejectUnexpireableCartsOlderThan(ConveyorBuilder b, String s) {
 		LOG.debug("Applying rejectUnexpireableCartsOlderThan={}",s);
 		Long value = (Long) ConfigUtils.timeToMillsConverter.apply(s);
 		b.rejectUnexpireableCartsOlderThan = Duration.ofMillis(value.longValue());
 	}
 	
+	/**
+	 * Expiration postpone time.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void expirationPostponeTime(ConveyorBuilder b, String s) {
 		LOG.debug("Applying expirationPostponeTime={}",s);
 		Long value = (Long) ConfigUtils.timeToMillsConverter.apply(s);
 		b.expirationPostponeTime = Duration.ofMillis(value.longValue());
 	}
 	
+	/**
+	 * Static part.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void staticPart(ConveyorBuilder b, String s) {
 		LOG.debug("Applying staticPart={}",s);
 		Pair value = (Pair) ConfigUtils.stringToLabelValuePairSupplier.apply(s);
 		b.staticParts.add(value);
 	}
 
+	/**
+	 * First result consumer.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void firstResultConsumer(ConveyorBuilder b, String s) {
 		LOG.debug("Applying firstResultConsumer={}",s);
 		ResultConsumer value = (ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(s);
 		b.firstResultConsumer = value;
 	}
 
+	/**
+	 * Next result consumer.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void nextResultConsumer(ConveyorBuilder b, String s) {
 		LOG.debug("Applying nextResultConsumer={}",s);
 		ResultConsumer value = (ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(s);
 		b.nextResultConsumers.add(value);
 	}
 
+	/**
+	 * First scrap consumer.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void firstScrapConsumer(ConveyorBuilder b, String s) {
 		LOG.debug("Applying firstScrapConsumer={}",s);
 		ScrapConsumer value = (ScrapConsumer) ConfigUtils.stringToScrapConsumerSupplier.apply(s);
 		b.firstScrapConsumer = value;
 	}
 
+	/**
+	 * Next scrap consumer.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void nextScrapConsumer(ConveyorBuilder b, String s) {
 		LOG.debug("Applying nextScrapConsumer={}",s);
 		ScrapConsumer value = (ScrapConsumer) ConfigUtils.stringToScrapConsumerSupplier.apply(s);
 		b.nextScrapConsumers.add(value);
 	}
 
+	/**
+	 * Timeout action.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void timeoutAction(ConveyorBuilder b, String s) {
 		LOG.debug("Applying timeoutAction={}",s);
 		Consumer value = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(s);
 		b.timeoutAction = value;
 	}
 
+	/**
+	 * Acknowledge action.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void acknowledgeAction(ConveyorBuilder b, String s) {
 		LOG.debug("Applying acknowledgeAction={}",s);
 		Consumer value = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(s);
 		b.acknowledgeAction = value;
 	}
 
+	/**
+	 * Adds the cart before placement validator.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void addCartBeforePlacementValidator(ConveyorBuilder b, String s) {
 		LOG.debug("Applying addCartBeforePlacementValidator={}",s);
 		Consumer value = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(s);
 		b.addCartBeforePlacementValidator.add(value);
 	}
 	
+	/**
+	 * Adds the before key eviction action.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void addBeforeKeyEvictionAction(ConveyorBuilder b, String s) {
 		LOG.debug("Applying addBeforeKeyEvictionAction={}",s);
 		Consumer value = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(s);
 		b.addBeforeKeyEvictionAction.add(value);
 	}
 
+	/**
+	 * Default cart consumer.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void defaultCartConsumer(ConveyorBuilder b, String s) {
 		LOG.debug("Applying defaultCartConsumer={}",s);
 		LabeledValueConsumer value = (LabeledValueConsumer) ConfigUtils.stringToLabeledValueConsumerSupplier.apply(s);
 		b.defaultCartConsumer = value;
 	}
 	
+	/**
+	 * Readiness evaluator.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void readinessEvaluator(ConveyorBuilder b, String s) {
 		LOG.debug("Applying readinessEvaluator={}",s);
 		Object obj = ConfigUtils.stringToReadinessEvaluatorSupplier.apply(s);
@@ -262,71 +431,143 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		}
 	}
 
+	/**
+	 * Builder supplier.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void builderSupplier(ConveyorBuilder b, String s) {
 		LOG.debug("Applying builderSupplier={}",s);
 		BuilderSupplier value = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply(s);
 		b.builderSupplier = value;
 	}
 
+	/**
+	 * Adds the before key rescheduling action.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void addBeforeKeyReschedulingAction(ConveyorBuilder b, String s) {
 		LOG.debug("Applying addBeforeKeyReschedulingAction={}",s);
 		BiConsumer value = (BiConsumer) ConfigUtils.stringToBiConsumerSupplier.apply(s);
 		b.addBeforeKeyReschedulingAction.add(value);
 	}
 	
+	/**
+	 * Accept labels.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void acceptLabels(ConveyorBuilder b, String s) {
 		LOG.debug("Applying acceptLabels={}",s);
 		Object[] value = (Object[]) ConfigUtils.stringToLabelArraySupplier.apply(s);
 		b.acceptedLabels.addAll(Arrays.asList(value));
 	}
 
+	/**
+	 * Enable postpone expiration.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void enablePostponeExpiration(ConveyorBuilder b, String s) {
 		LOG.debug("Applying enablePostponeExpiration={}",s);
 		Boolean value = Boolean.valueOf(s);
 		b.enablePostponeExpiration = value;
 	}
 
+	/**
+	 * Enable postpone expiration on timeout.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void enablePostponeExpirationOnTimeout(ConveyorBuilder b, String s) {
 		LOG.debug("Applying enablePostponeExpirationOnTimeout={}",s);
 		Boolean value = Boolean.valueOf(s);
 		b.enablePostponeExpirationOnTimeout = value;
 	}
 
+	/**
+	 * Auto acknowledge.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void autoAcknowledge(ConveyorBuilder b, String s) {
 		LOG.debug("Applying autoAcknowledge={}",s);
 		Boolean value = Boolean.valueOf(s);
 		b.autoAcknowledge = value;
 	}
 	
+	/**
+	 * Auto acknowledge on status.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void autoAcknowledgeOnStatus(ConveyorBuilder b, String s) {
 		LOG.debug("Applying autoAcknowledgeOnStatus={}",s);
 		Status[] value = (Status[]) ConfigUtils.stringToStatusConverter.apply(s);
 		b.autoAcknowledgeOnStatus = value;
 	}
 
+	/**
+	 * Cart payload accessor.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void cartPayloadAccessor(ConveyorBuilder b, String s) {
 		LOG.debug("Applying cartPayloadAccessor={}",s);
 		Function value = (Function) ConfigUtils.stringToCartPayloadFunctionSupplier.apply(s);
 		b.cartPayloadAccessor = value;
 	}
 
+	/**
+	 * Forward.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void forward(ConveyorBuilder b, String s) {
 		LOG.debug("Applying forward={}",s);
 		Trio value = (Trio) ConfigUtils.stringToForwardTrioSupplier.apply(s);
 		b.forward.add(value);
 	}
 	
+	/**
+	 * Supplier.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void supplier(ConveyorBuilder b, String s) {
 		LOG.debug("Applying conveyor supplier={}",s);
 		Supplier<Conveyor> value = ConfigUtils.stringToConveyorSupplier.apply(s);
 		b.constructor = value;
 	}
 
+	/**
+	 * Persitence.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void persitence(ConveyorBuilder b, String s) {
 		LOG.debug("Applying conveyor persitence={}",s);
 		b.persistence = s;
 	}
 
+	/**
+	 * All files read successfully.
+	 *
+	 * @param b the b
+	 * @param readOk the read ok
+	 */
 	//Readiness management
 	public static void allFilesReadSuccessfully(ConveyorBuilder b, Boolean readOk) {
 		LOG.debug("Applying allFilesReadSuccessfully={}",readOk);
@@ -337,6 +578,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		}
 	}
 
+	/**
+	 * Dependency.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void dependency(ConveyorBuilder b, String s) {
 		LOG.debug("Applying dependency={}",s);
 		String[] parts = s.split(",");
@@ -348,6 +595,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		}
 	}
 
+	/**
+	 * Completed.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void completed(ConveyorBuilder b, String s) {
 		LOG.debug("Applying completed={}",s);
 		if( b.dependencies.remove(s) ) {
@@ -355,6 +608,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		}
 	}
 	
+	/**
+	 * Parallel.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void parallel(ConveyorBuilder b, String s) {
 		LOG.debug("Applying parallel={}",s);
 		try {
@@ -376,6 +635,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "ConveyorBuilder [" + (dependencies != null ? "dependencies=" + dependencies + ", " : "")
@@ -423,6 +685,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				+ (persistence != null ? "persistence=" + persistence : "") + "]";
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Testing#test()
+	 */
 	@Override
 	public boolean test() {
 		return allFilesRead && dependencies.size() == 0;

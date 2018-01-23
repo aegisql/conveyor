@@ -6,14 +6,18 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.util.LinkedList;
 
-/**Loader is a copy of original Java8 Properties class with LinkedList support and removed XML and write support
+// TODO: Auto-generated Javadoc
+/**
+ * Loader is a copy of original Java8 Properties class with LinkedList support and removed XML and write support.
+ *
  * @author  Arthur van Hoff
  * @author  Michael McCloskey
  * @author  Xueming Shen
  * @author  Mikhail Teplitskiy
- * */
+ */
 class OrderedProperties extends LinkedList<Pair<String,String>> {
 
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
     /**
@@ -23,22 +27,53 @@ class OrderedProperties extends LinkedList<Pair<String,String>> {
     		super();
     }
 
+    /**
+     * Adds the property.
+     *
+     * @param key the key
+     * @param value the value
+     * @return the object
+     */
     public synchronized Object addProperty(String key, String value) {
         return add(new Pair<String,String>(key, value));
     }
 
+    /**
+     * Load.
+     *
+     * @param file the file
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public synchronized void load(String file) throws IOException {
         load0(new LineReader(new FileReader(file)));
     }
 
+    /**
+     * Load.
+     *
+     * @param reader the reader
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public synchronized void load(Reader reader) throws IOException {
         load0(new LineReader(reader));
     }
 
+    /**
+     * Load.
+     *
+     * @param inStream the in stream
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public synchronized void load(InputStream inStream) throws IOException {
         load0(new LineReader(inStream));
     }
 
+    /**
+     * Load 0.
+     *
+     * @param lr the lr
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     private void load0 (LineReader lr) throws IOException {
         char[] convtBuf = new char[1024];
         int limit;
@@ -90,6 +125,9 @@ class OrderedProperties extends LinkedList<Pair<String,String>> {
         }
     }
 
+    /**
+     * The Class LineReader.
+     */
     /* Read in a "logical line" from an InputStream/Reader, skip all comment
      * and blank lines and filter out those leading whitespace characters
      * (\u0020, \u0009 and \u000c) from the beginning of a "natural line".
@@ -97,24 +135,54 @@ class OrderedProperties extends LinkedList<Pair<String,String>> {
      * the line in "lineBuf".
      */
     class LineReader {
+        
+        /**
+         * Instantiates a new line reader.
+         *
+         * @param inStream the in stream
+         */
         public LineReader(InputStream inStream) {
             this.inStream = inStream;
             inByteBuf = new byte[8192];
         }
 
+        /**
+         * Instantiates a new line reader.
+         *
+         * @param reader the reader
+         */
         public LineReader(Reader reader) {
             this.reader = reader;
             inCharBuf = new char[8192];
         }
 
+        /** The in byte buf. */
         byte[] inByteBuf;
+        
+        /** The in char buf. */
         char[] inCharBuf;
+        
+        /** The line buf. */
         char[] lineBuf = new char[1024];
+        
+        /** The in limit. */
         int inLimit = 0;
+        
+        /** The in off. */
         int inOff = 0;
+        
+        /** The in stream. */
         InputStream inStream;
+        
+        /** The reader. */
         Reader reader;
 
+        /**
+         * Read line.
+         *
+         * @return the int
+         * @throws IOException Signals that an I/O exception has occurred.
+         */
         int readLine() throws IOException {
             int len = 0;
             char c = 0;
@@ -228,6 +296,15 @@ class OrderedProperties extends LinkedList<Pair<String,String>> {
         }
     }
 
+    /**
+     * Load convert.
+     *
+     * @param in the in
+     * @param off the off
+     * @param len the len
+     * @param convtBuf the convt buf
+     * @return the string
+     */
     /*
      * Converts encoded &#92;uxxxx to unicode chars
      * and changes special saved chars to their original forms

@@ -7,15 +7,17 @@ import java.util.function.Supplier;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 
-import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Status;
-import com.aegisql.conveyor.cart.Cart;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ConfigUtils.
+ */
 class ConfigUtils {
 
+	/** The Constant timeToMillsConverter. */
 	public final static Function<String,Object> timeToMillsConverter = val -> {
 		String[] parts = val.trim().split("\\s+");
 		TimeUnit u;
@@ -32,6 +34,7 @@ class ConfigUtils {
 		return u.toMillis(big)+(long)(one*(d.doubleValue()-big));
 	};
 
+	/** The Constant stringToStatusConverter. */
 	public final static Function<String,Object> stringToStatusConverter = val -> {
 		String[] parts = val.trim().split(",");
 		Status[] res = new Status[parts.length];
@@ -44,6 +47,7 @@ class ConfigUtils {
 	};
 
 
+	/** The Constant getBuilderSupplierJs. */
 	private final static String getBuilderSupplierJs = 
 			  "var getBuilderSupplier = function() {\n" 
 			+ "		var BuilderSupplier = Java.type('com.aegisql.conveyor.BuilderSupplier');\n"
@@ -54,6 +58,7 @@ class ConfigUtils {
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
 	
+	/** The Constant stringToBuilderSupplier. */
 	public final static Function<String,Object> stringToBuilderSupplier = js-> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -66,6 +71,7 @@ class ConfigUtils {
 		}
 	};
 	
+	/** The Constant getResultConsumerJs. */
 	private final static String getResultConsumerJs = 
 			  "var getResultConsumer = function() {\n" 
 			+ "		var ResultConsumer = Java.type('com.aegisql.conveyor.consumers.result.ResultConsumer');\n"
@@ -77,6 +83,7 @@ class ConfigUtils {
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
 
+	/** The Constant stringToResultConsumerSupplier. */
 	public final static Function<String,Object> stringToResultConsumerSupplier = js -> {
 		try {			
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -90,6 +97,7 @@ class ConfigUtils {
 		}
 	};
 
+	/** The Constant getScrapConsumerJs. */
 	private final static String getScrapConsumerJs = 
 			  "var getScrapConsumer = function() {\n" 
 			+ "		var ScrapConsumer = Java.type('com.aegisql.conveyor.consumers.scrap.ScrapConsumer');\n"
@@ -101,6 +109,7 @@ class ConfigUtils {
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
 
+	/** The Constant stringToScrapConsumerSupplier. */
 	public final static Function<String,Object> stringToScrapConsumerSupplier = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -113,6 +122,7 @@ class ConfigUtils {
 		}
 	};
 
+	/** The Constant getLabelValuePairJs. */
 	private final static String getLabelValuePairJs = 
 			  "var getLabelValuePair = function() {\n" 
 			+ "		var Pair = Java.type('com.aegisql.conveyor.config.Pair');\n"
@@ -120,6 +130,7 @@ class ConfigUtils {
 			+ "    return new Pair(label,value);\n" 
 			+ "};\n";
 
+	/** The Constant getLabelForwardTrioJs. */
 	private final static String getLabelForwardTrioJs = 
 			  "var getLabelValueTrio = function() {\n" 
 			+ "%s;\n"
@@ -136,6 +147,7 @@ class ConfigUtils {
 			+ "    return new Trio(label,name,new FunctionImpl());\n" 
 			+ "};\n";
 
+	/** The Constant stringToLabelValuePairSupplier. */
 	public final static Function<String,Object> stringToLabelValuePairSupplier = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -148,6 +160,7 @@ class ConfigUtils {
 		}
 	};
 
+	/** The Constant stringToForwardTrioSupplier. */
 	public final static Function<String,Object> stringToForwardTrioSupplier = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -161,6 +174,7 @@ class ConfigUtils {
 		}
 	};
 
+	/** The Constant consumerJs. */
 	private final static String consumerJs = 
 			  "var getConsumer = function() {\n" 
 			+ "		var Consumer = Java.type('java.util.function.Consumer');\n"
@@ -172,6 +186,7 @@ class ConfigUtils {
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
 
+	/** The Constant stringToConsumerSupplier. */
 	public final static Function<String,Object> stringToConsumerSupplier = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -184,6 +199,7 @@ class ConfigUtils {
 		}
 	};
 
+	/** The Constant getLabeledValueConsumerJs. */
 	private final static String getLabeledValueConsumerJs = 
 			  "var getLabeledValueConsumer = function() {\n" 
 			+ "		var LabeledValueConsumer = Java.type('com.aegisql.conveyor.LabeledValueConsumer');\n"
@@ -195,6 +211,7 @@ class ConfigUtils {
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
 
+	/** The Constant stringToLabeledValueConsumerSupplier. */
 	public static final Function<String,Object> stringToLabeledValueConsumerSupplier = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -207,6 +224,7 @@ class ConfigUtils {
 		}		
 	};
 
+	/** The Constant getReadinessEvaluatorJs. */
 	private final static String getReadinessEvaluatorJs = 
 			  "var getReadinessEvaluator = function() {\n" 
 			+ "		var Predicate = Java.type('java.util.function.Predicate');\n"
@@ -226,6 +244,7 @@ class ConfigUtils {
 			+ "    return new REImpl();\n" 
 			+ "};\n";
 
+	/** The Constant stringToReadinessEvaluatorSupplier. */
 	public static final Function<String, Object> stringToReadinessEvaluatorSupplier = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -238,6 +257,7 @@ class ConfigUtils {
 		}		
 	};
 
+	/** The Constant biConsumerJs. */
 	private final static String biConsumerJs = 
 			  "var getBiConsumer = function() {\n" 
 			+ "		var BiConsumer = Java.type('java.util.function.BiConsumer');\n"
@@ -249,6 +269,7 @@ class ConfigUtils {
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
 
+	/** The Constant stringToBiConsumerSupplier. */
 	public final static Function<String,Object> stringToBiConsumerSupplier = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -261,6 +282,7 @@ class ConfigUtils {
 		}
 	};
 
+	/** The Constant getLabelArrayConsumerJs. */
 	private final static String getLabelArrayConsumerJs = 
 			  "var getLabelArrayConsumer = function() {\n" 
 			+ "		var ObjectArray = Java.type('java.lang.Object[]');\n"
@@ -270,6 +292,7 @@ class ConfigUtils {
 			+ "     return res;\n" 
 			+ "};\n";
 
+	/** The Constant stringToLabelArraySupplier. */
 	public static final Function<String, Object> stringToLabelArraySupplier = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -283,6 +306,7 @@ class ConfigUtils {
 		}
 	};
 
+	/** The Constant functionJs. */
 	private final static String functionJs = 
 			  "var getFunction = function() {\n" 
 			+ "		var Function = Java.type('java.util.function.Function');\n"
@@ -294,6 +318,7 @@ class ConfigUtils {
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
 
+	/** The Constant stringToCartPayloadFunctionSupplier. */
 	public static final Function<String, Object> stringToCartPayloadFunctionSupplier = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -306,6 +331,7 @@ class ConfigUtils {
 		}
 	};
 
+	/** The Constant getSupplierJs. */
 	private final static String getSupplierJs = 
 			  "var getSupplier = function() {\n" 
 			+ "		var Supplier = Java.type('java.util.function.Supplier');\n"
@@ -316,6 +342,7 @@ class ConfigUtils {
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
 	
+	/** The Constant stringToConveyorSupplier. */
 	public final static Function<String,Supplier<Conveyor>> stringToConveyorSupplier = js-> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");

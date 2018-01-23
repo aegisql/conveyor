@@ -19,21 +19,40 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ConveyorConfiguration.
+ */
 public class ConveyorConfiguration {
 
+	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorConfiguration.class);
 
+	/** The Constant lock. */
 	private final static Lock lock = new ReentrantLock();
 
+	/** The script engine. */
 	public static String SCRIPT_ENGINE = "nashorn";
 
+	/** The property prefix. */
 	public static String PROPERTY_PREFIX = "CONVEYOR";
 
+	/** The default timeout msec. */
 	public static long DEFAULT_TIMEOUT_MSEC = 0;
 
+	/**
+	 * Instantiates a new conveyor configuration.
+	 */
 	ConveyorConfiguration() {
 	}
 
+	/**
+	 * Builds the.
+	 *
+	 * @param conf the conf
+	 * @param moreConf the more conf
+	 * @throws Exception the exception
+	 */
 	public static void build(String conf, String... moreConf) throws Exception {
 
 		Objects.requireNonNull(conf, "At least one configuration file must be provided");
@@ -47,6 +66,11 @@ public class ConveyorConfiguration {
 		getBuildingConveyor().completeAndStop().get();
 	}
 
+	/**
+	 * Process conf file.
+	 *
+	 * @param file the file
+	 */
 	private static void processConfFile(String file) {
 
 		lock.lock();
@@ -71,6 +95,11 @@ public class ConveyorConfiguration {
 		}
 	}
 
+	/**
+	 * Gets the building conveyor.
+	 *
+	 * @return the building conveyor
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static Conveyor<String, String, Conveyor> getBuildingConveyor() {
 
@@ -129,6 +158,13 @@ public class ConveyorConfiguration {
 		return instance;
 	}
 
+	/**
+	 * Process yaml.
+	 *
+	 * @param file the file
+	 * @return the conveyor configuration
+	 * @throws Exception the exception
+	 */
 	private static ConveyorConfiguration processYaml(String file) throws Exception {
 		ConveyorConfiguration cc = new ConveyorConfiguration();
 		Conveyor c = new AssemblingConveyor<>();
@@ -151,6 +187,13 @@ public class ConveyorConfiguration {
 		return cc;
 	}
 
+	/**
+	 * Process properties.
+	 *
+	 * @param file the file
+	 * @return the conveyor configuration
+	 * @throws Exception the exception
+	 */
 	private static ConveyorConfiguration processProperties(String file) throws Exception {
 		ConveyorConfiguration cc = new ConveyorConfiguration();
 		OrderedProperties p = new OrderedProperties();
@@ -168,6 +211,13 @@ public class ConveyorConfiguration {
 		return cc;
 	}
 
+	/**
+	 * Process pair.
+	 *
+	 * @param buildingConveyor the building conveyor
+	 * @param key the key
+	 * @param obj the obj
+	 */
 	private static void processPair(Conveyor<String, String, Conveyor> buildingConveyor, String key, Object obj) {
 		String[] fields = key.split("\\.");
 		String name = null;
@@ -219,6 +269,9 @@ public class ConveyorConfiguration {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "ConveyorConfiguration";

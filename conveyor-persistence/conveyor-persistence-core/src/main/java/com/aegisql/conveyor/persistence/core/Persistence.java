@@ -54,6 +54,13 @@ public interface Persistence <K> extends Closeable{
 	 */
 	public void saveCompletedBuildKey(K key);
 	
+	/**
+	 * Gets the part.
+	 *
+	 * @param <L> the generic type
+	 * @param id the id
+	 * @return the part
+	 */
 	default public <L> Cart<K, ?, L> getPart(long id) {
 		Collection<Cart<K, ?, L>> res = getParts(Arrays.asList(new Long(id)));
 		switch(res.size()) {
@@ -247,8 +254,15 @@ public interface Persistence <K> extends Closeable{
 		return new PersistentConveyor<>(this,conveyor.get());
 	}
 
+	/** The Constant mBeanServer. */
 	final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 	
+	/**
+	 * By name.
+	 *
+	 * @param name the name
+	 * @return the persistence
+	 */
 	public static Persistence byName(String name) {
 		ObjectName objectName;
 		try {

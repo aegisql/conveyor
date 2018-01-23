@@ -39,13 +39,16 @@ conveyor-persistence (beta)
 
 ## Release History
 
-### 1.3.10-SNAPSHOT
+### 1.3.11-SNAPSHOT
+
+### 1.3.10
 * Started conveyor-configurator sub-project
 * Create conveyors from .properties files
-* Create instance of L balanced conveyor from a list of conveyor names
+* Create conveyors from .YAML files
+* Added constructor for L balanced conveyor that takes a list of enclosed conveyor names
 * Created ForwardResult consumer factory
 * Removed forwardTo methods from interface
-* Resolving persistence by name
+* Resolving persistence by its JMX name: Persistence.byName(name)
 * Bugfixes
 
 ### 1.3.9
