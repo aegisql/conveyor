@@ -22,7 +22,7 @@ conveyor-parallel
 </dependency>
 ```
 
-conveyor-persistence (beta)
+conveyor-persistence
 ```xml
 <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
@@ -36,13 +36,14 @@ conveyor-persistence (beta)
 </dependency>
 ```
 
-conveyor configurator
+conveyor configurator (beta)
+```xml
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-configurator</artifactId>
   <version>1.3.10</version>
 </dependency>
-
+```
 ## Release History
 
 ### 1.3.11-SNAPSHOT
