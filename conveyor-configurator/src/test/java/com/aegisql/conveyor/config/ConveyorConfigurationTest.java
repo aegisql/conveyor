@@ -19,9 +19,11 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.config.harness.NameLabel;
 import com.aegisql.conveyor.config.harness.StringSupplier;
+import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
+import com.aegisql.conveyor.utils.batch.BatchConveyor;
 
 public class ConveyorConfigurationTest {
 
@@ -46,6 +48,14 @@ public class ConveyorConfigurationTest {
 		.schema("testConv")
 		.partTable("test2")
 		.completedLogTable("test2Completed")
+		.whenArchiveRecords().markArchived()
+		.maxBatchSize(3)
+		.build();
+		DerbyPersistence
+		.forKeyClass(Integer.class)
+		.schema("testConv")
+		.partTable("persistent")
+		.completedLogTable("persistentCompleted")
 		.whenArchiveRecords().markArchived()
 		.maxBatchSize(3)
 		.build();
@@ -130,6 +140,36 @@ public class ConveyorConfigurationTest {
 		String res3 = f3.get();
 		assertEquals("preffix-c4-1-suffix", res3);
 		assertTrue(c instanceof AssemblingConveyor);
+
+	}
+
+	@Test
+	public void testSuportedTypes() throws Exception {
+		//Assembling
+		ConveyorConfiguration.build("classpath:types.properties");
+		Conveyor<Integer,String,String> ac = Conveyor.byName("assembling");
+		assertNotNull(ac);
+		assertTrue(ac instanceof AssemblingConveyor);
+
+		//K
+		Conveyor<Integer,String,String> kc = Conveyor.byName("kbalanced");
+		assertNotNull(kc);
+		assertTrue(kc instanceof KBalancedParallelConveyor);
+
+		//K
+		Conveyor<Integer,String,String> lc = Conveyor.byName("lbalanced");
+		assertNotNull(lc);
+		assertTrue(lc instanceof LBalancedParallelConveyor);
+
+		//BATCH
+		Conveyor<Integer,String,String> bc = Conveyor.byName("batch");
+		assertNotNull(bc);
+		assertTrue(bc instanceof BatchConveyor);
+
+		//PERSISTENT
+		Conveyor<Integer,String,String> pc = Conveyor.byName("persistent");
+		assertNotNull(pc);
+		assertTrue(pc instanceof PersistentConveyor);
 
 	}
 
