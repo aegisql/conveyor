@@ -3,6 +3,7 @@ package com.aegisql.conveyor.config;
 import java.io.FileReader;
 import java.time.Duration;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
@@ -175,6 +176,11 @@ public class ConveyorConfiguration {
 			Map<String,Object> map = (Map<String, Object>) obj;
 			map.forEach((k,v)->{
 				processPair(buildingConveyor, key+"."+k, v);
+			});
+		} else if (obj instanceof List) {
+			List<Object> list = (List<Object>) obj;
+			list.forEach((v)->{
+				processPair(buildingConveyor, key, v);
 			});
 		} else {
 			String value = null;

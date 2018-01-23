@@ -49,7 +49,7 @@ class ConfigUtils {
 			+ "		var BuilderSupplier = Java.type('com.aegisql.conveyor.BuilderSupplier');\n"
 			+ "		var SupplierImpl = Java.extend(BuilderSupplier, {\n"
 			+ "			get: function() {\n"
-	        + "				return %s\n;"
+	        + "				return %s;\n"
 	    		+ "			}});\n"
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";

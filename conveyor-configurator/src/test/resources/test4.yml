@@ -8,28 +8,33 @@ conveyor:
       var label = "Y";
       var name = 'c4-2';
       var keyTransformer = function(k){return 'X'+k};
-    acceptLabels: '"X"'
+    acceptLabels: 
+      - '"X"'
+      - '"Y"'
+      - '"Z"'
   c4-2:
     defaultBuilderTimeout: 1 SECONDS
     parallel:  2
   c4-1:
     defaultBuilderTimeout:  1 SECONDS
     rejectUnexpireableCartsOlderThan:  10000
-    staticPart:  >
-      label = com.aegisql.conveyor.config.harness.NameLabel.FIRST;
-      value = "preffix-";
-    staticPart: >
-      label = com.aegisql.conveyor.config.harness.NameLabel.LAST;
-      value = "-suffix";
+    staticPart: 
+      - >
+        label = com.aegisql.conveyor.config.harness.NameLabel.FIRST;
+        value = "preffix-";
+      - >
+        label = com.aegisql.conveyor.config.harness.NameLabel.LAST;
+        value = "-suffix";
     firstResultConsumer:  new com.aegisql.conveyor.consumers.result.LogResult()
     nextResultConsumer:  com.aegisql.conveyor.config.ConfigUtilsTest.rCounter
     firstScrapConsumer:  new com.aegisql.conveyor.consumers.scrap.LogScrap()
     nextScrapConsumer:  com.aegisql.conveyor.config.ConfigUtilsTest.sCounter
     onTimeoutAction:  com.aegisql.conveyor.config.ConfigUtilsTest.timeoutAction
     defaultCartConsumer:  com.aegisql.conveyor.config.ConfigUtilsTest.lvc
-    readinessEvaluator:  com.aegisql.conveyor.config.ConfigUtilsTest.biPredRE; //BiPredicate
-    readinessEvaluator:  com.aegisql.conveyor.config.ConfigUtilsTest.predRE; //Predicate
-    builderSupplier:  com.aegisql.conveyor.config.harness.StringSupplier("c4-1"); //JavaScript
+    readinessEvaluator:  
+      - com.aegisql.conveyor.config.ConfigUtilsTest.biPredRE; //BiPredicate
+      - com.aegisql.conveyor.config.ConfigUtilsTest.predRE; //Predicate
+    builderSupplier:  new com.aegisql.conveyor.config.harness.StringSupplier("c4-1"); //JavaScript
 conveyor.c4-1:
   addCartBeforePlacementValidator:  com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator1
   addCartBeforePlacementValidator:  com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator2
@@ -41,13 +46,13 @@ conveyor.c4-1:
   acknowledgeAction:  com.aegisql.conveyor.config.ConfigUtilsTest.acknowledgeAction
   autoAcknowledgeOnStatus:  READY,TIMED_OUT,CANCELED
   cartPayloadAccessor:  com.aegisql.conveyor.config.ConfigUtilsTest.payloadFunction
-  dependency:  c4-0,c4-2
+  #dependency:  c4-0,c4-2
   postInit:  com.aegisql.conveyor.config.ConfigUtilsTest.test2PostCreation; //custom post-creation init
   #persistence:  com.aegisql.conveyor.persistence.derby.testConv:type=c4-1
 
 #more
 conveyor.c4-1.supplier:  new com.aegisql.conveyor.AssemblingConveyor();
-conveyor.c4-1.parallel:  c4-0,c4-2
+#conveyor.c4-1.parallel:  2
 
 #circle dependency
 #conveyor.test3.dependency :  test4

@@ -1,9 +1,11 @@
 package com.aegisql.conveyor.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -13,6 +15,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.config.harness.NameLabel;
+import com.aegisql.conveyor.config.harness.StringSupplier;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 
 public class ConveyorConfigurationTest {
@@ -74,8 +78,9 @@ public class ConveyorConfigurationTest {
 		ConveyorConfiguration.build("src/test/resources/test2.properties");
 		//assertNotNull(Conveyor.byName("test0"));
 		//assertNotNull(Conveyor.byName("test1"));
-		assertNotNull(Conveyor.byName("test2"));
 		assertNotNull(Conveyor.byName("test.part"));
+		Conveyor<Integer,NameLabel,String> c = Conveyor.byName("test2");
+		assertNotNull(c);
 	}
 
 	@Test
@@ -101,8 +106,25 @@ public class ConveyorConfigurationTest {
 		ConveyorConfiguration.build("CLASSPATH:test4.yml");
 		//assertNotNull(Conveyor.byName("test0"));
 		//assertNotNull(Conveyor.byName("test1"));
-		assertNotNull(Conveyor.byName("c4-1"));
 		assertNotNull(Conveyor.byName("c4.p1.x"));
+		Conveyor<Integer,NameLabel,String> c = Conveyor.byName("c4-1");
+		assertNotNull(c);
+		CompletableFuture<String> f = c.build().id(1).createFuture();
+		c.part().id(1).label(NameLabel.FIRST).value("FIRST").place();
+		String res = f.get();
+		System.out.println(res);
+		assertEquals("FIRSTpreffix-c4-1-suffix", res);
+		CompletableFuture<String> f2 = c.build().id(2).createFuture();
+		c.part().id(2).label(NameLabel.LAST).value("LAST").place();
+		String res2 = f2.get();
+		System.out.println(res2);
+		assertEquals("preffix-c4-1-suffixLAST", res2);
+
+		CompletableFuture<String> f3 = c.build().id(3).createFuture();
+		c.part().id(2).label(NameLabel.END).value("END").place();
+		String res3 = f3.get();
+		System.out.println(res3);
+		assertEquals("preffix-c4-1-suffix", res3);
 	}
 
 	

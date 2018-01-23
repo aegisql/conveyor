@@ -42,7 +42,7 @@ conveyor.c3-1.postInit:  com.aegisql.conveyor.config.ConfigUtilsTest.test2PostCr
 
 #more
 conveyor.c3-1.supplier:  new com.aegisql.conveyor.AssemblingConveyor();
-conveyor.c3-1.parallel:  c3-0,c3-2
+conveyor.c3-1.parallel:  3
 
 #circle dependency
 #conveyor.test3.dependency :  test4

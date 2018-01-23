@@ -61,7 +61,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	private Collection<Consumer> addCartBeforePlacementValidator  = new LinkedList<>();
 	private Collection<Consumer> addBeforeKeyEvictionAction       = new LinkedList<>();
 	private Collection<BiConsumer> addBeforeKeyReschedulingAction = new LinkedList<>();
-	private Object[] acceptLabels                                 = null;
+	private Set acceptedLabels                                    = new HashSet<>();
 	private Boolean enablePostponeExpiration                      = null;
 	private Boolean enablePostponeExpirationOnTimeout             = null;
 	private Boolean autoAcknowledge                               = null;
@@ -118,7 +118,6 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		setIfNotNull(readinessEvaluatorP, c::setReadinessEvaluator);
 		setIfNotNull(readinessEvaluatorBiP, c::setReadinessEvaluator);
 		setIfNotNull(builderSupplier, c::setBuilderSupplier);
-		setIfNotNull(acceptLabels, c::acceptLabels);
 		setIfNotNull(enablePostponeExpiration, c::enablePostponeExpiration);
 		setIfNotNull(enablePostponeExpirationOnTimeout, c::enablePostponeExpirationOnTimeout);
 		setIfNotNull(autoAcknowledge, c::setAutoAcknowledge);
@@ -149,6 +148,11 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 			}
 			fr.bind();			
 		});
+		if(acceptedLabels.size() > 0) {
+			Object[] acceptLabels = new Object[acceptedLabels.size()];
+			acceptLabels = acceptedLabels.toArray(acceptLabels);
+			c.acceptLabels(acceptLabels);
+		}
 
 		
 		return c;
@@ -273,7 +277,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	public static void acceptLabels(ConveyorBuilder b, String s) {
 		LOG.debug("Applying acceptLabels={}",s);
 		Object[] value = (Object[]) ConfigUtils.stringToLabelArraySupplier.apply(s);
-		b.acceptLabels = value;
+		b.acceptedLabels.addAll(Arrays.asList(value));
 	}
 
 	public static void enablePostponeExpiration(ConveyorBuilder b, String s) {
@@ -403,7 +407,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				+ (addBeforeKeyReschedulingAction != null
 						? "addBeforeKeyReschedulingAction=" + addBeforeKeyReschedulingAction + ", "
 						: "")
-				+ (acceptLabels != null ? "acceptLabels=" + Arrays.toString(acceptLabels) + ", " : "")
+				+ (acceptedLabels != null ? "acceptLabels=" + acceptedLabels + ", " : "")
 				+ (enablePostponeExpiration != null ? "enablePostponeExpiration=" + enablePostponeExpiration + ", "
 						: "")
 				+ (enablePostponeExpirationOnTimeout != null

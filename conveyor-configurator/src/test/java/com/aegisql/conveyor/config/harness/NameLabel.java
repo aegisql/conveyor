@@ -7,7 +7,7 @@ import com.aegisql.conveyor.SmartLabel;
 public enum NameLabel implements SmartLabel<StringSupplier>{
 	
 	FIRST(SmartLabel.of(StringSupplier::first).get()),
-	LAST(SmartLabel.of(StringSupplier::first).get()),
+	LAST(SmartLabel.of(StringSupplier::last).get()),
 	END(SmartLabel.<StringSupplier>bare().get())
 	;
 
