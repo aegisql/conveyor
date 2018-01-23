@@ -179,6 +179,7 @@ public class ConfigUtilsTest {
 
 	
 	public static ResultCounter rCounter = new ResultCounter<>();
+	public static ResultCounter rCounter2 = new ResultCounter<>();
 	public static ScrapCounter  sCounter = new ScrapCounter<>();
 	
 	@Test
@@ -190,11 +191,11 @@ public class ConfigUtilsTest {
 
 	@Test
 	public void resultConsumerSupplierTest2() {
-		ResultConsumer rc = (ResultConsumer)ConfigUtils.stringToResultConsumerSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.rCounter");
+		ResultConsumer rc = (ResultConsumer)ConfigUtils.stringToResultConsumerSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.rCounter2");
 		assertNotNull(rc);
-		assertEquals(0, rCounter.get());
+		assertEquals(0, rCounter2.get());
 		rc.accept(null);
-		assertEquals(1, rCounter.get());
+		assertEquals(1, rCounter2.get());
 	}
 
 	@Test
