@@ -29,7 +29,7 @@ public class ConveyorConfigurationTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		ConveyorConfiguration.DEFAULT_TIMEOUT_MSEC = 10*1000;
+		ConveyorConfiguration.DEFAULT_TIMEOUT_MSEC = 5*1000;
 		
 		String conveyor_db_path = "testConf";
 		File f = new File(conveyor_db_path);
@@ -173,5 +173,9 @@ public class ConveyorConfigurationTest {
 
 	}
 
+	@Test
+	public void testSuportedReadable() throws Exception {
+		ConveyorConfiguration.build("classpath:supported.properties");
+	}
 	
 }
