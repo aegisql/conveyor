@@ -287,7 +287,7 @@ public class ConfigUtilsTest {
 		assertTrue(p.test(new State(p, 0, 0, 0, 0, 0, null, null),new StringSupplier("A")));
 	}
 
-	//@Test
+	@Test
 	public void readinessEvaluatorBiPredicateFunctionTest() {
 		BiPredicate p = (BiPredicate)ConfigUtils.stringToReadinessEvaluatorSupplier.apply("function(s,b){print(s);return true;}");
 		assertNotNull(p);
