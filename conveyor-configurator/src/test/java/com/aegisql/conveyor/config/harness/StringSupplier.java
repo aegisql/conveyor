@@ -30,4 +30,10 @@ public class StringSupplier implements Supplier<String> {
 		ss.s = ss.s+last;
 	}
 
+	@Override
+	public String toString() {
+		return "StringSupplier [" + (s != null ? "s=" + s : "") + "]";
+	}
+	
+
 }

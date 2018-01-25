@@ -226,7 +226,15 @@ public class ConfigUtilsTest {
 		timeoutAction.accept(new StringSupplier("A"));
 		ta.accept(new StringSupplier("B"));
 	}
- 	
+
+	@Test
+	public void testOnTimeoutActionFunctionSupplier() {
+		Consumer<StringSupplier> ta = (Consumer<StringSupplier>) ConfigUtils.stringToConsumerSupplier.apply("function(b){print(b)}");
+		assertNotNull(ta);
+		System.out.println(ta.getClass());
+		ta.accept(new StringSupplier("B"));
+	}
+
 	public static LabeledValueConsumer<String,String,StringSupplier> lvc = (l,v,ss)->{
 		System.out.println("consume "+l+" = "+v+": "+ss.get());
 	};
@@ -238,7 +246,14 @@ public class ConfigUtilsTest {
 		lvc.accept("label","value1",new StringSupplier("A"));
 		lc.accept("label","value1",new StringSupplier("B"));
 	}
-	
+
+	@Test
+	public void labeledValueConsumerFunctionTest() {
+		LabeledValueConsumer lc = (LabeledValueConsumer)ConfigUtils.stringToLabeledValueConsumerSupplier.apply("function(l,v,b){print(l,v);com.aegisql.conveyor.config.harness.StringSupplier.first(b,v);print(b)}");
+		assertNotNull(lc);
+		lc.accept("label","value1",new StringSupplier("B"));
+	}
+
 	public static Predicate<StringSupplier> predRE = ss -> {
 		System.out.println("PREDICATE TEST "+ss.get());
 		return true;
@@ -268,6 +283,13 @@ public class ConfigUtilsTest {
 	@Test
 	public void readinessEvaluatorBiPredicateTest() {
 		BiPredicate p = (BiPredicate)ConfigUtils.stringToReadinessEvaluatorSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.biPredRE");
+		assertNotNull(p);
+		assertTrue(p.test(new State(p, 0, 0, 0, 0, 0, null, null),new StringSupplier("A")));
+	}
+
+	//@Test
+	public void readinessEvaluatorBiPredicateFunctionTest() {
+		BiPredicate p = (BiPredicate)ConfigUtils.stringToReadinessEvaluatorSupplier.apply("function(s,b){print(s);return true;}");
 		assertNotNull(p);
 		assertTrue(p.test(new State(p, 0, 0, 0, 0, 0, null, null),new StringSupplier("A")));
 	}
