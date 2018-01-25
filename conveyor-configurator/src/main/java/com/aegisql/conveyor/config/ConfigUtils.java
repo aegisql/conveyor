@@ -78,7 +78,7 @@ class ConfigUtils {
 			+ "     var rc = %s;\n"
 			+ "		var SupplierImpl = Java.extend(ResultConsumer, {\n"
 			+ "			accept: function(bin) {\n"
-	        + "				rc.accept(bin)\n;"
+	        + "				rc(bin)\n;"
 	    		+ "			}});\n"
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
@@ -104,7 +104,7 @@ class ConfigUtils {
 			+ "     var sc = %s;\n"
 			+ "		var SupplierImpl = Java.extend(ScrapConsumer, {\n"
 			+ "			accept: function(bin) {\n"
-	        + "				sc.accept(bin)\n;"
+	        + "				sc(bin)\n;"
 	    		+ "			}});\n"
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
@@ -181,7 +181,7 @@ class ConfigUtils {
 			+ "     var consumer = %s;"
 			+ "		var SupplierImpl = Java.extend(Consumer, {\n"
 			+ "			accept: function(builder) {\n"
-	        + "				consumer.accept(builder)\n;"
+	        + "				consumer(builder)\n;"
 	    		+ "			}});\n"
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
@@ -206,7 +206,7 @@ class ConfigUtils {
 			+ "     var consumer = %s;"
 			+ "		var SupplierImpl = Java.extend(LabeledValueConsumer, {\n"
 			+ "			accept: function(l,v,b) {\n"
-	        + "				consumer.accept(l,v,b)\n;"
+	        + "				consumer(l,v,b)\n;"
 	    		+ "			}});\n"
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
@@ -234,12 +234,12 @@ class ConfigUtils {
 			+ "		if(BiPredicate.class.isAssignableFrom(re.getClass())) {\n"
 			+ "			REImpl = Java.extend(BiPredicate, {\n"
 			+ "				test: function(a,b) {\n"
-	        + "					return re.test(a,b)\n;"
+	        + "					return re(a,b)\n;"
 	    		+ "				}});}\n"
 			+ "		if(Predicate.class.isAssignableFrom(re.getClass())) {\n"
 			+ "			REImpl = Java.extend(Predicate, {\n"
 			+ "				test: function(a) {\n"
-	        + "					return re.test(a)\n;"
+	        + "					return re(a)\n;"
 	    		+ "				}});}\n"
 			+ "    return new REImpl();\n" 
 			+ "};\n";
@@ -264,7 +264,7 @@ class ConfigUtils {
 			+ "     var consumer = %s;"
 			+ "		var SupplierImpl = Java.extend(BiConsumer, {\n"
 			+ "			accept: function(a,b) {\n"
-	        + "				consumer.accept(a,b)\n;"
+	        + "				consumer(a,b)\n;"
 	    		+ "			}});\n"
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
@@ -313,13 +313,13 @@ class ConfigUtils {
 			+ "     var f = %s;"
 			+ "		var SupplierImpl = Java.extend(Function, {\n"
 			+ "			apply: function(x) {\n"
-	        + "				return f.apply(x)\n;"
+	        + "				return f(x)\n;"
 	    		+ "			}});\n"
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
 
-	/** The Constant stringToCartPayloadFunctionSupplier. */
-	public static final Function<String, Object> stringToCartPayloadFunctionSupplier = js -> {
+	/** The Constant stringToFunctionSupplier. */
+	public static final Function<String, Object> stringToFunctionSupplier = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 			engine.eval(String.format(functionJs, js));
@@ -327,7 +327,7 @@ class ConfigUtils {
 			Object result = invocable.invokeFunction("getFunction");
 			return result;
 		} catch (Exception e) {
-			throw new ConveyorConfigurationException("stringToCartPayloadFunctionSupplier error",e);
+			throw new ConveyorConfigurationException("stringToFunctionSupplier error",e);
 		}
 	};
 

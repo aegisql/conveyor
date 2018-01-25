@@ -32,7 +32,6 @@ import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
-import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
@@ -43,8 +42,8 @@ import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
-import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.loaders.BuilderLoader;
 import com.aegisql.conveyor.loaders.CommandLoader;
@@ -614,31 +613,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public String toString() {
 		return "ParallelConveyor [name=" + name + ", pf=" + pf + ", lBalanced=" + lBalanced + "]";
 	}
-
-//	/* (non-Javadoc)
-//	 * @see com.aegisql.conveyor.Conveyor#forwardPartialResultTo(java.lang.Object, com.aegisql.conveyor.Conveyor)
-//	 */
-//	@Override
-//	public <L2,OUT2> void forwardResultTo(Conveyor<K,L2,OUT2> destination, L2 label) {
-//		forwardResultTo(destination,b->b.key,label);
-//	}
-//
-//	@Override
-//	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>, K2> keyConverter,
-//			L2 label) {
-//		this.forwardingResults   = true;
-//		this.resultConsumer().first(bin->{
-//			LOG.debug("Forward {} from {} to {} {}",label,this.name,destination.getName(),bin.product);
-//			Cart<K2,OUT,L2> partialResult = new ShoppingCart<>(keyConverter.apply(bin), bin.product, label, bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
-//			String forwarded = getName();
-//			if(! bin.properties.containsKey("FORWARDED")) {
-//				partialResult.addProperty("FORWARDED", forwarded);
-//			} else {
-//				partialResult.addProperty("FORWARDED", bin.properties.get("FORWARDED")+"->"+forwarded);				
-//			}
-//			destination.place( partialResult );
-//		}).set();
-//	}
 	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Conveyor#enablePostponeExpiration(boolean)
@@ -830,7 +804,6 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return this.resultConsumer().first(consumer);
 	}
 	
-	@Override
 	public ScrapConsumerLoader<K> scrapConsumer() {
 		return new ScrapConsumerLoader<K>(sc->{
 			this.scrapConsumer = sc;

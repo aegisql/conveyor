@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -23,6 +24,8 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.Testing;
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
@@ -523,7 +526,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void cartPayloadAccessor(ConveyorBuilder b, String s) {
 		LOG.debug("Applying cartPayloadAccessor={}",s);
-		Function value = (Function) ConfigUtils.stringToCartPayloadFunctionSupplier.apply(s);
+		Function value = (Function) ConfigUtils.stringToFunctionSupplier.apply(s);
 		b.cartPayloadAccessor = value;
 	}
 

@@ -347,7 +347,7 @@ public class ConfigUtilsTest {
 	
 	@Test
 	public void cartPayloadAccessTest() {
-		Function<Cart,String> pf = (Function<Cart,String>)ConfigUtils.stringToCartPayloadFunctionSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.payloadFunction");
+		Function<Cart,String> pf = (Function<Cart,String>)ConfigUtils.stringToFunctionSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.payloadFunction");
 		assertNotNull(pf);
 		Object s1 = payloadFunction.apply(new ShoppingCart(1, "test1", "label"));
 		Object s2 = pf.apply(new ShoppingCart(1, "test2", "label"));
@@ -355,6 +355,16 @@ public class ConfigUtilsTest {
 		System.out.println(s2);
 		assertEquals("VALUE=test2", s2);		
 	}
+
+	@Test
+	public void cartFunctionTest() {
+		Function<Cart,String> pf = (Function<Cart,String>)ConfigUtils.stringToFunctionSupplier.apply("function(cart){return 10;}");
+		assertNotNull(pf);
+		Object s2 = pf.apply(new ShoppingCart(1, "test2", "label"));
+		System.out.println(s2);
+		assertEquals(10, s2);		
+	}
+	
 	
 	@Test
 	public void forwardTrioWithDefaultTransformer() {

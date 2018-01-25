@@ -138,8 +138,7 @@ public class ConveyorConfiguration {
 					.<String>when("addBeforeKeyReschedulingAction", ConveyorBuilder::addBeforeKeyReschedulingAction)
 					.<String>when("acceptLabels", ConveyorBuilder::acceptLabels)
 					.<String>when("enablePostponeExpiration", ConveyorBuilder::enablePostponeExpiration)
-					.<String>when("enablePostponeExpirationOnTimeout",
-							ConveyorBuilder::enablePostponeExpirationOnTimeout)
+					.<String>when("enablePostponeExpirationOnTimeout",ConveyorBuilder::enablePostponeExpirationOnTimeout)
 					.<String>when("autoAcknowledge", ConveyorBuilder::autoAcknowledge)
 					.<String>when("acknowledgeAction", ConveyorBuilder::acknowledgeAction)
 					.<String>when("autoAcknowledgeOnStatus", ConveyorBuilder::autoAcknowledgeOnStatus)
