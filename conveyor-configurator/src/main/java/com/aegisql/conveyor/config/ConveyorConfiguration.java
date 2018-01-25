@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -61,8 +62,22 @@ public class ConveyorConfiguration {
 				processConfFile(file);
 			}
 		}
-		getBuildingConveyor().part().foreach().label("complete_configuration").value(true).place();
-		getBuildingConveyor().completeAndStop().get();
+		Conveyor<String, String, Conveyor> buildingConveyor = getBuildingConveyor();
+		Map<String,String> env = System.getenv();
+		env.forEach((key,value)->{
+			if (key.toUpperCase().startsWith(PROPERTY_PREFIX + ".".toUpperCase())) {
+				processPair(buildingConveyor, key, value);
+			}
+		});
+		Properties p = System.getProperties();
+		p.forEach((key,value)->{
+			if (key.toString().toUpperCase().startsWith(PROPERTY_PREFIX + ".".toUpperCase())) {
+				processPair(buildingConveyor, ""+key, ""+value);
+			}
+		});
+		
+		buildingConveyor.part().foreach().label("complete_configuration").value(true).place();
+		buildingConveyor.completeAndStop().get();
 	}
 
 	/**
