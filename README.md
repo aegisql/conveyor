@@ -47,6 +47,7 @@ conveyor configurator (beta)
 ## Release History
 
 ### 1.3.11-SNAPSHOT
+* Extended support for JavaScript in place of Conveyor Functional interfaces
 
 ### 1.3.10
 * Started conveyor-configurator sub-project

@@ -16,6 +16,7 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -249,6 +250,10 @@ public class ConveyorConfiguration {
 				if ("postInit".equals(propertyName)) {
 					buildingConveyor.resultConsumer().andThen(
 							(ResultConsumer<String, Conveyor>) ConfigUtils.stringToResultConsumerSupplier.apply(value))
+							.set();
+				} else if ("postFailure".equals(propertyName)) {
+					buildingConveyor.scrapConsumer().andThen(
+							(ScrapConsumer<String, ?>) ConfigUtils.stringToScrapConsumerSupplier.apply(value))
 							.set();
 				} else {
 					buildingConveyor.staticPart().label(propertyName).value(value).place();

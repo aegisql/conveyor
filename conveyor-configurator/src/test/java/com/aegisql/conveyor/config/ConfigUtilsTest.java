@@ -16,6 +16,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.AcknowledgeStatus;
+import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
@@ -187,6 +188,15 @@ public class ConfigUtilsTest {
 		ResultConsumer rc = (ResultConsumer)ConfigUtils.stringToResultConsumerSupplier.apply("new com.aegisql.conveyor.consumers.result.LogResult()");
 		assertNotNull(rc);
 		rc.accept(new ProductBin(1, "test", 10000, Status.READY, null, null));
+	}
+
+	@Test
+	public void resultConsumerSupplierFunctionalTest() {
+		ResultConsumer rc = (ResultConsumer)ConfigUtils.stringToResultConsumerSupplier.apply("function(bin){print('CREATED CONVEYOR '+bin.product.getName());}");
+		assertNotNull(rc);
+		Conveyor c = new AssemblingConveyor<>();
+		c.setName("test_conv");
+		rc.accept(new ProductBin(1, c, 10000, Status.READY, null, null));
 	}
 
 	@Test
