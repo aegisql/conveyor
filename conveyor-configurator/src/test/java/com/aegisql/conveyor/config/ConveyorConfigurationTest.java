@@ -13,7 +13,10 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
@@ -26,15 +29,24 @@ import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 
 public class ConveyorConfigurationTest {
+	
+	//http://stefanbirkner.github.io/system-rules/
+	@Rule
+	public final ProvideSystemProperty myPropertyHasMyValue = new ProvideSystemProperty("conveyor.prop.init", "");
+
+	@Rule
+	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		ConveyorConfiguration.DEFAULT_TIMEOUT_MSEC = 5*1000;
-		
+
+
+		ConveyorConfiguration.DEFAULT_TIMEOUT_MSEC = 5 * 1000;
+
 		String conveyor_db_path = "testConf";
 		File f = new File(conveyor_db_path);
 		try {
-			//Deleting the directory recursively using FileUtils.
+			// Deleting the directory recursively using FileUtils.
 			FileUtils.deleteDirectory(f);
 			System.out.println("Directory has been deleted recursively !");
 		} catch (IOException e) {
@@ -42,23 +54,10 @@ public class ConveyorConfigurationTest {
 			e.printStackTrace();
 		}
 
-		
-		DerbyPersistence
-		.forKeyClass(Integer.class)
-		.schema("testConv")
-		.partTable("test2")
-		.completedLogTable("test2Completed")
-		.whenArchiveRecords().markArchived()
-		.maxBatchSize(3)
-		.build();
-		DerbyPersistence
-		.forKeyClass(Integer.class)
-		.schema("testConv")
-		.partTable("persistent")
-		.completedLogTable("persistentCompleted")
-		.whenArchiveRecords().markArchived()
-		.maxBatchSize(3)
-		.build();
+		DerbyPersistence.forKeyClass(Integer.class).schema("testConv").partTable("test2")
+				.completedLogTable("test2Completed").whenArchiveRecords().markArchived().maxBatchSize(3).build();
+		DerbyPersistence.forKeyClass(Integer.class).schema("testConv").partTable("persistent")
+				.completedLogTable("persistentCompleted").whenArchiveRecords().markArchived().maxBatchSize(3).build();
 	}
 
 	@AfterClass
@@ -76,24 +75,29 @@ public class ConveyorConfigurationTest {
 	@Test
 	public void testSimpleYamlFileByAbsolutePathAndExtYAML() throws Exception {
 		ConveyorConfiguration.build("src/test/resources/test1.yaml");
-		Conveyor<Integer,String,String> c = Conveyor.byName("test1");
+		Conveyor<Integer, String, String> c = Conveyor.byName("test1");
 		assertNotNull(c);
 	}
 
 	@Test
 	public void testSimpleYamlFileByClassPathAndExtYML() throws Exception {
+	    environmentVariables.set("conveyor.env.init", "");
 		ConveyorConfiguration.build("classpath:test1.yml");
-		Conveyor<Integer,String,String> c = Conveyor.byName("test1");
+		Conveyor<Integer, String, String> c = Conveyor.byName("test1");
 		assertNotNull(c);
+		Conveyor<Integer, String, String> pr = Conveyor.byName("prop");
+		assertNotNull(pr);
+		Conveyor<Integer, String, String> en = Conveyor.byName("env");
+		assertNotNull(en);
 	}
-	
+
 	@Test
 	public void testSimplePropertiesFileByAbsolutePath() throws Exception {
 		ConveyorConfiguration.build("src/test/resources/test2.properties");
-		//assertNotNull(Conveyor.byName("test0"));
-		//assertNotNull(Conveyor.byName("test1"));
+		// assertNotNull(Conveyor.byName("test0"));
+		// assertNotNull(Conveyor.byName("test1"));
 		assertNotNull(Conveyor.byName("test.part"));
-		Conveyor<Integer,NameLabel,String> c = Conveyor.byName("test2");
+		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("test2");
 		assertNotNull(c);
 		assertTrue(c instanceof PersistentConveyor);
 	}
@@ -101,8 +105,8 @@ public class ConveyorConfigurationTest {
 	@Test
 	public void testSimplePropertiesFileByClassPath() throws Exception {
 		ConveyorConfiguration.build("CLASSPATH:test2.properties");
-		//assertNotNull(Conveyor.byName("test0"));
-		//assertNotNull(Conveyor.byName("test1"));
+		// assertNotNull(Conveyor.byName("test0"));
+		// assertNotNull(Conveyor.byName("test1"));
 		assertNotNull(Conveyor.byName("test2"));
 		assertNotNull(Conveyor.byName("test.part"));
 	}
@@ -110,8 +114,8 @@ public class ConveyorConfigurationTest {
 	@Test
 	public void testSimpleYampFileIdenticalToProperties() throws Exception {
 		ConveyorConfiguration.build("CLASSPATH:test3.yml");
-		//assertNotNull(Conveyor.byName("test0"));
-		//assertNotNull(Conveyor.byName("test1"));
+		// assertNotNull(Conveyor.byName("test0"));
+		// assertNotNull(Conveyor.byName("test1"));
 		assertNotNull(Conveyor.byName("c3-1"));
 		assertNotNull(Conveyor.byName("c3.p1"));
 	}
@@ -119,10 +123,10 @@ public class ConveyorConfigurationTest {
 	@Test
 	public void testSimpleYampFileWithStructure() throws Exception {
 		ConveyorConfiguration.build("CLASSPATH:test4.yml");
-		//assertNotNull(Conveyor.byName("test0"));
-		//assertNotNull(Conveyor.byName("test1"));
+		// assertNotNull(Conveyor.byName("test0"));
+		// assertNotNull(Conveyor.byName("test1"));
 		assertNotNull(Conveyor.byName("c4.p1.x"));
-		Conveyor<Integer,NameLabel,String> c = Conveyor.byName("c4-1");
+		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c4-1");
 		assertNotNull(c);
 		CompletableFuture<String> f = c.build().id(1).createFuture();
 		c.part().id(1).label(NameLabel.FIRST).value("FIRST").place();
@@ -145,29 +149,29 @@ public class ConveyorConfigurationTest {
 
 	@Test
 	public void testSuportedTypes() throws Exception {
-		//Assembling
+		// Assembling
 		ConveyorConfiguration.build("classpath:types.properties");
-		Conveyor<Integer,String,String> ac = Conveyor.byName("assembling");
+		Conveyor<Integer, String, String> ac = Conveyor.byName("assembling");
 		assertNotNull(ac);
 		assertTrue(ac instanceof AssemblingConveyor);
 
-		//K
-		Conveyor<Integer,String,String> kc = Conveyor.byName("kbalanced");
+		// K
+		Conveyor<Integer, String, String> kc = Conveyor.byName("kbalanced");
 		assertNotNull(kc);
 		assertTrue(kc instanceof KBalancedParallelConveyor);
 
-		//K
-		Conveyor<Integer,String,String> lc = Conveyor.byName("lbalanced");
+		// K
+		Conveyor<Integer, String, String> lc = Conveyor.byName("lbalanced");
 		assertNotNull(lc);
 		assertTrue(lc instanceof LBalancedParallelConveyor);
 
-		//BATCH
-		Conveyor<Integer,String,String> bc = Conveyor.byName("batch");
+		// BATCH
+		Conveyor<Integer, String, String> bc = Conveyor.byName("batch");
 		assertNotNull(bc);
 		assertTrue(bc instanceof BatchConveyor);
 
-		//PERSISTENT
-		Conveyor<Integer,String,String> pc = Conveyor.byName("persistent");
+		// PERSISTENT
+		Conveyor<Integer, String, String> pc = Conveyor.byName("persistent");
 		assertNotNull(pc);
 		assertTrue(pc instanceof PersistentConveyor);
 
@@ -177,5 +181,5 @@ public class ConveyorConfigurationTest {
 	public void testSuportedReadable() throws Exception {
 		ConveyorConfiguration.build("classpath:supported.properties");
 	}
-	
+
 }
