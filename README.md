@@ -49,6 +49,8 @@ conveyor configurator (beta)
 ### 1.3.11-SNAPSHOT
 * Extended support for JavaScript in place of Conveyor Functional interfaces
 * Added properties from ENV and System properties
+* Added support for standard label readiness testers "readyWhenAccepted" properties
+* Bugfixes and improvements
 
 ### 1.3.10
 * Started conveyor-configurator sub-project
