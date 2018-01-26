@@ -14,6 +14,7 @@ conveyor:
         value = "-suffix";
     firstResultConsumer:  new com.aegisql.conveyor.consumers.result.LogResult()
     firstScrapConsumer:  new com.aegisql.conveyor.consumers.scrap.LogScrap()
+    readinessEvaluator: com.aegisql.conveyor.config.ConveyorConfigurationTest.predRE; //Predicate
     readyWhenAccepted:  
       - 2 com.aegisql.conveyor.config.harness.NameLabel.FIRST
       - 3 com.aegisql.conveyor.config.harness.NameLabel.LAST

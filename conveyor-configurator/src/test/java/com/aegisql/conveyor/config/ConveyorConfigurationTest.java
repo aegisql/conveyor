@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -146,6 +147,12 @@ public class ConveyorConfigurationTest {
 		assertTrue(c instanceof AssemblingConveyor);
 
 	}
+	
+	public static Predicate<StringSupplier> predRE = ss -> {
+		System.out.println("PREDICATE TEST "+ss.get());
+		return "FIRSTpreffix-c5-1-suffixLAST_1LAST_2".equals(ss.get());
+	};
+
 
 	@Test
 	public void testYampFileWithStructureAndReadiness() throws Exception {
