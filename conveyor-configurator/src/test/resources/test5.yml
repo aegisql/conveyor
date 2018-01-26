@@ -1,0 +1,26 @@
+test.testName: yaml properties
+conveyor:
+  idleHeartBeat:  0.5 SECONDS
+  c5-1:
+    builderSupplier:  new com.aegisql.conveyor.config.harness.StringSupplier("c5-1"); //JavaScript
+    defaultBuilderTimeout:  1 SECONDS
+    rejectUnexpireableCartsOlderThan:  10000
+    staticPart: 
+      - >
+        label = com.aegisql.conveyor.config.harness.NameLabel.FIRST;
+        value = "preffix-";
+      - >
+        label = com.aegisql.conveyor.config.harness.NameLabel.LAST;
+        value = "-suffix";
+    firstResultConsumer:  new com.aegisql.conveyor.consumers.result.LogResult()
+    firstScrapConsumer:  new com.aegisql.conveyor.consumers.scrap.LogScrap()
+    readyWhenAccepted:  
+      - 2 com.aegisql.conveyor.config.harness.NameLabel.FIRST
+      - 3 com.aegisql.conveyor.config.harness.NameLabel.LAST
+      - com.aegisql.conveyor.config.harness.NameLabel.END
+conveyor.c5-1:
+  addCartBeforePlacementValidator: function(cart){return true;}
+  addBeforeKeyEvictionAction:  function(key){print('"Evict"'+key);}
+  addBeforeKeyReschedulingAction:  com.aegisql.conveyor.config.ConfigUtilsTest.beforeReschedule
+  postInit:  com.aegisql.conveyor.config.ConfigUtilsTest.test2PostCreation; //custom post-creation init
+conveyor.c5-1.supplier:  new com.aegisql.conveyor.AssemblingConveyor();

@@ -23,10 +23,12 @@ public class StringSupplier implements Supplier<String> {
 	}
 	
 	public static void first(StringSupplier ss, String first) {
+		System.out.println("StringSupplier first "+first);
 		ss.s = first+ss.s;
 	}
 
 	public static void last(StringSupplier ss, String last) {
+		System.out.println("StringSupplier last "+last);
 		ss.s = ss.s+last;
 	}
 

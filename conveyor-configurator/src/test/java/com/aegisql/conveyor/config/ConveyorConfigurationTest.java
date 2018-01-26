@@ -43,7 +43,7 @@ public class ConveyorConfigurationTest {
 
 		ConveyorConfiguration.DEFAULT_TIMEOUT_MSEC = 5 * 1000;
 
-		String conveyor_db_path = "testConf";
+		String conveyor_db_path = "testConv";
 		File f = new File(conveyor_db_path);
 		try {
 			// Deleting the directory recursively using FileUtils.
@@ -147,6 +147,25 @@ public class ConveyorConfigurationTest {
 
 	}
 
+	@Test
+	public void testYampFileWithStructureAndReadiness() throws Exception {
+		ConveyorConfiguration.build("CLASSPATH:test5.yml");
+		// assertNotNull(Conveyor.byName("test0"));
+		// assertNotNull(Conveyor.byName("test1"));
+		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c5-1");
+		assertNotNull(c);
+		CompletableFuture<String> f = c.build().id(1).createFuture();
+		c.part().id(1).label(NameLabel.FIRST).value("FIRST").place();
+		c.part().id(1).label(NameLabel.LAST).value("LAST_1").place();
+		c.part().id(1).label(NameLabel.LAST).value("LAST_2").place();
+		c.part().id(1).label(NameLabel.END).place();
+		String res = f.get();
+		System.out.println(res);
+		assertEquals("FIRSTpreffix-c5-1-suffixLAST_1LAST_2", res);
+
+	}
+
+	
 	@Test
 	public void testSuportedTypes() throws Exception {
 		// Assembling

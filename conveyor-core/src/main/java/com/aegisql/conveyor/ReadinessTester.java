@@ -17,6 +17,10 @@ import java.util.function.Supplier;
  */
 public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplier<? extends OUT>>, Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	/** The p. */
 	private final BiPredicate<State<K,L>, Supplier<? extends OUT>> p;
 	

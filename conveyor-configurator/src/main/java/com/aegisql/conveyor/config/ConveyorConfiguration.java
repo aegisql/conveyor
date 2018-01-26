@@ -164,6 +164,7 @@ public class ConveyorConfiguration {
 					.<String>when("dependency", ConveyorBuilder::dependency)
 					.<String>when("parallel", ConveyorBuilder::parallel)
 					.<String>when("persistence", ConveyorBuilder::persitence)
+					.<String>when("readyWhenAccepted", ConveyorBuilder::readyWhen)
 					.<Boolean>when("complete_configuration", ConveyorBuilder::allFilesReadSuccessfully));
 
 		}

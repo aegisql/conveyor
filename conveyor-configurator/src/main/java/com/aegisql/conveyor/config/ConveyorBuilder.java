@@ -3,10 +3,11 @@ package com.aegisql.conveyor.config;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -22,12 +23,10 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
+import com.aegisql.conveyor.ReadinessTester;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.Testing;
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ForwardResult;
-import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
@@ -116,6 +115,11 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	/** The accepted labels. */
 	private Set acceptedLabels                                    = new HashSet<>();
 	
+	private ReadinessTester readinessTester                       = null;
+
+	/** The ready labels. */
+	private Map<Object,Integer> readyLabels                       = new HashMap<>();
+
 	/** The enable postpone expiration. */
 	private Boolean enablePostponeExpiration                      = null;
 	
@@ -189,6 +193,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		
 		final Conveyor c = instance;
 		
+		setIfNotNull(builderSupplier, c::setBuilderSupplier);
 		setIfNotNull(idleHeartBeat, c::setIdleHeartBeat);
 		setIfNotNull(defaultBuilderTimeout, c::setDefaultBuilderTimeout);
 		setIfNotNull(rejectUnexpireableCartsOlderThan, c::rejectUnexpireableCartsOlderThan);
@@ -199,12 +204,22 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		setIfNotNull(defaultCartConsumer, c::setDefaultCartConsumer);
 		setIfNotNull(readinessEvaluatorP, c::setReadinessEvaluator);
 		setIfNotNull(readinessEvaluatorBiP, c::setReadinessEvaluator);
-		setIfNotNull(builderSupplier, c::setBuilderSupplier);
 		setIfNotNull(enablePostponeExpiration, c::enablePostponeExpiration);
 		setIfNotNull(enablePostponeExpirationOnTimeout, c::enablePostponeExpirationOnTimeout);
 		setIfNotNull(autoAcknowledge, c::setAutoAcknowledge);
 		setIfNotNull(acknowledgeAction, c::setAcknowledgeAction);
 		setIfNotNull(cartPayloadAccessor, c::setCartPayloadAccessor);
+		
+		if(readinessTester != null) {
+			for(Object label:readyLabels.keySet()) {
+				if(label == null) {
+					readinessTester = readinessTester.accepted(readyLabels.get(null));
+				} else {
+					readinessTester = readinessTester.accepted(label, readyLabels.get(label));
+				}
+			}
+			c.setReadinessEvaluator(readinessTester);
+		}
 		
 		if(autoAcknowledgeOnStatus != null && autoAcknowledgeOnStatus.length != 0) {
 			Status first  = autoAcknowledgeOnStatus[0];
@@ -432,7 +447,43 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		} else {
 			throw new ConveyorConfigurationException("Unexpected readinessEvaluator type "+obj.getClass());
 		}
+		b.readinessTester = null;
 	}
+	
+	public static void readyWhen(ConveyorBuilder b, String s) {
+		LOG.debug("Applying readyWhen={}",s);
+		String[] parts = s.trim().split("\\s+");
+		if(parts.length == 0) {
+			return;
+		}
+		if(b.readinessTester == null) {
+			b.readinessTester = new ReadinessTester<>();
+		}
+		int count = 1;
+		try {
+			count = Integer.parseInt( parts[0] ); 
+		} catch(Exception e) {
+			Object[] labels = (Object[]) ConfigUtils.stringToLabelArraySupplier.apply(parts[0]);
+			for(Object label:labels) {
+				b.readyLabels.put(label, count);
+			}
+			b.readinessEvaluatorBiP = null;
+			b.readinessEvaluatorP   = null;
+			return;
+		}
+		
+		if(parts.length == 1) {
+			b.readyLabels.put(null, count);
+		} else {
+			Object[] labels = (Object[]) ConfigUtils.stringToLabelArraySupplier.apply(parts[1]);
+			for(Object label:labels) {
+				b.readyLabels.put(label, count);
+			}
+		}
+		b.readinessEvaluatorBiP = null;
+		b.readinessEvaluatorP   = null;
+	}
+
 
 	/**
 	 * Builder supplier.
@@ -469,7 +520,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		Object[] value = (Object[]) ConfigUtils.stringToLabelArraySupplier.apply(s);
 		b.acceptedLabels.addAll(Arrays.asList(value));
 	}
-
+	
 	/**
 	 * Enable postpone expiration.
 	 *
