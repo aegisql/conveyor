@@ -202,8 +202,6 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		setIfNotNull(firstScrapConsumer, rc -> c.scrapConsumer(rc).set() );
 		setIfNotNull(timeoutAction, c::setOnTimeoutAction);
 		setIfNotNull(defaultCartConsumer, c::setDefaultCartConsumer);
-		setIfNotNull(readinessEvaluatorP, c::setReadinessEvaluator);
-		setIfNotNull(readinessEvaluatorBiP, c::setReadinessEvaluator);
 		setIfNotNull(enablePostponeExpiration, c::enablePostponeExpiration);
 		setIfNotNull(enablePostponeExpirationOnTimeout, c::enablePostponeExpirationOnTimeout);
 		setIfNotNull(autoAcknowledge, c::setAutoAcknowledge);
@@ -220,7 +218,16 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 					readinessTester = readinessTester.accepted(label, readyLabels.get(label));
 				}
 			}
+			if(readinessEvaluatorP != null) {
+				readinessTester = readinessTester.andThen(readinessEvaluatorP);
+			}
+			if(readinessEvaluatorBiP != null) {
+				readinessTester = readinessTester.andThen(readinessEvaluatorBiP);
+			}
 			c.setReadinessEvaluator(readinessTester);
+		} else {
+			setIfNotNull(readinessEvaluatorP, c::setReadinessEvaluator);
+			setIfNotNull(readinessEvaluatorBiP, c::setReadinessEvaluator);
 		}
 		
 		if(autoAcknowledgeOnStatus != null && autoAcknowledgeOnStatus.length != 0) {
@@ -449,7 +456,6 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		} else {
 			throw new ConveyorConfigurationException("Unexpected readinessEvaluator type "+obj.getClass());
 		}
-		b.readinessTester = null;
 	}
 	
 	public static void readyWhen(ConveyorBuilder b, String s) {
@@ -469,8 +475,6 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 			for(Object label:labels) {
 				b.readyLabels.put(label, count);
 			}
-			b.readinessEvaluatorBiP = null;
-			b.readinessEvaluatorP   = null;
 			return;
 		}
 		
@@ -482,8 +486,6 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				b.readyLabels.put(label, count);
 			}
 		}
-		b.readinessEvaluatorBiP = null;
-		b.readinessEvaluatorP   = null;
 	}
 
 

@@ -5,6 +5,7 @@ package com.aegisql.conveyor;
 
 import java.io.Serializable;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
@@ -40,6 +41,9 @@ public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplie
 		this.p = p;
 	}
 
+	public  ReadinessTester<K,L,OUT> andThen(Predicate<Supplier<? extends OUT>> pred) {
+		return new ReadinessTester<>( this.p.and((s,b)->pred.test(b)) );
+	}
 	/**
 	 * Accepted.
 	 *
