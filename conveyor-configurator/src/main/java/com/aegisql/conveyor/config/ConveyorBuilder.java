@@ -213,8 +213,10 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		if(readinessTester != null) {
 			for(Object label:readyLabels.keySet()) {
 				if(label == null) {
+					LOG.debug("Ready when accept count {}",readyLabels.get(null));
 					readinessTester = readinessTester.accepted(readyLabels.get(null));
 				} else {
+					LOG.debug("Ready when accept {} times {}",label,readyLabels.get(label));
 					readinessTester = readinessTester.accepted(label, readyLabels.get(label));
 				}
 			}
