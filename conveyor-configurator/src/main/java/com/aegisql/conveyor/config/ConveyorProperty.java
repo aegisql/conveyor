@@ -6,9 +6,11 @@ public class ConveyorProperty {
 	private final boolean isDefaultProperty;
 	private final String name;
 	private final String property;
+	private final Object value;
 	
 	@Override
 	public String toString() {
+		StringBuilder sb = new StringBuilder("ConveyorProperty [");
 		return "ConveyorProperty [isConveyorProperty=" + isConveyorProperty + ", isDefaultProperty=" + isDefaultProperty
 				+ ", " + (name != null ? "name=" + name + ", " : "") + (property != null ? "property=" + property : "")
 				+ "]";
@@ -35,20 +37,22 @@ public class ConveyorProperty {
 			,boolean isDefaultProperty
 			,String name
 			,String property
+			,Object value
 			) {
 		this.isConveyorProperty = isConveyorProperty;
 		this.isDefaultProperty  = isDefaultProperty;
 		this.name               = name;
 		this.property           = property;
+		this.value              = value;
 	}
 	
-	public static ConveyorProperty evalProperty(String property) {
+	public static ConveyorProperty evalProperty(String property, Object value) {
 		
 		
 		String prefix = ConveyorConfiguration.PROPERTY_PREFIX + ConveyorConfiguration.PROPERTY_DELIMITER;
 		
 		if(property == null || ! property.trim().toUpperCase().startsWith(prefix)) {
-			return new ConveyorProperty(false, false, null, null);
+			return new ConveyorProperty(false, false, null, null, null);
 		}
 		boolean isConveyorProperty = true;
 		boolean isDefaultProperty  = false;
@@ -70,8 +74,12 @@ public class ConveyorProperty {
 		}
 		
 		
-		return new ConveyorProperty(isConveyorProperty,isDefaultProperty,name,convProperty);
+		return new ConveyorProperty(isConveyorProperty,isDefaultProperty,name,convProperty,value);
 		
+	}
+
+	public Object getValue() {
+		return value;
 	}
 	
 	
