@@ -37,6 +37,8 @@ public class ConveyorConfiguration {
 	/** The property prefix. */
 	public static String PROPERTY_PREFIX = "CONVEYOR";
 
+	public static String PROPERTY_DELIMITER = ".";
+
 	/** The default timeout msec. */
 	public static long DEFAULT_TIMEOUT_MSEC = 0;
 
