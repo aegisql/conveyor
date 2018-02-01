@@ -1,5 +1,11 @@
 package com.aegisql.conveyor.config;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
+
 public class ConveyorProperty {
 
 	private final boolean isConveyorProperty;
@@ -46,12 +52,31 @@ public class ConveyorProperty {
 		this.value              = value;
 	}
 	
-	public static ConveyorProperty evalProperty(String property, Object value) {
+	public static void eval(String propertyKey, Object value, Consumer<ConveyorProperty> consumer) {
+		if(propertyKey == null || ! propertyKey.toUpperCase().startsWith(ConveyorConfiguration.PROPERTY_PREFIX.toUpperCase())){
+			return;
+		}
+		if(value == null) {
+			ConveyorProperty cp = evalProperty(propertyKey, value);
+			consumer.accept(cp);
+		} else if(value instanceof Map) {
+			Map<String,Object> map = (Map<String, Object>) value;
+			map.forEach((part,val) -> eval(propertyKey+ConveyorConfiguration.PROPERTY_DELIMITER+part,val,consumer));
+		} else if(value instanceof List) {
+			List<Object> list = (List<Object>) value;
+			list.forEach(val -> eval(propertyKey,val,consumer));
+		} else {
+			ConveyorProperty cp = evalProperty(propertyKey, value);
+			consumer.accept(cp);
+		}
+	}
+
+	static ConveyorProperty evalProperty(String propertyKey, Object value) {
 		
 		
 		String prefix = ConveyorConfiguration.PROPERTY_PREFIX + ConveyorConfiguration.PROPERTY_DELIMITER;
 		
-		if(property == null || ! property.trim().toUpperCase().startsWith(prefix)) {
+		if(propertyKey == null || ! propertyKey.toUpperCase().startsWith(prefix)) {
 			return new ConveyorProperty(false, false, null, null, null);
 		}
 		boolean isConveyorProperty = true;
@@ -59,7 +84,7 @@ public class ConveyorProperty {
 		String name                = null;
 		String convProperty        = null;
 		
-		String[] parts = property.trim().split("["+ConveyorConfiguration.PROPERTY_DELIMITER+"]");
+		String[] parts = propertyKey.split(Pattern.quote(ConveyorConfiguration.PROPERTY_DELIMITER));
 
 		if(parts.length == 2) {
 			isDefaultProperty = true;
