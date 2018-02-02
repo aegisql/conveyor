@@ -2,7 +2,6 @@ package com.aegisql.conveyor.config;
 
 import java.io.FileReader;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -36,6 +35,8 @@ public class ConveyorConfiguration {
 
 	/** The property prefix. */
 	public static String PROPERTY_PREFIX = "CONVEYOR";
+	
+	public static String PERSISTENCE_PREFIX = "PERSISTENCE";
 
 	public static String PROPERTY_DELIMITER = ".";
 
@@ -235,58 +236,35 @@ public class ConveyorConfiguration {
 	 * @param obj the obj
 	 */
 	private static void processPair(Conveyor<String, String, Conveyor> buildingConveyor, String key, Object obj) {
-		String[] fields = key.split("\\.");
-		String name = null;
-		String propertyName = null;
-		if (obj instanceof Map) {
-			Map<String,Object> map = (Map<String, Object>) obj;
-			map.forEach((k,v)->{
-				processPair(buildingConveyor, key+"."+k, v);
-			});
-		} else if (obj instanceof List) {
-			List<Object> list = (List<Object>) obj;
-			list.forEach((v)->{
-				processPair(buildingConveyor, key, v);
-			});
-		} else {
-			String value = null;
-			if (obj != null) {
-				value = obj.toString();
-			}
-			if (fields.length == 2) {
-				name = null;
-				propertyName = fields[1];
-			} else {
-				String[] nameParts = new String[fields.length - 2];
-				for (int i = 1; i < fields.length - 1; i++) {
-					nameParts[i - 1] = fields[i];
-				}
-				name = String.join(".", nameParts);
-				propertyName = fields[fields.length - 1];
-			}
-			if (name == null) {
-				if ("postInit".equals(propertyName)) {
-					buildingConveyor.resultConsumer().andThen(
-							(ResultConsumer<String, Conveyor>) ConfigUtils.stringToResultConsumerSupplier.apply(value))
-							.set();
-				} else if ("postFailure".equals(propertyName)) {
-					buildingConveyor.scrapConsumer().andThen(
-							(ScrapConsumer<String, ?>) ConfigUtils.stringToScrapConsumerSupplier.apply(value))
-							.set();
+		
+		ConveyorProperty.eval(key, obj, cp->{
+			String value = cp.getValueAsString();
+			if(cp.isConveyorProperty()) {
+				if(cp.isDefaultProperty()) {
+					if ("postInit".equals(cp.getProperty())) {
+						buildingConveyor.resultConsumer().andThen(
+								(ResultConsumer<String, Conveyor>) ConfigUtils.stringToResultConsumerSupplier.apply(value))
+								.set();
+					} else if ("postFailure".equals(cp.getProperty())) {
+						buildingConveyor.scrapConsumer().andThen(
+								(ScrapConsumer<String, ?>) ConfigUtils.stringToScrapConsumerSupplier.apply(value))
+								.set();
+					} else {
+						buildingConveyor.staticPart().label(cp.getProperty()).value(value).place();
+						buildingConveyor.part().foreach().label(cp.getProperty()).value(value).place();
+					}
 				} else {
-					buildingConveyor.staticPart().label(propertyName).value(value).place();
-					buildingConveyor.part().foreach().label(propertyName).value(value).place();
-				}
-			} else {
-				if ("postInit".equals(propertyName)) {
-					buildingConveyor.resultConsumer()
-							.andThen((ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(value)).id(name)
-							.set();
-				} else {
-					buildingConveyor.part().id(name).label(propertyName).value(value).place();
+					if ("postInit".equals(cp.getProperty())) {
+						buildingConveyor.resultConsumer()
+								.andThen((ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(value)).id(cp.getName())
+								.set();
+					} else {
+						buildingConveyor.part().id(cp.getName()).label(cp.getProperty()).value(value).place();
+					}
+
 				}
 			}
-		}
+		});		
 	}
 
 	/* (non-Javadoc)

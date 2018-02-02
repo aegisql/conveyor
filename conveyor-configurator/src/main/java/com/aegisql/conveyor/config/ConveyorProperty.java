@@ -2,7 +2,6 @@ package com.aegisql.conveyor.config;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -107,5 +106,12 @@ public class ConveyorProperty {
 		return value;
 	}
 	
+	public String getValueAsString() {
+		if(value != null) {
+			return value.toString();
+		} else {
+			return null;
+		}
+	}
 	
 }
