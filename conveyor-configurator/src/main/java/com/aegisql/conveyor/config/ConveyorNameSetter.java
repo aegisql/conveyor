@@ -39,9 +39,9 @@ public class ConveyorNameSetter implements ResultConsumer<String, Conveyor> {
 	public void accept(ProductBin<String, Conveyor> bin) {
 		if(bin.product != null && bin.key != null) {
 			bin.product.setName(bin.key);
-			conv.part().foreach().label("completed").value(bin.key).place();
 			LOG.info("Complete setup for {}",bin.product);
 		}
+		conv.part().foreach().label("completed").value(bin.key).place();
 	}
 
 }

@@ -463,4 +463,16 @@ public interface Conveyor<K, L, OUT> {
 		}
 	}
 	
+	public static void unRegister(String name) {
+		ObjectName objectName;
+		try {
+			objectName = new ObjectName("com.aegisql.conveyor:type=" + name);
+			if(mBeanServer.isRegistered(objectName)) {
+				mBeanServer.unregisterMBean(objectName);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Conveyor with name '"+name +"' not found",e);
+		}
+	}
+	
 }

@@ -150,6 +150,8 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorBuilder.class);
 		
+	private Map<String,Map<String,Object>> persistenceProperties  = new HashMap<>();
+	
 	/**
 	 * Sets the if not null.
 	 *

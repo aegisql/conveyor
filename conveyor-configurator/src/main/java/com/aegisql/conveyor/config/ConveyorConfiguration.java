@@ -81,6 +81,7 @@ public class ConveyorConfiguration {
 		
 		buildingConveyor.part().foreach().label("complete_configuration").value(true).place();
 		buildingConveyor.completeAndStop().get();
+		Conveyor.unRegister("conveyorConfigurationBuilder");
 	}
 
 	/**
@@ -169,9 +170,10 @@ public class ConveyorConfiguration {
 					.<String>when("persistence", ConveyorBuilder::persitence)
 					.<String>when("readyWhenAccepted", ConveyorBuilder::readyWhen)
 					.<Boolean>when("complete_configuration", ConveyorBuilder::allFilesReadSuccessfully));
-
+			instance.part().id("__PERSISTENCE__").label("builderSupplier").value("null").place();
+			instance.staticPart().label("dependency").value("__PERSISTENCE__").place();
 		}
-
+			
 		return instance;
 	}
 
