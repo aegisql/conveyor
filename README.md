@@ -51,6 +51,8 @@ conveyor configurator (beta)
 * Added properties from ENV and System properties
 * Added support for standard label readiness testers "readyWhenAccepted" properties
 * Bugfixes and improvements
+* unRegister conveyor name
+* Derby persistence properties 
 
 ### 1.3.10
 * Started conveyor-configurator sub-project
