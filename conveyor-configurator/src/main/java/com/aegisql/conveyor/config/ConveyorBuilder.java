@@ -3,12 +3,14 @@ package com.aegisql.conveyor.config;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -33,6 +35,8 @@ import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence.DerbyPersistenceBuilder;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -150,8 +154,17 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorBuilder.class);
 		
-	private Map<String,Map<String,Object>> persistenceProperties  = new HashMap<>();
-	
+	private Map<String,PersistenceProperties> persistenceProperties  = new TreeMap<>(new Comparator<String>() {
+		@Override
+		public int compare(String o1, String o2) {
+			String l1 = o1.toLowerCase();
+			String l2 = o2.toLowerCase();
+			return - l1.compareTo(l2);
+		}
+	});
+
+	private Map<String,PersistenceProperties> defaultProperties  = new TreeMap<>();
+
 	/**
 	 * Sets the if not null.
 	 *
@@ -174,6 +187,97 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		try {
 		LOG.debug("{}",this);
 		Conveyor instance = null;
+
+		for(String key:persistenceProperties.keySet()) {
+			PersistenceProperties pp = persistenceProperties.get(key);
+			Map<String,PersistenceProperty> ppMap = pp.getProperties();
+			
+			PersistenceProperties pp0 = defaultProperties.get(pp.getLevel0Key());
+			PersistenceProperties pp1 = defaultProperties.get(pp.getLevel1Key());
+			PersistenceProperties pp2 = defaultProperties.get(pp.getLevel2Key());
+			
+			if(pp2 != null) {
+				pp2.getProperties().forEach((k,p)->{
+					if( ! ppMap.containsKey(k)) {
+						ppMap.put(k, p);
+					}
+				});
+			}
+			if(pp1 != null) {
+				pp1.getProperties().forEach((k,p)->{
+					if( ! ppMap.containsKey(k)) {
+						ppMap.put(k, p);
+					}
+				});
+			}
+			if(pp0 != null) {
+				pp0.getProperties().forEach((k,p)->{
+					if( ! ppMap.containsKey(k)) {
+						ppMap.put(k, p);
+					}
+				});
+			}
+			
+			if(pp.getType().equalsIgnoreCase("derby")) {
+				PersistenceProperty keyProperty = ppMap.get("keyClass");
+				LOG.debug("Persistence found {} {}",key,pp);
+				
+				if(keyProperty == null) {
+					throw new ConveyorConfigurationException("Missing mandatory Persistence property 'keyClass' in "+key);
+				}
+				
+				Class keyClass = Class.forName(keyProperty.getValueAsString());
+				
+				DerbyPersistenceBuilder dp = DerbyPersistence.forKeyClass( keyClass );
+				dp.schema(pp.getSchema());
+				dp.partTable(pp.getName());
+				//optional parts
+				for(PersistenceProperty p: ppMap.values()) {
+					switch (p.getProperty()) {
+					case "embedded":
+						dp.embedded( Boolean.parseBoolean(p.getValueAsString()) );
+						break;
+					case "username":
+						dp.username( p.getValueAsString() );
+						break;
+					case "password":
+						dp.password( p.getValueAsString() );
+						break;
+					case "completedLogTable":
+						dp.completedLogTable( p.getValueAsString() );
+						break;
+					case "port":
+						dp.port( Integer.parseInt(p.getValueAsString()) );
+						break;
+					case "idSupplier":
+					case "encryptionAlgorithm":
+					case "encryptionTransformation":
+					case "encryptionKeyLength":
+					case "encryptionCipher":
+					case "encryptionSecret":
+					case "labelConverter":
+					case "maxBatchSize":
+					case "maxBatchTime":
+					case "addBinaryConverter":
+					case "doNotSaveProperties":
+					case "archiveStrategy":
+					case "archiveStrategy.path":
+					case "archiveStrategy.moveTo":
+					case "archiveStrategy.maxFileSize":
+					case "archiveStrategy.bucketSize":
+					case "archiveStrategy.zip":
+						LOG.warn("Unimplemented PersistentProperty {}",p);
+						break;
+					default:
+						LOG.warn("Unsupported PersistentProperty {}",p);
+						break;
+					}
+				}
+				dp.build();
+			} else {
+				LOG.warn("Unsupported PersistentProperty type {}",pp.getType());
+			}
+		}
 		
 		if(parallelFactor > 1) {
 			instance = new KBalancedParallelConveyor(constructor, parallelFactor);
@@ -266,7 +370,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		return c;
 		} catch (Exception e) {
 			LOG.error("Error constructing Conveyor",e);
-			throw e;
+			throw new ConveyorConfigurationException(e);
 		}
 	}
 	
@@ -693,6 +797,33 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				throw e;
 			}
 		}
+	}
+	
+	/**
+	 * Persistence property.
+	 *
+	 * @param b the b
+	 * @param pp the pp
+	 */
+	public static void persistenceProperty(ConveyorBuilder b, PersistenceProperty pp) {
+		
+		String key = pp.buildKey();
+		LOG.debug("Applying{}persistenceProperty={}:{}={}",pp.isDefaultProperty()?" default ":" ",key,pp.getProperty(),pp.getValue());
+		PersistenceProperties pm = null;
+		if(pp.isDefaultProperty()) {
+			pm = b.defaultProperties.get(key);
+			if(pm==null) {
+				pm = new PersistenceProperties(pp.getType(), pp.getSchema(), pp.getName());
+				b.defaultProperties.put(key, pm);
+			}
+		} else {
+			pm = b.persistenceProperties.get(key);
+			if(pm==null) {
+				pm = new PersistenceProperties(pp.getType(), pp.getSchema(), pp.getName());
+				b.persistenceProperties.put(key, pm);
+			}
+		}
+		pm.addProperty(pp);		
 	}
 	
 	/* (non-Javadoc)

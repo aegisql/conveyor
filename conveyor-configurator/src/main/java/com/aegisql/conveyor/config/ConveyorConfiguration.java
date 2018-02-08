@@ -68,15 +68,11 @@ public class ConveyorConfiguration {
 		Conveyor<String, String, Conveyor> buildingConveyor = getBuildingConveyor();
 		Map<String,String> env = System.getenv();
 		env.forEach((key,value)->{
-			if (key.toUpperCase().startsWith(PROPERTY_PREFIX + ".".toUpperCase())) {
-				processPair(buildingConveyor, key, value);
-			}
+			processPair(buildingConveyor, key, value);
 		});
 		Properties p = System.getProperties();
 		p.forEach((key,value)->{
-			if (key.toString().toUpperCase().startsWith(PROPERTY_PREFIX + ".".toUpperCase())) {
-				processPair(buildingConveyor, ""+key, ""+value);
-			}
+			processPair(buildingConveyor, ""+key, ""+value);
 		});
 		
 		buildingConveyor.part().foreach().label("complete_configuration").value(true).place();
@@ -169,6 +165,7 @@ public class ConveyorConfiguration {
 					.<String>when("parallel", ConveyorBuilder::parallel)
 					.<String>when("persistence", ConveyorBuilder::persitence)
 					.<String>when("readyWhenAccepted", ConveyorBuilder::readyWhen)
+					.<PersistenceProperty>when("persistenceProperty", ConveyorBuilder::persistenceProperty)
 					.<Boolean>when("complete_configuration", ConveyorBuilder::allFilesReadSuccessfully));
 			instance.part().id("__PERSISTENCE__").label("builderSupplier").value("null").place();
 			instance.staticPart().label("dependency").value("__PERSISTENCE__").place();
@@ -197,10 +194,7 @@ public class ConveyorConfiguration {
 			Map<String, Object> map = (Map<String, Object>) o;
 			map.forEach((key, value) -> {
 				LOG.info("Value {} {} {}", key, value.getClass(), value);
-				if (key.toUpperCase().equalsIgnoreCase(PROPERTY_PREFIX)
-						|| key.toUpperCase().startsWith(PROPERTY_PREFIX + ".".toUpperCase())) {
-					processPair(buildingConveyor, key, value);
-				}
+				processPair(buildingConveyor, key, value);
 			});
 		}
 		return cc;
@@ -221,11 +215,7 @@ public class ConveyorConfiguration {
 		for (Pair<String, String> o : p) {
 			String key = o.label;
 			String value = o.value;
-			if (!key.toUpperCase().startsWith(PROPERTY_PREFIX + ".".toUpperCase())) {
-				continue;
-			} else {
-				processPair(buildingConveyor, key, value);
-			}
+			processPair(buildingConveyor, key, value);
 		}
 		return cc;
 	}
@@ -266,7 +256,12 @@ public class ConveyorConfiguration {
 
 				}
 			}
-		});		
+		});
+		
+		PersistenceProperty.eval(key, obj, pp->{
+			//TODO: do with property something.
+			buildingConveyor.part().id("__PERSISTENCE__").label("persistenceProperty").value(pp).place();
+		});
 	}
 
 	/* (non-Javadoc)

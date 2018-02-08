@@ -61,11 +61,13 @@ public class PersistencePropertyTest {
 	}
 
 	@Test
-	public void testDefaultProperty() {
+	public void testDefaultLevel1Property() {
 		PersistenceProperty cp1 = PersistenceProperty.evalProperty("persistence.derby.property",1);
 		assertNotNull(cp1);
 		assertTrue(cp1.isPersistenceProperty());
 		assertTrue(cp1.isDefaultProperty());
+		assertNotNull(cp1.getType());
+		assertNull(cp1.getSchema());
 		assertNull(cp1.getName());
 		assertNotNull(cp1.getProperty());
 		
@@ -74,6 +76,22 @@ public class PersistencePropertyTest {
 		
 	}
 
+	@Test
+	public void testDefaultLevel0Property() {
+		PersistenceProperty cp1 = PersistenceProperty.evalProperty("persistence.property",1);
+		assertNotNull(cp1);
+		assertTrue(cp1.isPersistenceProperty());
+		assertTrue(cp1.isDefaultProperty());
+		assertNull(cp1.getType());
+		assertNull(cp1.getSchema());
+		assertNull(cp1.getName());
+		assertNotNull(cp1.getProperty());
+		assertEquals("property", cp1.getProperty());
+		assertEquals(1, cp1.getValue());
+		
+	}
+
+	
 	@Test
 	public void testCommonProperty() {
 		PersistenceProperty cp1 = PersistenceProperty.evalProperty("persistence.derby.schema.name.property",1);
@@ -84,6 +102,7 @@ public class PersistencePropertyTest {
 		assertNotNull(cp1.getProperty());
 		assertEquals("derby", cp1.getType());
 		assertEquals("name", cp1.getName());
+		assertEquals("schema", cp1.getSchema());
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());
 	}
@@ -96,6 +115,8 @@ public class PersistencePropertyTest {
 		assertFalse(cp1.isDefaultProperty());
 		assertNotNull(cp1.getName());
 		assertNotNull(cp1.getProperty());
+		assertEquals("derby", cp1.getType());
+		assertEquals("schema", cp1.getSchema());
 		assertEquals("long.name", cp1.getName());
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());
@@ -111,6 +132,7 @@ public class PersistencePropertyTest {
 		assertFalse(cp1.isDefaultProperty());
 		assertNotNull(cp1.getName());
 		assertNotNull(cp1.getProperty());
+		assertEquals("derby", cp1.getType());
 		assertEquals("schema", cp1.getSchema());
 		assertEquals("name", cp1.getName());
 		assertEquals("property", cp1.getProperty());
@@ -127,6 +149,8 @@ public class PersistencePropertyTest {
 		assertFalse(cp1.isDefaultProperty());
 		assertNotNull(cp1.getName());
 		assertNotNull(cp1.getProperty());
+		assertEquals("derby", cp1.getType());
+		assertEquals("schema", cp1.getSchema());
 		assertEquals("name", cp1.getName());
 		assertEquals("archiveStrategy.path", cp1.getProperty());
 		assertEquals("/test", cp1.getValue());
@@ -142,6 +166,8 @@ public class PersistencePropertyTest {
 		assertFalse(cp1.isDefaultProperty());
 		assertNotNull(cp1.getName());
 		assertNotNull(cp1.getProperty());
+		assertEquals("derby", cp1.getType());
+		assertEquals("schema", cp1.getSchema());
 		assertEquals("long.name", cp1.getName());
 		assertEquals("archiveStrategy.path", cp1.getProperty());
 		assertEquals("/test", cp1.getValue());
@@ -157,6 +183,8 @@ public class PersistencePropertyTest {
 		assertFalse(cp1.isDefaultProperty());
 		assertNotNull(cp1.getName());
 		assertNotNull(cp1.getProperty());
+		assertEquals("derby", cp1.getType());
+		assertEquals("schema", cp1.getSchema());
 		assertEquals("name", cp1.getName());
 		assertEquals("archiveStrategy", cp1.getProperty());
 		assertEquals("ARCHIVE", cp1.getValue());
@@ -175,6 +203,8 @@ public class PersistencePropertyTest {
 		assertFalse(cp1.isDefaultProperty());
 		assertNotNull(cp1.getName());
 		assertNotNull(cp1.getProperty());
+		assertEquals("derby", cp1.getType());
+		assertEquals("schema", cp1.getSchema());
 		assertEquals("name", cp1.getName());
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());
@@ -194,6 +224,8 @@ public class PersistencePropertyTest {
 		assertFalse(cp1.isDefaultProperty());
 		assertNotNull(cp1.getName());
 		assertNotNull(cp1.getProperty());
+		assertEquals("derby", cp1.getType());
+		assertEquals("schema", cp1.getSchema());
 		assertEquals("name", cp1.getName());
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());
@@ -213,6 +245,8 @@ public class PersistencePropertyTest {
 		assertFalse(cp1.isDefaultProperty());
 		assertNotNull(cp1.getName());
 		assertNotNull(cp1.getProperty());
+		assertEquals("derby", cp1.getType());
+		assertEquals("schema", cp1.getSchema());
 		assertEquals("name", cp1.getName());
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());

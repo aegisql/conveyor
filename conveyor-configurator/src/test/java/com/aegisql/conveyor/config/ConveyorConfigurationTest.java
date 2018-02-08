@@ -208,4 +208,10 @@ public class ConveyorConfigurationTest {
 		ConveyorConfiguration.build("classpath:supported.properties");
 	}
 
+	@Test
+	public void testPersistenceProperties() throws Exception {
+		ConveyorConfiguration.build("classpath:test6.properties");
+	}
+
+	
 }

@@ -14,13 +14,13 @@ public class PersistenceProperty {
 	private final String name;
 	private final String property;
 	private final Object value;
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("PersistenceProperty [");
-		return "PersistenceProperty [isPersistenceProperty=" + isPersistenceProperty + ", isDefaultProperty=" + isDefaultProperty
-				+ ", " + (name != null ? "name=" + name + ", " : "") + (property != null ? "property=" + property : "")
-				+ "]";
+		return "PersistenceProperty [isPersistenceProperty=" + isPersistenceProperty + ", isDefaultProperty="
+				+ isDefaultProperty + ", " + (name != null ? "name=" + name + ", " : "")
+				+ (property != null ? "property=" + property : "") + "]";
 	}
 
 	public boolean isPersistenceProperty() {
@@ -39,37 +39,32 @@ public class PersistenceProperty {
 		return property;
 	}
 
-	private PersistenceProperty(
-			boolean isConveyorProperty
-			,boolean isDefaultProperty
-			,String type
-			,String schema
-			,String name
-			,String property
-			,Object value
-			) {
+	private PersistenceProperty(boolean isConveyorProperty, boolean isDefaultProperty, String type, String schema,
+			String name, String property, Object value) {
 		this.isPersistenceProperty = isConveyorProperty;
-		this.isDefaultProperty  = isDefaultProperty;
-		this.name               = name;
-		this.property           = property;
-		this.value              = value;
-		this.type               = type;
-		this.schema             = schema;
+		this.isDefaultProperty = isDefaultProperty;
+		this.name = name;
+		this.property = property;
+		this.value = value;
+		this.type = type;
+		this.schema = schema;
 	}
-	
+
 	public static void eval(String propertyKey, Object value, Consumer<PersistenceProperty> consumer) {
-		if(propertyKey == null || ! propertyKey.toUpperCase().startsWith(ConveyorConfiguration.PERSISTENCE_PREFIX.toUpperCase())){
+		if (propertyKey == null
+				|| !propertyKey.toUpperCase().startsWith(ConveyorConfiguration.PERSISTENCE_PREFIX.toUpperCase())) {
 			return;
 		}
-		if(value == null) {
+		if (value == null) {
 			PersistenceProperty cp = evalProperty(propertyKey, value);
 			consumer.accept(cp);
-		} else if(value instanceof Map) {
-			Map<String,Object> map = (Map<String, Object>) value;
-			map.forEach((part,val) -> eval(propertyKey+ConveyorConfiguration.PROPERTY_DELIMITER+part,val,consumer));
-		} else if(value instanceof List) {
+		} else if (value instanceof Map) {
+			Map<String, Object> map = (Map<String, Object>) value;
+			map.forEach(
+					(part, val) -> eval(propertyKey + ConveyorConfiguration.PROPERTY_DELIMITER + part, val, consumer));
+		} else if (value instanceof List) {
 			List<Object> list = (List<Object>) value;
-			list.forEach(val -> eval(propertyKey,val,consumer));
+			list.forEach(val -> eval(propertyKey, val, consumer));
 		} else {
 			PersistenceProperty cp = evalProperty(propertyKey, value);
 			consumer.accept(cp);
@@ -77,64 +72,65 @@ public class PersistenceProperty {
 	}
 
 	static PersistenceProperty evalProperty(String propertyKey, Object value) {
-		
+
 		String altDelim = "_";
-		if( altDelim.equals(ConveyorConfiguration.PROPERTY_DELIMITER)) {
+		if (altDelim.equals(ConveyorConfiguration.PROPERTY_DELIMITER)) {
 			altDelim = ".";
 		}
-		
-		
+
 		String prefix = ConveyorConfiguration.PERSISTENCE_PREFIX + ConveyorConfiguration.PROPERTY_DELIMITER;
-		
-		if(propertyKey == null || ! propertyKey.toUpperCase().startsWith(prefix)) {
-			return new PersistenceProperty(false, false, null, null, null, null,null);
+
+		if (propertyKey == null || !propertyKey.toUpperCase().startsWith(prefix)) {
+			return new PersistenceProperty(false, false, null, null, null, null, null);
 		}
-		
-		propertyKey = propertyKey.replaceAll("archiveStrategy"+ConveyorConfiguration.PROPERTY_DELIMITER, "archiveStrategy"+altDelim);
+
+		propertyKey = propertyKey.replaceAll("archiveStrategy" + ConveyorConfiguration.PROPERTY_DELIMITER,
+				"archiveStrategy" + altDelim);
 
 		boolean isConveyorProperty = true;
-		boolean isDefaultProperty  = false;
-		String name                = null;
-		String convProperty        = null;
-		String schema              = null;
-		String type                = "derby";
-		
+		boolean isDefaultProperty = false;
+		String name = null;
+		String convProperty = null;
+		String schema = null;
+		String type = null;
+
 		String[] parts = propertyKey.split(Pattern.quote(ConveyorConfiguration.PROPERTY_DELIMITER));
 
-		if(parts.length == 2) {
+		if (parts.length == 2) {
 			isDefaultProperty = true;
 			convProperty = parts[1];
-		} else if(parts.length == 3) {
+		} else if (parts.length == 3) {
 			isDefaultProperty = true;
-			type         = parts[1];
+			type = parts[1];
 			convProperty = parts[2];
-		} else if(parts.length == 4) {
+		} else if (parts.length == 4) {
 			isDefaultProperty = true;
-			type         = parts[1];
-			schema       = parts[2];
+			type = parts[1];
+			schema = parts[2];
 			convProperty = parts[3];
 		} else {
-			convProperty = parts[parts.length-1];
-			schema       = parts[2];
-			String[] nameParts = new String[parts.length-4];
-			for(int i = 0; i < nameParts.length; i++) {
-				nameParts[i] = parts[i+3];
+			convProperty = parts[parts.length - 1];
+			type = parts[1];
+			schema = parts[2];
+			String[] nameParts = new String[parts.length - 4];
+			for (int i = 0; i < nameParts.length; i++) {
+				nameParts[i] = parts[i + 3];
 			}
 			name = String.join(ConveyorConfiguration.PROPERTY_DELIMITER, nameParts);
 		}
-		
+
 		convProperty = convProperty.replaceAll(altDelim, ConveyorConfiguration.PROPERTY_DELIMITER);
-		
-		return new PersistenceProperty(isConveyorProperty,isDefaultProperty,type, schema, name,convProperty,value);
-		
+
+		return new PersistenceProperty(isConveyorProperty, isDefaultProperty, type, schema, name, convProperty, value);
+
 	}
 
 	public Object getValue() {
 		return value;
 	}
-	
+
 	public String getValueAsString() {
-		if(value != null) {
+		if (value != null) {
 			return value.toString();
 		} else {
 			return null;
@@ -148,5 +144,19 @@ public class PersistenceProperty {
 	public String getSchema() {
 		return schema;
 	}
-	
+
+	public String buildKey() {
+		StringBuilder sb = new StringBuilder();
+		if (getType() != null) {
+			sb.append(getType());
+			if (getSchema() != null) {
+				sb.append('.').append(getSchema());
+				if (getName() != null) {
+					sb.append('.').append(getName());
+				}
+			}
+		}
+		return sb.toString();
+	}
+
 }
