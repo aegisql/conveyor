@@ -33,9 +33,13 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
+import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
+import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
+import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration.BinaryLogConfigurationBuilder;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence.ArchiveBuilder;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence.DerbyPersistenceBuilder;
 
 // TODO: Auto-generated Javadoc
@@ -231,6 +235,11 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				DerbyPersistenceBuilder dp = DerbyPersistence.forKeyClass( keyClass );
 				dp.schema(pp.getSchema());
 				dp.partTable(pp.getName());
+				
+				ArchiveBuilder archiver = dp.whenArchiveRecords();
+				BinaryLogConfigurationBuilder bLogConf = BinaryLogConfiguration.builder();
+				bLogConf.partTableName(pp.getName());
+				
 				//optional parts
 				for(PersistenceProperty p: ppMap.values()) {
 					switch (p.getProperty()) {
@@ -249,23 +258,74 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 					case "port":
 						dp.port( Integer.parseInt(p.getValueAsString()) );
 						break;
-					case "idSupplier":
 					case "encryptionAlgorithm":
+						dp.encryptionAlgorithm( p.getValueAsString() );
+						break;
 					case "encryptionTransformation":
+						dp.encryptionTransformation( p.getValueAsString() );
+						break;
 					case "encryptionKeyLength":
-					case "encryptionCipher":
+						dp.encryptionKeyLength( Integer.parseInt(p.getValueAsString()) );
+						break;
 					case "encryptionSecret":
-					case "labelConverter":
+						dp.encryptionSecret( p.getValueAsString() );
+						break;
 					case "maxBatchSize":
-					case "maxBatchTime":
-					case "addBinaryConverter":
+						dp.maxBatchSize( Integer.parseInt(p.getValueAsString()) );
+						break;
 					case "doNotSaveProperties":
-					case "archiveStrategy":
+						String[] parts =  p.getValueAsString().split(",");
+						for(String part:parts) {
+							dp.doNotSaveProperties(part.trim());
+						}
+						break;
+					case "maxBatchTime":
+						Long value = (Long) ConfigUtils.timeToMillsConverter.apply(p.getValueAsString());
+						dp.maxBatchTime(Duration.ofMillis(value));
 					case "archiveStrategy.path":
+						bLogConf.path(p.getValueAsString());
+						archiver.moveToFile(bLogConf.build());
+						break;
 					case "archiveStrategy.moveTo":
+						bLogConf.moveToPath(p.getValueAsString());
+						archiver.moveToFile(bLogConf.build());
+						break;
 					case "archiveStrategy.maxFileSize":
+						bLogConf.maxFileSize(p.getValueAsString());
+						archiver.moveToFile(bLogConf.build());
+						break;
 					case "archiveStrategy.bucketSize":
+						bLogConf.bucketSize( Integer.parseInt( p.getValueAsString() ) );
+						archiver.moveToFile(bLogConf.build());
+						break;
 					case "archiveStrategy.zip":
+						bLogConf.zipFile( Boolean.parseBoolean( p.getValueAsString() ) );
+						archiver.moveToFile(bLogConf.build());
+						break;
+					case "archiveStrategy":
+						ArchiveStrategy as = ArchiveStrategy.valueOf(p.getValueAsString());
+						switch (as) {
+						case NO_ACTION:
+							archiver.doNothing();
+							break;
+						case DELETE:
+							archiver.delete();
+							break;
+						case SET_ARCHIVED:
+							archiver.markArchived();
+							break;
+						case MOVE_TO_FILE:
+							archiver.moveToFile(bLogConf.build());
+							break;
+						case CUSTOM:
+						case MOVE_TO_PERSISTENCE:
+						default:
+							break;
+						}
+					case "encryptionCipher":
+					case "labelConverter":
+					case "idSupplier":
+					case "addBinaryConverter":
 						LOG.warn("Unimplemented PersistentProperty {}",p);
 						break;
 					default:
