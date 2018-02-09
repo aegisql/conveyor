@@ -10,6 +10,7 @@ import javax.script.ScriptEngineManager;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Status;
+import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -361,5 +362,27 @@ class ConfigUtils {
 			throw new ConveyorConfigurationException("stringToConveyorSupplier error",e);
 		}
 	};
+	
+	
+	/** The Constant getLabeledValueConsumerJs. */
+	private final static String getObjectConverterJs = 
+			  "var getObjectConverter = function() {\n" 
+			+ "    return %s;\n" 
+			+ "};\n";
 
+	/** The Constant stringToObjectConverter. */
+	public static final Function<String,ObjectConverter> stringToObjectConverter = js -> {
+		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			engine.eval(String.format(getObjectConverterJs, js));
+			Invocable invocable = (Invocable) engine;
+			ObjectConverter result = (ObjectConverter) invocable.invokeFunction("getObjectConverter");
+			return result;
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("stringToObjectConverter error",e);
+		}		
+	};
+
+	
+	
 }

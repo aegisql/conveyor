@@ -36,6 +36,7 @@ import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration.BinaryLogConfigurationBuilder;
+import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
@@ -322,8 +323,25 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 						default:
 							break;
 						}
+					case "archiveStrategy.archiver":
+						break;
+					case "archiveStrategy.persistence":
+						Persistence per = Persistence.byName(p.getValueAsString());
+						archiver.moveToOtherPersistence(per);
+						break;
 					case "encryptionCipher":
 					case "labelConverter":
+						System.err.println("---- "+p.getValueAsString());
+						try {
+							Class clas = Class.forName(p.getValueAsString());
+							dp.labelConverter(clas);
+							LOG.debug("Label converter {}",clas.getName());
+						} catch(Exception e) {
+							ObjectConverter oc = ConfigUtils.stringToObjectConverter.apply(p.getValueAsString());
+							dp.labelConverter(oc);
+							LOG.debug("Label converter {}",oc.conversionHint());
+						}
+						break;
 					case "idSupplier":
 					case "addBinaryConverter":
 						LOG.warn("Unimplemented PersistentProperty {}",p);

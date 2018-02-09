@@ -1,6 +1,8 @@
 package com.aegisql.conveyor.config;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PersistenceProperties {
@@ -11,6 +13,7 @@ public class PersistenceProperties {
 	private final String name;
 
 	private final Map<String,PersistenceProperty> properties = new HashMap<>();
+	private final Map<String,List<PersistenceProperty>> multiProperties = new HashMap<>();
 	
 	public PersistenceProperties(String type, String schema, String name) {
 		this.type   = type;
@@ -23,6 +26,17 @@ public class PersistenceProperties {
 		properties.put(pp.getProperty(), pp);
 	}
 
+	public void addMultiProperty(PersistenceProperty pp) {
+		
+		List<PersistenceProperty> l = multiProperties.get(pp.getProperty());
+		if(l == null) {
+			l = new ArrayList<>();
+			multiProperties.put(pp.getProperty(), l);
+		}
+		l.add(pp);
+	}
+
+	
 	public boolean isDefault() {
 		return isDefault;
 	}
@@ -41,6 +55,10 @@ public class PersistenceProperties {
 
 	public Map<String, PersistenceProperty> getProperties() {
 		return properties;
+	}
+
+	public Map<String, List<PersistenceProperty>> getMultiProperties() {
+		return multiProperties;
 	}
 
 	public String getLevel0Key() {

@@ -485,17 +485,6 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		}
 
 		/**
-		 * Encryption cipher.
-		 *
-		 * @param cipher the cipher
-		 * @return the derby persistence builder
-		 */
-		public DerbyPersistenceBuilder<K> encryptionCipher(Cipher cipher) {
-			this.encryptionCipher = cipher;
-			return this;
-		}
-
-		/**
 		 * Label converter.
 		 *
 		 * @param <L> the generic type
