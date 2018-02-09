@@ -15,8 +15,11 @@ import org.yaml.snakeyaml.Yaml;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
+import com.aegisql.conveyor.consumers.result.ForwardResult;
+import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+import com.aegisql.conveyor.persistence.core.Persistence;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -65,7 +68,8 @@ public class ConveyorConfiguration {
 				processConfFile(file);
 			}
 		}
-		Conveyor<String, String, Conveyor> buildingConveyor = getBuildingConveyor();
+		Conveyor<String, String, Conveyor> buildingConveyor  = getBuildingConveyor();
+		Conveyor<String, String, String> persistenceConveyor = getPersistenceonveyor();
 		Map<String,String> env = System.getenv();
 		env.forEach((key,value)->{
 			processPair(buildingConveyor, key, value);
@@ -74,10 +78,14 @@ public class ConveyorConfiguration {
 		p.forEach((key,value)->{
 			processPair(buildingConveyor, ""+key, ""+value);
 		});
-		
+
+		persistenceConveyor.part().foreach().label("complete_configuration").value(true).place();
+		persistenceConveyor.completeAndStop().get();
+		Conveyor.unRegister(persistenceConveyor.getName());
+
 		buildingConveyor.part().foreach().label("complete_configuration").value(true).place();
 		buildingConveyor.completeAndStop().get();
-		Conveyor.unRegister("conveyorConfigurationBuilder");
+		Conveyor.unRegister(buildingConveyor.getName());
 	}
 
 	/**
@@ -109,6 +117,36 @@ public class ConveyorConfiguration {
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private static Conveyor<String, String, String> getPersistenceonveyor() {
+		Conveyor<String, String, String> persistenceConfiguration = null;
+		try {
+			persistenceConfiguration = Conveyor.byName("persistenceConfigurationBuilder");
+			if (!persistenceConfiguration.isRunning()) {
+				throw new RuntimeException("persistenceConfigurationBuilder is not running");
+			}
+		} catch (RuntimeException e) {
+			persistenceConfiguration = new AssemblingConveyor<>();
+			persistenceConfiguration.setBuilderSupplier(PersistenceBuilder::new);
+			persistenceConfiguration.setName("persistenceConfigurationBuilder");
+			persistenceConfiguration.resultConsumer(LogResult.debug(persistenceConfiguration)).set();
+
+			LabeledValueConsumer<String, ?, PersistenceBuilder> lvc = (l, v, b) -> {
+				LOG.info("Unprocessed value {}={}", l, v);
+			};
+			persistenceConfiguration.setDefaultCartConsumer(lvc
+					.<Boolean>when("complete_configuration", PersistenceBuilder::allFilesReadSuccessfully)
+					);
+			ForwardResult
+			.from(persistenceConfiguration)
+			.to("conveyorConfigurationBuilder")
+			.foreach()
+			.label("completed")
+			.bind();
+		}
+		return persistenceConfiguration;
+	}
+	
 	/**
 	 * Gets the building conveyor.
 	 *
@@ -117,25 +155,25 @@ public class ConveyorConfiguration {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static Conveyor<String, String, Conveyor> getBuildingConveyor() {
 
-		Conveyor<String, String, Conveyor> instance = null;
+		Conveyor<String, String, Conveyor> conveyorConfiguration = null;
 		try {
-			instance = Conveyor.byName("conveyorConfigurationBuilder");
-			if (!instance.isRunning()) {
+			conveyorConfiguration = Conveyor.byName("conveyorConfigurationBuilder");
+			if (!conveyorConfiguration.isRunning()) {
 				throw new RuntimeException("conveyorConfigurationBuilder is not running");
 			}
 		} catch (RuntimeException e) {
-			instance = new AssemblingConveyor<>();
-			instance.setBuilderSupplier(ConveyorBuilder::new);
-			instance.setName("conveyorConfigurationBuilder");
-			instance.resultConsumer(new ConveyorNameSetter(instance)).set();
-			instance.setIdleHeartBeat(Duration.ofMillis(100));
-			instance.setDefaultBuilderTimeout(Duration.ofMillis(DEFAULT_TIMEOUT_MSEC));
+			conveyorConfiguration = new AssemblingConveyor<>();
+			conveyorConfiguration.setBuilderSupplier(ConveyorBuilder::new);
+			conveyorConfiguration.setName("conveyorConfigurationBuilder");
+			conveyorConfiguration.resultConsumer(new ConveyorNameSetter(conveyorConfiguration)).set();
+			conveyorConfiguration.setIdleHeartBeat(Duration.ofMillis(100));
+			conveyorConfiguration.setDefaultBuilderTimeout(Duration.ofMillis(DEFAULT_TIMEOUT_MSEC));
 
 			LabeledValueConsumer<String, ?, ConveyorBuilder> lvc = (l, v, b) -> {
 				LOG.info("Unprocessed value {}={}", l, v);
 			};
 
-			instance.setDefaultCartConsumer(lvc.<String>when("supplier", ConveyorBuilder::supplier)
+			conveyorConfiguration.setDefaultCartConsumer(lvc.<String>when("supplier", ConveyorBuilder::supplier)
 					.<String>when("defaultBuilderTimeout", ConveyorBuilder::defaultBuilderTimeout)
 					.<String>when("idleHeartBeat", ConveyorBuilder::idleHeartBeat)
 					.<String>when("rejectUnexpireableCartsOlderThan", ConveyorBuilder::rejectUnexpireableCartsOlderThan)
@@ -167,11 +205,12 @@ public class ConveyorConfiguration {
 					.<String>when("readyWhenAccepted", ConveyorBuilder::readyWhen)
 					.<PersistenceProperty>when("persistenceProperty", ConveyorBuilder::persistenceProperty)
 					.<Boolean>when("complete_configuration", ConveyorBuilder::allFilesReadSuccessfully));
-			instance.part().id("__PERSISTENCE__").label("builderSupplier").value("null").place();
-			instance.staticPart().label("dependency").value("__PERSISTENCE__").place();
+			conveyorConfiguration.part().id("__PERSISTENCE__").label("builderSupplier").value("null").place();
+			conveyorConfiguration.staticPart().label("dependency").value("__PERSISTENCE__").place();
 		}
 			
-		return instance;
+		
+		return conveyorConfiguration;
 	}
 
 	/**
