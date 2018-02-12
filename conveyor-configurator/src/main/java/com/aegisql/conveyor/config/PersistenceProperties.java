@@ -1,8 +1,7 @@
 package com.aegisql.conveyor.config;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 
 public class PersistenceProperties {
@@ -12,8 +11,7 @@ public class PersistenceProperties {
 	private final String schema;
 	private final String name;
 
-	private final Map<String,PersistenceProperty> properties = new HashMap<>();
-	private final Map<String,List<PersistenceProperty>> multiProperties = new HashMap<>();
+	private final Map<String,LinkedList<PersistenceProperty>> properties = new HashMap<>();
 	
 	public PersistenceProperties(String type, String schema, String name) {
 		this.type   = type;
@@ -23,20 +21,14 @@ public class PersistenceProperties {
 	}
 	
 	public void addProperty(PersistenceProperty pp) {
-		properties.put(pp.getProperty(), pp);
-	}
-
-	public void addMultiProperty(PersistenceProperty pp) {
-		
-		List<PersistenceProperty> l = multiProperties.get(pp.getProperty());
-		if(l == null) {
-			l = new ArrayList<>();
-			multiProperties.put(pp.getProperty(), l);
+		LinkedList<PersistenceProperty> ppList = properties.get(pp.getProperty());
+		if(ppList == null) {
+			ppList = new LinkedList<>();
+			properties.put(pp.getProperty(), ppList);
 		}
-		l.add(pp);
+		ppList.add(pp);
 	}
 
-	
 	public boolean isDefault() {
 		return isDefault;
 	}
@@ -53,12 +45,8 @@ public class PersistenceProperties {
 		return name;
 	}
 
-	public Map<String, PersistenceProperty> getProperties() {
+	public Map<String, LinkedList<PersistenceProperty>> getProperties() {
 		return properties;
-	}
-
-	public Map<String, List<PersistenceProperty>> getMultiProperties() {
-		return multiProperties;
 	}
 
 	public String getLevel0Key() {

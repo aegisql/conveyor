@@ -3,13 +3,13 @@ package com.aegisql.conveyor.consumers.result;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.serial.SerializablePredicate;
 
 public class ForwardResult<K2, L2> {
 
@@ -24,10 +24,10 @@ public class ForwardResult<K2, L2> {
 		private Conveyor<K2, L, ?> toConv;
 		private L label;
 		private Function<ProductBin, K2> keyTransformer;
-		private Predicate<K2> filter;
+		private SerializablePredicate<K2> filter;
 
 		public ForwardingConsumer(L label, Function<ProductBin, K2> keyTransformer, String toName, String fromName,
-				Predicate<K2> filter) {
+				SerializablePredicate<K2> filter) {
 			this.fromName = fromName;
 			this.toConvName = toName;
 			this.label = label;
@@ -36,7 +36,7 @@ public class ForwardResult<K2, L2> {
 		}
 
 		public ForwardingConsumer(L label, Function<ProductBin, K2> keyTransformer, Conveyor<K2, L, ?> toConv,
-				String fromName, Predicate<K2> filter) {
+				String fromName, SerializablePredicate<K2> filter) {
 			this.fromName = fromName;
 			this.toConv = toConv;
 			this.toConvName = toConv.getName();
@@ -66,7 +66,7 @@ public class ForwardResult<K2, L2> {
 						.ttl(bin.remainingDelayMsec, TimeUnit.MILLISECONDS).addProperty("FORWARDED", forwardedProperty)
 						.place();
 			} else {
-				getToConv().part().label(label).foreach(k->filter.test(keyTransformer.apply(bin))).value(bin.product)
+				getToConv().part().label(label).foreach(filter).value(bin.product)
 				.ttl(bin.remainingDelayMsec, TimeUnit.MILLISECONDS).addProperty("FORWARDED", forwardedProperty)
 				.place();
 			}
@@ -83,14 +83,14 @@ public class ForwardResult<K2, L2> {
 	private Conveyor<K2, L2, ?> toConv;
 	private L2 label;
 	private Function<ProductBin, K2> keyTransformer = bin -> (K2) bin.key;
-	private Predicate<K2> filter = null;
+	private SerializablePredicate<K2> filter = null;
 
 	private ForwardResult(Conveyor fromConv) {
 		this.fromConv = fromConv;
 	}
 
 	private ForwardResult(Conveyor fromConv, Conveyor<K2, L2, ?> toConv, L2 label,
-			Function<ProductBin, K2> keyTransformer, String toName, Predicate<K2> filter) {
+			Function<ProductBin, K2> keyTransformer, String toName, SerializablePredicate<K2> filter) {
 		this.fromConv = fromConv;
 		this.toConv = toConv;
 		this.label = label;
@@ -124,7 +124,7 @@ public class ForwardResult<K2, L2> {
 		return new ForwardResult<>(fromConv, toConv, label, keyTransformer, toConvName, k -> true);
 	}
 
-	public ForwardResult<K2, L2> foreach(Predicate<K2> f) {
+	public ForwardResult<K2, L2> foreach(SerializablePredicate<K2> f) {
 		return new ForwardResult<>(fromConv, toConv, label, keyTransformer, toConvName, f);
 	}
 
