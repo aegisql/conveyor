@@ -34,6 +34,7 @@ import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
+import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration.BinaryLogConfigurationBuilder;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
@@ -243,7 +244,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 					dp.schema(pp.getSchema());
 					dp.partTable(pp.getName());
 
-					ArchiveBuilder archiver = dp.whenArchiveRecords();
+					ArchiveBuilder archiverBuilder = dp.whenArchiveRecords();
 					BinaryLogConfigurationBuilder bLogConf = BinaryLogConfiguration.builder();
 					bLogConf.partTableName(pp.getName());
 
@@ -292,51 +293,56 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								dp.maxBatchTime(Duration.ofMillis(value));
 							case "archiveStrategy.path":
 								bLogConf.path(p.getValueAsString());
-								archiver.moveToFile(bLogConf.build());
+								archiverBuilder.moveToFile(bLogConf.build());
 								break;
 							case "archiveStrategy.moveTo":
 								bLogConf.moveToPath(p.getValueAsString());
-								archiver.moveToFile(bLogConf.build());
+								archiverBuilder.moveToFile(bLogConf.build());
 								break;
 							case "archiveStrategy.maxFileSize":
 								bLogConf.maxFileSize(p.getValueAsString());
-								archiver.moveToFile(bLogConf.build());
+								archiverBuilder.moveToFile(bLogConf.build());
 								break;
 							case "archiveStrategy.bucketSize":
 								bLogConf.bucketSize(Integer.parseInt(p.getValueAsString()));
-								archiver.moveToFile(bLogConf.build());
+								archiverBuilder.moveToFile(bLogConf.build());
 								break;
 							case "archiveStrategy.zip":
 								bLogConf.zipFile(Boolean.parseBoolean(p.getValueAsString()));
-								archiver.moveToFile(bLogConf.build());
+								archiverBuilder.moveToFile(bLogConf.build());
 								break;
 							case "archiveStrategy":
 								ArchiveStrategy as = ArchiveStrategy.valueOf(p.getValueAsString());
 								switch (as) {
 								case NO_ACTION:
-									archiver.doNothing();
+									archiverBuilder.doNothing();
 									break;
 								case DELETE:
-									archiver.delete();
+									archiverBuilder.delete();
 									break;
 								case SET_ARCHIVED:
-									archiver.markArchived();
+									archiverBuilder.markArchived();
 									break;
 								case MOVE_TO_FILE:
-									archiver.moveToFile(bLogConf.build());
+									archiverBuilder.moveToFile(bLogConf.build());
 									break;
 								case CUSTOM:
+									break;
 								case MOVE_TO_PERSISTENCE:
+									break;
 								default:
 									break;
 								}
+								break;
 							case "archiveStrategy.archiver":
+								Archiver ar = ConfigUtils.stringToArchiverConverter.apply(p.getValueAsString());
+								archiverBuilder.customStrategy(ar);
+								LOG.warn("Unimplemented PersistentProperty {}", p);
 								break;
 							case "archiveStrategy.persistence":
 								Persistence per = Persistence.byName(p.getValueAsString());
-								archiver.moveToOtherPersistence(per);
+								archiverBuilder.moveToOtherPersistence(per);
 								break;
-							case "encryptionCipher":
 							case "labelConverter":
 								try {
 									Class clas = Class.forName(p.getValueAsString());
@@ -350,8 +356,20 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								}
 								break;
 							case "idSupplier":
-							case "addBinaryConverter":
+								dp.idSupplier(ConfigUtils.stringToIdSupplier.apply(p.getValueAsString()));
 								LOG.warn("Unimplemented PersistentProperty {}", p);
+								break;
+							case "addBinaryConverter":
+								String[] s = p.getValueAsString().split(",");
+								ObjectConverter oc = ConfigUtils.stringToObjectConverter
+								.apply(s[1].trim());
+								try {
+									Class clas = Class.forName(s[0].trim());
+									dp.addBinaryConverter(clas, oc);
+								} catch (Exception e) {
+									Object label = ConfigUtils.stringToRefConverter.apply(s[0]);
+									dp.addBinaryConverter(label, oc);
+								}
 								break;
 							default:
 								LOG.warn("Unsupported PersistentProperty {}", p);

@@ -25,9 +25,12 @@ import com.aegisql.conveyor.config.harness.NameLabel;
 import com.aegisql.conveyor.config.harness.StringSupplier;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
+import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
+import com.aegisql.id_builder.IdSource;
+import com.aegisql.id_builder.impl.TimeHostIdGenerator;
 
 public class ConveyorConfigurationTest {
 	
@@ -208,6 +211,10 @@ public class ConveyorConfigurationTest {
 		ConveyorConfiguration.build("classpath:supported.properties");
 	}
 
+	public Archiver archiver = null;
+	
+	public IdSource idSource = TimeHostIdGenerator.idGenerator_10x4x5(1000);
+	
 	@Test
 	public void testPersistenceProperties() throws Exception {
 		ConveyorConfiguration.build("classpath:test6.properties");

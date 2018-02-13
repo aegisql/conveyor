@@ -69,7 +69,6 @@ public class ConveyorConfiguration {
 			}
 		}
 		Conveyor<String, String, Conveyor> buildingConveyor  = getBuildingConveyor();
-		Conveyor<String, String, String> persistenceConveyor = getPersistenceonveyor();
 		Map<String,String> env = System.getenv();
 		env.forEach((key,value)->{
 			processPair(buildingConveyor, key, value);
@@ -78,10 +77,6 @@ public class ConveyorConfiguration {
 		p.forEach((key,value)->{
 			processPair(buildingConveyor, ""+key, ""+value);
 		});
-
-		persistenceConveyor.part().foreach().label("complete_configuration").value(true).place();
-		persistenceConveyor.completeAndStop().get();
-		Conveyor.unRegister(persistenceConveyor.getName());
 
 		buildingConveyor.part().foreach().label("complete_configuration").value(true).place();
 		buildingConveyor.completeAndStop().get();
@@ -117,36 +112,6 @@ public class ConveyorConfiguration {
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static Conveyor<String, String, String> getPersistenceonveyor() {
-		Conveyor<String, String, String> persistenceConfiguration = null;
-		try {
-			persistenceConfiguration = Conveyor.byName("persistenceConfigurationBuilder");
-			if (!persistenceConfiguration.isRunning()) {
-				throw new RuntimeException("persistenceConfigurationBuilder is not running");
-			}
-		} catch (RuntimeException e) {
-			persistenceConfiguration = new AssemblingConveyor<>();
-			persistenceConfiguration.setBuilderSupplier(PersistenceBuilder::new);
-			persistenceConfiguration.setName("persistenceConfigurationBuilder");
-			persistenceConfiguration.resultConsumer(LogResult.debug(persistenceConfiguration)).set();
-
-			LabeledValueConsumer<String, ?, PersistenceBuilder> lvc = (l, v, b) -> {
-				LOG.info("Unprocessed value {}={}", l, v);
-			};
-			persistenceConfiguration.setDefaultCartConsumer(lvc
-					.<Boolean>when("complete_configuration", PersistenceBuilder::allFilesReadSuccessfully)
-					);
-			ForwardResult
-			.from(persistenceConfiguration)
-			.to("conveyorConfigurationBuilder")
-			.foreach()
-			.label("completed")
-			.bind();
-		}
-		return persistenceConfiguration;
-	}
-	
 	/**
 	 * Gets the building conveyor.
 	 *

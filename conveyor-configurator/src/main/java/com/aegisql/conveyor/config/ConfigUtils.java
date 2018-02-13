@@ -2,6 +2,7 @@ package com.aegisql.conveyor.config;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 import javax.script.Invocable;
@@ -10,7 +11,9 @@ import javax.script.ScriptEngineManager;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Status;
+import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
+import com.aegisql.id_builder.IdSource;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -383,6 +386,51 @@ class ConfigUtils {
 		}		
 	};
 
+	public static final Function<String,Archiver> stringToArchiverConverter = js -> {
+		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			engine.eval(String.format(getObjectConverterJs, js));
+			Invocable invocable = (Invocable) engine;
+			Archiver result = (Archiver) invocable.invokeFunction("getObjectConverter");
+			return result;
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("stringToArchiverConverter error",e);
+		}		
+	};
+
+	public static final Function<String,Object> stringToRefConverter = js -> {
+		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			engine.eval(String.format(getObjectConverterJs, js));
+			Invocable invocable = (Invocable) engine;
+			Object result = invocable.invokeFunction("getObjectConverter");
+			return result;
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("stringToRefConverter error",e);
+		}		
+	};
+
+	private final static String getLongSupplierJs = 
+			  "var getLongSupplier = function() {\n" 
+			+ "		var LongSupplier = Java.type('java.util.function.LongSupplier');\n"
+			+ "		var SupplierImpl = Java.extend(LongSupplier, {\n"
+			+ "			getAsLong: function() {\n"
+	        + "				return %s;\n"
+	    		+ "			}});\n"
+			+ "    return new SupplierImpl();\n" 
+			+ "};\n";
+
+	public static final Function<String,LongSupplier> stringToIdSupplier = js -> {
+		try {
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			engine.eval(String.format(getLongSupplierJs, js));
+			Invocable invocable = (Invocable) engine;
+			LongSupplier result = (LongSupplier) invocable.invokeFunction("getLongSupplier");
+			return result;
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("stringToIdSupplier error",e);
+		}		
+	};
 	
 	
 }
