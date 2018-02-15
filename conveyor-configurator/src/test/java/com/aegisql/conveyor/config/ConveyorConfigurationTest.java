@@ -26,6 +26,7 @@ import com.aegisql.conveyor.config.harness.StringSupplier;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.archive.Archiver;
+import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
@@ -218,6 +219,26 @@ public class ConveyorConfigurationTest {
 	@Test
 	public void testPersistenceProperties() throws Exception {
 		ConveyorConfiguration.build("classpath:test6.properties");
+		assertNotNull(Conveyor.byName("c6_1"));
+		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c6a_persist"));
+		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c6_persist"));
+	}
+
+	@Test
+	public void testPersistenceYaml() throws Exception {
+		ConveyorConfiguration.build("classpath:test7.yml");
+		assertNotNull(Conveyor.byName("c7_1"));
+		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c7a_persist"));
+		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c7_persist"));
+	}
+
+	@Test
+	public void testPersistenceComplexYaml() throws Exception {
+		ConveyorConfiguration.build("classpath:test8.yml");
+		assertNotNull(Conveyor.byName("c8_1"));
+		assertTrue(Conveyor.byName("c8_1") instanceof PersistentConveyor);
+		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c8a_persist"));
+		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c8_persist"));
 	}
 
 	

@@ -377,6 +377,8 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 							}
 						}
 					dp.build();
+					persistence = "com.aegisql.conveyor.persistence.derby."+pp.getSchema()+":type="+pp.getName();
+					LOG.debug("Create Persistence {}",persistence);
 				} else {
 					LOG.warn("Unsupported PersistentProperty type {}", pp.getType());
 				}
@@ -397,7 +399,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 			if (persistence != null) {
 				Persistence p = Persistence.byName(persistence);
-				instance = new PersistentConveyor(p, instance);
+				instance = new PersistentConveyor(p.copy(), instance);
 			}
 
 			final Conveyor c = instance;

@@ -60,7 +60,15 @@ public class ConveyorProperty {
 			consumer.accept(cp);
 		} else if(value instanceof Map) {
 			Map<String,Object> map = (Map<String, Object>) value;
-			map.forEach((part,val) -> eval(propertyKey+ConveyorConfiguration.PROPERTY_DELIMITER+part,val,consumer));
+			if(propertyKey.toLowerCase().endsWith(ConveyorConfiguration.PROPERTY_DELIMITER+"persistence")) {
+				ConveyorProperty cNameProperty = ConveyorProperty.evalProperty(propertyKey, "");
+				PersistenceProperty.eval("persistence", value, pp->{
+					ConveyorProperty cpp = new ConveyorProperty(true, cNameProperty.isDefaultProperty, cNameProperty.getName(), "persistenceProperty", pp);
+					consumer.accept(cpp);
+				});
+			} else {
+				map.forEach((part,val) -> eval(propertyKey+ConveyorConfiguration.PROPERTY_DELIMITER+part,val,consumer));
+			}
 		} else if(value instanceof List) {
 			List<Object> list = (List<Object>) value;
 			list.forEach(val -> eval(propertyKey,val,consumer));

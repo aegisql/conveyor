@@ -1,0 +1,55 @@
+conveyor:
+  persistence:
+    derby.test.c8a_persist:
+      keyClass: java.lang.Integer
+      labelConverter: com.aegisql.conveyor.config.harness.NameLabel
+
+
+conveyor.idleHeartBeat: 1.5 SECONDS
+conveyor.c8_1.defaultBuilderTimeout: 1 SECONDS
+conveyor.c8_1.rejectUnexpireableCartsOlderThan: 10000
+conveyor.c8_1.firstResultConsumer: new com.aegisql.conveyor.consumers.result.LogResult()
+conveyor.c8_1.firstScrapConsumer: new com.aegisql.conveyor.consumers.scrap.LogScrap()
+conveyor.c8_1.onTimeoutAction: com.aegisql.conveyor.config.ConfigUtilsTest.timeoutAction
+conveyor.c8_1.builderSupplier: com.aegisql.conveyor.config.harness.StringSupplier("test_persistence"); //JavaScript
+conveyor.c8_1.readyWhenAccepted: com.aegisql.conveyor.config.harness.NameLabel.FIRST,com.aegisql.conveyor.config.harness.NameLabel.LAST
+conveyor.c8_1.readyWhenAccepted: com.aegisql.conveyor.config.harness.NameLabel.END
+
+conveyor.c8_1.persistence:
+  derby.test.c8_persist.keyClass: java.lang.Integer
+  derby.test.embedded: true
+  derby.test.c8_persist.username: user
+  derby.test.c8_persist.password: pass
+  derby.test.c8_persist.completedLogTable: c8_complete
+#persistence.derby.port: 1527
+  derby.port: 0
+  derby.test.c8_persist.idSupplier: com.aegisql.conveyor.config.ConveyorConfigurationTest.idSource.getId()
+  derby.encryptionAlgorithm: AES
+  derby.encryptionTransformation: AES/ECB/PKCS5Padding
+  derby.encryptionKeyLength: 16
+  derby.test.c8_persist.encryptionSecret: erfq834hfq8723royf87341r
+  derby.test.c8_persist.maxBatchSize: 100
+  derby.test.c8_persist.maxBatchTime: 10 SECONDS
+  derby.test.c8_persist.doNotSaveProperties: property1,property2
+  derby.test.c8_persist.archiveStrategy: NO_ACTION
+  derby.test.c8_persist.archiveStrategy: DELETE
+  derby.test.c8_persist.archiveStrategy: SET_ARCHIVED
+  derby.test.c8_persist.archiveStrategy: CUSTOM
+  derby.test.c8_persist.archiveStrategy:
+    archiver: com.aegisql.conveyor.config.ConveyorConfigurationTest.archiver
+  derby.test.c8_persist.archiveStrategy: MOVE_TO_PERSISTENCE
+  derby.test.c8_persist.archiveStrategy:
+    persistence: com.aegisql.conveyor.persistence.derby.test:type=c8a_persist
+  derby.test.c8_persist.archiveStrategy: MOVE_TO_FILE
+  derby.test.c8_persist.archiveStrategy:
+    path: /test/
+    moveTo: /backup/
+    maxFileSize: 10MB
+    bucketSize: 1000
+    zip: true
+  derby.test.c8_persist.addBinaryConverter: java.lang.Long, new com.aegisql.conveyor.persistence.converters.LongToBytesConverter();
+  derby.test.c8_persist.addBinaryConverter: java.lang.Boolean, new com.aegisql.conveyor.persistence.converters.BooleanToBytesConverter();
+  derby.test.c8_persist.addBinaryConverter: com.aegisql.conveyor.config.harness.NameLabel.FIRST, new com.aegisql.conveyor.persistence.converters.BooleanToBytesConverter();
+  derby.test.c8_persist.labelConverter: new com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter(com.aegisql.conveyor.config.harness.NameLabel.class);
+  derby.test.c8_persist.labelConverter: com.aegisql.conveyor.config.harness.NameLabel
+

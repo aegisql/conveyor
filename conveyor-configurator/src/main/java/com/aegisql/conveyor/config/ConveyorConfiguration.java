@@ -187,8 +187,6 @@ public class ConveyorConfiguration {
 	 */
 	private static ConveyorConfiguration processYaml(String file) throws Exception {
 		ConveyorConfiguration cc = new ConveyorConfiguration();
-		Conveyor c = new AssemblingConveyor<>();
-		c.setName("test1");
 		Yaml yaml = new Yaml();
 		FileReader reader = new FileReader(file);
 		Conveyor<String, String, Conveyor> buildingConveyor = getBuildingConveyor();
@@ -245,15 +243,19 @@ public class ConveyorConfiguration {
 						buildingConveyor.scrapConsumer().andThen(
 								(ScrapConsumer<String, ?>) ConfigUtils.stringToScrapConsumerSupplier.apply(value))
 								.set();
+					} else if ("persistenceProperty".equals(cp.getProperty())) {
+						buildingConveyor.part().id("__PERSISTENCE__").label("persistenceProperty").value(cp.getValue()).place();
 					} else {
 						buildingConveyor.staticPart().label(cp.getProperty()).value(value).place();
 						buildingConveyor.part().foreach().label(cp.getProperty()).value(value).place();
 					}
 				} else {
-					if ("postInit".equals(cp.getProperty())) {
+					if("postInit".equals(cp.getProperty())) {
 						buildingConveyor.resultConsumer()
 								.andThen((ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(value)).id(cp.getName())
 								.set();
+					} else if ("persistenceProperty".equals(cp.getProperty())) {
+						buildingConveyor.part().id(cp.getName()).label(cp.getProperty()).value(cp.getValue()).place();
 					} else {
 						buildingConveyor.part().id(cp.getName()).label(cp.getProperty()).value(value).place();
 					}
@@ -263,7 +265,6 @@ public class ConveyorConfiguration {
 		});
 		
 		PersistenceProperty.eval(key, obj, pp->{
-			//TODO: do with property something.
 			buildingConveyor.part().id("__PERSISTENCE__").label("persistenceProperty").value(pp).place();
 		});
 	}
