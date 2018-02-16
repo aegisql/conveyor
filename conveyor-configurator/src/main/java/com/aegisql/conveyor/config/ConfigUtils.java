@@ -386,6 +386,7 @@ class ConfigUtils {
 		}		
 	};
 
+	/** The Constant stringToArchiverConverter. */
 	public static final Function<String,Archiver> stringToArchiverConverter = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -398,6 +399,7 @@ class ConfigUtils {
 		}		
 	};
 
+	/** The Constant stringToRefConverter. */
 	public static final Function<String,Object> stringToRefConverter = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -410,6 +412,7 @@ class ConfigUtils {
 		}		
 	};
 
+	/** The Constant getLongSupplierJs. */
 	private final static String getLongSupplierJs = 
 			  "var getLongSupplier = function() {\n" 
 			+ "		var LongSupplier = Java.type('java.util.function.LongSupplier');\n"
@@ -420,6 +423,7 @@ class ConfigUtils {
 			+ "    return new SupplierImpl();\n" 
 			+ "};\n";
 
+	/** The Constant stringToIdSupplier. */
 	public static final Function<String,LongSupplier> stringToIdSupplier = js -> {
 		try {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");

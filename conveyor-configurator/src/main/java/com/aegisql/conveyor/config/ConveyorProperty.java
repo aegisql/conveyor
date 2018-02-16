@@ -5,14 +5,30 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ConveyorProperty.
+ */
 public class ConveyorProperty {
 
+	/** The is conveyor property. */
 	private final boolean isConveyorProperty;
+	
+	/** The is default property. */
 	private final boolean isDefaultProperty;
+	
+	/** The name. */
 	private final String name;
+	
+	/** The property. */
 	private final String property;
+	
+	/** The value. */
 	private final Object value;
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("ConveyorProperty [");
@@ -21,22 +37,51 @@ public class ConveyorProperty {
 				+ "]";
 	}
 
+	/**
+	 * Checks if is conveyor property.
+	 *
+	 * @return true, if is conveyor property
+	 */
 	public boolean isConveyorProperty() {
 		return isConveyorProperty;
 	}
 
+	/**
+	 * Checks if is default property.
+	 *
+	 * @return true, if is default property
+	 */
 	public boolean isDefaultProperty() {
 		return isDefaultProperty;
 	}
 
+	/**
+	 * Gets the name.
+	 *
+	 * @return the name
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Gets the property.
+	 *
+	 * @return the property
+	 */
 	public String getProperty() {
 		return property;
 	}
 
+	/**
+	 * Instantiates a new conveyor property.
+	 *
+	 * @param isConveyorProperty the is conveyor property
+	 * @param isDefaultProperty the is default property
+	 * @param name the name
+	 * @param property the property
+	 * @param value the value
+	 */
 	private ConveyorProperty(
 			boolean isConveyorProperty
 			,boolean isDefaultProperty
@@ -51,6 +96,13 @@ public class ConveyorProperty {
 		this.value              = value;
 	}
 	
+	/**
+	 * Eval.
+	 *
+	 * @param propertyKey the property key
+	 * @param value the value
+	 * @param consumer the consumer
+	 */
 	public static void eval(String propertyKey, Object value, Consumer<ConveyorProperty> consumer) {
 		if(propertyKey == null || ! propertyKey.toUpperCase().startsWith(ConveyorConfiguration.PROPERTY_PREFIX.toUpperCase())){
 			return;
@@ -78,6 +130,13 @@ public class ConveyorProperty {
 		}
 	}
 
+	/**
+	 * Eval property.
+	 *
+	 * @param propertyKey the property key
+	 * @param value the value
+	 * @return the conveyor property
+	 */
 	static ConveyorProperty evalProperty(String propertyKey, Object value) {
 		
 		
@@ -110,10 +169,20 @@ public class ConveyorProperty {
 		
 	}
 
+	/**
+	 * Gets the value.
+	 *
+	 * @return the value
+	 */
 	public Object getValue() {
 		return value;
 	}
 	
+	/**
+	 * Gets the value as string.
+	 *
+	 * @return the value as string
+	 */
 	public String getValueAsString() {
 		if(value != null) {
 			return value.toString();

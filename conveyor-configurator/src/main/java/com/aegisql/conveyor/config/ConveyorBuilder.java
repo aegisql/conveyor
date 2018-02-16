@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -125,6 +126,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	/** The accepted labels. */
 	private Set acceptedLabels = new HashSet<>();
 
+	/** The readiness tester. */
 	private ReadinessTester readinessTester = null;
 
 	/** The ready labels. */
@@ -153,6 +155,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 	/** The parallel factor. */
 	private int parallelFactor = 1;
+	
+	/** The max queue size. */
+	private int maxQueueSize = 0;
 
 	/** The persistence. */
 	private String persistence = null;
@@ -160,6 +165,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorBuilder.class);
 
+	/** The persistence properties. */
 	private Map<String, PersistenceProperties> persistenceProperties = new TreeMap<>(new Comparator<String>() {
 		@Override
 		public int compare(String o1, String o2) {
@@ -169,6 +175,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		}
 	});
 
+	/** The default properties. */
 	private Map<String, PersistenceProperties> defaultProperties = new TreeMap<>();
 
 	/**
@@ -698,6 +705,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		}
 	}
 
+	/**
+	 * Ready when.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
 	public static void readyWhen(ConveyorBuilder b, String s) {
 		LOG.debug("Applying readyWhen={}", s);
 		String[] parts = s.trim().split("\\s+");
@@ -866,6 +879,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		LOG.debug("Applying conveyor supplier={}", s);
 		Supplier<Conveyor> value = ConfigUtils.stringToConveyorSupplier.apply(s);
 		b.constructor = value;
+		b.maxQueueSize = 0;
 	}
 
 	/**
@@ -960,6 +974,21 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 			} else {
 				throw e;
 			}
+		}
+	}
+	
+	/**
+	 * Max queue size.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
+	public static void maxQueueSize(ConveyorBuilder b, String s) {
+		LOG.debug("Applying maxQueueSize={}", s);
+		Integer maxSize = Integer.parseInt(s.split("\\s+")[0]);
+		b.maxQueueSize = maxSize;
+		if(b.maxQueueSize > 0) {
+			b.constructor = ()->new AssemblingConveyor( ()->new ArrayBlockingQueue(maxSize) );
 		}
 	}
 
