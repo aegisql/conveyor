@@ -41,7 +41,7 @@ conveyor.c8_1.persistence:
     archiver: com.aegisql.conveyor.config.ConveyorConfigurationTest.archiver
   derby.test.c8_persist.archiveStrategy: MOVE_TO_PERSISTENCE
   derby.test.c8_persist.archiveStrategy:
-    persistence: com.aegisql.conveyor.persistence.derby.test:type=c8a_persist
+    persistence: derby.test.c8a_persist
   derby.test.c8_persist.archiveStrategy: MOVE_TO_FILE
   derby.test.c8_persist.archiveStrategy:
     path: /test/

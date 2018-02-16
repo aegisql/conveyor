@@ -264,9 +264,17 @@ public interface Persistence <K> extends Closeable{
 	 * @return the persistence
 	 */
 	public static Persistence byName(String name) {
-		ObjectName objectName;
+		ObjectName objectName = null;
 		try {
-			objectName = new ObjectName(name);
+			if(name.startsWith("com.aegisql.conveyor.persistence.")) {
+				objectName = new ObjectName(name);
+			} else {
+				String[] parts = name.split("\\.");
+				if(parts.length != 3) {
+					throw new PersistenceException("Expected persistence full name type.schema.part");
+				}
+				objectName = new ObjectName("com.aegisql.conveyor.persistence."+parts[0]+"."+parts[1]+":type="+parts[2]);
+			}
 			Object res = mBeanServer.invoke(objectName, "get", null, null);
 			return (Persistence) res;
 		} catch (Exception e) {
