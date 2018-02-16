@@ -30,7 +30,9 @@ conveyor.c8_1.persistence:
   derby.test.c8_persist.encryptionSecret: erfq834hfq8723royf87341r
   derby.test.c8_persist.maxBatchSize: 100
   derby.test.c8_persist.maxBatchTime: 10 SECONDS
-  derby.test.c8_persist.doNotSaveProperties: property1,property2
+  derby.test.c8_persist.doNotSaveProperties:
+    - property1
+    - property2
   derby.test.c8_persist.archiveStrategy: NO_ACTION
   derby.test.c8_persist.archiveStrategy: DELETE
   derby.test.c8_persist.archiveStrategy: SET_ARCHIVED
@@ -47,9 +49,10 @@ conveyor.c8_1.persistence:
     maxFileSize: 10MB
     bucketSize: 1000
     zip: true
-  derby.test.c8_persist.addBinaryConverter: java.lang.Long, new com.aegisql.conveyor.persistence.converters.LongToBytesConverter();
-  derby.test.c8_persist.addBinaryConverter: java.lang.Boolean, new com.aegisql.conveyor.persistence.converters.BooleanToBytesConverter();
-  derby.test.c8_persist.addBinaryConverter: com.aegisql.conveyor.config.harness.NameLabel.FIRST, new com.aegisql.conveyor.persistence.converters.BooleanToBytesConverter();
+  derby.test.c8_persist.addBinaryConverter: 
+    - java.lang.Long, new com.aegisql.conveyor.persistence.converters.LongToBytesConverter();
+    - java.lang.Boolean, new com.aegisql.conveyor.persistence.converters.BooleanToBytesConverter();
+    - com.aegisql.conveyor.config.harness.NameLabel.FIRST, new com.aegisql.conveyor.persistence.converters.BooleanToBytesConverter();
   derby.test.c8_persist.labelConverter: new com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter(com.aegisql.conveyor.config.harness.NameLabel.class);
   derby.test.c8_persist.labelConverter: com.aegisql.conveyor.config.harness.NameLabel
 

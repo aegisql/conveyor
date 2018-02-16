@@ -220,6 +220,7 @@ public class ConveyorConfigurationTest {
 	public void testPersistenceProperties() throws Exception {
 		ConveyorConfiguration.build("classpath:test6.properties");
 		assertNotNull(Conveyor.byName("c6_1"));
+		assertTrue(Conveyor.byName("c6_1") instanceof PersistentConveyor);
 		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c6a_persist"));
 		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c6_persist"));
 	}
@@ -228,6 +229,7 @@ public class ConveyorConfigurationTest {
 	public void testPersistenceYaml() throws Exception {
 		ConveyorConfiguration.build("classpath:test7.yml");
 		assertNotNull(Conveyor.byName("c7_1"));
+		assertTrue(Conveyor.byName("c7_1") instanceof PersistentConveyor);
 		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c7a_persist"));
 		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c7_persist"));
 	}
