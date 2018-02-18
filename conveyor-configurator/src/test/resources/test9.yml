@@ -1,0 +1,18 @@
+test.testName: persistence end to end
+conveyor:
+  c9-1:
+    builderSupplier:  new com.aegisql.conveyor.config.harness.StringSupplier("c9-1");
+    defaultBuilderTimeout:  1 SECONDS
+    firstResultConsumer:  new com.aegisql.conveyor.consumers.result.LogResult()
+    firstScrapConsumer:  new com.aegisql.conveyor.consumers.scrap.LogScrap()
+    readyWhenAccepted:  
+      - com.aegisql.conveyor.config.harness.NameLabel.FIRST
+      - com.aegisql.conveyor.config.harness.NameLabel.LAST
+    persistence:
+      derby.c9.parts:
+        keyClass: java.lang.Integer
+        archiveStrategy:
+          path: ./
+          maxFileSize: 20KB
+          bucketSize: 50
+          zip: true

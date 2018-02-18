@@ -6,7 +6,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 import org.apache.commons.io.FileUtils;
@@ -67,6 +69,14 @@ public class ConveyorConfigurationTest {
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
+		try {
+			File dir = new File("./");
+			
+			Arrays.stream(dir.listFiles()).map(f->f.getName()).filter(f->(f.endsWith(".blog")||f.endsWith(".blog.zip"))).forEach(f->new File(f).delete());
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Before
@@ -241,6 +251,56 @@ public class ConveyorConfigurationTest {
 		assertTrue(Conveyor.byName("c8_1") instanceof PersistentConveyor);
 		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c8a_persist"));
 		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c8_persist"));
+	}
+
+	@Test
+	public void testYampFileWithPersistence() throws Exception {
+		
+		String conveyor_db_path = "c9";
+		String blog_db_path = "parts.blog";
+		File f = new File(conveyor_db_path);
+		try {
+			FileUtils.deleteDirectory(f);
+			System.out.println("Directory c9 has been deleted!");
+		} catch (IOException e) {
+			System.err.println("Problem occurs when deleting the directory : " + conveyor_db_path);
+			e.printStackTrace();
+		}
+		f = new File(blog_db_path);
+		try {
+			f.delete();
+			System.out.println("Directory backup has been deleted!");
+		} catch (Exception e) {
+			System.err.println("Problem occurs when deleting the directory : " + blog_db_path);
+			e.printStackTrace();
+		}
+		
+		ConveyorConfiguration.build("CLASSPATH:test9.yml");
+		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c9-1");
+		assertNotNull(c);
+		assertTrue(c.isRunning());
+		CompletableFuture<Boolean> lastPart = null;
+		for(int i = 0; i < 100; i++) {
+			c.part().id(i).label(NameLabel.FIRST).value("FIRST_"+i).place();
+			lastPart = c.part().id(i).label(NameLabel.LAST).value("LAST_"+i).place();
+			//c.part().id(1).label(NameLabel.END).place();
+		}
+		
+		assertTrue(lastPart.get());
+
+		Thread.sleep(1000);
+		File dir = new File("./");
+		
+		AtomicInteger found = new AtomicInteger(0);
+		
+		Arrays.stream(dir.listFiles()).map(file->file.getName()).filter(file->(file.endsWith(".blog")||file.endsWith(".blog.zip"))).forEach(
+				file->{
+					System.out.println("Found "+file);
+					found.incrementAndGet();
+					new File(file).delete();
+				}
+				);
+		assertEquals(2, found.get());
 	}
 
 	

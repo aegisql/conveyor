@@ -25,4 +25,3 @@ conveyor.c5-1:
   addBeforeKeyReschedulingAction:  com.aegisql.conveyor.config.ConfigUtilsTest.beforeReschedule
   postInit:  com.aegisql.conveyor.config.ConfigUtilsTest.test2PostCreation; //custom post-creation init
 conveyor.c5-1.supplier:  new com.aegisql.conveyor.AssemblingConveyor();
-conveyor.c5-1.maxQueueSize:  100
