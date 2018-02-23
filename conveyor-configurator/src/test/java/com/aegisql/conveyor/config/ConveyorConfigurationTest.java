@@ -6,10 +6,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -22,9 +25,14 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 
 import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.config.harness.NameLabel;
 import com.aegisql.conveyor.config.harness.StringSupplier;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+import com.aegisql.conveyor.loaders.ResultConsumerLoader;
+import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.archive.Archiver;
@@ -34,6 +42,8 @@ import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.id_builder.IdSource;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
+
+import static org.mockito.Mockito.*;
 
 public class ConveyorConfigurationTest {
 	
@@ -216,7 +226,7 @@ public class ConveyorConfigurationTest {
 		assertTrue(pc instanceof PersistentConveyor);
 
 	}
-
+	
 	@Test
 	public void testSuportedReadable() throws Exception {
 		ConveyorConfiguration.build("classpath:supported.properties");
@@ -242,6 +252,26 @@ public class ConveyorConfigurationTest {
 		assertTrue(Conveyor.byName("c7_1") instanceof PersistentConveyor);
 		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c7a_persist"));
 		assertNotNull(Persistence.byName("com.aegisql.conveyor.persistence.derby.test:type=c7_persist"));
+	}
+
+	public static Conveyor mockConveyor = mock(Conveyor.class);
+	static {
+		when(mockConveyor.resultConsumer(any(ResultConsumer.class))).thenReturn(new ResultConsumerLoader(null, p->{}, r->{}));
+		when(mockConveyor.scrapConsumer(any(ScrapConsumer.class))).thenReturn(new ScrapConsumerLoader(p->{}, r->{}));
+	}
+	@Test
+	public void testPersistenceConveyorSettersCall() throws Exception {
+	    environmentVariables.set("conveyor.c10_1.supplier", this.getClass().getName()+".mockConveyor");
+		ConveyorConfiguration.build("classpath:test10.yml");
+		verify(mockConveyor,times(1)).setName("c10_1");
+		verify(mockConveyor,times(1)).setIdleHeartBeat(Duration.ofMillis(1500));
+		verify(mockConveyor,times(1)).setDefaultBuilderTimeout(Duration.ofMillis(1000));
+		verify(mockConveyor,times(1)).rejectUnexpireableCartsOlderThan(Duration.ofMillis(10000));
+		verify(mockConveyor,times(1)).resultConsumer(any(ResultConsumer.class));
+		verify(mockConveyor,times(1)).scrapConsumer(any(ScrapConsumer.class));
+		verify(mockConveyor,times(1)).setOnTimeoutAction(any());
+		verify(mockConveyor,times(1)).setBuilderSupplier(any(BuilderSupplier.class));
+		verify(mockConveyor,times(1)).setReadinessEvaluator(any(BiPredicate.class));
 	}
 
 	@Test

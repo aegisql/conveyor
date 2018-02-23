@@ -1,0 +1,9 @@
+conveyor.idleHeartBeat: 1.5 SECONDS
+conveyor.c10_1.defaultBuilderTimeout: 1 SECONDS
+conveyor.c10_1.rejectUnexpireableCartsOlderThan: 10000
+conveyor.c10_1.firstResultConsumer: new com.aegisql.conveyor.consumers.result.LogResult()
+conveyor.c10_1.firstScrapConsumer: new com.aegisql.conveyor.consumers.scrap.LogScrap()
+conveyor.c10_1.onTimeoutAction: com.aegisql.conveyor.config.ConfigUtilsTest.timeoutAction
+conveyor.c10_1.builderSupplier: com.aegisql.conveyor.config.harness.StringSupplier("test_persistence"); //JavaScript
+conveyor.c10_1.readyWhenAccepted: com.aegisql.conveyor.config.harness.NameLabel.FIRST,com.aegisql.conveyor.config.harness.NameLabel.LAST
+conveyor.c10_1.readyWhenAccepted: com.aegisql.conveyor.config.harness.NameLabel.END
