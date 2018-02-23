@@ -33,6 +33,7 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.loaders.ResultConsumerLoader;
 import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
+import com.aegisql.conveyor.loaders.StaticPartLoader;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.archive.Archiver;
@@ -258,6 +259,9 @@ public class ConveyorConfigurationTest {
 	static {
 		when(mockConveyor.resultConsumer(any(ResultConsumer.class))).thenReturn(new ResultConsumerLoader(null, p->{}, r->{}));
 		when(mockConveyor.scrapConsumer(any(ScrapConsumer.class))).thenReturn(new ScrapConsumerLoader(p->{}, r->{}));
+		when(mockConveyor.resultConsumer()).thenReturn(new ResultConsumerLoader(null, p->{}, r->{}));
+		when(mockConveyor.scrapConsumer()).thenReturn(new ScrapConsumerLoader(p->{}, r->{}));
+		when(mockConveyor.staticPart()).thenReturn(new StaticPartLoader<>(p->new CompletableFuture<>()));
 	}
 	@Test
 	public void testPersistenceConveyorSettersCall() throws Exception {
