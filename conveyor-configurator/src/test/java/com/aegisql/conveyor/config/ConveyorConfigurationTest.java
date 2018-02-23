@@ -234,6 +234,11 @@ public class ConveyorConfigurationTest {
 		ConveyorConfiguration.build("classpath:supported.properties");
 	}
 
+	@Test
+	public void testSuportedReadablePersistenceProperties() throws Exception {
+		ConveyorConfiguration.build("classpath:persistence.properties");
+	}
+
 	public Archiver archiver = null;
 	
 	public IdSource idSource = TimeHostIdGenerator.idGenerator_10x4x5(1000);
