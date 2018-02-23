@@ -1,5 +1,5 @@
 # conveyor
-Asynchronous Builder Framework
+Asynchronous Creational Framework
 
 [Tutorial](https://github.com/aegisql/conveyor/wiki)
 
