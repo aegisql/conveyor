@@ -27,6 +27,7 @@ import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.config.harness.NameLabel;
 import com.aegisql.conveyor.config.harness.StringSupplier;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
@@ -263,8 +264,9 @@ public class ConveyorConfigurationTest {
 		when(mockConveyor.scrapConsumer()).thenReturn(new ScrapConsumerLoader(p->{}, r->{}));
 		when(mockConveyor.staticPart()).thenReturn(new StaticPartLoader<>(p->new CompletableFuture<>()));
 	}
+	
 	@Test
-	public void testPersistenceConveyorSettersCall() throws Exception {
+	public void testPersistenceConveyorYamlSettersCall() throws Exception {
 	    environmentVariables.set("conveyor.c10_1.supplier", this.getClass().getName()+".mockConveyor");
 		ConveyorConfiguration.build("classpath:test10.yml");
 		verify(mockConveyor,times(1)).setName("c10_1");
@@ -276,6 +278,20 @@ public class ConveyorConfigurationTest {
 		verify(mockConveyor,times(1)).setOnTimeoutAction(any());
 		verify(mockConveyor,times(1)).setBuilderSupplier(any(BuilderSupplier.class));
 		verify(mockConveyor,times(1)).setReadinessEvaluator(any(BiPredicate.class));
+		verify(mockConveyor,times(2)).resultConsumer(); //next and readiness
+		verify(mockConveyor,times(1)).scrapConsumer();
+		verify(mockConveyor,times(1)).acceptLabels(any()); //one array
+		verify(mockConveyor,times(2)).staticPart(); // 2 parts in test
+		verify(mockConveyor,times(1)).setDefaultCartConsumer(any());
+		verify(mockConveyor,times(2)).addCartBeforePlacementValidator(any());
+		verify(mockConveyor,times(1)).addBeforeKeyEvictionAction(any());
+		verify(mockConveyor,times(1)).addBeforeKeyReschedulingAction(any());
+		verify(mockConveyor,times(1)).enablePostponeExpiration(false);
+		verify(mockConveyor,times(1)).enablePostponeExpirationOnTimeout(false);
+		verify(mockConveyor,times(1)).setExpirationPostponeTime(Duration.ofMillis(1000));
+		verify(mockConveyor,times(1)).setAutoAcknowledge(true);
+		verify(mockConveyor,times(1)).autoAcknowledgeOnStatus(Status.READY, Status.TIMED_OUT, Status.CANCELED);
+		verify(mockConveyor,times(1)).setCartPayloadAccessor(any());
 	}
 
 	@Test

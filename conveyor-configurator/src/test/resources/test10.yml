@@ -17,22 +17,17 @@ conveyor.c10_1.acceptLabels:  org.my.project.Labels.FORWARD
 
 #Static Part property can be defined as many times as needed.
 #Each one will be sent to the conveyor
-conveyor.c10_1.staticPart: >
-  label = com.aegisql.conveyor.config.harness.NameLabel.FIRST;
-  value = "preffix-";
-conveyor.c10_1.staticPart: >
-  label = com.aegisql.conveyor.config.harness.NameLabel.LAST;
-  value = "-suffix";
-#First Result Consumer MUST be first in chain of Result Consumers
-conveyor.c10_1.firstResultConsumer:  new com.aegisql.conveyor.consumers.result.LogResult()
+conveyor.c10_1.staticPart: 
+  - >
+    label = com.aegisql.conveyor.config.harness.NameLabel.FIRST;
+    value = "preffix-";
+  - >
+    label = com.aegisql.conveyor.config.harness.NameLabel.LAST;
+    value = "-suffix";
 #Next Result Consumers can be defined several times
 conveyor.c10_1.nextResultConsumer:  com.aegisql.conveyor.config.ConfigUtilsTest.rCounter
 #First Scrap Consumer MUST be first in chain of Scrap Consumers
-conveyor.c10_1.firstScrapConsumer:  new com.aegisql.conveyor.consumers.scrap.LogScrap()
-#Next Scrap Consumers can be defined several times
 conveyor.c10_1.nextScrapConsumer:  com.aegisql.conveyor.config.ConfigUtilsTest.sCounter
-#Lambda
-conveyor.c10_1.onTimeoutAction:  com.aegisql.conveyor.config.ConfigUtilsTest.timeoutAction
 #Lambda
 conveyor.c10_1.defaultCartConsumer:  com.aegisql.conveyor.config.ConfigUtilsTest.lvc
 #Readiness evaluator is either a Predicate or a BiPredicate, with additional Status parameter
@@ -41,10 +36,12 @@ conveyor.c10_1.defaultCartConsumer:  com.aegisql.conveyor.config.ConfigUtilsTest
 conveyor.c10_1.readinessEvaluator:  com.aegisql.conveyor.config.ConfigUtilsTest.biPredRE; //BiPredicate
 conveyor.c10_1.readinessEvaluator:  com.aegisql.conveyor.config.ConfigUtilsTest.predRE; //Predicate
 #Chainable lambda
-conveyor.c10_1.addCartBeforePlacementValidator:  com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator1
-conveyor.c10_1.addCartBeforePlacementValidator:  com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator2
+conveyor.c10_1.addCartBeforePlacementValidator: 
+  - com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator1
+  - com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator2
 #Chainable lambda
-conveyor.c10_1.addBeforeKeyEvictionAction:  com.aegisql.conveyor.config.ConfigUtilsTest.beforeEviction
+conveyor.c10_1.addBeforeKeyEvictionAction:
+  - com.aegisql.conveyor.config.ConfigUtilsTest.beforeEviction
 #Chainable lambda
 conveyor.c10_1.addBeforeKeyReschedulingAction:  com.aegisql.conveyor.config.ConfigUtilsTest.beforeReschedule
 #Boolean
