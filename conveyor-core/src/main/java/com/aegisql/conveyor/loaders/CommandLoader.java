@@ -4,11 +4,13 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
+import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 
@@ -223,6 +225,29 @@ public final class CommandLoader<K,OUT> {
 	 */
 	public CompletableFuture<Boolean> create(BuilderSupplier<OUT> builder) {
 		return conveyor.apply(new CreateCommand<K,OUT>(key,builder,creationTime,expirationTime));
+	}
+
+	public CompletableFuture<ProductBin<K,OUT>> peek() {
+		CompletableFuture<ProductBin<K,OUT>> f = new CompletableFuture<>();
+		GeneralCommand<K, Consumer<ProductBin<K,OUT>>> command = new GeneralCommand<>(key,f::complete,CommandLabel.PEEK_BUILD,creationTime,expirationTime);
+		CompletableFuture<Boolean> cf = conveyor.apply(command);
+		if(cf.isCancelled()) {
+			f.cancel(true);
+		}
+		if(cf.isCompletedExceptionally()) {
+			try {
+				cf.get();
+			} catch (Exception e) {
+				f.completeExceptionally(e);
+			}
+		}
+		return f;
+	}
+
+	public CompletableFuture<Boolean> peek(Consumer<ProductBin<K,OUT>> consumer) {
+		GeneralCommand<K, Consumer<ProductBin<K,OUT>>> command = new GeneralCommand<>(key,consumer,CommandLabel.PEEK_BUILD,creationTime,expirationTime);
+		CompletableFuture<Boolean> cf = conveyor.apply(command);
+		return cf;
 	}
 
 	

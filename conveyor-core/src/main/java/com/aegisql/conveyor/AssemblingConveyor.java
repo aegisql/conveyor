@@ -656,11 +656,18 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				final CommandLabel label = cmdCart.getLabel();
 				final Object value = cmdCart.getValue();
 				final long expTime = cmdCart.getExpirationTime();
+				final CompletableFuture<Boolean> cmdFuture = cmdCart.getFuture();
 				collector.keySet().stream().filter(cmdCart.getFilter()).forEach(k->{
 					GeneralCommand<K,?> nextCommandCart = new GeneralCommand(k,value, label, expTime);
-					mQueue.add(nextCommandCart);
+					try {
+						processManagementCommand(nextCommandCart);
+					} catch(Exception e) {
+						RuntimeException ex = new RuntimeException("Failed milti-key command "+label+"("+k+")",e); 
+						cmdFuture.completeExceptionally(ex);
+						throw ex;
+					}
 				});
-				cmdCart.getFuture().complete(true);
+				cmdFuture.complete(true);
 			}
 		}
 	}
@@ -1410,6 +1417,38 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			cart.getFuture().complete(true);
 		} else {
 			LOG.debug("Key '{}' does not exist. Ignoring check command.", key);
+			cart.getFuture().complete(false);
+		}
+	}
+
+	/**
+	 * Peek build.
+	 *
+	 * @param <K> the key type
+	 * @param conveyor the conveyor
+	 * @param cart the cart
+	 */
+	static <K,OUT> void peekBuild(AssemblingConveyor<K,?,OUT> conveyor, Cart<K, Consumer<ProductBin<K, OUT>>, ?> cart) {
+		K key = cart.getKey();
+		
+		if (conveyor.collector.containsKey(key)) {
+			BuildingSite<K, ?, ?, ? extends OUT> bs = conveyor.collector.get(key);
+			try {
+				OUT prod = bs.unsafeBuild();
+				ProductBin<K, OUT> bin = new ProductBin<K, OUT>(key, prod, bs.getDelayMsec(), bs.getStatus(), bs.getProperties(), null);
+				cart.getValue().accept(bin);
+				cart.getFuture().complete(true);
+			} catch (Exception e) {
+				Map<String,Object> prop = bs.getProperties();
+				prop.put("ERROR", e);
+				ProductBin<K, OUT> bin = new ProductBin<K, OUT>(key, null, bs.getDelayMsec(), Status.INVALID, bs.getProperties(), null);
+				cart.getValue().accept(bin);
+				cart.getFuture().complete(false);
+			}
+		} else {
+			LOG.debug("Key '{}' does not exist. Ignoring peek command.", key);
+			ProductBin<K, OUT> bin = new ProductBin<K, OUT>(key, null, 0, Status.CANCELED, null, null);
+			cart.getValue().accept(bin);
 			cart.getFuture().complete(false);
 		}
 	}
