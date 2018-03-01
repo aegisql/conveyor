@@ -6,6 +6,9 @@ public class TestProd {
 	private final String b;
 	
 	public TestProd(String a, String b) {
+		if(a.equals("X")) {
+			throw new RuntimeException("X captured");
+		}
 		this.a = a;
 		this.b = b;
 	}

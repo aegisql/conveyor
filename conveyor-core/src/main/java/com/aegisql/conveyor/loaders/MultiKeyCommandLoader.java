@@ -203,7 +203,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 				f.completeExceptionally(e);
 			}
 		}
-		cf.thenCompose( res->{
+		return cf.thenCompose( res->{
 			if(res) {
 				f.complete(list);
 			} else {
@@ -211,7 +211,6 @@ public final class MultiKeyCommandLoader<K,OUT> {
 			}
 			return f;
 		});
-		return f;
 	}
 
 	public CompletableFuture<Boolean> peek(Consumer<ProductBin<K,OUT>> consumer) {

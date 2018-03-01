@@ -231,17 +231,12 @@ public final class CommandLoader<K,OUT> {
 		CompletableFuture<ProductBin<K,OUT>> f = new CompletableFuture<>();
 		GeneralCommand<K, Consumer<ProductBin<K,OUT>>> command = new GeneralCommand<>(key,f::complete,CommandLabel.PEEK_BUILD,creationTime,expirationTime);
 		CompletableFuture<Boolean> cf = conveyor.apply(command);
-		if(cf.isCancelled()) {
-			f.cancel(true);
-		}
-		if(cf.isCompletedExceptionally()) {
-			try {
-				cf.get();
-			} catch (Exception e) {
-				f.completeExceptionally(e);
+		return cf.thenCompose( res->{
+			if( ! res) {
+				f.cancel(true);
 			}
-		}
-		return f;
+			return f;
+		});
 	}
 
 	public CompletableFuture<Boolean> peek(Consumer<ProductBin<K,OUT>> consumer) {

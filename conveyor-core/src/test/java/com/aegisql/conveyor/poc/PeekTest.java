@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -212,6 +213,41 @@ public class PeekTest {
 		c.part().id(1).label("B").value("B").place();
 		c.part().id(2).label("B").value("BB").place();
 		c.part().id(3).label("B").value("BBB").place().join();
+	}
+
+	@Test
+	public void testPeekError() throws InterruptedException, ExecutionException {
+		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
+		c.setName("testPeek");
+		c.setBuilderSupplier(TestProdBuilder::new);
+		c.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
+		LabeledValueConsumer<String, Object, TestProdBuilder> lvc = new LabeledValueConsumer<String, Object, TestProdBuilder>() {
+			@Override
+			public void accept(String label, Object value, TestProdBuilder builder) {
+				System.out.println("Unsupported "+label+" = "+value);
+			}
+
+		};
+		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted("A", "B"));
+		c.setDefaultCartConsumer(lvc
+				.<String>when("A", TestProdBuilder::setA)
+				.<String>when("B", TestProdBuilder::setB)
+				);
+		c.resultConsumer(bin->{
+			System.out.println("READY "+bin);
+			assertEquals("XA", bin.product.getA());
+			assertEquals("B", bin.product.getB());
+		}).set();
+		
+		c.part().id(1).label("A").value("X").place().join();
+		CompletableFuture<ProductBin<Integer, TestProd>> cf = c.command().id(1).peek();
+		ProductBin<Integer, TestProd> bin = cf.join();
+		assertNotNull(bin);
+		assertNull(bin.product);
+		assertEquals(bin.status, Status.INVALID);
+		System.out.println(bin);
+		c.part().id(1).label("A").value("A").place();
+		c.part().id(1).label("B").value("B").place().join();
 	}
 
 	
