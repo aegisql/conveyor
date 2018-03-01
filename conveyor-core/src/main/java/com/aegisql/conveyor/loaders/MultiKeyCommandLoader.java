@@ -2,12 +2,16 @@ package com.aegisql.conveyor.loaders;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.aegisql.conveyor.CommandLabel;
+import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 
 // TODO: Auto-generated Javadoc
@@ -184,6 +188,38 @@ public final class MultiKeyCommandLoader<K,OUT> {
 		return conveyor.apply(new GeneralCommand<K,String>(filter,"RESCHEDULE",CommandLabel.RESCHEDULE_BUILD,creationTime,expirationTime));
 	}
 	
+	public CompletableFuture<List<ProductBin<K,OUT>>> peek() {
+		CompletableFuture<List<ProductBin<K,OUT>>> f = new CompletableFuture<>();
+		List<ProductBin<K,OUT>> list = new LinkedList<>();
+		GeneralCommand<K, Consumer<ProductBin<K,OUT>>> command = new GeneralCommand<>(filter,list::add,CommandLabel.PEEK_BUILD,creationTime,expirationTime);
+		CompletableFuture<Boolean> cf = conveyor.apply(command);
+		if(cf.isCancelled()) {
+			f.cancel(true);
+		}
+		if(cf.isCompletedExceptionally()) {
+			try {
+				cf.get();
+			} catch (Exception e) {
+				f.completeExceptionally(e);
+			}
+		}
+		cf.thenCompose( res->{
+			if(res) {
+				f.complete(list);
+			} else {
+				f.cancel(true);
+			}
+			return f;
+		});
+		return f;
+	}
+
+	public CompletableFuture<Boolean> peek(Consumer<ProductBin<K,OUT>> consumer) {
+		GeneralCommand<K, Consumer<ProductBin<K,OUT>>> command = new GeneralCommand<>(filter,consumer,CommandLabel.PEEK_BUILD,creationTime,expirationTime);
+		CompletableFuture<Boolean> cf = conveyor.apply(command);
+		return cf;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

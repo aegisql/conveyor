@@ -18,5 +18,9 @@ public enum Status{
 	CANCELED,
 	
 	/** The invalid. */
-	INVALID;
+	INVALID,
+	
+	/**Build not found*/
+	NOT_FOUND
+	;
 }

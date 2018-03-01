@@ -1447,7 +1447,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 		} else {
 			LOG.debug("Key '{}' does not exist. Ignoring peek command.", key);
-			ProductBin<K, OUT> bin = new ProductBin<K, OUT>(key, null, 0, Status.CANCELED, null, null);
+			ProductBin<K, OUT> bin = new ProductBin<K, OUT>(key, null, 0, Status.NOT_FOUND, null, null);
 			cart.getValue().accept(bin);
 			cart.getFuture().complete(false);
 		}
