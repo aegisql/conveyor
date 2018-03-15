@@ -1,5 +1,5 @@
 # conveyor
-Asynchronous Creational Framework
+Reactive Creational Framework
 
 [Tutorial](https://github.com/aegisql/conveyor/wiki)
 

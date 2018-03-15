@@ -156,6 +156,26 @@ public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplie
 		return new ReadinessTester<K,L,OUT>(  p.and(tester) );
 	}
 
+	/**
+	 * Never ready.
+	 *
+	 * @return the readiness tester
+	 */
+	public ReadinessTester<K,L,OUT> neverReady() {
+		return new ReadinessTester<K,L,OUT>( (s,b)->{
+			return false;
+		}  );
+	}
+
+	/**
+	 * Immediately ready.
+	 *
+	 * @return the readiness tester
+	 */
+	public ReadinessTester<K,L,OUT> immediatelyReady() {
+		return new ReadinessTester<K,L,OUT>();
+	}
+
 	
 	/* (non-Javadoc)
 	 * @see java.util.function.BiPredicate#test(java.lang.Object, java.lang.Object)
