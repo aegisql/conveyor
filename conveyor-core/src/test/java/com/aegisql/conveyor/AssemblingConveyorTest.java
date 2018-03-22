@@ -23,6 +23,7 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -722,21 +723,30 @@ public class AssemblingConveyorTest {
 		
 		Conveyor<Integer,String,User> ac2 = Conveyor.byName("test_name");
 		
+		Conveyor<Integer,String,User> ac3 = Conveyor.lazySupplier("test_name").get();
+		
 		assertTrue(ac1==ac2);
+		assertTrue(ac1==ac3);
 		
 	}
 
 	@Test(expected=RuntimeException.class)
 	public void testUnregisterAccessByName() {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
-		
+
+		Supplier<Conveyor> acs = Conveyor.lazySupplier("test_name_2");
+
 		ac1.setName("test_name_2");
 		
 		Conveyor<Integer,String,User> ac2 = Conveyor.byName("test_name_2");
+		Conveyor<Integer,String,User> ac3 = acs.get();
 		
 		assertTrue(ac1==ac2);
+		assertTrue(ac1==ac3);
 		
 		Conveyor.unRegister("test_name_2");
+		
+		assertNotNull(acs.get());
 		
 		ac2 = Conveyor.byName("test_name_2");
 		

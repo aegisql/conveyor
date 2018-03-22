@@ -463,6 +463,16 @@ public interface Conveyor<K, L, OUT> {
 		}
 	}
 	
+	/**
+	 * Lazy supplier.
+	 *
+	 * @param name the name
+	 * @return the supplier
+	 */
+	public static Supplier<Conveyor> lazySupplier(String name) {
+		return new LazyConvyorSupplier(name);
+	}
+	
 	public static void unRegister(String name) {
 		ObjectName objectName;
 		try {
