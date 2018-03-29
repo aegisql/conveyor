@@ -281,4 +281,8 @@ public interface Persistence <K> extends Closeable{
 			throw new RuntimeException("Persistence with name '"+name +"' not found",e);
 		}
 	}
+	
+	public static Supplier<Persistence> lazySupplier(String name) {
+		return new LazyPersistenceSupplier(name);
+	}
 }

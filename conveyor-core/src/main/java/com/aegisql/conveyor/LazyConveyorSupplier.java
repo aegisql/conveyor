@@ -3,13 +3,13 @@ package com.aegisql.conveyor;
 import java.util.function.Supplier;
 
 /**
- * The Class LazyConvyorSupplier.
+ * The Class LazyConveyorSupplier.
  *
  * @param <K> the key type
  * @param <L> the generic type
  * @param <OUT> the generic type
  */
-public class LazyConvyorSupplier <K,L,OUT> implements Supplier<Conveyor<K,L,OUT>> {
+public class LazyConveyorSupplier <K,L,OUT> implements Supplier<Conveyor<K,L,OUT>> {
 
 	/** The name. */
 	private final String name;
@@ -22,7 +22,7 @@ public class LazyConvyorSupplier <K,L,OUT> implements Supplier<Conveyor<K,L,OUT>
 	 *
 	 * @param name the name
 	 */
-	LazyConvyorSupplier(String name) {
+	LazyConveyorSupplier(String name) {
 		this.name = name;
 	}
 	
@@ -44,5 +44,14 @@ public class LazyConvyorSupplier <K,L,OUT> implements Supplier<Conveyor<K,L,OUT>
 	public void reset() {
 		conveyor = null;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("LazyConveyorSupplier [name=").append(name).append(", conveyor=").append(conveyor).append("]");
+		return builder.toString();
+	}
+	
+	
 	
 }

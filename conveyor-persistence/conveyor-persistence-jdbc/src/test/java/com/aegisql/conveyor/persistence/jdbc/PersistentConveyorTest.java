@@ -452,7 +452,10 @@ public class PersistentConveyorTest {
 	public void testByName() throws Exception{
 		Persistence<Integer> p1 = getPersitence("nameTest");
 		Persistence<Integer> p2 = Persistence.byName("com.aegisql.conveyor.persistence.derby.testConv:type=nameTest");
+		Persistence<Integer> p3 = Persistence.lazySupplier("derby.testConv.nameTest").get();
 		assertNotNull(p2);
+		assertNotNull(p3);
 		assertTrue(p1==p2);
+		assertTrue(p1==p3);
 	}
 }

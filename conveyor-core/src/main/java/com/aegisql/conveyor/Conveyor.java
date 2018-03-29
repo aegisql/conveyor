@@ -470,7 +470,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @return the supplier
 	 */
 	public static Supplier<Conveyor> lazySupplier(String name) {
-		return new LazyConvyorSupplier(name);
+		return new LazyConveyorSupplier(name);
 	}
 	
 	public static void unRegister(String name) {
