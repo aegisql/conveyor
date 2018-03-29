@@ -282,6 +282,12 @@ public interface Persistence <K> extends Closeable{
 		}
 	}
 	
+	/**
+	 * Lazy supplier.
+	 *
+	 * @param name the name
+	 * @return the supplier
+	 */
 	public static Supplier<Persistence> lazySupplier(String name) {
 		return new LazyPersistenceSupplier(name);
 	}
