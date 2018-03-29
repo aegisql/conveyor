@@ -49,6 +49,7 @@ conveyor configurator (beta)
 ### 1.3.12-SNAPSHOT
 * Added peek() and peek(Consumer) commands to AssemblingConveyor and CommandLoader
 * Lazy Conveyor Supplier
+* Lazy Persistence Supplier
 
 ### 1.3.11
 * Derby persistence properties
