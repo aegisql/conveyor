@@ -1,13 +1,15 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
+import java.io.Serializable;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
 
-public class TrioBuilder implements Supplier<Trio>{
+public class TrioBuilder implements Supplier<Trio>, Serializable{
 
 	
+	private static final long serialVersionUID = 1L;
 	private String text1;
 	private String text2;
 	private int number;

@@ -50,6 +50,11 @@ conveyor configurator (beta)
 * Added peek() and peek(Consumer) commands to AssemblingConveyor and CommandLoader
 * Lazy Conveyor Supplier
 * Lazy Persistence Supplier
+* Added Memento object for Builder instance and its status
+* Added commands to retrieve the Memento object and restore build from it.
+* Compact commands for Persistent Conveyor - replaces multiple 
+* Automatic compaction when reach certain number of parts per build.
+* Configuration support for compaction
 
 ### 1.3.11
 * Derby persistence properties

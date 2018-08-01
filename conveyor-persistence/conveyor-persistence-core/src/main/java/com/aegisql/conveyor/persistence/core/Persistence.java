@@ -11,6 +11,7 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.BuildingSite.Memento;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 
@@ -20,7 +21,7 @@ import com.aegisql.conveyor.cart.Cart;
  *
  * @param <K> the key type
  */
-public interface Persistence <K> extends Closeable{
+public interface Persistence <K> extends Closeable {
 
 	/**
 	 * Next unique part id.

@@ -11,12 +11,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.AcknowledgeStatus;
+import com.aegisql.conveyor.CommandLabel;
+import com.aegisql.conveyor.BuildingSite.Memento;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Expireable;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.LoadType;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceCart;
+import com.aegisql.conveyor.persistence.utils.CartInputStream;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -58,6 +64,10 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 	
 	/** The complete result. */
 	private Boolean completeResult = null;
+	
+	private K key;
+	
+	private int minCompactSize = 0;
 
 	/**
 	 * Instantiates a new acknowledge builder.
@@ -117,7 +127,7 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 	 * @param cart the cart
 	 */
 	public static <K, L> void processCart(AcknowledgeBuilder<K> builder, Cart<K, ?, L> cart) {
-		LOG.debug("CART " + cart);
+		LOG.debug("Process CART " + cart);
 		
 		if(cart instanceof PersistenceCart) {
 			cart = (Cart<K, ?, L>) cart.getValue();
@@ -125,6 +135,7 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 		
 		boolean save = false;
 		K key = cart.getKey();
+		builder.key = key;
 		Long id = null;
 		builder.timestamp = System.nanoTime();
 		if (!cart.getAllProperties().containsKey("#CART_ID")) {
@@ -167,8 +178,28 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 		} else {
 			LOG.debug("Duplicate cart {} {}",cart.getKey(),id);
 		}
+		if(builder.minCompactSize > 0 && builder.cartIds.size() >= builder.minCompactSize) {
+			compact(builder, key);
+		}
+		
 	}
 
+	public static <K, L> void compact(AcknowledgeBuilder<K> builder, K k) {
+		K key = k != null ? k : builder.key;
+		LOG.debug("Compact " + key);
+		Memento m = builder.forward.command().id(key).memento().join();
+		if(m != null) {
+			long id = builder.persistence.nextUniquePartId();
+			Cart cart = new GeneralCommand(key, m, CommandLabel.RESTORE_BUILD, 0);
+			builder.persistence.savePart(id, cart);
+			builder.persistence.archiveParts(builder.cartIds);
+			builder.cartIds.clear();
+			builder.cartIds.add(id);
+		} else {
+			LOG.debug("Memento not forund for {}",key);
+		}
+	}
+	
 	/**
 	 * Unload.
 	 *
@@ -179,9 +210,6 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 	 */
 	public static <K, L> void unload(AcknowledgeBuilder<K> builder, AcknowledgeStatus<K> status) {
 		Set<Long> siteIds    = new HashSet<>();
-//		Set<Long> builderIds = new HashSet<>(builder.cartIds);
-//		Set<Long> savedIds   = new HashSet<>(builder.persistence.getAllPartIds(status.getKey()));
-		
 		Long timestamp = Long.valueOf(0);
 		
 		if(status.getProperties() != null) {
@@ -216,6 +244,11 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 		LOG.debug("COMPLETE {}",status);
 	}
 
+	public static <K, L> void minCompactSize(AcknowledgeBuilder<K> builder, Integer minSize) {
+		builder.minCompactSize  = minSize != null? minSize:0;
+		LOG.debug("MIN COMPACT SIZE {}",minSize);
+	}
+
 	/**
 	 * Replay.
 	 *
@@ -225,6 +258,7 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 	 * @param key the key
 	 */
 	public static <K, L> void replay(AcknowledgeBuilder<K> builder, K key) {
+			builder.key = key;
 			Set<K> completed = builder.persistence.getCompletedKeys();
 			if(completed.contains(key)) {
 				return;

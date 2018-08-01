@@ -39,6 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.BuildingSite.Memento;
+import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.Load;
@@ -46,6 +48,7 @@ import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
 import com.aegisql.conveyor.persistence.archive.Archiver;
@@ -1041,17 +1044,26 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		LOG.debug("SAVING: {}",cart);
 		try(PreparedStatement st = conn.prepareStatement(saveCartQuery) ) {
 			Object value = cart.getValue();
-			L label      = cart.getLabel();
-			ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, value == null?null:value.getClass().getCanonicalName());
-			String hint = byteConverter.conversionHint();
 			st.setLong(1, id);
 			st.setString(2, loadTypeConverter.toPersistence(cart.getLoadType()));
 			st.setObject(3, cart.getKey());
-			st.setObject(4, labelConverter.toPersistence(label));
 			st.setTimestamp(5, new Timestamp(cart.getCreationTime()));
 			st.setTimestamp(6, new Timestamp(cart.getExpirationTime()));
-			st.setBlob(7, toBlob( byteConverter.toPersistence(value)));
-			
+			String hint;
+			ObjectConverter<Object, byte[]> byteConverter;
+			if(cart instanceof GeneralCommand) {
+				CommandLabel command = CommandLabel.RESTORE_BUILD;
+				byteConverter = converterAdviser.getConverter(command, value == null?null:value.getClass().getCanonicalName());
+				hint = byteConverter.conversionHint();
+				st.setObject(4, labelConverter.toPersistence(command));
+			} else {
+				L label      = cart.getLabel();
+				byteConverter = converterAdviser.getConverter(label, value == null?null:value.getClass().getCanonicalName());
+				hint = byteConverter.conversionHint();
+				st.setObject(4, labelConverter.toPersistence(label));
+			}
+			st.setBlob(7, value == null? null:toBlob( byteConverter.toPersistence(value)));
+			st.setString(9, hint);
 			Map<String,Object> properties = new HashMap<>();
 			cart.getAllProperties().forEach((k,v)->{
 				if(isPersistentProperty(k)) {
@@ -1060,7 +1072,6 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			});
 			
 			st.setClob(8, mapConverter.toPersistence(properties));
-			st.setString(9, hint);
 			st.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1079,7 +1090,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			throw new PersistenceException("SQL Runntime Exception",e);
 		}
 		try {
-			os.write( bytes );
+			if(bytes != null) {
+				os.write( bytes );
+			} else {
+				os.write( new byte[] {} );
+			}
 			return blob;
 		} catch (IOException e) {
 			throw new PersistenceException("IO Runntime Exception",e);
@@ -1087,6 +1102,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	}
 
 	private byte[] fromBlob(Blob blob) {
+		if(blob == null) {
+			return null;
+		}
 		try(InputStream in = blob.getBinaryStream(1, blob.length())) {
 			return IOUtils.toByteArray(in);
 		} catch (SQLException e) {
@@ -1157,31 +1175,39 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
 				K key = (K)rs.getObject(1);
-
+				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
 				String labelString = rs.getString(3);
-				L label = null;
-				if(labelString != null) {
-					label = (L)labelConverter.fromPersistence(labelString.trim());
-				}
 				String hint = rs.getString(8);
-				ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
-				Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
-
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
-				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-				Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
-//				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-				
-				if(loadType == LoadType.BUILDER) {
-					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
-				} else if(loadType == LoadType.RESULT_CONSUMER) {
-					cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
-				} else if(loadType == LoadType.MULTI_KEY_PART) {
-					Load load = (Load)val;
-					cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
+				if(loadType == LoadType.COMMAND) {
+					CommandLabel command = CommandLabel.valueOf(labelString.trim());
+					if(command == CommandLabel.RESTORE_BUILD) {
+						ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(command, hint);
+						Memento memento = (Memento) byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
+						cart = new GeneralCommand(key, memento, command, creationTime, expirationTime);
+					}
 				} else {
-					cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+					L label = null;
+					if(labelString != null) {
+						label = (L)labelConverter.fromPersistence(labelString.trim());
+					}
+					ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
+					Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
+
+					Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
+//					LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+				
+					if(loadType == LoadType.BUILDER) {
+						cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
+					} else if(loadType == LoadType.RESULT_CONSUMER) {
+						cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
+					} else if(loadType == LoadType.MULTI_KEY_PART) {
+						Load load = (Load)val;
+						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
+					} else {
+						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+					}
 				}
 				LOG.debug("Read cart: {}",cart);
 				carts.add(cart);
@@ -1207,29 +1233,38 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			while(rs.next()) {
 				K key = (K)rs.getObject(1);
 				String labelString = rs.getString(3);
-				L label = null;
-				if(labelString != null) {
-					label = (L)labelConverter.fromPersistence(labelString.trim());
-				}
-				
+				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
 				String hint = rs.getString(8);
-				ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
-				Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
-
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
-				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-				Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
-//				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-				if(loadType == LoadType.BUILDER) {
-					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
-				} else if(loadType == LoadType.RESULT_CONSUMER) {
-					cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
-				} else if(loadType == LoadType.MULTI_KEY_PART) {
-					Load load = (Load)val;
-					cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
+				if(loadType == LoadType.COMMAND) {
+					CommandLabel command = CommandLabel.valueOf(labelString.trim());
+					if(command == CommandLabel.RESTORE_BUILD) {
+						ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(command, hint);
+						Memento memento = (Memento) byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
+						cart = new GeneralCommand(key, memento, command, creationTime, expirationTime);
+					}
 				} else {
-					cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+					L label = null;
+					if(labelString != null) {
+						label = (L)labelConverter.fromPersistence(labelString.trim());
+					}
+				
+					ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
+					Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
+
+					Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
+//					LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+					if(loadType == LoadType.BUILDER) {
+						cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
+					} else if(loadType == LoadType.RESULT_CONSUMER) {
+						cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
+					} else if(loadType == LoadType.MULTI_KEY_PART) {
+						Load load = (Load)val;
+						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
+					} else {
+						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+					}
 				}
 				carts.add(cart);
 			}
@@ -1252,30 +1287,39 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
 				K key = (K)rs.getObject(1);
+				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
 				String labelString = rs.getString(3);
-				L label = null;
-				if(labelString != null) {
-					label = (L)labelConverter.fromPersistence(labelString.trim());
-				}
-				
 				String hint = rs.getString(8);
-				ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
-				Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
-
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
-				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-				Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
-//				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-				if(loadType == LoadType.BUILDER) {
-					cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
-				} else if(loadType == LoadType.RESULT_CONSUMER) {
-					cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
-				} else if(loadType == LoadType.MULTI_KEY_PART) {
-					Load load = (Load)val;
-					cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
+				if(loadType == LoadType.COMMAND) {
+					CommandLabel command = CommandLabel.valueOf(labelString.trim());
+					if(command == CommandLabel.RESTORE_BUILD) {
+						ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(command, hint);
+						Memento memento = (Memento) byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
+						cart = new GeneralCommand(key, memento, command, creationTime, expirationTime);
+					}
 				} else {
-					cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+					L label = null;
+					if(labelString != null) {
+						label = (L)labelConverter.fromPersistence(labelString.trim());
+					}
+				
+					ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
+					Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
+
+					Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
+//					LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+					if(loadType == LoadType.BUILDER) {
+						cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
+					} else if(loadType == LoadType.RESULT_CONSUMER) {
+						cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime);
+					} else if(loadType == LoadType.MULTI_KEY_PART) {
+						Load load = (Load)val;
+						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
+					} else {
+						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+					}
 				}
 				carts.add(cart);
 			}
@@ -1432,5 +1476,5 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	public boolean isPersistentProperty(String property) {
 		return ! nonPersistentProperties.contains(property);
 	}
-	
+
 }

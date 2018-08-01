@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.aegisql.conveyor.BuildingSite.Memento;
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
@@ -219,6 +220,38 @@ public final class MultiKeyCommandLoader<K,OUT> {
 		return cf;
 	}
 
+	public CompletableFuture<List<Memento>> memento() {
+		CompletableFuture<List<Memento>> f = new CompletableFuture<>();
+		List<Memento> list = new LinkedList<>();
+		GeneralCommand<K, Consumer<Memento>> command = new GeneralCommand<>(filter,list::add,CommandLabel.MEMENTO_BUILD,creationTime,expirationTime);
+		CompletableFuture<Boolean> cf = conveyor.apply(command);
+		if(cf.isCancelled()) {
+			f.cancel(true);
+		}
+		if(cf.isCompletedExceptionally()) {
+			try {
+				cf.get();
+			} catch (Exception e) {
+				f.completeExceptionally(e);
+			}
+		}
+		return cf.thenCompose( res->{
+			if(res) {
+				f.complete(list);
+			} else {
+				f.cancel(true);
+			}
+			return f;
+		});
+	}
+
+	public CompletableFuture<Boolean> memento(Consumer<Memento> memento) {
+		GeneralCommand<K, Consumer<Memento>> command = new GeneralCommand<>(filter,memento,CommandLabel.MEMENTO_BUILD,creationTime,expirationTime);
+		CompletableFuture<Boolean> cf = conveyor.apply(command);
+		return cf;
+	}
+
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

@@ -39,6 +39,7 @@ import javax.management.StandardMBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aegisql.conveyor.BuildingSite.Memento;
 import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
@@ -871,8 +872,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		CompletableFuture<Boolean> future = cart.getFuture();
 		try {
 			cartBeforePlacementValidator.accept(cart);
-			boolean r = inQueue.add(cart);
-			if (!r) {
+			if ( ! inQueue.add(cart) ) {
 				future.cancel(true);
 			}
 		} catch (RuntimeException e) {
@@ -1453,6 +1453,36 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 
+	static <K,OUT> void mementoBuild(AssemblingConveyor<K,?,OUT> conveyor, Cart<K, Consumer<Memento>, ?> cart) {
+		K key = cart.getKey();
+		
+		if (conveyor.collector.containsKey(key)) {
+			BuildingSite<K, ?, ?, ? extends OUT> bs = conveyor.collector.get(key);
+			Memento memento = bs.getMemento();
+			cart.getValue().accept(memento);
+			cart.getFuture().complete(true);
+		} else {
+			LOG.debug("Key '{}' does not exist. Empty memento", key);
+			cart.getValue().accept(null);
+			cart.getFuture().complete(false);
+		}
+	}
+
+	static <K,OUT> void restoreBuild(AssemblingConveyor<K,?,OUT> conveyor, Cart<K, Memento, ?> cart) {
+		K key = cart.getKey();
+		
+		if (conveyor.collector.containsKey(key)) {
+			BuildingSite<K, ?, ?, ? extends OUT> bs = conveyor.collector.get(key);
+			Memento memento = cart.getValue();
+			bs.restore(memento);
+			cart.getFuture().complete(true);
+		} else {
+			LOG.debug("Key '{}' does not exist. Creating new from Memento", key);
+			createNow(conveyor, cart);
+		}
+	}
+
+	
 	/**
 	 * Checks if is running.
 	 *

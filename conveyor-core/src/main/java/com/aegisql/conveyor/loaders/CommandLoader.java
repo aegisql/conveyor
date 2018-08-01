@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.BuildingSite.Memento;
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.cart.command.CreateCommand;
@@ -245,6 +246,33 @@ public final class CommandLoader<K,OUT> {
 		return cf;
 	}
 
+	public CompletableFuture<Boolean> memento(Consumer<Memento> consumer) {
+		GeneralCommand<K, Consumer<Memento>> command = new GeneralCommand<>(key,consumer,CommandLabel.MEMENTO_BUILD,creationTime,expirationTime);
+		CompletableFuture<Boolean> cf = conveyor.apply(command);
+		return cf;
+	}
+
+	public CompletableFuture<Memento> memento() {
+		CompletableFuture<Memento> f = new CompletableFuture<>();
+		GeneralCommand<K, Consumer<Memento>> command = new GeneralCommand<>(key,f::complete,CommandLabel.MEMENTO_BUILD,creationTime,expirationTime);
+		CompletableFuture<Boolean> cf = conveyor.apply(command);
+		return cf.thenCompose( res->{
+			if( ! res) {
+				f.cancel(true);
+			}
+			return f;
+		});
+	}
+
+	public CompletableFuture<Boolean> restore(Memento memento) {
+		K id = key;
+		if(id==null) {
+			id = (K) memento.getId();
+		}
+		GeneralCommand<K, Memento> command = new GeneralCommand<>(id,memento,CommandLabel.RESTORE_BUILD,creationTime,expirationTime);
+		CompletableFuture<Boolean> cf = conveyor.apply(command);
+		return cf;
+	}
 	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()

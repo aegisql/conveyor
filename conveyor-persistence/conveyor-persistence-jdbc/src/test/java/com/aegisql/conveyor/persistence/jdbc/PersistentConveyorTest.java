@@ -8,6 +8,11 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -20,12 +25,18 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.Acknowledge;
+import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.Status;
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.LoadType;
+import com.aegisql.conveyor.consumers.result.LastResultReference;
+import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
+import com.aegisql.conveyor.persistence.core.harness.SummBuilder;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
 import com.aegisql.conveyor.persistence.core.harness.TrioBuilderExpireable;
@@ -458,4 +469,160 @@ public class PersistentConveyorTest {
 		assertTrue(p1==p2);
 		assertTrue(p1==p3);
 	}
+	
+	@Test
+	public void simpleCompactTest() throws Exception {
+		Persistence<Integer> p1 = getPersitence("simpleCompactTest");
+		TrioConveyor tc1 = new TrioConveyor();
+		tc1.autoAcknowledgeOnStatus(Status.READY);
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc1 = p1.wrapConveyor(tc1);
+		pc1.setName("TC1");
+		pc1.part().id(1).label(TrioPart.TEXT1).value("txt1").addProperty("ignore_me", "a").addProperty("ignore_me_too", "b").place();
+		pc1.part().id(1).label(TrioPart.TEXT2).value("txt2").addProperty("do_not_ignore_me", "x").place().join();
+		Collection<Cart<Integer, ?, Object>> parts1 = p1.copy().getAllParts();
+		assertEquals(2, parts1.size());
+		pc1.compact(1).join();
+		
+		pc1.stop();
+		
+		Collection<Cart<Integer, ?, Object>> parts2 = p1.copy().getAllParts();
+		assertEquals(1, parts2.size());
+		assertEquals(LoadType.COMMAND, parts2.iterator().next().getLoadType());
+		
+		TrioConveyor tc2 = new TrioConveyor();
+		tc2.autoAcknowledgeOnStatus(Status.READY);
+		
+		Persistence<Integer> p2 = getPersitence("simpleCompactTest");
+		//Must copy state from the previous persistence
+		//assertFalse(p2.isEmpty());
+		//p1 must be empty after moving data to p1. 
+		//assertTrue(p1.isEmpty());
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc2 = p2.wrapConveyor(tc2);
+		pc2.setName("TC2");
+		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
+		System.out.println(tc2);
+		assertEquals(0, tc1.results.size());
+		assertEquals(1, tc2.results.size());
+		System.out.println(tc2);
+		System.out.println("P1="+p1);
+		System.out.println("P2="+p2);
+		//p2 must be empty after completion. 
+		Thread.sleep(100);
+		//assertTrue(p2.isEmpty());
+	}
+
+	@Test
+	public void multipleCompactTest() throws Exception {
+		Persistence<Integer> p1 = getPersitence("multyCompactTest1");
+		TrioConveyor tc1 = new TrioConveyor();
+		tc1.autoAcknowledgeOnStatus(Status.READY);
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc1 = p1.wrapConveyor(tc1);
+		pc1.setName("TC1");
+		pc1.part().id(1).label(TrioPart.TEXT1).value("txt1").addProperty("ignore_me", "a").addProperty("ignore_me_too", "b").place();
+		pc1.part().id(1).label(TrioPart.TEXT2).value("txt2").addProperty("do_not_ignore_me", "x").place();
+		pc1.part().id(2).label(TrioPart.TEXT1).value("txt3").place();
+		pc1.part().id(2).label(TrioPart.TEXT2).value("txt4").place().join();
+		Collection<Cart<Integer, ?, Object>> parts1 = p1.copy().getAllParts();
+		assertEquals(4, parts1.size());
+		pc1.compact().join();
+		
+		pc1.stop();
+		
+		Collection<Cart<Integer, ?, Object>> parts2 = p1.copy().getAllParts();
+		assertEquals(2, parts2.size());
+		assertEquals(LoadType.COMMAND, parts2.iterator().next().getLoadType());
+		
+		TrioConveyor tc2 = new TrioConveyor();
+		tc2.autoAcknowledgeOnStatus(Status.READY);
+		
+		Persistence<Integer> p2 = getPersitence("multyCompactTest1");
+		//Must copy state from the previous persistence
+		//assertFalse(p2.isEmpty());
+		//p1 must be empty after moving data to p1. 
+		//assertTrue(p1.isEmpty());
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc2 = p2.wrapConveyor(tc2);
+		pc2.setName("TC2");
+		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place();
+		pc2.part().id(2).label(TrioPart.NUMBER).value(2).place().join();
+		System.out.println(tc2);
+		assertEquals(0, tc1.results.size());
+		assertEquals(2, tc2.results.size());
+		System.out.println(tc2);
+		System.out.println("P1="+p1);
+		System.out.println("P2="+p2);
+		//p2 must be empty after completion. 
+		Thread.sleep(100);
+		//assertTrue(p2.isEmpty());
+	}
+
+	@Test
+	public void multipleCompactTestWithPredicate() throws Exception {
+		Persistence<Integer> p1 = getPersitence("multyCompactTest2");
+		TrioConveyor tc1 = new TrioConveyor();
+		tc1.autoAcknowledgeOnStatus(Status.READY);
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc1 = p1.wrapConveyor(tc1);
+		pc1.setName("TC1");
+		pc1.part().id(1).label(TrioPart.TEXT1).value("txt1").addProperty("ignore_me", "a").addProperty("ignore_me_too", "b").place();
+		pc1.part().id(1).label(TrioPart.TEXT2).value("txt2").addProperty("do_not_ignore_me", "x").place();
+		pc1.part().id(2).label(TrioPart.TEXT1).value("txt3").place();
+		pc1.part().id(2).label(TrioPart.TEXT2).value("txt4").place().join();
+		Collection<Cart<Integer, ?, Object>> parts1 = p1.copy().getAllParts();
+		assertEquals(4, parts1.size());
+		pc1.compact(k->k%2==0).join();
+		
+		pc1.stop();
+		
+		List<Cart<Integer, ?, Object>> parts2 = new ArrayList<>(p1.copy().getAllParts());
+		assertEquals(3, parts2.size());
+		assertEquals(LoadType.COMMAND, parts2.get(2).getLoadType());
+		
+		TrioConveyor tc2 = new TrioConveyor();
+		tc2.autoAcknowledgeOnStatus(Status.READY);
+		
+		Persistence<Integer> p2 = getPersitence("multyCompactTest2");
+		//Must copy state from the previous persistence
+		//assertFalse(p2.isEmpty());
+		//p1 must be empty after moving data to p1. 
+		//assertTrue(p1.isEmpty());
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc2 = p2.wrapConveyor(tc2);
+		pc2.setName("TC2");
+		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place();
+		pc2.part().id(2).label(TrioPart.NUMBER).value(2).place().join();
+		System.out.println(tc2);
+		assertEquals(0, tc1.results.size());
+		assertEquals(2, tc2.results.size());
+		System.out.println(tc2);
+		System.out.println("P1="+p1);
+		System.out.println("P2="+p2);
+		//p2 must be empty after completion. 
+		Thread.sleep(100);
+		//assertTrue(p2.isEmpty());
+	}
+
+	@Test
+	public void summatorWithAutoCompact() throws InterruptedException {
+		Persistence<Integer> p1 = getPersitence("summatorWithAutoCompact");
+		LastResultReference<Integer, Long> res = new LastResultReference<>();
+		Conveyor<Integer,SummBuilder.SummStep,Long> ac = new AssemblingConveyor<>();
+		ac.setBuilderSupplier(SummBuilder::new);
+		ac.setName("ACC");
+		ac.setReadinessEvaluator(Conveyor.getTesterFor(ac).accepted(SummBuilder.SummStep.DONE));
+		ac.resultConsumer(res).set();
+		PersistentConveyor<Integer, SummBuilder.SummStep,Long> pc = p1.wrapConveyor(ac);
+		pc.setMinCompactSize(1000);
+		pc.setName("CPC1");
+		PartLoader pl = pc.part().id(1).label(SummBuilder.SummStep.ADD);
+		CompletableFuture<Boolean> f = null;
+		for(long i = 1; i < 2001; i++) {
+			f = pl.value(i).place();
+		}
+		f.join();
+		Collection<Cart<Integer, ?, Object>> parts1 = p1.copy().getAllParts();
+		System.out.println(parts1);
+		assertEquals(2, parts1.size());//MEMENTO,i==2000
+		pl.label(SummBuilder.SummStep.DONE).place().join();
+		System.out.println(res);
+		assertEquals(new Long(2001000),res.getCurrent());
+	}
+	
 }

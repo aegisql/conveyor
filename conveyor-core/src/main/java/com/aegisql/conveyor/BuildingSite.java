@@ -3,7 +3,9 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -38,6 +40,41 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
  * @param <OUT> the generic type
  */
 public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expireable, Interruptable {
+	
+	public static class Memento<K,L,OUT> implements Serializable {
+		private static final long serialVersionUID = 1L;
+		final long timestamp;
+		final State<K,L> state;
+		final K id;
+		final Supplier<? extends OUT> builder;
+		final Map<String,Object> properties = new HashMap<>();
+		Memento(
+				State<K,L> state,
+				Supplier<? extends OUT> builder,
+				Map<String,Object> properties
+				) {
+			this.id = state.key;
+			this.state = state;
+			this.timestamp = System.currentTimeMillis();
+			this.builder = builder;
+			this.properties.putAll(properties);
+		}
+		public long getTimestamp() {
+			return timestamp;
+		}
+		public K getId() {
+			return id;
+		}
+		public long getExpirationTime() {
+			return state.builderExpiration;
+		}
+		@Override
+		public String toString() {
+			StringBuilder builder2 = new StringBuilder();
+			builder2.append("Memento [id=").append(id).append(", timestamp=").append(timestamp).append("]");
+			return builder2.toString();
+		}
+	}
 
 	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(BuildingSite.class);
@@ -59,7 +96,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	};
 	
 	/** The builder. */
-	private final Supplier<? extends OUT> builder;
+	private Supplier<? extends OUT> builder;
 	
 	/** The value consumer. */
 	private final LabeledValueConsumer<L, Cart<K,?,L>, Supplier<? extends OUT>> defaultValueConsumer;
@@ -110,10 +147,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	/** The event history. */
 	private final Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>();
 	
-	private final Map<String,Object> properties = new HashMap<>();
-	
-	/** The delay keeper. */
-	//Delayed delayKeeper;
+	private Map<String,Object> properties = new HashMap<>();
 	
 	/** The lock. */
 	private final Lock lock;
@@ -206,10 +240,16 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		}
 		
 		Supplier<? extends OUT> productSupplier = builderSupplier.get();
-		if( productSupplier instanceof ProductSupplier && ((ProductSupplier)productSupplier).getSupplier() != null) {
-			this.builder = ((ProductSupplier)productSupplier).getSupplier();
+		
+		if(cart.getValue() != null && cart.getValue() instanceof BuildingSite.Memento) {
+			Memento memento = (BuildingSite.Memento) cart.getValue();
+			this.restore(memento);
 		} else {
-			this.builder = productSupplier;
+			if( productSupplier instanceof ProductSupplier && ((ProductSupplier)productSupplier).getSupplier() != null) {
+				this.builder = ((ProductSupplier)productSupplier).getSupplier();
+			} else {
+				this.builder = productSupplier;
+			}
 		}
 		
 		if(synchronizeBuilder) {
@@ -693,6 +733,22 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		return acknowledge;
 	}
 
+	public Memento getMemento() {
+		return new Memento(getState(), builder, properties);
+	}
+
+	public void restore(Memento memento) {
+		this.builder = memento.builder;
+		this.properties = memento.properties;
+		this.acceptCount = memento.state.previouslyAccepted;
+		this.allCarts.clear();
+		this.allCarts.addAll((Collection<? extends C>) memento.state.carts);
+		this.eventHistory.clear(); 
+		memento.state.eventHistory.forEach((l,i)->{
+			this.eventHistory.put((L) l, new AtomicInteger((int) i));
+		});
+	}
+	
 	@Override
 	public void interrupt(Thread conveyorThread) {
 		if(builder instanceof Interruptable) {

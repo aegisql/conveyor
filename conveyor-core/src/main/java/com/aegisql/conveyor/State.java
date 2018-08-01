@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -17,8 +18,10 @@ import com.aegisql.conveyor.cart.Cart;
  * @param <K> the key type
  * @param <L> the generic type
  */
-public final class State<K,L> {
+public final class State<K,L> implements Serializable {
 	
+	private static final long serialVersionUID = 1L;
+
 	/** The key. */
 	public final K key;
 

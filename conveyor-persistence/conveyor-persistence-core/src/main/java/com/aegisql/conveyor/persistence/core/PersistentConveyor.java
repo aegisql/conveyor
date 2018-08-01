@@ -51,6 +51,7 @@ import com.aegisql.conveyor.loaders.StaticPartLoader;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuilder;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuildingConveyor;
 import com.aegisql.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
+import com.aegisql.conveyor.serial.SerializablePredicate;
 
 /**
  * The Class PersistentConveyor.
@@ -98,6 +99,8 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	private String name;
 
+	private int minCompactSize = 0;
+	
 	public void setSkipPersistencePropertyKey(String doNotPersist) {
 		this.doNotPersist = doNotPersist;
 	}
@@ -151,7 +154,11 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			long cartExpTime = cart.getExpirationTime();
 			if (cartExpTime == 0 || cartExpTime > System.currentTimeMillis()) {
 				cart.addProperty("#TIMESTAMP", System.nanoTime());
-				forward.place(cart);
+				if(cart.getLoadType() == LoadType.COMMAND) {
+					forward.command((GeneralCommand) cart);
+				} else {
+					forward.place(cart);
+				}
 			} else {
 				if (cleaner != null) {
 					cleaner.part().label(cleaner.KEY).value(cart.getKey()).place();
@@ -871,6 +878,23 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		forward.setCartPayloadAccessor(payloadFunction);
 	}
 	
+	public CompletableFuture<Boolean> compact(K key) {
+		return ackConveyor.part().id(key).value(key).label(ackConveyor.COMPACT).place();
+	}
+
+	public CompletableFuture<Boolean> compact() {
+		return ackConveyor.part().foreach().value(null).label(ackConveyor.COMPACT).place();
+	}
+
+	public CompletableFuture<Boolean> compact(SerializablePredicate<K> p) {
+		return ackConveyor.part().foreach(p).value(null).label(ackConveyor.COMPACT).place();
+	}
+
+	public void setMinCompactSize(int minCompactSize) {
+		this.minCompactSize = minCompactSize;
+		ackConveyor.staticPart().value(minCompactSize).label(ackConveyor.MIN_COMPACT).place();
+	}
+
 	/**
 	 * Sets the mbean.
 	 *

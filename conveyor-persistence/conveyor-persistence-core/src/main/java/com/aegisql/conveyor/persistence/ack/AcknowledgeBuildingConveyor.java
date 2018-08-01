@@ -36,7 +36,12 @@ public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, Smart
 	
 	/** The unload. */
 	public final SmartLabel<AcknowledgeBuilder<K>> UNLOAD   = SmartLabel.of("UNLOAD", (b,key)->{ AcknowledgeBuilder.unload(b, (AcknowledgeStatus<K>)key); });
-	
+
+	/** The compact. */
+	public final SmartLabel<AcknowledgeBuilder<K>> COMPACT   = SmartLabel.of("COMPACT", (b,key)->{ AcknowledgeBuilder.compact(b, (K)key); });
+
+	public final SmartLabel<AcknowledgeBuilder<K>> MIN_COMPACT   = SmartLabel.of("MIN_COMPACT", (b,key)->{ AcknowledgeBuilder.minCompactSize(b, (Integer)key); });
+
 	/** The initialization mode. */
 	private final AtomicBoolean initializationMode = new AtomicBoolean(true);
 

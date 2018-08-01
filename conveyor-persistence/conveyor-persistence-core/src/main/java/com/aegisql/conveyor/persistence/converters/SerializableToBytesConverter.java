@@ -35,6 +35,9 @@ public class SerializableToBytesConverter<O extends Serializable> implements Obj
 	 */
 	@Override
 	public O fromPersistence(byte[] p) {
+		if(p == null) {
+			return null;
+		}
 		ByteArrayInputStream bis  = new ByteArrayInputStream(p);
 		try(ObjectInputStream ois = new ObjectInputStream(bis) ) {
 			return (O) ois.readObject();
