@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -148,18 +149,18 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 			LOG.debug("RESTORED ID {}",id);
 			id = (Long) cart.getProperty("#CART_ID", Long.class);
 		}
-		
+		CompletableFuture<Boolean> f = CompletableFuture.completedFuture(true);
 		if( ! builder.initializationMode ) {
 			if(builder.unloadEnabled && builder.cartIds.isEmpty()) {
 				Set<Long> savedIds = new HashSet<>(builder.persistence.getAllPartIds(key));
 				LOG.debug("RESTORE {}",savedIds);
-				savedIds.forEach(i->{
-				Cart<K,?,L> oldCart = builder.persistence.getPart(i);
-				oldCart.addProperty("#TIMESTAMP", builder.timestamp);
-				oldCart.addProperty(""+i, "#CART_ID");
-				builder.forward.place((Cart) oldCart);
-				builder.cartIds.add(i);
-			});
+				for(long i: savedIds) {
+					Cart<K,?,L> oldCart = builder.persistence.getPart(i);
+					oldCart.addProperty("#TIMESTAMP", builder.timestamp);
+					oldCart.addProperty(""+i, "#CART_ID");
+					f = builder.forward.place((Cart) oldCart);
+					builder.cartIds.add(i);
+				}
 			}
 		} else {
 			LOG.debug("INITIALIZING {} {}",cart.getKey(),id);
@@ -173,13 +174,15 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 			builder.cartIds.add(id);
 			cart.addProperty("#TIMESTAMP", builder.timestamp);
 			if (builder.forward != null) {
-				builder.forward.place((Cart) cart);
+				f = builder.forward.place((Cart) cart);
 			}
 		} else {
 			LOG.debug("Duplicate cart {} {}",cart.getKey(),id);
 		}
 		if(builder.minCompactSize > 0 && builder.cartIds.size() >= builder.minCompactSize) {
-			compact(builder, key);
+			if(f.join()) {
+				compact(builder, key);
+			}
 		}
 		
 	}

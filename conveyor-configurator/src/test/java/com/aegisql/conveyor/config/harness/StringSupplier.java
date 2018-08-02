@@ -1,8 +1,9 @@
 package com.aegisql.conveyor.config.harness;
 
+import java.io.Serializable;
 import java.util.function.Supplier;
 
-public class StringSupplier implements Supplier<String> {
+public class StringSupplier implements Supplier<String>, Serializable {
 
 	private String s;
 	

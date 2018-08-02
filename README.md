@@ -55,6 +55,7 @@ conveyor configurator (beta)
 * Compact commands for Persistent Conveyor - replaces multiple 
 * Automatic compaction when reach certain number of parts per build.
 * Configuration support for compaction
+* Bugfixes
 
 ### 1.3.11
 * Derby persistence properties

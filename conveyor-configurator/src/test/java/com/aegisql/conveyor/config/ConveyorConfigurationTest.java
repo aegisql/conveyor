@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiPredicate;
@@ -28,6 +30,7 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Status;
+import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.config.harness.NameLabel;
 import com.aegisql.conveyor.config.harness.StringSupplier;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
@@ -58,9 +61,19 @@ public class ConveyorConfigurationTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-
+		tearDownAfterClass();
 
 		ConveyorConfiguration.DEFAULT_TIMEOUT_MSEC = 5 * 1000;
+		
+		try {
+			File dir = new File("./");
+			
+			Arrays.stream(dir.listFiles()).map(f->f.getName()).filter(f->(f.endsWith(".blog")||f.endsWith(".blog.zip"))).forEach(f->new File(f).delete());
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 
 		String conveyor_db_path = "testConv";
 		File f = new File(conveyor_db_path);
@@ -348,15 +361,68 @@ public class ConveyorConfigurationTest {
 		
 		AtomicInteger found = new AtomicInteger(0);
 		
-		Arrays.stream(dir.listFiles()).map(file->file.getName()).filter(file->(file.endsWith(".blog")||file.endsWith(".blog.zip"))).forEach(
+		Arrays.stream(dir.listFiles())
+			.map(file->file.getName())
+			.filter(name->(name.endsWith(".blog")||name.endsWith(".blog.zip")))
+			.forEach(
 				file->{
 					System.out.println("Found "+file);
 					found.incrementAndGet();
-					new File(file).delete();
 				}
 				);
 		assertEquals(2, found.get());
 	}
 
+	
+	@Test
+	public void testYampFileWithCompaction() throws Exception {
+		
+		String conveyor_db_path = "p11";
+		String blog_db_path = "parts11";
+		File f = new File(conveyor_db_path);
+		try {
+			FileUtils.deleteDirectory(f);
+			System.out.println("Directory p11 has been deleted!");
+		} catch (IOException e) {
+			System.err.println("Problem occurs when deleting the directory : " + conveyor_db_path);
+			e.printStackTrace();
+		}
+		f = new File(blog_db_path+".blog");
+		try {
+			f.delete();
+			System.out.println("Directory backup has been deleted!");
+		} catch (Exception e) {
+			System.err.println("Problem occurs when deleting the directory : " + blog_db_path);
+			e.printStackTrace();
+		}
+		
+		ConveyorConfiguration.build("CLASSPATH:test11.yml");
+		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c11");
+		Persistence<Integer> p = Persistence.byName("derby.p11.parts11").copy();
+		assertNotNull(c);
+		assertNotNull(p);
+		assertTrue(c.isRunning());
+		CompletableFuture<Boolean> lastPart = null;
+		for(int i = 0; i < 100; i++) {
+			c.part().id(i).label(NameLabel.FIRST).value("f1"+i).place();
+			c.part().id(i).label(NameLabel.FIRST).value("f2"+i).place();
+			c.part().id(i).label(NameLabel.LAST).value("l1_"+i).place();
+			lastPart = c.part().id(i).label(NameLabel.LAST).value("l2_"+i).place();
+		}
+		
+		assertTrue(lastPart.join());
+
+		Collection<Cart<Integer, ?, Object>> carts = p.getAllParts();
+
+		assertEquals(100,carts.size());
+		for(int i = 0; i < 100; i++) {
+			lastPart = c.part().id(1).label(NameLabel.END).place();
+		}
+
+		assertTrue(lastPart.get());
+		
+	}
+
+	
 	
 }

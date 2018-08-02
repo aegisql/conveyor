@@ -406,7 +406,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.mQueue = (Queue<GeneralCommand<K, ?>>) cartQueueSupplier.get();
 		this.addCartBeforePlacementValidator(cart -> {
 			if (!running) {
-				throw new IllegalStateException("Conveyor is not running");
+				throw new IllegalStateException("Conveyor "+getName()+" is not running");
 			}
 		});
 		this.addCartBeforePlacementValidator(cart -> {
@@ -422,7 +422,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 		commandBeforePlacementValidator = commandBeforePlacementValidator.andThen(cmd -> {
 			if (!running) {
-				throw new IllegalStateException("Conveyor is not running");
+				throw new IllegalStateException("Conveyor "+getName()+" is not running");
 			}
 		}).andThen(cmd -> {
 			if (cmd.expired()) {

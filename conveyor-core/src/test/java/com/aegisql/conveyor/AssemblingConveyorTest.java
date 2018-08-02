@@ -121,9 +121,10 @@ public class AssemblingConveyorTest {
 	public void testOfferStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
+		conveyor.setName("a");
 		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
-			assertTrue(o.comment.startsWith("Conveyor is not running"));
+			assertTrue(o.comment.startsWith("Conveyor a is not running"));
 			assertTrue(o.scrap instanceof Cart);
 		}).set();
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
@@ -141,9 +142,10 @@ public class AssemblingConveyorTest {
 	public void testCommandStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
+		conveyor.setName("a");
 		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
-			assertTrue(o.comment.startsWith("Conveyor is not running"));
+			assertTrue(o.comment.startsWith("Conveyor a is not running"));
 			assertTrue(o.scrap instanceof Cart);
 		}).set();
 		GeneralCommand<Integer,String> c1 = new GeneralCommand<>(1, "", CommandLabel.TIMEOUT_BUILD,0L);
@@ -201,9 +203,10 @@ public class AssemblingConveyorTest {
 	public void testAddStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
+		conveyor.setName("a");
 		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
-			assertTrue(o.comment.startsWith("Conveyor is not running"));
+			assertTrue(o.comment.startsWith("Conveyor a is not running"));
 			assertTrue(o.scrap instanceof Cart);
 		}).set();
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
