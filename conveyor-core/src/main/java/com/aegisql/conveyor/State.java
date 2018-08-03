@@ -20,6 +20,7 @@ import com.aegisql.conveyor.cart.Cart;
  */
 public final class State<K,L> implements Serializable {
 	
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
 	/** The key. */

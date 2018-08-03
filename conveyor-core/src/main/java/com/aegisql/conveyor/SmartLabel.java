@@ -144,6 +144,12 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 		return this;
 	}
 	
+	/**
+	 * Label name.
+	 *
+	 * @param name the name
+	 * @return the smart label
+	 */
 	default SmartLabel<B> labelName(final String name) {
 		final SmartLabel<B> sl = this;
 		return new SmartLabel<B>() {
@@ -317,11 +323,24 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 		};
 	}
 
+	/**
+	 * Gets the payload.
+	 *
+	 * @param cart the cart
+	 * @return the payload
+	 */
 	@SuppressWarnings("rawtypes")
 	default Object getPayload(Cart cart) {
 		return cart.getValue();
 	}
 	
+	/**
+	 * Peek.
+	 *
+	 * @param <B> the generic type
+	 * @param <T> the generic type
+	 * @return the smart label
+	 */
 	static <B extends Supplier<T>,T> SmartLabel<B> peek() {
 		return of((b,future)->{
 			try {
@@ -332,6 +351,14 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 		});
 	}
 
+	/**
+	 * Peek.
+	 *
+	 * @param <B> the generic type
+	 * @param <T> the generic type
+	 * @param name the name
+	 * @return the smart label
+	 */
 	static <B extends Supplier<T>,T> SmartLabel<B> peek(String name) {
 		return of(name,(b,future)->{
 			try {

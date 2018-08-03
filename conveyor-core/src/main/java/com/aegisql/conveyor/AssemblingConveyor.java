@@ -92,7 +92,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The collector. */
 	protected final Map<K, BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT>> collector = new HashMap<>();
 
-	/** Keeps static values*/
+	/**  Keeps static values. */
 	protected final Map<L,Cart<K,?,L>> staticValues = new HashMap<>();
 	
 	/** The cart counter. */
@@ -126,6 +126,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		throw new IllegalStateException("Cart Consumer is not set");
 	};
 	
+	/** The payload function. */
 	protected Function<Cart<K,?,L>,Object> payloadFunction = cart->cart.getValue();
 
 	/** The ready. */
@@ -148,10 +149,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			throw new NullPointerException("Command is null");
 	};
 
+	/** The auto ack. */
 	protected boolean autoAck = true;
 	
+	/** The ack action. */
 	protected Consumer<AcknowledgeStatus<K>> ackAction = status->{};
 
+	/** The ack status set. */
 	private EnumSet<Status> ackStatusSet = EnumSet.allOf(Status.class);
 
 	/** The key before eviction. */
@@ -195,8 +199,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The accepted labels. */
 	protected final Set<L> acceptedLabels = new HashSet<>();
 
+	/** The conveyor future. */
 	protected CompletableFuture<Boolean> conveyorFuture = null;
 	
+	/** The conveyor future lock. */
 	private final Object conveyorFutureLock = new Object();
 	
 	/** The inner thread. */
@@ -302,8 +308,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The postpone expiration on timeout enabled. */
 	private boolean postponeExpirationOnTimeoutEnabled;
 
+	/** The current site. */
 	private volatile BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT>  currentSite;
 
+	/** The status line. */
 	protected String statusLine = "Accepting Parts";
 
 	/**
@@ -728,6 +736,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		});
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#staticPart()
+	 */
 	@Override
 	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart() {
 		return  new StaticPartLoader<L, X, OUT, Boolean>(cl -> {
@@ -825,6 +836,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return new CommandLoader<>(this::command);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#resultConsumer()
+	 */
 	@Override
 	public ResultConsumerLoader<K, OUT> resultConsumer() {
 		return new ResultConsumerLoader<>(rcl->{
@@ -847,16 +861,25 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		resultConsumer);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#resultConsumer(com.aegisql.conveyor.consumers.result.ResultConsumer)
+	 */
 	@Override
 	public ResultConsumerLoader<K, OUT> resultConsumer(ResultConsumer<K,OUT> consumer) {
 		return this.resultConsumer().first(consumer);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#scrapConsumer()
+	 */
 	@Override
 	public ScrapConsumerLoader<K> scrapConsumer() {
 		return new ScrapConsumerLoader<>(sc -> this.scrapConsumer = sc, this.scrapConsumer);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#scrapConsumer(com.aegisql.conveyor.consumers.scrap.ScrapConsumer)
+	 */
 	@Override
 	public ScrapConsumerLoader<K> scrapConsumer(ScrapConsumer<K,?> scrapConsumer) {
 		return scrapConsumer().first(scrapConsumer);
@@ -936,6 +959,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	
 	/**
 	 * Complete tasks and stop.
+	 *
+	 * @return the completable future
 	 */
 	@Override
 	public CompletableFuture<Boolean> completeAndStop() {
@@ -1244,6 +1269,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.builderTimeout = unit.toMillis(builderTimeout);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#setDefaultBuilderTimeout(java.time.Duration)
+	 */
 	@Override
 	public void setDefaultBuilderTimeout(Duration duration) {
 		this.setDefaultBuilderTimeout(duration.toMillis(), TimeUnit.MILLISECONDS);
@@ -1283,8 +1311,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/**
 	 * Sets the cart consumer.
 	 *
-	 * @param cartConsumer
-	 *            the cart consumer
+	 * @param <B> the generic type
+	 * @param cartConsumer            the cart consumer
 	 */
 	@Override
 	public <B extends Supplier<? extends OUT>> void setDefaultCartConsumer(LabeledValueConsumer<L, ?, B> cartConsumer) {
@@ -1425,6 +1453,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * Peek build.
 	 *
 	 * @param <K> the key type
+	 * @param <OUT> the generic type
 	 * @param conveyor the conveyor
 	 * @param cart the cart
 	 */
@@ -1453,6 +1482,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 
+	/**
+	 * Memento build.
+	 *
+	 * @param <K> the key type
+	 * @param <OUT> the generic type
+	 * @param conveyor the conveyor
+	 * @param cart the cart
+	 */
 	static <K,OUT> void mementoBuild(AssemblingConveyor<K,?,OUT> conveyor, Cart<K, Consumer<Memento>, ?> cart) {
 		K key = cart.getKey();
 		
@@ -1468,6 +1505,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 
+	/**
+	 * Restore build.
+	 *
+	 * @param <K> the key type
+	 * @param <OUT> the generic type
+	 * @param conveyor the conveyor
+	 * @param cart the cart
+	 */
 	static <K,OUT> void restoreBuild(AssemblingConveyor<K,?,OUT> conveyor, Cart<K, Memento, ?> cart) {
 		K key = cart.getKey();
 		
@@ -1743,45 +1788,76 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return commandCounter;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#setIdleHeartBeat(java.time.Duration)
+	 */
 	@Override
 	public void setIdleHeartBeat(Duration duration) {
 		this.setIdleHeartBeat(duration.toMillis(),TimeUnit.MILLISECONDS);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#rejectUnexpireableCartsOlderThan(java.time.Duration)
+	 */
 	@Override
 	public void rejectUnexpireableCartsOlderThan(Duration duration) {
 		this.rejectUnexpireableCartsOlderThan(duration.toMillis(),TimeUnit.MILLISECONDS);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#setExpirationPostponeTime(java.time.Duration)
+	 */
 	@Override
 	public void setExpirationPostponeTime(Duration duration) {
 		this.setExpirationPostponeTime(duration.toMillis(),TimeUnit.MILLISECONDS);
 	}
 
+	/**
+	 * Complete successfully.
+	 *
+	 * @param buildingSite the building site
+	 * @param res the res
+	 * @param status the status
+	 */
 	private void completeSuccessfully(BuildingSite<K, L, ?, OUT> buildingSite, OUT res, Status status) {
 		buildingSite.completeWithValue(res,status);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#setAutoAcknowledge(boolean)
+	 */
 	@Override
 	public void setAutoAcknowledge(boolean auto) {
 		this.autoAck = auto;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#setAcknowledgeAction(java.util.function.Consumer)
+	 */
 	@Override
 	public void setAcknowledgeAction(Consumer<AcknowledgeStatus<K>> ackAction) {
 		this.ackAction = ackAction;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#autoAcknowledgeOnStatus(com.aegisql.conveyor.Status, com.aegisql.conveyor.Status[])
+	 */
 	@Override
 	public void autoAcknowledgeOnStatus(Status first, Status... other) {
 		ackStatusSet = EnumSet.of(first, other);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#getResultConsumer()
+	 */
 	@Override
 	public ResultConsumer<K, OUT> getResultConsumer() {
 		return resultConsumer;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#interrupt(java.lang.String)
+	 */
 	@Override
 	public void interrupt(String conveyorName) {
 		if(name.equals(conveyorName)) {
@@ -1798,10 +1874,19 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		
 	}
 	
+	/**
+	 * Gets the payload.
+	 *
+	 * @param cart the cart
+	 * @return the payload
+	 */
 	protected Object getPayload(Cart<K,?,L> cart) {
 		return payloadFunction.apply(cart);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Conveyor#setCartPayloadAccessor(java.util.function.Function)
+	 */
 	@Override
 	public void setCartPayloadAccessor(Function<Cart<K, ?, L>, Object> payloadFunction) {
 		this.payloadFunction = payloadFunction;

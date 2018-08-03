@@ -41,13 +41,40 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
  */
 public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expireable, Interruptable {
 	
+	/**
+	 * The Class Memento.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param <OUT> the generic type
+	 */
 	public static class Memento<K,L,OUT> implements Serializable {
+		
+		/** The Constant serialVersionUID. */
 		private static final long serialVersionUID = 1L;
+		
+		/** The timestamp. */
 		final long timestamp;
+		
+		/** The state. */
 		final State<K,L> state;
+		
+		/** The id. */
 		final K id;
+		
+		/** The builder. */
 		final Supplier<? extends OUT> builder;
+		
+		/** The properties. */
 		final Map<String,Object> properties = new HashMap<>();
+		
+		/**
+		 * Instantiates a new memento.
+		 *
+		 * @param state the state
+		 * @param builder the builder
+		 * @param properties the properties
+		 */
 		Memento(
 				State<K,L> state,
 				Supplier<? extends OUT> builder,
@@ -59,15 +86,37 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			this.builder = builder;
 			this.properties.putAll(properties);
 		}
+		
+		/**
+		 * Gets the timestamp.
+		 *
+		 * @return the timestamp
+		 */
 		public long getTimestamp() {
 			return timestamp;
 		}
+		
+		/**
+		 * Gets the id.
+		 *
+		 * @return the id
+		 */
 		public K getId() {
 			return id;
 		}
+		
+		/**
+		 * Gets the expiration time.
+		 *
+		 * @return the expiration time
+		 */
 		public long getExpirationTime() {
 			return state.builderExpiration;
 		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
 		@Override
 		public String toString() {
 			StringBuilder builder2 = new StringBuilder();
@@ -147,6 +196,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	/** The event history. */
 	private final Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>();
 	
+	/** The properties. */
 	private Map<String,Object> properties = new HashMap<>();
 	
 	/** The lock. */
@@ -161,14 +211,19 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	/** The postpone alg. */
 	private BiConsumer<BuildingSite <K, L, C, OUT>,C> postponeAlg = (bs,cart)->{/*do nothing*/};
 	
+	/** The result consumer. */
 	private ResultConsumer<K,OUT> resultConsumer;
 
+	/** The complete result consumer. */
 	private ResultConsumer<K,OUT> completeResultConsumer = b->{};	
 	
+	/** The cancel result consumer. */
 	private Consumer<Boolean> cancelResultConsumer = b->{};
 
+	/** The exceptional result consumer. */
 	private Consumer<Throwable> exceptionalResultConsumer = t->{};
 
+	/** The acknowledge. */
 	private final Acknowledge acknowledge;
 	
 	/**
@@ -188,6 +243,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param postponeExpirationOnTimeoutEnabled the postpone expiration on timeout enabled
 	 * @param staticValues map of static values
 	 * @param resultConsumer product consumer
+	 * @param ackAction the ack action
 	 */
 	@SuppressWarnings("unchecked")
 	public BuildingSite( 
@@ -612,12 +668,18 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * Complete futures with value.
 	 *
 	 * @param value the value
+	 * @param status the status
 	 */
 	void completeWithValue(OUT value, Status status) {
 		Acknowledge ack = getAcknowledge();
 		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status , getProperties(), ack) );
 	}
 	
+	/**
+	 * Sets the result consumer.
+	 *
+	 * @param resultConsumer the result consumer
+	 */
 	void setResultConsumer(ResultConsumer<K,OUT> resultConsumer) {
 		this.resultConsumer = resultConsumer;
 	}
@@ -632,7 +694,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	/**
 	 * Complete futures exceptionaly.
 	 *
-	 * @param value the value
+	 * @param error the error
 	 */
 	void completeFuturesExceptionaly(Throwable error) {
 		exceptionalResultConsumer.accept(error);
@@ -725,18 +787,38 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		return properties;
 	}
 
+	/**
+	 * Adds the properties.
+	 *
+	 * @param properties the properties
+	 */
 	public void addProperties(Map<String,Object> properties) {
 		this.properties.putAll(properties);
 	}
 
+	/**
+	 * Gets the acknowledge.
+	 *
+	 * @return the acknowledge
+	 */
 	public Acknowledge getAcknowledge() {
 		return acknowledge;
 	}
 
+	/**
+	 * Gets the memento.
+	 *
+	 * @return the memento
+	 */
 	public Memento getMemento() {
 		return new Memento(getState(), builder, properties);
 	}
 
+	/**
+	 * Restore.
+	 *
+	 * @param memento the memento
+	 */
 	public void restore(Memento memento) {
 		this.builder = memento.builder;
 		this.properties = memento.properties;
@@ -749,6 +831,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		});
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.Interruptable#interrupt(java.lang.Thread)
+	 */
 	@Override
 	public void interrupt(Thread conveyorThread) {
 		if(builder instanceof Interruptable) {

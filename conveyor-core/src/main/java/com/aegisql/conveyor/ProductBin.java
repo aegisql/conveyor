@@ -26,8 +26,10 @@ public final class ProductBin<K,OUT> {
 	/** The status. */
 	public final Status status;
 	
+	/** The properties. */
 	public final Map<String,Object> properties;
 	
+	/** The acknowledge. */
 	public final Acknowledge acknowledge;
 	
 	/**
@@ -37,6 +39,8 @@ public final class ProductBin<K,OUT> {
 	 * @param product the product
 	 * @param remainingDelayMsec the remaining delay msec
 	 * @param status the status
+	 * @param properties the properties
+	 * @param acknowledge the acknowledge
 	 */
 	public ProductBin(K key, OUT product, long remainingDelayMsec, Status status, Map<String,Object> properties, Acknowledge acknowledge) {
 		super();

@@ -18,9 +18,7 @@ import java.util.function.Supplier;
  */
 public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplier<? extends OUT>>, Serializable {
 
-	/**
-	 * 
-	 */
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 	/** The p. */
 	private final BiPredicate<State<K,L>, Supplier<? extends OUT>> p;
@@ -41,6 +39,12 @@ public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplie
 		this.p = p;
 	}
 
+	/**
+	 * And then.
+	 *
+	 * @param pred the pred
+	 * @return the readiness tester
+	 */
 	public  ReadinessTester<K,L,OUT> andThen(Predicate<Supplier<? extends OUT>> pred) {
 		return new ReadinessTester<>( this.p.and((s,b)->pred.test(b)) );
 	}

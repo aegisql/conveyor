@@ -2,6 +2,7 @@ package com.aegisql.conveyor;
 
 import java.util.function.Supplier;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class LazyConveyorSupplier.
  *
@@ -45,6 +46,9 @@ public class LazyConveyorSupplier <K,L,OUT> implements Supplier<Conveyor<K,L,OUT
 		conveyor = null;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();

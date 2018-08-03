@@ -118,6 +118,11 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	public ResultConsumerLoader<K, OUT> resultConsumer(ResultConsumer<K,OUT> consumer);
 
+	/**
+	 * Gets the result consumer.
+	 *
+	 * @return the result consumer
+	 */
 	public ResultConsumer<K,OUT> getResultConsumer();
 	
 	/**
@@ -444,6 +449,7 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	void setCartPayloadAccessor(Function<Cart<K,?,L>,Object> payloadFunction);
 	
+	/** The Constant mBeanServer. */
 	final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 	
 	/**
@@ -473,6 +479,11 @@ public interface Conveyor<K, L, OUT> {
 		return new LazyConveyorSupplier(name);
 	}
 	
+	/**
+	 * Un register.
+	 *
+	 * @param name the name
+	 */
 	public static void unRegister(String name) {
 		ObjectName objectName;
 		try {

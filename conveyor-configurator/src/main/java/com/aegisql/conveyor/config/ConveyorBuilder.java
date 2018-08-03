@@ -159,6 +159,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	/** The max queue size. */
 	private int maxQueueSize = 0;
 
+	/** The min compact size. */
 	private int minCompactSize = 0;
 
 	/** The persistence. */

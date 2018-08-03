@@ -1,5 +1,6 @@
 package com.aegisql.conveyor;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Enum Status.
  */
@@ -20,7 +21,7 @@ public enum Status{
 	/** The invalid. */
 	INVALID,
 	
-	/**Build not found*/
+	/** Build not found. */
 	NOT_FOUND
 	;
 }

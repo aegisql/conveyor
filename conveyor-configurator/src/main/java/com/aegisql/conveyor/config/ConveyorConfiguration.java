@@ -39,8 +39,10 @@ public class ConveyorConfiguration {
 	/** The property prefix. */
 	public static String PROPERTY_PREFIX = "CONVEYOR";
 	
+	/** The persistence prefix. */
 	public static String PERSISTENCE_PREFIX = "PERSISTENCE";
 
+	/** The property delimiter. */
 	public static String PROPERTY_DELIMITER = ".";
 
 	/** The default timeout msec. */

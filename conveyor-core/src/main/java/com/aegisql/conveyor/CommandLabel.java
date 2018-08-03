@@ -50,17 +50,22 @@ public enum CommandLabel  implements SmartLabel<AssemblingConveyor> {
 		}
 	}
 
-	,PEEK_BUILD {
+	,/** The peek build. */
+PEEK_BUILD {
 		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
 			return (c,o)->AssemblingConveyor.peekBuild(c, (Cart)o);
 		}
 	}
-	,MEMENTO_BUILD {
+	,
+/** The memento build. */
+MEMENTO_BUILD {
 			public SerializableBiConsumer<AssemblingConveyor, Object> get() {
 				return (c,o)->AssemblingConveyor.mementoBuild(c, (Cart)o);
 			}
 	}
-	,RESTORE_BUILD {
+	,
+/** The restore build. */
+RESTORE_BUILD {
 		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
 			return (c,o)->AssemblingConveyor.restoreBuild(c, (Cart)o);
 		}
