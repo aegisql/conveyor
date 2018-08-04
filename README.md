@@ -9,7 +9,7 @@ conveyor-core
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-core</artifactId>
-  <version>1.3.12</version>
+  <version>1.3.13</version>
 </dependency>
 ```
 
@@ -18,7 +18,7 @@ conveyor-parallel
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-parallel</artifactId>
-  <version>1.3.12</version>
+  <version>1.3.13</version>
 </dependency>
 ```
 
@@ -26,13 +26,13 @@ conveyor-persistence
 ```xml
 <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.3.12</version>
+  <version>1.3.13</version>
 </dependency>
 
 <dependency>
   <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-jdbc</artifactId>
-  <version>1.3.12</version>
+  <version>1.3.13</version>
 </dependency>
 ```
 
@@ -41,12 +41,14 @@ conveyor configurator (beta)
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-configurator</artifactId>
-  <version>1.3.12</version>
+  <version>1.3.13</version>
 </dependency>
 ```
 ## Release History
 
-### 1.3.13-SNAPSHOT
+### 1.3.14-SNAPSHOT
+
+### 1.3.13
 * Configuration support for compaction moved to persistence level
 
 ### 1.3.12
