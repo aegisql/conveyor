@@ -47,6 +47,7 @@ conveyor configurator (beta)
 ## Release History
 
 ### 1.3.13-SNAPSHOT
+* Configuration support for compaction moved to persistence level
 
 ### 1.3.12
 * Added peek() and peek(Consumer) commands to AssemblingConveyor and CommandLoader

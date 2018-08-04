@@ -309,6 +309,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		private StringBuilder infoBuilder = new StringBuilder("DerbyPersistence ");
 		
 		private Set<String> nonPersistentProperties = new HashSet<>();
+		
+		private int minCompactSize = 0;
 
 		/** The label converter. */
 		private ObjectConverter<?,String> labelConverter = new StringConverter<String>() {
@@ -387,6 +389,17 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		 */
 		public DerbyPersistenceBuilder<K> partTable(String table) {
 			this.partTable = table;
+			return this;
+		}
+
+		/**
+		 * Min compact size.
+		 *
+		 * @param size the size
+		 * @return the derby persistence builder
+		 */
+		public DerbyPersistenceBuilder<K> minCompactSize(int size) {
+			this.minCompactSize = size;
 			return this;
 		}
 
@@ -790,6 +803,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					,maxBatchTime
 					,infoBuilder .toString()
 					,nonPersistentProperties
+					,minCompactSize
 					);
 
 			String objName = "com.aegisql.conveyor.persistence.derby."+schema+":type=" + partTable;
@@ -927,6 +941,8 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	private final String info;
 	
 	private final Set<String> nonPersistentProperties;
+
+	private int minCompactSize = 0;
 		
 	/**
 	 * Instantiates a new derby persistence.
@@ -969,6 +985,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,long maxBatchTime
 			,String info
 			,Set<String> nonPersistentProperties
+			,int minCompactSize
 			) {
 		this.builder                      = builder;
 		this.conn                         = conn;
@@ -991,7 +1008,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		this.mapConverter                 = new MapToClobConverter(conn);
 		this.info                         = info;
 		this.nonPersistentProperties      = nonPersistentProperties;
-		
+		this.minCompactSize               = minCompactSize;
 		this.archiver.setPersistence(this);
 		
 	}
@@ -1475,6 +1492,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	@Override
 	public boolean isPersistentProperty(String property) {
 		return ! nonPersistentProperties.contains(property);
+	}
+
+	@Override
+	public int getMinCompactSize() {
+		return minCompactSize ;
 	}
 
 }

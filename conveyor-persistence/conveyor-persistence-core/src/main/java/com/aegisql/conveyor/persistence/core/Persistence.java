@@ -177,7 +177,9 @@ public interface Persistence <K> extends Closeable {
 	 */
 	//HELP
 	public long getNumberOfParts();
-	
+
+	public int getMinCompactSize();
+
 	/**
 	 * Absorb.
 	 *

@@ -373,7 +373,6 @@ public class ConveyorConfigurationTest {
 		assertEquals(2, found.get());
 	}
 
-	
 	@Test
 	public void testYampFileWithCompaction() throws Exception {
 		

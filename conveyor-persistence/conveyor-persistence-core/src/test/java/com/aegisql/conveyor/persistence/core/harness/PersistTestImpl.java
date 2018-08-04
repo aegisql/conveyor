@@ -233,4 +233,9 @@ public class PersistTestImpl implements Persistence<Integer> {
 		return new ArrayList<>();
 	}
 
+	@Override
+	public int getMinCompactSize() {
+		return 0;
+	}
+
 }

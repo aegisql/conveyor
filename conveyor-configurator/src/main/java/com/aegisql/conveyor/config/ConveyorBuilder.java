@@ -159,9 +159,6 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	/** The max queue size. */
 	private int maxQueueSize = 0;
 
-	/** The min compact size. */
-	private int minCompactSize = 0;
-
 	/** The persistence. */
 	private String persistence = null;
 
@@ -381,6 +378,10 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 									dp.addBinaryConverter(label, oc);
 								}
 								break;
+							case "minCompactSize":
+								dp.minCompactSize(Integer.parseInt(p.getValueAsString()));
+								LOG.warn("minCompactSize PersistentProperty {}", p);
+								break;
 							default:
 								LOG.warn("Unsupported PersistentProperty {}", p);
 								break;
@@ -410,7 +411,6 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 			if (persistence != null) {
 				Persistence p = Persistence.byName(persistence);
 				PersistentConveyor pc = new PersistentConveyor(p.copy(), instance);
-				pc.setMinCompactSize(minCompactSize);
 				instance = pc;
 			}
 
@@ -995,18 +995,6 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		if(b.maxQueueSize > 0) {
 			b.constructor = ()->new AssemblingConveyor( ()->new ArrayBlockingQueue(maxSize) );
 		}
-	}
-
-	/**
-	 * Min compact size.
-	 *
-	 * @param b the b
-	 * @param s the s
-	 */
-	public static void minCompactSize(ConveyorBuilder b, String s) {
-		LOG.debug("Applying minCompactSize={}", s);
-		Integer minSize = Integer.parseInt(s.split("\\s+")[0]);
-		b.minCompactSize = minSize;
 	}
 
 	/**

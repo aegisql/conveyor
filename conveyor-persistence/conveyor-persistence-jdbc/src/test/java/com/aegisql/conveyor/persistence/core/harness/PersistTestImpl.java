@@ -200,4 +200,9 @@ public class PersistTestImpl implements Persistence<Integer> {
 		return cartsList;
 	}
 
+	@Override
+	public int getMinCompactSize() {
+		return 0;
+	}
+
 }

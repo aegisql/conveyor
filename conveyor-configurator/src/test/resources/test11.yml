@@ -9,9 +9,9 @@ conveyor:
       - 2 com.aegisql.conveyor.config.harness.NameLabel.FIRST
       - 2 com.aegisql.conveyor.config.harness.NameLabel.LAST
       - com.aegisql.conveyor.config.harness.NameLabel.END
-    minCompactSize: 4
     persistence:
       derby.p11.parts11:
+        minCompactSize: 4
         keyClass: java.lang.Integer
         archiveStrategy:
           path: ./

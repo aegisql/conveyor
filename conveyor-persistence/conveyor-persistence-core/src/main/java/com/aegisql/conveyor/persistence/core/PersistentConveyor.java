@@ -99,8 +99,6 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	private String name;
 
-	private int minCompactSize = 0;
-	
 	public void setSkipPersistencePropertyKey(String doNotPersist) {
 		this.doNotPersist = doNotPersist;
 	}
@@ -122,7 +120,8 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.forward = forward;
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(cleanPersistence);
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(ackPersistence, forward, cleaner);
-		
+		this.ackConveyor.staticPart().value(persistence.getMinCompactSize()).label(ackConveyor.MIN_COMPACT).place();
+
 		String name = forward.getName();
 		setName(name);
 		onStatus.put(Status.READY, this::complete);
@@ -888,11 +887,6 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	public CompletableFuture<Boolean> compact(SerializablePredicate<K> p) {
 		return ackConveyor.part().foreach(p).value(null).label(ackConveyor.COMPACT).place();
-	}
-
-	public void setMinCompactSize(int minCompactSize) {
-		this.minCompactSize = minCompactSize;
-		ackConveyor.staticPart().value(minCompactSize).label(ackConveyor.MIN_COMPACT).place();
 	}
 
 	/**

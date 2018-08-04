@@ -76,7 +76,7 @@ public class PersistentConveyorTest {
 	public void tearDown() throws Exception {
 	}
 	
-	Persistence<Integer> getPersitence(String table) {
+	DerbyPersistence<Integer> getPersitence(String table) {
 		try {
 						
 			Thread.sleep(1000);
@@ -88,6 +88,7 @@ public class PersistentConveyorTest {
 					.labelConverter(TrioPart.class)
 					.whenArchiveRecords().markArchived()
 					.maxBatchSize(3)
+					.minCompactSize(1000)
 					.doNotSaveProperties("ignore_me","ignore_me_too")
 					.build();
 		} catch (Exception e) {
@@ -601,7 +602,7 @@ public class PersistentConveyorTest {
 
 	@Test
 	public void summatorWithAutoCompact() throws InterruptedException {
-		Persistence<Integer> p1 = getPersitence("summatorWithAutoCompact");
+		DerbyPersistence<Integer> p1 = getPersitence("summatorWithAutoCompact");
 		LastResultReference<Integer, Long> res = new LastResultReference<>();
 		Conveyor<Integer,SummBuilder.SummStep,Long> ac = new AssemblingConveyor<>();
 		ac.setBuilderSupplier(SummBuilder::new);
@@ -609,7 +610,6 @@ public class PersistentConveyorTest {
 		ac.setReadinessEvaluator(Conveyor.getTesterFor(ac).accepted(SummBuilder.SummStep.DONE));
 		ac.resultConsumer(res).set();
 		PersistentConveyor<Integer, SummBuilder.SummStep,Long> pc = p1.wrapConveyor(ac);
-		pc.setMinCompactSize(1000);
 		pc.setName("CPC1");
 		PartLoader pl = pc.part().id(1).label(SummBuilder.SummStep.ADD);
 		CompletableFuture<Boolean> f = null;
