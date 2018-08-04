@@ -415,7 +415,7 @@ public class ConveyorConfigurationTest {
 
 		assertEquals(100,carts.size());
 		for(int i = 0; i < 100; i++) {
-			lastPart = c.part().id(1).label(NameLabel.END).place();
+			lastPart = c.part().id(i).label(NameLabel.END).place();
 		}
 
 		assertTrue(lastPart.get());
