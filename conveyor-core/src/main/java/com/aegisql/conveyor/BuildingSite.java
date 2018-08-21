@@ -59,9 +59,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		/** The state. */
 		final State<K,L> state;
 		
-		/** The id. */
-		final K id;
-		
 		/** The builder. */
 		final Supplier<? extends OUT> builder;
 		
@@ -80,7 +77,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				Supplier<? extends OUT> builder,
 				Map<String,Object> properties
 				) {
-			this.id = state.key;
 			this.state = state;
 			this.timestamp = System.currentTimeMillis();
 			this.builder = builder;
@@ -95,14 +91,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		public long getTimestamp() {
 			return timestamp;
 		}
-		
+
 		/**
 		 * Gets the id.
 		 *
 		 * @return the id
 		 */
 		public K getId() {
-			return id;
+			return state.key;
 		}
 		
 		/**
@@ -113,14 +109,24 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		public long getExpirationTime() {
 			return state.builderExpiration;
 		}
-		
-		/* (non-Javadoc)
-		 * @see java.lang.Object#toString()
+
+		/**
+		 * Gets build creation time.
+		 *
+		 * @return the creation time
 		 */
+		public long getCreationTime() {
+			return state.builderCreated;
+		}
+
 		@Override
 		public String toString() {
 			StringBuilder builder2 = new StringBuilder();
-			builder2.append("Memento [id=").append(id).append(", timestamp=").append(timestamp).append("]");
+			builder2.append("Memento [timestamp=").append(timestamp)
+			.append(", build created=").append(state.builderCreated)
+			.append(", build expires=").append(state.builderExpiration)
+			.append(", builder=").append(builder)
+			.append(", properties=").append(properties).append("]");
 			return builder2.toString();
 		}
 	}

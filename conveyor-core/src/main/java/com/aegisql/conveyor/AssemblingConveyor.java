@@ -648,7 +648,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 		} catch (Exception e) {
 			LOG.error("MBEAN error " + name, e);
-			throw new RuntimeException(e);
+			throw new ConveyorRuntimeException(e);
 		}
 	}
 
@@ -671,7 +671,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					try {
 						processManagementCommand(nextCommandCart);
 					} catch(Exception e) {
-						RuntimeException ex = new RuntimeException("Failed milti-key command "+label+"("+k+")",e); 
+						RuntimeException ex = new ConveyorRuntimeException("Failed milti-key command "+label+"("+k+")",e); 
 						cmdFuture.completeExceptionally(ex);
 						throw ex;
 					}
@@ -1121,13 +1121,23 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.READY, currentSite.getProperties()));
 			}
 			cart.getFuture().complete(Boolean.TRUE);
+		} catch (KeepRunningConveyorException e) {
+			if (currentSite != null) {
+				currentSite.setLastError(e);
+				currentSite.setLastCart(cart);
+				cart.getScrapConsumer().accept(new ScrapBin(cart.getKey(), cart,
+						"Cart Processor failed. Keep running", e, FailureType.KEEP_RUNNING_EXCEPTION,cart.getAllProperties(), null));
+				scrapConsumer.accept(new ScrapBin(cart.getKey(), currentSite,
+						"Site Processor failed. Keep running", e, FailureType.KEEP_RUNNING_EXCEPTION,cart.getAllProperties(), currentSite.getAcknowledge()));
+				currentSite.completeFuturesExceptionaly(e);
+			}
 		} catch (Exception e) {
 			if (currentSite != null) {
 				currentSite.setStatus(Status.INVALID);
 				currentSite.setLastError(e);
 				currentSite.setLastCart(cart);
 				cart.getScrapConsumer().accept(new ScrapBin(cart.getKey(), cart,
-						"Site Processor failed", e, failureType,cart.getAllProperties(), null));
+						"Cart Processor failed", e, failureType,cart.getAllProperties(), null));
 				scrapConsumer.accept(new ScrapBin(cart.getKey(), currentSite,
 						"Site Processor failed", e, failureType,cart.getAllProperties(), currentSite.getAcknowledge()));
 				currentSite.completeFuturesExceptionaly(e);

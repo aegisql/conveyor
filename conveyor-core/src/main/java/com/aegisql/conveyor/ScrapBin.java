@@ -56,6 +56,8 @@ CONVEYOR_STOPPED
 		,
 /** The general failure. */
 GENERAL_FAILURE
+		,
+KEEP_RUNNING_EXCEPTION
 	}
 	
 	/** The key. */

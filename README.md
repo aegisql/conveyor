@@ -47,6 +47,8 @@ conveyor configurator (beta)
 ## Release History
 
 ### 1.3.14-SNAPSHOT
+* KeepRunning exception for non-critical errors
+* ConveyorRuntimeException
 
 ### 1.3.13
 * Configuration support for compaction moved to persistence level
