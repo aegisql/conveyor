@@ -666,12 +666,18 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				final Object value = cmdCart.getValue();
 				final long expTime = cmdCart.getExpirationTime();
 				final CompletableFuture<Boolean> cmdFuture = cmdCart.getFuture();
-				collector.keySet().stream().filter(cmdCart.getFilter()).forEach(k->{
-					GeneralCommand<K,?> nextCommandCart = new GeneralCommand(k,value, label, expTime);
+				List<GeneralCommand> commands = collector
+					.keySet()
+					.stream()
+					.filter(cmdCart.getFilter())
+					.map(k->new GeneralCommand(k,value, label, expTime))
+					.collect(Collectors.toList());
+				
+				commands.forEach(nextCommandCart->{
 					try {
 						processManagementCommand(nextCommandCart);
 					} catch(Exception e) {
-						RuntimeException ex = new ConveyorRuntimeException("Failed milti-key command "+label+"("+k+")",e); 
+						RuntimeException ex = new ConveyorRuntimeException("Failed milti-key command "+label+"("+nextCommandCart.getKey()+")",e); 
 						cmdFuture.completeExceptionally(ex);
 						throw ex;
 					}

@@ -21,7 +21,7 @@ public class LastScrapReference<K> implements ScrapConsumer<K,Object> {
 	 */
 	@Override
 	public void accept(ScrapBin<K,Object> bin) {
-		ref.set(bin.scrap);
+		ref.set(bin);
 	}
 	
 	/**

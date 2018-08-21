@@ -66,7 +66,7 @@ public class KeepRunningExceptionTest {
 	}
 
 	@Test
-	public void test() {
+	public void test() throws InterruptedException {
 		
 		AssemblingConveyor<Integer, SmartLabel<ObjectBuilder>, Object> c = new AssemblingConveyor<>();
 		c.setBuilderSupplier(ObjectBuilder::new);
@@ -87,10 +87,10 @@ public class KeepRunningExceptionTest {
 		System.out.println(lastScrap);
 
 		c.part().id(1).value(1).label(SET).place();
-		System.out.println(lastScrap);
 		c.part().id(1).value(1).label(SET).place();
-		System.out.println(lastScrap);
+		Thread.sleep(10);
 		assertTrue(c.command().id(1).check().join());
+		System.out.println(lastScrap);
 		c.part().id(1).value(10).label(SET).place().join();
 		System.out.println(lastResultConsumer);
 		assertEquals(3, lastResultConsumer.getCurrent());
