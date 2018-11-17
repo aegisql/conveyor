@@ -15,7 +15,7 @@ import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
  * @param <V> the value type
  * @param <L> the generic type
  */
-public interface Cart <K,V,L> extends Expireable, Serializable {
+public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<K,?,?>> {
 	/**
 	 * Gets the key.
 	 *
@@ -111,4 +111,12 @@ public interface Cart <K,V,L> extends Expireable, Serializable {
 	 * @return the cart
 	 */
 	public Cart <K,V,L> copy();
+	
+	/**
+	 * Gets the priority.
+	 *
+	 * @return the priority
+	 */
+	public long getPriority();
+	
 }

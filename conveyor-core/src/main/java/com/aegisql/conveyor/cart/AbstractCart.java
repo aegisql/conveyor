@@ -3,13 +3,9 @@
  */
 package com.aegisql.conveyor.cart;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
 // TODO: Auto-generated Javadoc
@@ -44,6 +40,8 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 
 	/** The expiration time. */
 	protected final long expirationTime; 
+	
+	protected final long priority;
 
 	/** The future. */
 	protected transient CompletableFuture<Boolean> future = null;
@@ -52,7 +50,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 
 	protected final LoadType loadType;
 	
-	public AbstractCart(K k, V v, L label, long creation, long expiration, Map<String,Object> properties, LoadType loadType) {
+	public AbstractCart(K k, V v, L label, long creation, long expiration, Map<String,Object> properties, LoadType loadType, long priority) {
 		this.k              = k;
 		this.v              = v;
 		this.label          = label;
@@ -62,20 +60,21 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		if(properties != null) {
 			this.properties.putAll(properties);
 		}
+		this.priority = priority;
+	}
+
+	public AbstractCart(K k, V v, L label, long creation, long expiration, Map<String,Object> properties, LoadType loadType) {
+		this(k,v,label,creation,expiration,properties,loadType,0);
+	}
+
+	public AbstractCart(K k, V v, L label, long creation, long duration, Map<String,Object> properties, LoadType loadType, long priority, boolean dummy) {
+		this(k,v,label,creation,creation+duration,properties,loadType,priority);
 	}
 
 	public AbstractCart(K k, V v, L label, long creation, long duration, Map<String,Object> properties, LoadType loadType, boolean dummy) {
-		this.k              = k;
-		this.v              = v;
-		this.label          = label;
-		this.creationTime   = creation;
-		this.expirationTime = creation+duration;
-		this.loadType       = loadType;
-		if(properties != null) {
-			this.properties.putAll(properties);
-		}
+		this(k,v,label,creation,creation+duration,properties,loadType,0);
 	}
-
+	
 	/**
 	 * Gets the key.
 	 *
@@ -200,6 +199,15 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		return loadType;
 	}
 	
+	@Override
+	public long getPriority() {
+		return priority;
+	}
 	
+	@Override
+	public int compareTo(Cart<K, ?, ?> cart) {
+		return Long.compare(cart.getPriority(),this.priority);
+	}
+
 	
 }

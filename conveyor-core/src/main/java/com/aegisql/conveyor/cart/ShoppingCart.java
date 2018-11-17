@@ -17,12 +17,12 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 4055225191822888396L;
 	
-	public ShoppingCart(K k, V v, L label, long creation, long expiration, Map<String,Object> properties, LoadType loadType) {
-		super(k,v,label,creation,expiration,properties,loadType);
+	public ShoppingCart(K k, V v, L label, long creation, long expiration, Map<String,Object> properties, LoadType loadType,long priority) {
+		super(k,v,label,creation,expiration,properties,loadType,priority);
 	}
 
-	public ShoppingCart(K k, V v, L label, long creation, long duration, Map<String,Object> properties, LoadType loadType, boolean dummy) {
-		super(k,v,label,creation,duration,properties,loadType,dummy);
+	public ShoppingCart(K k, V v, L label, long creation, long duration, Map<String,Object> properties, LoadType loadType, long priority, boolean dummy) {
+		super(k,v,label,creation,duration,properties,loadType,priority,dummy);
 	}
 
 
@@ -75,7 +75,7 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	 */
 	@Override
 	public Cart <K,V,L> copy() {
-		ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(getKey(), getValue(), getLabel(),getCreationTime(),getExpirationTime(),properties,loadType);
+		ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(getKey(), getValue(), getLabel(),getCreationTime(),getExpirationTime(),properties,loadType,getPriority());
 		cart.putAllProperties(this.getAllProperties());
 		return cart;
 	}

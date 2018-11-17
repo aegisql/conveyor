@@ -145,7 +145,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return new StaticPartLoader<L,X,OUT,Boolean>(cl -> {
 			Map<String,Object> properties = new HashMap<>();
 			properties.put("CREATE", cl.create);
-			Cart<K,?,L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART);
+			Cart<K,?,L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART,0);
 			return place(staticPart);
 		});
 	}

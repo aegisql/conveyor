@@ -8,6 +8,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -18,6 +20,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.ShoppingCart;
 
 // TODO: Auto-generated Javadoc
@@ -134,4 +137,25 @@ public class CartTest {
 		assertEquals(Integer.valueOf(1), n.getProperty("A", Integer.class));
 
 	}
+	
+	@Test
+	public void testCartPriority() {
+		Cart<String,String,String> c1 = new ShoppingCart<>("k","v1","l1",0,0,null,LoadType.PART,0);
+		Cart<String,String,String> c2 = new ShoppingCart<>("k","v2","l2",0,0,null,LoadType.PART,1);
+		
+		Queue<Cart<String,?,?>> q1 = new PriorityQueue<>();
+		q1.add(c1);
+		q1.add(c2);
+		
+		assertEquals(c2, q1.poll());
+		assertEquals(c1, q1.poll());
+
+		q1.add(c2);
+		q1.add(c1);
+
+		assertEquals(c2, q1.poll());
+		assertEquals(c1, q1.poll());
+		
+	}
+	
 }
