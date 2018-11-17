@@ -5,9 +5,10 @@ package com.aegisql.conveyor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
@@ -139,7 +140,7 @@ public class CartTest {
 	}
 	
 	@Test
-	public void testCartPriority() {
+	public void testCartExplicitPriority() {
 		Cart<String,String,String> c1 = new ShoppingCart<>("k","v1","l1",0,0,null,LoadType.PART,0);
 		Cart<String,String,String> c2 = new ShoppingCart<>("k","v2","l2",0,0,null,LoadType.PART,1);
 		
@@ -157,5 +158,23 @@ public class CartTest {
 		assertEquals(c1, q1.poll());
 		
 	}
+
+	@Test
+	public void testCartDefaultPriorityOrderInQueue() {		
+		List<Cart<Integer,String,String>> carts = new ArrayList<>();
+		Queue<Cart<Integer,?,?>> q = new PriorityQueue<>();
+		for(int i = 0; i < 100; i++) {
+			Cart<Integer,String,String> c = new ShoppingCart<>(i,"v"+i,"l",0,0,null,LoadType.PART,0);
+			q.add(c);
+			if(i%5==0) {
+				q.add(q.poll());
+			}
+		}
+		for(int i = 0; i < 100; i++) {
+			Cart<Integer,?,?> c = q.poll();
+			assertEquals(new Integer(i), c.getKey());
+		}
+	}
+
 	
 }

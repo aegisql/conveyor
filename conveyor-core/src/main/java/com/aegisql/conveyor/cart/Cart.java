@@ -43,7 +43,14 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 * @return the creation time
 	 */
 	public long getCreationTime();
-	
+
+	/**
+	 * Gets the cart creation nano time.
+	 *
+	 * @return the cart creation nano time
+	 */
+	public long getCartCreationNanoTime();
+
 	/**
 	 * Gets the expiration time.
 	 *
@@ -118,5 +125,6 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 * @return the priority
 	 */
 	public long getPriority();
+	
 	
 }

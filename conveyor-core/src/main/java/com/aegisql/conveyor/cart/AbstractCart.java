@@ -49,6 +49,8 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	protected final Map<String, Object> properties = new HashMap<>();
 
 	protected final LoadType loadType;
+
+	private final long cartCreationNanoTimestamp = System.nanoTime();
 	
 	public AbstractCart(K k, V v, L label, long creation, long expiration, Map<String,Object> properties, LoadType loadType, long priority) {
 		this.k              = k;
@@ -204,10 +206,17 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		return priority;
 	}
 	
+	public long getCartCreationNanoTime() {
+		return cartCreationNanoTimestamp ;
+	}
+	
 	@Override
 	public int compareTo(Cart<K, ?, ?> cart) {
-		return Long.compare(cart.getPriority(),this.priority);
+		int cmpRes = Long.compare(cart.getPriority(),this.priority); //cart with higher priority go's first
+		if(cmpRes==0) {
+			cmpRes = Long.compare(this.cartCreationNanoTimestamp,cart.getCartCreationNanoTime()); //cart with same priority, first go's oldest
+		}
+		return cmpRes;
 	}
-
 	
 }
