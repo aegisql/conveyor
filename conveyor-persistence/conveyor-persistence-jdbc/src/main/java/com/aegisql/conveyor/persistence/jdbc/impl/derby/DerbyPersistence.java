@@ -1223,7 +1223,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 						Load load = (Load)val;
 						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
 					} else {
-						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType,0);
 					}
 				}
 				LOG.debug("Read cart: {}",cart);
@@ -1280,7 +1280,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 						Load load = (Load)val;
 						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
 					} else {
-						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType,0);
 					}
 				}
 				carts.add(cart);
@@ -1335,7 +1335,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 						Load load = (Load)val;
 						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
 					} else {
-						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType,0);
 					}
 				}
 				carts.add(cart);
@@ -1420,7 +1420,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
 				Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
 //				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-				cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType);
+				cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType,0);
 				carts.add(cart);
 			}
 		} catch (Exception e) {

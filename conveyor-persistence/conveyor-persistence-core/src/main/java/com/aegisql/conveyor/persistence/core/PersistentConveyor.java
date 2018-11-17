@@ -260,7 +260,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			Map<String, Object> properties = new HashMap<>();
 			properties.put("CREATE", cl.create);
 			Cart<K, ?, L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label,
-					System.currentTimeMillis(), 0, properties, STATIC_PART);
+					System.currentTimeMillis(), 0, properties, STATIC_PART,0);
 			return place(staticPart);
 		});
 	}

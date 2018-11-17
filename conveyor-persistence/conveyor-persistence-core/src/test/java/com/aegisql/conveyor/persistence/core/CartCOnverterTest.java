@@ -110,7 +110,7 @@ public class CartCOnverterTest {
 	public void testStaticCartWithProperty() {
 		
 		long time = System.currentTimeMillis();
-		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(null, "value", "label", time-1000, time+1000,null,LoadType.STATIC_PART);
+		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(null, "value", "label", time-1000, time+1000,null,LoadType.STATIC_PART,0);
 		c1.addProperty("testProp", "propVal");
 		ConverterAdviser<String> ca = new ConverterAdviser<>();
 		

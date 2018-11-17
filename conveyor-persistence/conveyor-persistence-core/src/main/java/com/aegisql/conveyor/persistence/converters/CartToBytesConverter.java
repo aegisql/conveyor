@@ -190,12 +190,12 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 		Map<String, Object> properties = propertiesConverter.fromPersistence(pBytes);
 		switch (loadType) {
 		case PART:
-			return new ShoppingCart(key, val, label, creationTime, expirationTime, properties, loadType);
+			return new ShoppingCart(key, val, label, creationTime, expirationTime, properties, loadType,0);
 		case MULTI_KEY_PART:
 			Load load = (Load) val;
 			return new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(), properties);
 		case STATIC_PART:
-			return new ShoppingCart(null, val, label, creationTime, 0, properties, STATIC_PART);
+			return new ShoppingCart(null, val, label, creationTime, 0, properties, STATIC_PART, 0);
 		case RESULT_CONSUMER:
 			if(key != null) {
 				return new ResultConsumerCart(key, (ResultConsumer) val, creationTime, expirationTime);
