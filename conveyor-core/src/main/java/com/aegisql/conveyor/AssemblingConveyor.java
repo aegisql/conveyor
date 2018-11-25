@@ -733,7 +733,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return new PartLoader<K, L, X, OUT, Boolean>(cl -> {
 			Cart <K, ?, L> cart;
 			if(cl.filter != null) {
-				cart = new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime);
+				cart = new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime,cl.priority);
 			} else {
 				cart = new ShoppingCart<K, Object, L>(cl.key, cl.partValue, cl.label,cl.creationTime ,cl.expirationTime,cl.priority);
 			}

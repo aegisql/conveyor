@@ -47,6 +47,10 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 		super(null, new Load<>(v, filter, LoadType.PART), label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 	}
 
+	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration,long priority) {
+		super(null, new Load<>(v, filter, LoadType.PART), label, creation,expiration,null,LoadType.MULTI_KEY_PART,priority);
+	}
+
 	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, LoadType loadType) {
 		super(null, new Load<>(v, filter, loadType), label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 	}

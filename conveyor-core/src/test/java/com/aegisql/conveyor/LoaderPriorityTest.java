@@ -35,17 +35,27 @@ public class LoaderPriorityTest {
 		public void setPartA(String partA) {
 			this.partA = partA;
 			order.add(partA);
+			sleep(100);
 		}
 
 		@Label("partB")
 		public void setPartB(String partB) {
 			this.partB = partB;
 			order.add(partB);
+			sleep(100);
 		}
 
 		@Override
 		public String get() {
 			return partA+" "+partB;
+		}
+		private void sleep(long t) {
+			try {
+				Thread.sleep(t);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -82,6 +92,29 @@ public class LoaderPriorityTest {
 
 		c1.completeAndStop().get();
 		assertNotEquals(Arrays.asList("A","B","C","D"),order);
+		
+	}
+
+	
+	@Test
+	public synchronized void testMultiKeyPartPriority() throws InterruptedException, ExecutionException {
+
+		List<String> order = new ArrayList<>();
+		
+		
+		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(PriorityBlockingQueue::new,()-> new TestStringBuilder(order));
+		c1.resultConsumer(System.out::println).set();
+		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
+
+		c1.command().id(1).create().get();
+		c1.command().id(2).create().get();
+		
+		c1.part().id(1).label("partA").value("A").place();
+		c1.part().id(2).label("partA").value("B").place();
+		c1.part().foreach(x->true).label("partB").priority(1).value("X").place();
+
+		c1.completeAndStop().get();
+		assertNotEquals(Arrays.asList("A","B","X","X"),order);
 		
 	}
 
