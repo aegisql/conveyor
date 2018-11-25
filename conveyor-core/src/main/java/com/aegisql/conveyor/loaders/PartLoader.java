@@ -34,7 +34,10 @@ public final class PartLoader<K,L,V,OUT,F> {
 	
 	/** The ttl msec. */
 	public final long ttlMsec;
-	
+
+	/**  The priority. */
+	public final long priority;
+
 	/** The key. */
 	public final K key;
 	
@@ -47,6 +50,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	/** The part value. */
 	public final V partValue;
 	
+	/** The properties. */
 	private final Map<String,Object> properties = new HashMap<>();
 	
 	/**
@@ -56,16 +60,19 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param creationTime the creation time
 	 * @param expirationTime the expiration time
 	 * @param ttlMsec the ttl msec
+	 * @param priority the priority
 	 * @param key the key
 	 * @param label the label
 	 * @param value the value
 	 * @param filter the filter
+	 * @param properties the properties
 	 */
 	private PartLoader(
 			Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, 
 			long creationTime, 
 			long expirationTime, 
 			long ttlMsec, 
+			long priority, 
 			K key, 
 			L label, 
 			V value,
@@ -79,6 +86,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 		this.label          = label;
 		this.partValue      = value;
 		this.filter         = filter;
+		this.priority       = priority;
 		this.properties.putAll(properties);
 	}
 
@@ -88,31 +96,35 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param placer the placer
 	 * @param creationTime the creation time
 	 * @param ttl the ttl
+	 * @param priority the priority
 	 * @param key the key
 	 * @param label the label
 	 * @param value the value
 	 * @param filter the filter
+	 * @param properties the properties
 	 * @param dumb the dumb
 	 */
 	private PartLoader(
 			Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, 
 			long creationTime, 
 			long ttl, 
+			long priority, 
 			K key, 
 			L label, 
 			V value, 
 			SerializablePredicate<K> filter, 
 			Map<String,Object> properties, 
 			boolean dumb) {
-		this.placer         = placer;
-		this.creationTime   = creationTime;
-		this.expirationTime = creationTime + ttl;
-		this.ttlMsec        = ttl;
-		this.key            = key;
-		this.label          = label;
-		this.partValue      = value;
-		this.filter         = filter;
-		this.properties.putAll(properties);
+		this(placer,
+				creationTime,
+				creationTime + ttl,
+				ttl,
+				priority,
+				key,
+				label,
+				value,
+				filter,
+				properties);
 	}
 
 	/**
@@ -121,7 +133,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param placer the placer
 	 */
 	public PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer) {
-		this(placer,System.currentTimeMillis(),0,0,null,null,null,null,Collections.EMPTY_MAP);
+		this(placer,System.currentTimeMillis(),0,0,0,null,null,null,null,Collections.EMPTY_MAP);
 	}
 	
 	/**
@@ -131,7 +143,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F> id(K k) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,k,label,partValue,null/*either id or filter*/,properties);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,k,label,partValue,null/*either id or filter*/,properties);
 	}
 
 	/**
@@ -150,7 +162,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F> foreach(SerializablePredicate<K> f) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,null/*either id or filter*/,label,partValue,f,properties);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,null/*either id or filter*/,label,partValue,f,properties);
 	}
 	
 	/**
@@ -160,7 +172,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F> label(L l) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,key,l,partValue,filter,properties);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,key,l,partValue,filter,properties);
 	}
 
 	/**
@@ -171,7 +183,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public<X> PartLoader<K,L,X,OUT,F> value(X v) {
-		return new PartLoader<K,L,X,OUT,F>(placer,creationTime,expirationTime,ttlMsec,key,label,v,filter,properties);
+		return new PartLoader<K,L,X,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,v,filter,properties);
 	}
 
 	/**
@@ -181,7 +193,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F>  expirationTime(long et) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,et,0,key,label,partValue,filter,properties);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,et,0,priority,key,label,partValue,filter,properties);
 	}
 
 	/**
@@ -191,7 +203,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F>  creationTime(long ct) {
-		return new PartLoader<K,L,V,OUT,F>(placer,ct,expirationTime,0,key,label,partValue,filter,properties);
+		return new PartLoader<K,L,V,OUT,F>(placer,ct,expirationTime,0,priority,key,label,partValue,filter,properties);
 	}
 
 	/**
@@ -201,7 +213,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F>  expirationTime(Instant instant) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,instant.toEpochMilli(),0,key,label,partValue,filter,properties);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,instant.toEpochMilli(),0,priority,key,label,partValue,filter,properties);
 	}
 
 	/**
@@ -211,7 +223,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F>  creationTime(Instant instant) {
-		return new PartLoader<K,L,V,OUT,F>(placer,instant.toEpochMilli(),expirationTime,0,key,label,partValue,filter,properties);
+		return new PartLoader<K,L,V,OUT,F>(placer,instant.toEpochMilli(),expirationTime,0,priority,key,label,partValue,filter,properties);
 	}
 
 	/**
@@ -222,7 +234,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F>  ttl(long time, TimeUnit unit) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,label,partValue,filter,properties ,true);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),priority,key,label,partValue,filter,properties ,true);
 	}
 	
 	/**
@@ -232,38 +244,85 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L,V,OUT,F>  ttl(Duration duration) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,duration.toMillis(),key,label,partValue,filter,properties,true);
-	}
-	
-	public PartLoader<K,L,V,OUT,F> clearProperties() {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,key,label,partValue,filter,Collections.EMPTY_MAP);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,duration.toMillis(),priority,key,label,partValue,filter,properties,true);
 	}
 
+	/**
+	 * Priority.
+	 *
+	 * @param p the priority
+	 * @return the part loader
+	 */
+	public PartLoader<K,L,V,OUT,F>  priority(long p) {
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,p,key,label,partValue,filter,properties);
+	}
+
+	/**
+	 * Clear properties.
+	 *
+	 * @return the part loader
+	 */
+	public PartLoader<K,L,V,OUT,F> clearProperties() {
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,partValue,filter,Collections.EMPTY_MAP);
+	}
+
+	/**
+	 * Clear property.
+	 *
+	 * @param k the k
+	 * @return the part loader
+	 */
 	public PartLoader<K,L,V,OUT,F> clearProperty(String k) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.remove(k);
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,key,label,partValue,filter,newMap);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,partValue,filter,newMap);
 	}
 
+	/**
+	 * Adds the property.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @return the part loader
+	 */
 	public PartLoader<K,L,V,OUT,F> addProperty(String k, Object v) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.put(k, v);
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,key,label,partValue,filter,newMap);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,partValue,filter,newMap);
 	}
 
+	/**
+	 * Adds the properties.
+	 *
+	 * @param moreProperties the more properties
+	 * @return the part loader
+	 */
 	public PartLoader<K,L,V,OUT,F> addProperties(Map<String,Object> moreProperties) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.putAll(moreProperties);
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,key,label,partValue,filter,newMap);
+		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,partValue,filter,newMap);
 	}
 	
+	/**
+	 * Gets the property.
+	 *
+	 * @param <X> the generic type
+	 * @param key the key
+	 * @param cls the cls
+	 * @return the property
+	 */
 	public <X> X getProperty(String key, Class<X> cls) {
 		return (X) properties.get(key);
 	}
 
+	/**
+	 * Gets the all properties.
+	 *
+	 * @return the all properties
+	 */
 	public Map<String,Object> getAllProperties() {
 		return Collections.unmodifiableMap(properties);
 	}
@@ -283,7 +342,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	@Override
 	public String toString() {
 		return "PartLoader [creationTime=" + creationTime + ", expirationTime="
-				+ expirationTime + ", ttlMsec=" + ttlMsec + ", key=" + key + ", label=" + label + ", partValue=" + partValue + ", properties=" + properties + "]";
+				+ expirationTime + ", ttlMsec=" + ttlMsec + ", priority=" + priority + ", key=" + key + ", label=" + label + ", partValue=" + partValue + ", properties=" + properties + "]";
 	}
 	
 }

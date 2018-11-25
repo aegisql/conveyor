@@ -735,7 +735,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(cl.filter != null) {
 				cart = new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime);
 			} else {
-				cart = new ShoppingCart<K, Object, L>(cl.key, cl.partValue, cl.label,cl.creationTime ,cl.expirationTime);
+				cart = new ShoppingCart<K, Object, L>(cl.key, cl.partValue, cl.label,cl.creationTime ,cl.expirationTime,cl.priority);
 			}
 			cl.getAllProperties().forEach((k,v)->cart.addProperty(k, v));
 			return place(cart);

@@ -104,7 +104,7 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 									m.invoke(b, v);
 								} catch (IllegalAccessException | IllegalArgumentException
 										| InvocationTargetException e) {
-									throw new RuntimeException("Setter execution error for '" + match + "' value=" + v);
+									throw new RuntimeException("Setter execution error for '" + match + "' value=" + v,e);
 								}
 							});
 						}

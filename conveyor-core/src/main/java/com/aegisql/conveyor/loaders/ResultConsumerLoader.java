@@ -46,7 +46,11 @@ public final class ResultConsumerLoader<K,OUT> {
 	/** The filter. */
 	public final SerializablePredicate<K> filter;
 	
+	/** The properties. */
 	private final Map<String,Object> properties = new HashMap<>();
+	
+	/**  The priority. */
+	public final long priority;
 	
 	/**
 	 * Instantiates a new result consumer loader.
@@ -60,7 +64,7 @@ public final class ResultConsumerLoader<K,OUT> {
 			Consumer<ResultConsumer <K,OUT>> globalPlacer,
 			ResultConsumer <K,OUT> consumer
 			) {
-		this(placer,globalPlacer,System.currentTimeMillis(),0,0,null,consumer,null,Collections.EMPTY_MAP);
+		this(placer,globalPlacer,System.currentTimeMillis(),0,0,null,consumer,null,Collections.EMPTY_MAP,0);
 	}
 
 	/**
@@ -74,6 +78,8 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @param key the key
 	 * @param consumer the consumer
 	 * @param filter the filter
+	 * @param properties the properties
+	 * @param priority the priority
 	 */
 	private ResultConsumerLoader(
 			Function<ResultConsumerLoader<K,OUT>,CompletableFuture<Boolean>> placer, 
@@ -84,7 +90,8 @@ public final class ResultConsumerLoader<K,OUT> {
 			K key, 
 			ResultConsumer <K,OUT> consumer,
 			SerializablePredicate<K> filter,
-			Map<String,Object> properties) {
+			Map<String,Object> properties,
+			long priority) {
 		this.placer         = placer;
 		this.globalPlacer   = globalPlacer;
 		this.consumer       = consumer;
@@ -93,6 +100,7 @@ public final class ResultConsumerLoader<K,OUT> {
 		this.expirationTime = expirationTime;
 		this.ttlMsec        = ttlMsec;
 		this.filter         = filter;
+		this.priority       = priority;
 		this.properties.putAll(properties);
 	}
 
@@ -106,6 +114,8 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @param key the key
 	 * @param consumer the consumer
 	 * @param filter the filter
+	 * @param properties the properties
+	 * @param priority the priority
 	 * @param dumb the dumb
 	 */
 	private ResultConsumerLoader(
@@ -117,16 +127,18 @@ public final class ResultConsumerLoader<K,OUT> {
 			ResultConsumer <K,OUT> consumer,
 			SerializablePredicate<K> filter,
 			Map<String,Object> properties,
+			long priority,
 			boolean dumb) {
-		this.placer         = placer;
-		this.globalPlacer   = globalPlacer;
-		this.consumer       = consumer;
-		this.key            = key;
-		this.creationTime   = creationTime;
-		this.expirationTime = creationTime + ttlMsec;
-		this.ttlMsec        = ttlMsec;
-		this.filter         = filter;
-		this.properties.putAll(properties);
+		this(placer,
+				globalPlacer,
+				creationTime,
+				creationTime + ttlMsec,
+				ttlMsec,
+				key,
+				consumer,
+				filter,
+				properties,
+				priority);
 	}
 
 	/**
@@ -145,7 +157,8 @@ public final class ResultConsumerLoader<K,OUT> {
 				k,
 				this.consumer,
 				null/*either key or filter*/
-				,properties);
+				,properties,
+				priority);
 	}
 
 	/**
@@ -164,7 +177,8 @@ public final class ResultConsumerLoader<K,OUT> {
 				null/*either key or filter*/,
 				this.consumer,
 				f,
-				properties);
+				properties,
+				priority);
 	}
 
 	/**
@@ -192,7 +206,8 @@ public final class ResultConsumerLoader<K,OUT> {
 				this.key,
 				consumer,
 				filter,
-				properties);
+				properties,
+				priority);
 	}
 
 	/**
@@ -202,7 +217,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the part loader
 	 */
 	public ResultConsumerLoader<K,OUT>  expirationTime(long et) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,et,0,key,consumer,filter,properties);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,et,0,key,consumer,filter,properties,priority);
 	}
 
 	/**
@@ -212,7 +227,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the result consumer loader
 	 */
 	public ResultConsumerLoader<K,OUT>  creationTime(long ct) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,ct,expirationTime,0,key,consumer,filter,properties);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,ct,expirationTime,0,key,consumer,filter,properties,priority);
 	}
 
 	/**
@@ -222,7 +237,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the part loader
 	 */
 	public ResultConsumerLoader<K,OUT>  expirationTime(Instant instant) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,instant.toEpochMilli(),0,key,consumer,filter,properties);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,instant.toEpochMilli(),0,key,consumer,filter,properties,priority);
 	}
 
 	/**
@@ -232,7 +247,17 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the result consumer loader
 	 */
 	public ResultConsumerLoader<K,OUT>  creationTime(Instant instant) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,instant.toEpochMilli(),expirationTime,0,key,consumer,filter,properties);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,instant.toEpochMilli(),expirationTime,0,key,consumer,filter,properties,priority);
+	}
+	
+	/**
+	 * Priority.
+	 *
+	 * @param p the p
+	 * @return the result consumer loader
+	 */
+	public ResultConsumerLoader<K,OUT>  priority(long p) {
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,0,key,consumer,filter,properties,p);
 	}
 
 	/**
@@ -243,7 +268,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the part loader
 	 */
 	public ResultConsumerLoader<K,OUT>  ttl(long time, TimeUnit unit) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer, creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,consumer,filter,properties,true);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer, creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,consumer,filter,properties,priority,true);
 	}
 	
 	/**
@@ -253,7 +278,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the part loader
 	 */
 	public ResultConsumerLoader<K,OUT>  ttl(Duration duration) {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,duration.toMillis(),key,consumer,filter,properties,true);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,duration.toMillis(),key,consumer,filter,properties,priority,true);
 	}
 
 	
@@ -273,7 +298,8 @@ public final class ResultConsumerLoader<K,OUT> {
 				this.key,
 				this.consumer != null ? this.consumer.andThen(consumer) : consumer
 				,this.filter,
-				properties
+				properties,
+				priority
 				);
 	}
 
@@ -293,40 +319,78 @@ public final class ResultConsumerLoader<K,OUT> {
 				this.key,
 				this.consumer != null ? consumer.andThen(this.consumer) : consumer
 				,this.filter,
-				properties
+				properties,
+				priority
 				);
 	}
 
 	
+	/**
+	 * Clear properties.
+	 *
+	 * @return the result consumer loader
+	 */
 	public ResultConsumerLoader<K,OUT> clearProperties() {
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,Collections.EMPTY_MAP);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,Collections.EMPTY_MAP,priority);
 	}
 
+	/**
+	 * Clear property.
+	 *
+	 * @param k the k
+	 * @return the result consumer loader
+	 */
 	public ResultConsumerLoader<K,OUT> clearProperty(String k) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.remove(k);
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,newMap);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,newMap,priority);
 	}
 
+	/**
+	 * Adds the property.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @return the result consumer loader
+	 */
 	public ResultConsumerLoader<K,OUT> addProperty(String k, Object v) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.put(k, v);
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,newMap);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,newMap,priority);
 	}
 
+	/**
+	 * Adds the properties.
+	 *
+	 * @param moreProperties the more properties
+	 * @return the result consumer loader
+	 */
 	public ResultConsumerLoader<K,OUT> addProperties(Map<String,Object> moreProperties) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.putAll(moreProperties);
-		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,newMap);
+		return new ResultConsumerLoader<K,OUT>(placer,globalPlacer,creationTime,expirationTime,ttlMsec,key,consumer,filter,newMap,priority);
 	}
 	
+	/**
+	 * Gets the property.
+	 *
+	 * @param <X> the generic type
+	 * @param key the key
+	 * @param cls the cls
+	 * @return the property
+	 */
 	public <X> X getProperty(String key, Class<X> cls) {
 		return (X) properties.get(key);
 	}
 
+	/**
+	 * Gets the all properties.
+	 *
+	 * @return the all properties
+	 */
 	public Map<String,Object> getAllProperties() {
 		return Collections.unmodifiableMap(properties);
 	}
@@ -354,9 +418,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	@Override
 	public String toString() {
 		return "ResultConsumerLoader [" + (key==null?"default":"key="+key) + ", creationTime=" + creationTime + ", expirationTime="
-				+ expirationTime + ", ttlMsec=" + ttlMsec + ", properties=" + properties + "]";
+				+ expirationTime + ", ttlMsec=" + ttlMsec + ", priority="+priority+", properties=" + properties + "]";
 	}
-	
-	
 	
 }

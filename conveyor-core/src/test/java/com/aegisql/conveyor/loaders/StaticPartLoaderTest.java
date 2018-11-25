@@ -14,13 +14,14 @@ public class StaticPartLoaderTest {
 			assertNotNull(l);
 			assertTrue(l.create);
 			assertEquals("L", l.label);
-			assertEquals("V", l.staticPartValue);			
+			assertEquals("V", l.staticPartValue);
+			assertEquals(1, l.priority);
 			return new CompletableFuture();
 		});
 		
 		assertTrue(spl0.create);
 		
-		StaticPartLoader spl1 = spl0.label("L");
+		StaticPartLoader spl1 = spl0.label("L").priority(1);
 		assertNotNull(spl1);
 		assertTrue(spl1.create);
 		assertEquals("L", spl1.label);

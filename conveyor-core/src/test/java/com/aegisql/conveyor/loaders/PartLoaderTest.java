@@ -46,6 +46,7 @@ public class PartLoaderTest {
 					assertTrue(l.expirationTime > 0);
 					assertTrue(l.creationTime > 0);
 					assertTrue(l.expirationTime > l.creationTime);
+					assertEquals(100L, l.priority);
 					return new CompletableFuture();
 				}
 				);
@@ -73,7 +74,8 @@ public class PartLoaderTest {
 		assertEquals("value", pl3.partValue);
 
 		PartLoader pl4et  = pl3.expirationTime(current+1000);
-		PartLoader pl4in  = pl3.expirationTime(Instant.ofEpochMilli(current+1000));
+		PartLoader pl4in  = pl3.expirationTime(Instant.ofEpochMilli(current+1000))
+				.priority(100);
 		PartLoader pl4ttl = pl3.ttl(1000, TimeUnit.MILLISECONDS);
 		PartLoader pl4dur = pl3.ttl(Duration.ofMillis(1000));
 		System.out.println(pl4et);
@@ -91,6 +93,8 @@ public class PartLoaderTest {
 
 		CompletableFuture f = pl4in.place();
 		assertNotNull(f);
+		
+		
 	}
 
 	

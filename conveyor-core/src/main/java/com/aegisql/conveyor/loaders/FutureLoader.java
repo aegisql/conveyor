@@ -35,6 +35,10 @@ public final class FutureLoader<K,OUT> {
 
 	/** The properties. */
 	private final Map<String,Object> properties = new HashMap<>();
+	
+	/**  The priority. */
+	public final long priority;
+
 
 	/**
 	 * Instantiates a new future loader.
@@ -45,6 +49,7 @@ public final class FutureLoader<K,OUT> {
 	 * @param ttlMsec the ttl msec
 	 * @param key the key
 	 * @param properties the properties
+	 * @param priority the priority
 	 */
 	private FutureLoader(
 			Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer,
@@ -52,12 +57,14 @@ public final class FutureLoader<K,OUT> {
 			long expirationTime, 
 			long ttlMsec, 
 			K key,
-			Map<String,Object> properties) {
+			Map<String,Object> properties,
+			long priority) {
 		this.placer = placer;
 		this.creationTime = creationTime;
 		this.expirationTime = expirationTime;
 		this.ttlMsec = ttlMsec;
 		this.key = key;
+		this.priority = priority;
 		this.properties.putAll(properties);
 	}
 
@@ -69,6 +76,7 @@ public final class FutureLoader<K,OUT> {
 	 * @param ttl the ttl
 	 * @param key the key
 	 * @param properties the properties
+	 * @param priority the priority
 	 * @param dumb the dumb
 	 */
 	private FutureLoader(
@@ -77,13 +85,15 @@ public final class FutureLoader<K,OUT> {
 			long ttl, 
 			K key,
 			Map<String,Object> properties,
+			long priority,
 			boolean dumb) {
-		this.placer = placer;
-		this.creationTime = creationTime;
-		this.expirationTime = creationTime + ttl;
-		this.ttlMsec = ttl;
-		this.key = key;
-		this.properties.putAll(properties);
+		this(placer,
+				creationTime,
+				creationTime + ttl,
+				ttl,
+				key,
+				properties,
+				priority);
 	}
 
 	/**
@@ -92,7 +102,7 @@ public final class FutureLoader<K,OUT> {
 	 * @param placer the placer
 	 */
 	public FutureLoader(Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer) {
-		this(placer,System.currentTimeMillis(),0,0,null,Collections.EMPTY_MAP);
+		this(placer,System.currentTimeMillis(),0,0,null,Collections.EMPTY_MAP,0);
 	}
 	
 	/**
@@ -102,7 +112,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT> id(K k) {
-		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,k,properties);
+		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,k,properties,priority);
 	}
 
 	/**
@@ -112,7 +122,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT>  expirationTime(long et) {
-		return new FutureLoader<K,OUT>(placer,creationTime,et,ttlMsec,key,properties);
+		return new FutureLoader<K,OUT>(placer,creationTime,et,ttlMsec,key,properties,priority);
 	}
 
 	/**
@@ -122,7 +132,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT>  creationTime(long ct) {
-		return new FutureLoader<K,OUT>(placer,ct,expirationTime,ttlMsec,key,properties);
+		return new FutureLoader<K,OUT>(placer,ct,expirationTime,ttlMsec,key,properties,priority);
 	}
 
 	/**
@@ -132,7 +142,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT>  expirationTime(Instant instant) {
-		return new FutureLoader<K,OUT>(placer,creationTime,instant.toEpochMilli(),ttlMsec,key,properties);
+		return new FutureLoader<K,OUT>(placer,creationTime,instant.toEpochMilli(),ttlMsec,key,properties,priority);
 	}
 
 	/**
@@ -142,7 +152,17 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT>  creationTime(Instant instant) {
-		return new FutureLoader<K,OUT>(placer,instant.toEpochMilli(),expirationTime,ttlMsec,key,properties);
+		return new FutureLoader<K,OUT>(placer,instant.toEpochMilli(),expirationTime,ttlMsec,key,properties,priority);
+	}
+
+	/**
+	 * Priority.
+	 *
+	 * @param p the p
+	 * @return the future loader
+	 */
+	public FutureLoader<K,OUT>  priority(long p) {
+		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,properties,p);
 	}
 
 	/**
@@ -153,7 +173,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT>  ttl(long time, TimeUnit unit) {
-		return new FutureLoader<K,OUT>(placer,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,properties ,true);
+		return new FutureLoader<K,OUT>(placer,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,properties,priority,true);
 	}
 	
 	/**
@@ -163,7 +183,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT>  ttl(Duration duration) {
-		return new FutureLoader<K,OUT>(placer,creationTime,duration.toMillis(),key,properties,true);
+		return new FutureLoader<K,OUT>(placer,creationTime,duration.toMillis(),key,properties,priority,true);
 	}
 	
 	/**
@@ -172,7 +192,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT> clearProperties() {
-		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,Collections.EMPTY_MAP);
+		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,Collections.EMPTY_MAP,priority);
 	}
 
 	/**
@@ -185,7 +205,7 @@ public final class FutureLoader<K,OUT> {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.remove(k);
-		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,newMap);
+		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,newMap,priority);
 	}
 
 	/**
@@ -199,7 +219,7 @@ public final class FutureLoader<K,OUT> {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.put(k, v);
-		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,newMap);
+		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,newMap,priority);
 	}
 
 	/**
@@ -212,7 +232,7 @@ public final class FutureLoader<K,OUT> {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.putAll(moreProperties);
-		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,newMap);
+		return new FutureLoader<K,OUT>(placer,creationTime,expirationTime,ttlMsec,key,newMap,priority);
 	}
 	
 	/**
@@ -252,7 +272,7 @@ public final class FutureLoader<K,OUT> {
 	@Override
 	public String toString() {
 		return "FutureLoader [creationTime=" + creationTime + ", expirationTime="
-				+ expirationTime + ", ttlMsec=" + ttlMsec + ", key=" + key + ", properties=" + properties + "]";
+				+ expirationTime + ", ttlMsec=" + ttlMsec + ", priority="+priority+", key=" + key + ", properties=" + properties + "]";
 	}
 	
 }

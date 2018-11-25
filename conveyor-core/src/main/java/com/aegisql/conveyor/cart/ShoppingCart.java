@@ -54,7 +54,12 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	}
 
 	public ShoppingCart(K k, V v, L label, long creation, long expiration) {
-		super(k, v, label, creation, expiration, null, LoadType.PART);
+		super(k, v, label, creation, expiration, null, LoadType.PART,0);
+		Objects.requireNonNull(k);
+	}
+
+	public ShoppingCart(K k, V v, L label, long creation, long expiration,long priority) {
+		super(k, v, label, creation, expiration, null, LoadType.PART,priority);
 		Objects.requireNonNull(k);
 	}
 

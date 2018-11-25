@@ -47,6 +47,7 @@ public class FutureLoaderTest {
 
 		FutureLoader cl0 = new FutureLoader<>(c->{
 			System.out.println("Final: "+c);
+			assertEquals(1,c.priority);
 			return new CompletableFuture();
 		});
 		
@@ -56,7 +57,7 @@ public class FutureLoaderTest {
 		
 		current = cl0.creationTime;
 
-		FutureLoader cl1 = cl0.id(1);
+		FutureLoader cl1 = cl0.id(1).priority(1);
 		System.out.println(cl1);
 		
 		assertEquals(1,cl1.key);

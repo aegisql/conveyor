@@ -41,6 +41,7 @@ public class BuilderLoaderTest {
 
 		BuilderLoader<Integer,String,Boolean> bl0 = new BuilderLoader<>(p->{
 			CompletableFuture<Boolean> cf = new CompletableFuture<Boolean>();
+			assertEquals(1,p.priority);
 			cf.complete(true);
 			return cf;
 		}, fp->{
@@ -54,7 +55,7 @@ public class BuilderLoaderTest {
 		
 		current = bl0.creationTime;
 		
-		BuilderLoader cl1 = bl0.id(1);
+		BuilderLoader cl1 = bl0.id(1).priority(1);
 		System.out.println(cl1);
 		
 		assertEquals(1,cl1.key);

@@ -212,6 +212,9 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	
 	@Override
 	public int compareTo(Cart<K, ?, ?> cart) {
+		if(cart==null) {
+			return 0;
+		}
 		int cmpRes = Long.compare(cart.getPriority(),this.priority); //cart with higher priority go's first
 		if(cmpRes==0) {
 			cmpRes = Long.compare(this.cartCreationNanoTimestamp,cart.getCartCreationNanoTime()); //cart with same priority, first go's oldest

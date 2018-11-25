@@ -29,6 +29,9 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	/** The create. */
 	public final boolean create;
 	
+	/**  The priority. */
+	public final long priority;
+	
 	/**
 	 * Instantiates a new part loader.
 	 *
@@ -36,12 +39,14 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 * @param label the label
 	 * @param value the value
 	 * @param create the create
+	 * @param priority the priority
 	 */
-	private StaticPartLoader(Function<StaticPartLoader<L,?,OUT,F>, CompletableFuture<F>> placer,L label, V value, boolean create) {
+	private StaticPartLoader(Function<StaticPartLoader<L,?,OUT,F>, CompletableFuture<F>> placer,L label, V value, boolean create, long priority) {
 		this.placer = placer;
 		this.label = label;
 		this.staticPartValue = value;
 		this.create = create;
+		this.priority = priority;
 	}
 
 	/**
@@ -50,7 +55,7 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 * @param placer the placer
 	 */
 	public StaticPartLoader(Function<StaticPartLoader<L,?,OUT,F>, CompletableFuture<F>> placer) {
-		this(placer,null,null,true);
+		this(placer,null,null,true,0);
 	}
 	
 	/**
@@ -59,7 +64,7 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public StaticPartLoader<L,V,OUT,F> delete() {
-		return new StaticPartLoader<L,V,OUT,F>(placer,label,staticPartValue,false);
+		return new StaticPartLoader<L,V,OUT,F>(placer,label,staticPartValue,false,priority);
 	}
 
 	/**
@@ -69,7 +74,17 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public StaticPartLoader<L,V,OUT,F> label(L l) {
-		return new StaticPartLoader<L,V,OUT,F>(placer,l,staticPartValue,create);
+		return new StaticPartLoader<L,V,OUT,F>(placer,l,staticPartValue,create,priority);
+	}
+
+	/**
+	 * Priority.
+	 *
+	 * @param p the p
+	 * @return the static part loader
+	 */
+	public StaticPartLoader<L,V,OUT,F> priority(long p) {
+		return new StaticPartLoader<L,V,OUT,F>(placer,label,staticPartValue,create,p);
 	}
 
 	/**
@@ -80,7 +95,7 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 * @return the part loader
 	 */
 	public<X> StaticPartLoader<L,X,OUT,F> value(X v) {
-		return new StaticPartLoader<L,X,OUT,F>(placer,label,v,true);
+		return new StaticPartLoader<L,X,OUT,F>(placer,label,v,true,priority);
 	}
 
 	/**

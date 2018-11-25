@@ -150,6 +150,7 @@ public class ResultConsumerLoaderTest {
 		
 		ResultConsumerLoader<Integer, String> bl0 = new ResultConsumerLoader<>(rcl->{
 			System.out.println("For Key "+rcl);
+			assertEquals(1, rcl.priority);
 			return null;
 		}, this::consumer, bin->{
 			System.out.println("Default "+bin);
@@ -162,7 +163,7 @@ public class ResultConsumerLoaderTest {
 		
 		current = bl0.creationTime;
 		
-		ResultConsumerLoader<Integer, String> cl1 = bl0.id(1);
+		ResultConsumerLoader<Integer, String> cl1 = bl0.id(1).priority(1);
 		System.out.println(cl1);
 		
 		assertEquals(Integer.valueOf(1),cl1.key);
@@ -198,7 +199,7 @@ public class ResultConsumerLoaderTest {
 		
 		assertEquals(Integer.valueOf(3), defaultInteger);
 		assertEquals("DEFAULT_1_2", defaultString);
-		
+		cl1.set();
 	}
 
 	@Test

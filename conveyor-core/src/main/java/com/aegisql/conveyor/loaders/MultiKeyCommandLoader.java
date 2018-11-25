@@ -189,6 +189,11 @@ public final class MultiKeyCommandLoader<K,OUT> {
 		return conveyor.apply(new GeneralCommand<K,String>(filter,"RESCHEDULE",CommandLabel.RESCHEDULE_BUILD,creationTime,expirationTime));
 	}
 	
+	/**
+	 * Peek.
+	 *
+	 * @return the completable future
+	 */
 	public CompletableFuture<List<ProductBin<K,OUT>>> peek() {
 		CompletableFuture<List<ProductBin<K,OUT>>> f = new CompletableFuture<>();
 		List<ProductBin<K,OUT>> list = new LinkedList<>();
@@ -214,12 +219,23 @@ public final class MultiKeyCommandLoader<K,OUT> {
 		});
 	}
 
+	/**
+	 * Peek.
+	 *
+	 * @param consumer the consumer
+	 * @return the completable future
+	 */
 	public CompletableFuture<Boolean> peek(Consumer<ProductBin<K,OUT>> consumer) {
 		GeneralCommand<K, Consumer<ProductBin<K,OUT>>> command = new GeneralCommand<>(filter,consumer,CommandLabel.PEEK_BUILD,creationTime,expirationTime);
 		CompletableFuture<Boolean> cf = conveyor.apply(command);
 		return cf;
 	}
 
+	/**
+	 * Memento.
+	 *
+	 * @return the completable future
+	 */
 	public CompletableFuture<List<Memento>> memento() {
 		CompletableFuture<List<Memento>> f = new CompletableFuture<>();
 		List<Memento> list = new LinkedList<>();
@@ -245,6 +261,12 @@ public final class MultiKeyCommandLoader<K,OUT> {
 		});
 	}
 
+	/**
+	 * Memento.
+	 *
+	 * @param memento the memento
+	 * @return the completable future
+	 */
 	public CompletableFuture<Boolean> memento(Consumer<Memento> memento) {
 		GeneralCommand<K, Consumer<Memento>> command = new GeneralCommand<>(filter,memento,CommandLabel.MEMENTO_BUILD,creationTime,expirationTime);
 		CompletableFuture<Boolean> cf = conveyor.apply(command);

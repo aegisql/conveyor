@@ -228,6 +228,11 @@ public final class CommandLoader<K,OUT> {
 		return conveyor.apply(new CreateCommand<K,OUT>(key,builder,creationTime,expirationTime));
 	}
 
+	/**
+	 * Peek.
+	 *
+	 * @return the completable future
+	 */
 	public CompletableFuture<ProductBin<K,OUT>> peek() {
 		CompletableFuture<ProductBin<K,OUT>> f = new CompletableFuture<>();
 		GeneralCommand<K, Consumer<ProductBin<K,OUT>>> command = new GeneralCommand<>(key,f::complete,CommandLabel.PEEK_BUILD,creationTime,expirationTime);
@@ -240,18 +245,35 @@ public final class CommandLoader<K,OUT> {
 		});
 	}
 
+	/**
+	 * Peek.
+	 *
+	 * @param consumer the consumer
+	 * @return the completable future
+	 */
 	public CompletableFuture<Boolean> peek(Consumer<ProductBin<K,OUT>> consumer) {
 		GeneralCommand<K, Consumer<ProductBin<K,OUT>>> command = new GeneralCommand<>(key,consumer,CommandLabel.PEEK_BUILD,creationTime,expirationTime);
 		CompletableFuture<Boolean> cf = conveyor.apply(command);
 		return cf;
 	}
 
+	/**
+	 * Memento.
+	 *
+	 * @param consumer the consumer
+	 * @return the completable future
+	 */
 	public CompletableFuture<Boolean> memento(Consumer<Memento> consumer) {
 		GeneralCommand<K, Consumer<Memento>> command = new GeneralCommand<>(key,consumer,CommandLabel.MEMENTO_BUILD,creationTime,expirationTime);
 		CompletableFuture<Boolean> cf = conveyor.apply(command);
 		return cf;
 	}
 
+	/**
+	 * Memento.
+	 *
+	 * @return the completable future
+	 */
 	public CompletableFuture<Memento> memento() {
 		CompletableFuture<Memento> f = new CompletableFuture<>();
 		GeneralCommand<K, Consumer<Memento>> command = new GeneralCommand<>(key,f::complete,CommandLabel.MEMENTO_BUILD,creationTime,expirationTime);
@@ -264,6 +286,12 @@ public final class CommandLoader<K,OUT> {
 		});
 	}
 
+	/**
+	 * Restore.
+	 *
+	 * @param memento the memento
+	 * @return the completable future
+	 */
 	public CompletableFuture<Boolean> restore(Memento memento) {
 		K id = key;
 		if(id==null) {
