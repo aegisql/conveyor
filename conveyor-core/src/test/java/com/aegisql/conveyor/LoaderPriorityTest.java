@@ -118,4 +118,25 @@ public class LoaderPriorityTest {
 		
 	}
 
+	@Test
+	public synchronized void testStaticPartPriority() throws InterruptedException, ExecutionException {
+
+		List<String> order = new ArrayList<>();
+		
+		
+		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(PriorityBlockingQueue::new,()-> new TestStringBuilder(order));
+		c1.resultConsumer(System.out::println).set();
+		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
+
+		c1.staticPart().label("partB").value("X").place();
+		c1.part().id(1).label("partA").value("A").place();
+		c1.part().id(2).label("partA").value("B").place();
+		c1.staticPart().label("partB").priority(1).value("Y").place();
+
+		c1.completeAndStop().get();
+		assertEquals("Y",order.get(2));
+		assertEquals("B",order.get(3));
+		
+	}
+
 }

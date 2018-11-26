@@ -112,7 +112,7 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 */
 	@Override
 	public String toString() {
-		return "StaticPartLoader [" + (create ? "create ":"delete ") + "label=" + label + ", staticValue=" + staticPartValue + "]";
+		return "StaticPartLoader [" + (create ? "create ":"delete ") + "label=" + label + ", staticValue=" + staticPartValue + ", priority="+priority+"]";
 	}
 	
 }
