@@ -49,8 +49,9 @@ conveyor configurator (beta)
 ### 1.3.14-SNAPSHOT
 * KeepRunning exception for non-critical errors
 * ConveyorRuntimeException
-* Added priority field to the cart
-* Made carts comparable by their priority
+* Added priority field to carts
+* Made carts comparable by their priority and creation timestamp
+* Added priority to loaders
 * Bugfixes
 
 ### 1.3.13

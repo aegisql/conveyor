@@ -157,7 +157,7 @@ public class PersistCartsTest {
 
 		ResultConsumerCart<Integer, String, String> sc1 = new ResultConsumerCart<Integer, String, String>(1, bin->{
 			System.out.println("TA-DA");
-		},1, 2); 
+		},1, 2,0); //TODO: add priority?
 		sc1.addProperty("PROPERTY","test");
 		p.savePart(p.nextUniquePartId(), sc1);
 		

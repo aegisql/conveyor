@@ -172,7 +172,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	@Override
 	public FutureLoader<K, OUT> future() {
 		return new FutureLoader<K, OUT> (cl -> {
-			return getFutureByCart( new FutureCart<K,OUT,L>(cl.key,new CompletableFuture<>(),cl.creationTime,cl.expirationTime) );
+			return getFutureByCart( new FutureCart<K,OUT,L>(cl.key,new CompletableFuture<>(),cl.creationTime,cl.expirationTime,cl.priority) );
 		});
 	}
 
@@ -773,9 +773,9 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return new ResultConsumerLoader<>(rcl->{
 			Cart<K,?,L> cart = null;
 			if(rcl.key != null) {
-				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime);
+				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime,rcl.priority);
 			} else {
-				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime,  LoadType.RESULT_CONSUMER);
+				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime,  LoadType.RESULT_CONSUMER,rcl.priority);
 			}
 			
 			CompletableFuture<Boolean> f = new CompletableFuture<Boolean>();

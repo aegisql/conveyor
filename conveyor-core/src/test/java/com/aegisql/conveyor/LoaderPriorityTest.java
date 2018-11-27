@@ -1,12 +1,11 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.PriorityQueue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.function.Supplier;
@@ -53,7 +52,6 @@ public class LoaderPriorityTest {
 			try {
 				Thread.sleep(t);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -77,22 +75,16 @@ public class LoaderPriorityTest {
 
 	@Test
 	public synchronized void testRegularPartPriority() throws InterruptedException, ExecutionException {
-
 		List<String> order = new ArrayList<>();
-		
-		
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(PriorityBlockingQueue::new,()-> new TestStringBuilder(order));
 		c1.resultConsumer(System.out::println).set();
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
-		
 		c1.part().id(1).label("partA").value("A").place();
 		c1.part().id(1).label("partB").value("B").place();
 		c1.part().id(2).label("partA").value("C").priority(1).place();
 		c1.part().id(2).label("partB").value("D").priority(2).place();
-
 		c1.completeAndStop().get();
 		assertNotEquals(Arrays.asList("A","B","C","D"),order);
-		
 	}
 
 	
@@ -105,38 +97,28 @@ public class LoaderPriorityTest {
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(PriorityBlockingQueue::new,()-> new TestStringBuilder(order));
 		c1.resultConsumer(System.out::println).set();
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
-
 		c1.command().id(1).create().get();
 		c1.command().id(2).create().get();
-		
 		c1.part().id(1).label("partA").value("A").place();
 		c1.part().id(2).label("partA").value("B").place();
 		c1.part().foreach(x->true).label("partB").priority(1).value("X").place();
-
 		c1.completeAndStop().get();
 		assertNotEquals(Arrays.asList("A","B","X","X"),order);
-		
 	}
 
 	@Test
 	public synchronized void testStaticPartPriority() throws InterruptedException, ExecutionException {
-
 		List<String> order = new ArrayList<>();
-		
-		
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(PriorityBlockingQueue::new,()-> new TestStringBuilder(order));
 		c1.resultConsumer(System.out::println).set();
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
-
 		c1.staticPart().label("partB").value("X").place();
 		c1.part().id(1).label("partA").value("A").place();
 		c1.part().id(2).label("partA").value("B").place();
 		c1.staticPart().label("partB").priority(1).value("Y").place();
-
 		c1.completeAndStop().get();
 		assertEquals("Y",order.get(2));
 		assertEquals("B",order.get(3));
-		
 	}
 
 }

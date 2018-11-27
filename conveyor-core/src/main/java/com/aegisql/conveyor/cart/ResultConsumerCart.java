@@ -25,8 +25,8 @@ public class ResultConsumerCart<K, B, L> extends AbstractCart<K, ResultConsumer 
 	 * @param creation the creation time
 	 * @param expiration the expiration time
 	 */
-	public ResultConsumerCart(K k, ResultConsumer <K,B> v, long creation, long expiration) {
-		super(k, v, null, creation,expiration,null,LoadType.RESULT_CONSUMER);
+	public ResultConsumerCart(K k, ResultConsumer <K,B> v, long creation, long expiration,long priority) {
+		super(k, v, null, creation,expiration,null,LoadType.RESULT_CONSUMER,priority);
 		Objects.requireNonNull(k);
 	}
 
@@ -35,7 +35,7 @@ public class ResultConsumerCart<K, B, L> extends AbstractCart<K, ResultConsumer 
 	 */
 	@Override
 	public Cart<K,ResultConsumer <K,B>, L> copy() {
-		ResultConsumerCart<K,B,L> cart =  new ResultConsumerCart<K,B,L>(getKey(),getValue(),getCreationTime(), getExpirationTime());
+		ResultConsumerCart<K,B,L> cart =  new ResultConsumerCart<K,B,L>(getKey(),getValue(),getCreationTime(), getExpirationTime(),priority);
 		cart.putAllProperties(this.getAllProperties());
 		return cart;
 	}

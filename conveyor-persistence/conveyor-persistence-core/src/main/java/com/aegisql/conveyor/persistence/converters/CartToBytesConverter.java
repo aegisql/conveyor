@@ -198,7 +198,7 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 			return new ShoppingCart(null, val, label, creationTime, 0, properties, STATIC_PART, 0);
 		case RESULT_CONSUMER:
 			if(key != null) {
-				return new ResultConsumerCart(key, (ResultConsumer) val, creationTime, expirationTime);
+				return new ResultConsumerCart(key, (ResultConsumer) val, creationTime, expirationTime,0);//TODO:  add priority reading
 			} else {
 				Load load2 = (Load) val;
 				return new MultiKeyCart(load2.getFilter(), load2.getValue(), label, creationTime, expirationTime,load2.getLoadType(), properties);

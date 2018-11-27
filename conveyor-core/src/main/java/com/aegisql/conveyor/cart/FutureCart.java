@@ -31,8 +31,8 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 		Objects.requireNonNull(k);
 	}
 
-	public FutureCart(K k, CompletableFuture<B> v, long creation, long expiration) {
-		super(k, v, null, creation,expiration,null,LoadType.FUTURE);
+	public FutureCart(K k, CompletableFuture<B> v, long creation, long expiration, long priority) {
+		super(k, v, null, creation,expiration,null,LoadType.FUTURE,priority);
 		Objects.requireNonNull(k);
 	}
 

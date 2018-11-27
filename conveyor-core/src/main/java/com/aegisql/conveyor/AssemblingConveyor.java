@@ -800,7 +800,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public FutureLoader<K, OUT> future() {
 		return new FutureLoader<K, OUT>(cl -> {
 			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-			final FutureCart<K, OUT, L> cart = new FutureCart<K, OUT, L>(cl.key, future, cl.creationTime, cl.expirationTime);
+			final FutureCart<K, OUT, L> cart = new FutureCart<K, OUT, L>(cl.key, future, cl.creationTime, cl.expirationTime,cl.priority);
 			cl.getAllProperties().forEach((k,v)->{cart.addProperty(k, v);});
 			CompletableFuture<Boolean> cartFuture = this.place(cart);
 			if (cartFuture.isCancelled()) {
@@ -850,9 +850,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return new ResultConsumerLoader<>(rcl->{
 			final Cart<K,?,L> cart;
 			if(rcl.key != null) {
-				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime);
+				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime, rcl.priority);
 			} else {
-				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, LoadType.RESULT_CONSUMER);
+				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, LoadType.RESULT_CONSUMER,rcl.priority);
 			}
 			rcl.getAllProperties().forEach((k,v)->{ cart.addProperty(k, v);});
 			return this.place(cart);
@@ -1035,7 +1035,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					switch(load.getLoadType()) {
 						case RESULT_CONSUMER:
 							cartBuilder = k->{
-								ResultConsumerCart rcc = new ResultConsumerCart(k, (ResultConsumer)load.getValue(), cart.getCreationTime(), cart.getExpirationTime());
+								ResultConsumerCart rcc = new ResultConsumerCart(k, (ResultConsumer)load.getValue(), cart.getCreationTime(), cart.getExpirationTime(),cart.getPriority());
 								rcc.putAllProperties(cart.getAllProperties());
 								return rcc;
 							};

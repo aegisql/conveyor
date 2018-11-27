@@ -51,7 +51,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 		super(null, new Load<>(v, filter, LoadType.PART), label, creation,expiration,null,LoadType.MULTI_KEY_PART,priority);
 	}
 
-	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, LoadType loadType) {
+	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, LoadType loadType,long priority) {
 		super(null, new Load<>(v, filter, loadType), label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 	}
 
@@ -60,7 +60,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 	 */
 	@Override
 	public Cart <K,Load<K,V>,L> copy() {
-		MultiKeyCart<K,V,L> cart = new MultiKeyCart<K,V,L>(getValue().getFilter(),getValue().getValue(), getLabel(),getCreationTime(),getExpirationTime(),getValue().getLoadType());
+		MultiKeyCart<K,V,L> cart = new MultiKeyCart<K,V,L>(getValue().getFilter(),getValue().getValue(), getLabel(),getCreationTime(),getExpirationTime(),getValue().getLoadType(),priority);
 		cart.putAllProperties(this.getAllProperties());
 		return cart;
 	}
