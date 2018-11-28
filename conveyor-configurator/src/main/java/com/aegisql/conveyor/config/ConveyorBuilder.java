@@ -9,9 +9,11 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -177,6 +179,8 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 	/** The default properties. */
 	private Map<String, PersistenceProperties> defaultProperties = new TreeMap<>();
+
+	private Boolean enablePriorityQueue = false;
 
 	/**
 	 * Sets the if not null.
@@ -885,6 +889,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		Supplier<Conveyor> value = ConfigUtils.stringToConveyorSupplier.apply(s);
 		b.constructor = value;
 		b.maxQueueSize = 0;
+		b.enablePriorityQueue = false;
 	}
 
 	/**
@@ -993,7 +998,24 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		Integer maxSize = Integer.parseInt(s.split("\\s+")[0]);
 		b.maxQueueSize = maxSize;
 		if(b.maxQueueSize > 0) {
+			b.enablePriorityQueue = false;
 			b.constructor = ()->new AssemblingConveyor( ()->new ArrayBlockingQueue(maxSize) );
+		}
+	}
+
+	/**
+	 * Enable priority queue.
+	 *
+	 * @param b the b
+	 * @param s the s
+	 */
+	public static void enablePriorityQueue(ConveyorBuilder b, String s) {
+		LOG.debug("Applying enablePriorityQueue={}", s);
+		Boolean enablePriorityQueue = Boolean.parseBoolean(s.split("\\s+")[0]);
+		b.enablePriorityQueue  = enablePriorityQueue;
+		if(Objects.nonNull(b.enablePriorityQueue) && b.enablePriorityQueue) {
+			b.maxQueueSize = 0;
+			b.constructor = ()->new AssemblingConveyor( PriorityBlockingQueue::new );
 		}
 	}
 
@@ -1038,6 +1060,8 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				+ "allFilesRead=" + allFilesRead + ", " + (lParallel != null ? "lParallel=" + lParallel + ", " : "")
 				+ (completed != null ? "completed=" + completed + ", " : "")
 				+ (constructor != null ? "constructor=" + constructor + ", " : "")
+				+ (maxQueueSize > 0 ? "maxQueueSize=" + maxQueueSize + ", " : "")
+				+ (enablePriorityQueue != null && enablePriorityQueue ? "enablePriorityQueue=" + enablePriorityQueue + ", " : "")
 				+ (idleHeartBeat != null ? "idleHeartBeat=" + idleHeartBeat + ", " : "")
 				+ (defaultBuilderTimeout != null ? "defaultBuilderTimeout=" + defaultBuilderTimeout + ", " : "")
 				+ (rejectUnexpireableCartsOlderThan != null

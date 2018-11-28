@@ -52,6 +52,7 @@ conveyor configurator (beta)
 * Added priority field to carts
 * Made carts comparable by their priority and creation timestamp
 * Added priority to loaders
+* Added enablePriorityQueue parameter to configurator
 * Bugfixes
 
 ### 1.3.13
