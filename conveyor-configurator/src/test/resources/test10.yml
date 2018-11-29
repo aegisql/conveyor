@@ -5,6 +5,8 @@ conveyor.c10_1.firstResultConsumer: new com.aegisql.conveyor.consumers.result.Lo
 conveyor.c10_1.firstScrapConsumer: new com.aegisql.conveyor.consumers.scrap.LogScrap()
 conveyor.c10_1.onTimeoutAction: com.aegisql.conveyor.config.ConfigUtilsTest.timeoutAction
 conveyor.c10_1.builderSupplier: com.aegisql.conveyor.config.harness.StringSupplier("test_persistence"); //JavaScript
+conveyor.c10_1.maxQueueSize: 100 //number
+conveyor.c10_1.enablePriorityQueue: false //boolean
 conveyor.c10_1.readyWhenAccepted: com.aegisql.conveyor.config.harness.NameLabel.FIRST,com.aegisql.conveyor.config.harness.NameLabel.LAST
 conveyor.c10_1.readyWhenAccepted: com.aegisql.conveyor.config.harness.NameLabel.END
 #

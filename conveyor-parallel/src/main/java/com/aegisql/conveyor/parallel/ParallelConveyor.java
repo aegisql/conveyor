@@ -145,7 +145,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return new StaticPartLoader<L,X,OUT,Boolean>(cl -> {
 			Map<String,Object> properties = new HashMap<>();
 			properties.put("CREATE", cl.create);
-			Cart<K,?,L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART,0);
+			Cart<K,?,L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART,cl.priority);
 			return place(staticPart);
 		});
 	}
@@ -158,14 +158,14 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 			if(bs == null) {
 				bs = builderSupplier;
 			}
-			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key,bs,cl.creationTime,cl.expirationTime);
+			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key,bs,cl.creationTime,cl.expirationTime,cl.priority);
 			return createBuildWithCart(cart);
 		},cl -> {
 			BuilderSupplier<OUT> bs = cl.value;
 			if(bs == null) {
 				bs = builderSupplier;
 			}
-			return createBuildFutureWithCart(supplier -> new CreatingCart<K, OUT, L>(cl.key,supplier,cl.creationTime,cl.expirationTime),bs);//builderSupplier);
+			return createBuildFutureWithCart(supplier -> new CreatingCart<K, OUT, L>(cl.key,supplier,cl.creationTime,cl.expirationTime,cl.priority),bs);//builderSupplier);
 		});
 	}
 

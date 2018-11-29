@@ -238,10 +238,10 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			Cart<K, ?, L> cart;
 			if (cl.filter != null) {
 				cart = new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime,
-						cl.expirationTime,LoadType.PART,0);//TODO: add priority
+						cl.expirationTime,LoadType.PART,cl.priority);
 			} else {
 				cart = new ShoppingCart<K, Object, L>(cl.key, cl.partValue, cl.label, cl.creationTime,
-						cl.expirationTime);
+						cl.expirationTime,cl.priority);
 			}
 			cl.getAllProperties().forEach((k, v) -> cart.addProperty(k, v));
 
@@ -260,7 +260,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			Map<String, Object> properties = new HashMap<>();
 			properties.put("CREATE", cl.create);
 			Cart<K, ?, L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label,
-					System.currentTimeMillis(), 0, properties, STATIC_PART,0);
+					System.currentTimeMillis(), 0, properties, STATIC_PART,cl.priority);
 			return place(staticPart);
 		});
 	}
@@ -278,7 +278,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				// bs = builderSupplier;
 			}
 			final CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime,
-					cl.expirationTime);
+					cl.expirationTime,cl.priority);
 			cl.getAllProperties().forEach((k, v) -> {
 				cart.addProperty(k, v);
 			});
@@ -353,9 +353,9 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return new ResultConsumerLoader<>(rcl -> {
 			final Cart<K, ?, L> cart;
 			if (rcl.key != null) {
-				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime,0);//TODO: add priority
+				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime,rcl.priority);
 			} else {
-				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, LoadType.RESULT_CONSUMER,0); //TODO: add priority
+				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, LoadType.RESULT_CONSUMER,rcl.priority);
 			}
 			rcl.getAllProperties().forEach((k, v) -> {
 				cart.addProperty(k, v);

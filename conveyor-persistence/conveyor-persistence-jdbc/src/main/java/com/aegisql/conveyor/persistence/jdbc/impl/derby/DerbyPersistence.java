@@ -1216,12 +1216,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 //					LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
 				
 					if(loadType == LoadType.BUILDER) {
-						cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
+						cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime,0);//TODO: add priority
 					} else if(loadType == LoadType.RESULT_CONSUMER) {
 						cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime,0);//TODO: add priority
 					} else if(loadType == LoadType.MULTI_KEY_PART) {
 						Load load = (Load)val;
-						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
+						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties,0);//TODO: add priority
 					} else {
 						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType,0);
 					}
@@ -1273,12 +1273,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
 //					LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
 					if(loadType == LoadType.BUILDER) {
-						cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
+						cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime,0);//TODO: add priority
 					} else if(loadType == LoadType.RESULT_CONSUMER) {
 						cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime,0);//TODO: add priority
 					} else if(loadType == LoadType.MULTI_KEY_PART) {
 						Load load = (Load)val;
-						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
+						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties,0);//TODO: add priority
 					} else {
 						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType,0);
 					}
@@ -1328,12 +1328,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 					Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
 //					LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
 					if(loadType == LoadType.BUILDER) {
-						cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime);
+						cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime,0);//TODO: add priority
 					} else if(loadType == LoadType.RESULT_CONSUMER) {
 						cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime,0);//TODO: add priority
 					} else if(loadType == LoadType.MULTI_KEY_PART) {
 						Load load = (Load)val;
-						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties);
+						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties,0);//TODO: add priority
 					} else {
 						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType,0);
 					}

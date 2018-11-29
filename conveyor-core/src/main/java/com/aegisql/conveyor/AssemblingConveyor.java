@@ -766,7 +766,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(bs == null) {
 				bs = builderSupplier;
 			}
-			final CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime);
+			final CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime,cl.priority);
 			cl.getAllProperties().forEach((k,v)->{cart.addProperty(k, v);});
 			return place(cart);
 		},
@@ -781,7 +781,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			} else {
 				bs = bs.withFuture(future);
 			}
-			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime);
+			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime,cl.priority);
 			FutureSupplier supplier = (FutureSupplier<OUT>) cart.getValue();
 			CompletableFuture<Boolean> cartFuture = place(cart);
 			if (cartFuture.isCancelled()) {

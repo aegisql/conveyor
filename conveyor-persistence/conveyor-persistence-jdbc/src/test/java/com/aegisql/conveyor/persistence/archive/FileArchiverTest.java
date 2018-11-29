@@ -95,7 +95,7 @@ public class FileArchiverTest {
 	public void FileArchiverTest() throws Exception {
 		PersistTestImpl p = new PersistTestImpl();
 		BinaryLogConfiguration blc = BinaryLogConfiguration.builder()
-				.maxFileSize("180")
+				.maxFileSize("200")
 				.zipFile(true)
 				.build();
 		ConverterAdviser<?> adviser = new ConverterAdviser<>();
@@ -119,7 +119,7 @@ public class FileArchiverTest {
 		
 		File f1 = new File("./part.blog");
 		assertTrue(f1.exists());
-		assertTrue(f1.length()<=180);
+		assertTrue(f1.length()<=200);
 		
 		FileInputStream fis = new FileInputStream(f1);
 		CartInputStream<Integer, ?> cis = new CartInputStream<>(new CartToBytesConverter<>(adviser),fis);

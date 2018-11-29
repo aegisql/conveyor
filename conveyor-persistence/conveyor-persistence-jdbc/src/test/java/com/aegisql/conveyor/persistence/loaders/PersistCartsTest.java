@@ -182,7 +182,7 @@ public class PersistCartsTest {
 		Persistence<Integer> p = getPersistence("testCreatingCarts");
 		p.archiveAll();
 
-		CreatingCart<Integer, Trio, String> sc1 = new CreatingCart<>(1, TrioBuilder::new,1, 2); 
+		CreatingCart<Integer, Trio, String> sc1 = new CreatingCart<>(1, TrioBuilder::new,1, 2, 0); 
 		sc1.addProperty("PROPERTY","test");
 		p.savePart(p.nextUniquePartId(), sc1);
 		

@@ -17,8 +17,8 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 4055225191822888396L;
 
-	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, LoadType loadType,Map<String,Object> properties) {
-		super(null, new Load<>(v, filter, loadType), label, creation,expiration,properties,LoadType.MULTI_KEY_PART);
+	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, LoadType loadType,Map<String,Object> properties,long priority) {
+		super(null, new Load<>(v, filter, loadType), label, creation,expiration,properties,LoadType.MULTI_KEY_PART,priority);
 	}
 
 	
@@ -66,7 +66,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 	}
 
 	public ShoppingCart<K, V, L> toShoppingCart(K key) {
-		ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue().getValue(), getLabel(),getExpirationTime());
+		ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue().getValue(), getLabel(),getExpirationTime(),getPriority());
 		cart.putAllProperties(this.getAllProperties());
 		return cart;
 	}

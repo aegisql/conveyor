@@ -59,7 +59,7 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 		byte[] labelBytes = convertObject(label);
 		byte[] propertiesBytes = propertiesConverter.toPersistence(cart.getAllProperties());
 
-		int totalSize = 4 + 1 + 8 + 8 + keyBytes.length + valueBytes.length + labelBytes.length + 4
+		int totalSize = 4 + 1 + 8 + 8 + 8 + keyBytes.length + valueBytes.length + labelBytes.length + 4
 				+ propertiesBytes.length;
 		int pos = 0;
 
@@ -70,6 +70,8 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 		bb.putLong(pos, cart.getCreationTime());
 		pos += 8;
 		bb.putLong(pos, cart.getExpirationTime());
+		pos += 8;
+		bb.putLong(pos, cart.getPriority());
 		pos += 8;
 		for (int i = 0; i < keyBytes.length; i++) {
 			bb.put(pos++, keyBytes[i]);
@@ -132,6 +134,8 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 		pos += 8;
 		long expirationTime = bb.getLong(pos);
 		pos += 8;
+		long priority = bb.getLong(pos);
+		pos += 8;
 		// -------------- KEY
 		byte keyHintLength = bb.get(pos++);
 		Object key = null;
@@ -190,21 +194,21 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 		Map<String, Object> properties = propertiesConverter.fromPersistence(pBytes);
 		switch (loadType) {
 		case PART:
-			return new ShoppingCart(key, val, label, creationTime, expirationTime, properties, loadType,0);
+			return new ShoppingCart(key, val, label, creationTime, expirationTime, properties, loadType,priority);
 		case MULTI_KEY_PART:
 			Load load = (Load) val;
-			return new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(), properties);
+			return new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(), properties,priority);
 		case STATIC_PART:
-			return new ShoppingCart(null, val, label, creationTime, 0, properties, STATIC_PART, 0);
+			return new ShoppingCart(null, val, label, creationTime, 0, properties, STATIC_PART, priority);
 		case RESULT_CONSUMER:
 			if(key != null) {
-				return new ResultConsumerCart(key, (ResultConsumer) val, creationTime, expirationTime,0);//TODO:  add priority reading
+				return new ResultConsumerCart(key, (ResultConsumer) val, creationTime, expirationTime,priority);
 			} else {
 				Load load2 = (Load) val;
-				return new MultiKeyCart(load2.getFilter(), load2.getValue(), label, creationTime, expirationTime,load2.getLoadType(), properties);
+				return new MultiKeyCart(load2.getFilter(), load2.getValue(), label, creationTime, expirationTime,load2.getLoadType(), properties,priority);
 			}
 		case BUILDER:
-			return new CreatingCart(key, (BuilderSupplier) val, creationTime, expirationTime);
+			return new CreatingCart(key, (BuilderSupplier) val, creationTime, expirationTime,priority);
 		case FUTURE:
 			throw new PersistenceException("Unsupported cart converter " + loadType);
 		case COMMAND:
