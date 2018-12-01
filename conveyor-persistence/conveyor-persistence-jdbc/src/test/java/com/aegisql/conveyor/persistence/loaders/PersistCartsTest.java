@@ -80,7 +80,7 @@ public class PersistCartsTest {
 		Persistence<Integer> p = getPersistence("testShoppingCarts");
 		p.archiveAll();
 
-		ShoppingCart<Integer, String, String> sc1 = new ShoppingCart<Integer, String, String>(1, "sc1", "CART"); 
+		ShoppingCart<Integer, String, String> sc1 = new ShoppingCart<Integer, String, String>(1, "sc1", "CART",0,0,10); 
 		sc1.addProperty("PROPERTY","test");
 		p.savePart(p.nextUniquePartId(), sc1);
 		
@@ -95,6 +95,8 @@ public class PersistCartsTest {
 		assertEquals(sc1.getLabel(), scRestored.getLabel());
 		assertEquals(sc1.getCreationTime(), scRestored.getCreationTime());
 		assertEquals(sc1.getExpirationTime(), scRestored.getExpirationTime());
+		assertEquals(sc1.getPriority(), scRestored.getPriority());
+		assertEquals(10, scRestored.getPriority());
 		assertEquals(sc1.getLoadType(), scRestored.getLoadType());
 		assertEquals(sc1.getProperty("PROPERTY", String.class), scRestored.getProperty("PROPERTY", String.class));
 	}
