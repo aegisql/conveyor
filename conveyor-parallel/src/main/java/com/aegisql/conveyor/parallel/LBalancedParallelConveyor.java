@@ -147,9 +147,12 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		this.setMbean(this.name);		
 	}
 	
-	//TODO: UNIMPLEMENTED!!!!
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.Conveyor#addCommand(com.aegisql.conveyor.Cart)
+	/**
+	 * Command.
+	 *
+	 * @param <V> the value type
+	 * @param cart the cart
+	 * @return the completable future
 	 */
 	@Override
 	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> cart) {
