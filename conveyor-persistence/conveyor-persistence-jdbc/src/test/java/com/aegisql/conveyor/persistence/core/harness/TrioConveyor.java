@@ -1,5 +1,7 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
+import java.util.concurrent.PriorityBlockingQueue;
+
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
@@ -19,6 +21,7 @@ public class TrioConveyor extends AssemblingConveyor<Integer, SmartLabel<TrioBui
 	public final ResultCounter<Integer, Trio> counter = new ResultCounter<>();
 
 	public TrioConveyor() {
+		super();
 		this.setName("TrioConveyor");
 		this.setBuilderSupplier(TrioBuilder::new);
 		this.resultConsumer(LogResult.debug(this)).andThen(counter).andThen(results).set();
@@ -26,6 +29,16 @@ public class TrioConveyor extends AssemblingConveyor<Integer, SmartLabel<TrioBui
 		this.setReadinessEvaluator(Conveyor.getTesterFor(this).accepted(TrioPart.TEXT1,TrioPart.TEXT2,TrioPart.NUMBER));
 	}
 
+	public TrioConveyor(boolean parallel) {
+		super(PriorityBlockingQueue::new);
+		this.setName("TrioConveyor");
+		this.setBuilderSupplier(TrioBuilder::new);
+		this.resultConsumer(LogResult.debug(this)).andThen(counter).andThen(results).set();
+		this.scrapConsumer(LogScrap.error(this)).set();
+		this.setReadinessEvaluator(Conveyor.getTesterFor(this).accepted(TrioPart.TEXT1,TrioPart.TEXT2,TrioPart.NUMBER));
+	}
+
+	
 	@Override
 	public String toString() {
 		return this.getName()+" [count= "+counter.get()+" results=" + results + "]";
