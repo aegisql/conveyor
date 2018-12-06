@@ -9,7 +9,7 @@ conveyor-core
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-core</artifactId>
-  <version>1.3.13</version>
+  <version>1.3.14</version>
 </dependency>
 ```
 
@@ -18,7 +18,7 @@ conveyor-parallel
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-parallel</artifactId>
-  <version>1.3.13</version>
+  <version>1.3.14</version>
 </dependency>
 ```
 
@@ -26,13 +26,13 @@ conveyor-persistence
 ```xml
 <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.3.13</version>
+  <version>1.3.14</version>
 </dependency>
 
 <dependency>
   <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-jdbc</artifactId>
-  <version>1.3.13</version>
+  <version>1.3.14</version>
 </dependency>
 ```
 
@@ -41,18 +41,21 @@ conveyor configurator (beta)
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-configurator</artifactId>
-  <version>1.3.13</version>
+  <version>1.3.14</version>
 </dependency>
 ```
 ## Release History
 
-### 1.3.14-SNAPSHOT
+### 1.3.15-SNAPSHOT
+
+### 1.3.14
 * KeepRunning exception for non-critical errors
-* ConveyorRuntimeException
+* ConveyorRuntimeException instead of RuntimeExceptions
 * Added priority field to carts
 * Made carts comparable by their priority and creation timestamp
 * Added priority to loaders
-* Added enablePriorityQueue parameter to configurator
+* Added enablePriorityQueue parameter to the Configurator
+* Added priority support to persistence
 * Bugfixes
 
 ### 1.3.13
