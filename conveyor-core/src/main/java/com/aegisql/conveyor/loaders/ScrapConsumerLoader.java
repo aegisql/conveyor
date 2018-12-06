@@ -65,7 +65,6 @@ public final class ScrapConsumerLoader<K> {
 	 *
 	 * @param globalPlacer            the global placer
 	 * @param consumer            the consumer
-	 * @param priority the priority
 	 */
 	public ScrapConsumerLoader(Consumer<ScrapConsumer<K, ?>> globalPlacer, ScrapConsumer<K, ?> consumer) {
 		this.globalPlacer = globalPlacer;

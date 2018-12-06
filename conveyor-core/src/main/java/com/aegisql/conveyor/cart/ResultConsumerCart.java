@@ -24,6 +24,7 @@ public class ResultConsumerCart<K, B, L> extends AbstractCart<K, ResultConsumer 
 	 * @param v the v
 	 * @param creation the creation time
 	 * @param expiration the expiration time
+	 * @param priority the priority
 	 */
 	public ResultConsumerCart(K k, ResultConsumer <K,B> v, long creation, long expiration,long priority) {
 		super(k, v, null, creation,expiration,null,LoadType.RESULT_CONSUMER,priority);

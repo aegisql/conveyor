@@ -27,6 +27,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 * @param v the v
 	 * @param creation the creation time
 	 * @param expiration the expiration time
+	 * @param priority the priority
 	 */
 	public CreatingCart(K k, BuilderSupplier<B> v, long creation, long expiration,long priority) {
 		super(k, v, null, creation,expiration,null,LoadType.BUILDER,priority);
@@ -51,6 +52,9 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 		return cart;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.cart.AbstractCart#getScrapConsumer()
+	 */
 	@Override
 	public ScrapConsumer<K, Cart<K, BuilderSupplier<B>, L>> getScrapConsumer() {
 		return super.getScrapConsumer().andThen(bin->{

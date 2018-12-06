@@ -17,6 +17,18 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 4055225191822888396L;
 
+	/**
+	 * Instantiates a new multi key cart.
+	 *
+	 * @param filter the filter
+	 * @param v the v
+	 * @param label the label
+	 * @param creation the creation
+	 * @param expiration the expiration
+	 * @param loadType the load type
+	 * @param properties the properties
+	 * @param priority the priority
+	 */
 	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, LoadType loadType,Map<String,Object> properties,long priority) {
 		super(null, new Load<>(v, filter, loadType), label, creation,expiration,properties,LoadType.MULTI_KEY_PART,priority);
 	}
@@ -47,10 +59,31 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 		super(null, new Load<>(v, filter, LoadType.PART), label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 	}
 
+	/**
+	 * Instantiates a new multi key cart.
+	 *
+	 * @param filter the filter
+	 * @param v the v
+	 * @param label the label
+	 * @param creation the creation
+	 * @param expiration the expiration
+	 * @param priority the priority
+	 */
 	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration,long priority) {
 		super(null, new Load<>(v, filter, LoadType.PART), label, creation,expiration,null,LoadType.MULTI_KEY_PART,priority);
 	}
 
+	/**
+	 * Instantiates a new multi key cart.
+	 *
+	 * @param filter the filter
+	 * @param v the v
+	 * @param label the label
+	 * @param creation the creation
+	 * @param expiration the expiration
+	 * @param loadType the load type
+	 * @param priority the priority
+	 */
 	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, LoadType loadType,long priority) {
 		super(null, new Load<>(v, filter, loadType), label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 	}
@@ -65,6 +98,12 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 		return cart;
 	}
 
+	/**
+	 * To shopping cart.
+	 *
+	 * @param key the key
+	 * @return the shopping cart
+	 */
 	public ShoppingCart<K, V, L> toShoppingCart(K key) {
 		ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue().getValue(), getLabel(),getExpirationTime(),getPriority());
 		cart.putAllProperties(this.getAllProperties());

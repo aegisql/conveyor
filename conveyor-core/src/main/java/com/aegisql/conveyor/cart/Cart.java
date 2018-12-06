@@ -110,6 +110,11 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	public void clearProperty(String name);
 	
 	
+	/**
+	 * Gets the load type.
+	 *
+	 * @return the load type
+	 */
 	public LoadType getLoadType();
 	
 	/**

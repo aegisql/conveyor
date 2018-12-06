@@ -41,17 +41,33 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	/** The expiration time. */
 	protected final long expirationTime; 
 	
+	/** The priority. */
 	protected final long priority;
 
 	/** The future. */
 	protected transient CompletableFuture<Boolean> future = null;
 	
+	/** The properties. */
 	protected final Map<String, Object> properties = new HashMap<>();
 
+	/** The load type. */
 	protected final LoadType loadType;
 
+	/** The cart creation nano timestamp. */
 	private final long cartCreationNanoTimestamp = System.nanoTime();
 	
+	/**
+	 * Instantiates a new abstract cart.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @param label the label
+	 * @param creation the creation
+	 * @param expiration the expiration
+	 * @param properties the properties
+	 * @param loadType the load type
+	 * @param priority the priority
+	 */
 	public AbstractCart(K k, V v, L label, long creation, long expiration, Map<String,Object> properties, LoadType loadType, long priority) {
 		this.k              = k;
 		this.v              = v;
@@ -65,14 +81,50 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		this.priority = priority;
 	}
 
+	/**
+	 * Instantiates a new abstract cart.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @param label the label
+	 * @param creation the creation
+	 * @param expiration the expiration
+	 * @param properties the properties
+	 * @param loadType the load type
+	 */
 	public AbstractCart(K k, V v, L label, long creation, long expiration, Map<String,Object> properties, LoadType loadType) {
 		this(k,v,label,creation,expiration,properties,loadType,0);
 	}
 
+	/**
+	 * Instantiates a new abstract cart.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @param label the label
+	 * @param creation the creation
+	 * @param duration the duration
+	 * @param properties the properties
+	 * @param loadType the load type
+	 * @param priority the priority
+	 * @param dummy the dummy
+	 */
 	public AbstractCart(K k, V v, L label, long creation, long duration, Map<String,Object> properties, LoadType loadType, long priority, boolean dummy) {
 		this(k,v,label,creation,creation+duration,properties,loadType,priority);
 	}
 
+	/**
+	 * Instantiates a new abstract cart.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @param label the label
+	 * @param creation the creation
+	 * @param duration the duration
+	 * @param properties the properties
+	 * @param loadType the load type
+	 * @param dummy the dummy
+	 */
 	public AbstractCart(K k, V v, L label, long creation, long duration, Map<String,Object> properties, LoadType loadType, boolean dummy) {
 		this(k,v,label,creation,creation+duration,properties,loadType,0);
 	}
@@ -160,6 +212,9 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 				+ "]";
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.cart.Cart#getScrapConsumer()
+	 */
 	@Override
 	public ScrapConsumer<K, Cart<K, V, L>> getScrapConsumer() {
 		return bin->{
@@ -172,44 +227,73 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		};
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.cart.Cart#addProperty(java.lang.String, java.lang.Object)
+	 */
 	@Override
 	public <X> void addProperty(String name, X property) {
 		properties.put(name, property);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.cart.Cart#getProperty(java.lang.String, java.lang.Class)
+	 */
 	@Override
 	public <X> X getProperty(String name, Class<X> cls) {
 		return (X) properties.get(name);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.cart.Cart#getAllProperties()
+	 */
 	@Override
 	public Map<String,Object> getAllProperties() {
 		return properties;
 	}
 	
+	/**
+	 * Put all properties.
+	 *
+	 * @param other the other
+	 */
 	public void putAllProperties(Map<String,Object> other) {
 		properties.putAll(other);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.cart.Cart#clearProperty(java.lang.String)
+	 */
 	@Override
 	public void clearProperty(String name) {
 		properties.remove(name);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.cart.Cart#getLoadType()
+	 */
 	@Override
 	public LoadType getLoadType() {
 		return loadType;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.cart.Cart#getPriority()
+	 */
 	@Override
 	public long getPriority() {
 		return priority;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.cart.Cart#getCartCreationNanoTime()
+	 */
 	public long getCartCreationNanoTime() {
 		return cartCreationNanoTimestamp ;
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
 	@Override
 	public int compareTo(Cart<K, ?, ?> cart) {
 		if(cart==null) {

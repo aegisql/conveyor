@@ -31,6 +31,15 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 		Objects.requireNonNull(k);
 	}
 
+	/**
+	 * Instantiates a new future cart.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @param creation the creation
+	 * @param expiration the expiration
+	 * @param priority the priority
+	 */
 	public FutureCart(K k, CompletableFuture<B> v, long creation, long expiration, long priority) {
 		super(k, v, null, creation,expiration,null,LoadType.FUTURE,priority);
 		Objects.requireNonNull(k);
@@ -54,6 +63,9 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 		return cart;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.cart.AbstractCart#getScrapConsumer()
+	 */
 	@Override
 	public ScrapConsumer<K, Cart<K, CompletableFuture<B>, L>> getScrapConsumer() {
 		return super.getScrapConsumer().andThen(bin->{

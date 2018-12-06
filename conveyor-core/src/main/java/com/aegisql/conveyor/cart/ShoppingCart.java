@@ -17,10 +17,35 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 4055225191822888396L;
 	
+	/**
+	 * Instantiates a new shopping cart.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @param label the label
+	 * @param creation the creation
+	 * @param expiration the expiration
+	 * @param properties the properties
+	 * @param loadType the load type
+	 * @param priority the priority
+	 */
 	public ShoppingCart(K k, V v, L label, long creation, long expiration, Map<String,Object> properties, LoadType loadType,long priority) {
 		super(k,v,label,creation,expiration,properties,loadType,priority);
 	}
 
+	/**
+	 * Instantiates a new shopping cart.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @param label the label
+	 * @param creation the creation
+	 * @param duration the duration
+	 * @param properties the properties
+	 * @param loadType the load type
+	 * @param priority the priority
+	 * @param dummy the dummy
+	 */
 	public ShoppingCart(K k, V v, L label, long creation, long duration, Map<String,Object> properties, LoadType loadType, long priority, boolean dummy) {
 		super(k,v,label,creation,duration,properties,loadType,priority,dummy);
 	}
@@ -53,11 +78,30 @@ public class ShoppingCart<K, V, L> extends AbstractCart<K, V, L> {
 		Objects.requireNonNull(k);
 	}
 
+	/**
+	 * Instantiates a new shopping cart.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @param label the label
+	 * @param creation the creation
+	 * @param expiration the expiration
+	 */
 	public ShoppingCart(K k, V v, L label, long creation, long expiration) {
 		super(k, v, label, creation, expiration, null, LoadType.PART,0);
 		Objects.requireNonNull(k);
 	}
 
+	/**
+	 * Instantiates a new shopping cart.
+	 *
+	 * @param k the k
+	 * @param v the v
+	 * @param label the label
+	 * @param creation the creation
+	 * @param expiration the expiration
+	 * @param priority the priority
+	 */
 	public ShoppingCart(K k, V v, L label, long creation, long expiration,long priority) {
 		super(k, v, label, creation, expiration, null, LoadType.PART,priority);
 		Objects.requireNonNull(k);
