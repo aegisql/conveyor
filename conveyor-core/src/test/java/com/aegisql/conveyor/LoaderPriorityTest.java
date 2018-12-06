@@ -41,7 +41,6 @@ public class LoaderPriorityTest {
 		public void setPartB(String partB) {
 			this.partB = partB;
 			order.add(partB);
-			sleep(100);
 		}
 
 		@Override
@@ -121,4 +120,46 @@ public class LoaderPriorityTest {
 		assertEquals("B",order.get(3));
 	}
 
+	private static int N_OF_TESTS=20;
+	
+	@Test
+	public void testAccumulationWithoutPriority() throws InterruptedException, ExecutionException {
+		List<String> order = new ArrayList<>();
+		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(()-> new TestStringBuilder(order));
+		c1.resultConsumer(bin->{}).set();
+		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
+
+		for(int i = 0; i < N_OF_TESTS; i++) {
+			c1.part().id(i).label("partA").value("A"+i).priority(i).place();
+		}
+		
+		for(int i = N_OF_TESTS-1; i >= 0; i--) {
+			c1.part().id(i).label("partB").value("B"+i).priority(i).place();
+		}
+		
+		c1.completeAndStop().get();
+		
+	}
+
+	
+	@Test
+	public void testAccumulationWithPriority() throws InterruptedException, ExecutionException {
+		List<String> order = new ArrayList<>();
+		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(PriorityBlockingQueue::new,()-> new TestStringBuilder(order));
+		c1.resultConsumer(bin->{}).set();
+		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
+
+		for(int i = 0; i < N_OF_TESTS; i++) {
+			c1.part().id(i).label("partA").value("A"+i).priority(i).place();
+		}
+		
+		for(int i = N_OF_TESTS-1; i >= 0; i--) {
+			c1.part().id(i).label("partB").value("B"+i).priority(i).place();
+		}
+		
+		c1.completeAndStop().get();
+		
+	}
+	
+	
 }
