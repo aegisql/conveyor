@@ -28,8 +28,8 @@ public class DelayLineConveyor <K,IN> extends AssemblingConveyor<K, SmartLabel<D
 	});
 	
 	@Override
-	public <X> PartLoader<K, SmartLabel<DelayLineBuilder<IN>>, X, IN, Boolean> part() {
-		return (PartLoader<K, SmartLabel<DelayLineBuilder<IN>>, X, IN, Boolean>) super.part().label(DELAY);
+	public PartLoader<K, SmartLabel<DelayLineBuilder<IN>>> part() {
+		return (PartLoader<K, SmartLabel<DelayLineBuilder<IN>>>) super.part().label(DELAY);
 	}
 
 }

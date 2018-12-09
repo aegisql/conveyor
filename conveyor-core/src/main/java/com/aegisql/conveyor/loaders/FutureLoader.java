@@ -9,6 +9,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import com.aegisql.conveyor.Conveyor;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class FutureLoader.
@@ -275,4 +277,8 @@ public final class FutureLoader<K,OUT> {
 				+ expirationTime + ", ttlMsec=" + ttlMsec + ", priority="+priority+", key=" + key + ", properties=" + properties + "]";
 	}
 	
+	public static <K,OUT> FutureLoader<K,OUT> byConveyorName(String name) {
+		return Conveyor.byName(name).future();
+	}
+
 }

@@ -51,7 +51,7 @@ public class PersistenceCleanupBatchConveyor <K> extends AssemblingConveyor<Sing
 	 * @see com.aegisql.conveyor.AssemblingConveyor#part()
 	 */
 	@Override
-	public PartLoader<SingleKey, SmartLabel<CleaunupBatchBuilder<K>>, ?, Runnable, Boolean> part() {
+	public PartLoader<SingleKey, SmartLabel<CleaunupBatchBuilder<K>>> part() {
 		return super.part().id(SingleKey.BATCH);
 	}
 

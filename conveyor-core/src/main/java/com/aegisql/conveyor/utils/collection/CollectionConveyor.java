@@ -33,8 +33,8 @@ public class CollectionConveyor <K,V> extends AssemblingConveyor<K, SmartLabel<C
 	public final SmartLabel<CollectionBuilder<V>> COMPLETE = SmartLabel.of(()->{});
 
 	@Override
-	public <X> PartLoader<K, SmartLabel<CollectionBuilder<V>>, X, Collection<V>, Boolean> part() {
-		return (PartLoader<K, SmartLabel<CollectionBuilder<V>>, X, Collection<V>, Boolean>) super.part().label(ITEM);
+	public PartLoader<K, SmartLabel<CollectionBuilder<V>>> part() {
+		return (PartLoader<K, SmartLabel<CollectionBuilder<V>>>) super.part().label(ITEM);
 	}
 
 	

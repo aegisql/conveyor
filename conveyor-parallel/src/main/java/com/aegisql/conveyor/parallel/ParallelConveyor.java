@@ -134,8 +134,8 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	
 	
 	@Override
-	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
-		return new PartLoader<K,L,X,OUT,Boolean>(cl -> {
+	public PartLoader<K, L> part() {
+		return new PartLoader<K,L>(cl -> {
 			return place(new ShoppingCart<K,Object,L>(cl.key, cl.partValue, cl.label, cl.creationTime, cl.expirationTime, cl.priority));
 		});
 	}

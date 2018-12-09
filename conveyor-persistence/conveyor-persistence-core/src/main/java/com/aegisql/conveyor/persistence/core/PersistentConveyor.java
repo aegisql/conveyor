@@ -233,8 +233,8 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#part()
 	 */
 	@Override
-	public <X> PartLoader<K, L, X, OUT, Boolean> part() {
-		return new PartLoader<K, L, X, OUT, Boolean>(cl -> {
+	public PartLoader<K, L> part() {
+		return new PartLoader<K, L>(cl -> {
 			Cart<K, ?, L> cart;
 			if (cl.filter != null) {
 				cart = new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime,

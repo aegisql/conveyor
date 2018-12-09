@@ -6,6 +6,8 @@ package com.aegisql.conveyor.loaders;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
+import com.aegisql.conveyor.Conveyor;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class StaticPartLoader.
@@ -113,6 +115,10 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	@Override
 	public String toString() {
 		return "StaticPartLoader [" + (create ? "create ":"delete ") + "label=" + label + ", staticValue=" + staticPartValue + ", priority="+priority+"]";
+	}
+	
+	public static <L,OUT> StaticPartLoader<L,?,OUT,Boolean> byConveyorName(String name) {
+		return Conveyor.byName(name).staticPart();
 	}
 	
 }

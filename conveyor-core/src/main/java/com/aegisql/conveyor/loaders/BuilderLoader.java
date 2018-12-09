@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.Conveyor;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -317,4 +318,8 @@ public final class BuilderLoader<K,OUT,F> {
 				+ expirationTime + ", ttlMsec=" + ttlMsec + ", key=" + key + ", priority="+priority+", properties=" + properties + "]";
 	}
 	
+	public static <K,OUT> BuilderLoader<K,OUT,Boolean> byConveyorName(String name) {
+		return Conveyor.byName(name).build();
+	}
+
 }

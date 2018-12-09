@@ -49,7 +49,7 @@ public class Demo {
 			source.setReadinessEvaluator(Conveyor.getTesterFor(source).accepted(DONE));
 			//Extract "common" part of the word loader into a variable
 			//This will just improve readability and highlight our intentions.
-			PartLoader<String, SmartLabel<WordCounter>,?,?,?> wordLoader = source.part().label(ADD);
+			PartLoader<String, SmartLabel<WordCounter>> wordLoader = source.part().label(ADD);
 			//Stream all words to the conveyor
 			Arrays.stream(words).forEach(word->wordLoader.id(word).value(new WordCount(word, 1)).place());
 			//Send "DONE" message to all words and wait 

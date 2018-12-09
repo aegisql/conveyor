@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.serial.SerializablePredicate;
 
@@ -421,4 +422,12 @@ public final class ResultConsumerLoader<K,OUT> {
 				+ expirationTime + ", ttlMsec=" + ttlMsec + ", priority="+priority+", properties=" + properties + "]";
 	}
 	
+	public static <K,OUT> ResultConsumerLoader<K,OUT> byConveyorName(String name) {
+		return Conveyor.byName(name).resultConsumer();
+	}
+
+	public static <K,OUT> ResultConsumerLoader<K,OUT> byConveyorName(String name,ResultConsumer<K,OUT> consumer) {
+		return Conveyor.byName(name).resultConsumer(consumer);
+	}
+
 }

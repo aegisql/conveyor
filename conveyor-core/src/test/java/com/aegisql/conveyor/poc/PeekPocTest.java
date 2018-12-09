@@ -70,7 +70,7 @@ public class PeekPocTest {
 		c.part().id(3).label("A").value("A").place();
 		List<TestProd> r = new ArrayList<TestProd>();
 		assertEquals(0, r.size());
-		c.part().foreach().label("PEEK").<Consumer<TestProd>>value(r::add).place().get();
+		c.part().foreach().label("PEEK").value((Consumer<TestProd>)r::add).place().get();
 		assertEquals(3, r.size());
 		System.out.println(r);
 		c.part().id(1).label("B").value("B").place();
@@ -109,7 +109,7 @@ public class PeekPocTest {
 		c.part().id(1).label("A").value("A").place();
 		AtomicReference<TestProd> r = new AtomicReference<TestProd>();
 		assertNull(r.get());
-		c.part().id(1).label("PEEK").<Consumer<TestProd>>value(r::set).place().get();
+		c.part().id(1).label("PEEK").value((Consumer<TestProd>)r::set).place().get();
 		assertEquals("A", r.get().getA());
 		assertEquals("", r.get().getB());
 		assertNotNull(r.get());
@@ -149,7 +149,7 @@ public class PeekPocTest {
 		
 		CompletableFuture<TestProd> r = new CompletableFuture<TestProd>();
 		assertFalse(r.isDone());
-		c.part().id(1).label("PEEK").<Consumer<TestProd>>value(r::complete).place();
+		c.part().id(1).label("PEEK").value((Consumer<TestProd>)r::complete).place();
 		r.get();
 		assertEquals("A", r.get().getA());
 		assertEquals("", r.get().getB());

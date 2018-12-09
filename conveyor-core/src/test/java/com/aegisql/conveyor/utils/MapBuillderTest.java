@@ -74,7 +74,7 @@ public class MapBuillderTest {
 		mc.resultConsumer(LogResult.stdOut(mc)).set();
 		mc.scrapConsumer(bin->fail("Failed "+bin)).set();
 		
-		PartLoader<Integer, String,?,?,?> pl = mc.part().id(1);
+		PartLoader<Integer, String> pl = mc.part().id(1);
 		pl.label("FIRST").value("ONE").place();
 		pl.label("SECOND").value("TWO").place();
 		pl.label("THIRD").value("THREE").place();

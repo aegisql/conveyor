@@ -190,7 +190,7 @@ public class CachingConveyorTest {
 		Supplier<? extends User> supplier = conveyor.getProductSupplier(1);
 		assertNull(supplier);
 		
-		PartLoader<Integer,String,?,?,?> pl =  conveyor.part().id(1);
+		PartLoader<Integer,String> pl =  conveyor.part().id(1);
 		pl.label("setFirst").value("John").place();
 		Thread.sleep(50);
 		supplier = conveyor.getProductSupplier(1);
@@ -244,7 +244,7 @@ public class CachingConveyorTest {
 		});
 		conveyor.setDefaultBuilderTimeout(500, TimeUnit.MILLISECONDS);
 		conveyor.setIdleHeartBeat(500, TimeUnit.MILLISECONDS);
-		PartLoader<Integer, String, ?, ?, ?> pl = conveyor.part().id(1);
+		PartLoader<Integer, String> pl = conveyor.part().id(1);
 
 		Supplier<? extends User> supplier = conveyor.getProductSupplier(1);
 		assertNull(supplier);
@@ -305,7 +305,7 @@ public class CachingConveyorTest {
 		conveyor.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
 		conveyor.enablePostponeExpiration(true);
 		conveyor.setExpirationPostponeTime(1, TimeUnit.SECONDS);
-		PartLoader<Integer, String, ?, ?, ?> pl = conveyor.part().id(1);
+		PartLoader<Integer, String> pl = conveyor.part().id(1);
 
 		Supplier<? extends User> supplier = conveyor.getProductSupplier(1);
 		assertNull(supplier);

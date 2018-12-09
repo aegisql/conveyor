@@ -9,6 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.serial.SerializablePredicate;
 
 // TODO: Auto-generated Javadoc
@@ -21,10 +22,10 @@ import com.aegisql.conveyor.serial.SerializablePredicate;
  * @param <OUT> the generic type
  * @param <F> the generic type
  */
-public final class PartLoader<K,L,V,OUT,F> {
+public final class PartLoader<K,L> {
 
 	/** The placer. */
-	private final Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer;
+	private final Function<PartLoader<K,L>, CompletableFuture<Boolean>> placer;
 	
 	/** The creation time. */
 	public final long creationTime; 
@@ -48,7 +49,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	public final L label;
 	
 	/** The part value. */
-	public final V partValue;
+	public final Object partValue;
 	
 	/** The properties. */
 	private final Map<String,Object> properties = new HashMap<>();
@@ -68,14 +69,14 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param properties the properties
 	 */
 	private PartLoader(
-			Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, 
+			Function<PartLoader<K,L>, CompletableFuture<Boolean>> placer, 
 			long creationTime, 
 			long expirationTime, 
 			long ttlMsec, 
 			long priority, 
 			K key, 
 			L label, 
-			V value,
+			Object value,
 			SerializablePredicate<K> filter, 
 			Map<String,Object> properties) {
 		this.placer         = placer;
@@ -105,13 +106,13 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param dumb the dumb
 	 */
 	private PartLoader(
-			Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer, 
+			Function<PartLoader<K,L>, CompletableFuture<Boolean>> placer, 
 			long creationTime, 
 			long ttl, 
 			long priority, 
 			K key, 
 			L label, 
-			V value, 
+			Object value, 
 			SerializablePredicate<K> filter, 
 			Map<String,Object> properties, 
 			boolean dumb) {
@@ -132,7 +133,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 *
 	 * @param placer the placer
 	 */
-	public PartLoader(Function<PartLoader<K,L,?,OUT,F>, CompletableFuture<F>> placer) {
+	public PartLoader(Function<PartLoader<K,L>, CompletableFuture<Boolean>> placer) {
 		this(placer,System.currentTimeMillis(),0,0,0,null,null,null,null,Collections.EMPTY_MAP);
 	}
 	
@@ -142,8 +143,8 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param k the k
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F> id(K k) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,k,label,partValue,null/*either id or filter*/,properties);
+	public PartLoader<K,L> id(K k) {
+		return new PartLoader<K,L>(placer,creationTime,expirationTime,ttlMsec,priority,k,label,partValue,null/*either id or filter*/,properties);
 	}
 
 	/**
@@ -151,7 +152,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 *
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F> foreach() {
+	public PartLoader<K,L> foreach() {
 		return foreach(k->true);
 	}
 
@@ -161,8 +162,8 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param f the f
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F> foreach(SerializablePredicate<K> f) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,null/*either id or filter*/,label,partValue,f,properties);
+	public PartLoader<K,L> foreach(SerializablePredicate<K> f) {
+		return new PartLoader<K,L>(placer,creationTime,expirationTime,ttlMsec,priority,null/*either id or filter*/,label,partValue,f,properties);
 	}
 	
 	/**
@@ -171,8 +172,8 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param l the l
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F> label(L l) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,key,l,partValue,filter,properties);
+	public PartLoader<K,L> label(L l) {
+		return new PartLoader<K,L>(placer,creationTime,expirationTime,ttlMsec,priority,key,l,partValue,filter,properties);
 	}
 
 	/**
@@ -182,8 +183,8 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param v the v
 	 * @return the part loader
 	 */
-	public<X> PartLoader<K,L,X,OUT,F> value(X v) {
-		return new PartLoader<K,L,X,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,v,filter,properties);
+	public PartLoader<K,L> value(Object v) {
+		return new PartLoader<K,L>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,v,filter,properties);
 	}
 
 	/**
@@ -192,8 +193,8 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param et the et
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F>  expirationTime(long et) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,et,0,priority,key,label,partValue,filter,properties);
+	public PartLoader<K,L>  expirationTime(long et) {
+		return new PartLoader<K,L>(placer,creationTime,et,0,priority,key,label,partValue,filter,properties);
 	}
 
 	/**
@@ -202,8 +203,8 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param ct the ct
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F>  creationTime(long ct) {
-		return new PartLoader<K,L,V,OUT,F>(placer,ct,expirationTime,0,priority,key,label,partValue,filter,properties);
+	public PartLoader<K,L>  creationTime(long ct) {
+		return new PartLoader<K,L>(placer,ct,expirationTime,0,priority,key,label,partValue,filter,properties);
 	}
 
 	/**
@@ -212,8 +213,8 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param instant the instant
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F>  expirationTime(Instant instant) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,instant.toEpochMilli(),0,priority,key,label,partValue,filter,properties);
+	public PartLoader<K,L> expirationTime(Instant instant) {
+		return new PartLoader<K,L>(placer,creationTime,instant.toEpochMilli(),0,priority,key,label,partValue,filter,properties);
 	}
 
 	/**
@@ -222,8 +223,8 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param instant the instant
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F>  creationTime(Instant instant) {
-		return new PartLoader<K,L,V,OUT,F>(placer,instant.toEpochMilli(),expirationTime,0,priority,key,label,partValue,filter,properties);
+	public PartLoader<K,L>  creationTime(Instant instant) {
+		return new PartLoader<K,L>(placer,instant.toEpochMilli(),expirationTime,0,priority,key,label,partValue,filter,properties);
 	}
 
 	/**
@@ -233,8 +234,8 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param unit the unit
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F>  ttl(long time, TimeUnit unit) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),priority,key,label,partValue,filter,properties ,true);
+	public PartLoader<K,L>  ttl(long time, TimeUnit unit) {
+		return new PartLoader<K,L>(placer,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),priority,key,label,partValue,filter,properties ,true);
 	}
 	
 	/**
@@ -243,8 +244,8 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param duration the duration
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F>  ttl(Duration duration) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,duration.toMillis(),priority,key,label,partValue,filter,properties,true);
+	public PartLoader<K,L>  ttl(Duration duration) {
+		return new PartLoader<K,L>(placer,creationTime,duration.toMillis(),priority,key,label,partValue,filter,properties,true);
 	}
 
 	/**
@@ -253,8 +254,8 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param p the priority
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F>  priority(long p) {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,p,key,label,partValue,filter,properties);
+	public PartLoader<K,L>  priority(long p) {
+		return new PartLoader<K,L>(placer,creationTime,expirationTime,ttlMsec,p,key,label,partValue,filter,properties);
 	}
 
 	/**
@@ -262,8 +263,8 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 *
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F> clearProperties() {
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,partValue,filter,Collections.EMPTY_MAP);
+	public PartLoader<K,L> clearProperties() {
+		return new PartLoader<K,L>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,partValue,filter,Collections.EMPTY_MAP);
 	}
 
 	/**
@@ -272,11 +273,11 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param k the k
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F> clearProperty(String k) {
+	public PartLoader<K,L> clearProperty(String k) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.remove(k);
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,partValue,filter,newMap);
+		return new PartLoader<K,L>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,partValue,filter,newMap);
 	}
 
 	/**
@@ -286,11 +287,11 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param v the v
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F> addProperty(String k, Object v) {
+	public PartLoader<K,L> addProperty(String k, Object v) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.put(k, v);
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,partValue,filter,newMap);
+		return new PartLoader<K,L>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,partValue,filter,newMap);
 	}
 
 	/**
@@ -299,11 +300,11 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 * @param moreProperties the more properties
 	 * @return the part loader
 	 */
-	public PartLoader<K,L,V,OUT,F> addProperties(Map<String,Object> moreProperties) {
+	public PartLoader<K,L> addProperties(Map<String,Object> moreProperties) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.putAll(moreProperties);
-		return new PartLoader<K,L,V,OUT,F>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,partValue,filter,newMap);
+		return new PartLoader<K,L>(placer,creationTime,expirationTime,ttlMsec,priority,key,label,partValue,filter,newMap);
 	}
 	
 	/**
@@ -332,7 +333,7 @@ public final class PartLoader<K,L,V,OUT,F> {
 	 *
 	 * @return the completable future
 	 */
-	public CompletableFuture<F> place() {
+	public CompletableFuture<Boolean> place() {
 		return placer.apply(this);
 	}
 
@@ -343,6 +344,10 @@ public final class PartLoader<K,L,V,OUT,F> {
 	public String toString() {
 		return "PartLoader [creationTime=" + creationTime + ", expirationTime="
 				+ expirationTime + ", ttlMsec=" + ttlMsec + ", priority=" + priority + ", key=" + key + ", label=" + label + ", partValue=" + partValue + ", properties=" + properties + "]";
+	}
+	
+	public static <K,L> PartLoader<K,L> byConveyorName(String name) {
+		return Conveyor.byName(name).part();
 	}
 	
 }

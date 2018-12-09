@@ -41,8 +41,8 @@ public class BatchConveyor <V> extends AssemblingConveyor<String, SmartLabel<Bat
 	}).intercept(BatchComplete.class, (b,v) -> b.complete(b, v) ); 
 
 	@Override
-	public <X> PartLoader<String, SmartLabel<BatchCollectingBuilder<V>>, X, List<V>, Boolean> part() {
-		return (PartLoader<String, SmartLabel<BatchCollectingBuilder<V>>, X, List<V>, Boolean>) super.part().label(BATCH).id("_BATCH_");
+	public PartLoader<String, SmartLabel<BatchCollectingBuilder<V>>> part() {
+		return (PartLoader<String, SmartLabel<BatchCollectingBuilder<V>>>) super.part().label(BATCH).id("_BATCH_");
 	}
 
 	public CompletableFuture<Boolean> completeBatch() {

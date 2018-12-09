@@ -11,6 +11,7 @@ import java.util.function.Predicate;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.BuildingSite.Memento;
 import com.aegisql.conveyor.CommandLabel;
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
@@ -309,6 +310,10 @@ public final class CommandLoader<K,OUT> {
 	public String toString() {
 		return "CommandLoader [creationTime=" + creationTime + ", expirationTime="
 				+ expirationTime + ", ttlMsec=" + ttlMsec + ", key=" + key + "]";
+	}
+	
+	public static <K,OUT> CommandLoader<K,OUT> byConveyorName(String name) {
+		return Conveyor.byName(name).command();
 	}
 	
 }

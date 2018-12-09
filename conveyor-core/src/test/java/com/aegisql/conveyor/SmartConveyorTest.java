@@ -412,7 +412,7 @@ public class SmartConveyorTest {
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 2;
 		});
-		PartLoader<Integer,UserBuilderEvents,?,?,Boolean> pl = conveyor.part().id(1);
+		PartLoader<Integer,UserBuilderEvents> pl = conveyor.part().id(1);
 		conveyor.rejectUnexpireableCartsOlderThan(1, TimeUnit.SECONDS);
 		assertTrue(pl.label(UserBuilderEvents.SET_FIRST).value("John").place().get());
 		Thread.sleep(1100);
@@ -742,8 +742,8 @@ public class SmartConveyorTest {
 		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted(FIRST,LAST,YEAR));
 		c.staticPart().label(FIRST).value("Mr.").place();
 		
-		PartLoader<Integer, SmartLabel<UserBuilder>,?,?,?> plLast = c.part().label(LAST);
-		PartLoader<Integer, SmartLabel<UserBuilder>,?,?,?> plDate = c.part().label(YEAR);
+		PartLoader<Integer, SmartLabel<UserBuilder>> plLast = c.part().label(LAST);
+		PartLoader<Integer, SmartLabel<UserBuilder>> plDate = c.part().label(YEAR);
 		
 		Future<User> f1 = c.build().id(1).createFuture();
 		plLast.id(1).value("Smith").place();

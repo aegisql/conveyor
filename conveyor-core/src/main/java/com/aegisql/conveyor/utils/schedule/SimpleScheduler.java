@@ -44,8 +44,8 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 	}
 	
 	@Override
-	public <X> PartLoader<K, Schedule, X, SchedulableClosure, Boolean> part() {
-		return new PartLoader<K,Schedule,X,SchedulableClosure,Boolean>(cl -> {
+	public PartLoader<K, Schedule> part() {
+		return new PartLoader<K,Schedule>(cl -> {
 			ScheduleBuilder<K> builder = new ScheduleBuilder<K>(cl.ttlMsec);
 			BuilderSupplier<SchedulableClosure> bs = BuilderSupplier.of(builder);
 			CompletableFuture<Boolean> f1 = build().id(cl.key).expirationTime(cl.expirationTime).supplier(bs).create();
