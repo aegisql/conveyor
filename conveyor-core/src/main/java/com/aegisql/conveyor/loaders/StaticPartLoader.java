@@ -17,16 +17,16 @@ import com.aegisql.conveyor.Conveyor;
  * @param <OUT> the generic type
  * @param <F> the generic type
  */
-public final class StaticPartLoader<L,V,OUT,F> {
+public final class StaticPartLoader<L> {
 
 	/** The placer. */
-	private final Function<StaticPartLoader<L,?,OUT,F>, CompletableFuture<F>> placer;
+	private final Function<StaticPartLoader<L>, CompletableFuture<Boolean>> placer;
 	
 	/** The label. */
 	public final L label;
 	
 	/** The part value. */
-	public final V staticPartValue;
+	public final Object staticPartValue;
 	
 	/** The create. */
 	public final boolean create;
@@ -43,7 +43,7 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 * @param create the create
 	 * @param priority the priority
 	 */
-	private StaticPartLoader(Function<StaticPartLoader<L,?,OUT,F>, CompletableFuture<F>> placer,L label, V value, boolean create, long priority) {
+	private StaticPartLoader(Function<StaticPartLoader<L>, CompletableFuture<Boolean>> placer,L label, Object value, boolean create, long priority) {
 		this.placer = placer;
 		this.label = label;
 		this.staticPartValue = value;
@@ -56,7 +56,7 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 *
 	 * @param placer the placer
 	 */
-	public StaticPartLoader(Function<StaticPartLoader<L,?,OUT,F>, CompletableFuture<F>> placer) {
+	public StaticPartLoader(Function<StaticPartLoader<L>, CompletableFuture<Boolean>> placer) {
 		this(placer,null,null,true,0);
 	}
 	
@@ -65,8 +65,8 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 *
 	 * @return the part loader
 	 */
-	public StaticPartLoader<L,V,OUT,F> delete() {
-		return new StaticPartLoader<L,V,OUT,F>(placer,label,staticPartValue,false,priority);
+	public StaticPartLoader<L> delete() {
+		return new StaticPartLoader<L>(placer,label,staticPartValue,false,priority);
 	}
 
 	/**
@@ -75,8 +75,8 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 * @param l the l
 	 * @return the part loader
 	 */
-	public StaticPartLoader<L,V,OUT,F> label(L l) {
-		return new StaticPartLoader<L,V,OUT,F>(placer,l,staticPartValue,create,priority);
+	public StaticPartLoader<L> label(L l) {
+		return new StaticPartLoader<L>(placer,l,staticPartValue,create,priority);
 	}
 
 	/**
@@ -85,8 +85,8 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 * @param p the p
 	 * @return the static part loader
 	 */
-	public StaticPartLoader<L,V,OUT,F> priority(long p) {
-		return new StaticPartLoader<L,V,OUT,F>(placer,label,staticPartValue,create,p);
+	public StaticPartLoader<L> priority(long p) {
+		return new StaticPartLoader<L>(placer,label,staticPartValue,create,p);
 	}
 
 	/**
@@ -96,8 +96,8 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 * @param v the v
 	 * @return the part loader
 	 */
-	public<X> StaticPartLoader<L,X,OUT,F> value(X v) {
-		return new StaticPartLoader<L,X,OUT,F>(placer,label,v,true,priority);
+	public StaticPartLoader<L> value(Object v) {
+		return new StaticPartLoader<L>(placer,label,v,true,priority);
 	}
 
 	/**
@@ -105,7 +105,7 @@ public final class StaticPartLoader<L,V,OUT,F> {
 	 *
 	 * @return the completable future
 	 */
-	public CompletableFuture<F> place() {
+	public CompletableFuture<Boolean> place() {
 		return placer.apply(this);
 	}
 
@@ -117,7 +117,7 @@ public final class StaticPartLoader<L,V,OUT,F> {
 		return "StaticPartLoader [" + (create ? "create ":"delete ") + "label=" + label + ", staticValue=" + staticPartValue + ", priority="+priority+"]";
 	}
 	
-	public static <L,OUT> StaticPartLoader<L,?,OUT,Boolean> byConveyorName(String name) {
+	public static <L> StaticPartLoader<L> byConveyorName(String name) {
 		return Conveyor.byName(name).staticPart();
 	}
 	

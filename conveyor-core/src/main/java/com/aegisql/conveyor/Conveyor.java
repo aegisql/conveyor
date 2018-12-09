@@ -62,7 +62,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @param <X> the generic type for the value
 	 * @return the static part loader
 	 */
-	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart();
+	public StaticPartLoader<L> staticPart();
 
 	/**
 	 * Builds the.

@@ -746,8 +746,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#staticPart()
 	 */
 	@Override
-	public <X> StaticPartLoader<L, X, OUT, Boolean> staticPart() {
-		return  new StaticPartLoader<L, X, OUT, Boolean>(cl -> {
+	public StaticPartLoader<L> staticPart() {
+		return  new StaticPartLoader<L>(cl -> {
 			Map<String,Object> properties = new HashMap<>();
 			properties.put("CREATE", cl.create);
 			Cart<K,?,L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART,cl.priority);
