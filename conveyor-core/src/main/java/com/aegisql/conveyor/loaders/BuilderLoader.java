@@ -20,13 +20,13 @@ import com.aegisql.conveyor.Conveyor;
  * @param <OUT> the generic type
  * @param <F> the generic type
  */
-public final class BuilderLoader<K,OUT,F> {
+public final class BuilderLoader<K,OUT> {
 
 	/** The placer. */
-	private final Function<BuilderLoader<K,OUT,F>, CompletableFuture<F>> placer;
+	private final Function<BuilderLoader<K,OUT>, CompletableFuture<Boolean>> placer;
 
 	/** The future placer. */
-	private final Function<BuilderLoader<K,OUT,F>, CompletableFuture<OUT>> futurePlacer;
+	private final Function<BuilderLoader<K,OUT>, CompletableFuture<OUT>> futurePlacer;
 
 	/** The creation time. */
 	public final long creationTime; 
@@ -64,8 +64,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param priority the priority
 	 */
 	private BuilderLoader(
-			Function<BuilderLoader<K,OUT,F>, CompletableFuture<F>> placer,
-			Function<BuilderLoader<K,OUT,F>, CompletableFuture<OUT>> futurePlacer,
+			Function<BuilderLoader<K,OUT>, CompletableFuture<Boolean>> placer,
+			Function<BuilderLoader<K,OUT>, CompletableFuture<OUT>> futurePlacer,
 			long creationTime,
 			long expirationTime,
 			long ttlMsec,
@@ -98,8 +98,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param dumb the dumb
 	 */
 	private BuilderLoader(
-			Function<BuilderLoader<K,OUT,F>, CompletableFuture<F>> placer,
-			Function<BuilderLoader<K,OUT,F>, CompletableFuture<OUT>> futurePlacer,
+			Function<BuilderLoader<K,OUT>, CompletableFuture<Boolean>> placer,
+			Function<BuilderLoader<K,OUT>, CompletableFuture<OUT>> futurePlacer,
 			long creationTime,
 			long ttl,
 			K key,
@@ -125,8 +125,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param futurePlacer the future placer
 	 */
 	public BuilderLoader(
-			Function<BuilderLoader<K,OUT,F>, CompletableFuture<F>> placer,
-			Function<BuilderLoader<K,OUT,F>, CompletableFuture<OUT>> futurePlacer) {
+			Function<BuilderLoader<K,OUT>, CompletableFuture<Boolean>> placer,
+			Function<BuilderLoader<K,OUT>, CompletableFuture<OUT>> futurePlacer) {
 		this(placer,futurePlacer,System.currentTimeMillis(),0,0,null,null,Collections.EMPTY_MAP,0);
 	}
 	
@@ -136,8 +136,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param k the k
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F> id(K k) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,k,value,properties,priority);
+	public BuilderLoader<K,OUT> id(K k) {
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,k,value,properties,priority);
 	}
 
 	/**
@@ -146,8 +146,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param v the v
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F> supplier(BuilderSupplier<OUT> v) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,v,properties,priority);
+	public BuilderLoader<K,OUT> supplier(BuilderSupplier<OUT> v) {
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,v,properties,priority);
 	}
 
 	/**
@@ -156,8 +156,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param et the et
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F>  expirationTime(long et) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,et,ttlMsec,key,value,properties,priority);
+	public BuilderLoader<K,OUT>  expirationTime(long et) {
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,creationTime,et,ttlMsec,key,value,properties,priority);
 	}
 
 	/**
@@ -166,8 +166,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param ct the ct
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F>  creationTime(long ct) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,ct,expirationTime,ttlMsec,key,value,properties,priority);
+	public BuilderLoader<K,OUT>  creationTime(long ct) {
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,ct,expirationTime,ttlMsec,key,value,properties,priority);
 	}
 
 	/**
@@ -176,8 +176,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param instant the instant
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F>  expirationTime(Instant instant) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,instant.toEpochMilli(),ttlMsec,key,value,properties,priority);
+	public BuilderLoader<K,OUT>  expirationTime(Instant instant) {
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,creationTime,instant.toEpochMilli(),ttlMsec,key,value,properties,priority);
 	}
 
 	/**
@@ -186,8 +186,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param instant the instant
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F>  creationTime(Instant instant) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,instant.toEpochMilli(),expirationTime,ttlMsec,key,value,properties,priority);
+	public BuilderLoader<K,OUT>  creationTime(Instant instant) {
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,instant.toEpochMilli(),expirationTime,ttlMsec,key,value,properties,priority);
 	}
 
 	/**
@@ -197,8 +197,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param unit the unit
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F>  ttl(long time, TimeUnit unit) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,value,properties,priority,true);
+	public BuilderLoader<K,OUT>  ttl(long time, TimeUnit unit) {
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),key,value,properties,priority,true);
 	}
 	
 	/**
@@ -207,8 +207,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param duration the duration
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F>  ttl(Duration duration) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,duration.toMillis(),key,value,properties,priority,true);
+	public BuilderLoader<K,OUT>  ttl(Duration duration) {
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,creationTime,duration.toMillis(),key,value,properties,priority,true);
 	}
 	
 	/**
@@ -217,8 +217,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param p the p
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F>  priority(long p) {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,value,properties,p);
+	public BuilderLoader<K,OUT>  priority(long p) {
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,value,properties,p);
 	}
 	
 	/**
@@ -226,8 +226,8 @@ public final class BuilderLoader<K,OUT,F> {
 	 *
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F> clearProperties() {
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,value,Collections.EMPTY_MAP,priority);
+	public BuilderLoader<K,OUT> clearProperties() {
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,value,Collections.EMPTY_MAP,priority);
 	}
 
 	/**
@@ -236,11 +236,11 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param k the k
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F>  clearProperty(String k) {
+	public BuilderLoader<K,OUT> clearProperty(String k) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.remove(k);
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,value,newMap,priority);
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,value,newMap,priority);
 	}
 
 	/**
@@ -250,11 +250,11 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param v the v
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F>  addProperty(String k, Object v) {
+	public BuilderLoader<K,OUT>  addProperty(String k, Object v) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.put(k, v);
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,value,newMap,priority);
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,value,newMap,priority);
 	}
 
 	/**
@@ -263,11 +263,11 @@ public final class BuilderLoader<K,OUT,F> {
 	 * @param moreProperties the more properties
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K,OUT,F> addProperties(Map<String,Object> moreProperties) {
+	public BuilderLoader<K,OUT> addProperties(Map<String,Object> moreProperties) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.putAll(moreProperties);
-		return new BuilderLoader<K,OUT,F>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,value,newMap,priority);
+		return new BuilderLoader<K,OUT>(placer,futurePlacer,creationTime,expirationTime,ttlMsec,key,value,newMap,priority);
 	}
 	
 	/**
@@ -296,7 +296,7 @@ public final class BuilderLoader<K,OUT,F> {
 	 *
 	 * @return the completable future
 	 */
-	public CompletableFuture<F> create() {
+	public CompletableFuture<Boolean> create() {
 		return placer.apply(this);
 	}
 
@@ -318,7 +318,7 @@ public final class BuilderLoader<K,OUT,F> {
 				+ expirationTime + ", ttlMsec=" + ttlMsec + ", key=" + key + ", priority="+priority+", properties=" + properties + "]";
 	}
 	
-	public static <K,OUT> BuilderLoader<K,OUT,Boolean> byConveyorName(String name) {
+	public static <K,OUT> BuilderLoader<K,OUT> byConveyorName(String name) {
 		return Conveyor.byName(name).build();
 	}
 

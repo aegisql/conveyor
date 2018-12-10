@@ -271,8 +271,8 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#build()
 	 */
 	@Override
-	public BuilderLoader<K, OUT, Boolean> build() {
-		return new BuilderLoader<K, OUT, Boolean>(cl -> {
+	public BuilderLoader<K, OUT> build() {
+		return new BuilderLoader<K, OUT>(cl -> {
 			BuilderSupplier<OUT> bs = cl.value;
 			if (bs == null) {
 				// bs = builderSupplier;

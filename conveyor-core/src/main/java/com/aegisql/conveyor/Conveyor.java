@@ -69,7 +69,7 @@ public interface Conveyor<K, L, OUT> {
 	 *
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K, OUT, Boolean> build();
+	public BuilderLoader<K, OUT> build();
 	
 	/**
 	 * Future.

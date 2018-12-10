@@ -152,8 +152,8 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 
 	
 	@Override
-	public BuilderLoader<K, OUT, Boolean> build() {
-		return new BuilderLoader<K, OUT, Boolean> (cl -> {
+	public BuilderLoader<K, OUT> build() {
+		return new BuilderLoader<K, OUT> (cl -> {
 			BuilderSupplier<OUT> bs = cl.value;
 			if(bs == null) {
 				bs = builderSupplier;

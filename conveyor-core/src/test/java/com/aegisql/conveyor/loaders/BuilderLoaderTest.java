@@ -39,7 +39,7 @@ public class BuilderLoaderTest {
 		
 		long current = System.currentTimeMillis();
 
-		BuilderLoader<Integer,String,Boolean> bl0 = new BuilderLoader<>(p->{
+		BuilderLoader<Integer,String> bl0 = new BuilderLoader<>(p->{
 			CompletableFuture<Boolean> cf = new CompletableFuture<Boolean>();
 			assertEquals(1,p.priority);
 			cf.complete(true);
@@ -89,7 +89,7 @@ public class BuilderLoaderTest {
 	
 	@Test
 	public void propertiesTest() {
-		BuilderLoader<Integer,String,Boolean> pl0 = new BuilderLoader<>(p->{
+		BuilderLoader<Integer,String> pl0 = new BuilderLoader<>(p->{
 			CompletableFuture<Boolean> cf = new CompletableFuture<Boolean>();
 			cf.complete(true);
 			return cf;
