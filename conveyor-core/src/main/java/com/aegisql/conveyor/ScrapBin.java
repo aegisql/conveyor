@@ -57,6 +57,8 @@ CONVEYOR_STOPPED
 /** The general failure. */
 GENERAL_FAILURE
 		,
+
+/** The keep running exception. */
 KEEP_RUNNING_EXCEPTION
 	}
 	
