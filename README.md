@@ -47,6 +47,9 @@ conveyor configurator (beta)
 ## Release History
 
 ### 1.3.15-SNAPSHOT
+* Improved Loader interfaces
+* Added access by conveyor name for Loaders
+* Added lazy suppliers for Loaders
 
 ### 1.3.14
 * KeepRunning exception for non-critical errors

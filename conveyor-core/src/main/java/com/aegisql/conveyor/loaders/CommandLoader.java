@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.BuildingSite.Memento;
@@ -314,6 +315,19 @@ public final class CommandLoader<K,OUT> {
 	
 	public static <K,OUT> CommandLoader<K,OUT> byConveyorName(String name) {
 		return Conveyor.byName(name).command();
+	}
+	
+	public static <K,OUT> Supplier<CommandLoader<K,OUT>> lazySupplier(String name) {
+		return new Supplier<CommandLoader<K,OUT>>() {
+			Conveyor<K,?,OUT> c;
+			@Override
+			public CommandLoader<K, OUT> get() {
+				if(c == null) {
+					c = Conveyor.byName(name);
+				}
+				return c.command();
+			}
+		};
 	}
 	
 }

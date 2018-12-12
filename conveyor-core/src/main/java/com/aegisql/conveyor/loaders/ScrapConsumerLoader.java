@@ -2,6 +2,7 @@ package com.aegisql.conveyor.loaders;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
@@ -119,6 +120,19 @@ public final class ScrapConsumerLoader<K> {
 
 	public static <K> ScrapConsumerLoader<K> byConveyorName(String name,ScrapConsumer<K,?> scrapConsumer) {
 		return Conveyor.byName(name).scrapConsumer(scrapConsumer);
+	}
+	
+	public static <K> Supplier<ScrapConsumerLoader<K>> lazySupplier(String name) {
+		return new Supplier<ScrapConsumerLoader<K>>() {
+			Conveyor<K,?,?> c;
+			@Override
+			public ScrapConsumerLoader<K> get() {
+				if(c == null) {
+					c = Conveyor.byName(name);
+				}
+				return c.scrapConsumer();
+			}
+		};
 	}
 
 }

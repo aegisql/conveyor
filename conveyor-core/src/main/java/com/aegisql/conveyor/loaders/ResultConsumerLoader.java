@@ -9,6 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
@@ -430,4 +431,17 @@ public final class ResultConsumerLoader<K,OUT> {
 		return Conveyor.byName(name).resultConsumer(consumer);
 	}
 
+	public static <K,OUT> Supplier<ResultConsumerLoader<K,OUT>> lazySupplier(String name) {
+		return new Supplier<ResultConsumerLoader<K,OUT>>() {
+			Conveyor<K,?,OUT> c;
+			@Override
+			public ResultConsumerLoader<K, OUT> get() {
+				if(c == null) {
+					c = Conveyor.byName(name);
+				}
+				return c.resultConsumer();
+			}
+		};
+	}
+	
 }

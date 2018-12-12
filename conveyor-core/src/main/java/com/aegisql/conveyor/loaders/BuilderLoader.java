@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
@@ -320,6 +321,19 @@ public final class BuilderLoader<K,OUT> {
 	
 	public static <K,OUT> BuilderLoader<K,OUT> byConveyorName(String name) {
 		return Conveyor.byName(name).build();
+	}
+	
+	public static <K,OUT> Supplier<BuilderLoader<K,OUT>> lazySupplier(String name) {
+		return new Supplier<BuilderLoader<K,OUT>>() {
+			Conveyor<K,?,OUT> c;
+			@Override
+			public BuilderLoader<K, OUT> get() {
+				if(c == null) {
+					c = Conveyor.byName(name);
+				}
+				return c.build();
+			}
+		};
 	}
 
 }

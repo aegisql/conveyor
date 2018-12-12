@@ -36,7 +36,13 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
+import com.aegisql.conveyor.loaders.BuilderLoader;
 import com.aegisql.conveyor.loaders.CommandLoader;
+import com.aegisql.conveyor.loaders.FutureLoader;
+import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.loaders.ResultConsumerLoader;
+import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
+import com.aegisql.conveyor.loaders.StaticPartLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 
@@ -727,10 +733,46 @@ public class AssemblingConveyorTest {
 		Conveyor<Integer,String,User> ac2 = Conveyor.byName("test_name");
 		
 		Conveyor<Integer,String,User> ac3 = Conveyor.lazySupplier("test_name").get();
-		
+		assertNotNull(ac2);
+		assertNotNull(ac3);
 		assertTrue(ac1==ac2);
 		assertTrue(ac1==ac3);
 		
+		assertNotNull(PartLoader.byConveyorName("test_name"));
+		assertNotNull(PartLoader.lazySupplier("test_name"));
+		assertNotNull(PartLoader.lazySupplier("test_name").get());
+		assertTrue(PartLoader.lazySupplier("test_name").get() instanceof PartLoader);
+
+		assertNotNull(StaticPartLoader.byConveyorName("test_name"));
+		assertNotNull(StaticPartLoader.lazySupplier("test_name"));
+		assertNotNull(StaticPartLoader.lazySupplier("test_name").get());
+		assertTrue(StaticPartLoader.lazySupplier("test_name").get() instanceof StaticPartLoader);
+
+		assertNotNull(BuilderLoader.byConveyorName("test_name"));
+		assertNotNull(BuilderLoader.lazySupplier("test_name"));
+		assertNotNull(BuilderLoader.lazySupplier("test_name").get());
+		assertTrue(BuilderLoader.lazySupplier("test_name").get() instanceof BuilderLoader);
+
+		assertNotNull(CommandLoader.byConveyorName("test_name"));
+		assertNotNull(CommandLoader.lazySupplier("test_name"));
+		assertNotNull(CommandLoader.lazySupplier("test_name").get());
+		assertTrue(CommandLoader.lazySupplier("test_name").get() instanceof CommandLoader);
+
+		assertNotNull(FutureLoader.byConveyorName("test_name"));
+		assertNotNull(FutureLoader.lazySupplier("test_name"));
+		assertNotNull(FutureLoader.lazySupplier("test_name").get());
+		assertTrue(FutureLoader.lazySupplier("test_name").get() instanceof FutureLoader);
+
+		assertNotNull(ResultConsumerLoader.byConveyorName("test_name"));
+		assertNotNull(ResultConsumerLoader.lazySupplier("test_name"));
+		assertNotNull(ResultConsumerLoader.lazySupplier("test_name").get());
+		assertTrue(ResultConsumerLoader.lazySupplier("test_name").get() instanceof ResultConsumerLoader);
+
+		assertNotNull(ScrapConsumerLoader.byConveyorName("test_name"));
+		assertNotNull(ScrapConsumerLoader.lazySupplier("test_name"));
+		assertNotNull(ScrapConsumerLoader.lazySupplier("test_name").get());
+		assertTrue(ScrapConsumerLoader.lazySupplier("test_name").get() instanceof ScrapConsumerLoader);
+
 	}
 
 	@Test(expected=RuntimeException.class)

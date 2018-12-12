@@ -5,6 +5,7 @@ package com.aegisql.conveyor.loaders;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import com.aegisql.conveyor.Conveyor;
 
@@ -121,4 +122,17 @@ public final class StaticPartLoader<L> {
 		return Conveyor.byName(name).staticPart();
 	}
 	
+	public static <L> Supplier<StaticPartLoader<L>> lazySupplier(String name) {
+		return new Supplier<StaticPartLoader<L>>() {
+			Conveyor<?,L,?> c;
+			@Override
+			public StaticPartLoader<L> get() {
+				if(c == null) {
+					c = Conveyor.byName(name);
+				}
+				return c.staticPart();
+			}
+		};
+	}
+
 }

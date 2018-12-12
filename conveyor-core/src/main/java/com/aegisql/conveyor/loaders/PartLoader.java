@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.serial.SerializablePredicate;
@@ -349,5 +350,18 @@ public final class PartLoader<K,L> {
 	public static <K,L> PartLoader<K,L> byConveyorName(String name) {
 		return Conveyor.byName(name).part();
 	}
-	
+
+	public static <K,L> Supplier<PartLoader<K,L>> lazySupplier(String name) {
+		return new Supplier<PartLoader<K,L>>() {
+			Conveyor<K,L,?> c;
+			@Override
+			public PartLoader<K, L> get() {
+				if(c == null) {
+					c = Conveyor.byName(name);
+				}
+				return c.part();
+			}
+		};
+	}
+
 }
