@@ -16,12 +16,9 @@ import com.aegisql.conveyor.serial.SerializablePredicate;
 // TODO: Auto-generated Javadoc
 /**
  * The Class PartLoader.
- * @param <K> the key type
  *
+ * @param <K> the key type
  * @param <L> the generic type
- * @param <V> the value type
- * @param <OUT> the generic type
- * @param <F> the generic type
  */
 public final class PartLoader<K,L> {
 
@@ -180,7 +177,6 @@ public final class PartLoader<K,L> {
 	/**
 	 * Value.
 	 *
-	 * @param <X> the generic type
 	 * @param v the v
 	 * @return the part loader
 	 */
@@ -347,10 +343,26 @@ public final class PartLoader<K,L> {
 				+ expirationTime + ", ttlMsec=" + ttlMsec + ", priority=" + priority + ", key=" + key + ", label=" + label + ", partValue=" + partValue + ", properties=" + properties + "]";
 	}
 	
+	/**
+	 * By conveyor name.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param name the name
+	 * @return the part loader
+	 */
 	public static <K,L> PartLoader<K,L> byConveyorName(String name) {
 		return Conveyor.byName(name).part();
 	}
 
+	/**
+	 * Lazy supplier.
+	 *
+	 * @param <K> the key type
+	 * @param <L> the generic type
+	 * @param name the name
+	 * @return the supplier
+	 */
 	public static <K,L> Supplier<PartLoader<K,L>> lazySupplier(String name) {
 		return new Supplier<PartLoader<K,L>>() {
 			Conveyor<K,L,?> c;

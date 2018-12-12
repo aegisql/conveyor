@@ -19,7 +19,6 @@ import com.aegisql.conveyor.Conveyor;
  *
  * @param <K> the key type
  * @param <OUT> the generic type
- * @param <F> the generic type
  */
 public final class BuilderLoader<K,OUT> {
 
@@ -319,10 +318,26 @@ public final class BuilderLoader<K,OUT> {
 				+ expirationTime + ", ttlMsec=" + ttlMsec + ", key=" + key + ", priority="+priority+", properties=" + properties + "]";
 	}
 	
+	/**
+	 * By conveyor name.
+	 *
+	 * @param <K> the key type
+	 * @param <OUT> the generic type
+	 * @param name the name
+	 * @return the builder loader
+	 */
 	public static <K,OUT> BuilderLoader<K,OUT> byConveyorName(String name) {
 		return Conveyor.byName(name).build();
 	}
 	
+	/**
+	 * Lazy supplier.
+	 *
+	 * @param <K> the key type
+	 * @param <OUT> the generic type
+	 * @param name the name
+	 * @return the supplier
+	 */
 	public static <K,OUT> Supplier<BuilderLoader<K,OUT>> lazySupplier(String name) {
 		return new Supplier<BuilderLoader<K,OUT>>() {
 			Conveyor<K,?,OUT> c;

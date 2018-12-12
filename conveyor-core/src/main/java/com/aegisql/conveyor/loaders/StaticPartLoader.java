@@ -14,9 +14,6 @@ import com.aegisql.conveyor.Conveyor;
  * The Class StaticPartLoader.
  *
  * @param <L> the generic type
- * @param <V> the value type
- * @param <OUT> the generic type
- * @param <F> the generic type
  */
 public final class StaticPartLoader<L> {
 
@@ -93,7 +90,6 @@ public final class StaticPartLoader<L> {
 	/**
 	 * Value.
 	 *
-	 * @param <X> the generic type
 	 * @param v the v
 	 * @return the part loader
 	 */
@@ -118,10 +114,24 @@ public final class StaticPartLoader<L> {
 		return "StaticPartLoader [" + (create ? "create ":"delete ") + "label=" + label + ", staticValue=" + staticPartValue + ", priority="+priority+"]";
 	}
 	
+	/**
+	 * By conveyor name.
+	 *
+	 * @param <L> the generic type
+	 * @param name the name
+	 * @return the static part loader
+	 */
 	public static <L> StaticPartLoader<L> byConveyorName(String name) {
 		return Conveyor.byName(name).staticPart();
 	}
 	
+	/**
+	 * Lazy supplier.
+	 *
+	 * @param <L> the generic type
+	 * @param name the name
+	 * @return the supplier
+	 */
 	public static <L> Supplier<StaticPartLoader<L>> lazySupplier(String name) {
 		return new Supplier<StaticPartLoader<L>>() {
 			Conveyor<?,L,?> c;
