@@ -773,6 +773,11 @@ public class AssemblingConveyorTest {
 		assertNotNull(ScrapConsumerLoader.lazySupplier("test_name").get());
 		assertTrue(ScrapConsumerLoader.lazySupplier("test_name").get() instanceof ScrapConsumerLoader);
 
+		PartLoader<Integer, String> pl = PartLoader.byConveyorName("test_name");
+		PartLoader<Integer, String> pl2 = PartLoader.<Integer, String>lazySupplier("test_name").get();
+		pl.id(1).label("label").value("value").place();
+		pl2.id(2).label("label").value("value2").place();
+		
 	}
 
 	@Test(expected=RuntimeException.class)
