@@ -47,7 +47,11 @@ conveyor configurator (beta)
 ## Release History
 
 ### 1.4.0-SNAPSHOT
-* Support for abstract JDBC connections in persistence
+* Deprecated Derby Jdbc Persistence
+* Support for configurable JDBC connections in persistence
+* Implemented JDBC connectors for derby (static and client), MySQL, PostgreSQL 
+
+***
 
 ### 1.3.15
 * Improved Loader interfaces
