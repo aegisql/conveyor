@@ -43,7 +43,7 @@ import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration.BinaryLog
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
-import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceInitializer;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -248,7 +248,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 					Class keyClass = Class.forName(keyProperty.getValueAsString());
 
-					JdbcPersistenceInitializer dp = JdbcPersistenceInitializer.presetInitializer(pp.getType().toLowerCase(),keyClass);
+					JdbcPersistenceBuilder dp = JdbcPersistenceBuilder.presetInitializer(pp.getType().toLowerCase(),keyClass);
 					dp = dp.autoInit(true);
 					dp = dp.schema(pp.getSchema());
 					dp = dp.partTable(pp.getName());

@@ -22,7 +22,7 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
-import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceInitializer;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringConverter;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import com.aegisql.conveyor.serial.SerializablePredicate;
@@ -46,7 +46,7 @@ public class PersistCartsTest {
 	public void tearDown() throws Exception {
 	}
 	
-	JdbcPersistenceInitializer<Integer> persistenceBuilder = JdbcPersistenceInitializer.presetInitializer("derby", Integer.class)
+	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", Integer.class)
 			.schema("carts_db").autoInit(true).setArchived();
 
 	

@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceInitializer;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 
 public class MySqlPersistenceTest {
 
@@ -51,7 +51,7 @@ public class MySqlPersistenceTest {
 
 	@Test
 	public void test() throws Exception {
-		JdbcPersistenceInitializer<Integer> jpb = JdbcPersistenceInitializer.presetInitializer("mysql", Integer.class)
+		JdbcPersistenceBuilder<Integer> jpb = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
 				.autoInit(true)
 				.schema("mysql_persistence_test")
 				.partTable("PART")

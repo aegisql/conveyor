@@ -19,7 +19,7 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceInitializer;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringConverter;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
@@ -42,7 +42,7 @@ public class LearnDerbyTest {
 	public void tearDown() throws Exception {
 	}
 		
-	JdbcPersistenceInitializer<String> persistenceBuilder = JdbcPersistenceInitializer.presetInitializer("derby", String.class)
+	JdbcPersistenceBuilder<String> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", String.class)
 			.schema("testDb1").autoInit(true).setArchived().labelConverter(new StringConverter<String>(){
 				@Override
 				public String fromPersistence(String p) {

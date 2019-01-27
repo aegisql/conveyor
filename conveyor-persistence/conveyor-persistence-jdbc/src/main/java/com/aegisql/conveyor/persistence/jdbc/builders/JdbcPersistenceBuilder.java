@@ -46,9 +46,9 @@ import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringLabelConverter;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
 
-public class JdbcPersistenceInitializer<K> {
+public class JdbcPersistenceBuilder<K> {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(JdbcPersistenceInitializer.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JdbcPersistenceBuilder.class);
 	
 	private static final int LOAD_TYPE_MAX_LENGTH = 15;
 	private static final int LABEL_MAX_LENGTH = 100;
@@ -196,13 +196,13 @@ public class JdbcPersistenceInitializer<K> {
 	private final long maxBatchTime;
 	private final Set<String> nonPersistentProperties;
 	
-	public JdbcPersistenceInitializer(Class<K> keyClass) {
+	public JdbcPersistenceBuilder(Class<K> keyClass) {
 		this(TimeHostIdGenerator.idGenerator_10x8(System.currentTimeMillis()/1000)::getId, false, keyClass, null, null, null, 0, null, null, null, null, null, null, new Properties(), new LinkedHashMap<>(), null,
 				ArchiveStrategy.DELETE,null,null,null,new StringLabelConverter(), new EncryptingConverterBuilder(),
 				0,100,60_000,new HashSet<>());
 	}	
 	
-	private JdbcPersistenceInitializer(LongSupplier idSupplier, boolean autoInit, Class<K> keyClass, String type, String driver, String host, int port,
+	private JdbcPersistenceBuilder(LongSupplier idSupplier, boolean autoInit, Class<K> keyClass, String type, String driver, String host, int port,
 			String database, String schema, String partTable, String completedLogTable, String user, String password,
 			Properties properties, LinkedHashMap<String, String> fields, ConnectionTemplate connectionUrlTemplate,
 			ArchiveStrategy archiveStrategy, Archiver<K> customArchiver, Persistence<K> archivingPersistence, BinaryLogConfiguration bLogConf,
@@ -401,24 +401,24 @@ public class JdbcPersistenceInitializer<K> {
 		}
 	}
 
-	public JdbcPersistenceInitializer<K> idSupplier(LongSupplier sup) {
-		return new JdbcPersistenceInitializer<>(sup, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> idSupplier(LongSupplier sup) {
+		return new JdbcPersistenceBuilder<>(sup, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 	
-	public JdbcPersistenceInitializer<K> autoInit(boolean flag) {
-		return new JdbcPersistenceInitializer<>(idSupplier, flag, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> autoInit(boolean flag) {
+		return new JdbcPersistenceBuilder<>(idSupplier, flag, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> keyClass(Class<K> keyCls) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyCls, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> keyClass(Class<K> keyCls) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyCls, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -426,273 +426,273 @@ public class JdbcPersistenceInitializer<K> {
 				setField(CART_KEY, getKeySqlType(keyCls));
 	}
 
-	public JdbcPersistenceInitializer<K> engineType(String eType) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, eType, driver, host, port,
+	public JdbcPersistenceBuilder<K> engineType(String eType) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, eType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> driver(String drv) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, drv, host, port,
+	public JdbcPersistenceBuilder<K> driver(String drv) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, drv, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> host(String hst) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, hst, port,
+	public JdbcPersistenceBuilder<K> host(String hst) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, hst, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> port(int p) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, p,
+	public JdbcPersistenceBuilder<K> port(int p) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, p,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> database(String db) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> database(String db) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				db, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> schema(String sch) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> schema(String sch) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, sch, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> partTable(String partTbl) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> partTable(String partTbl) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTbl, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> completedLogTable(String completedLogTbl) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> completedLogTable(String completedLogTbl) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTbl, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> user(String usr) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> user(String usr) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, usr, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> password(String pwd) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> password(String pwd) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, pwd,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> properties(Properties pr) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> properties(Properties pr) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(pr), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> setProperty(String key, String value) {
+	public JdbcPersistenceBuilder<K> setProperty(String key, String value) {
 		Properties p = new Properties(properties);
 		p.put(key, value);
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(p), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> fields(Map<String, String> f) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> fields(Map<String, String> f) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(f), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> setField(String field, String type) {
+	public JdbcPersistenceBuilder<K> setField(String field, String type) {
 		LinkedHashMap<String, String> f = new LinkedHashMap<>(fields);
 		f.put(field, type);
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(f), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> connectionUrlTemplate(ConnectionTemplate connectionUrlTmpl) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> connectionUrlTemplate(ConnectionTemplate connectionUrlTmpl) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTmpl,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> archiver(Archiver<K> archiver) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> archiver(Archiver<K> archiver) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				ArchiveStrategy.CUSTOM, archiver, null, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> archiver(BinaryLogConfiguration bLogConf) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> archiver(BinaryLogConfiguration bLogConf) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				ArchiveStrategy.MOVE_TO_FILE, null, null, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> archiver(Persistence<K> archivingPersistence) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> archiver(Persistence<K> archivingPersistence) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				ArchiveStrategy.MOVE_TO_PERSISTENCE, null, archivingPersistence, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> noArchiving() {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> noArchiving() {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				ArchiveStrategy.NO_ACTION, null, null, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> setArchived() {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> setArchived() {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				ArchiveStrategy.SET_ARCHIVED, null, null, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> deleteArchiving() {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> deleteArchiving() {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				ArchiveStrategy.DELETE, null, null, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 	
-	public JdbcPersistenceInitializer<K> labelConverter(ObjectConverter<?,String> labelConv) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> labelConverter(ObjectConverter<?,String> labelConv) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConv,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public <L extends Enum<L>> JdbcPersistenceInitializer<K> labelConverter(Class<L> enClass) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public <L extends Enum<L>> JdbcPersistenceBuilder<K> labelConverter(Class<L> enClass) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, new EnumConverter<>(enClass),
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> encryptionSecret(String encryptionSecret) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> encryptionSecret(String encryptionSecret) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionSecret(encryptionSecret), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> encryptionSecret(SecretKey secretKey) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> encryptionSecret(SecretKey secretKey) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.secretKey(secretKey), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> encryptionAlgorithm(String encryptionAlgorithm) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> encryptionAlgorithm(String encryptionAlgorithm) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionAlgorithm(encryptionAlgorithm), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> encryptionTransformation(String encryptionTransformation) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> encryptionTransformation(String encryptionTransformation) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionTransformation(encryptionTransformation), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> encryptionKeyLength(int encryptionKeyLength) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> encryptionKeyLength(int encryptionKeyLength) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionKeyLength(encryptionKeyLength), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> minCompactSize(int size) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> minCompactSize(int size) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, size, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> maxBatchSize(int size) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> maxBatchSize(int size) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, size, maxBatchTime, nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> maxBatchTime(long time, TimeUnit unit) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> maxBatchTime(long time, TimeUnit unit) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, TimeUnit.MILLISECONDS.convert(maxBatchTime, unit), nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> maxBatchTime(Duration duration) {
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+	public JdbcPersistenceBuilder<K> maxBatchTime(Duration duration) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, duration.toMillis(), nonPersistentProperties);
 	}
 
-	public JdbcPersistenceInitializer<K> doNotSaveCartProperties(String property,String... more) {
+	public JdbcPersistenceBuilder<K> doNotSaveCartProperties(String property,String... more) {
 		Set<String> set = new HashSet<>(nonPersistentProperties);
 		set.add(property);
 		if(more != null) {
 			set.addAll(Arrays.asList(more));
 		}
-		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -754,13 +754,13 @@ public class JdbcPersistenceInitializer<K> {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T> JdbcPersistenceInitializer<K> addBinaryConverter(Class<T> clas, ObjectConverter<T, byte[]> conv) {
+	public <T> JdbcPersistenceBuilder<K> addBinaryConverter(Class<T> clas, ObjectConverter<T, byte[]> conv) {
 		converterAdviser.addConverter(clas, conv);
 		return this; //TODO: make converterAdviser immutable
 	}
 
 	@SuppressWarnings("unchecked")
-	public <L,T> JdbcPersistenceInitializer<K> addBinaryConverter(L label, ObjectConverter<T, byte[]> conv) {
+	public <L,T> JdbcPersistenceBuilder<K> addBinaryConverter(L label, ObjectConverter<T, byte[]> conv) {
 		converterAdviser.addConverter(label, conv);
 		return this;
 	}
@@ -929,10 +929,10 @@ public class JdbcPersistenceInitializer<K> {
 		return keyType;
 	}
 	
-	public static <K> JdbcPersistenceInitializer<K> presetInitializer(String type, Class<K> kClass) {
+	public static <K> JdbcPersistenceBuilder<K> presetInitializer(String type, Class<K> kClass) {
 		
 		
-		JdbcPersistenceInitializer<K> pi = new JdbcPersistenceInitializer<K>(kClass)
+		JdbcPersistenceBuilder<K> pi = new JdbcPersistenceBuilder<K>(kClass)
 				.database(null)
 				.schema("conveyor_db")
 				.partTable("PART")
