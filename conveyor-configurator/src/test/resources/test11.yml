@@ -15,6 +15,6 @@ conveyor:
         keyClass: java.lang.Integer
         archiveStrategy:
           path: ./
-          maxFileSize: 20KB
+          maxFileSize: 1MB
           bucketSize: 50
           zip: true

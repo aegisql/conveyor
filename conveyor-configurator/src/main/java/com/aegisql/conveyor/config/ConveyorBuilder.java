@@ -43,9 +43,7 @@ import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration.BinaryLog
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.ArchiveBuilder;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistenceBuilder;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceInitializer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -240,7 +238,6 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 					});
 				}
 
-				if (pp.getType().equalsIgnoreCase("derby")) {
 					PersistenceProperty keyProperty = ppMapList.get("keyClass").getLast();
 					LOG.debug("Persistence found {} {}", key, pp);
 
@@ -251,11 +248,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 					Class keyClass = Class.forName(keyProperty.getValueAsString());
 
-					DerbyPersistenceBuilder dp = DerbyPersistence.forKeyClass(keyClass);
-					dp.schema(pp.getSchema());
-					dp.partTable(pp.getName());
+					JdbcPersistenceInitializer dp = JdbcPersistenceInitializer.presetInitializer(pp.getType().toLowerCase(),keyClass);
+					dp = dp.autoInit(true);
+					dp = dp.schema(pp.getSchema());
+					dp = dp.partTable(pp.getName());
 
-					ArchiveBuilder archiverBuilder = dp.whenArchiveRecords();
+//					ArchiveBuilder archiverBuilder = dp.whenArchiveRecords();
 					BinaryLogConfigurationBuilder bLogConf = BinaryLogConfiguration.builder();
 					bLogConf.partTableName(pp.getName());
 
@@ -263,79 +261,76 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 					for (LinkedList<PersistenceProperty> ppList : ppMapList.values())
 						for (PersistenceProperty p : ppList) {
 							switch (p.getProperty()) {
-							case "embedded":
-								dp.embedded(Boolean.parseBoolean(p.getValueAsString()));
-								break;
 							case "username":
-								dp.username(p.getValueAsString());
+								dp = dp.user(p.getValueAsString());
 								break;
 							case "password":
-								dp.password(p.getValueAsString());
+								dp = dp.password(p.getValueAsString());
 								break;
 							case "completedLogTable":
-								dp.completedLogTable(p.getValueAsString());
+								dp = dp.completedLogTable(p.getValueAsString());
 								break;
 							case "port":
-								dp.port(Integer.parseInt(p.getValueAsString()));
+								dp = dp.port(Integer.parseInt(p.getValueAsString()));
 								break;
 							case "encryptionAlgorithm":
-								dp.encryptionAlgorithm(p.getValueAsString());
+								dp = dp.encryptionAlgorithm(p.getValueAsString());
 								break;
 							case "encryptionTransformation":
-								dp.encryptionTransformation(p.getValueAsString());
+								dp = dp.encryptionTransformation(p.getValueAsString());
 								break;
 							case "encryptionKeyLength":
-								dp.encryptionKeyLength(Integer.parseInt(p.getValueAsString()));
+								dp = dp.encryptionKeyLength(Integer.parseInt(p.getValueAsString()));
 								break;
 							case "encryptionSecret":
-								dp.encryptionSecret(p.getValueAsString());
+								dp = dp.encryptionSecret(p.getValueAsString());
 								break;
 							case "maxBatchSize":
-								dp.maxBatchSize(Integer.parseInt(p.getValueAsString()));
+								dp = dp.maxBatchSize(Integer.parseInt(p.getValueAsString()));
 								break;
 							case "doNotSaveProperties":
 								String[] parts = p.getValueAsString().split(",");
 								for (String part : parts) {
-									dp.doNotSaveProperties(part.trim());
+									dp = dp.doNotSaveCartProperties(part.trim());
 								}
 								break;
 							case "maxBatchTime":
 								Long value = (Long) ConfigUtils.timeToMillsConverter.apply(p.getValueAsString());
-								dp.maxBatchTime(Duration.ofMillis(value));
+								dp = dp.maxBatchTime(Duration.ofMillis(value));
 							case "archiveStrategy.path":
 								bLogConf.path(p.getValueAsString());
-								archiverBuilder.moveToFile(bLogConf.build());
+								dp = dp.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy.moveTo":
 								bLogConf.moveToPath(p.getValueAsString());
-								archiverBuilder.moveToFile(bLogConf.build());
+								dp = dp.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy.maxFileSize":
 								bLogConf.maxFileSize(p.getValueAsString());
-								archiverBuilder.moveToFile(bLogConf.build());
+								dp = dp.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy.bucketSize":
 								bLogConf.bucketSize(Integer.parseInt(p.getValueAsString()));
-								archiverBuilder.moveToFile(bLogConf.build());
+								dp = dp.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy.zip":
 								bLogConf.zipFile(Boolean.parseBoolean(p.getValueAsString()));
-								archiverBuilder.moveToFile(bLogConf.build());
+								dp = dp.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy":
 								ArchiveStrategy as = ArchiveStrategy.valueOf(p.getValueAsString());
 								switch (as) {
 								case NO_ACTION:
-									archiverBuilder.doNothing();
+									dp = dp.noArchiving();
 									break;
 								case DELETE:
-									archiverBuilder.delete();
+									dp = dp.deleteArchiving();
 									break;
 								case SET_ARCHIVED:
-									archiverBuilder.markArchived();
+									dp = dp.setArchived();
 									break;
 								case MOVE_TO_FILE:
-									archiverBuilder.moveToFile(bLogConf.build());
+									dp = dp.archiver(bLogConf.build());
 									break;
 								case CUSTOM:
 									break;
@@ -347,27 +342,27 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								break;
 							case "archiveStrategy.archiver":
 								Archiver ar = ConfigUtils.stringToArchiverConverter.apply(p.getValueAsString());
-								archiverBuilder.customStrategy(ar);
+								dp = dp.archiver(ar);
 								LOG.warn("Unimplemented PersistentProperty {}", p);
 								break;
 							case "archiveStrategy.persistence":
 								Persistence per = Persistence.byName(p.getValueAsString());
-								archiverBuilder.moveToOtherPersistence(per);
+								dp = dp.archiver(per);
 								break;
 							case "labelConverter":
 								try {
 									Class clas = Class.forName(p.getValueAsString());
-									dp.labelConverter(clas);
+									dp = dp.labelConverter(clas);
 									LOG.debug("Label converter {}", clas.getName());
 								} catch (Exception e) {
 									ObjectConverter oc = ConfigUtils.stringToObjectConverter
 											.apply(p.getValueAsString());
-									dp.labelConverter(oc);
+									dp = dp.labelConverter(oc);
 									LOG.debug("Label converter {}", oc.conversionHint());
 								}
 								break;
 							case "idSupplier":
-								dp.idSupplier(ConfigUtils.stringToIdSupplier.apply(p.getValueAsString()));
+								dp = dp.idSupplier(ConfigUtils.stringToIdSupplier.apply(p.getValueAsString()));
 								LOG.warn("Unimplemented PersistentProperty {}", p);
 								break;
 							case "addBinaryConverter":
@@ -376,14 +371,14 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								.apply(s[1].trim());
 								try {
 									Class clas = Class.forName(s[0].trim());
-									dp.addBinaryConverter(clas, oc);
+									dp = dp.addBinaryConverter(clas, oc);
 								} catch (Exception e) {
 									Object label = ConfigUtils.stringToRefConverter.apply(s[0]);
-									dp.addBinaryConverter(label, oc);
+									dp = dp.addBinaryConverter(label, oc);
 								}
 								break;
 							case "minCompactSize":
-								dp.minCompactSize(Integer.parseInt(p.getValueAsString()));
+								dp = dp.minCompactSize(Integer.parseInt(p.getValueAsString()));
 								LOG.warn("minCompactSize PersistentProperty {}", p);
 								break;
 							default:
@@ -392,11 +387,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 							}
 						}
 					dp.build();
-					persistence = "com.aegisql.conveyor.persistence.derby."+pp.getSchema()+":type="+pp.getName();
+					persistence = "com.aegisql.conveyor.persistence."+pp.getType().toLowerCase()+"."+pp.getSchema()+":type="+pp.getName();
 					LOG.debug("Create Persistence {}",persistence);
-				} else {
-					LOG.warn("Unsupported PersistentProperty type {}", pp.getType());
-				}
+				
 			}
 
 			if (parallelFactor > 1) {

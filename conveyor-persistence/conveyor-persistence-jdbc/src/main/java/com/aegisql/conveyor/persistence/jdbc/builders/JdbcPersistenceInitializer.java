@@ -590,6 +590,14 @@ public class JdbcPersistenceInitializer<K> {
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
 	}
 
+	public JdbcPersistenceInitializer<K> deleteArchiving() {
+		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+				database, schema, partTable, completedLogTable, user, password,
+				new Properties(properties), new LinkedHashMap<>(fields), connectionUrlTemplate,
+				ArchiveStrategy.DELETE, null, null, null, labelConverter,
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties);
+	}
+	
 	public JdbcPersistenceInitializer<K> labelConverter(ObjectConverter<?,String> labelConv) {
 		return new JdbcPersistenceInitializer<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
 				database, schema, partTable, completedLogTable, user, password,

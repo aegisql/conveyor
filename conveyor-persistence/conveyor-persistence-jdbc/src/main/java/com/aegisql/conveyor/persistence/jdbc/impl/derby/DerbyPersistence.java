@@ -47,6 +47,7 @@ import com.aegisql.conveyor.persistence.jdbc.converters.MapToClobConverter;
  *
  * @param <K> the key type
  */
+@Deprecated
 public class DerbyPersistence<K> implements Persistence<K>{
 	
 	/** The Constant LOG. */

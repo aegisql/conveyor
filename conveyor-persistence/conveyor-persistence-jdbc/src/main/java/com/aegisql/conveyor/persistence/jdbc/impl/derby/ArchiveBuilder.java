@@ -10,6 +10,7 @@ import com.aegisql.conveyor.persistence.core.Persistence;
  *
  * @param <K> the key type
  */
+@Deprecated
 public class ArchiveBuilder<K> {
 	
 	/** The dpb. */

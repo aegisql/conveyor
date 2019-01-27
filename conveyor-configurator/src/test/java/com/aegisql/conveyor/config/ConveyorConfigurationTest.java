@@ -43,8 +43,7 @@ import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
-import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceInitializer;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.id_builder.IdSource;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
@@ -76,7 +75,6 @@ public class ConveyorConfigurationTest {
 		}
 
 
-		//Tester.removeDirectory("testConv");
 		String conveyor_db_path = "testConv";
 		File f = new File(conveyor_db_path);
 		try {
@@ -88,10 +86,10 @@ public class ConveyorConfigurationTest {
 			e.printStackTrace();
 		}
 
-		DerbyPersistence.forKeyClass(Integer.class).schema("testConv").partTable("test2")
-				.completedLogTable("test2Completed").whenArchiveRecords().markArchived().maxBatchSize(3).build();
-		DerbyPersistence.forKeyClass(Integer.class).schema("testConv").partTable("persistent")
-				.completedLogTable("persistentCompleted").whenArchiveRecords().markArchived().maxBatchSize(3).build();
+		JdbcPersistenceInitializer.presetInitializer("derby",Integer.class).autoInit(true).schema("testConv").partTable("test2")
+				.completedLogTable("test2Completed").setArchived().maxBatchSize(3).build();
+		JdbcPersistenceInitializer.presetInitializer("derby",Integer.class).autoInit(true).schema("testConv").partTable("persistent")
+				.completedLogTable("persistentCompleted").setArchived().maxBatchSize(3).build();
 	}
 
 	@AfterClass

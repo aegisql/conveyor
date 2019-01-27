@@ -7,6 +7,7 @@ import javax.management.MBeanServer;
 
 import com.aegisql.conveyor.persistence.core.Persistence;
 
+@Deprecated
 public interface DerbyPersistenceMBean<K> extends Supplier<Persistence<K>>{
 	
 	final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();

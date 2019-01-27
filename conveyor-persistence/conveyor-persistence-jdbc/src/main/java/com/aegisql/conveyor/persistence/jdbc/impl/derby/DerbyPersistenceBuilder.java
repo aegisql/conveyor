@@ -44,6 +44,7 @@ import com.aegisql.id_builder.impl.TimeHostIdGenerator;
  *
  * @param <K> the key type
  */
+@Deprecated
 public class DerbyPersistenceBuilder<K> {
 	
 	public BinaryLogConfiguration bLogConf;
