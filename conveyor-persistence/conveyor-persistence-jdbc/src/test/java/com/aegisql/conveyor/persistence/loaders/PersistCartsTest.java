@@ -1,10 +1,11 @@
 package com.aegisql.conveyor.persistence.loaders;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.function.Consumer;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -12,28 +13,25 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
-import com.aegisql.conveyor.persistence.ack.AcknowledgeBuilder;
-import com.aegisql.conveyor.persistence.ack.AcknowledgeBuildingConveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.core.PersistenceCart;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceInitializer;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringConverter;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
-import com.aegisql.conveyor.serial.SerializableFunction;
+import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import com.aegisql.conveyor.serial.SerializablePredicate;
 
 public class PersistCartsTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		Tester.removeDirectory("carts_db");
 	}
 
 	@AfterClass
@@ -48,13 +46,15 @@ public class PersistCartsTest {
 	public void tearDown() throws Exception {
 	}
 	
+	JdbcPersistenceInitializer<Integer> persistenceBuilder = JdbcPersistenceInitializer.presetInitializer("derby", Integer.class)
+			.schema("carts_db").autoInit(true).setArchived();
+
+	
 	public Persistence<Integer> getPersistence(String table) {
 		try {
 			Thread.sleep(1000);
 
-			return DerbyPersistence
-					.forKeyClass(Integer.class)
-					.schema("carts_db")
+			return persistenceBuilder
 					.partTable(table)
 					.completedLogTable(table+"Completed")
 					.labelConverter(new StringConverter<String>() {
@@ -127,30 +127,6 @@ public class PersistCartsTest {
 		assertTrue(scRestored.getValue().getFilter().test(1));
 		
 	}
-
-	
-//	@Test
-//	public void testPersistentKeyCarts() {
-//		Persistence<Integer> p = getPersistence("testMultyKeyCarts");
-//		p.archiveAll();
-//
-//		MultiKeyCart<Integer, String, String> sc1 = new MultiKeyCart<Integer, String, String>(key->true, "sc1", "CART", 0, 0); 
-//		sc1.addProperty("PROPERTY","test");
-//		
-//		AcknowledgeBuildingConveyor<Integer> ab = new AcknowledgeBuildingConveyor<>(p, null, null);
-//		PersistenceCart<Integer> pc1 = PersistenceCart.of(sc1,ab.CART);
-//		
-//		p.savePart(p.nextUniquePartId(), pc1);
-//		
-//		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
-//		
-//		assertEquals(1,allCarts.size());
-//		
-//		Cart<Integer, ?, String> scRestored = allCarts.iterator().next(); 
-//		
-//		assertNull(scRestored.getKey());
-//		System.out.println(scRestored);
-//	}
 
 	@Test
 	public void testResultConsumerCarts() {

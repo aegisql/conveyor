@@ -43,9 +43,9 @@ import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration.BinaryLog
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.ArchiveBuilder;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence.ArchiveBuilder;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence.DerbyPersistenceBuilder;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistenceBuilder;
 
 // TODO: Auto-generated Javadoc
 /**

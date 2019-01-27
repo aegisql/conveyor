@@ -1,14 +1,14 @@
 package com.aegisql.conveyor.persistence.jdbc.impl.derby;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -18,22 +18,17 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence.DerbyPersistenceBuilder;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceInitializer;
+import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
 public class DerbyPersistenceTest {
 
+	JdbcPersistenceInitializer<Integer> persistenceBuilder = JdbcPersistenceInitializer.presetInitializer("derby", Integer.class)
+			.autoInit(true);
+	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		String conveyor_db_path = "conveyor_db";
-		File f = new File(conveyor_db_path);
-		try {
-			//Deleting the directory recursively using FileUtils.
-			FileUtils.deleteDirectory(f);
-			System.out.println("Directory has been deleted recursively !");
-		} catch (IOException e) {
-			System.err.println("Problem occurs when deleting the directory : " + conveyor_db_path);
-			e.printStackTrace();
-		}
+		Tester.removeDirectory("conveyor_db");
 	}
 
 	@AfterClass
@@ -50,13 +45,11 @@ public class DerbyPersistenceTest {
 
 	@Test
 	public void testWithDefaultArchivingStrategy() throws Exception {
-		DerbyPersistenceBuilder<Integer> pb = DerbyPersistence.forKeyClass(Integer.class);
-		assertNotNull(pb);
 		AtomicLong ids = new AtomicLong(0);
-		pb = pb.idSupplier(ids::incrementAndGet);
-		pb = pb.encryptionSecret("dfqejrfljheq");
 		
-		Persistence<Integer> p = pb.build();
+		Persistence<Integer> p = persistenceBuilder
+				.encryptionSecret("dfqejrfljheq")
+				.idSupplier(ids::incrementAndGet).build();//pb.build();
 		assertNotNull(p);
 		p.archiveAll();
 		long id = p.nextUniquePartId();
@@ -90,13 +83,12 @@ public class DerbyPersistenceTest {
 
 	@Test
 	public void testWithArchivedArchivingStrategy() throws Exception {
-		DerbyPersistenceBuilder<Integer> pb = DerbyPersistence.forKeyClass(Integer.class);
-		assertNotNull(pb);
 		AtomicLong ids = new AtomicLong(0);
-		pb = pb.idSupplier(ids::incrementAndGet);
-		pb = pb.whenArchiveRecords().markArchived();
 		
-		Persistence<Integer> p = pb.build();
+		Persistence<Integer> p = persistenceBuilder
+				.idSupplier(ids::incrementAndGet)
+				.setArchived()
+				.build();
 		assertNotNull(p);
 		p.archiveAll();
 		
@@ -132,13 +124,12 @@ public class DerbyPersistenceTest {
 	
 	@Test
 	public void testDeleteExpired() throws Exception {
-		DerbyPersistenceBuilder<Integer> pb = DerbyPersistence.forKeyClass(Integer.class);
-		assertNotNull(pb);
 		AtomicLong ids = new AtomicLong(0);
-		pb = pb.idSupplier(ids::incrementAndGet);
-		pb = pb.whenArchiveRecords().markArchived();
-		pb = pb.partTable("exp_test").completedLogTable("exp_test_complete");
-		Persistence<Integer> p = pb.build();
+		Persistence<Integer> p = persistenceBuilder
+				.partTable("exp_test")
+				.completedLogTable("exp_test_complete")
+				.idSupplier(ids::incrementAndGet)
+				.setArchived().build();
 		assertNotNull(p);
 		p.archiveAll();
 		

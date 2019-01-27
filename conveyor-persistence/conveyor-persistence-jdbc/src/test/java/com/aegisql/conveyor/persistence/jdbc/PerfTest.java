@@ -3,7 +3,6 @@ package com.aegisql.conveyor.persistence.jdbc;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,7 +13,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -38,34 +36,19 @@ import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyorExpireable;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
 import com.aegisql.conveyor.persistence.core.harness.TrioPartExpireable;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceInitializer;
+import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
 public class PerfTest {
 
+	JdbcPersistenceInitializer<Integer> persistenceBuilder = JdbcPersistenceInitializer.presetInitializer("derby", Integer.class)
+			.autoInit(true).setArchived();
+	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		BasicConfigurator.configure();
-
-		String conveyor_db_path = "perfConv";
-		File f = new File(conveyor_db_path);
-		try {
-			FileUtils.deleteDirectory(f);
-			System.out.println("Directory perfConv has been deleted!");
-		} catch (IOException e) {
-			System.err.println("Problem occurs when deleting the directory : " + conveyor_db_path);
-			e.printStackTrace();
-		}
-
-		conveyor_db_path = "perfConvArchive";
-		f = new File(conveyor_db_path);
-		try {
-			FileUtils.deleteDirectory(f);
-			System.out.println("Directory perfConvArchive has been deleted!");
-		} catch (IOException e) {
-			System.err.println("Problem occurs when deleting the directory : " + conveyor_db_path);
-			e.printStackTrace();
-		}
-
+		Tester.removeDirectory("perfConv");
+		Tester.removeDirectory("perfConvArchive");
 	}
 
 	@AfterClass
@@ -105,11 +88,15 @@ public class PerfTest {
 	Persistence<Integer> getPersitence(String table) {
 		try {
 			Thread.sleep(1000);
-
-			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
-					.completedLogTable(table + "Completed").labelConverter(TrioPart.class)
-					.whenArchiveRecords().markArchived()
-					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
+			
+			return persistenceBuilder
+				.schema("perfConv")
+				.partTable(table)
+				.completedLogTable(table + "Completed")
+				.labelConverter(TrioPart.class)
+				.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS)
+				.maxBatchSize(batchSize)
+				.build();
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -120,10 +107,14 @@ public class PerfTest {
 		try {
 			Thread.sleep(1000);
 
-			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
-					.completedLogTable(table + "Completed").labelConverter(TrioPartExpireable.class)
-					.whenArchiveRecords().markArchived()
-					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
+			return persistenceBuilder
+					.schema("perfConv")
+					.partTable(table)
+					.completedLogTable(table + "Completed")
+					.labelConverter(TrioPartExpireable.class)
+					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS)
+					.maxBatchSize(batchSize)
+					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -134,16 +125,21 @@ public class PerfTest {
 		try {
 			Thread.sleep(1000);
 
-			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
-					.completedLogTable(table + "Completed").labelConverter(TrioPart.class)
-					.whenArchiveRecords().moveToFile(BinaryLogConfiguration.builder()
+			return persistenceBuilder
+					.schema("perfConv")
+					.partTable(table)
+					.completedLogTable(table + "Completed")
+					.labelConverter(TrioPart.class)
+					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS)
+					.maxBatchSize(batchSize)
+					.archiver(BinaryLogConfiguration.builder()
 							.path("./")
 							.partTableName(table)
 							.bucketSize(500)
 							.maxFileSize("1MB")
 							.zipFile(true)
 							.build())
-					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS).maxBatchSize(batchSize).build();
+					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -154,16 +150,23 @@ public class PerfTest {
 		try {
 			Thread.sleep(1000);
 
-			Persistence<Integer> archive = DerbyPersistence.forKeyClass(Integer.class)
+			Persistence<Integer> archive = persistenceBuilder
 					.schema("perfConvArchive")
 					.partTable(table)
-					.completedLogTable(table+"Completed")
+					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPart.class)
+					.maxBatchSize(batchSize)
 					.build();
-			
-			return DerbyPersistence.forKeyClass(Integer.class).schema("perfConv").partTable(table)
-					.completedLogTable(table + "Completed").labelConverter(TrioPart.class)
-					.whenArchiveRecords().moveToOtherPersistence(archive)
+
+			return archive = persistenceBuilder
+					.schema("perfConv")
+					.partTable(table)
+					.completedLogTable(table + "Completed")
+					.labelConverter(TrioPart.class)
+					.maxBatchSize(batchSize)
+					.archiver(archive)
+					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS)
+					.maxBatchSize(batchSize)
 					.build();
 		} catch (Exception e) {
 			e.printStackTrace();

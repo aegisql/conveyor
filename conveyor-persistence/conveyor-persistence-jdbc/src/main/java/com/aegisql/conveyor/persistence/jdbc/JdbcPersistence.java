@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.persistence.jdbc.impl.derby;
+package com.aegisql.conveyor.persistence.jdbc;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,22 +39,25 @@ import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.builders.ConnectionSupplier;
+import com.aegisql.conveyor.persistence.jdbc.builders.DynamicPersistenceSql;
 import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.converters.MapToClobConverter;
+import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistenceBuilder;
 // TODO: Auto-generated Javadoc
 /**
  * The Class JdbcPersistence.
  *
  * @param <K> the key type
  */
-public class DerbyPersistence<K> implements Persistence<K>{
+public class JdbcPersistence<K> implements Persistence<K>{
 	
 	/** The Constant LOG. */
-	final static Logger LOG = LoggerFactory.getLogger(DerbyPersistence.class);
+	final static Logger LOG = LoggerFactory.getLogger(JdbcPersistence.class);
 	
-	/** The conn. */
+	/** The connectionSupplier. */
 ///////////////////////////////////////////////////////////////////////////////
-	private final Connection   conn;
+	private final ConnectionSupplier connectionSupplier;
 	
 	/** The id supplier. */
 	private final LongSupplier idSupplier;
@@ -72,34 +75,11 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	/** The label converter. */
 	private final ObjectConverter labelConverter;
 	
-	/** The save cart query. */
-	private final String saveCartQuery;
+	private final DynamicPersistenceSql dynamicPersistenceSql;
 	
-	/** The save completed build key query. */
-	private final String saveCompletedBuildKeyQuery;
-	
-	/** The get part query. */
-	private final String getPartQuery;
-	
-	private final String getExpiredPartQuery;
-	
-	/** The get all part ids query. */
-	private final String getAllPartIdsQuery;
-	
-	/** The get all unfinished part ids query. */
-	private final String getAllUnfinishedPartIdsQuery;
-	
-	/** The get all completed keys query. */
-	private final String getAllCompletedKeysQuery;
-	
+		
 	/** The archiver. */
 	private final Archiver<K> archiver;
-	
-	/** The get all static parts query. */
-	private final String getAllStaticPartsQuery;
-	
-	/** The builder. */
-	private final DerbyPersistenceBuilder<K> builder;
 	
 	/** The max batch size. */
 	private final int maxBatchSize;
@@ -107,9 +87,6 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	/** The max batch time. */
 	private final long maxBatchTime;
 	
-	/** The get number of parts query. */
-	private final String getNumberOfPartsQuery;
-
 	private final String info;
 	
 	private final Set<String> nonPersistentProperties;
@@ -120,7 +97,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 * Instantiates a new derby persistence.
 	 *
 	 * @param builder the builder
-	 * @param conn the conn
+	 * @param connectionSupplier the connectionSupplier
 	 * @param idSupplier the id supplier
 	 * @param saveCartQuery the save cart query
 	 * @param saveCompletedBuildKeyQuery the save completed build key query
@@ -136,22 +113,12 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 * @param maxBatchSize the max batch size
 	 * @param maxBatchTime the max batch time
 	 */
-	DerbyPersistence(
-			DerbyPersistenceBuilder<K> builder
-			,Connection conn
+	public JdbcPersistence(
+			 ConnectionSupplier connectionSupplier
 			,LongSupplier idSupplier
-			,String saveCartQuery
-			,String saveCompletedBuildKeyQuery
-			,String getPartQuery
-			,String getExpiredPartQuery
-			,String getAllPartIdsQuery
-			,String getAllUnfinishedPartIdsQuery
-			,String getAllCompletedKeysQuery
-			,String getAllStaticPartsQuery
-			,String getNumberOfPartsQuery
+			,DynamicPersistenceSql dynamicPersistenceSql
 			,Archiver<K> archiver
 			,ObjectConverter<?,String> labelConverter
-			//,BlobConverter blobConverter
 			,ConverterAdviser<?> converterAdviser
 			,int maxBatchSize
 			,long maxBatchTime
@@ -159,30 +126,19 @@ public class DerbyPersistence<K> implements Persistence<K>{
 			,Set<String> nonPersistentProperties
 			,int minCompactSize
 			) {
-		this.builder                      = builder;
-		this.conn                         = conn;
+		this.connectionSupplier           = connectionSupplier;
 		this.idSupplier                   = idSupplier;
-		//this.blobConverter                = blobConverter;
 		this.converterAdviser             = converterAdviser;
-		this.saveCartQuery                = saveCartQuery;
-		this.saveCompletedBuildKeyQuery   = saveCompletedBuildKeyQuery;
-		this.getPartQuery                 = getPartQuery;
-		this.getExpiredPartQuery          = getExpiredPartQuery;
-		this.getAllPartIdsQuery           = getAllPartIdsQuery;
-		this.getAllStaticPartsQuery       = getAllStaticPartsQuery;
-		this.getAllUnfinishedPartIdsQuery = getAllUnfinishedPartIdsQuery;
-		this.getAllCompletedKeysQuery     = getAllCompletedKeysQuery;
-		this.getNumberOfPartsQuery        = getNumberOfPartsQuery;
+		this.dynamicPersistenceSql        = dynamicPersistenceSql;
 		this.archiver                     = archiver;
 		this.labelConverter               = labelConverter;
 		this.maxBatchSize                 = maxBatchSize;
 		this.maxBatchTime                 = maxBatchTime;
-		this.mapConverter                 = new MapToClobConverter(conn);
+		this.mapConverter                 = new MapToClobConverter(connectionSupplier.get());
 		this.info                         = info;
 		this.nonPersistentProperties      = nonPersistentProperties;
 		this.minCompactSize               = minCompactSize;
-		this.archiver.setPersistence(this);
-		
+		this.archiver.setPersistence(this);		
 	}
 
 	/**
@@ -196,25 +152,24 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		return new DerbyPersistenceBuilder<K>(clas);
 	}
 
-	/**
-	 * Gets the builder.
-	 *
-	 * @return the builder
-	 */
-	public DerbyPersistenceBuilder<K> getBuilder() {
-		return builder;
-	}
-	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.persistence.core.Persistence#copy()
 	 */
 	@Override
 	public Persistence<K> copy() {
-		try {
-			return builder.build();
-		} catch (Exception e) {
-			throw new PersistenceException("Failed copying persistence object",e);
-		}
+		return new JdbcPersistence<>(
+				  connectionSupplier.clone()
+				, idSupplier
+				, dynamicPersistenceSql
+				, archiver
+				, labelConverter
+				, converterAdviser
+				, maxBatchSize
+				, maxBatchTime
+				, info
+				, nonPersistentProperties
+				, minCompactSize
+				);
 	}
 	
 	/* (non-Javadoc)
@@ -231,7 +186,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	@Override
 	public <L> void savePart(long id, Cart<K, ?, L> cart) {
 		LOG.debug("SAVING: {}",cart);
-		try(PreparedStatement st = conn.prepareStatement(saveCartQuery) ) {
+		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.saveCartQuery()) ) {
 			Object value = cart.getValue();
 			st.setLong(1, id);
 			st.setString(2, loadTypeConverter.toPersistence(cart.getLoadType()));
@@ -274,7 +229,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
     	Blob blob       = null;
     	OutputStream os = null;
 		try {
-			blob = conn.createBlob();
+			blob = connectionSupplier.get().createBlob();
 	    	os = blob.setBinaryStream(1);
 		} catch (SQLException e) {
 			throw new PersistenceException("SQL Runntime Exception",e);
@@ -317,7 +272,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public void saveCompletedBuildKey(K key) {
-		try(PreparedStatement st = conn.prepareStatement(saveCompletedBuildKeyQuery) ) {
+		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.saveCompletedBuildKeyQuery()) ) {
 			st.setObject(1, key);
 			st.execute();
 		} catch (Exception e) {
@@ -333,7 +288,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	@Override
 	public Collection<Long> getAllPartIds(K key) {
 		Set<Long> res = new LinkedHashSet<>();
-		try(PreparedStatement st = conn.prepareStatement(getAllPartIdsQuery) ) {
+		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.getAllPartIdsQuery()) ) {
 			st.setObject(1, key);
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
@@ -359,9 +314,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 		
 		Cart<K, ?, L> cart = null;
 		String idList = ids.stream().map(n->n.toString()).collect(Collectors.joining( "," ));
-		String query = getPartQuery.replace("?", idList);
-		LOG.debug("getPart: {} {}",ids,getPartQuery);
-		try(PreparedStatement st = conn.prepareStatement(query) ) {
+		String query = dynamicPersistenceSql.getPartQuery().replace("?", idList);
+		LOG.debug("getPart: {} {}",ids,dynamicPersistenceSql.getPartQuery());
+		try(PreparedStatement st = connectionSupplier.get().prepareStatement(query) ) {
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
 				K key = (K)rs.getObject(1);
@@ -416,9 +371,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getAllParts() {
-		LOG.debug("getAllParts: {}",getAllUnfinishedPartIdsQuery);
+		LOG.debug("getAllParts: {}",dynamicPersistenceSql.getAllUnfinishedPartIdsQuery());
 		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
-		try(PreparedStatement st = conn.prepareStatement(getAllUnfinishedPartIdsQuery) ) {
+		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.getAllUnfinishedPartIdsQuery()) ) {
 			Cart<K, ?, L> cart = null;
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
@@ -472,9 +427,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getExpiredParts() {
-		LOG.debug("getExpiredParts: {}",getExpiredPartQuery);
+		LOG.debug("getExpiredParts: {}",dynamicPersistenceSql.getExpiredPartQuery());
 		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
-		try(PreparedStatement st = conn.prepareStatement(getExpiredPartQuery) ) {
+		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.getExpiredPartQuery()) ) {
 			Cart<K, ?, L> cart = null;
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
@@ -529,7 +484,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	@Override
 	public Set<K> getCompletedKeys() {
 		Set<K> res = new LinkedHashSet<>();
-		try(PreparedStatement st = conn.prepareStatement(getAllCompletedKeysQuery) ) {
+		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.getAllCompletedKeysQuery()) ) {
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
 				@SuppressWarnings("unchecked")
@@ -548,7 +503,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public void archiveParts(Collection<Long> ids) {
-		archiver.archiveParts(conn,ids);
+		archiver.archiveParts(connectionSupplier.get(),ids);
 	}
 
 	/* (non-Javadoc)
@@ -556,7 +511,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public void archiveKeys(Collection<K> keys) {
-		archiver.archiveKeys(conn, keys);
+		archiver.archiveKeys(connectionSupplier.get(), keys);
 	}
 
 	/* (non-Javadoc)
@@ -564,7 +519,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public void archiveCompleteKeys(Collection<K> keys) {
-		archiver.archiveCompleteKeys(conn, keys);
+		archiver.archiveCompleteKeys(connectionSupplier.get(), keys);
 	}
 
 	/* (non-Javadoc)
@@ -572,7 +527,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public void archiveAll() {
-		archiver.archiveAll(conn);
+		archiver.archiveAll(connectionSupplier.get());
 	}
 
 	/* (non-Javadoc)
@@ -580,9 +535,9 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getAllStaticParts() {
-		LOG.debug("getAllStaticParts: {}",getAllStaticPartsQuery);
+		LOG.debug("getAllStaticParts: {}",dynamicPersistenceSql.getAllStaticPartsQuery());
 		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
-		try(PreparedStatement st = conn.prepareStatement(getAllStaticPartsQuery) ) {
+		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.getAllStaticPartsQuery()) ) {
 			Cart<K, ?, L> cart = null;
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
@@ -612,7 +567,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	@Override
 	public void close() throws IOException {
 		try {
-			conn.close();
+			connectionSupplier.get().close();
 		} catch (SQLException e) {
 			throw new IOException("SQL Connection close error",e);
 		}
@@ -623,7 +578,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public void archiveExpiredParts() {
-		archiver.archiveExpiredParts(conn);
+		archiver.archiveExpiredParts(connectionSupplier.get());
 	}
 	
 	/* (non-Javadoc)
@@ -648,7 +603,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	@Override
 	public long getNumberOfParts() {
 		long res = -1;
-		try(PreparedStatement st = conn.prepareStatement(getNumberOfPartsQuery) ) {
+		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.getNumberOfPartsQuery()) ) {
 			ResultSet rs = st.executeQuery();
 			if(rs.next()) {
 				res = rs.getLong(1);
@@ -673,6 +628,10 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	@Override
 	public int getMinCompactSize() {
 		return minCompactSize ;
+	}
+	
+	public Connection getConnection() {
+		return connectionSupplier.get();
 	}
 
 }

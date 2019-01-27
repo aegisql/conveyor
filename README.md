@@ -1,5 +1,5 @@
 # conveyor
-Reactive Creational Framework
+Reactive Aggregating and Creational Framework
 
 [Tutorial](https://github.com/aegisql/conveyor/wiki)
 
@@ -46,7 +46,8 @@ conveyor configurator (beta)
 ```
 ## Release History
 
-### 1.3.16-SNAPSHOT
+### 1.4.0-SNAPSHOT
+* Support for abstract JDBC connections in persistence
 
 ### 1.3.15
 * Improved Loader interfaces

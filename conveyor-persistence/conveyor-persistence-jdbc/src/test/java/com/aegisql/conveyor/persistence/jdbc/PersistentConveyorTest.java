@@ -5,23 +5,19 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.aegisql.conveyor.Acknowledge;
@@ -34,7 +30,6 @@ import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.SummBuilder;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
@@ -44,24 +39,19 @@ import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyorExpireable;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
 import com.aegisql.conveyor.persistence.core.harness.TrioPartExpireable;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceInitializer;
 import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
+import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
 public class PersistentConveyorTest {
+
+	JdbcPersistenceInitializer<Integer> persistenceBuilder = JdbcPersistenceInitializer.presetInitializer("derby", Integer.class)
+			.schema("testConv").autoInit(true).setArchived();
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		BasicConfigurator.configure();
-		String conveyor_db_path = "testConv";
-		File f = new File(conveyor_db_path);
-		try {
-			//Deleting the directory recursively using FileUtils.
-			FileUtils.deleteDirectory(f);
-			System.out.println("Directory has been deleted recursively !");
-		} catch (IOException e) {
-			System.err.println("Problem occurs when deleting the directory : " + conveyor_db_path);
-			e.printStackTrace();
-		}
+		Tester.removeDirectory("testConv");
 	}
 
 	@AfterClass
@@ -76,21 +66,18 @@ public class PersistentConveyorTest {
 	public void tearDown() throws Exception {
 	}
 	
-	DerbyPersistence<Integer> getPersitence(String table) {
-		try {
-						
+	Persistence<Integer> getPersitence(String table) {
+		try {						
 			Thread.sleep(1000);
-			return DerbyPersistence
-					.forKeyClass(Integer.class)
-					.schema("testConv")
+			return persistenceBuilder
 					.partTable(table)
-					.completedLogTable(table+"Completed")
+					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPart.class)
-					.whenArchiveRecords().markArchived()
 					.maxBatchSize(3)
 					.minCompactSize(1000)
-					.doNotSaveProperties("ignore_me","ignore_me_too")
+					.doNotSaveCartProperties("ignore_me","ignore_me_too")
 					.build();
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -100,11 +87,9 @@ public class PersistentConveyorTest {
 	Persistence<Integer> getPersitenceExp(String table) {
 		try {
 			Thread.sleep(1000);
-			return DerbyPersistence
-					.forKeyClass(Integer.class)
-					.schema("testConv")
+			return persistenceBuilder
 					.partTable(table)
-					.completedLogTable(table+"Completed")
+					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPartExpireable.class)
 					.maxBatchSize(3)
 					.build();
@@ -222,9 +207,7 @@ public class PersistentConveyorTest {
 
 	@Test(expected=RuntimeException.class)
 	public void failingEncryptionReplayTest() throws Exception {
-		Persistence<Integer> p1 = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
+		Persistence<Integer> p1 = persistenceBuilder
 				.partTable("failingEncryptionReplayTest")
 				.completedLogTable("failingEncryptionReplayTestCompleted")
 				.labelConverter(new EnumConverter<TrioPart>(TrioPart.class))
@@ -242,9 +225,7 @@ public class PersistentConveyorTest {
 		TrioConveyor tc2 = new TrioConveyor();
 		tc2.autoAcknowledgeOnStatus(Status.READY);
 		
-		Persistence<Integer> p2 = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
+		Persistence<Integer> p2 = persistenceBuilder
 				.partTable("failingEncryptionReplayTest")
 				.completedLogTable("failingEncryptionReplayTestCompleted")
 				.labelConverter(new EnumConverter<>(TrioPart.class))
@@ -296,9 +277,7 @@ public class PersistentConveyorTest {
 		pc.staticPart().label(TrioPart.NUMBER).value(2).place().join();
 		pc.staticPart().label(TrioPart.NUMBER).value(3).place().join();
 
-		Persistence<Integer> p2 = DerbyPersistence
-				.forKeyClass(Integer.class)
-				.schema("testConv")
+		Persistence<Integer> p2 = persistenceBuilder
 				.partTable("staticReplayTest")
 				.completedLogTable("staticReplayTestCompleted")
 				.labelConverter(TrioPart.class)
@@ -602,7 +581,7 @@ public class PersistentConveyorTest {
 
 	@Test
 	public void summatorWithAutoCompact() throws InterruptedException {
-		DerbyPersistence<Integer> p1 = getPersitence("summatorWithAutoCompact");
+		Persistence<Integer> p1 = getPersitence("summatorWithAutoCompact");
 		LastResultReference<Integer, Long> res = new LastResultReference<>();
 		Conveyor<Integer,SummBuilder.SummStep,Long> ac = new AssemblingConveyor<>();
 		ac.setBuilderSupplier(SummBuilder::new);

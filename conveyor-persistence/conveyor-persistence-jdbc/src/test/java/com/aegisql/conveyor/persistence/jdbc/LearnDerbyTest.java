@@ -19,13 +19,15 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceInitializer;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringConverter;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
+import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
 public class LearnDerbyTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		Tester.removeDirectory("testDb1");
 	}
 
 	@AfterClass
@@ -38,6 +40,26 @@ public class LearnDerbyTest {
 
 	@After
 	public void tearDown() throws Exception {
+	}
+		
+	JdbcPersistenceInitializer<String> persistenceBuilder = JdbcPersistenceInitializer.presetInitializer("derby", String.class)
+			.schema("testDb1").autoInit(true).setArchived().labelConverter(new StringConverter<String>(){
+				@Override
+				public String fromPersistence(String p) {
+					return p;
+				}
+
+				@Override
+				public String conversionHint() {
+					return "L:String";
+				}});
+
+	@Test
+	public void stackTrace() {
+		StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+		StackTraceElement el = elements[1];
+		assertEquals(Tester.getTestMethod(),el.getMethodName());
+		assertEquals(Tester.getTestClass(),"LearnDerbyTest");
 	}
 
 	@Test
@@ -79,20 +101,7 @@ public class LearnDerbyTest {
 	
 	@Test
 	public void testPers() throws Exception {
-		Persistence<String> p = DerbyPersistence
-				.forKeyClass(String.class)
-				.schema("testDb1")
-				.labelConverter(new StringConverter<String>(){
-					@Override
-					public String fromPersistence(String p) {
-						return p;
-					}
-
-					@Override
-					public String conversionHint() {
-						return "L:String";
-					}})
-				.build();
+		Persistence<String> p = persistenceBuilder.build();
 		p.archiveAll();
 		p.savePart(p.nextUniquePartId(), new ShoppingCart<String, String, String>("1", "one", "ONE"));
 		p.savePartId("1", 100);
@@ -119,20 +128,7 @@ public class LearnDerbyTest {
 
 	@Test
 	public void testPers2() throws Exception {
-		Persistence<String> p1 = DerbyPersistence
-				.forKeyClass(String.class)
-				.schema("testDb1")
-				.labelConverter(new StringConverter<String>(){
-					@Override
-					public String fromPersistence(String p) {
-						return p;
-					}
-
-					@Override
-					public String conversionHint() {
-						return "L:String";
-					}})
-				.build();
+		Persistence<String> p1 = persistenceBuilder.build();
 		p1.archiveAll();
 		p1.savePart(p1.nextUniquePartId(), new ShoppingCart<String, String, String>("1", "one", "ONE"));
 		p1.savePartId("1", 100);
@@ -152,20 +148,7 @@ public class LearnDerbyTest {
 		assertNotNull(completed);
 		assertEquals(1, completed.size());
 		
-		Persistence<String> p2 = DerbyPersistence
-				.forKeyClass(String.class)
-				.schema("testDb1")
-				.labelConverter(new StringConverter<String>(){
-					@Override
-					public String fromPersistence(String p) {
-						return p;
-					}
-
-					@Override
-					public String conversionHint() {
-						return "L:String";
-					}})
-				.build();
+		Persistence<String> p2 = persistenceBuilder.build();
 
 		Collection<Cart<String,?,String>> allCarts2 = p2.getAllParts();
 		System.out.println(allCarts2);

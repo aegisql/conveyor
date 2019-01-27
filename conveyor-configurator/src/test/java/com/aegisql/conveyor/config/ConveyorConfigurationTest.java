@@ -43,6 +43,7 @@ import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
+import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistence;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.id_builder.IdSource;
@@ -75,6 +76,7 @@ public class ConveyorConfigurationTest {
 		}
 
 
+		//Tester.removeDirectory("testConv");
 		String conveyor_db_path = "testConv";
 		File f = new File(conveyor_db_path);
 		try {

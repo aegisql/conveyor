@@ -4,6 +4,8 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.utils.DataSize;
 
 public class BinaryLogConfiguration {
@@ -18,6 +20,7 @@ public class BinaryLogConfiguration {
 		private long maxSize    = Long.MAX_VALUE;
 		private int bucketSize  = 100;
 		private boolean zipFile = false;
+		private CartToBytesConverter cartConverter = new CartToBytesConverter<>();
 		
 		public BinaryLogConfiguration build() {
 			return new BinaryLogConfiguration(
@@ -27,6 +30,7 @@ public class BinaryLogConfiguration {
 					,maxSize
 					,bucketSize
 					,zipFile
+					,cartConverter
 					);
 		}
 		
@@ -71,7 +75,10 @@ public class BinaryLogConfiguration {
 			this.zipFile = zip;
 			return this;
 		}
-
+		public BinaryLogConfigurationBuilder zipFile(ConverterAdviser<?> adviser) {
+			this.cartConverter = new CartToBytesConverter<>(adviser);
+			return this;
+		}
 		
 	}
 	
@@ -81,7 +88,8 @@ public class BinaryLogConfiguration {
 	private final String file;
 	private final int bucketSize;
 	private final boolean zipFile;
-	
+	private final CartToBytesConverter cartConverter;
+
 	private BinaryLogConfiguration(
 			 String path
 			,String moveToPath
@@ -89,6 +97,8 @@ public class BinaryLogConfiguration {
 			,long maxSize
 			,int bucketSize
 			,boolean zipFile
+			,CartToBytesConverter cartConverter
+
 			) {
 		this.path       = path;
 		this.moveToPath = moveToPath;
@@ -96,6 +106,7 @@ public class BinaryLogConfiguration {
 		this.maxSize    = maxSize;
 		this.bucketSize = bucketSize;
 		this.zipFile    = zipFile;
+		this.cartConverter = cartConverter;
 	}
 	
 	public static BinaryLogConfigurationBuilder builder() {
@@ -129,6 +140,10 @@ public class BinaryLogConfiguration {
 
 	public boolean isZipFile() {
 		return zipFile;
+	}
+
+	public CartToBytesConverter getCartConverter() {
+		return cartConverter;
 	}
 
 	@Override

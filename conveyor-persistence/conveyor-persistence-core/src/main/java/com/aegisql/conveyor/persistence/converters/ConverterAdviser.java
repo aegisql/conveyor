@@ -83,6 +83,14 @@ public class ConverterAdviser <L> {
 		primeConverters.put(this.encryptor.conversionHint(), (ObjectConverter)this.encryptor);
 	}
 
+	public void setEncryptor(EncryptingConverter encryptor) {
+		if(encryptor == null) {
+			return;
+		}
+		this.encryptor = encryptor;
+		primeConverters.put(this.encryptor.conversionHint(), (ObjectConverter)this.encryptor);
+	}
+
 	/**
 	 * Instantiates a new converter adviser.
 	 */

@@ -46,6 +46,10 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 		this.adviser = adviser;
 	}
 
+	public CartToBytesConverter() {
+		this(new ConverterAdviser<>());
+	}
+
 	@Override
 	public byte[] toPersistence(Cart<K, V, L> cart) {
 
