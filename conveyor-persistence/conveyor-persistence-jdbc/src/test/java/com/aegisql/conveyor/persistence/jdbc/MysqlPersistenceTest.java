@@ -1,10 +1,14 @@
-package com.aegisql.conveyor.persistence.jdbc.impl.derby;
+package com.aegisql.conveyor.persistence.jdbc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeNoException;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -18,17 +22,19 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.jdbc.JdbcPersistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
-public class DerbyPersistenceTest {
+public class MysqlPersistenceTest {
 
-	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", Integer.class)
-			.autoInit(true);
+	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
+			.autoInit(true)
+			.setProperty("user","root");
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Tester.removeDirectory("conveyor_db");
+		Tester.removeLocalMysqlDatabase("conveyor_db");
 	}
 
 	@AfterClass
@@ -147,7 +153,7 @@ public class DerbyPersistenceTest {
 		assertNotNull(rc1);
 		assertNotNull(rc2);
 
-		Thread.sleep(2000);
+		Thread.sleep(3000);
 		p.archiveExpiredParts();
 
 		Cart<Integer,?,String> rc12 = p.getPart(1);
@@ -156,6 +162,29 @@ public class DerbyPersistenceTest {
 		assertNotNull(rc22);
 		
 	}
+	
+	@Test
+	public void testSaveAndRead() throws Exception {
+		JdbcPersistenceBuilder<Integer> jpb = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
+				.autoInit(true)
+				.partTable("PART2")
+				.completedLogTable("COMPLETED_LOG2")
+				.setProperty("user", "root")
+				;
+		
+		JdbcPersistence<Integer> p = jpb.build();
+		
+		assertNotNull(p);
+		Cart<Integer,String,String> cart = new ShoppingCart<Integer, String, String>(100, "test", "label");
+		p.savePart(1, cart);
+		Cart restored = p.getPart(1);
+		assertNotNull(restored);
+		System.out.println(restored);
+		assertEquals(100, restored.getKey());
+		assertEquals("label", restored.getLabel());
+		assertEquals("test", restored.getValue());
+	}
+
 
 	
 }

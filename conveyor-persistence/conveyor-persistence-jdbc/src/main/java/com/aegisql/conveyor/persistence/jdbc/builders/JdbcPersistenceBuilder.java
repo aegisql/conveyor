@@ -99,10 +99,10 @@ public class JdbcPersistenceBuilder<K> {
 
 	public static final ConnectionTemplate MYSQL_URL_TEMPLATE = new ConnectionTemplate(
 			"com.mysql.cj.jdbc.Driver",
-			"",
 			"jdbc:mysql://{host}:{port}/",
-			"jdbc:mysql://{host}:{port}/{schema}",
-			"jdbc:mysql://{host}:{port}/{schema}"
+			"",
+			"jdbc:mysql://{host}:{port}/{database}",
+			"jdbc:mysql://{host}:{port}/{database}"
 			);
 	
 	public static final ConnectionTemplate SQLITE_EMBEDDED_URL_TEMPLATE = new ConnectionTemplate(
@@ -275,18 +275,15 @@ public class JdbcPersistenceBuilder<K> {
 				boolean databaseExists = false;
 				while( databaseRs.next()) {
 					String db = databaseRs.getString("TABLE_CAT");
-					if(Objects.equals(db.toLowerCase(), database.toLowerCase())) {
+					if(db.equalsIgnoreCase(database)) {
 						databaseExists = true;
 						break;
 					}
 				}
 				if( ! databaseExists ) {
 					try(Statement statement = con.createStatement()) {
-						statement.executeUpdate(createSchemaSql());
+						statement.executeUpdate(createDatabaseSql());
 					}
-				}
-				try(Statement statement = con.createStatement()) {
-					statement.executeUpdate(createDatabaseSql());
 				}
 			} catch (SQLException e) {
 				throw new PersistenceException("Failed creation of database "+database+" "+connectionUrlTemplate.getConnectionUrlTemplateForInitDatabase(), e);
@@ -324,11 +321,14 @@ public class JdbcPersistenceBuilder<K> {
 			LOG.debug("Connected!");
 			DatabaseMetaData meta = con.getMetaData();
 			
-			ResultSet tables = meta.getTables(null,null,null,null);
+			ResultSet tables = meta.getTables(database,null,null,null);
 			boolean partTableFound   = false;
 			boolean keyLogTableFound = false;
 			while(tables.next()) {
+				//String catalog = tables.getString("TABLE_CAT");
+				//String tableSchema = tables.getString("TABLE_SCHEM");
 				String tableName = tables.getString("TABLE_NAME");
+				//System.err.println(catalog+"."+tableSchema+"."+tableName);
 				if(tableName.equalsIgnoreCase(partTable)) {
 					partTableFound = true;
 				}
@@ -934,7 +934,6 @@ public class JdbcPersistenceBuilder<K> {
 		
 		JdbcPersistenceBuilder<K> pi = new JdbcPersistenceBuilder<K>(kClass)
 				.database(null)
-				.schema("conveyor_db")
 				.partTable("PART")
 				.completedLogTable("COMPLETED_LOG")
 				.host("localhost")
@@ -944,20 +943,28 @@ public class JdbcPersistenceBuilder<K> {
 		switch (type) {
 		case "derby":
 			return pi.connectionUrlTemplate(DERBY_EMBEDDED_URL_TEMPLATE)
+					.schema("conveyor_db")
 					.setField(CART_PROPERTIES, "CLOB")
 					.setField(CREATION_TIME, "TIMESTAMP")
 					.setField(EXPIRATION_TIME, "TIMESTAMP");
 		case "derby-client":
 			return pi.connectionUrlTemplate(DERBY_CLIENT_URL_TEMPLATE)
+					.schema("conveyor_db")
 					.setField(CART_PROPERTIES, "CLOB")
+					.setField(CREATION_TIME, "TIMESTAMP")
+					.setField(EXPIRATION_TIME, "TIMESTAMP")
 					.port(1527);
 		case "sqlite":
-			return pi.connectionUrlTemplate(SQLITE_EMBEDDED_URL_TEMPLATE);
+			return pi.connectionUrlTemplate(SQLITE_EMBEDDED_URL_TEMPLATE)
+					.database("conveyor_db");
 		case "mysql":
 			return pi.connectionUrlTemplate(MYSQL_URL_TEMPLATE)
+					.database("conveyor_db")
 					.port(3306);
 		case "postgres":
 			return pi.connectionUrlTemplate(POSTGRES_EMBEDDED_URL_TEMPLATE)
+					.database("conveyor_db")
+					.schema("conveyor_db")
 					.port(5432);
 		default:
 			throw new PersistenceException("pre-setted initializer is not available for type "+type+".");

@@ -39,16 +39,17 @@ import com.aegisql.conveyor.persistence.core.harness.TrioPartExpireable;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
-public class PerfTest {
+public class MysqlPerfTest {
 
-	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", Integer.class)
+	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
+			.setProperty("user", "root")
 			.autoInit(true).setArchived();
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		BasicConfigurator.configure();
-		Tester.removeDirectory("perfConv");
-		Tester.removeDirectory("perfConvArchive");
+		Tester.removeLocalMysqlDatabase("perfConv");
+		Tester.removeLocalMysqlDatabase("perfConvArchive");
 	}
 
 	@AfterClass
@@ -90,7 +91,7 @@ public class PerfTest {
 			Thread.sleep(1000);
 			
 			return persistenceBuilder
-				.schema("perfConv")
+				.database("perfConv")
 				.partTable(table)
 				.completedLogTable(table + "Completed")
 				.labelConverter(TrioPart.class)
@@ -108,7 +109,7 @@ public class PerfTest {
 			Thread.sleep(1000);
 
 			return persistenceBuilder
-					.schema("perfConv")
+					.database("perfConv")
 					.partTable(table)
 					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPartExpireable.class)
@@ -126,7 +127,7 @@ public class PerfTest {
 			Thread.sleep(1000);
 
 			return persistenceBuilder
-					.schema("perfConv")
+					.database("perfConv")
 					.partTable(table)
 					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPart.class)
@@ -151,7 +152,7 @@ public class PerfTest {
 			Thread.sleep(1000);
 
 			Persistence<Integer> archive = persistenceBuilder
-					.schema("perfConvArchive")
+					.database("perfConvArchive")
 					.partTable(table)
 					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPart.class)
@@ -159,7 +160,7 @@ public class PerfTest {
 					.build();
 
 			return archive = persistenceBuilder
-					.schema("perfConv")
+					.database("perfConv")
 					.partTable(table)
 					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPart.class)

@@ -240,6 +240,8 @@ public class JdbcPersistence<K> implements Persistence<K>{
 			} else {
 				os.write( new byte[] {} );
 			}
+			os.flush();
+			os.close();
 			return blob;
 		} catch (IOException e) {
 			throw new PersistenceException("IO Runntime Exception",e);

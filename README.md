@@ -50,6 +50,7 @@ conveyor configurator (beta)
 * Deprecated Derby Jdbc Persistence
 * Support for configurable JDBC connections in persistence
 * Implemented JDBC connectors for derby (static and client), MySQL, PostgreSQL 
+* Bugfixes
 
 ***
 
