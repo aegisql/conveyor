@@ -26,15 +26,17 @@ import com.aegisql.conveyor.persistence.jdbc.JdbcPersistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
-public class MysqlPersistenceTest {
+public class PostgresPersistenceTest {
 
-	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
+	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("postgres", Integer.class)
 			.autoInit(true)
-			.user("root");
+			.setProperty("user","postgres")
+			.setProperty("password","root");
+	
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Tester.removeLocalMysqlDatabase("conveyor_db");
+		Tester.removeLocalPostgresDatabase("conveyor_db");
 	}
 
 	@AfterClass
@@ -165,11 +167,12 @@ public class MysqlPersistenceTest {
 	
 	@Test
 	public void testSaveAndRead() throws Exception {
-		JdbcPersistenceBuilder<Integer> jpb = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
+		JdbcPersistenceBuilder<Integer> jpb = JdbcPersistenceBuilder.presetInitializer("postgres", Integer.class)
 				.autoInit(true)
 				.partTable("PART2")
 				.completedLogTable("COMPLETED_LOG2")
-				.user("root")
+				.setProperty("user", "postgres")
+				.setProperty("password", "root")
 				;
 		
 		JdbcPersistence<Integer> p = jpb.build();

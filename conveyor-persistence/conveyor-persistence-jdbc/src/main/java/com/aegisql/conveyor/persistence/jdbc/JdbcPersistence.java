@@ -1,9 +1,6 @@
 package com.aegisql.conveyor.persistence.jdbc;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,7 +15,6 @@ import java.util.Set;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,136 +39,146 @@ import com.aegisql.conveyor.persistence.jdbc.builders.ConnectionSupplier;
 import com.aegisql.conveyor.persistence.jdbc.builders.DynamicPersistenceSql;
 import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.converters.MapToClobConverter;
+import com.aegisql.conveyor.persistence.jdbc.converters.MapToJsonConverter;
+import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistenceBuilder;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class JdbcPersistence.
  *
- * @param <K> the key type
+ * @param <K>
+ *            the key type
  */
-public class JdbcPersistence<K> implements Persistence<K>{
-	
+public class JdbcPersistence<K> implements Persistence<K> {
+
 	/** The Constant LOG. */
 	final static Logger LOG = LoggerFactory.getLogger(JdbcPersistence.class);
-	
+
 	/** The connectionSupplier. */
-///////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////
 	private final ConnectionSupplier connectionSupplier;
-	
+
 	/** The id supplier. */
 	private final LongSupplier idSupplier;
-	
+
 	/** The blob converter. */
-//	private final BlobConverter blobConverter;
-	
+	// private final BlobConverter blobConverter;
+
 	private final ConverterAdviser converterAdviser;
-	
-	private final MapToClobConverter mapConverter;
-	
+
+	private final MapToJsonConverter mapConverter;
+
 	/** The load type converter. */
 	private final EnumConverter<LoadType> loadTypeConverter = new EnumConverter<>(LoadType.class);
-	
+
 	/** The label converter. */
 	private final ObjectConverter labelConverter;
-	
-	private final DynamicPersistenceSql dynamicPersistenceSql;
-	
-		
+
+	// private final DynamicPersistenceSql dynamicPersistenceSql;
+
 	/** The archiver. */
 	private final Archiver<K> archiver;
-	
+
 	/** The max batch size. */
 	private final int maxBatchSize;
-	
+
 	/** The max batch time. */
 	private final long maxBatchTime;
-	
+
 	private final String info;
-	
+
 	private final Set<String> nonPersistentProperties;
 
+	private final EngineDepo<K> engine;
+
 	private int minCompactSize = 0;
-		
+
+	private final static CommandLabel RESTORE_BUILD_COMMAND = CommandLabel.RESTORE_BUILD;
+
 	/**
 	 * Instantiates a new derby persistence.
 	 *
-	 * @param builder the builder
-	 * @param connectionSupplier the connectionSupplier
-	 * @param idSupplier the id supplier
-	 * @param saveCartQuery the save cart query
-	 * @param saveCompletedBuildKeyQuery the save completed build key query
-	 * @param getPartQuery the get part query
-	 * @param getAllPartIdsQuery the get all part ids query
-	 * @param getAllUnfinishedPartIdsQuery the get all unfinished part ids query
-	 * @param getAllCompletedKeysQuery the get all completed keys query
-	 * @param getAllStaticPartsQuery the get all static parts query
-	 * @param getNumberOfPartsQuery the get number of parts query
-	 * @param archiver the archiver
-	 * @param labelConverter the label converter
-	 * @param blobConverter the blob converter
-	 * @param maxBatchSize the max batch size
-	 * @param maxBatchTime the max batch time
+	 * @param builder
+	 *            the builder
+	 * @param connectionSupplier
+	 *            the connectionSupplier
+	 * @param idSupplier
+	 *            the id supplier
+	 * @param saveCartQuery
+	 *            the save cart query
+	 * @param saveCompletedBuildKeyQuery
+	 *            the save completed build key query
+	 * @param getPartQuery
+	 *            the get part query
+	 * @param getAllPartIdsQuery
+	 *            the get all part ids query
+	 * @param getAllUnfinishedPartIdsQuery
+	 *            the get all unfinished part ids query
+	 * @param getAllCompletedKeysQuery
+	 *            the get all completed keys query
+	 * @param getAllStaticPartsQuery
+	 *            the get all static parts query
+	 * @param getNumberOfPartsQuery
+	 *            the get number of parts query
+	 * @param archiver
+	 *            the archiver
+	 * @param labelConverter
+	 *            the label converter
+	 * @param blobConverter
+	 *            the blob converter
+	 * @param maxBatchSize
+	 *            the max batch size
+	 * @param maxBatchTime
+	 *            the max batch time
 	 */
-	public JdbcPersistence(
-			 ConnectionSupplier connectionSupplier
-			,LongSupplier idSupplier
-			,DynamicPersistenceSql dynamicPersistenceSql
-			,Archiver<K> archiver
-			,ObjectConverter<?,String> labelConverter
-			,ConverterAdviser<?> converterAdviser
-			,int maxBatchSize
-			,long maxBatchTime
-			,String info
-			,Set<String> nonPersistentProperties
-			,int minCompactSize
-			) {
-		this.connectionSupplier           = connectionSupplier;
-		this.idSupplier                   = idSupplier;
-		this.converterAdviser             = converterAdviser;
-		this.dynamicPersistenceSql        = dynamicPersistenceSql;
-		this.archiver                     = archiver;
-		this.labelConverter               = labelConverter;
-		this.maxBatchSize                 = maxBatchSize;
-		this.maxBatchTime                 = maxBatchTime;
-		this.mapConverter                 = new MapToClobConverter(connectionSupplier.get());
-		this.info                         = info;
-		this.nonPersistentProperties      = nonPersistentProperties;
-		this.minCompactSize               = minCompactSize;
-		this.archiver.setPersistence(this);		
+	public JdbcPersistence(ConnectionSupplier connectionSupplier, EngineDepo<K> engine, LongSupplier idSupplier,
+			DynamicPersistenceSql dynamicPersistenceSql, Archiver<K> archiver,
+			ObjectConverter<?, String> labelConverter, ConverterAdviser<?> converterAdviser, int maxBatchSize,
+			long maxBatchTime, String info, Set<String> nonPersistentProperties, int minCompactSize) {
+		this.connectionSupplier = connectionSupplier;
+		this.idSupplier = idSupplier;
+		this.converterAdviser = converterAdviser;
+		// this.dynamicPersistenceSql = dynamicPersistenceSql;
+		this.archiver = archiver;
+		this.labelConverter = labelConverter;
+		this.maxBatchSize = maxBatchSize;
+		this.maxBatchTime = maxBatchTime;
+		this.mapConverter = new MapToJsonConverter();
+		this.info = info;
+		this.nonPersistentProperties = nonPersistentProperties;
+		this.minCompactSize = minCompactSize;
+		this.engine = engine;
+		this.archiver.setPersistence(this);
 	}
 
 	/**
 	 * For key class.
 	 *
-	 * @param <K> the key type
-	 * @param clas the clas
+	 * @param <K>
+	 *            the key type
+	 * @param clas
+	 *            the clas
 	 * @return the derby persistence builder
 	 */
 	public static <K> DerbyPersistenceBuilder<K> forKeyClass(Class<K> clas) {
 		return new DerbyPersistenceBuilder<K>(clas);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.persistence.core.Persistence#copy()
 	 */
 	@Override
 	public Persistence<K> copy() {
-		return new JdbcPersistence<>(
-				  connectionSupplier.clone()
-				, idSupplier
-				, dynamicPersistenceSql
-				, archiver
-				, labelConverter
-				, converterAdviser
-				, maxBatchSize
-				, maxBatchTime
-				, info
-				, nonPersistentProperties
-				, minCompactSize
-				);
+		return new JdbcPersistence<>(connectionSupplier.clone(), engine, idSupplier, null, archiver, labelConverter,
+				converterAdviser, maxBatchSize, maxBatchTime, info, nonPersistentProperties, minCompactSize);
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.persistence.core.Persistence#nextUniquePartId()
 	 */
 	@Override
@@ -180,390 +186,349 @@ public class JdbcPersistence<K> implements Persistence<K>{
 		return idSupplier.getAsLong();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.Persistence#savePart(long, com.aegisql.conveyor.cart.Cart)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#savePart(long,
+	 * com.aegisql.conveyor.cart.Cart)
 	 */
 	@Override
 	public <L> void savePart(long id, Cart<K, ?, L> cart) {
-		LOG.debug("SAVING: {}",cart);
-		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.saveCartQuery()) ) {
-			Object value = cart.getValue();
-			st.setLong(1, id);
-			st.setString(2, loadTypeConverter.toPersistence(cart.getLoadType()));
-			st.setObject(3, cart.getKey());
-			st.setTimestamp(5, new Timestamp(cart.getCreationTime()));
-			st.setTimestamp(6, new Timestamp(cart.getExpirationTime()));
-			String hint;
-			ObjectConverter<Object, byte[]> byteConverter;
-			if(cart instanceof GeneralCommand) {
-				CommandLabel command = CommandLabel.RESTORE_BUILD;
-				byteConverter = converterAdviser.getConverter(command, value == null?null:value.getClass().getCanonicalName());
-				hint = byteConverter.conversionHint();
-				st.setObject(4, labelConverter.toPersistence(command));
-			} else {
-				L label      = cart.getLabel();
-				byteConverter = converterAdviser.getConverter(label, value == null?null:value.getClass().getCanonicalName());
-				hint = byteConverter.conversionHint();
-				st.setObject(4, labelConverter.toPersistence(label));
+		LOG.debug("SAVING: {}", cart);
+		String hint;
+		ObjectConverter<Object, byte[]> byteConverter;
+		Object value = cart.getValue();
+		Object label = null;
+		Map<String, Object> properties = new HashMap<>();
+		cart.getAllProperties().forEach((k, v) -> {
+			if (isPersistentProperty(k)) {
+				properties.put(k, v);
 			}
-			st.setBlob(7, value == null? null:toBlob( byteConverter.toPersistence(value)));
-			Map<String,Object> properties = new HashMap<>();
-			cart.getAllProperties().forEach((k,v)->{
-				if(isPersistentProperty(k)) {
-					properties.put(k, v);
-				}
-			});
-			
-			st.setClob(8, mapConverter.toPersistence(properties));
-			st.setString(9, hint);
-			st.setLong(10, cart.getPriority());
-			st.execute();
-		} catch (Exception e) {
-			e.printStackTrace();
-	    	LOG.error("SavePart Exception: {} {}",cart,e.getMessage());
-	    	throw new PersistenceException("Save Part failed for "+cart,e);
+		});
+
+		if (cart instanceof GeneralCommand) {
+			byteConverter = converterAdviser.getConverter(RESTORE_BUILD_COMMAND,
+					value == null ? null : value.getClass().getCanonicalName());
+			hint = byteConverter.conversionHint();
+			label = labelConverter.toPersistence(RESTORE_BUILD_COMMAND);
+		} else {
+			byteConverter = converterAdviser.getConverter(label,
+					value == null ? null : value.getClass().getCanonicalName());
+			hint = byteConverter.conversionHint();
+			label = labelConverter.toPersistence(cart.getLabel());
 		}
-	}
-	
-	private Blob toBlob(byte[] bytes) {
-    	Blob blob       = null;
-    	OutputStream os = null;
-		try {
-			blob = connectionSupplier.get().createBlob();
-	    	os = blob.setBinaryStream(1);
-		} catch (SQLException e) {
-			throw new PersistenceException("SQL Runntime Exception",e);
-		}
-		try {
-			if(bytes != null) {
-				os.write( bytes );
-			} else {
-				os.write( new byte[] {} );
-			}
-			os.flush();
-			os.close();
-			return blob;
-		} catch (IOException e) {
-			throw new PersistenceException("IO Runntime Exception",e);
-		}
+		engine.saveCart(id, loadTypeConverter.toPersistence(cart.getLoadType()), cart.getKey(), label,
+
+				new Timestamp(cart.getCreationTime()), new Timestamp(cart.getExpirationTime()), byteConverter.toPersistence(value),
+				mapConverter.toPersistence(properties), hint, cart.getPriority());
 	}
 
-	private byte[] fromBlob(Blob blob) {
-		if(blob == null) {
-			return null;
-		}
-		try(InputStream in = blob.getBinaryStream(1, blob.length())) {
-			return IOUtils.toByteArray(in);
-		} catch (SQLException e) {
-			throw new PersistenceException("SQL Runntime Exception",e);
-		} catch (IOException e) {
-			throw new PersistenceException("IO Runntime Exception",e);
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.Persistence#savePartId(java.lang.Object, long)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#savePartId(java.lang.
+	 * Object, long)
 	 */
 	@Override
 	public void savePartId(K key, long partId) {
 		// DO NOTHING. SUPPORTED BY SECONDARY INDEX ON THE PART TABLE
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.Persistence#saveCompletedBuildKey(java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.persistence.core.Persistence#saveCompletedBuildKey(java.
+	 * lang.Object)
 	 */
 	@Override
 	public void saveCompletedBuildKey(K key) {
-		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.saveCompletedBuildKeyQuery()) ) {
-			st.setObject(1, key);
-			st.execute();
-		} catch (Exception e) {
-	    	LOG.error("SaveCompletedKey {} Exception: {}",key,e.getMessage());
-	    	e.printStackTrace();
-	    	throw new PersistenceException("SaveCompletedKey failed",e);
-		}
+		engine.saveCompletedBuildKey(key);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.Persistence#getAllPartIds(java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.persistence.core.Persistence#getAllPartIds(java.lang.
+	 * Object)
 	 */
 	@Override
 	public Collection<Long> getAllPartIds(K key) {
-		Set<Long> res = new LinkedHashSet<>();
-		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.getAllPartIdsQuery()) ) {
-			st.setObject(1, key);
-			ResultSet rs = st.executeQuery();
-			while(rs.next()) {
-				Long id = rs.getLong(1);
-				res.add(id);
-			}
-		} catch (Exception e) {
-	    	LOG.error("getAllPartIds Exception: {}",key,e.getMessage());
-	    	throw new PersistenceException("getAllPartIds failed",e);
-		}
-		return res;
+		return engine.getAllPartIds(key);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.Persistence#getParts(java.util.Collection)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#getParts(java.util.
+	 * Collection)
 	 */
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getParts(Collection<Long> ids) {
-		//TODO finish
+		// TODO finish
 
-		LOG.debug("getAllParts for: {}",ids);
-		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
-		
-		Cart<K, ?, L> cart = null;
-		String idList = ids.stream().map(n->n.toString()).collect(Collectors.joining( "," ));
-		String query = dynamicPersistenceSql.getPartQuery().replace("?", idList);
-		LOG.debug("getPart: {} {}",ids,dynamicPersistenceSql.getPartQuery());
-		try(PreparedStatement st = connectionSupplier.get().prepareStatement(query) ) {
-			ResultSet rs = st.executeQuery();
-			while(rs.next()) {
-				K key = (K)rs.getObject(1);
+		LOG.debug("getAllParts for: {}", ids);
+		return engine.getParts(ids, rs -> {
+			try {
+				K key = (K) rs.getObject(1);
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
 				String labelString = rs.getString(3);
 				String hint = rs.getString(8);
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
 				long priority = rs.getLong(9);
-				if(loadType == LoadType.COMMAND) {
+				if (loadType == LoadType.COMMAND) {
 					CommandLabel command = CommandLabel.valueOf(labelString.trim());
-					if(command == CommandLabel.RESTORE_BUILD) {
+					if (command == CommandLabel.RESTORE_BUILD) {
 						ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(command, hint);
-						Memento memento = (Memento) byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
-						cart = new GeneralCommand(key, memento, command, creationTime, expirationTime);
+						Memento memento = (Memento) byteConverter.fromPersistence(rs.getBytes(2));
+						return new GeneralCommand(key, memento, command, creationTime, expirationTime);
 					}
 				} else {
 					L label = null;
-					if(labelString != null) {
-						label = (L)labelConverter.fromPersistence(labelString.trim());
+					if (labelString != null) {
+						label = (L) labelConverter.fromPersistence(labelString.trim());
 					}
 					ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
-					Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
+					Object val = byteConverter.fromPersistence(rs.getBytes(2));
 
-					Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
-//					LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-				
-					if(loadType == LoadType.BUILDER) {
-						cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime,priority);
-					} else if(loadType == LoadType.RESULT_CONSUMER) {
-						cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime,priority);
-					} else if(loadType == LoadType.MULTI_KEY_PART) {
-						Load load = (Load)val;
-						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties,priority);
+					Map<String, Object> properties = mapConverter.fromPersistence(rs.getString(7));
+					// LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+
+					if (loadType == LoadType.BUILDER) {
+						return new CreatingCart<>(key, (BuilderSupplier) val, creationTime, expirationTime, priority);
+					} else if (loadType == LoadType.RESULT_CONSUMER) {
+						return new ResultConsumerCart<>(key, (ResultConsumer) val, creationTime, expirationTime,
+								priority);
+					} else if (loadType == LoadType.MULTI_KEY_PART) {
+						Load load = (Load) val;
+						return new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,
+								load.getLoadType(), properties, priority);
 					} else {
-						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType,priority);
+						return new ShoppingCart<>(key, val, label, creationTime, expirationTime, properties, loadType,
+								priority);
 					}
 				}
-				LOG.debug("Read cart: {}",cart);
-				carts.add(cart);
+			} catch (SQLException e) {
+				throw new PersistenceException(e);
 			}
-		} catch (Exception e) {
-	    	LOG.error("getPart Exception: {}",ids,e.getMessage());
-	    	throw new PersistenceException("getPart failed",e);
-		}
-		
-		return carts;
+			throw new PersistenceException("Unexpected result");
+		});
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.persistence.core.Persistence#getAllParts()
 	 */
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getAllParts() {
-		LOG.debug("getAllParts: {}",dynamicPersistenceSql.getAllUnfinishedPartIdsQuery());
-		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
-		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.getAllUnfinishedPartIdsQuery()) ) {
-			Cart<K, ?, L> cart = null;
-			ResultSet rs = st.executeQuery();
-			while(rs.next()) {
-				K key = (K)rs.getObject(1);
+		return engine.getUnfinishedParts(rs -> {
+			try {
+				Cart<K, ?, L> cart = null;
+				K key = (K) rs.getObject(1);
 				String labelString = rs.getString(3);
 				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
 				String hint = rs.getString(8);
 				long creationTime = rs.getTimestamp(4).getTime();
 				long expirationTime = rs.getTimestamp(5).getTime();
 				long priority = rs.getLong(9);
-				if(loadType == LoadType.COMMAND) {
+				if (loadType == LoadType.COMMAND) {
 					CommandLabel command = CommandLabel.valueOf(labelString.trim());
-					if(command == CommandLabel.RESTORE_BUILD) {
+					if (command == CommandLabel.RESTORE_BUILD) {
 						ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(command, hint);
-						Memento memento = (Memento) byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
-						cart = new GeneralCommand(key, memento, command, creationTime, expirationTime);
+						Memento memento = (Memento) byteConverter.fromPersistence(rs.getBytes(2));
+						return new GeneralCommand(key, memento, command, creationTime, expirationTime);
 					}
 				} else {
 					L label = null;
-					if(labelString != null) {
-						label = (L)labelConverter.fromPersistence(labelString.trim());
+					if (labelString != null) {
+						label = (L) labelConverter.fromPersistence(labelString.trim());
 					}
-				
-					ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
-					Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
 
-					Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
-//					LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-					if(loadType == LoadType.BUILDER) {
-						cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime,priority);
-					} else if(loadType == LoadType.RESULT_CONSUMER) {
-						cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime,priority);
-					} else if(loadType == LoadType.MULTI_KEY_PART) {
-						Load load = (Load)val;
-						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties,priority);
+					ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
+					Object val = byteConverter.fromPersistence(rs.getBytes(2));
+
+					Map<String, Object> properties = mapConverter.fromPersistence(rs.getString(7));
+					// LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+					if (loadType == LoadType.BUILDER) {
+						return new CreatingCart<>(key, (BuilderSupplier) val, creationTime, expirationTime, priority);
+					} else if (loadType == LoadType.RESULT_CONSUMER) {
+						return new ResultConsumerCart<>(key, (ResultConsumer) val, creationTime, expirationTime,
+								priority);
+					} else if (loadType == LoadType.MULTI_KEY_PART) {
+						Load load = (Load) val;
+						return new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,
+								load.getLoadType(), properties, priority);
 					} else {
-						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType,priority);
+						return new ShoppingCart<>(key, val, label, creationTime, expirationTime, properties, loadType,
+								priority);
 					}
 				}
-				carts.add(cart);
+
+			} catch (Exception e) {
+				LOG.error("getAllUnfinishedPartIdsQuery exception: ", e.getMessage());
+				throw new PersistenceException("getAllUnfinishedPartIdsQuery failed", e);
 			}
-		} catch (Exception e) {
-	    	LOG.error("getAllUnfinishedPartIdsQuery exception: ",e.getMessage());
-	    	throw new PersistenceException("getAllUnfinishedPartIdsQuery failed",e);
-		}
-		return carts;
+			throw new PersistenceException("Unexpected result in getAllParts");
+
+		});
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.persistence.core.Persistence#getExpiredParts()
 	 */
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getExpiredParts() {
-		LOG.debug("getExpiredParts: {}",dynamicPersistenceSql.getExpiredPartQuery());
-		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
-		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.getExpiredPartQuery()) ) {
-			Cart<K, ?, L> cart = null;
-			ResultSet rs = st.executeQuery();
-			while(rs.next()) {
-				K key = (K)rs.getObject(1);
-				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-				String labelString = rs.getString(3);
-				String hint = rs.getString(8);
-				long creationTime = rs.getTimestamp(4).getTime();
-				long expirationTime = rs.getTimestamp(5).getTime();
-				long priority = rs.getLong(9);
-				if(loadType == LoadType.COMMAND) {
-					CommandLabel command = CommandLabel.valueOf(labelString.trim());
-					if(command == CommandLabel.RESTORE_BUILD) {
-						ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(command, hint);
-						Memento memento = (Memento) byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
-						cart = new GeneralCommand(key, memento, command, creationTime, expirationTime);
-					}
-				} else {
-					L label = null;
-					if(labelString != null) {
-						label = (L)labelConverter.fromPersistence(labelString.trim());
-					}
-				
-					ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
-					Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
 
-					Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
-//					LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-					if(loadType == LoadType.BUILDER) {
-						cart = new CreatingCart<>(key, (BuilderSupplier)val, creationTime, expirationTime,priority);
-					} else if(loadType == LoadType.RESULT_CONSUMER) {
-						cart = new ResultConsumerCart<>(key, (ResultConsumer)val, creationTime, expirationTime,priority);
-					} else if(loadType == LoadType.MULTI_KEY_PART) {
-						Load load = (Load)val;
-						cart = new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,load.getLoadType(),properties,priority);
+		return engine.getExpiredParts(rs -> {
+			try {
+					K key = (K) rs.getObject(1);
+					LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
+					String labelString = rs.getString(3);
+					String hint = rs.getString(8);
+					long creationTime = rs.getTimestamp(4).getTime();
+					long expirationTime = rs.getTimestamp(5).getTime();
+					long priority = rs.getLong(9);
+					if (loadType == LoadType.COMMAND) {
+						CommandLabel command = CommandLabel.valueOf(labelString.trim());
+						if (command == CommandLabel.RESTORE_BUILD) {
+							ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(command,
+									hint);
+							Memento memento = (Memento) byteConverter.fromPersistence(rs.getBytes(2));
+							return new GeneralCommand(key, memento, command, creationTime, expirationTime);
+						}
 					} else {
-						cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType,priority);
-					}
+						L label = null;
+						if (labelString != null) {
+							label = (L) labelConverter.fromPersistence(labelString.trim());
+						}
+
+						ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
+						Object val = byteConverter.fromPersistence(rs.getBytes(2));
+
+						Map<String, Object> properties = mapConverter.fromPersistence(rs.getString(7));
+						// LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+						if (loadType == LoadType.BUILDER) {
+							return new CreatingCart<>(key, (BuilderSupplier) val, creationTime, expirationTime,
+									priority);
+						} else if (loadType == LoadType.RESULT_CONSUMER) {
+							return new ResultConsumerCart<>(key, (ResultConsumer) val, creationTime, expirationTime,
+									priority);
+						} else if (loadType == LoadType.MULTI_KEY_PART) {
+							Load load = (Load) val;
+							return new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime,
+									expirationTime, load.getLoadType(), properties, priority);
+						} else {
+							return new ShoppingCart<>(key, val, label, creationTime, expirationTime, properties,
+									loadType, priority);
+						}
 				}
-				carts.add(cart);
+			} catch (Exception e) {
+				LOG.error("getExpiredParts exception: ", e.getMessage());
+				throw new PersistenceException("getExpiredParts failed", e);
 			}
-		} catch (Exception e) {
-	    	LOG.error("getExpiredParts exception: ",e.getMessage());
-	    	throw new PersistenceException("getExpiredParts failed",e);
-		}
-		return carts;
+			throw new PersistenceException("Unexpected result in getExpiredParts");
+
+		});
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.persistence.core.Persistence#getCompletedKeys()
 	 */
 	@Override
 	public Set<K> getCompletedKeys() {
-		Set<K> res = new LinkedHashSet<>();
-		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.getAllCompletedKeysQuery()) ) {
-			ResultSet rs = st.executeQuery();
-			while(rs.next()) {
-				@SuppressWarnings("unchecked")
-				K key = (K) rs.getObject(1);
-				res.add(key);
+		return engine.getAllCompletedKeys(rs->{
+			try {
+				return (K) rs.getObject(1);
+			} catch (Exception e) {
+				LOG.error("getCompletedKeys Exception:", e.getMessage());
+				throw new PersistenceException("getCompletedKeys failed", e);
 			}
-		} catch (Exception e) {
-	    	LOG.error("getCompletedKeys Exception:",e.getMessage());
-	    	throw new PersistenceException("getCompletedKeys failed",e);
-		}
-		return res;
+		});
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.Persistence#archiveParts(java.util.Collection)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.persistence.core.Persistence#archiveParts(java.util.
+	 * Collection)
 	 */
 	@Override
 	public void archiveParts(Collection<Long> ids) {
-		archiver.archiveParts(connectionSupplier.get(),ids);
+		archiver.archiveParts(null, ids);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.Persistence#archiveKeys(java.util.Collection)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#archiveKeys(java.util.
+	 * Collection)
 	 */
 	@Override
 	public void archiveKeys(Collection<K> keys) {
-		archiver.archiveKeys(connectionSupplier.get(), keys);
+		archiver.archiveKeys(null, keys);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.Persistence#archiveCompleteKeys(java.util.Collection)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.persistence.core.Persistence#archiveCompleteKeys(java.
+	 * util.Collection)
 	 */
 	@Override
 	public void archiveCompleteKeys(Collection<K> keys) {
-		archiver.archiveCompleteKeys(connectionSupplier.get(), keys);
+		archiver.archiveCompleteKeys(null, keys);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.persistence.core.Persistence#archiveAll()
 	 */
 	@Override
 	public void archiveAll() {
-		archiver.archiveAll(connectionSupplier.get());
+		archiver.archiveAll(null);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.persistence.core.Persistence#getAllStaticParts()
 	 */
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getAllStaticParts() {
-		LOG.debug("getAllStaticParts: {}",dynamicPersistenceSql.getAllStaticPartsQuery());
-		Collection<Cart<K, ?, L>> carts = new ArrayList<>();
-		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.getAllStaticPartsQuery()) ) {
-			Cart<K, ?, L> cart = null;
-			ResultSet rs = st.executeQuery();
-			while(rs.next()) {
-				K key = (K)rs.getObject(1);
-				L label = (L)labelConverter.fromPersistence(rs.getString(3).trim());
-				String hint = rs.getString(8);
-				ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
-				Object val = byteConverter.fromPersistence(fromBlob(rs.getBlob(2)));
-				long creationTime = rs.getTimestamp(4).getTime();
-				long expirationTime = rs.getTimestamp(5).getTime();
-				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-				Map<String,Object> properties = mapConverter.fromPersistence(rs.getClob(7));
-//				LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-				cart = new ShoppingCart<>(key,val,label,creationTime,expirationTime,properties,loadType,0);
-				carts.add(cart);
+		return engine.getStaticParts(rs->{
+			try {
+					K key = (K) rs.getObject(1);
+					L label = (L) labelConverter.fromPersistence(rs.getString(3).trim());
+					String hint = rs.getString(8);
+					ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
+					Object val = byteConverter.fromPersistence(rs.getBytes(2));
+					long creationTime = rs.getTimestamp(4).getTime();
+					long expirationTime = rs.getTimestamp(5).getTime();
+					LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
+					Map<String, Object> properties = mapConverter.fromPersistence(rs.getString(7));
+					// LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
+					return new ShoppingCart<>(key, val, label, creationTime, expirationTime, properties, loadType, 0);
+			} catch (Exception e) {
+				LOG.error("getAllStaticParts exception: ", e.getMessage());
+				throw new PersistenceException("getAllStaticParts failed", e);
 			}
-		} catch (Exception e) {
-	    	LOG.error("getAllStaticParts exception: ",e.getMessage());
-	    	throw new PersistenceException("getAllStaticParts failed",e);
-		}
-		return carts;
+
+		});
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.io.Closeable#close()
 	 */
 	@Override
@@ -571,50 +536,50 @@ public class JdbcPersistence<K> implements Persistence<K>{
 		try {
 			connectionSupplier.get().close();
 		} catch (SQLException e) {
-			throw new IOException("SQL Connection close error",e);
+			throw new IOException("SQL Connection close error", e);
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.persistence.core.Persistence#archiveExpiredParts()
 	 */
 	@Override
 	public void archiveExpiredParts() {
-		archiver.archiveExpiredParts(connectionSupplier.get());
+		archiver.archiveExpiredParts(null);
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.Persistence#getMaxArchiveBatchSize()
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.persistence.core.Persistence#getMaxArchiveBatchSize()
 	 */
 	@Override
 	public int getMaxArchiveBatchSize() {
 		return maxBatchSize;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.Persistence#getMaxArchiveBatchTime()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.aegisql.conveyor.persistence.core.Persistence#getMaxArchiveBatchTime()
 	 */
 	@Override
 	public long getMaxArchiveBatchTime() {
 		return maxBatchTime;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.aegisql.conveyor.persistence.core.Persistence#getNumberOfParts()
 	 */
 	@Override
 	public long getNumberOfParts() {
-		long res = -1;
-		try(PreparedStatement st = connectionSupplier.get().prepareStatement(dynamicPersistenceSql.getNumberOfPartsQuery()) ) {
-			ResultSet rs = st.executeQuery();
-			if(rs.next()) {
-				res = rs.getLong(1);
-			}
-		} catch (Exception e) {
-	    	LOG.error("getNumberOfParts Exception:",e.getMessage());
-	    	throw new PersistenceException("getNumberOfParts failed",e);
-		}
-		return res;
+		return engine.getNumberOfParts();
 	}
 
 	@Override
@@ -624,14 +589,14 @@ public class JdbcPersistence<K> implements Persistence<K>{
 
 	@Override
 	public boolean isPersistentProperty(String property) {
-		return ! nonPersistentProperties.contains(property);
+		return !nonPersistentProperties.contains(property);
 	}
 
 	@Override
 	public int getMinCompactSize() {
-		return minCompactSize ;
+		return minCompactSize;
 	}
-	
+
 	public Connection getConnection() {
 		return connectionSupplier.get();
 	}

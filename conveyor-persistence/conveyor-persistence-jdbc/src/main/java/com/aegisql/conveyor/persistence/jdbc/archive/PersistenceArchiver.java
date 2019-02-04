@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 
 /**
  * The Class PersistenceArchiver.
@@ -17,9 +18,9 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 	private final DeleteArchiver<K> deleteArchiver;
 	private final Persistence<K> archivePersistence;
 
-	public PersistenceArchiver(Class<K> keyClass, String partTable, String completedTable, Persistence<K> persistence) {
-		super(keyClass, partTable, completedTable);
-		this.deleteArchiver = new DeleteArchiver<>(keyClass, partTable, completedTable);
+	public PersistenceArchiver(EngineDepo<K> engine, Persistence<K> persistence) {
+		super(engine);
+		this.deleteArchiver = new DeleteArchiver<>(engine);
 		this.archivePersistence = persistence;
 	}
 
@@ -31,7 +32,7 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 		Collection<Cart<K, ?, Object>> parts = persistence.getParts(ids);
 		if(parts != null) {
 			parts.forEach(cart -> archivePersistence.savePart(archivePersistence.nextUniquePartId(), cart) );
-			LOG.debug("Archived parts successfully. About to delete data from {}", partTable);
+//			LOG.debug("Archived parts successfully. About to delete data from {}", partTable);
 			deleteArchiver.archiveParts(conn, ids);
 		}		
 	}
@@ -46,7 +47,7 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 			ids.addAll(persistence.getAllPartIds(key));
 		}
 		archiveParts(conn, ids);
-		LOG.debug("Archived parts for keys successfully. About to delete data from {}", partTable);
+//		LOG.debug("Archived parts for keys successfully. About to delete data from {}", partTable);
 		deleteArchiver.archiveKeys(conn, keys);
 
 	}
@@ -70,7 +71,7 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 				keys.add(cart.getKey());
 			});
 			archiveKeys(conn, keys);
-			LOG.debug("Archived expired parts successfully. {}", partTable);
+//			LOG.debug("Archived expired parts successfully. {}", partTable);
 		}		
 	}
 
@@ -84,14 +85,13 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 				keys.add(cart.getKey());
 			});
 			archiveKeys(conn, keys);
-			LOG.debug("Archived all parts successfully. {}", partTable);
+//			LOG.debug("Archived all parts successfully. {}", partTable);
 		}		
 	}
 
 	@Override
 	public String toString() {
-		return "PersistenceArchiver [keyClass=" + keyClass + ", partTable=" + partTable + ", completedTable="
-				+ completedLogTable + ", archivePersistence=" + archivePersistence + "]";
+		return "PersistenceArchiver";
 	}
 
 	

@@ -6,14 +6,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 
 public class SetArchivedArchiver<K> extends AbstractJdbcArchiver<K> {
 	
 		private final DeleteArchiver<K> deleteArchiver;
 	
-		public SetArchivedArchiver(Class<K> keyClass, String partTable, String completedTable) {
-			super(keyClass, partTable, completedTable);
-			this.deleteArchiver = new DeleteArchiver<>(keyClass, partTable, completedTable);
+		public SetArchivedArchiver(EngineDepo<K> engine) {
+			super(engine);
+			this.deleteArchiver = new DeleteArchiver<>(engine);
 		}
 
 
@@ -22,12 +23,7 @@ public class SetArchivedArchiver<K> extends AbstractJdbcArchiver<K> {
 		if(ids.isEmpty()) {
 			return;
 		}
-		try(Statement ps = conn.createStatement()) {
-			ps.execute(updatePartsByIdSql.replace("?", quoteLong(ids)));
-		} catch (SQLException e) {
-			LOG.error("archiveParts failure",e);
-			throw new PersistenceException("archiveParts failure",e);
-		}
+		engine.updatePartsByIds(ids);
 	}
 
 	@Override
@@ -35,12 +31,7 @@ public class SetArchivedArchiver<K> extends AbstractJdbcArchiver<K> {
 		if(keys.isEmpty()) {
 			return;
 		}
-		try(Statement ps = conn.createStatement()) {
-			ps.execute(updatePartsByCartKeySql.replace("?", quote(keys)));
-		} catch (SQLException e) {
-			LOG.error("archiveKeys failure",e);
-			throw new PersistenceException("archiveKeys failure",e);
-		}
+		engine.updatePartsByCartKeys(keys);
 	}
 
 	@Override
@@ -50,28 +41,18 @@ public class SetArchivedArchiver<K> extends AbstractJdbcArchiver<K> {
 
 	@Override
 	public void archiveAll(Connection conn) {
-		try(PreparedStatement ps = conn.prepareStatement(updateAllPartsSql)) {
-			ps.execute();
-		} catch (SQLException e) {
-			LOG.error("archiveAll parts failure",e);
-			throw new PersistenceException("archiveAll parts failure",e);
-		}
-		deleteArchiver.archiveAll(conn);
+		engine.updateAllParts();
+		//deleteArchiver.archiveAll(conn);
 	}
 
 	@Override
 	public void archiveExpiredParts(Connection conn) {
-		try(PreparedStatement ps = conn.prepareStatement(updateExpiredPartsSql)) {
-			ps.execute();
-		} catch (SQLException e) {
-			LOG.error("archiveExpiredParts failure",e);
-			throw new PersistenceException("archiveExpiredParts failure",e);
-		}
+		engine.updateExpiredParts();
 	}
 
 	@Override
 	public String toString() {
-		return "Set ARCHIVED=1 in "+partTable+"; delete from "+completedLogTable;
+		return "Set ARCHIVED=1";
 	}
 	
 }

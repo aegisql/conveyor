@@ -16,6 +16,15 @@ public class Tester {
 	}
 
 	public static String LOCAL_MYSQL_URL = "jdbc:mysql://localhost:3306/";
+	public static String LOCAL_POSTGRES_URL = "jdbc:postgresql://localhost:5432/";
+	
+	public static void sleep(long msec) {
+		try {
+			Thread.sleep(msec);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	public static void removeLocalMysqlDatabase(String database) {
 		try {
@@ -31,7 +40,22 @@ public class Tester {
 		}
 
 	}
-	
+
+	public static void removeLocalPostgresDatabase(String database) {
+		try {
+			Class.forName("org.postgresql.Driver");
+			Connection connnection=DriverManager.getConnection(LOCAL_POSTGRES_URL,"postgres","root");
+			Statement st = connnection.createStatement();
+			st.execute("DROP DATABASE IF EXISTS "+database);
+			st.close();
+			connnection.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+
+	}
+
 	public static void removeDirectory(String directory) {
 		File f = new File(directory);
 		try {
@@ -43,7 +67,13 @@ public class Tester {
 		}
 
 	}
-	
+
+	public static void removeFile(String directory) {
+		File f = new File(directory);
+		FileUtils.deleteQuietly(f);
+		System.out.println("File "+directory+" has been deleted!");
+	}
+
 	public static String getTestMethod() {
 		StackTraceElement[] elements = Thread.currentThread().getStackTrace();
 		StackTraceElement el = elements[2];

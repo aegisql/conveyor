@@ -15,6 +15,7 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.utils.CartOutputStream;
 import com.aegisql.conveyor.persistence.utils.PersistUtils;
 
@@ -26,10 +27,10 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 	private long readBytes;
 
 
-	public FileArchiver(Class<K> keyClass, String partTable, String completedTable, BinaryLogConfiguration bLogConf) {
+	public FileArchiver(EngineDepo<K> engine, BinaryLogConfiguration bLogConf) {
 		
-		super(keyClass, partTable, completedTable);
-		this.deleteArchiver = new DeleteArchiver<>(keyClass, partTable, completedTable);
+		super(engine);
+		this.deleteArchiver = new DeleteArchiver<>(engine);
 		this.bLogConf = bLogConf;
 	}
 
@@ -98,7 +99,6 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 			e.printStackTrace();
 			throw new PersistenceException("Error saving carts", e);
 		}
-		LOG.debug("Archived parts successfully. About to delete data from {}", partTable);
 		deleteArchiver.archiveParts(conn, ids);
 	}
 
@@ -112,7 +112,6 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 			ids.addAll(persistence.getAllPartIds(key));
 		}
 		archiveParts(conn, ids);
-		LOG.debug("Archived parts for keys successfully. About to delete data from {}", partTable);
 		deleteArchiver.archiveKeys(conn, keys);
 	}
 
@@ -137,7 +136,6 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 			e.printStackTrace();
 			throw new PersistenceException("Error saving expired carts", e);
 		}
-		LOG.debug("Archived expired parts successfully. About to delete data from {}", partTable);
 		deleteArchiver.archiveExpiredParts(conn);
 	}
 
@@ -152,7 +150,6 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 			e.printStackTrace();
 			throw new PersistenceException("Error saving expired carts", e);
 		}
-		LOG.debug("Archived all parts successfully. About to delete data from {}", partTable);
 		deleteArchiver.archiveAll(conn);
 	}
 
