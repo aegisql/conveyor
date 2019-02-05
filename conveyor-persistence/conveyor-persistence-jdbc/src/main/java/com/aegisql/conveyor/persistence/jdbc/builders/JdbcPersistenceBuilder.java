@@ -49,6 +49,7 @@ import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.MysqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.PostgresqlEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.SqliteEngine;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
 
 public class JdbcPersistenceBuilder<K> {
@@ -989,6 +990,9 @@ public class JdbcPersistenceBuilder<K> {
 		case "postgres":
 			engine = new PostgresqlEngine<>(kClass);
 			break;
+		case "sqlite":
+			engine = new SqliteEngine<>(kClass);
+			break;
 		default:
 			throw new PersistenceException("pre-setted sql engine is not available for type "+type+".");
 		}
@@ -1043,6 +1047,9 @@ public class JdbcPersistenceBuilder<K> {
 					.setField(CART_VALUE, "BYTEA")
 					.setField(CREATION_TIME, "TIMESTAMP")
 					.setField(EXPIRATION_TIME, "TIMESTAMP");
+		case "sqlite":
+			return pi
+					.database("conveyor.db");
 		default:
 			throw new PersistenceException("pre-setted initializer is not available for type "+type+".");
 		}

@@ -1,7 +1,6 @@
 package com.aegisql.conveyor.persistence.jdbc;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -30,7 +29,6 @@ import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.builders.ConnectionSupplier;
 import com.aegisql.conveyor.persistence.jdbc.builders.DynamicPersistenceSql;
 import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.converters.MapToJsonConverter;

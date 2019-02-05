@@ -14,12 +14,10 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -28,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 
-public class GenericEngine <K> implements EngineDepo <K>  {
+public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	
 	protected static final Logger LOG = LoggerFactory.getLogger(EngineDepo.class);
 
