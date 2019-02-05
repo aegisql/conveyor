@@ -2,18 +2,13 @@ package com.aegisql.conveyor.persistence.jdbc;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.LongSupplier;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +33,8 @@ import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.builders.ConnectionSupplier;
 import com.aegisql.conveyor.persistence.jdbc.builders.DynamicPersistenceSql;
 import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
-import com.aegisql.conveyor.persistence.jdbc.converters.MapToClobConverter;
 import com.aegisql.conveyor.persistence.jdbc.converters.MapToJsonConverter;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.DerbyPersistenceBuilder;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -54,10 +47,6 @@ public class JdbcPersistence<K> implements Persistence<K> {
 
 	/** The Constant LOG. */
 	final static Logger LOG = LoggerFactory.getLogger(JdbcPersistence.class);
-
-	/** The connectionSupplier. */
-	///////////////////////////////////////////////////////////////////////////////
-	private final ConnectionSupplier connectionSupplier;
 
 	/** The id supplier. */
 	private final LongSupplier idSupplier;
@@ -132,11 +121,10 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 * @param maxBatchTime
 	 *            the max batch time
 	 */
-	public JdbcPersistence(ConnectionSupplier connectionSupplier, EngineDepo<K> engine, LongSupplier idSupplier,
+	public JdbcPersistence(EngineDepo<K> engine, LongSupplier idSupplier,
 			DynamicPersistenceSql dynamicPersistenceSql, Archiver<K> archiver,
 			ObjectConverter<?, String> labelConverter, ConverterAdviser<?> converterAdviser, int maxBatchSize,
 			long maxBatchTime, String info, Set<String> nonPersistentProperties, int minCompactSize) {
-		this.connectionSupplier = connectionSupplier;
 		this.idSupplier = idSupplier;
 		this.converterAdviser = converterAdviser;
 		// this.dynamicPersistenceSql = dynamicPersistenceSql;
@@ -152,19 +140,6 @@ public class JdbcPersistence<K> implements Persistence<K> {
 		this.archiver.setPersistence(this);
 	}
 
-	/**
-	 * For key class.
-	 *
-	 * @param <K>
-	 *            the key type
-	 * @param clas
-	 *            the clas
-	 * @return the derby persistence builder
-	 */
-	public static <K> DerbyPersistenceBuilder<K> forKeyClass(Class<K> clas) {
-		return new DerbyPersistenceBuilder<K>(clas);
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -172,7 +147,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public Persistence<K> copy() {
-		return new JdbcPersistence<>(connectionSupplier.clone(), engine, idSupplier, null, archiver, labelConverter,
+		return new JdbcPersistence<>(engine, idSupplier, null, archiver, labelConverter,
 				converterAdviser, maxBatchSize, maxBatchTime, info, nonPersistentProperties, minCompactSize);
 	}
 
@@ -462,7 +437,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public void archiveParts(Collection<Long> ids) {
-		archiver.archiveParts(null, ids);
+		archiver.archiveParts(ids);
 	}
 
 	/*
@@ -473,7 +448,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public void archiveKeys(Collection<K> keys) {
-		archiver.archiveKeys(null, keys);
+		archiver.archiveKeys(keys);
 	}
 
 	/*
@@ -485,7 +460,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public void archiveCompleteKeys(Collection<K> keys) {
-		archiver.archiveCompleteKeys(null, keys);
+		archiver.archiveCompleteKeys(keys);
 	}
 
 	/*
@@ -495,7 +470,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public void archiveAll() {
-		archiver.archiveAll(null);
+		archiver.archiveAll();
 	}
 
 	/*
@@ -533,11 +508,11 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public void close() throws IOException {
-		try {
-			connectionSupplier.get().close();
-		} catch (SQLException e) {
-			throw new IOException("SQL Connection close error", e);
-		}
+//		try {
+//			connectionSupplier.get().close();
+//		} catch (SQLException e) {
+//			throw new IOException("SQL Connection close error", e);
+//		}
 	}
 
 	/*
@@ -547,7 +522,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public void archiveExpiredParts() {
-		archiver.archiveExpiredParts(null);
+		archiver.archiveExpiredParts();
 	}
 
 	/*
@@ -595,10 +570,6 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	@Override
 	public int getMinCompactSize() {
 		return minCompactSize;
-	}
-
-	public Connection getConnection() {
-		return connectionSupplier.get();
 	}
 
 }

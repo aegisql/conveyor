@@ -1,11 +1,7 @@
 package com.aegisql.conveyor.persistence.jdbc.archive;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Collection;
-import com.aegisql.conveyor.persistence.core.PersistenceException;
+
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 
 public class SetArchivedArchiver<K> extends AbstractJdbcArchiver<K> {
@@ -19,7 +15,7 @@ public class SetArchivedArchiver<K> extends AbstractJdbcArchiver<K> {
 
 
 	@Override
-	public void archiveParts(Connection conn, Collection<Long> ids) {
+	public void archiveParts(Collection<Long> ids) {
 		if(ids.isEmpty()) {
 			return;
 		}
@@ -27,7 +23,7 @@ public class SetArchivedArchiver<K> extends AbstractJdbcArchiver<K> {
 	}
 
 	@Override
-	public void archiveKeys(Connection conn, Collection<K> keys) {
+	public void archiveKeys(Collection<K> keys) {
 		if(keys.isEmpty()) {
 			return;
 		}
@@ -35,18 +31,18 @@ public class SetArchivedArchiver<K> extends AbstractJdbcArchiver<K> {
 	}
 
 	@Override
-	public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
-		deleteArchiver.archiveCompleteKeys(conn, keys);
+	public void archiveCompleteKeys(Collection<K> keys) {
+		deleteArchiver.archiveCompleteKeys(keys);
 	}
 
 	@Override
-	public void archiveAll(Connection conn) {
+	public void archiveAll() {
 		engine.updateAllParts();
 		//deleteArchiver.archiveAll(conn);
 	}
 
 	@Override
-	public void archiveExpiredParts(Connection conn) {
+	public void archiveExpiredParts() {
 		engine.updateExpiredParts();
 	}
 

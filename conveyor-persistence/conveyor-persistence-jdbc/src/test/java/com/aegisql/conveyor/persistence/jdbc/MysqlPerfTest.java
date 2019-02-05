@@ -42,7 +42,7 @@ import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 public class MysqlPerfTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
-			.setProperty("user", "root")
+			.user("root")
 			.autoInit(true).setArchived();
 	
 	@BeforeClass

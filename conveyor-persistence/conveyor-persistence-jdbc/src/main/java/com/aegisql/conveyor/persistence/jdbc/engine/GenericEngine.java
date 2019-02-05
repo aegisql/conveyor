@@ -520,6 +520,26 @@ public class GenericEngine <K> implements EngineDepo <K>  {
 			}
 		});
 	}
+	
+	protected <T> T getScalarValue(String url, String sql, Consumer<PreparedStatement> consumer, Function<ResultSet,T> transformer) {
+		return connectAndDo(con->{
+			try(PreparedStatement statement = con.prepareStatement(sql)) {
+				T t = null;
+				consumer.accept(statement);
+				ResultSet rs =statement.executeQuery();
+				while(rs.next()) {
+					if(t != null) {
+						throw new PersistenceException("Expected single object for "+t);
+					}
+					t = transformer.apply(rs);
+				}
+				return t;
+			} catch (SQLException e) {
+				throw new PersistenceException(e);
+			}
+		});
+	}
+
 
 	protected <T> T getScalarValue(String sql, Consumer<PreparedStatement> consumer, Function<ResultSet,T> transformer) {
 		return connectAndDo(con->{

@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.persistence.archive;
 
-import java.sql.Connection;
 import java.util.Collection;
 
 import com.aegisql.conveyor.persistence.core.Persistence;
@@ -12,19 +11,19 @@ public class UnimplementedArchiver<K> implements Archiver<K> {
 	}
 
 	@Override
-	public void archiveParts(Connection conn, Collection<Long> ids) {throw new PersistenceException("Unimplemented archiver");}
+	public void archiveParts(Collection<Long> ids) {throw new PersistenceException("Unimplemented archiver");}
 
 	@Override
-	public void archiveKeys(Connection conn, Collection<K> keys) {throw new PersistenceException("Unimplemented archiver");}
+	public void archiveKeys(Collection<K> keys) {throw new PersistenceException("Unimplemented archiver");}
 
 	@Override
-	public void archiveCompleteKeys(Connection conn, Collection<K> keys) {throw new PersistenceException("Unimplemented archiver");}
+	public void archiveCompleteKeys(Collection<K> keys) {throw new PersistenceException("Unimplemented archiver");}
 
 	@Override
-	public void archiveExpiredParts(Connection conn) {throw new PersistenceException("Unimplemented archiver");}
+	public void archiveExpiredParts() {throw new PersistenceException("Unimplemented archiver");}
 
 	@Override
-	public void archiveAll(Connection conn) {throw new PersistenceException("Unimplemented archiver");}
+	public void archiveAll() {throw new PersistenceException("Unimplemented archiver");}
 
 	@Override
 	public void setPersistence(Persistence<K> persistence) {}

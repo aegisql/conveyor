@@ -642,6 +642,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					this.objectName = newObjectName;
 					this.setMbean(name);
 				} else {
+					if (mBeanServer.isRegistered(newObjectName)) {
+						mBeanServer.unregisterMBean(newObjectName);
+					}
 					mBeanServer.registerMBean(mbean, newObjectName);
 					this.objectName = newObjectName;
 				}

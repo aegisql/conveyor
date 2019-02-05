@@ -549,7 +549,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public void archiveParts(Collection<Long> ids) {
-		archiver.archiveParts(conn,ids);
+		archiver.archiveParts(ids);
 	}
 
 	/* (non-Javadoc)
@@ -557,7 +557,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public void archiveKeys(Collection<K> keys) {
-		archiver.archiveKeys(conn, keys);
+		archiver.archiveKeys(keys);
 	}
 
 	/* (non-Javadoc)
@@ -565,7 +565,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public void archiveCompleteKeys(Collection<K> keys) {
-		archiver.archiveCompleteKeys(conn, keys);
+		archiver.archiveCompleteKeys(keys);
 	}
 
 	/* (non-Javadoc)
@@ -573,7 +573,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public void archiveAll() {
-		archiver.archiveAll(conn);
+		archiver.archiveAll();
 	}
 
 	/* (non-Javadoc)
@@ -624,7 +624,7 @@ public class DerbyPersistence<K> implements Persistence<K>{
 	 */
 	@Override
 	public void archiveExpiredParts() {
-		archiver.archiveExpiredParts(conn);
+		archiver.archiveExpiredParts();
 	}
 	
 	/* (non-Javadoc)

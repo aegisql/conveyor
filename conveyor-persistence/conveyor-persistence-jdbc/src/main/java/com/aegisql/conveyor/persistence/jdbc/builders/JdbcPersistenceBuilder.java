@@ -48,6 +48,7 @@ import com.aegisql.conveyor.persistence.jdbc.engine.DerbyEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.MysqlEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.PostgresqlEngine;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
 
 public class JdbcPersistenceBuilder<K> {
@@ -854,8 +855,7 @@ public class JdbcPersistenceBuilder<K> {
 
 		
 		JdbcPersistence<K> persistence = new JdbcPersistence<>(
-				  new ConnectionSupplier(convertTemplate(connectionUrlTemplate.connectionUrlTemplate),properties)
-				, sqlEngine  
+				  sqlEngine  
 				, idSupplier
 				, new GenericPersistenceSql(partTable, completedLogTable)
 				, archiver
@@ -871,86 +871,88 @@ public class JdbcPersistenceBuilder<K> {
 		String objName = "com.aegisql.conveyor.persistence."+engineType+"."+schema+":type=" + partTable;
 		LOG.debug("JMX name {}",objName);
 		ObjectName objectName = new ObjectName(objName);
-		if( ! JdbcPersistenceMBean.mBeanServer.isRegistered(objectName)) {
-			JdbcPersistenceMBean<K> jdbcMbean = new JdbcPersistenceMBean<K>() {
-				@Override
-				public String getSchema() {
-					return schema;
-				}
-				
-				@Override
-				public String getPartTable() {
-					return partTable;
-				}
-				
-				@Override
-				public String getCompleteTable() {
-					return completedLogTable;
-				}
-				
-				@Override
-				public String getArchiveStrategy() {
-					return archiveStrategy.name();
-				}
+		synchronized (JdbcPersistenceMBean.mBeanServer) {
+			if( ! JdbcPersistenceMBean.mBeanServer.isRegistered(objectName)) {
+				JdbcPersistenceMBean<K> jdbcMbean = new JdbcPersistenceMBean<K>() {
+					@Override
+					public String getSchema() {
+						return schema;
+					}
+					
+					@Override
+					public String getPartTable() {
+						return partTable;
+					}
+					
+					@Override
+					public String getCompleteTable() {
+						return completedLogTable;
+					}
+					
+					@Override
+					public String getArchiveStrategy() {
+						return archiveStrategy.name();
+					}
 
-				@Override
-				public boolean isEncrypted() {
-					return encryptionBuilder.get() != null;
-				}
+					@Override
+					public boolean isEncrypted() {
+						return encryptionBuilder.get() != null;
+					}
 
-				@Override
-				public String getDriver() {
-					return driver;
-				}
+					@Override
+					public String getDriver() {
+						return driver;
+					}
 
-				@Override
-				public String getHost() {
-					return host;
-				}
+					@Override
+					public String getHost() {
+						return host;
+					}
 
-				@Override
-				public int getPort() {
-					return port;
-				}
+					@Override
+					public int getPort() {
+						return port;
+					}
 
-				@Override
-				public int getMaxBatchSize() {
-					return maxBatchSize;
-				}
+					@Override
+					public int getMaxBatchSize() {
+						return maxBatchSize;
+					}
 
-				@Override
-				public long getMaxBatchTime() {
-					return maxBatchTime;
-				}
+					@Override
+					public long getMaxBatchTime() {
+						return maxBatchTime;
+					}
 
-				@Override
-				public Persistence<K> get() {
-					return persistence;
-				}
+					@Override
+					public Persistence<K> get() {
+						return persistence;
+					}
 
-				@Override
-				public String getEngineType() {
-					return engineType;
-				}
+					@Override
+					public String getEngineType() {
+						return engineType;
+					}
 
-				@Override
-				public String getDatabase() {
-					return database;
-				}
+					@Override
+					public String getDatabase() {
+						return database;
+					}
 
-				@Override
-				public String getArchiveStrategyDetails() {
-					return ""+customArchiver;
-				}
+					@Override
+					public String getArchiveStrategyDetails() {
+						return ""+customArchiver;
+					}
 
-				@Override
-				public int minCompactSize() {
-					return minCompactSize;
-				}
+					@Override
+					public int minCompactSize() {
+						return minCompactSize;
+					}
 
-			};
-			StandardMBean mbean = new StandardMBean(jdbcMbean, JdbcPersistenceMBean.class);
-			JdbcPersistenceMBean.mBeanServer.registerMBean(mbean, objectName);
+				};
+				StandardMBean mbean = new StandardMBean(jdbcMbean, JdbcPersistenceMBean.class);
+				JdbcPersistenceMBean.mBeanServer.registerMBean(mbean, objectName);
+			}			
 		}
 		return persistence;
 	}
@@ -983,6 +985,9 @@ public class JdbcPersistenceBuilder<K> {
 			break;
 		case "mysql":
 			engine = new MysqlEngine<>(kClass);
+			break;
+		case "postgres":
+			engine = new PostgresqlEngine<>(kClass);
 			break;
 		default:
 			throw new PersistenceException("pre-setted sql engine is not available for type "+type+".");

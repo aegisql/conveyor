@@ -19,7 +19,7 @@ import com.aegisql.conveyor.persistence.core.Persistence;
  * @param <K> the key type
  */
 public class PersistenceArchiver<K> implements Archiver<K> {
-	
+	Connection conn;
 	private final static Logger LOG = LoggerFactory.getLogger(PersistenceArchiver.class);
 
 	private final Class<K> keyClass;
@@ -52,7 +52,7 @@ public class PersistenceArchiver<K> implements Archiver<K> {
 	}
 
 	@Override
-	public void archiveParts(Connection conn, Collection<Long> ids) {
+	public void archiveParts(Collection<Long> ids) {
 		if (ids == null || ids.isEmpty()) {
 			return;
 		}
@@ -62,12 +62,12 @@ public class PersistenceArchiver<K> implements Archiver<K> {
 				archivePersistence.savePart(archivePersistence.nextUniquePartId(), cart);
 			});
 			LOG.debug("Archived parts successfully. About to delete data from {}", partTable);
-			deleteArchiver.archiveParts(conn, ids);
+			deleteArchiver.archiveParts(ids);
 		}		
 	}
 
 	@Override
-	public void archiveKeys(Connection conn, Collection<K> keys) {
+	public void archiveKeys( Collection<K> keys) {
 		if (keys == null || keys.isEmpty()) {
 			return;
 		}		
@@ -75,23 +75,23 @@ public class PersistenceArchiver<K> implements Archiver<K> {
 		for(K key:keys) {
 			ids.addAll(persistence.getAllPartIds(key));
 		}
-		archiveParts(conn, ids);
+		archiveParts( ids);
 		LOG.debug("Archived parts for keys successfully. About to delete data from {}", partTable);
-		deleteArchiver.archiveKeys(conn, keys);
+		deleteArchiver.archiveKeys( keys);
 
 	}
 
 	@Override
-	public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
+	public void archiveCompleteKeys( Collection<K> keys) {
 		if (keys == null || keys.isEmpty()) {
 			return;
 		}
 		// nothing else required. Just delete completed keys
-		deleteArchiver.archiveCompleteKeys(conn, keys);
+		deleteArchiver.archiveCompleteKeys( keys);
 	}
 
 	@Override
-	public void archiveExpiredParts(Connection conn) {
+	public void archiveExpiredParts() {
 		Collection<Cart<K, ?, Object>> parts = persistence.getExpiredParts();
 		Collection<K> keys = new ArrayList<>();
 		if(parts != null) {
@@ -99,13 +99,13 @@ public class PersistenceArchiver<K> implements Archiver<K> {
 				archivePersistence.savePart(archivePersistence.nextUniquePartId(), cart);
 				keys.add(cart.getKey());
 			});
-			archiveKeys(conn, keys);
+			archiveKeys(keys);
 			LOG.debug("Archived expired parts successfully. {}", partTable);
 		}		
 	}
 
 	@Override
-	public void archiveAll(Connection conn) {
+	public void archiveAll() {
 		Collection<Cart<K, ?, Object>> parts = persistence.getAllParts();
 		Collection<K> keys = new ArrayList<>();
 		if(parts != null) {
@@ -113,7 +113,7 @@ public class PersistenceArchiver<K> implements Archiver<K> {
 				archivePersistence.savePart(archivePersistence.nextUniquePartId(), cart);
 				keys.add(cart.getKey());
 			});
-			archiveKeys(conn, keys);
+			archiveKeys(keys);
 			LOG.debug("Archived all parts successfully. {}", partTable);
 		}		
 	}

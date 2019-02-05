@@ -36,6 +36,7 @@ public class LearnDerbyTest {
 
 	@Before
 	public void setUp() throws Exception {
+		Tester.sleep(1000);
 	}
 
 	@After

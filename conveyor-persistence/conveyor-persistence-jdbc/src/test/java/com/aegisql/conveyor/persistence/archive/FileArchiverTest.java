@@ -115,7 +115,7 @@ public class FileArchiverTest {
 		assertNotNull(ids);
 		assertEquals(4, ids.size());
 		
-		a.archiveParts(null, ids);
+		a.archiveParts(ids);
 		
 		File f1 = new File("./part.blog");
 		assertTrue(f1.exists());
@@ -163,7 +163,7 @@ public class FileArchiverTest {
 		assertNotNull(ids);
 		assertEquals(4, ids.size());
 		
-		a.archiveExpiredParts(null);
+		a.archiveExpiredParts();
 		
 		File f1 = new File("./expired.blog");
 		assertTrue(f1.exists());

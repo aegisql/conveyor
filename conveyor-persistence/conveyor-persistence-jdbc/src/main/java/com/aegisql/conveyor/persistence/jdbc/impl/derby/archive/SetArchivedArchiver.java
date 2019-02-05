@@ -14,7 +14,7 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 public class SetArchivedArchiver<K> implements Archiver<K> {
-	
+	Connection conn;
 	private final static Logger LOG = LoggerFactory.getLogger(SetArchivedArchiver.class);
 
 	private final String deleteFromPartsById;
@@ -51,7 +51,7 @@ public class SetArchivedArchiver<K> implements Archiver<K> {
 
 
 	@Override
-	public void archiveParts(Connection conn, Collection<Long> ids) {
+	public void archiveParts(Collection<Long> ids) {
 		if(ids.isEmpty()) {
 			return;
 		}
@@ -69,7 +69,7 @@ public class SetArchivedArchiver<K> implements Archiver<K> {
 	}
 
 	@Override
-	public void archiveKeys(Connection conn, Collection<K> keys) {
+	public void archiveKeys(Collection<K> keys) {
 		if(keys.isEmpty()) {
 			return;
 		}
@@ -89,7 +89,7 @@ public class SetArchivedArchiver<K> implements Archiver<K> {
 	}
 
 	@Override
-	public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
+	public void archiveCompleteKeys( Collection<K> keys) {
 		if(keys.isEmpty()) {
 			return;
 		}
@@ -109,7 +109,7 @@ public class SetArchivedArchiver<K> implements Archiver<K> {
 	}
 
 	@Override
-	public void archiveAll(Connection conn) {
+	public void archiveAll() {
 		try(PreparedStatement ps = conn.prepareStatement(deleteAllParts)) {
 			ps.execute();
 		} catch (SQLException e) {
@@ -125,7 +125,7 @@ public class SetArchivedArchiver<K> implements Archiver<K> {
 	}
 
 	@Override
-	public void archiveExpiredParts(Connection conn) {
+	public void archiveExpiredParts() {
 		try(PreparedStatement ps = conn.prepareStatement(deleteExpiredParts)) {
 			ps.execute();
 		} catch (SQLException e) {

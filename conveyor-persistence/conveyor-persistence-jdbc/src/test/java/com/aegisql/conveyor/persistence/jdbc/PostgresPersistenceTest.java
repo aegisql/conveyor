@@ -4,11 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeNoException;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -22,7 +18,6 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.jdbc.JdbcPersistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
@@ -30,8 +25,8 @@ public class PostgresPersistenceTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("postgres", Integer.class)
 			.autoInit(true)
-			.setProperty("user","postgres")
-			.setProperty("password","root");
+			.user("postgres")
+			.password("root");
 	
 	
 	@BeforeClass
@@ -167,12 +162,11 @@ public class PostgresPersistenceTest {
 	
 	@Test
 	public void testSaveAndRead() throws Exception {
-		JdbcPersistenceBuilder<Integer> jpb = JdbcPersistenceBuilder.presetInitializer("postgres", Integer.class)
-				.autoInit(true)
+		JdbcPersistenceBuilder<Integer> jpb = persistenceBuilder
 				.partTable("PART2")
 				.completedLogTable("COMPLETED_LOG2")
-				.setProperty("user", "postgres")
-				.setProperty("password", "root")
+				.user("postgres")
+				.password("root")
 				;
 		
 		JdbcPersistence<Integer> p = jpb.build();

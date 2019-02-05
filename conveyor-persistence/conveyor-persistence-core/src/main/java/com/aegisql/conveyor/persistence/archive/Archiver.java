@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.persistence.archive;
 
-import java.sql.Connection;
 import java.util.Collection;
 
 import com.aegisql.conveyor.persistence.core.Persistence;
@@ -19,7 +18,7 @@ public interface Archiver<K> {
 	 * @param conn the conn
 	 * @param ids the ids
 	 */
-	public void archiveParts(Connection conn,Collection<Long> ids);
+	public void archiveParts(Collection<Long> ids);
 	
 	/**
 	 * Archive keys.
@@ -27,7 +26,7 @@ public interface Archiver<K> {
 	 * @param conn the conn
 	 * @param keys the keys
 	 */
-	public void archiveKeys(Connection conn,Collection<K> keys);
+	public void archiveKeys(Collection<K> keys);
 	
 	/**
 	 * Archive complete keys.
@@ -35,21 +34,21 @@ public interface Archiver<K> {
 	 * @param conn the conn
 	 * @param keys the keys
 	 */
-	public void archiveCompleteKeys(Connection conn,Collection<K> keys);
+	public void archiveCompleteKeys(Collection<K> keys);
 	
 	/**
 	 * Archive expired parts.
 	 *
 	 * @param conn the conn
 	 */
-	public void archiveExpiredParts(Connection conn);
+	public void archiveExpiredParts();
 	
 	/**
 	 * Archive all.
 	 *
 	 * @param conn the conn
 	 */
-	public void archiveAll(Connection conn);
+	public void archiveAll();
 	
 	/**
 	 * Sets the persistence.

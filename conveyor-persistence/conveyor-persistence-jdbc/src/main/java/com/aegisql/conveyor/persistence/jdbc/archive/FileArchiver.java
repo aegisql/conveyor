@@ -5,12 +5,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import org.apache.commons.io.FileUtils;
+
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
@@ -81,7 +82,7 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 	}
 	
 	@Override
-	public void archiveParts(Connection conn, Collection<Long> ids) {
+	public void archiveParts(Collection<Long> ids) {
 		if (ids == null || ids.isEmpty()) {
 			return;
 		}
@@ -99,11 +100,11 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 			e.printStackTrace();
 			throw new PersistenceException("Error saving carts", e);
 		}
-		deleteArchiver.archiveParts(conn, ids);
+		deleteArchiver.archiveParts(ids);
 	}
 
 	@Override
-	public void archiveKeys(Connection conn, Collection<K> keys) {
+	public void archiveKeys( Collection<K> keys) {
 		if (keys == null || keys.isEmpty()) {
 			return;
 		}
@@ -111,22 +112,22 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 		for(K key:keys) {
 			ids.addAll(persistence.getAllPartIds(key));
 		}
-		archiveParts(conn, ids);
-		deleteArchiver.archiveKeys(conn, keys);
+		archiveParts(ids);
+		deleteArchiver.archiveKeys(keys);
 	}
 
 	@Override
-	public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
+	public void archiveCompleteKeys(Collection<K> keys) {
 		if (keys == null || keys.isEmpty()) {
 			return;
 		}
 		// nothing else required. Just delete completed keys
-		deleteArchiver.archiveCompleteKeys(conn, keys);
+		deleteArchiver.archiveCompleteKeys(keys);
 	}
 
 	
 	@Override
-	public void archiveExpiredParts(Connection conn) {
+	public void archiveExpiredParts() {
 		try {
 			CartOutputStream<K, ?> cos = getCartOutputStream();
 			Collection<Cart<K, ?, Object>> carts = persistence.getExpiredParts();
@@ -136,11 +137,11 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 			e.printStackTrace();
 			throw new PersistenceException("Error saving expired carts", e);
 		}
-		deleteArchiver.archiveExpiredParts(conn);
+		deleteArchiver.archiveExpiredParts();
 	}
 
 	@Override
-	public void archiveAll(Connection conn) {
+	public void archiveAll() {
 		try {
 			CartOutputStream<K, ?> cos = getCartOutputStream();
 			Collection<Cart<K, ?, Object>> carts = persistence.getAllParts();
@@ -150,7 +151,7 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 			e.printStackTrace();
 			throw new PersistenceException("Error saving expired carts", e);
 		}
-		deleteArchiver.archiveAll(conn);
+		deleteArchiver.archiveAll();
 	}
 
 	@Override

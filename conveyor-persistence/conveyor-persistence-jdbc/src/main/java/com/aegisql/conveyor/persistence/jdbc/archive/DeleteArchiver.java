@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.persistence.jdbc.archive;
 
-import java.sql.Connection;
 import java.util.Collection;
 
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
@@ -12,7 +11,7 @@ public class DeleteArchiver<K> extends AbstractJdbcArchiver<K> {
 		super(engine);
 	}
 	@Override
-	public void archiveParts(Connection conn, Collection<Long> ids) {
+	public void archiveParts(Collection<Long> ids) {
 		if(ids.isEmpty()) {
 			return;
 		}
@@ -20,7 +19,7 @@ public class DeleteArchiver<K> extends AbstractJdbcArchiver<K> {
 	}
 
 	@Override
-	public void archiveKeys(Connection conn, Collection<K> keys) {
+	public void archiveKeys(Collection<K> keys) {
 		if(keys.isEmpty()) {
 			return;
 		}
@@ -28,7 +27,7 @@ public class DeleteArchiver<K> extends AbstractJdbcArchiver<K> {
 	}
 
 	@Override
-	public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
+	public void archiveCompleteKeys(Collection<K> keys) {
 		if(keys.isEmpty()) {
 			return;
 		}
@@ -36,13 +35,13 @@ public class DeleteArchiver<K> extends AbstractJdbcArchiver<K> {
 	}
 
 	@Override
-	public void archiveAll(Connection conn) {
+	public void archiveAll() {
 		engine.deleteAllParts();
 		engine.deleteAllCompletedLog();
 	}
 
 	@Override
-	public void archiveExpiredParts(Connection conn) {
+	public void archiveExpiredParts() {
 		engine.deleteExpiredParts();
 	}
 

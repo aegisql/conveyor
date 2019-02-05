@@ -26,7 +26,7 @@ import com.aegisql.conveyor.persistence.utils.CartOutputStream;
 import com.aegisql.conveyor.persistence.utils.PersistUtils;
 
 public class FileArchiver<K> implements Archiver<K> {
-
+	Connection conn;
 	private final static Logger LOG = LoggerFactory.getLogger(FileArchiver.class);
 
 	private final Class<K> keyClass;
@@ -115,7 +115,7 @@ public class FileArchiver<K> implements Archiver<K> {
 	}
 	
 	@Override
-	public void archiveParts(Connection conn, Collection<Long> ids) {
+	public void archiveParts(Collection<Long> ids) {
 		if (ids == null || ids.isEmpty()) {
 			return;
 		}
@@ -134,11 +134,11 @@ public class FileArchiver<K> implements Archiver<K> {
 			throw new PersistenceException("Error saving carts", e);
 		}
 		LOG.debug("Archived parts successfully. About to delete data from {}", partTable);
-		deleteArchiver.archiveParts(conn, ids);
+		deleteArchiver.archiveParts(ids);
 	}
 
 	@Override
-	public void archiveKeys(Connection conn, Collection<K> keys) {
+	public void archiveKeys(Collection<K> keys) {
 		if (keys == null || keys.isEmpty()) {
 			return;
 		}
@@ -146,23 +146,23 @@ public class FileArchiver<K> implements Archiver<K> {
 		for(K key:keys) {
 			ids.addAll(persistence.getAllPartIds(key));
 		}
-		archiveParts(conn, ids);
+		archiveParts(ids);
 		LOG.debug("Archived parts for keys successfully. About to delete data from {}", partTable);
-		deleteArchiver.archiveKeys(conn, keys);
+		deleteArchiver.archiveKeys( keys);
 	}
 
 	@Override
-	public void archiveCompleteKeys(Connection conn, Collection<K> keys) {
+	public void archiveCompleteKeys(Collection<K> keys) {
 		if (keys == null || keys.isEmpty()) {
 			return;
 		}
 		// nothing else required. Just delete completed keys
-		deleteArchiver.archiveCompleteKeys(conn, keys);
+		deleteArchiver.archiveCompleteKeys(keys);
 	}
 
 	
 	@Override
-	public void archiveExpiredParts(Connection conn) {
+	public void archiveExpiredParts() {
 		try {
 			CartOutputStream<K, ?> cos = getCartOutputStream();
 			Collection<Cart<K, ?, Object>> carts = persistence.getExpiredParts();
@@ -173,11 +173,11 @@ public class FileArchiver<K> implements Archiver<K> {
 			throw new PersistenceException("Error saving expired carts", e);
 		}
 		LOG.debug("Archived expired parts successfully. About to delete data from {}", partTable);
-		deleteArchiver.archiveExpiredParts(conn);
+		deleteArchiver.archiveExpiredParts();
 	}
 
 	@Override
-	public void archiveAll(Connection conn) {
+	public void archiveAll() {
 		try {
 			CartOutputStream<K, ?> cos = getCartOutputStream();
 			Collection<Cart<K, ?, Object>> carts = persistence.getAllParts();
@@ -188,7 +188,7 @@ public class FileArchiver<K> implements Archiver<K> {
 			throw new PersistenceException("Error saving expired carts", e);
 		}
 		LOG.debug("Archived all parts successfully. About to delete data from {}", partTable);
-		deleteArchiver.archiveAll(conn);
+		deleteArchiver.archiveAll();
 	}
 
 	@Override
