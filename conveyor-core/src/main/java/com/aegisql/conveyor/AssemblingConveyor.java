@@ -643,6 +643,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					this.setMbean(name);
 				} else {
 					if (mBeanServer.isRegistered(newObjectName)) {
+						LOG.warn("Replacing existing mbean with name {}",newObjectName);
 						mBeanServer.unregisterMBean(newObjectName);
 					}
 					mBeanServer.registerMBean(mbean, newObjectName);
