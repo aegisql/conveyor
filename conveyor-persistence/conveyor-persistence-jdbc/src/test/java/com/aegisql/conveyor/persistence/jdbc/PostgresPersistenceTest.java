@@ -26,6 +26,8 @@ public class PostgresPersistenceTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("postgres", Integer.class)
 			.autoInit(true)
+			.database("conveyor_db_test")
+			.schema("conveyor_db_test")
 			.user("postgres")
 			.password("root");
 	
@@ -33,7 +35,7 @@ public class PostgresPersistenceTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		Assume.assumeTrue(Tester.hasDriver("org.postgresql.Driver"));
-		Tester.removeLocalPostgresDatabase("conveyor_db");
+		Tester.removeLocalPostgresDatabase("conveyor_db_test");
 	}
 
 	@AfterClass
