@@ -239,6 +239,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	@Override
 	public void createDatabase(String database) {
 		connectAndExecuteUpdate(connectionUrlTemplateForInitDatabase, getCreateDatabaseSql(database));
+		LOG.info("Created database {}",database);
 	}
 
 	protected String getCreateDatabaseSql(String database) {
@@ -248,6 +249,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	@Override
 	public void createSchema(String schema) {
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitSchema), getCreateSchemaSql(schema));
+		LOG.info("Created schema {}",schema);
 	}
 
 	protected String getCreateSchemaSql(String schema) {
@@ -257,6 +259,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	@Override
 	public void createPartTable(String partTable) {
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitTablesAndIndexes), getCreatePartTableSql(partTable));
+		LOG.info("Created part table {}",partTable);
 	}
 
 	protected String getCreatePartTableSql(String partTable) {
@@ -273,6 +276,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	@Override
 	public void createPartTableIndex(String partTable) {
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitTablesAndIndexes), getCreatePartTableIndexSql(partTable));
+		LOG.info("Created partTable index {}",partTable);
 	}
 
 	protected String getCreatePartTableIndexSql(String partTable) {
@@ -282,6 +286,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	@Override
 	public void createCompletedLogTable(String completedLogTable) {
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitTablesAndIndexes), getCompletedLogTableSql(completedLogTable));
+		LOG.info("Created completedLogTable {}",completedLogTable);
 	}
 
 	protected String getCompletedLogTableSql(String completedLogTable) {
@@ -449,6 +454,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 			String connectionUrl = toConnectionUrl(connectionUrlTemplate);
 			try {
 				connection = DriverManager.getConnection(connectionUrl, properties);
+				LOG.info("Connection created: {}",this);
 			} catch (SQLException e) {
 				throw new PersistenceException("Failed connection to URL " + connectionUrl + " " + properties, e);
 			}
@@ -778,5 +784,15 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 			throw new IOException(e);
 		}
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder(getClass().getSimpleName());
+		builder.append(" [connectionUrl=").append(toConnectionUrl(connectionUrlTemplate)).append(", properties=")
+				.append(properties).append("]");
+		return builder.toString();
+	}
+	
+	
 
 }

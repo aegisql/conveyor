@@ -23,5 +23,12 @@ public abstract class AbstractJdbcArchiver <K> implements Archiver<K> {
 	public void setPersistence(Persistence<K> persistence) {
 		this.persistence = persistence;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder(getClass().getSimpleName());
+		builder.append(" [engine=").append(engine).append("]");
+		return builder.toString();
+	}
 	
 }
