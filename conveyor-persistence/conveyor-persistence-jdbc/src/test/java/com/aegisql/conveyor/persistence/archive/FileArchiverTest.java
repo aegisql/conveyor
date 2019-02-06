@@ -1,10 +1,12 @@
 package com.aegisql.conveyor.persistence.archive;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,7 +22,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
-import com.aegisql.conveyor.persistence.jdbc.impl.derby.archive.FileArchiver;
+import com.aegisql.conveyor.persistence.jdbc.archive.FileArchiver;
 import com.aegisql.conveyor.persistence.utils.CartInputStream;
 import com.aegisql.conveyor.persistence.utils.DataSize;
 
@@ -99,7 +101,7 @@ public class FileArchiverTest {
 				.zipFile(true)
 				.build();
 		ConverterAdviser<?> adviser = new ConverterAdviser<>();
-		FileArchiver<Integer> a = new FileArchiver<>(Integer.class, "part", "completed", blc, adviser, new DoNothingArchiver<Integer>());
+		FileArchiver<Integer> a = new FileArchiver<>( p.getEngine(),blc);
 		a.setPersistence(p);
 		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(1, "v1", "l1");
 		Cart<Integer,String,String> c2 = new ShoppingCart<Integer, String, String>(1, "v2", "l1");
@@ -147,7 +149,7 @@ public class FileArchiverTest {
 				.zipFile(false)
 				.build();
 		ConverterAdviser<?> adviser = new ConverterAdviser<>();
-		FileArchiver<Integer> a = new FileArchiver<>(Integer.class, "expired", "completed", blc, adviser, new DoNothingArchiver<Integer>());
+		FileArchiver<Integer> a = new FileArchiver<>( p.getEngine(),blc);
 		a.setPersistence(p);
 		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(1, "v1", "l1");
 		Cart<Integer,String,String> c2 = new ShoppingCart<Integer, String, String>(1, "v2", "l1");

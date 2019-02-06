@@ -1,6 +1,8 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -8,11 +10,204 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 
-public class PersistTestImpl implements Persistence<Integer> {
+public class PersistTestImpl implements Persistence<Integer>{
+	
+	public class Engine implements EngineDepo<Integer> {
+
+		@Override
+		public boolean databaseExists(String database) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean schemaExists(String schema) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean partTableExists(String partTable) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean partTableIndexExists(String partTableIndex) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean completedLogTableExists(String completedLogTable) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void createDatabase(String database) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void createSchema(String schema) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void createPartTable(String partTable) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void createPartTableIndex(String partTable) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void createCompletedLogTable(String completedLogTable) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void buildPartTableQueries(String partTable) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void buildCompletedLogTableQueries(String completedLogTable) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void deleteFromCompletedLog(Collection<Integer> keys) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void deleteAllCompletedLog() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void deleteFromPartsByIds(Collection<? extends Number> ids) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void deleteFromPartsByCartKeys(Collection<Integer> keys) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void deleteExpiredParts() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void deleteAllParts() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void updatePartsByIds(Collection<? extends Number> ids) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void updatePartsByCartKeys(Collection<Integer> keys) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void updateExpiredParts() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void updateAllParts() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void saveCart(long id, String loadType, Object key, Object label, Timestamp creationTime,
+				Timestamp expirationTime, Object value, String properties, String hint, long priority) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void saveCompletedBuildKey(Object key) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public <T> List<T> getParts(Collection<Long> ids, Function<ResultSet, T> transformer) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public <T> List<T> getExpiredParts(Function<ResultSet, T> transformer) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public <T> List<T> getStaticParts(Function<ResultSet, T> transformer) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public List<Long> getAllPartIds(Integer key) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public <T> List<T> getUnfinishedParts(Function<ResultSet, T> transformer) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Set<Integer> getAllCompletedKeys(Function<ResultSet, Integer> transformer) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public long getNumberOfParts() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+		
+	}
 
 	ConcurrentHashMap<Long,Cart<Integer,?,?>> carts = new ConcurrentHashMap<>();
 	ConcurrentHashMap<Long,Cart<Integer,?,?>> expiredCarts = new ConcurrentHashMap<>();
@@ -205,4 +400,8 @@ public class PersistTestImpl implements Persistence<Integer> {
 		return 0;
 	}
 
+	public EngineDepo<Integer> getEngine() {
+		return new Engine();
+	}
+	
 }
