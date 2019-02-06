@@ -619,7 +619,6 @@ public class JdbcPersistenceBuilder<K> {
 		JdbcPersistence<K> persistence = new JdbcPersistence<>(
 				  sqlEngine  
 				, idSupplier
-				, new GenericPersistenceSql(partTable, completedLogTable)
 				, archiver
 				, labelConverter
 				, converterAdviser

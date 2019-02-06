@@ -29,7 +29,6 @@ import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.builders.DynamicPersistenceSql;
 import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.converters.MapToJsonConverter;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
@@ -120,7 +119,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 *            the max batch time
 	 */
 	public JdbcPersistence(EngineDepo<K> engine, LongSupplier idSupplier,
-			DynamicPersistenceSql dynamicPersistenceSql, Archiver<K> archiver,
+			Archiver<K> archiver,
 			ObjectConverter<?, String> labelConverter, ConverterAdviser<?> converterAdviser, int maxBatchSize,
 			long maxBatchTime, String info, Set<String> nonPersistentProperties, int minCompactSize) {
 		this.idSupplier = idSupplier;
@@ -145,7 +144,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public Persistence<K> copy() {
-		return new JdbcPersistence<>(engine, idSupplier, null, archiver, labelConverter,
+		return new JdbcPersistence<>(engine, idSupplier, archiver, labelConverter,
 				converterAdviser, maxBatchSize, maxBatchTime, info, nonPersistentProperties, minCompactSize);
 	}
 
