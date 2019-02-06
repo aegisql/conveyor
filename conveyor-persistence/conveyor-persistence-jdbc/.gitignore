@@ -7,3 +7,7 @@
 /testDb1/
 /perfConvArchive/
 /test/
+/test_engine/
+/*.db
+/*.sqlite
+/conveyor_db_sqlite
