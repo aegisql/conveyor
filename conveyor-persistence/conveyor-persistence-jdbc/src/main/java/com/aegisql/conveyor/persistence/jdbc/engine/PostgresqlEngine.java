@@ -19,8 +19,6 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 				);
 		setPort(5432);
 		setHost("localhost");
-		setDatabase("conveyor_db");
-		setSchema("conveyor_db");
 		setField(CART_VALUE, "BYTEA");
 		setField(CREATION_TIME, "TIMESTAMP");
 		setField(EXPIRATION_TIME, "TIMESTAMP");

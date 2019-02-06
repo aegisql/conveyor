@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
 public class DerbyEngine <K> extends GenericEngine<K> {
+	
 	public DerbyEngine(Class<K> keyClass) {
 		super(
 				keyClass,
@@ -13,6 +14,5 @@ public class DerbyEngine <K> extends GenericEngine<K> {
 		setField(CART_PROPERTIES, "CLOB");
 		setField(CREATION_TIME, "TIMESTAMP");
 		setField(EXPIRATION_TIME, "TIMESTAMP");
-
 	}
 }
