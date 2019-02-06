@@ -780,6 +780,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	public void close() throws IOException {
 		try {
 			getConnection().close();
+			connection = null;
 		} catch (SQLException e) {
 			throw new IOException(e);
 		}
