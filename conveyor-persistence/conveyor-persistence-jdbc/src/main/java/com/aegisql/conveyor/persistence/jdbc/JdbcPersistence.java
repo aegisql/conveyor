@@ -505,11 +505,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public void close() throws IOException {
-//		try {
-//			connectionSupplier.get().close();
-//		} catch (SQLException e) {
-//			throw new IOException("SQL Connection close error", e);
-//		}
+		engine.close();
 	}
 
 	/*

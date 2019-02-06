@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -768,4 +769,14 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 			}
 		}) ;
 	}
+	
+	@Override
+	public void close() throws IOException {
+		try {
+			getConnection().close();
+		} catch (SQLException e) {
+			throw new IOException(e);
+		}
+	}
+
 }

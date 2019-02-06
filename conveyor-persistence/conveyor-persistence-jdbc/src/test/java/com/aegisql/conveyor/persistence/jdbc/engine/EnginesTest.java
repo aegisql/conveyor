@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -47,7 +48,7 @@ public class EnginesTest {
 	}
 
 	@Test
-	public void testDerby() {
+	public void testDerby() throws IOException {
 		GenericEngine<Integer> de = new DerbyEngine<>(Integer.class);
 		de.setSchema(SCHEMA);
 		assertTrue(de.databaseExists(SCHEMA));
@@ -139,10 +140,11 @@ public class EnginesTest {
 		});
 		assertNotNull(staticPart);
 		assertEquals("static value",staticPart.get(0));
+		de.close();
 	}
 
 	@Test
-	public void testMysql() {
+	public void testMysql() throws IOException {
 		GenericEngine<Integer> de = new MysqlEngine<>(Integer.class);
 		de.setDatabase(SCHEMA);
 		de.setUser("root");
@@ -236,11 +238,11 @@ public class EnginesTest {
 		});
 		assertNotNull(staticPart);
 		assertEquals("static value",staticPart.get(0));
-
+		de.close();
 	}
 
 	@Test
-	public void testPostgres() {
+	public void testPostgres() throws IOException {
 		GenericEngine<Integer> de = new PostgresqlEngine<>(Integer.class);
 		de.setDatabase(SCHEMA);
 		de.setSchema(SCHEMA);
@@ -337,11 +339,12 @@ public class EnginesTest {
 		});
 		assertNotNull(staticPart);
 		assertEquals("static value",staticPart.get(0));
+		de.close();
 
 	}
 
 	@Test
-	public void testSqlite() {
+	public void testSqlite() throws IOException {
 		GenericEngine<Integer> de = new SqliteEngine<>(Integer.class);
 		de.setDatabase(SCHEMA+".db");
 		de.buildPartTableQueries(PARTS);
@@ -433,6 +436,7 @@ public class EnginesTest {
 		});
 		assertNotNull(staticPart);
 		assertEquals("static value",staticPart.get(0));
+		de.close();
 
 	}
 

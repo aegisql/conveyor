@@ -206,6 +206,12 @@ public class PersistTestImpl implements Persistence<Integer>{
 			// TODO Auto-generated method stub
 			return 0;
 		}
+
+		@Override
+		public void close() throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
 		
 	}
 

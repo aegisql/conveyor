@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
+import java.io.Closeable;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -9,7 +10,7 @@ import java.util.function.Function;
 
 import com.aegisql.conveyor.cart.Cart;
 
-public interface EngineDepo <K> {
+public interface EngineDepo <K> extends Closeable {
 	
 	public static final String ID="ID";
 	public static final String LOAD_TYPE="LOAD_TYPE";
