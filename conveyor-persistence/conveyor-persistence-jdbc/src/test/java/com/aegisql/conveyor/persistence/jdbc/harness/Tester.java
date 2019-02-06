@@ -18,6 +18,14 @@ public class Tester {
 	public static String LOCAL_MYSQL_URL = "jdbc:mysql://localhost:3306/";
 	public static String LOCAL_POSTGRES_URL = "jdbc:postgresql://localhost:5432/";
 	
+	public static boolean hasDriver(String driver) {
+		try {
+			return Class.forName(driver) != null;
+		} catch (ClassNotFoundException e) {
+			return false;
+		}
+	}
+	
 	public static void sleep(long msec) {
 		try {
 			Thread.sleep(msec);

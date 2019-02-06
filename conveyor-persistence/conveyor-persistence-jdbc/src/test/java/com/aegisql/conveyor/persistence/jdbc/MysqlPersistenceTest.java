@@ -4,17 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeNoException;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -22,7 +19,6 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.jdbc.JdbcPersistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
@@ -34,6 +30,7 @@ public class MysqlPersistenceTest {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		Assume.assumeTrue(Tester.hasDriver("com.mysql.cj.jdbc.Driver"));
 		Tester.removeLocalMysqlDatabase("conveyor_db");
 	}
 

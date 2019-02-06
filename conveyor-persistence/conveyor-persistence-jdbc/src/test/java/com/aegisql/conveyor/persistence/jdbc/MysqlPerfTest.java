@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -48,6 +49,7 @@ public class MysqlPerfTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		BasicConfigurator.configure();
+		Assume.assumeTrue(Tester.hasDriver("com.mysql.cj.jdbc.Driver"));
 		Tester.removeLocalMysqlDatabase("perfConv");
 		Tester.removeLocalMysqlDatabase("perfConvArchive");
 	}

@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -31,6 +32,7 @@ public class PostgresPersistenceTest {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		Assume.assumeTrue(Tester.hasDriver("org.postgresql.Driver"));
 		Tester.removeLocalPostgresDatabase("conveyor_db");
 	}
 
