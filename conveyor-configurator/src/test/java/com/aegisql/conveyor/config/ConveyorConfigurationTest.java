@@ -250,6 +250,7 @@ public class ConveyorConfigurationTest {
 	@Test
 	public void testSuportedReadablePersistenceProperties() throws Exception {
 		ConveyorConfiguration.build("classpath:persistence.properties");
+		Thread.sleep(1000);
 	}
 
 	public Archiver archiver = null;

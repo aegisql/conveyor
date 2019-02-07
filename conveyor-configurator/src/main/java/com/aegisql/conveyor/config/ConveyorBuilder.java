@@ -261,6 +261,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 					for (LinkedList<PersistenceProperty> ppList : ppMapList.values())
 						for (PersistenceProperty p : ppList) {
 							switch (p.getProperty()) {
+							case "autoInit":
+								dp = dp.autoInit(Boolean.parseBoolean(p.getValueAsString()));
+								break;
 							case "username":
 								dp = dp.user(p.getValueAsString());
 								break;
