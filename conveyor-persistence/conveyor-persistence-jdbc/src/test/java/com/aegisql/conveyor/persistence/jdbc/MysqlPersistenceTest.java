@@ -30,7 +30,7 @@ public class MysqlPersistenceTest {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Assume.assumeTrue(Tester.hasDriver("com.mysql.cj.jdbc.Driver"));
+		Assume.assumeTrue(Tester.testMySqlConnection());
 		Tester.removeLocalMysqlDatabase("conveyor_db");
 	}
 
