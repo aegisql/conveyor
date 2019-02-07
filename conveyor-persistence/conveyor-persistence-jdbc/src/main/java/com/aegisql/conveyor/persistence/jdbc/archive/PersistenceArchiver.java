@@ -32,7 +32,6 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 		Collection<Cart<K, ?, Object>> parts = persistence.getParts(ids);
 		if(parts != null) {
 			parts.forEach(cart -> archivePersistence.savePart(archivePersistence.nextUniquePartId(), cart) );
-//			LOG.debug("Archived parts successfully. About to delete data from {}", partTable);
 			deleteArchiver.archiveParts(ids);
 		}		
 	}
@@ -47,7 +46,6 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 			ids.addAll(persistence.getAllPartIds(key));
 		}
 		archiveParts(ids);
-//		LOG.debug("Archived parts for keys successfully. About to delete data from {}", partTable);
 		deleteArchiver.archiveKeys(keys);
 
 	}
@@ -71,7 +69,6 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 				keys.add(cart.getKey());
 			});
 			archiveKeys(keys);
-//			LOG.debug("Archived expired parts successfully. {}", partTable);
 		}		
 	}
 
@@ -85,15 +82,7 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 				keys.add(cart.getKey());
 			});
 			archiveKeys(keys);
-//			LOG.debug("Archived all parts successfully. {}", partTable);
 		}		
 	}
-
-	@Override
-	public String toString() {
-		return "PersistenceArchiver";
-	}
-
-	
 	
 }

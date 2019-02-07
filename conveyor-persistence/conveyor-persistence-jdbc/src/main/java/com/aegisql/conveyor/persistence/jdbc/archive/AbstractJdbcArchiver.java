@@ -9,7 +9,7 @@ import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 
 public abstract class AbstractJdbcArchiver <K> implements Archiver<K> {
 
-	protected final static Logger LOG = LoggerFactory.getLogger(DeleteArchiver.class);
+	protected static final Logger LOG = LoggerFactory.getLogger(DeleteArchiver.class);
 	
 	protected final EngineDepo<K> engine;
 	

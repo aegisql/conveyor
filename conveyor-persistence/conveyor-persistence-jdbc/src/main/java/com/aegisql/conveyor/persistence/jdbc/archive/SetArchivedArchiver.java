@@ -38,7 +38,7 @@ public class SetArchivedArchiver<K> extends AbstractJdbcArchiver<K> {
 	@Override
 	public void archiveAll() {
 		engine.updateAllParts();
-		//deleteArchiver.archiveAll(conn);
+		engine.deleteAllCompletedLog();
 	}
 
 	@Override
@@ -46,9 +46,4 @@ public class SetArchivedArchiver<K> extends AbstractJdbcArchiver<K> {
 		engine.updateExpiredParts();
 	}
 
-	@Override
-	public String toString() {
-		return "Set ARCHIVED=1";
-	}
-	
 }

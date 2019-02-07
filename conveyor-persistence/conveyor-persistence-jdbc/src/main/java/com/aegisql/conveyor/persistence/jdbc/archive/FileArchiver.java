@@ -156,7 +156,7 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 
 	@Override
 	public String toString() {
-		return "FileArchiver: "+bLogConf;
+		return super.toString()+" bLogConf="+bLogConf;
 	}
 	
 	
