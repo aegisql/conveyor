@@ -49,7 +49,7 @@ public class MysqlPerfTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		BasicConfigurator.configure();
-		Assume.assumeTrue(Tester.hasDriver("com.mysql.cj.jdbc.Driver"));
+		Assume.assumeTrue(Tester.testMySqlConnection());
 		Tester.removeLocalMysqlDatabase("perfConv");
 		Tester.removeLocalMysqlDatabase("perfConvArchive");
 	}
@@ -80,7 +80,7 @@ public class MysqlPerfTest {
 		pool = new ThreadPool(3);
 		batchSize = testSize / 20;
 		sleepNumber = batchSize;
-		System.out.println("--- " + new Date());
+		System.out.println("--- MysqlPerfTest " + new Date());
 	}
 
 	@After
