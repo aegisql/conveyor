@@ -9,7 +9,7 @@ conveyor-core
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-core</artifactId>
-  <version>1.3.15</version>
+  <version>1.4.0</version>
 </dependency>
 ```
 
@@ -18,7 +18,7 @@ conveyor-parallel
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-parallel</artifactId>
-  <version>1.3.15</version>
+  <version>1.4.0</version>
 </dependency>
 ```
 
@@ -26,30 +26,35 @@ conveyor-persistence
 ```xml
 <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.3.15</version>
+  <version>1.4.0</version>
 </dependency>
 
 <dependency>
   <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-jdbc</artifactId>
-  <version>1.3.15</version>
+  <version>1.4.0</version>
 </dependency>
 ```
 
-conveyor configurator (beta)
+conveyor configurator
 ```xml
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-configurator</artifactId>
-  <version>1.3.15</version>
+  <version>1.4.0</version>
 </dependency>
 ```
+
 ## Release History
 
-### 1.4.0-SNAPSHOT
+### 1.4.1-SNAPSHOT
+
+### 1.4.0
 * Removed Deprecated Derby Jdbc Persistence
-* Support for configurable JDBC connections in persistence
-* Implemented JDBC connectors for derby (static and client), MySQL, PostgreSQL and Sqlite 
+* Simplified and improved Archivers
+* Configurable JDBC engines in persistence for any database supporting JDBC
+* Pre-configured JDBC engines for derby (static and client), MySQL, Postgres and Sqlite 
+* Configuration support for derby (static and client), MySQL, Postgres and Sqlite 
 * Bugfixes
 
 ***
