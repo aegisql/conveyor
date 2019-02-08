@@ -1,7 +1,18 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class DerbyEngine.
+ *
+ * @param <K> the key type
+ */
 public class DerbyEngine <K> extends GenericEngine<K> {
 	
+	/**
+	 * Instantiates a new derby engine.
+	 *
+	 * @param keyClass the key class
+	 */
 	public DerbyEngine(Class<K> keyClass) {
 		super(
 				keyClass,

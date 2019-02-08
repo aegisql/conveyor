@@ -7,6 +7,7 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class PersistenceArchiver.
  *
@@ -15,15 +16,27 @@ import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 	
 	
+	/** The delete archiver. */
 	private final DeleteArchiver<K> deleteArchiver;
+	
+	/** The archive persistence. */
 	private final Persistence<K> archivePersistence;
 
+	/**
+	 * Instantiates a new persistence archiver.
+	 *
+	 * @param engine the engine
+	 * @param persistence the persistence
+	 */
 	public PersistenceArchiver(EngineDepo<K> engine, Persistence<K> persistence) {
 		super(engine);
 		this.deleteArchiver = new DeleteArchiver<>(engine);
 		this.archivePersistence = persistence;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.archive.Archiver#archiveParts(java.util.Collection)
+	 */
 	@Override
 	public void archiveParts(Collection<Long> ids) {
 		if (ids == null || ids.isEmpty()) {
@@ -36,6 +49,9 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 		}		
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.archive.Archiver#archiveKeys(java.util.Collection)
+	 */
 	@Override
 	public void archiveKeys(Collection<K> keys) {
 		if (keys == null || keys.isEmpty()) {
@@ -50,6 +66,9 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.archive.Archiver#archiveCompleteKeys(java.util.Collection)
+	 */
 	@Override
 	public void archiveCompleteKeys(Collection<K> keys) {
 		if (keys == null || keys.isEmpty()) {
@@ -59,6 +78,9 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 		deleteArchiver.archiveCompleteKeys(keys);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.archive.Archiver#archiveExpiredParts()
+	 */
 	@Override
 	public void archiveExpiredParts() {
 		Collection<Cart<K, ?, Object>> parts = persistence.getExpiredParts();
@@ -72,6 +94,9 @@ public class PersistenceArchiver<K> extends AbstractJdbcArchiver<K> {
 		}		
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.archive.Archiver#archiveAll()
+	 */
 	@Override
 	public void archiveAll() {
 		Collection<Cart<K, ?, Object>> parts = persistence.getAllParts();

@@ -13,8 +13,6 @@ public class MapToJsonConverter extends ObjectToJsonStringConverter<Map> {
 	
 	/**
 	 * Instantiates a new blob converter.
-	 *
-	 * @param conn the conn
 	 */
 	public MapToJsonConverter() {
 		super(Map.class);

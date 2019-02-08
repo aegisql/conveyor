@@ -7,7 +7,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class PostgresqlEngine.
+ *
+ * @param <K> the key type
+ */
 public class PostgresqlEngine <K> extends GenericEngine<K> {
+	
+	/**
+	 * Instantiates a new postgresql engine.
+	 *
+	 * @param keyClass the key class
+	 */
 	public PostgresqlEngine(Class<K> keyClass) {
 		super(
 				keyClass,
@@ -25,6 +37,9 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine#databaseExists(java.lang.String)
+	 */
 	@Override
 	public boolean databaseExists(String database) {
 		AtomicBoolean res = new AtomicBoolean(false);
@@ -42,6 +57,9 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 		return res.get();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine#partTableIndexExists(java.lang.String)
+	 */
 	@Override
 	public boolean partTableIndexExists(String partTable) {
 		AtomicBoolean res = new AtomicBoolean(false);
@@ -59,11 +77,17 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 		return res.get();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine#getEngineSpecificExpirationTimeRange()
+	 */
 	@Override
 	protected String getEngineSpecificExpirationTimeRange() {
 		return "EXPIRATION_TIME > '1970-01-01 00:00:01' AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine#setUser(java.lang.String)
+	 */
 	@Override
 	public void setUser(String user) {
 		super.setUser(user);
@@ -72,6 +96,9 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine#setPassword(java.lang.String)
+	 */
 	@Override
 	public void setPassword(String password) {
 		super.setPassword(password);

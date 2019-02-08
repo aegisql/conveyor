@@ -20,14 +20,30 @@ import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.utils.CartOutputStream;
 import com.aegisql.conveyor.persistence.utils.PersistUtils;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class FileArchiver.
+ *
+ * @param <K> the key type
+ */
 public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 
+	/** The delete archiver. */
 	private final Archiver<K> deleteArchiver;
+	
+	/** The b log conf. */
 	private final BinaryLogConfiguration bLogConf;
 
+	/** The read bytes. */
 	private long readBytes;
 
 
+	/**
+	 * Instantiates a new file archiver.
+	 *
+	 * @param engine the engine
+	 * @param bLogConf the b log conf
+	 */
 	public FileArchiver(EngineDepo<K> engine, BinaryLogConfiguration bLogConf) {
 		
 		super(engine);
@@ -35,6 +51,11 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 		this.bLogConf = bLogConf;
 	}
 
+	/**
+	 * Gets the cart output stream.
+	 *
+	 * @return the cart output stream
+	 */
 	private CartOutputStream<K, ?> getCartOutputStream() {
 		try {
 			File f = new File(bLogConf.getFilePath());
@@ -46,6 +67,13 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 		}
 	}
 
+	/**
+	 * Archive carts.
+	 *
+	 * @param carts the carts
+	 * @param cos the cos
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	private void archiveCarts(Collection<Cart<K, ?, Object>> carts,CartOutputStream<K, ?> cos) throws IOException {
 		for (Cart cart: carts) {
 			readBytes += cos.writeCart(cart);
@@ -81,6 +109,9 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.archive.Archiver#archiveParts(java.util.Collection)
+	 */
 	@Override
 	public void archiveParts(Collection<Long> ids) {
 		if (ids == null || ids.isEmpty()) {
@@ -103,6 +134,9 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 		deleteArchiver.archiveParts(ids);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.archive.Archiver#archiveKeys(java.util.Collection)
+	 */
 	@Override
 	public void archiveKeys( Collection<K> keys) {
 		if (keys == null || keys.isEmpty()) {
@@ -116,6 +150,9 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 		deleteArchiver.archiveKeys(keys);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.archive.Archiver#archiveCompleteKeys(java.util.Collection)
+	 */
 	@Override
 	public void archiveCompleteKeys(Collection<K> keys) {
 		if (keys == null || keys.isEmpty()) {
@@ -126,6 +163,9 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 	}
 
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.archive.Archiver#archiveExpiredParts()
+	 */
 	@Override
 	public void archiveExpiredParts() {
 		try {
@@ -140,6 +180,9 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 		deleteArchiver.archiveExpiredParts();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.archive.Archiver#archiveAll()
+	 */
 	@Override
 	public void archiveAll() {
 		try {
@@ -154,6 +197,9 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 		deleteArchiver.archiveAll();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.archive.AbstractJdbcArchiver#toString()
+	 */
 	@Override
 	public String toString() {
 		return super.toString()+" bLogConf="+bLogConf;

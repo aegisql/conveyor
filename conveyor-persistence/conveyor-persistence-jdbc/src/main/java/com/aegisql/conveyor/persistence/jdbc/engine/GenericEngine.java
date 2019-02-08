@@ -27,61 +27,144 @@ import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class GenericEngine.
+ *
+ * @param <K> the key type
+ */
 public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	
+	/** The Constant LOG. */
 	protected static final Logger LOG = LoggerFactory.getLogger(EngineDepo.class);
 
+	/** The Constant LOAD_TYPE_MAX_LENGTH. */
 	private static final int LOAD_TYPE_MAX_LENGTH = 15;
 
+	/** The Constant LABEL_MAX_LENGTH. */
 	private static final int LABEL_MAX_LENGTH = 100;
 
+	/** The Constant VALUE_CLASS_MAX_LENGTH. */
 	private static final int VALUE_CLASS_MAX_LENGTH = 255;
 	
+	/** The key class. */
 	protected final Class<K> keyClass;
 
+	/** The driver. */
 	protected final String driver;
+	
+	/** The connection url template for init database. */
 	protected final String connectionUrlTemplateForInitDatabase;
+	
+	/** The connection url template for init schema. */
 	protected final String connectionUrlTemplateForInitSchema;
+	
+	/** The connection url template for init tables and indexes. */
 	protected final String connectionUrlTemplateForInitTablesAndIndexes;
+	
+	/** The connection url template. */
 	protected final String connectionUrlTemplate;
 
+	/** The connection. */
 	protected Connection connection; 
 	
+	/** The host. */
 	protected String host;
+	
+	/** The port. */
 	protected int port;
+	
+	/** The database. */
 	protected String database;
+	
+	/** The schema. */
 	protected String schema;
+	
+	/** The user. */
 	protected String user;
+	
+	/** The password. */
 	protected String password;
+	
+	/** The properties. */
 	protected Properties properties = new Properties();
 	
+	/** The fields. */
 	protected final LinkedHashMap<String,String> fields = new LinkedHashMap<>();
 	
+	/** The delete from completed sql. */
 	protected String deleteFromCompletedSql;
+	
+	/** The delete all completed sql. */
 	protected String deleteAllCompletedSql;
+	
+	/** The delete from parts by id sql. */
 	protected String deleteFromPartsByIdSql;
+	
+	/** The delete from parts by cart key sql. */
 	protected String deleteFromPartsByCartKeySql;
+	
+	/** The delete expired parts sql. */
 	protected String deleteExpiredPartsSql;
+	
+	/** The delete all parts sql. */
 	protected String deleteAllPartsSql;
+	
+	/** The update parts by id sql. */
 	protected String updatePartsByIdSql;
+	
+	/** The update parts by cart key sql. */
 	protected String updatePartsByCartKeySql;
+	
+	/** The update expired parts sql. */
 	protected String updateExpiredPartsSql;
+	
+	/** The update all parts sql. */
 	protected String updateAllPartsSql;
 
+	/** The q. */
 	protected final String q;
 
+	/** The key sql type. */
 	protected final String keySqlType;
 
+	/** The save cart query. */
 	private String saveCartQuery;
+	
+	/** The save completed build key query. */
 	private String saveCompletedBuildKeyQuery;
+	
+	/** The get part query. */
 	private String getPartQuery;
+	
+	/** The get expired part query. */
 	private String getExpiredPartQuery;
+	
+	/** The get all part ids query. */
 	private String getAllPartIdsQuery;
+	
+	/** The get all unfinished parts query. */
 	private String getAllUnfinishedPartsQuery;
+	
+	/** The get all completed keys query. */
 	private String getAllCompletedKeysQuery;
+	
+	/** The get all static parts query. */
 	private String getAllStaticPartsQuery;
+	
+	/** The get number of parts query. */
 	private String getNumberOfPartsQuery;
 
+	/**
+	 * Instantiates a new generic engine.
+	 *
+	 * @param keyClass the key class
+	 * @param driver the driver
+	 * @param connectionUrlTemplateForInitDatabase the connection url template for init database
+	 * @param connectionUrlTemplateForInitSchema the connection url template for init schema
+	 * @param connectionUrlTemplateForInitTablesAndIndexes the connection url template for init tables and indexes
+	 * @param connectionUrlTemplate the connection url template
+	 */
 	protected GenericEngine(Class<K> keyClass, String driver, String connectionUrlTemplateForInitDatabase,
 			String connectionUrlTemplateForInitSchema, String connectionUrlTemplateForInitTablesAndIndexes,
 			String connectionUrlTemplate) {
@@ -119,6 +202,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#databaseExists(java.lang.String)
+	 */
 	@Override
 	public boolean databaseExists(String database) {
 		AtomicBoolean res = new AtomicBoolean(true);
@@ -142,6 +228,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return res.get();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#schemaExists(java.lang.String)
+	 */
 	@Override
 	public boolean schemaExists(String schema) {
 		AtomicBoolean res = new AtomicBoolean(true);
@@ -167,6 +256,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return res.get();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#partTableExists(java.lang.String)
+	 */
 	@Override
 	public boolean partTableExists(String partTable) {
 		AtomicBoolean res = new AtomicBoolean(true);
@@ -190,6 +282,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return res.get();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#partTableIndexExists(java.lang.String)
+	 */
 	@Override
 	public boolean partTableIndexExists(String partTable) {
 		AtomicBoolean res = new AtomicBoolean(true);
@@ -213,6 +308,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return res.get();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#completedLogTableExists(java.lang.String)
+	 */
 	@Override
 	public boolean completedLogTableExists(String completedLogTable) {
 		AtomicBoolean res = new AtomicBoolean(true);
@@ -236,32 +334,59 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return res.get();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#createDatabase(java.lang.String)
+	 */
 	@Override
 	public void createDatabase(String database) {
 		connectAndExecuteUpdate(connectionUrlTemplateForInitDatabase, getCreateDatabaseSql(database));
 		LOG.info("Created database {}",database);
 	}
 
+	/**
+	 * Gets the creates the database sql.
+	 *
+	 * @param database the database
+	 * @return the creates the database sql
+	 */
 	protected String getCreateDatabaseSql(String database) {
 		return "CREATE DATABASE "+database;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#createSchema(java.lang.String)
+	 */
 	@Override
 	public void createSchema(String schema) {
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitSchema), getCreateSchemaSql(schema));
 		LOG.info("Created schema {}",schema);
 	}
 
+	/**
+	 * Gets the creates the schema sql.
+	 *
+	 * @param schema the schema
+	 * @return the creates the schema sql
+	 */
 	protected String getCreateSchemaSql(String schema) {
 		return "CREATE SCHEMA "+schema;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#createPartTable(java.lang.String)
+	 */
 	@Override
 	public void createPartTable(String partTable) {
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitTablesAndIndexes), getCreatePartTableSql(partTable));
 		LOG.info("Created part table {}",partTable);
 	}
 
+	/**
+	 * Gets the creates the part table sql.
+	 *
+	 * @param partTable the part table
+	 * @return the creates the part table sql
+	 */
 	protected String getCreatePartTableSql(String partTable) {
 		StringBuilder sb = new StringBuilder("CREATE TABLE ")
 				.append(partTable)
@@ -273,22 +398,40 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return sb.toString();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#createPartTableIndex(java.lang.String)
+	 */
 	@Override
 	public void createPartTableIndex(String partTable) {
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitTablesAndIndexes), getCreatePartTableIndexSql(partTable));
 		LOG.info("Created partTable index {}",partTable);
 	}
 
+	/**
+	 * Gets the creates the part table index sql.
+	 *
+	 * @param partTable the part table
+	 * @return the creates the part table index sql
+	 */
 	protected String getCreatePartTableIndexSql(String partTable) {
 		return "CREATE INDEX "+partTable+"_IDX ON "+partTable+"("+EngineDepo.CART_KEY+")";
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#createCompletedLogTable(java.lang.String)
+	 */
 	@Override
 	public void createCompletedLogTable(String completedLogTable) {
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitTablesAndIndexes), getCompletedLogTableSql(completedLogTable));
 		LOG.info("Created completedLogTable {}",completedLogTable);
 	}
 
+	/**
+	 * Gets the completed log table sql.
+	 *
+	 * @param completedLogTable the completed log table
+	 * @return the completed log table sql
+	 */
 	protected String getCompletedLogTableSql(String completedLogTable) {
 		return "CREATE TABLE "
 				+completedLogTable+" ("
@@ -297,10 +440,18 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 				+")";
 	}
 
+	/**
+	 * Gets the engine specific expiration time range.
+	 *
+	 * @return the engine specific expiration time range
+	 */
 	protected String getEngineSpecificExpirationTimeRange() {
 		return "EXPIRATION_TIME > TIMESTAMP('19710101000000') AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#buildPartTableQueries(java.lang.String)
+	 */
 	@Override
 	public void buildPartTableQueries(String partTable) {
 		//archiving SQL
@@ -383,6 +534,12 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	}
 
 
+	/**
+	 * Quote.
+	 *
+	 * @param key the key
+	 * @return the string
+	 */
 	protected String quote(K key) {
 		if(key == null) {
 			return "NULL";
@@ -391,6 +548,12 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}
 	}
 
+	/**
+	 * Quote.
+	 *
+	 * @param keys the keys
+	 * @return the string
+	 */
 	protected String quote(Collection<K> keys) {
 		StringBuilder sb = new StringBuilder();
 		keys.forEach(id -> sb.append(quote(id)).append(",") );
@@ -400,6 +563,12 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return sb.toString();
 	}
 	
+	/**
+	 * Quote number.
+	 *
+	 * @param number the number
+	 * @return the string
+	 */
 	protected String quoteNumber(Number number) {
 		if(number == null) {
 			return "NULL";
@@ -408,6 +577,12 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}
 	}
 
+	/**
+	 * Quote numbers.
+	 *
+	 * @param numbers the numbers
+	 * @return the string
+	 */
 	protected String quoteNumbers(Collection<? extends Number> numbers) {
 		StringBuilder sb = new StringBuilder();
 		numbers.forEach(id -> sb.append(quoteNumber(id)).append(",") );
@@ -417,6 +592,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return sb.toString();
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#buildCompletedLogTableQueries(java.lang.String)
+	 */
 	@Override
 	public void buildCompletedLogTableQueries(String completedLogTable) {
 		this.deleteFromCompletedSql = "DELETE FROM "+completedLogTable + " WHERE CART_KEY IN(?)";
@@ -426,6 +604,12 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 
 	}
 
+	/**
+	 * To connection url.
+	 *
+	 * @param template the template
+	 * @return the string
+	 */
 	protected String toConnectionUrl(String template) {
 		if (template == null) {
 			return null;
@@ -437,18 +621,41 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}
 	}
 
+	/**
+	 * Not empty.
+	 *
+	 * @param s the s
+	 * @return true, if successful
+	 */
 	protected boolean notEmpty(String s) {
 		return s != null && !s.isEmpty();
 	}
 
+	/**
+	 * Can use database url.
+	 *
+	 * @param database the database
+	 * @return true, if successful
+	 */
 	protected boolean canUseDatabaseUrl(String database) {
 		return notEmpty(connectionUrlTemplateForInitDatabase) && notEmpty(database);
 	}
 
+	/**
+	 * Can use schema url.
+	 *
+	 * @param schema the schema
+	 * @return true, if successful
+	 */
 	protected boolean canUseSchemaUrl(String schema) {
 		return notEmpty(connectionUrlTemplateForInitSchema) && notEmpty(schema);
 	}
 
+	/**
+	 * Gets the connection.
+	 *
+	 * @return the connection
+	 */
 	public Connection getConnection() {
 		if(connection == null) {
 			String connectionUrl = toConnectionUrl(connectionUrlTemplate);
@@ -462,6 +669,11 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return connection;
 	}
 
+	/**
+	 * Execute.
+	 *
+	 * @param sql the sql
+	 */
 	protected void execute(String sql) {
 		try(Statement statement = getConnection().createStatement()) {
 			statement.execute(sql);
@@ -470,6 +682,12 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}
 	}
 	
+	/**
+	 * Connect and do.
+	 *
+	 * @param url the url
+	 * @param connectionConsumer the connection consumer
+	 */
 	protected void connectAndDo(String url, Consumer<Connection> connectionConsumer) {
 		String connectionUrl = toConnectionUrl(url);
 		LOG.debug("Connecting to {}",connectionUrl);
@@ -483,16 +701,34 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}
 	}
 
+	/**
+	 * Connect and do.
+	 *
+	 * @param connectionConsumer the connection consumer
+	 */
 	protected void connectAndDo(Consumer<Connection> connectionConsumer) {
 		Connection con = getConnection();
 		connectionConsumer.accept(con);
 	}
 
+	/**
+	 * Connect and do.
+	 *
+	 * @param <T> the generic type
+	 * @param connectionConsumer the connection consumer
+	 * @return the t
+	 */
 	protected <T> T connectAndDo(Function<Connection,T> connectionConsumer) {
 		Connection con = getConnection();
 		return connectionConsumer.apply(con);
 	}
 
+	/**
+	 * Connect and execute update.
+	 *
+	 * @param url the url
+	 * @param sql the sql
+	 */
 	protected void connectAndExecuteUpdate(String url, String sql) {
 		connectAndDo(url, con->{
 			try(Statement statement = con.createStatement()) {
@@ -505,6 +741,12 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		});
 	}
 
+	/**
+	 * Execute.
+	 *
+	 * @param url the url
+	 * @param sql the sql
+	 */
 	protected void execute(String url, String sql) {
 		connectAndDo(url, con->{
 			try(Statement statement = con.createStatement()) {
@@ -515,6 +757,12 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		});
 	}
 	
+	/**
+	 * Execute prepared.
+	 *
+	 * @param sql the sql
+	 * @param consumer the consumer
+	 */
 	protected void executePrepared(String sql, Consumer<PreparedStatement> consumer) {
 		connectAndDo(con->{
 			try(PreparedStatement statement = con.prepareStatement(sql)) {
@@ -526,6 +774,16 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		});
 	}
 	
+	/**
+	 * Gets the scalar value.
+	 *
+	 * @param <T> the generic type
+	 * @param url the url
+	 * @param sql the sql
+	 * @param consumer the consumer
+	 * @param transformer the transformer
+	 * @return the scalar value
+	 */
 	protected <T> T getScalarValue(String url, String sql, Consumer<PreparedStatement> consumer, Function<ResultSet,T> transformer) {
 		return connectAndDo(con->{
 			try(PreparedStatement statement = con.prepareStatement(sql)) {
@@ -546,6 +804,15 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	}
 
 
+	/**
+	 * Gets the scalar value.
+	 *
+	 * @param <T> the generic type
+	 * @param sql the sql
+	 * @param consumer the consumer
+	 * @param transformer the transformer
+	 * @return the scalar value
+	 */
 	protected <T> T getScalarValue(String sql, Consumer<PreparedStatement> consumer, Function<ResultSet,T> transformer) {
 		return connectAndDo(con->{
 			try(PreparedStatement statement = con.prepareStatement(sql)) {
@@ -565,6 +832,15 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		});
 	}
 
+	/**
+	 * Gets the collection of values.
+	 *
+	 * @param <T> the generic type
+	 * @param sql the sql
+	 * @param consumer the consumer
+	 * @param transformer the transformer
+	 * @return the collection of values
+	 */
 	protected <T> List<T> getCollectionOfValues(String sql, Consumer<PreparedStatement> consumer, Function<ResultSet,T> transformer) {
 		return connectAndDo(con->{
 			try(PreparedStatement statement = con.prepareStatement(sql)) {
@@ -581,6 +857,13 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		});
 	}
 	
+	/**
+	 * Gets the key sql type.
+	 *
+	 * @param <K> the key type
+	 * @param kClass the k class
+	 * @return the key sql type
+	 */
 	protected static <K> String getKeySqlType(Class<K> kClass) {
 		String keyType = null;
 		if(kClass == Integer.class) {
@@ -602,94 +885,174 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	}
 
 
+	/**
+	 * Sets the host.
+	 *
+	 * @param host the new host
+	 */
 	public void setHost(String host) {
 		this.host = host;
 	}
 
+	/**
+	 * Sets the port.
+	 *
+	 * @param port the new port
+	 */
 	public void setPort(int port) {
 		this.port = port;
 	}
 
+	/**
+	 * Sets the database.
+	 *
+	 * @param database the new database
+	 */
 	public void setDatabase(String database) {
 		this.database = database;
 	}
 
+	/**
+	 * Sets the schema.
+	 *
+	 * @param schema the new schema
+	 */
 	public void setSchema(String schema) {
 		this.schema = schema;
 	}
 
+	/**
+	 * Sets the user.
+	 *
+	 * @param user the new user
+	 */
 	public void setUser(String user) {
 		this.user = user;
 	}
 
+	/**
+	 * Sets the password.
+	 *
+	 * @param password the new password
+	 */
 	public void setPassword(String password) {
 		this.password = password;
 	}
 
+	/**
+	 * Sets the properties.
+	 *
+	 * @param properties the new properties
+	 */
 	public void setProperties(Properties properties) {
 		if(properties != null) {
 			this.properties.putAll(properties);
 		}
 	}
 
+	/**
+	 * Sets the property.
+	 *
+	 * @param key the key
+	 * @param value the value
+	 */
 	public void setProperty(String key, String value) {
 		this.properties.put(key, value);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#deleteFromCompletedLog(java.util.Collection)
+	 */
 	@Override
 	public void deleteFromCompletedLog(Collection<K> keys) {
 		execute(deleteFromCompletedSql.replace("?", quote(keys)));
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#deleteAllCompletedLog()
+	 */
 	@Override
 	public void deleteAllCompletedLog() {
 		execute(deleteAllCompletedSql);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#deleteFromPartsByIds(java.util.Collection)
+	 */
 	@Override
 	public void deleteFromPartsByIds(Collection<? extends Number> ids) {
 		execute(deleteFromPartsByIdSql.replace("?", quoteNumbers(ids)));
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#deleteFromPartsByCartKeys(java.util.Collection)
+	 */
 	@Override
 	public void deleteFromPartsByCartKeys(Collection<K> keys) {
 		execute(deleteFromPartsByCartKeySql.replace("?", quote(keys)));
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#deleteExpiredParts()
+	 */
 	@Override
 	public void deleteExpiredParts() {
 		execute(deleteExpiredPartsSql);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#deleteAllParts()
+	 */
 	@Override
 	public void deleteAllParts() {
 		execute(deleteAllPartsSql);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#updatePartsByIds(java.util.Collection)
+	 */
 	@Override
 	public void updatePartsByIds(Collection<? extends Number> ids) {
 		execute(updatePartsByIdSql.replace("?", quoteNumbers(ids)));
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#updatePartsByCartKeys(java.util.Collection)
+	 */
 	@Override
 	public void updatePartsByCartKeys(Collection<K> keys) {
 		execute(updatePartsByCartKeySql.replace("?", quote(keys)));
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#updateExpiredParts()
+	 */
 	@Override
 	public void updateExpiredParts() {
 		execute(updateExpiredPartsSql);		
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#updateAllParts()
+	 */
 	@Override
 	public void updateAllParts() {
 		execute(updateAllPartsSql);		
 	}
 
+	/**
+	 * Sets the field.
+	 *
+	 * @param field the field
+	 * @param type the type
+	 */
 	public void setField(String field, String type) {
 		fields.put(field, type);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#saveCart(long, java.lang.String, java.lang.Object, java.lang.Object, java.sql.Timestamp, java.sql.Timestamp, java.lang.Object, java.lang.String, java.lang.String, long)
+	 */
 	@Override
 	public void saveCart(long id, String loadType, Object key, Object label, Timestamp creationTime,
 			Timestamp expirationTime, Object value, String properties, String hint, long priority) {
@@ -712,6 +1075,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#saveCompletedBuildKey(java.lang.Object)
+	 */
 	@Override
 	public void saveCompletedBuildKey(Object key) {
 		executePrepared(saveCompletedBuildKeyQuery, st->{
@@ -723,16 +1089,25 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		});		
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#getParts(java.util.Collection, java.util.function.Function)
+	 */
 	@Override
 	public <T> List<T> getParts(Collection<Long> ids, Function<ResultSet, T> transformer) {
 		return getCollectionOfValues(getPartQuery.replace("?", quoteNumbers(ids)), st->{}, transformer);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#getExpiredParts(java.util.function.Function)
+	 */
 	@Override
 	public <T> List<T> getExpiredParts(Function<ResultSet, T> transformer) {
 		return getCollectionOfValues(getExpiredPartQuery, st->{}, transformer);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#getAllPartIds(java.lang.Object)
+	 */
 	@Override
 	public List<Long> getAllPartIds(K key) {
 		return getCollectionOfValues(getAllPartIdsQuery, st->{
@@ -750,21 +1125,33 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		});
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#getUnfinishedParts(java.util.function.Function)
+	 */
 	@Override
 	public <T> List<T> getUnfinishedParts(Function<ResultSet, T> transformer) {
 		return getCollectionOfValues(getAllUnfinishedPartsQuery, st->{}, transformer);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#getAllCompletedKeys(java.util.function.Function)
+	 */
 	@Override
 	public Set<K> getAllCompletedKeys(Function<ResultSet, K> transformer) {
 		return new LinkedHashSet<>(getCollectionOfValues(getAllCompletedKeysQuery, st->{}, transformer)) ;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#getStaticParts(java.util.function.Function)
+	 */
 	@Override
 	public <T> List<T> getStaticParts(Function<ResultSet, T> transformer) {
 		return getCollectionOfValues(getAllStaticPartsQuery, st->{}, transformer);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#getNumberOfParts()
+	 */
 	@Override
 	public long getNumberOfParts() {
 		return getScalarValue(getNumberOfPartsQuery, st->{}, rs->{
@@ -776,6 +1163,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}) ;
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.io.Closeable#close()
+	 */
 	@Override
 	public void close() throws IOException {
 		try {
@@ -786,6 +1176,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder(getClass().getSimpleName());
