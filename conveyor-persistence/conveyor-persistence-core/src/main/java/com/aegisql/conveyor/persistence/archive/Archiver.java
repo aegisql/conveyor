@@ -15,7 +15,6 @@ public interface Archiver<K> {
 	/**
 	 * Archive parts.
 	 *
-	 * @param conn the conn
 	 * @param ids the ids
 	 */
 	public void archiveParts(Collection<Long> ids);
@@ -23,7 +22,6 @@ public interface Archiver<K> {
 	/**
 	 * Archive keys.
 	 *
-	 * @param conn the conn
 	 * @param keys the keys
 	 */
 	public void archiveKeys(Collection<K> keys);
@@ -31,22 +29,17 @@ public interface Archiver<K> {
 	/**
 	 * Archive complete keys.
 	 *
-	 * @param conn the conn
 	 * @param keys the keys
 	 */
 	public void archiveCompleteKeys(Collection<K> keys);
 	
 	/**
 	 * Archive expired parts.
-	 *
-	 * @param conn the conn
 	 */
 	public void archiveExpiredParts();
 	
 	/**
 	 * Archive all.
-	 *
-	 * @param conn the conn
 	 */
 	public void archiveAll();
 	
