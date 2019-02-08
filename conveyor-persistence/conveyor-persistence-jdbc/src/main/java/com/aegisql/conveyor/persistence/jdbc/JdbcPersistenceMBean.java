@@ -19,7 +19,7 @@ public interface JdbcPersistenceMBean<K> extends Supplier<Persistence<K>>{
 	public String getArchiveStrategy();
 	public String getArchiveStrategyDetails();
 	public boolean isEncrypted();
-	public String getDriver();
+	public String getEngine();
 	public String getHost();
 	public int getPort();
 	public int minCompactSize();

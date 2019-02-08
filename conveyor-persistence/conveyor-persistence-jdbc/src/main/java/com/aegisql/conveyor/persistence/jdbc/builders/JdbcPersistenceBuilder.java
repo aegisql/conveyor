@@ -81,9 +81,6 @@ public class JdbcPersistenceBuilder<K> {
 		MAIN_FIELDS.add(ARCHIVED);
 	}
 
-	private String createPartTableSql;
-	private String completedLogTableSql;
-	private String createPartTableIndexSql;
 	private StringBuilder infoBuilder = new StringBuilder();
 	private ConverterAdviser converterAdviser = new ConverterAdviser<>();
 
@@ -93,7 +90,6 @@ public class JdbcPersistenceBuilder<K> {
 	private final Class<K> keyClass;
 	private final String keySqlType;
 	private final String engineType;
-	private final String driver;
 	private final String host;
 	private final int port;
 	private final String database;
@@ -123,12 +119,12 @@ public class JdbcPersistenceBuilder<K> {
 	private final EngineDepo<K> engineDepo;
 	
 	public JdbcPersistenceBuilder(Class<K> keyClass) {
-		this(TimeHostIdGenerator.idGenerator_10x8(System.currentTimeMillis()/1000)::getId, false, keyClass, null, null, null, 0, null, null, null, null, null, null, new Properties(), new LinkedHashMap<>(),
+		this(TimeHostIdGenerator.idGenerator_10x8(System.currentTimeMillis()/1000)::getId, false, keyClass, null, null, 0, null, null, null, null, null, null, new Properties(), new LinkedHashMap<>(),
 				ArchiveStrategy.DELETE,null,null,null,new StringLabelConverter(), new EncryptingConverterBuilder(),
 				0,100,60_000,new HashSet<>(), null);
 	}	
 	
-	private JdbcPersistenceBuilder(LongSupplier idSupplier, boolean autoInit, Class<K> keyClass, String type, String driver, String host, int port,
+	private JdbcPersistenceBuilder(LongSupplier idSupplier, boolean autoInit, Class<K> keyClass, String type, String host, int port,
 			String database, String schema, String partTable, String completedLogTable, String user, String password,
 			Properties properties, LinkedHashMap<String, String> fields,
 			ArchiveStrategy archiveStrategy, Archiver<K> customArchiver, Persistence<K> archivingPersistence, BinaryLogConfiguration bLogConf,
@@ -140,7 +136,6 @@ public class JdbcPersistenceBuilder<K> {
 		this.autoInit = autoInit;
 		this.keyClass = keyClass;
 		this.engineType = type;
-		this.driver = driver;
 		this.host = host;
 		this.port = port;
 		this.database = database;
@@ -185,7 +180,7 @@ public class JdbcPersistenceBuilder<K> {
 	
 	
 	public JdbcPersistenceBuilder<K> engineDepo(EngineDepo<K> ed) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -193,7 +188,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> idSupplier(LongSupplier sup) {
-		return new JdbcPersistenceBuilder<>(sup, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(sup, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -201,7 +196,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 	
 	public JdbcPersistenceBuilder<K> autoInit(boolean flag) {
-		return new JdbcPersistenceBuilder<>(idSupplier, flag, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, flag, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -209,7 +204,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> keyClass(Class<K> keyCls) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyCls, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyCls, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -218,15 +213,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> engineType(String eType) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, eType, driver, host, port,
-				database, schema, partTable, completedLogTable, user, password,
-				new Properties(properties), new LinkedHashMap<>(fields), 
-				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
-	}
-
-	public JdbcPersistenceBuilder<K> driver(String drv) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, drv, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, eType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -234,7 +221,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> host(String hst) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, hst, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, hst, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -242,7 +229,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> port(int p) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, p,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, p,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -250,7 +237,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> database(String db) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				db, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -258,7 +245,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> schema(String sch) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, sch, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -266,7 +253,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> partTable(String partTbl) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTbl, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -274,7 +261,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> completedLogTable(String completedLogTbl) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTbl, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -282,7 +269,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> user(String usr) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, usr, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -290,7 +277,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> password(String pwd) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, pwd,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -298,7 +285,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> properties(Properties pr) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(pr), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -308,7 +295,7 @@ public class JdbcPersistenceBuilder<K> {
 	public JdbcPersistenceBuilder<K> setProperty(String key, String value) {
 		Properties p = new Properties(properties);
 		p.put(key, value);
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(p), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -316,7 +303,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> fields(Map<String, String> f) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(f), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -326,7 +313,7 @@ public class JdbcPersistenceBuilder<K> {
 	public JdbcPersistenceBuilder<K> setField(String field, String type) {
 		LinkedHashMap<String, String> f = new LinkedHashMap<>(fields);
 		f.put(field, type);
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(f), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -334,7 +321,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> archiver(Archiver<K> archiver) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				ArchiveStrategy.CUSTOM, archiver, null, null, labelConverter,
@@ -342,7 +329,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> archiver(BinaryLogConfiguration bLogConf) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				ArchiveStrategy.MOVE_TO_FILE, null, null, bLogConf, labelConverter,
@@ -350,7 +337,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> archiver(Persistence<K> archivingPersistence) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				ArchiveStrategy.MOVE_TO_PERSISTENCE, null, archivingPersistence, null, labelConverter,
@@ -358,7 +345,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> noArchiving() {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				ArchiveStrategy.NO_ACTION, null, null, null, labelConverter,
@@ -366,7 +353,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> setArchived() {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				ArchiveStrategy.SET_ARCHIVED, null, null, null, labelConverter,
@@ -374,7 +361,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> deleteArchiving() {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				ArchiveStrategy.DELETE, null, null, null, labelConverter,
@@ -382,7 +369,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 	
 	public JdbcPersistenceBuilder<K> labelConverter(ObjectConverter<?,String> labelConv) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConv,
@@ -390,7 +377,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public <L extends Enum<L>> JdbcPersistenceBuilder<K> labelConverter(Class<L> enClass) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, new EnumConverter<>(enClass),
@@ -398,7 +385,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> encryptionSecret(String encryptionSecret) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -407,7 +394,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> encryptionSecret(SecretKey secretKey) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -416,7 +403,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> encryptionAlgorithm(String encryptionAlgorithm) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -425,7 +412,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> encryptionTransformation(String encryptionTransformation) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -434,7 +421,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> encryptionKeyLength(int encryptionKeyLength) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -443,7 +430,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> minCompactSize(int size) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -451,7 +438,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> maxBatchSize(int size) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -459,7 +446,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> maxBatchTime(long time, TimeUnit unit) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -468,7 +455,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> maxBatchTime(Duration duration) {
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -481,66 +468,13 @@ public class JdbcPersistenceBuilder<K> {
 		if(more != null) {
 			set.addAll(Arrays.asList(more));
 		}
-		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, driver, host, port,
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, set, engineDepo);
 	}
 
-	
-	public String createPartTableSql() {
-		
-		if(createPartTableSql == null) {
-			StringBuilder sb = new StringBuilder("CREATE TABLE ")
-					.append(partTable)
-					.append(" (");
-			
-			fields.forEach((col,type)->{
-				sb.append(col).append(" ").append(type).append(",");
-			});
-			sb.deleteCharAt(sb.lastIndexOf(","));
-			sb.append(")");
-			
-			createPartTableSql = sb.toString();
-		}
-		
-		return createPartTableSql;
-	}
-
-	private String createCompletedLogTableSql() {
-		if(completedLogTableSql==null) {
-			completedLogTableSql = "CREATE TABLE "
-					+completedLogTable+" ("
-					+"CART_KEY "+keySqlType+" PRIMARY KEY"
-					+",COMPLETION_TIME TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
-					+")";
-		}
-		return completedLogTableSql;
-	}
-
-	private String createPartTableIndexSql() {
-		if(createPartTableIndexSql==null) {
-			createPartTableIndexSql = "CREATE INDEX "+partTable+"_IDX ON "+partTable+"(CART_KEY)";
-		}
-		return createPartTableIndexSql;
-	}
-
-	private String createDatabaseSql() {
-		if(database != null) {
-			return "CREATE DATABASE "+database;
-		} else {
-			return null;
-		}
-	}
-
-	public String createSchemaSql() {
-		if(schema != null) {
-			return "CREATE SCHEMA "+schema;
-		} else {
-			return null;
-		}
-	}
 	
 	@SuppressWarnings("unchecked")
 	public <T> JdbcPersistenceBuilder<K> addBinaryConverter(Class<T> clas, ObjectConverter<T, byte[]> conv) {
@@ -661,8 +595,8 @@ public class JdbcPersistenceBuilder<K> {
 					}
 
 					@Override
-					public String getDriver() {
-						return driver;
+					public String getEngine() {
+						return ""+engineDepo;
 					}
 
 					@Override
