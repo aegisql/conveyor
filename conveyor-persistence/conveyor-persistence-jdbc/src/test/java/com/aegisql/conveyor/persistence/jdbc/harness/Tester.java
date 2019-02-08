@@ -21,8 +21,6 @@ public class Tester {
 
 	public static int getPerfTestSize() {
 		String param = "PERF_TEST_SIZE";
-		RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-		List<String> arguments = runtimeMxBean.getInputArguments();
 		int size = 10000;
 		
 		String test = System.getenv(param);
@@ -33,10 +31,10 @@ public class Tester {
 			}catch (Exception e) {
 			}
 		}
-		test = arguments.stream().filter(arg->arg.startsWith("-D"+param+"=")).findFirst().orElse("="+size);
+		test = System.getProperty(param);
 		if(test != null) {
 			try {
-				size = Integer.parseInt(test.split("=")[1]);
+				size = Integer.parseInt(test);
 				return size;
 			}catch (Exception e) {
 			}
