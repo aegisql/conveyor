@@ -463,7 +463,7 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, TimeUnit.MILLISECONDS.convert(maxBatchTime, unit), 
+				encryptionBuilder, minCompactSize, maxBatchSize, TimeUnit.MILLISECONDS.convert(time, unit), 
 				nonPersistentProperties, engineDepo);
 	}
 

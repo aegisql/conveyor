@@ -222,7 +222,7 @@ public class PersistTestImpl implements Persistence<Integer>{
 	
 	AtomicInteger idGen = new AtomicInteger(0);
 	private int maxBatchSize  = 3;
-	private long maxBatchTime = 60_000;
+	private long maxBatchTime = 1000;
 	
 	public void setMaxBatchSize(int maxBatchSize) {
 		this.maxBatchSize = maxBatchSize;

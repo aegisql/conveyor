@@ -459,7 +459,7 @@ public class DerbyPerfTest {
 		long end = System.currentTimeMillis();
 		System.out.println("testInMemoryPersistence load complete in " + (end - start) + " msec.");
 
-		waitUntilArchived(p.copy());
+		waitUntilArchived(p);
 
 		long toComplete = System.currentTimeMillis();
 
