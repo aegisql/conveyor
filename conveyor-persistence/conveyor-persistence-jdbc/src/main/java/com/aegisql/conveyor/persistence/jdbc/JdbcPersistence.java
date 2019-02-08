@@ -53,6 +53,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 
 	private final ConverterAdviser converterAdviser;
 
+	/** The map converter. */
 	private final MapToJsonConverter mapConverter;
 
 	/** The load type converter. */
@@ -72,51 +73,34 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	/** The max batch time. */
 	private final long maxBatchTime;
 
+	/** The info. */
 	private final String info;
 
+	/** The non persistent properties. */
 	private final Set<String> nonPersistentProperties;
 
+	/** The engine. */
 	private final EngineDepo<K> engine;
 
+	/** The min compact size. */
 	private int minCompactSize = 0;
 
+	/** The Constant RESTORE_BUILD_COMMAND. */
 	private final static CommandLabel RESTORE_BUILD_COMMAND = CommandLabel.RESTORE_BUILD;
 
 	/**
 	 * Instantiates a new derby persistence.
 	 *
-	 * @param builder
-	 *            the builder
-	 * @param connectionSupplier
-	 *            the connectionSupplier
-	 * @param idSupplier
-	 *            the id supplier
-	 * @param saveCartQuery
-	 *            the save cart query
-	 * @param saveCompletedBuildKeyQuery
-	 *            the save completed build key query
-	 * @param getPartQuery
-	 *            the get part query
-	 * @param getAllPartIdsQuery
-	 *            the get all part ids query
-	 * @param getAllUnfinishedPartIdsQuery
-	 *            the get all unfinished part ids query
-	 * @param getAllCompletedKeysQuery
-	 *            the get all completed keys query
-	 * @param getAllStaticPartsQuery
-	 *            the get all static parts query
-	 * @param getNumberOfPartsQuery
-	 *            the get number of parts query
-	 * @param archiver
-	 *            the archiver
-	 * @param labelConverter
-	 *            the label converter
-	 * @param blobConverter
-	 *            the blob converter
-	 * @param maxBatchSize
-	 *            the max batch size
-	 * @param maxBatchTime
-	 *            the max batch time
+	 * @param engine the engine
+	 * @param idSupplier            the id supplier
+	 * @param archiver            the archiver
+	 * @param labelConverter            the label converter
+	 * @param converterAdviser the converter adviser
+	 * @param maxBatchSize            the max batch size
+	 * @param maxBatchTime            the max batch time
+	 * @param info the info
+	 * @param nonPersistentProperties the non persistent properties
+	 * @param minCompactSize the min compact size
 	 */
 	public JdbcPersistence(EngineDepo<K> engine, LongSupplier idSupplier,
 			Archiver<K> archiver,
@@ -550,16 +534,25 @@ public class JdbcPersistence<K> implements Persistence<K> {
 		return engine.getNumberOfParts();
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return info;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#isPersistentProperty(java.lang.String)
+	 */
 	@Override
 	public boolean isPersistentProperty(String property) {
 		return !nonPersistentProperties.contains(property);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.core.Persistence#getMinCompactSize()
+	 */
 	@Override
 	public int getMinCompactSize() {
 		return minCompactSize;
