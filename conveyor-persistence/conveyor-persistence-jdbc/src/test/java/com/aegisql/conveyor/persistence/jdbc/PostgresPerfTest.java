@@ -70,7 +70,7 @@ public class PostgresPerfTest {
 
 	ThreadPool pool;
 
-	int testSize = 10000;
+	int testSize = Tester.getPerfTestSize();
 
 	int batchSize;
 	

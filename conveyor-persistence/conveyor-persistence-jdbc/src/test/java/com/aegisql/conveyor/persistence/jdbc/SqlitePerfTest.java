@@ -67,7 +67,7 @@ public class SqlitePerfTest {
 
 	ThreadPool pool;
 
-	int testSize = 10000;
+	int testSize = Tester.getPerfTestSize();
 
 	int batchSize;
 	

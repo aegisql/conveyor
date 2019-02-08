@@ -2,10 +2,13 @@ package com.aegisql.conveyor.persistence.jdbc.harness;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
@@ -16,6 +19,32 @@ public class Tester {
 	public Tester() {
 	}
 
+	public static int getPerfTestSize() {
+		String param = "PERF_TEST_SIZE";
+		RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+		List<String> arguments = runtimeMxBean.getInputArguments();
+		int size = 10000;
+		
+		String test = System.getenv(param);
+		if(test != null) {
+			try {
+				size = Integer.parseInt(test);
+				return size;
+			}catch (Exception e) {
+			}
+		}
+		test = arguments.stream().filter(arg->arg.startsWith("-D"+param+"=")).findFirst().orElse("="+size);
+		if(test != null) {
+			try {
+				size = Integer.parseInt(test.split("=")[1]);
+				return size;
+			}catch (Exception e) {
+			}
+		}
+		return size;
+	}
+	
+	
 	public static String LOCAL_MYSQL_URL = "jdbc:mysql://localhost:3306/";
 	public static String LOCAL_POSTGRES_URL = "jdbc:postgresql://localhost:5432/";
 	
