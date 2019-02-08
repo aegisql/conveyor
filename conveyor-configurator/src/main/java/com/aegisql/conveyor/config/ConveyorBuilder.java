@@ -253,7 +253,6 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 					dp = dp.schema(pp.getSchema());
 					dp = dp.partTable(pp.getName());
 
-//					ArchiveBuilder archiverBuilder = dp.whenArchiveRecords();
 					BinaryLogConfigurationBuilder bLogConf = BinaryLogConfiguration.builder();
 					bLogConf.partTableName(pp.getName());
 
@@ -261,6 +260,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 					for (LinkedList<PersistenceProperty> ppList : ppMapList.values())
 						for (PersistenceProperty p : ppList) {
 							switch (p.getProperty()) {
+							case "database":
+								dp = dp.database(p.getValueAsString());
+								break;
 							case "autoInit":
 								dp = dp.autoInit(Boolean.parseBoolean(p.getValueAsString()));
 								break;
@@ -391,7 +393,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 						}
 					dp.build();
 					persistence = "com.aegisql.conveyor.persistence."+pp.getType().toLowerCase()+"."+pp.getSchema()+":type="+pp.getName();
-					LOG.debug("Create Persistence {}",persistence);
+					LOG.debug("Created Persistence {}",persistence);
 				
 			}
 

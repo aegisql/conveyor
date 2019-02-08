@@ -496,7 +496,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	protected void connectAndExecuteUpdate(String url, String sql) {
 		connectAndDo(url, con->{
 			try(Statement statement = con.createStatement()) {
-				LOG.debug("Executing{}",sql);
+				LOG.debug("Executing {}",sql);
 				statement.executeUpdate(sql);
 			} catch (SQLException e) {
 				LOG.error("Failed executing to {}",sql,e);
