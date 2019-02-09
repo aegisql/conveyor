@@ -275,6 +275,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 							case "completedLogTable":
 								dp = dp.completedLogTable(p.getValueAsString());
 								break;
+							case "host":
+								dp = dp.host(p.getValueAsString());
+								break;
 							case "port":
 								dp = dp.port(Integer.parseInt(p.getValueAsString()));
 								break;
