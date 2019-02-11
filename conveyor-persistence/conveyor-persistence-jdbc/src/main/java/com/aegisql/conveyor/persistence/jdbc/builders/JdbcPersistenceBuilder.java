@@ -41,6 +41,7 @@ import com.aegisql.conveyor.persistence.jdbc.engine.DerbyClientEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.DerbyEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.MariaDbEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.MysqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.PostgresqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.SqliteEngine;
@@ -1054,6 +1055,9 @@ public class JdbcPersistenceBuilder<K> {
 		case "mysql":
 			engine = new MysqlEngine<>(kClass);
 			break;
+		case "mariadb":
+			engine = new MariaDbEngine<>(kClass);
+			break;
 		case "postgres":
 			engine = new PostgresqlEngine<>(kClass);
 			break;
@@ -1104,6 +1108,7 @@ public class JdbcPersistenceBuilder<K> {
 		case "derby-client":
 			return pi.schema("conveyor_db");
 		case "mysql":
+		case "mariadb":
 			return pi.database("conveyor_db");
 		case "postgres":
 			return pi.database("conveyor_db").schema("conveyor_db");

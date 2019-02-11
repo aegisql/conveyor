@@ -48,6 +48,7 @@ conveyor configurator
 ## Release History
 
 ### 1.4.1-SNAPSHOT
+* Bugfixes
 
 ### 1.4.0
 * Removed Deprecated Derby Jdbc Persistence
