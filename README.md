@@ -48,8 +48,9 @@ conveyor configurator
 ## Release History
 
 ### 1.4.1-SNAPSHOT
+* Added Persistence Engine for MariaDB
+* Output ordering configuration for Conveyor restore from Persistence (No ordering, By ID, By Priority and then by ID)
 * Bugfixes
-* Support for MariaDB
 
 ### 1.4.0
 * Removed Deprecated Derby Jdbc Persistence

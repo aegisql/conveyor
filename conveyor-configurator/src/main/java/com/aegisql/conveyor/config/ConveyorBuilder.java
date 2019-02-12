@@ -44,6 +44,7 @@ import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
+import com.aegisql.conveyor.persistence.jdbc.builders.RestoreOrder;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -265,6 +266,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								break;
 							case "autoInit":
 								dp = dp.autoInit(Boolean.parseBoolean(p.getValueAsString()));
+								break;
+							case "restoreOrder":
+								dp = dp.restoreOrder(RestoreOrder.valueOf(p.getValueAsString()));
 								break;
 							case "username":
 								dp = dp.user(p.getValueAsString());

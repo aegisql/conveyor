@@ -206,6 +206,8 @@ public class JdbcPersistenceBuilder<K> {
 	/** The engine depo. */
 	private final EngineDepo<K> engineDepo;
 	
+	private final RestoreOrder restoreOrder;
+	
 	/**
 	 * Instantiates a new jdbc persistence builder.
 	 *
@@ -214,7 +216,7 @@ public class JdbcPersistenceBuilder<K> {
 	public JdbcPersistenceBuilder(Class<K> keyClass) {
 		this(TimeHostIdGenerator.idGenerator_10x8(System.currentTimeMillis()/1000)::getId, false, keyClass, null, null, 0, null, null, null, null, null, null, new Properties(), new LinkedHashMap<>(),
 				ArchiveStrategy.DELETE,null,null,null,new StringLabelConverter(), new EncryptingConverterBuilder(),
-				0,100,60_000,new HashSet<>(), null);
+				0,100,60_000,new HashSet<>(), null,RestoreOrder.BY_ID);
 	}	
 	
 	/**
@@ -252,6 +254,7 @@ public class JdbcPersistenceBuilder<K> {
 			ArchiveStrategy archiveStrategy, Archiver<K> customArchiver, Persistence<K> archivingPersistence, BinaryLogConfiguration bLogConf,
 			ObjectConverter<?,String> labelConverter, EncryptingConverterBuilder encryptionBuilder,
 			int minCompactSize, int maxBatchSize, long maxBatchTime, Set<String> nonPersistentProperties, EngineDepo<K> engineDepo
+			,RestoreOrder restoreOrder
 			) {
 		Objects.requireNonNull(keyClass,"key class must not be null");
 		this.idSupplier = idSupplier;
@@ -280,6 +283,7 @@ public class JdbcPersistenceBuilder<K> {
 		this.maxBatchTime = maxBatchTime;
 		this.nonPersistentProperties = nonPersistentProperties;
 		this.engineDepo = engineDepo;
+		this.restoreOrder = restoreOrder;
 		
 		if(this.fields.size() == 0) {
 			this.fields.put(ID, "BIGINT PRIMARY KEY");
@@ -312,7 +316,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, ed);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, ed
+				,restoreOrder);
 	}
 
 	/**
@@ -326,7 +331,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 	
 	/**
@@ -340,7 +346,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -354,7 +361,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo).
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder).
 				setField(CART_KEY, getKeySqlType(keyCls));
 	}
 
@@ -369,7 +377,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -383,7 +392,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -397,7 +407,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -411,7 +422,8 @@ public class JdbcPersistenceBuilder<K> {
 				db, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -425,7 +437,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, sch, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -439,7 +452,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTbl, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -453,7 +467,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTbl, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -467,7 +482,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, usr, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -481,7 +497,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, pwd,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -495,7 +512,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(pr), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -512,7 +530,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(p), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -526,7 +545,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(f), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -543,7 +563,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(f), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -557,7 +578,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				ArchiveStrategy.CUSTOM, archiver, null, null, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -571,7 +593,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				ArchiveStrategy.MOVE_TO_FILE, null, null, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -585,7 +608,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				ArchiveStrategy.MOVE_TO_PERSISTENCE, null, archivingPersistence, null, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -598,7 +622,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				ArchiveStrategy.NO_ACTION, null, null, null, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -611,7 +636,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				ArchiveStrategy.SET_ARCHIVED, null, null, null, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -624,7 +650,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				ArchiveStrategy.DELETE, null, null, null, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 	
 	/**
@@ -638,7 +665,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConv,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -653,7 +681,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, new EnumConverter<>(enClass),
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -668,7 +697,8 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionSecret(encryptionSecret), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				, engineDepo);
+				, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -683,7 +713,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.secretKey(secretKey), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				, engineDepo);
+				, engineDepo,restoreOrder);
 	}
 
 	/**
@@ -698,7 +728,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionAlgorithm(encryptionAlgorithm), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				, engineDepo);
+				, engineDepo,restoreOrder);
 	}
 
 	/**
@@ -713,7 +743,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionTransformation(encryptionTransformation), minCompactSize, maxBatchSize, maxBatchTime, 
-				nonPersistentProperties, engineDepo);
+				nonPersistentProperties, engineDepo,restoreOrder);
 	}
 
 	/**
@@ -728,7 +758,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionKeyLength(encryptionKeyLength), minCompactSize, maxBatchSize, maxBatchTime, 
-				nonPersistentProperties, engineDepo);
+				nonPersistentProperties, engineDepo,restoreOrder);
 	}
 
 	/**
@@ -742,7 +772,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, size, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, size, maxBatchSize, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -756,7 +787,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, size, maxBatchTime, nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, size, maxBatchTime, nonPersistentProperties, engineDepo
+				,restoreOrder);
 	}
 
 	/**
@@ -772,7 +804,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, TimeUnit.MILLISECONDS.convert(time, unit), 
-				nonPersistentProperties, engineDepo);
+				nonPersistentProperties, engineDepo,restoreOrder);
 	}
 
 	/**
@@ -786,7 +818,8 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, duration.toMillis(), nonPersistentProperties, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, duration.toMillis(), nonPersistentProperties,
+				engineDepo,restoreOrder);
 	}
 
 	/**
@@ -806,7 +839,16 @@ public class JdbcPersistenceBuilder<K> {
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new LinkedHashMap<>(fields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
-				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, set, engineDepo);
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, set, engineDepo,restoreOrder);
+	}
+
+	public JdbcPersistenceBuilder<K> restoreOrder(RestoreOrder order) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
+				database, schema, partTable, completedLogTable, user, password,
+				new Properties(properties), new LinkedHashMap<>(fields), 
+				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
+				engineDepo,order);
 	}
 
 	
@@ -1078,6 +1120,7 @@ public class JdbcPersistenceBuilder<K> {
 		engine.setProperties(properties);
 		engine.setUser(user);
 		engine.setPassword(password);
+		engine.setSortingOrder(restoreOrder.getOrder());
 		engine.buildPartTableQueries(partTable);
 		engine.buildCompletedLogTableQueries(completedLogTable);
 		return engine;

@@ -19,6 +19,7 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
+import com.aegisql.conveyor.persistence.jdbc.builders.RestoreOrder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
 public class DerbyPersistenceTest {
@@ -129,7 +130,9 @@ public class DerbyPersistenceTest {
 				.partTable("exp_test")
 				.completedLogTable("exp_test_complete")
 				.idSupplier(ids::incrementAndGet)
-				.setArchived().build();
+				.setArchived()
+				.restoreOrder(RestoreOrder.BY_PRIORITY_AND_ID)
+				.build();
 		assertNotNull(p);
 		p.archiveAll();
 		
