@@ -520,7 +520,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 				+","+VALUE_TYPE
 				+","+PRIORITY
 				+" FROM " + partTable 
-				+" WHERE "+ARCHIVED+" = 0  AND "+LOAD_TYPE+" <> 'STATIC_PART' ORDER BY "+getSortingOrder();
+				+" WHERE "+ARCHIVED+" = 0  AND "+LOAD_TYPE+" <> 'STATIC_PART' "+getSortingOrder();
 		this.getAllStaticPartsQuery = "SELECT "
 				+CART_KEY
 				+","+CART_VALUE
@@ -1181,7 +1181,10 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	}
 
 	protected String getSortingOrder() {
-		StringBuilder sb = new StringBuilder();
+		if(sortingOrder == null || sortingOrder.size() == 0) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder("ORDER BY ");
 		sortingOrder.forEach((k,v)->sb.append(k).append(" ").append(v).append(","));
 		if(sb.length() > 0) {
 			sb.deleteCharAt(sb.lastIndexOf(","));
@@ -1190,7 +1193,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	}
 	
 	public void setSortingOrder(LinkedHashMap<String, String> order) {
-		Objects.requireNonNull(order,"Sorting order must not be null");
 		this.sortingOrder = order;
 	}
 	
