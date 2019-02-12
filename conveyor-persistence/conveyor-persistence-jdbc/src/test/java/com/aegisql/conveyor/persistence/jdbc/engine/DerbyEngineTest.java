@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -46,6 +47,11 @@ public class DerbyEngineTest {
 
 	@Test
 	public void testDerby() throws IOException {
+		
+		LinkedHashMap<String, String> order = new LinkedHashMap<>();
+		order.put("PRIORITY", "DESC");
+		order.put("ID", "ASC");
+		
 		GenericEngine<Integer> de = new DerbyEngine<>(Integer.class);
 		de.setSchema(SCHEMA);
 		assertTrue(de.databaseExists(SCHEMA));
@@ -54,6 +60,7 @@ public class DerbyEngineTest {
 		de.createPartTable(PARTS);
 		de.createPartTableIndex(PARTS);
 		de.createCompletedLogTable(LOGS);
+		de.setSortingOrder(order);
 		de.buildPartTableQueries(PARTS);
 		de.buildCompletedLogTableQueries(LOGS);
 		
@@ -66,6 +73,16 @@ public class DerbyEngineTest {
 				, "{}"
 				, "hint"
 				, 0);
+		de.saveCart(3L
+				, PARTS
+				, 2
+				, "LABEL"
+				, new Timestamp(0)
+				, new Timestamp(System.currentTimeMillis()+1000)
+				, "test value".getBytes()
+				, "{}"
+				, "hint"
+				, 1);
 		de.saveCart(2L
 				, "STATIC_PART"
 				, null
@@ -76,7 +93,7 @@ public class DerbyEngineTest {
 				, "{}"
 				, "hint"
 				, 0);
-		assertEquals(2, de.getNumberOfParts());
+		assertEquals(3, de.getNumberOfParts());
 		List<Long> ids = de.getAllPartIds(1);
 		assertNotNull(ids);
 		assertEquals(Long.valueOf(1),ids.get(0));
@@ -103,7 +120,8 @@ public class DerbyEngineTest {
 			return null;
 		});
 		assertNotNull(unfinished);
-		assertEquals(Long.valueOf(1),unfinished.get(0));
+		assertEquals(Long.valueOf(2),unfinished.get(0));
+		assertEquals(Long.valueOf(1),unfinished.get(1));
 
 		Tester.sleep(1500);
 		List<Long> exp = de.getExpiredParts(rs->{

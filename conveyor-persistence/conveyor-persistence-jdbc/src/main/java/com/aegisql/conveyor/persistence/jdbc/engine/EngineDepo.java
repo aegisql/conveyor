@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -123,6 +124,13 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param completedLogTable the completed log table
 	 */
 	public void createCompletedLogTable(String completedLogTable);
+	
+	/**
+	 * Sets the sorting order.
+	 *
+	 * @param order the order
+	 */
+	public void setSortingOrder(LinkedHashMap<String, String> order);
 	
 	/**
 	 * Builds the part table queries.

@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -154,6 +155,8 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	
 	/** The get number of parts query. */
 	private String getNumberOfPartsQuery;
+	
+	private Map<String,String> sortingOrder = new LinkedHashMap<>();
 
 	/**
 	 * Instantiates a new generic engine.
@@ -193,6 +196,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 			this.fields.put(CART_PROPERTIES, "TEXT");
 			this.fields.put(ARCHIVED, "SMALLINT NOT NULL DEFAULT 0");
 		}
+		sortingOrder.put(ID, "ASC");
 		try {
 			if (notEmpty(driver)) {
 				Class.forName(driver);
@@ -516,7 +520,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 				+","+VALUE_TYPE
 				+","+PRIORITY
 				+" FROM " + partTable 
-				+" WHERE "+ARCHIVED+" = 0  AND "+LOAD_TYPE+" <> 'STATIC_PART' ORDER BY "+ID+" ASC";
+				+" WHERE "+ARCHIVED+" = 0  AND "+LOAD_TYPE+" <> 'STATIC_PART' ORDER BY "+getSortingOrder();
 		this.getAllStaticPartsQuery = "SELECT "
 				+CART_KEY
 				+","+CART_VALUE
@@ -1176,6 +1180,20 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}
 	}
 
+	protected String getSortingOrder() {
+		StringBuilder sb = new StringBuilder();
+		sortingOrder.forEach((k,v)->sb.append(k).append(" ").append(v).append(","));
+		if(sb.length() > 0) {
+			sb.deleteCharAt(sb.lastIndexOf(","));
+		}
+		return sb.toString();
+	}
+	
+	public void setSortingOrder(LinkedHashMap<String, String> order) {
+		Objects.requireNonNull(order,"Sorting order must not be null");
+		this.sortingOrder = order;
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

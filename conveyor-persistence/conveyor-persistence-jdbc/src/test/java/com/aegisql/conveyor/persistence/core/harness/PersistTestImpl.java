@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -209,6 +210,12 @@ public class PersistTestImpl implements Persistence<Integer>{
 
 		@Override
 		public void close() throws IOException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void setSortingOrder(LinkedHashMap<String, String> order) {
 			// TODO Auto-generated method stub
 			
 		}

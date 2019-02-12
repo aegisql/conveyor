@@ -49,6 +49,7 @@ conveyor configurator
 
 ### 1.4.1-SNAPSHOT
 * Bugfixes
+* Support for MariaDB
 
 ### 1.4.0
 * Removed Deprecated Derby Jdbc Persistence
