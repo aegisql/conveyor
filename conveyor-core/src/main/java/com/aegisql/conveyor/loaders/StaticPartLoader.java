@@ -134,13 +134,16 @@ public final class StaticPartLoader<L> {
 	 */
 	public static <L> Supplier<StaticPartLoader<L>> lazySupplier(String name) {
 		return new Supplier<StaticPartLoader<L>>() {
-			Conveyor<?,L,?> c;
+			StaticPartLoader<L> spl;
 			@Override
 			public StaticPartLoader<L> get() {
-				if(c == null) {
-					c = Conveyor.byName(name);
+				if(spl == null) {
+					Conveyor<?,L,?> c = Conveyor.byName(name);
+					if(c != null) {
+						spl = c.staticPart();
+					}
 				}
-				return c.staticPart();
+				return spl;
 			}
 		};
 	}

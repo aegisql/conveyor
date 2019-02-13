@@ -433,13 +433,16 @@ public final class ResultConsumerLoader<K,OUT> {
 
 	public static <K,OUT> Supplier<ResultConsumerLoader<K,OUT>> lazySupplier(String name) {
 		return new Supplier<ResultConsumerLoader<K,OUT>>() {
-			Conveyor<K,?,OUT> c;
+			ResultConsumerLoader<K,OUT> rcl;
 			@Override
 			public ResultConsumerLoader<K, OUT> get() {
-				if(c == null) {
-					c = Conveyor.byName(name);
+				if(rcl == null) {
+					Conveyor<K,?,OUT> c = Conveyor.byName(name);
+					if(c != null) {
+						rcl = c.resultConsumer();
+					}
 				}
-				return c.resultConsumer();
+				return rcl;
 			}
 		};
 	}

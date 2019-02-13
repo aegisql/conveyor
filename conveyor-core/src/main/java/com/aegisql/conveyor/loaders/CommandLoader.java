@@ -319,13 +319,16 @@ public final class CommandLoader<K,OUT> {
 	
 	public static <K,OUT> Supplier<CommandLoader<K,OUT>> lazySupplier(String name) {
 		return new Supplier<CommandLoader<K,OUT>>() {
-			Conveyor<K,?,OUT> c;
+			CommandLoader<K,OUT> command;
 			@Override
 			public CommandLoader<K, OUT> get() {
-				if(c == null) {
-					c = Conveyor.byName(name);
+				if(command == null) {
+					Conveyor<K,?,OUT>  c = Conveyor.byName(name);
+					if(c != null) {
+						command = c.command();
+					}
 				}
-				return c.command();
+				return command;
 			}
 		};
 	}

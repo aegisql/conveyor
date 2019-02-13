@@ -284,13 +284,16 @@ public final class FutureLoader<K,OUT> {
 
 	public static <K,OUT> Supplier<FutureLoader<K,OUT>> lazySupplier(String name) {
 		return new Supplier<FutureLoader<K,OUT>>() {
-			Conveyor<K,?,OUT> c;
+			FutureLoader<K,OUT> fl;
 			@Override
 			public FutureLoader<K, OUT> get() {
-				if(c == null) {
-					c = Conveyor.byName(name);
+				if(fl == null) {
+					Conveyor<K,?,OUT> c = Conveyor.byName(name);
+					if(c != null) {
+						fl = c.future();
+					}
 				}
-				return c.future();
+				return fl;
 			}
 		};
 	}

@@ -124,13 +124,16 @@ public final class ScrapConsumerLoader<K> {
 	
 	public static <K> Supplier<ScrapConsumerLoader<K>> lazySupplier(String name) {
 		return new Supplier<ScrapConsumerLoader<K>>() {
-			Conveyor<K,?,?> c;
+			ScrapConsumerLoader<K> scl;
 			@Override
 			public ScrapConsumerLoader<K> get() {
-				if(c == null) {
-					c = Conveyor.byName(name);
+				if(scl == null) {
+					Conveyor<K,?,?> c = Conveyor.byName(name);
+					if(c != null) {
+						scl = c.scrapConsumer();
+					}
 				}
-				return c.scrapConsumer();
+				return scl;
 			}
 		};
 	}

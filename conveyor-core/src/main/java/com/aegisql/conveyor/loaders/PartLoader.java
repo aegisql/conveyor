@@ -365,13 +365,16 @@ public final class PartLoader<K,L> {
 	 */
 	public static <K,L> Supplier<PartLoader<K,L>> lazySupplier(String name) {
 		return new Supplier<PartLoader<K,L>>() {
-			Conveyor<K,L,?> c;
+			PartLoader<K,L> pl;
 			@Override
 			public PartLoader<K, L> get() {
-				if(c == null) {
-					c = Conveyor.byName(name);
+				if(pl == null) {
+					Conveyor<K,L,?> c = Conveyor.byName(name);
+					if(c != null) {
+						pl = c.part();
+					}
 				}
-				return c.part();
+				return pl;
 			}
 		};
 	}
