@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -157,7 +158,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	private String getNumberOfPartsQuery;
 	
 	private Map<String,String> sortingOrder = new LinkedHashMap<>();
-
+	
 	/**
 	 * Instantiates a new generic engine.
 	 *
@@ -290,7 +291,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#partTableIndexExists(java.lang.String)
 	 */
 	@Override
-	public boolean partTableIndexExists(String partTable) {
+	public boolean partTableIndexExists(String partTable, String indexName) {
 		AtomicBoolean res = new AtomicBoolean(true);
 		connectAndDo(connectionUrlTemplateForInitTablesAndIndexes, con -> {
 			try {
@@ -299,7 +300,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 				boolean indexExists = false;
 				while(indexRs.next()) {
 					String idxName = indexRs.getString("INDEX_NAME");
-					if(idxName.equalsIgnoreCase(partTable+"_IDX")) {
+					if(idxName.equalsIgnoreCase(indexName)) {
 						indexExists = true;
 						break;
 					}
@@ -420,7 +421,19 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	protected String getCreatePartTableIndexSql(String partTable) {
 		return "CREATE INDEX "+partTable+"_IDX ON "+partTable+"("+EngineDepo.CART_KEY+")";
 	}
+	
+	@Override
+	public void createUniqPartTableIndex(String partTable, List<String> fields) {
+		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitTablesAndIndexes), getCreateUniqPartTableIndexSql(partTable,fields));
+		LOG.info("Created unique partTable index {} {}",partTable,fields);
+	}
 
+	protected String getCreateUniqPartTableIndexSql(String partTable, List<String> fields) {
+		String indexName = partTable+"_"+String.join("_", fields)+"_IDX";
+		return "CREATE UNIQUE INDEX "+indexName+" ON "+partTable+"("+String.join(",", fields)+")";
+	}
+
+	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#createCompletedLogTable(java.lang.String)
 	 */

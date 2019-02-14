@@ -80,7 +80,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param partTableIndex the part table index
 	 * @return true, if successful
 	 */
-	public boolean partTableIndexExists(String partTableIndex);
+	public boolean partTableIndexExists(String partTable, String indexName);
 	
 	/**
 	 * Completed log table exists.
@@ -117,7 +117,9 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param partTable the part table
 	 */
 	public void createPartTableIndex(String partTable);
-	
+
+	public void createUniqPartTableIndex(String partTable,List<String> fields);
+
 	/**
 	 * Creates the completed log table.
 	 *

@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -61,6 +62,7 @@ public class DerbyEngineTest {
 		de.createPartTableIndex(PARTS);
 		de.createCompletedLogTable(LOGS);
 		de.setSortingOrder(order);
+		de.createUniqPartTableIndex(PARTS, Arrays.asList(EngineDepo.CART_KEY,EngineDepo.CART_LABEL));
 		de.buildPartTableQueries(PARTS);
 		de.buildCompletedLogTableQueries(LOGS);
 		
@@ -155,6 +157,22 @@ public class DerbyEngineTest {
 		});
 		assertNotNull(staticPart);
 		assertEquals("static value",staticPart.get(0));
+		
+		try {
+			de.saveCart(10L
+				, PARTS
+				, 1, "LABEL"
+				, new Timestamp(0)
+				, new Timestamp(System.currentTimeMillis()+1000)
+				, "test value".getBytes()
+				, "{}"
+				, "hint"
+				, 0);
+			fail("Must not be saved! Unique constraint");
+		}catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		
 		de.close();
 	}
 

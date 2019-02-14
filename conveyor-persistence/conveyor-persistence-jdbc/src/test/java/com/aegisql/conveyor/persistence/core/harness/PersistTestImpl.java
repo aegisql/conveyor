@@ -40,7 +40,7 @@ public class PersistTestImpl implements Persistence<Integer>{
 		}
 
 		@Override
-		public boolean partTableIndexExists(String partTableIndex) {
+		public boolean partTableIndexExists(String partTableIndex, String indexName) {
 			// TODO Auto-generated method stub
 			return false;
 		}
@@ -216,6 +216,12 @@ public class PersistTestImpl implements Persistence<Integer>{
 
 		@Override
 		public void setSortingOrder(LinkedHashMap<String, String> order) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void createUniqPartTableIndex(String partTable, List<String> fields) {
 			// TODO Auto-generated method stub
 			
 		}

@@ -61,13 +61,13 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 	 * @see com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine#partTableIndexExists(java.lang.String)
 	 */
 	@Override
-	public boolean partTableIndexExists(String partTable) {
+	public boolean partTableIndexExists(String partTable, String indexName) {
 		AtomicBoolean res = new AtomicBoolean(false);
 		String query = "SELECT 1 FROM pg_catalog. pg_indexes WHERE lower(indexname) = lower(?)";
 
 		connectAndDo(connectionUrlTemplateForInitTablesAndIndexes, con->{
 			try(PreparedStatement st = con.prepareStatement(query)) {
-				st.setString(1, partTable+"_IDX");
+				st.setString(1, indexName);
 				ResultSet rs = st.executeQuery();
 				res.set(rs.next());
 			} catch (SQLException e) {
