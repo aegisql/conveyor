@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.Set;
@@ -167,19 +168,33 @@ public class MysqlPersistenceTest {
 				.partTable("PART2")
 				.completedLogTable("COMPLETED_LOG2")
 				.user("root")
+				.addField(String.class, "ADDON")
+				.addUniqueFields("ADDON");
 				;
 		
 		JdbcPersistence<Integer> p = jpb.build();
 		
 		assertNotNull(p);
-		Cart<Integer,String,String> cart = new ShoppingCart<Integer, String, String>(100, "test", "label");
-		p.savePart(1, cart);
+		Cart<Integer,String,String> cartA = new ShoppingCart<Integer, String, String>(100, "test", "label");
+		cartA.addProperty("ADDON", "A");
+		Cart<Integer,String,String> cartB = new ShoppingCart<Integer, String, String>(100, "test", "label");
+		cartB.addProperty("ADDON", "B");
+		Cart<Integer,String,String> cartC = new ShoppingCart<Integer, String, String>(100, "test", "label");
+		cartC.addProperty("ADDON", "A");
+		p.savePart(1, cartA);
+		p.savePart(2, cartB);
 		Cart restored = p.getPart(1);
 		assertNotNull(restored);
 		System.out.println(restored);
 		assertEquals(100, restored.getKey());
 		assertEquals("label", restored.getLabel());
 		assertEquals("test", restored.getValue());
+		try {
+			p.savePart(3, cartC);
+			fail("Must not be saved!");
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 	}
 
 

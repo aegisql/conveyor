@@ -924,7 +924,7 @@ public class JdbcPersistenceBuilder<K> {
 			}
 			for(List<String> list: uniqueFields) {
 				String indexName = partTable+"_"+String.join("_", list)+"_IDX";
-				if(sqlEngine.partTableIndexExists(partTable, indexName)) {
+				if( ! sqlEngine.partTableIndexExists(partTable, indexName)) {
 					sqlEngine.createUniqPartTableIndex(partTable, list);
 				}
 			}
