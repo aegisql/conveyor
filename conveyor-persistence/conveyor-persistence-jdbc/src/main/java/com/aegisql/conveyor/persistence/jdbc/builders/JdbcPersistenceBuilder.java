@@ -4,10 +4,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -905,7 +902,6 @@ public class JdbcPersistenceBuilder<K> {
 		} else {
 			sqlEngine = buildSqlEngine(engineType, keyClass);
 		}
-		//TODO: replace with depo impl
 		if(autoInit) {
 			if( ! sqlEngine.databaseExists(database) ) {
 				sqlEngine.createDatabase(database);
@@ -930,7 +926,6 @@ public class JdbcPersistenceBuilder<K> {
 			}
 		}
 		
-		//TODO: replace with depo impl
 		Archiver<K> archiver = null;
 		switch (archiveStrategy) {
 		case CUSTOM:

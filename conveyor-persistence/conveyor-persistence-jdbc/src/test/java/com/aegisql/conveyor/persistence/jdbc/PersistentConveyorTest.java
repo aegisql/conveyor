@@ -84,6 +84,25 @@ public class PersistentConveyorTest {
 		}
 	}
 
+	Persistence<Integer> getPersitenceWithField(String table) {
+		try {						
+			Thread.sleep(1000);
+			return persistenceBuilder
+					.partTable(table)
+					.completedLogTable(table + "Completed")
+					.addField(String.class, "ADDON")
+					.labelConverter(TrioPart.class)
+					.maxBatchSize(3)
+					.minCompactSize(1000)
+					.addUniqueFields("ADDON")
+					.build();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
 	Persistence<Integer> getPersitenceExp(String table) {
 		try {
 			Thread.sleep(1000);
@@ -114,6 +133,22 @@ public class PersistentConveyorTest {
 		assertEquals(1, tc.results.size());
 	}
 
+	@Test
+	public void veryBasicTestWithAdditionalUniqField() throws Exception {
+		Persistence<Integer> p = getPersitenceWithField("withAdditionalUniqField");
+		TrioConveyor tc = new TrioConveyor();
+		
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p.wrapConveyor(tc);
+	
+		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").addProperty("ADDON", "A").place();
+		pc.part().id(1).label(TrioPart.TEXT2).value("txt2").addProperty("ADDON", "B").place().join();
+		System.out.println(p);
+		pc.part().id(1).label(TrioPart.NUMBER).value(1).addProperty("ADDON", "C").place().join();
+		System.out.println(p);
+		assertEquals(1, tc.results.size());
+	}
+
+	
 	@Test
 	public void veryBasicTedbstWithIgnoredCart() throws Exception {
 		Persistence<Integer> p = getPersitence("veryBasicTestIgnoreNumber");
