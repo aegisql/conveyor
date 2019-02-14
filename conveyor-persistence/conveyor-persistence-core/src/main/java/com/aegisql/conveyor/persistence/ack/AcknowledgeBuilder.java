@@ -168,7 +168,12 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 		
 		if ( ! builder.cartIds.contains(id)) {
 			if(save) {
-				builder.persistence.savePart(id, cart);
+				try {
+					builder.persistence.savePart(id, cart);
+				} catch(Exception e) {
+					cart.getFuture().completeExceptionally(e);
+					throw e;
+				}
 				builder.persistence.savePartId(cart.getKey(), id);
 			}
 			builder.cartIds.add(id);
@@ -194,7 +199,12 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 		if(m != null) {
 			long id = builder.persistence.nextUniquePartId();
 			Cart cart = new GeneralCommand(key, m, CommandLabel.RESTORE_BUILD, 0);
-			builder.persistence.savePart(id, cart);
+			try {
+				builder.persistence.savePart(id, cart);
+			} catch (Exception e) {
+				cart.getFuture().completeExceptionally(e);
+				throw e;
+			}
 			builder.persistence.archiveParts(builder.cartIds);
 			builder.cartIds.clear();
 			builder.cartIds.add(id);

@@ -325,12 +325,9 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		LOG.debug("PLACING " + ackCart);
 		CompletableFuture<Boolean> forwardFuture = cart.getFuture();
 		CompletableFuture<Boolean> ackFuture = ackCart.getFuture();
-		//CompletableFuture<Boolean> bothFutures = ackFuture.thenCombine(forwardFuture, (a, b) -> a && b);
-		if(ackConveyor.place(ackCart).join()) {
-			return forwardFuture;
-		} else {
-			return ackFuture;
-		}
+		CompletableFuture<Boolean> bothFutures = ackFuture.thenCombine(forwardFuture, (a, b) -> a && b);
+		ackConveyor.place(ackCart);
+		return bothFutures;
 	}
 
 	/*
