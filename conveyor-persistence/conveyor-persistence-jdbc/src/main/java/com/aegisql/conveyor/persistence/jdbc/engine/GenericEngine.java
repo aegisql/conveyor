@@ -161,7 +161,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	
 	protected Map<String,String> sortingOrder = new LinkedHashMap<>();
 	
-	protected List<Field> additionalFields = new ArrayList<>();
+	protected List<Field<?>> additionalFields = new ArrayList<>();
 	
 	/**
 	 * Instantiates a new generic engine.
@@ -1255,7 +1255,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		this.sortingOrder = order;
 	}
 	
-	public void setAdditionalFields(List<Field> additionalFields) {
+	public void setAdditionalFields(List<Field<?>> additionalFields) {
 		this.additionalFields = additionalFields;
 	}
 

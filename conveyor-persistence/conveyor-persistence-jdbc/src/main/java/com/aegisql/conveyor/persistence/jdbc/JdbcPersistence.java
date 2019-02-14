@@ -93,7 +93,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	private final static CommandLabel RESTORE_BUILD_COMMAND = CommandLabel.RESTORE_BUILD;
 	
 	/** The additional fields. */
-	private final List<Field> additionalFields;
+	private final List<Field<?>> additionalFields;
 
 
 	/**
@@ -114,7 +114,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	public JdbcPersistence(EngineDepo<K> engine, LongSupplier idSupplier,
 			Archiver<K> archiver,
 			ObjectConverter<?, String> labelConverter, ConverterAdviser<?> converterAdviser, int maxBatchSize,
-			long maxBatchTime, String info, Set<String> nonPersistentProperties, int minCompactSize, List<Field> additionalFields) {
+			long maxBatchTime, String info, Set<String> nonPersistentProperties, int minCompactSize, List<Field<?>> additionalFields) {
 		this.idSupplier = idSupplier;
 		this.converterAdviser = converterAdviser;
 		// this.dynamicPersistenceSql = dynamicPersistenceSql;

@@ -149,7 +149,7 @@ public class JdbcPersistenceBuilder<K> {
 	private final Properties properties;
 	
 	/** The additionalFields. */
-	private final List<Field> additionalFields;
+	private final List<Field<?>> additionalFields;
 	
 	/** The additional additionalFields. */
 	private final List<List<String>> uniqueFields;
@@ -235,7 +235,7 @@ public class JdbcPersistenceBuilder<K> {
 	 */
 	private JdbcPersistenceBuilder(LongSupplier idSupplier, boolean autoInit, Class<K> keyClass, String type, String host, int port,
 			String database, String schema, String partTable, String completedLogTable, String user, String password,
-			Properties properties, List<Field> fields,
+			Properties properties, List<Field<?>> fields,
 			ArchiveStrategy archiveStrategy, Archiver<K> customArchiver, Persistence<K> archivingPersistence, BinaryLogConfiguration bLogConf,
 			ObjectConverter<?,String> labelConverter, EncryptingConverterBuilder encryptionBuilder,
 			int minCompactSize, int maxBatchSize, long maxBatchTime, Set<String> nonPersistentProperties, EngineDepo<K> engineDepo
@@ -526,7 +526,7 @@ public class JdbcPersistenceBuilder<K> {
 	 * @return the jdbc persistence builder
 	 */
 	public <T> JdbcPersistenceBuilder<K> addField(Class<T> fieldClass, String name) {
-		ArrayList<Field<T>> f = new ArrayList<>(additionalFields);
+		ArrayList<Field<?>> f = new ArrayList<Field<?>>(additionalFields);
 		f.add( new Field<>(fieldClass,name));
 		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
@@ -537,7 +537,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public <T> JdbcPersistenceBuilder<K> addField(Class<T> fieldClass, String name, Function<Cart<?,?,?>,T> accessor) {
-		ArrayList<Field<T>> f = new ArrayList<>(additionalFields);
+		ArrayList<Field<?>> f = new ArrayList<>(additionalFields);
 		f.add( new Field<>(fieldClass,name,accessor));
 		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
