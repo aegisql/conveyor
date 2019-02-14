@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.log4j.BasicConfigurator;
@@ -146,6 +147,17 @@ public class PersistentConveyorTest {
 		pc.part().id(1).label(TrioPart.NUMBER).value(1).addProperty("ADDON", "C").place().join();
 		System.out.println(p);
 		assertEquals(1, tc.results.size());
+	}
+
+	@Test(expected=CompletionException.class)
+	public void veryBasicFailingTestWithAdditionalUniqField() throws Exception {
+		Persistence<Integer> p = getPersitenceWithField("withAdditionalNonUniqField");
+		TrioConveyor tc = new TrioConveyor();
+		
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p.wrapConveyor(tc);
+	
+		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").addProperty("ADDON", "A").place();
+		pc.part().id(1).label(TrioPart.TEXT2).value("txt2").addProperty("ADDON", "A").place().join();
 	}
 
 	

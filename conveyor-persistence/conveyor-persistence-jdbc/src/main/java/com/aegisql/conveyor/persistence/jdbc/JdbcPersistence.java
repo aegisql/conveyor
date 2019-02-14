@@ -117,7 +117,6 @@ public class JdbcPersistence<K> implements Persistence<K> {
 			long maxBatchTime, String info, Set<String> nonPersistentProperties, int minCompactSize, List<Field<?>> additionalFields) {
 		this.idSupplier = idSupplier;
 		this.converterAdviser = converterAdviser;
-		// this.dynamicPersistenceSql = dynamicPersistenceSql;
 		this.archiver = archiver;
 		this.labelConverter = labelConverter;
 		this.maxBatchSize = maxBatchSize;
