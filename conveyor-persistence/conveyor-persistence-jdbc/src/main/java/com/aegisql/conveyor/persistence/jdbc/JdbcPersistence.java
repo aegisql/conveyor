@@ -92,6 +92,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	/** The Constant RESTORE_BUILD_COMMAND. */
 	private final static CommandLabel RESTORE_BUILD_COMMAND = CommandLabel.RESTORE_BUILD;
 	
+	/** The additional fields. */
 	private final List<Field> additionalFields;
 
 
@@ -108,6 +109,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 * @param info the info
 	 * @param nonPersistentProperties the non persistent properties
 	 * @param minCompactSize the min compact size
+	 * @param additionalFields the additional fields
 	 */
 	public JdbcPersistence(EngineDepo<K> engine, LongSupplier idSupplier,
 			Archiver<K> archiver,
