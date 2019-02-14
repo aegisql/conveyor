@@ -50,7 +50,8 @@ conveyor configurator
 ### 1.4.1-SNAPSHOT
 * Added Persistence Engine for MariaDB
 * Output ordering configuration for Conveyor restore from Persistence (No ordering, By ID, By Priority and then by ID)
-* Init secondary unique indexes
+* Add additional fields to the PARTS table; can be used to create unique indexes
+* Create secondary unique indexes on existing and added fields
 * Bugfixes
 
 ### 1.4.0

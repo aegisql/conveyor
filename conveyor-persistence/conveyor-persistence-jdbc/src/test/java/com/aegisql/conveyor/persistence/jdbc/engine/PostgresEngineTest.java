@@ -23,6 +23,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
 public class PostgresEngineTest {
@@ -58,6 +59,7 @@ public class PostgresEngineTest {
 		order.put("ID", "ASC");
 
 		GenericEngine<Integer> de = new PostgresqlEngine<>(Integer.class);
+		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
 		de.setDatabase(SCHEMA);
 		de.setSchema(SCHEMA);
 		de.setUser("postgres");
@@ -73,6 +75,7 @@ public class PostgresEngineTest {
 		de.createPartTableIndex(PARTS);
 		de.createCompletedLogTable(LOGS);
 		de.createUniqPartTableIndex(PARTS, Arrays.asList(EngineDepo.CART_KEY,EngineDepo.CART_LABEL));
+		de.createUniqPartTableIndex(PARTS, Arrays.asList("ADDON"));
 
 		de.saveCart(1L
 				, PARTS
@@ -82,7 +85,8 @@ public class PostgresEngineTest {
 				, "test value".getBytes()
 				, "{}"
 				, "hint"
-				, 0);
+				, 0
+				, Arrays.asList(1000L));
 		de.saveCart(3L
 				, PARTS
 				, 2
@@ -92,7 +96,8 @@ public class PostgresEngineTest {
 				, "test value".getBytes()
 				, "{}"
 				, "hint"
-				, 1);
+				, 1
+				, Arrays.asList(1001L));
 		de.saveCart(2L
 				, "STATIC_PART"
 				, null
@@ -102,7 +107,8 @@ public class PostgresEngineTest {
 				, "static value".getBytes()
 				, "{}"
 				, "hint"
-				, 0);
+				, 0
+				, Arrays.asList(1002L));
 
 		assertEquals(3, de.getNumberOfParts());
 		List<Long> ids = de.getAllPartIds(1);
@@ -176,7 +182,8 @@ public class PostgresEngineTest {
 				, "test value".getBytes()
 				, "{}"
 				, "hint"
-				, 0);
+				, 0
+				, Arrays.asList(1003L));
 			fail("Must not be saved! Unique constraint");
 		}catch (Exception e) {
 			System.out.println(e.getMessage());

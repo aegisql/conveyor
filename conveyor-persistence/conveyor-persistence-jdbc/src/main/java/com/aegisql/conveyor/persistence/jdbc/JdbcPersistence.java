@@ -3,11 +3,14 @@ package com.aegisql.conveyor.persistence.jdbc;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.LongSupplier;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +32,7 @@ import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.converters.MapToJsonConverter;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
@@ -87,6 +91,9 @@ public class JdbcPersistence<K> implements Persistence<K> {
 
 	/** The Constant RESTORE_BUILD_COMMAND. */
 	private final static CommandLabel RESTORE_BUILD_COMMAND = CommandLabel.RESTORE_BUILD;
+	
+	private final List<Field> additionalFields;
+
 
 	/**
 	 * Instantiates a new derby persistence.
@@ -105,7 +112,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	public JdbcPersistence(EngineDepo<K> engine, LongSupplier idSupplier,
 			Archiver<K> archiver,
 			ObjectConverter<?, String> labelConverter, ConverterAdviser<?> converterAdviser, int maxBatchSize,
-			long maxBatchTime, String info, Set<String> nonPersistentProperties, int minCompactSize) {
+			long maxBatchTime, String info, Set<String> nonPersistentProperties, int minCompactSize, List<Field> additionalFields) {
 		this.idSupplier = idSupplier;
 		this.converterAdviser = converterAdviser;
 		// this.dynamicPersistenceSql = dynamicPersistenceSql;
@@ -119,6 +126,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 		this.minCompactSize = minCompactSize;
 		this.engine = engine;
 		this.archiver.setPersistence(this);
+		this.additionalFields = additionalFields;
 	}
 
 	/*
@@ -129,7 +137,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	@Override
 	public Persistence<K> copy() {
 		return new JdbcPersistence<>(engine, idSupplier, archiver, labelConverter,
-				converterAdviser, maxBatchSize, maxBatchTime, info, nonPersistentProperties, minCompactSize);
+				converterAdviser, maxBatchSize, maxBatchTime, info, nonPersistentProperties, minCompactSize, new ArrayList<>(additionalFields));
 	}
 
 	/*
@@ -173,10 +181,17 @@ public class JdbcPersistence<K> implements Persistence<K> {
 			hint = byteConverter.conversionHint();
 			label = labelConverter.toPersistence(cart.getLabel());
 		}
+		
+		List<Object> fields = additionalFields
+				.stream()
+				.map(f->f.getAccessor().apply(cart))
+				.collect(Collectors.toList());
+		
 		engine.saveCart(id, loadTypeConverter.toPersistence(cart.getLoadType()), cart.getKey(), label,
-
 				new Timestamp(cart.getCreationTime()), new Timestamp(cart.getExpirationTime()), byteConverter.toPersistence(value),
-				mapConverter.toPersistence(properties), hint, cart.getPriority());
+				mapConverter.toPersistence(properties), hint, cart.getPriority()
+				,fields
+				);
 	}
 
 	/*

@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -21,6 +22,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
 public class DerbyEngineTest {
@@ -54,6 +56,7 @@ public class DerbyEngineTest {
 		order.put("ID", "ASC");
 		
 		GenericEngine<Integer> de = new DerbyEngine<>(Integer.class);
+		de.setAdditionalFields(Arrays.asList(new Field(UUID.class,"ADDON")));
 		de.setSchema(SCHEMA);
 		assertTrue(de.databaseExists(SCHEMA));
 		assertFalse(de.schemaExists(SCHEMA));
@@ -63,6 +66,7 @@ public class DerbyEngineTest {
 		de.createCompletedLogTable(LOGS);
 		de.setSortingOrder(order);
 		de.createUniqPartTableIndex(PARTS, Arrays.asList(EngineDepo.CART_KEY,EngineDepo.CART_LABEL));
+		de.createUniqPartTableIndex(PARTS, Arrays.asList("ADDON"));
 		de.buildPartTableQueries(PARTS);
 		de.buildCompletedLogTableQueries(LOGS);
 		
@@ -74,7 +78,8 @@ public class DerbyEngineTest {
 				, "test value".getBytes()
 				, "{}"
 				, "hint"
-				, 0);
+				, 0
+				, Arrays.asList(UUID.randomUUID().toString()));
 		de.saveCart(3L
 				, PARTS
 				, 2
@@ -84,7 +89,8 @@ public class DerbyEngineTest {
 				, "test value".getBytes()
 				, "{}"
 				, "hint"
-				, 1);
+				, 1
+				, Arrays.asList(UUID.randomUUID().toString()));
 		de.saveCart(2L
 				, "STATIC_PART"
 				, null
@@ -94,7 +100,8 @@ public class DerbyEngineTest {
 				, "static value".getBytes()
 				, "{}"
 				, "hint"
-				, 0);
+				, 0
+				, Arrays.asList(UUID.randomUUID().toString()));
 		assertEquals(3, de.getNumberOfParts());
 		List<Long> ids = de.getAllPartIds(1);
 		assertNotNull(ids);
@@ -167,7 +174,8 @@ public class DerbyEngineTest {
 				, "test value".getBytes()
 				, "{}"
 				, "hint"
-				, 0);
+				, 0
+				, Arrays.asList(UUID.randomUUID().toString()));
 			fail("Must not be saved! Unique constraint");
 		}catch (Exception e) {
 			System.out.println(e.getMessage());

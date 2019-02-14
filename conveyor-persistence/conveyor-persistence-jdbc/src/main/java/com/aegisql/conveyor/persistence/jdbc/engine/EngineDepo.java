@@ -235,6 +235,7 @@ public interface EngineDepo <K> extends Closeable {
 			, String properties
 			, String hint
 			, long priority
+			, List<Object> additionalFields
 			);
 	
 	/**

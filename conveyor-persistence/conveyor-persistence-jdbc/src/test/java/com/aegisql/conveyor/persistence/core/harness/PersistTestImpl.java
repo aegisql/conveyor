@@ -155,7 +155,7 @@ public class PersistTestImpl implements Persistence<Integer>{
 
 		@Override
 		public void saveCart(long id, String loadType, Object key, Object label, Timestamp creationTime,
-				Timestamp expirationTime, Object value, String properties, String hint, long priority) {
+				Timestamp expirationTime, Object value, String properties, String hint, long priority, List<Object> fields) {
 			// TODO Auto-generated method stub
 			
 		}

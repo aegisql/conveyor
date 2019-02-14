@@ -23,11 +23,13 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -131,33 +133,35 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	protected final String keySqlType;
 
 	/** The save cart query. */
-	private String saveCartQuery;
+	protected String saveCartQuery;
 	
 	/** The save completed build key query. */
-	private String saveCompletedBuildKeyQuery;
+	protected String saveCompletedBuildKeyQuery;
 	
 	/** The get part query. */
-	private String getPartQuery;
+	protected String getPartQuery;
 	
 	/** The get expired part query. */
-	private String getExpiredPartQuery;
+	protected String getExpiredPartQuery;
 	
 	/** The get all part ids query. */
-	private String getAllPartIdsQuery;
+	protected String getAllPartIdsQuery;
 	
 	/** The get all unfinished parts query. */
-	private String getAllUnfinishedPartsQuery;
+	protected String getAllUnfinishedPartsQuery;
 	
 	/** The get all completed keys query. */
-	private String getAllCompletedKeysQuery;
+	protected String getAllCompletedKeysQuery;
 	
 	/** The get all static parts query. */
-	private String getAllStaticPartsQuery;
+	protected String getAllStaticPartsQuery;
 	
 	/** The get number of parts query. */
-	private String getNumberOfPartsQuery;
+	protected String getNumberOfPartsQuery;
 	
-	private Map<String,String> sortingOrder = new LinkedHashMap<>();
+	protected Map<String,String> sortingOrder = new LinkedHashMap<>();
+	
+	protected List<Field> additionalFields = new ArrayList<>();
 	
 	/**
 	 * Instantiates a new generic engine.
@@ -398,6 +402,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 				.append(" (");
 		
 		fields.forEach((col,type) -> sb.append(col).append(" ").append(type).append(",") );
+		additionalFields.forEach(f->sb.append(sqlFieldType(f)).append(","));
 		sb.deleteCharAt(sb.lastIndexOf(","));
 		sb.append(")");
 		return sb.toString();
@@ -466,6 +471,15 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return "EXPIRATION_TIME > TIMESTAMP('19710101000000') AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
 	}
 	
+	private String qMarks(int n) {
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < n-1; i++) {
+			sb.append("?,");
+		}
+		sb.append("?");
+		return sb.toString();
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#buildPartTableQueries(java.lang.String)
 	 */
@@ -492,7 +506,8 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 				+","+CART_PROPERTIES
 				+","+VALUE_TYPE					
 				+","+PRIORITY
-				+") VALUES (?,?,?,?,?,?,?,?,?,?)"
+				+ additionalFields.stream().map(f->","+f.getName()).collect(Collectors.joining(""))
+				+") VALUES ("+qMarks(10+additionalFields.size())+")"
 				;
 		this.getPartQuery = "SELECT "
 				+CART_KEY
@@ -901,6 +916,30 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return keyType;
 	}
 
+	protected static String sqlFieldType(Field<?> f) {
+		return f.getName()+" "+getFieldType(f.getFieldClass());
+	}
+	
+	protected static <K> String getFieldType(Class<K> kClass) {
+		String keyType = null;
+		if(kClass == Integer.class) {
+			keyType = "INT NOT NULL";
+		} else if(kClass == Long.class) {
+			keyType = "BIGINT NOT NULL";
+		} else if(kClass == UUID.class) {
+			keyType = "CHAR(36) NOT NULL";
+		} else if(kClass.isEnum()) {
+			int maxLength = 0;
+			for(Object o:kClass.getEnumConstants()) {
+				maxLength = Math.max(maxLength, o.toString().length());
+			}
+			keyType = "CHAR("+maxLength+") NOT NULL";
+		} else {
+			keyType = "VARCHAR(255) NOT NULL";
+		}
+		return keyType;
+	}
+
 
 	/**
 	 * Sets the host.
@@ -1072,7 +1111,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void saveCart(long id, String loadType, Object key, Object label, Timestamp creationTime,
-			Timestamp expirationTime, Object value, String properties, String hint, long priority) {
+			Timestamp expirationTime, Object value, String properties, String hint, long priority, List<Object> more) {
 		executePrepared(saveCartQuery, st->{
 			try {
 				st.setLong(1, id);
@@ -1085,6 +1124,13 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 				st.setString(8, properties);
 				st.setString(9, hint);
 				st.setLong(10, priority);
+				
+				if(more != null && more.size() > 0) {
+					for(int i = 11; i < 11+more.size(); i++) {
+						st.setObject(i, more.get(i-11));
+					}
+				}
+				
 			} catch (SQLException e) {
 				throw new PersistenceException("Failed saving cart "+key,e);
 			}
@@ -1209,6 +1255,10 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		this.sortingOrder = order;
 	}
 	
+	public void setAdditionalFields(List<Field> additionalFields) {
+		this.additionalFields = additionalFields;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

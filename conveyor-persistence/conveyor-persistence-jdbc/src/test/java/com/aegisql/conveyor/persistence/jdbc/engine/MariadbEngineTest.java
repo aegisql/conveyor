@@ -23,6 +23,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 
 public class MariadbEngineTest {
@@ -58,6 +59,7 @@ public class MariadbEngineTest {
 		order.put("ID", "ASC");
 
 		GenericEngine<Integer> de = new MariaDbEngine<>(Integer.class);
+		de.setAdditionalFields(Arrays.asList(new Field(String.class,"ADDON")));
 		de.setDatabase(SCHEMA);
 		de.setUser("root");
 		assertFalse(de.databaseExists(SCHEMA));
@@ -68,6 +70,7 @@ public class MariadbEngineTest {
 		de.createCompletedLogTable(LOGS);
 		de.setSortingOrder(order);
 		de.createUniqPartTableIndex(PARTS, Arrays.asList(EngineDepo.CART_KEY,EngineDepo.CART_LABEL));
+		de.createUniqPartTableIndex(PARTS, Arrays.asList("ADDON"));
 		de.buildPartTableQueries(PARTS);
 		de.buildCompletedLogTableQueries(LOGS);
 
@@ -79,7 +82,8 @@ public class MariadbEngineTest {
 				, "test value".getBytes()
 				, "{}"
 				, "hint"
-				, 0);
+				, 0
+				, Arrays.asList("A"));
 		de.saveCart(3L
 				, PARTS
 				, 2
@@ -89,7 +93,8 @@ public class MariadbEngineTest {
 				, "test value".getBytes()
 				, "{}"
 				, "hint"
-				, 1);
+				, 1
+				, Arrays.asList("B"));
 		de.saveCart(2L
 				, "STATIC_PART"
 				, null
@@ -99,7 +104,8 @@ public class MariadbEngineTest {
 				, "static value".getBytes()
 				, "{}"
 				, "hint"
-				, 0);
+				, 0
+				, Arrays.asList("C"));
 
 		assertEquals(3, de.getNumberOfParts());
 		List<Long> ids = de.getAllPartIds(1);
@@ -173,7 +179,8 @@ public class MariadbEngineTest {
 				, "test value".getBytes()
 				, "{}"
 				, "hint"
-				, 0);
+				, 0
+				, Arrays.asList("D"));
 			fail("Must not be saved! Unique constraint");
 		}catch (Exception e) {
 			System.out.println(e.getMessage());
