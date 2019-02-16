@@ -1,11 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.aegisql</groupId>
 		<artifactId>conveyor</artifactId>
-		<version>1.4.1-SNAPSHOT</version>
+		<version>1.4.1</version>
 	</parent>
 	<artifactId>conveyor-configurator</artifactId>
 	<description>Conveyor Configurator and Factory</description>
@@ -13,25 +11,25 @@
 		<dependency>
 			<groupId>com.aegisql</groupId>
 			<artifactId>conveyor-core</artifactId>
-			<version>1.4.1-SNAPSHOT</version>
+			<version>1.4.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.aegisql</groupId>
 			<artifactId>conveyor-parallel</artifactId>
 			<scope>provided</scope>
-			<version>1.4.1-SNAPSHOT</version>
+			<version>1.4.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.aegisql.persistence</groupId>
 			<artifactId>conveyor-persistence-core</artifactId>
 			<scope>provided</scope>
-			<version>1.4.1-SNAPSHOT</version>
+			<version>1.4.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.aegisql.conveyor-persistence-jdbc</groupId>
 			<artifactId>conveyor-persistence-jdbc</artifactId>
 			<scope>provided</scope>
-			<version>1.4.1-SNAPSHOT</version>
+			<version>1.4.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.yaml</groupId>
