@@ -159,8 +159,10 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	/** The get number of parts query. */
 	protected String getNumberOfPartsQuery;
 	
+	/** The sorting order. */
 	protected Map<String,String> sortingOrder = new LinkedHashMap<>();
 	
+	/** The additional fields. */
 	protected List<Field<?>> additionalFields = new ArrayList<>();
 	
 	/**
@@ -427,12 +429,22 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return "CREATE INDEX "+partTable+"_IDX ON "+partTable+"("+EngineDepo.CART_KEY+")";
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#createUniqPartTableIndex(java.lang.String, java.util.List)
+	 */
 	@Override
 	public void createUniqPartTableIndex(String partTable, List<String> fields) {
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitTablesAndIndexes), getCreateUniqPartTableIndexSql(partTable,fields));
 		LOG.info("Created unique partTable index {} {}",partTable,fields);
 	}
 
+	/**
+	 * Gets the creates the uniq part table index sql.
+	 *
+	 * @param partTable the part table
+	 * @param fields the fields
+	 * @return the creates the uniq part table index sql
+	 */
 	protected String getCreateUniqPartTableIndexSql(String partTable, List<String> fields) {
 		String indexName = partTable+"_"+String.join("_", fields)+"_IDX";
 		return "CREATE UNIQUE INDEX "+indexName+" ON "+partTable+"("+String.join(",", fields)+")";
@@ -471,6 +483,12 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return "EXPIRATION_TIME > TIMESTAMP('19710101000000') AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
 	}
 	
+	/**
+	 * Q marks.
+	 *
+	 * @param n the n
+	 * @return the string
+	 */
 	private String qMarks(int n) {
 		StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < n-1; i++) {
@@ -916,10 +934,23 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return keyType;
 	}
 
+	/**
+	 * Sql field type.
+	 *
+	 * @param f the f
+	 * @return the string
+	 */
 	protected static String sqlFieldType(Field<?> f) {
 		return f.getName()+" "+getFieldType(f.getFieldClass());
 	}
 	
+	/**
+	 * Gets the field type.
+	 *
+	 * @param <K> the key type
+	 * @param kClass the k class
+	 * @return the field type
+	 */
 	protected static <K> String getFieldType(Class<K> kClass) {
 		String keyType = null;
 		if(kClass == Integer.class) {
@@ -1239,6 +1270,11 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}
 	}
 
+	/**
+	 * Gets the sorting order.
+	 *
+	 * @return the sorting order
+	 */
 	protected String getSortingOrder() {
 		if(sortingOrder == null || sortingOrder.size() == 0) {
 			return "";
@@ -1251,10 +1287,18 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return sb.toString();
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#setSortingOrder(java.util.LinkedHashMap)
+	 */
 	public void setSortingOrder(LinkedHashMap<String, String> order) {
 		this.sortingOrder = order;
 	}
 	
+	/**
+	 * Sets the additional fields.
+	 *
+	 * @param additionalFields the new additional fields
+	 */
 	public void setAdditionalFields(List<Field<?>> additionalFields) {
 		this.additionalFields = additionalFields;
 	}

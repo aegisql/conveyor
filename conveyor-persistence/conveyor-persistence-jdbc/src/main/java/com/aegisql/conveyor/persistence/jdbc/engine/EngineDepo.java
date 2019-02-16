@@ -77,7 +77,8 @@ public interface EngineDepo <K> extends Closeable {
 	/**
 	 * Part table index exists.
 	 *
-	 * @param partTableIndex the part table index
+	 * @param partTable the part table
+	 * @param indexName the index name
 	 * @return true, if successful
 	 */
 	public boolean partTableIndexExists(String partTable, String indexName);
@@ -118,6 +119,12 @@ public interface EngineDepo <K> extends Closeable {
 	 */
 	public void createPartTableIndex(String partTable);
 
+	/**
+	 * Creates the uniq part table index.
+	 *
+	 * @param partTable the part table
+	 * @param fields the fields
+	 */
 	public void createUniqPartTableIndex(String partTable,List<String> fields);
 
 	/**
@@ -222,6 +229,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param properties the properties
 	 * @param hint the hint
 	 * @param priority the priority
+	 * @param additionalFields the additional fields
 	 */
 	//Persistence commands
 	public void saveCart(
