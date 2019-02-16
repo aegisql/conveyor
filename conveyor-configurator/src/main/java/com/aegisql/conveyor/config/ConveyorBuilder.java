@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.config;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -8,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -261,6 +263,8 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 					for (LinkedList<PersistenceProperty> ppList : ppMapList.values())
 						for (PersistenceProperty p : ppList) {
 							switch (p.getProperty()) {
+							case "keyClass": //already set
+								break;
 							case "database":
 								dp = dp.database(p.getValueAsString());
 								break;
@@ -309,6 +313,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 							case "maxBatchTime":
 								Long value = (Long) ConfigUtils.timeToMillsConverter.apply(p.getValueAsString());
 								dp = dp.maxBatchTime(Duration.ofMillis(value));
+								break;
 							case "archiveStrategy.path":
 								bLogConf.path(p.getValueAsString());
 								dp = dp.archiver(bLogConf.build());
@@ -388,6 +393,27 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 									Object label = ConfigUtils.stringToRefConverter.apply(s[0]);
 									dp = dp.addBinaryConverter(label, oc);
 								}
+								break;
+							case "addField":
+								String[] classFieldName = p.getValueAsString().split(",",3);
+								Class fieldClass = Class.forName(classFieldName[0].trim());
+								String name = classFieldName[1].trim();
+								if(classFieldName.length == 2) {
+									dp = dp.addField(fieldClass, name);
+								} else {
+									Function accessor = (Function)ConfigUtils.stringToFunctionSupplier.apply(classFieldName[2].trim());
+									dp = dp.addField(fieldClass, name, accessor);
+								}
+								break;
+							case "addUniqueFields":
+								String[] fields = p.getValueAsString().split(",");
+								List<String> fl = new ArrayList<>();
+								if(fields != null) {
+									for(String f:fields) {
+										fl.add(f.trim());
+									}
+								}
+								dp = dp.addUniqueFields(fl);
 								break;
 							case "minCompactSize":
 								dp = dp.minCompactSize(Integer.parseInt(p.getValueAsString()));

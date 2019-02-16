@@ -323,11 +323,11 @@ class ConfigUtils {
 			  "var getFunction = function() {\n" 
 			+ "		var Function = Java.type('java.util.function.Function');\n"
 			+ "     var f = %s;"
-			+ "		var SupplierImpl = Java.extend(Function, {\n"
+			+ "		var FunctionImpl = Java.extend(Function, {\n"
 			+ "			apply: function(x) {\n"
-	        + "				return f(x)\n;"
+	        + "				return f(x);\n"
 	    		+ "			}});\n"
-			+ "    return new SupplierImpl();\n" 
+			+ "    return new FunctionImpl();\n" 
 			+ "};\n";
 
 	/** The Constant stringToFunctionSupplier. */

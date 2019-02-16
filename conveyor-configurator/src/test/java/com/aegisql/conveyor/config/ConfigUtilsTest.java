@@ -399,6 +399,25 @@ public class ConfigUtilsTest {
 	
 	
 	@Test
+	public void cartFunction2Test() {
+		Function<Cart,String> pf = (Function<Cart,String>)ConfigUtils.stringToFunctionSupplier.apply("function(cart){return cart.getLabel();}");
+		assertNotNull(pf);
+		Object s2 = pf.apply(new ShoppingCart(1, "test2", "label"));
+		System.out.println(s2);
+		assertEquals("label", s2);		
+	}
+
+	public static Function<Cart,Object> cartAccessor = cart->cart.getLabel();
+	@Test
+	public void cartFunction3Test() {
+		Function<Cart,String> pf = (Function<Cart,String>)ConfigUtils.stringToFunctionSupplier.apply("com.aegisql.conveyor.config.ConfigUtilsTest.cartAccessor");
+		assertNotNull(pf);
+		Object s2 = pf.apply(new ShoppingCart(1, "test2", "label"));
+		System.out.println(s2);
+		assertEquals("label", s2);		
+	}
+	
+	@Test
 	public void forwardTrioWithDefaultTransformer() {
 		Trio t = (Trio)ConfigUtils.stringToForwardTrioSupplier.apply("var label = \"A\"; var name = \"test1\";");
 		assertNotNull(t);
