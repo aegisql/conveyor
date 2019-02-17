@@ -48,6 +48,7 @@ conveyor configurator
 ## Release History
 
 ### 1.4.2-SNAPSHOT
+* derby-memory engine
 
 ### 1.4.1
 * Added Persistence Engine for MariaDB
