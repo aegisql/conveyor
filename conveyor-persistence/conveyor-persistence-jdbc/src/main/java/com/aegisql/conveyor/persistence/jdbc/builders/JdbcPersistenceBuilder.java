@@ -40,6 +40,7 @@ import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringLabelConverter;
 import com.aegisql.conveyor.persistence.jdbc.engine.DerbyClientEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.DerbyEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.DerbyMemoryEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.MariaDbEngine;
@@ -1105,6 +1106,9 @@ public class JdbcPersistenceBuilder<K> {
 		case "derby-client":
 			engine = new DerbyClientEngine<>(kClass);
 			break;
+		case "derby-memory":
+			engine = new DerbyMemoryEngine<>(kClass);
+			break;
 		case "mysql":
 			engine = new MysqlEngine<>(kClass);
 			break;
@@ -1159,8 +1163,8 @@ public class JdbcPersistenceBuilder<K> {
 
 		switch (type) {
 		case "derby":
-			return pi.schema("conveyor_db");
 		case "derby-client":
+		case "derby-memory":
 			return pi.schema("conveyor_db");
 		case "mysql":
 		case "mariadb":
