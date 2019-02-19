@@ -174,4 +174,10 @@ public interface AssemblingConveyorMBean {
 	 */
 	void setExpirationPostponeTimeMsec(long msec);
 	
+	boolean isSuspended();
+	
+	void suspend();
+	
+	void resume();
+	
 }

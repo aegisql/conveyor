@@ -447,6 +447,23 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	void setCartPayloadAccessor(Function<Cart<K,?,L>,Object> payloadFunction);
 	
+	/**
+	 * Suspend processing thread.
+	 */
+	void suspend();
+	
+	/**
+	 * Resume processing thread.
+	 */
+	void resume();
+	
+	/**
+	 * Checks if is suspended.
+	 *
+	 * @return true, if is suspended
+	 */
+	boolean isSuspended();
+	
 	/** The Constant mBeanServer. */
 	final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 	

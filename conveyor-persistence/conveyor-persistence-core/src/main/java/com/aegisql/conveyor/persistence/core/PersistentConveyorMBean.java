@@ -80,5 +80,10 @@ public interface PersistentConveyorMBean {
 	 */
 	String getPersistenceDescription();
 
+	boolean isSuspended();
+	
+	void suspend();
+	
+	void resume();
 	
 }

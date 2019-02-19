@@ -98,6 +98,8 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	private String name;
 
+	private volatile boolean suspended = false;
+	
 	public void setSkipPersistencePropertyKey(String doNotPersist) {
 		this.doNotPersist = doNotPersist;
 	}
@@ -953,6 +955,18 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				public String getPersistenceDescription() {
 					return ""+forwardPersistence;
 				}
+				@Override
+				public boolean isSuspended() {
+					return thisConv.suspended;
+				}
+				@Override
+				public void suspend() {
+					thisConv.suspend();					
+				}
+				@Override
+				public void resume() {
+					thisConv.resume();					
+				}
 			}, PersistentConveyorMBean.class, false);
 			
 			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type="+name);
@@ -978,6 +992,23 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			LOG.error("MBEAN error",e);
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public void suspend() {
+		this.suspended = true;
+		forward.suspend();
+	}
+
+	@Override
+	public void resume() {
+		this.suspended = false;
+		forward.resume();
+	}
+
+	@Override
+	public boolean isSuspended() {
+		return suspended;
 	}
 
 

@@ -83,6 +83,8 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	/** The running. */
 	protected volatile boolean running = true;
 	
+	protected volatile boolean suspended = false;
+	
 	protected CompletableFuture<Boolean> conveyorFuture = null;
 	
 	private final Object conveyorFutureLock = new Object();
@@ -713,6 +715,18 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 						thisConv.setExpirationPostponeTime(msec, TimeUnit.MILLISECONDS);
 					}					
 				}
+				@Override
+				public boolean isSuspended() {
+					return thisConv.suspended;
+				}
+				@Override
+				public void suspend() {
+					thisConv.suspend();
+				}
+				@Override
+				public void resume() {
+					thisConv.resume();
+				}
 			}, ParallelConveyorMBean.class, false);
 			
 			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type="+name);
@@ -849,6 +863,26 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	@Override
 	public void setCartPayloadAccessor(Function<Cart<K, ?, L>, Object> payloadFunction) {
 		conveyors.forEach(c->c.setCartPayloadAccessor(payloadFunction));
+	}
+
+
+	@Override
+	public void suspend() {
+		this.suspended = true;
+		conveyors.forEach(Conveyor::suspend);
+	}
+
+
+	@Override
+	public void resume() {
+		this.suspended = false;
+		conveyors.forEach(Conveyor::resume);
+	}
+
+
+	@Override
+	public boolean isSuspended() {
+		return suspended;
 	}
 
 	

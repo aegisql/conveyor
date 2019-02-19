@@ -193,6 +193,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	protected volatile boolean running = true;
 
+	protected volatile boolean suspended = false;
+
 	/** The synchronize builder. */
 	protected boolean synchronizeBuilder = false;
 
@@ -265,10 +267,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		 * @throws InterruptedException
 		 *             the interrupted exception
 		 */
-		public void waitData(Queue<?> q) throws InterruptedException {
+		public void waitData(boolean suspended, Queue<?> q) throws InterruptedException {
 			rLock.lock();
 			try {
-				if (q.isEmpty()) {
+				if (suspended || q.isEmpty()) {
 					hasCarts.await(expirationCollectionInterval, expirationCollectionUnit);
 				}
 			} finally {
@@ -321,7 +323,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	private boolean waitData() {
 		try {
-			lock.waitData(inQueue);
+			lock.waitData(suspended, inQueue);
 		} catch (InterruptedException e) {
 			LOG.info("Interrupted {}",name,e);
 			stop();
@@ -444,9 +446,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		acceptedLabels.add(null);
 		this.innerThread = new Thread(() -> {
 			try {
-				while (running || (inQueue.peek() != null) || (mQueue.peek() != null)) {
+				while (running || ! suspended || (inQueue.peek() != null) || (mQueue.peek() != null)) {
 					if (!waitData())
 						break; //When interrupted, which is exceptional behavior, should return right away
+					if(suspended) {
+						continue;
+					}
 					processManagementCommands();
 					Cart<K, ?, L> cart = inQueue.poll();
 					if (cart != null) {
@@ -629,6 +634,21 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				@Override
 				public String getStatus() {
 					return thisConv.statusLine ;
+				}
+
+				@Override
+				public boolean isSuspended() {
+					return thisConv.suspended;
+				}
+
+				@Override
+				public void suspend() {
+					thisConv.suspend();
+				}
+
+				@Override
+				public void resume() {
+					thisConv.resume();
 				}
 			}, AssemblingConveyorMBean.class, false);
 			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type=" + name);
@@ -1910,6 +1930,22 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public void setCartPayloadAccessor(Function<Cart<K, ?, L>, Object> payloadFunction) {
 		this.payloadFunction = payloadFunction;
+	}
+
+	@Override
+	public void suspend() {
+		this.suspended = true;
+	}
+
+	@Override
+	public void resume() {
+		this.suspended = false;
+		lock.tell();
+	}
+
+	@Override
+	public boolean isSuspended() {
+		return suspended;
 	}
 	
 }

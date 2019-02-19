@@ -6,7 +6,9 @@ package com.aegisql.conveyor.parallel;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -451,6 +453,34 @@ public class ParallelConveyorTest {
 		assertNotNull(usr.getCurrent());
 		assertNotNull(uf1.get());
 		assertNotNull(uf2.get());
+
+	}
+
+	@Test
+	public void createSuspendedConveyorTest()  {
+		KBalancedParallelConveyor<String, String, User>
+		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
+		LastResultReference<String,User> usr = LastResultReference.of(conveyor);
+		conveyor.resultConsumer().first(usr).andThen(LogResult.stdOut(conveyor)).set();
+
+		CompletableFuture<User> uf1 = conveyor.build().id("1").supplier(StringToUserBuulder::new).createFuture();
+		CompletableFuture<User> uf2 = conveyor.build().id("2").supplier(StringToUserBuulder::new).createFuture();
+		conveyor.suspend();
+		
+		CompletableFuture<Boolean> f1 = conveyor.part().id("1").value("John,Dow1,1990").place();
+		CompletableFuture<Boolean> f2 = conveyor.part().id("2").value("John,Dow1,1991").place();
+
+		assertNull(usr.getCurrent());
+		try {
+			assertNotNull(f1.get(1,TimeUnit.SECONDS));
+			assertNotNull(f2.get(1,TimeUnit.SECONDS));
+			fail("Must not reach this line in suspended test");
+		} catch (Exception e) {
+		} finally {
+			conveyor.resume();
+		}
+		conveyor.completeAndStop().join();
+		assertNotNull(usr.getCurrent());
 
 	}
 

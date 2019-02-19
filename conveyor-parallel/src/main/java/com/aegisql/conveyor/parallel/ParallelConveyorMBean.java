@@ -87,4 +87,11 @@ public interface ParallelConveyorMBean {
 	 */
 	void expirationPostponeTimeMsec(long msec);
 	
+	boolean isSuspended();
+	
+	void suspend();
+	
+	void resume();
+
+	
 }
