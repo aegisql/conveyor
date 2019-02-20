@@ -1573,17 +1573,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	/**
-	 * Suspend conveyor.
-	 *
-	 * @param c the c
-	 * @param f the f
-	 * @return the object
-	 */
-	static void suspendConveyor(AssemblingConveyor c, Boolean f) {
-		c.suspend();
-	}
-
-	/**
 	 * Checks if is running.
 	 *
 	 * @return true, if is running

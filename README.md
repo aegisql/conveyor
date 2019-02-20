@@ -50,6 +50,7 @@ conveyor configurator
 ### 1.4.2-SNAPSHOT
 * Suspend/resume commands for running conveyor
 * derby-memory engine
+* P-Balanced conveyor
 
 ### 1.4.1
 * Added Persistence Engine for MariaDB
