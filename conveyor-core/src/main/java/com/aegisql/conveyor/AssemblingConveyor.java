@@ -446,13 +446,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		acceptedLabels.add(null);
 		this.innerThread = new Thread(() -> {
 			try {
-				while (running || ! suspended || (inQueue.peek() != null) || (mQueue.peek() != null)) {
+				while (running || (inQueue.peek() != null) || (mQueue.peek() != null)) {
 					if (!waitData())
 						break; //When interrupted, which is exceptional behavior, should return right away
+					processManagementCommands();
 					if(suspended) {
 						continue;
 					}
-					processManagementCommands();
 					Cart<K, ?, L> cart = inQueue.poll();
 					if (cart != null) {
 						cartCounter++;
@@ -690,6 +690,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				final Object value = cmdCart.getValue();
 				final long expTime = cmdCart.getExpirationTime();
 				final CompletableFuture<Boolean> cmdFuture = cmdCart.getFuture();
+				if(label == CommandLabel.SUSPEND) {
+					suspend();
+					cmdFuture.complete(true);
+					return;
+				}
 				List<GeneralCommand> commands = collector
 					.keySet()
 					.stream()
@@ -1567,7 +1572,17 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 	}
 
-	
+	/**
+	 * Suspend conveyor.
+	 *
+	 * @param c the c
+	 * @param f the f
+	 * @return the object
+	 */
+	static void suspendConveyor(AssemblingConveyor c, Boolean f) {
+		c.suspend();
+	}
+
 	/**
 	 * Checks if is running.
 	 *
@@ -1688,22 +1703,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 		}
 	}
-
-//	/*
-//	 * (non-Javadoc)
-//	 * 
-//	 * @see
-//	 * com.aegisql.conveyor.Conveyor#forwardPartialResultTo(java.lang.Object,
-//	 * com.aegisql.conveyor.Conveyor)
-//	 */
-//	public <L2,OUT2> void forwardResultTo(Conveyor<K, L2, OUT2> destination, L2 label) {
-//		forwardResultTo(destination,b->b.key,label);
-//	}
-//	
-//	@Override
-//	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination, Function<ProductBin<K,OUT>,K2> keyConverter, L2 label) {
-//		ForwardResult.from(this).<K2,L2>to(destination).label(label).transformKey(keyConverter).bind();
-//	}
 
 	/**
 	 * Creates a close copy of current conveyor set readiness evaluator and

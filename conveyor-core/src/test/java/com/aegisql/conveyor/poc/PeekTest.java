@@ -76,6 +76,44 @@ public class PeekTest {
 	}
 
 	@Test
+	public void testPeekWithSuspend() throws InterruptedException, ExecutionException {
+		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
+		c.setName("testPeek");
+		c.setBuilderSupplier(TestProdBuilder::new);
+		c.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
+		LabeledValueConsumer<String, Object, TestProdBuilder> lvc = new LabeledValueConsumer<String, Object, TestProdBuilder>() {
+			@Override
+			public void accept(String label, Object value, TestProdBuilder builder) {
+				System.out.println("Unsupported "+label+" = "+value);
+			}
+
+		};
+		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted("A", "B"));
+		c.setDefaultCartConsumer(lvc
+				.<String>when("A", TestProdBuilder::setA)
+				.<String>when("B", TestProdBuilder::setB)
+				);
+		c.resultConsumer(bin->{
+			System.out.println("READY "+bin);
+			assertEquals("A", bin.product.getA());
+			assertEquals("B", bin.product.getB());
+		}).set();
+		
+		c.part().id(1).label("A").value("A").place().join();
+		c.command().suspend().join();
+		c.part().id(1).label("B").value("B").place();
+		CompletableFuture<ProductBin<Integer, TestProd>> cf = c.command().id(1).peek();
+		ProductBin<Integer, TestProd> bin = cf.join();
+		assertNotNull(bin);
+		assertNotNull(bin.product);
+		assertEquals(bin.status, Status.WAITING_DATA);
+		assertEquals("",bin.product.getB());
+		System.out.println(bin);
+		c.resume();
+		c.completeAndStop().join();
+	}
+
+	@Test
 	public void testExtConsumerPeek() throws InterruptedException, ExecutionException {
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testPeek");

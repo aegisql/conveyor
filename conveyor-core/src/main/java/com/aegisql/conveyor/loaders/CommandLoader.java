@@ -303,6 +303,12 @@ public final class CommandLoader<K,OUT> {
 		CompletableFuture<Boolean> cf = conveyor.apply(command);
 		return cf;
 	}
+
+	public CompletableFuture<Boolean> suspend() {
+		GeneralCommand<K, Boolean> command = new GeneralCommand<>(x->true,true,CommandLabel.SUSPEND,creationTime,expirationTime);
+		CompletableFuture<Boolean> cf = conveyor.apply(command);
+		return cf;
+	}
 	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
