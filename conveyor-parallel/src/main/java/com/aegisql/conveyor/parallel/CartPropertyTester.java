@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 
 import com.aegisql.conveyor.Conveyor;
 
-public class CartPropertyTester<K,L,OUT> implements Predicate<Map<String,Object>>{
+public class CartPropertyTester<K,L,OUT> implements Predicate<Map<String,Object>> {
 
 	private final Conveyor<K,L,OUT> conveyor;
 	
@@ -32,8 +32,9 @@ public class CartPropertyTester<K,L,OUT> implements Predicate<Map<String,Object>
 		return res;
 	}
 
-	public <T> void addKeyPredicate(String key, Predicate<T> p) {
+	public CartPropertyTester<K,L,OUT>  addKeyPredicate(String key, Predicate<Object> p) {
 		testers.put(key, (Predicate<Object>) p);
+		return this;
 	}
 
 	public Conveyor<K, L, OUT> getConveyor() {
