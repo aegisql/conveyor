@@ -18,38 +18,42 @@ import com.aegisql.conveyor.reflection.SimpleConveyor;
 public class PBalancedConvTest {
 	
 	static class StringConcatBuilder1 implements Supplier<String> {
+		String del = "";
 		String first;
 		String second;
 		@Override
 		public String get() {
-			return first+" "+second;
+			return first+del+second;
 		}
 	}
 
 	static class StringConcatBuilder2 implements Supplier<String> {
+		String del = "";
 		String first;
 		String second;
 		@Override
 		public String get() {
-			return second+" "+first;
+			return second+del+first;
 		}
 	}
 
 	static class StringConcatBuilder3 implements Supplier<String> {
+		String del = "";
 		String first;
 		String second;
 		@Override
 		public String get() {
-			return first+"-"+second;
+			return first+del+second;
 		}
 	}
 
 	static class StringConcatBuilder4 implements Supplier<String> {
+		String del = "";
 		String first;
 		String second;
 		@Override
 		public String get() {
-			return second+"@"+first;
+			return second+del+first;
 		}
 	}
 
@@ -81,6 +85,8 @@ public class PBalancedConvTest {
 		c2.setName("C2");
 		c1.resultConsumer(results).set();
 		c2.resultConsumer(results).set();
+		c1.staticPart().label("del").value(" ").place();
+		c2.staticPart().label("del").value(" ").place();
 		c1.part().id(1).label("first").value("A").place();
 		c2.part().id(2).label("first").value("X").place();
 		c1.part().id(1).label("second").value("B").place();
@@ -109,6 +115,9 @@ public class PBalancedConvTest {
 		pbc.setName("testPConveyorSimple");
 		pbc.setReadinessEvaluator(Conveyor.getTesterFor(pbc).accepted("first", "second"));
 		pbc.resultConsumer(results).set();
+
+		pbc.staticPart().label("del").addProperty("version", 1).value(" ").place();
+		pbc.staticPart().label("del").addProperty("version", 2).value(" ").place();
 
 		pbc.part().id(1).label("first").addProperty("version", 1).value("A").place();
 		pbc.part().id(2).label("first").addProperty("version", 2).value("X").place();
@@ -152,6 +161,12 @@ public class PBalancedConvTest {
 		pbc.setName("testPConveyorDouble");
 		pbc.setReadinessEvaluator(Conveyor.getTesterFor(pbc).accepted("first", "second"));
 		pbc.resultConsumer(results).set();
+		
+		pbc.staticPart().label("del").addProperty("version", 1).addProperty("abtest","A").value(" ").place();
+		pbc.staticPart().label("del").addProperty("version", 1).addProperty("abtest","B").value("-").place();
+		pbc.staticPart().label("del").addProperty("version", 2).addProperty("abtest","A").value(" ").place();
+		pbc.staticPart().label("del").addProperty("version", 2).addProperty("abtest","B").value("-").place();
+
 
 		pbc.part().id(1).label("first").addProperty("version", 1).addProperty("abtest","A").value("A").place();
 		pbc.part().id(2).label("first").addProperty("version", 2).addProperty("abtest","A").value("X").place();
@@ -169,7 +184,7 @@ public class PBalancedConvTest {
 		assertEquals("A B", results.get(1));
 		assertEquals("Y X", results.get(2));
 		assertEquals("W-S", results.get(3));
-		assertEquals("T@R", results.get(4));
+		assertEquals("T-R", results.get(4));
 
 	}
 

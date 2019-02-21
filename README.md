@@ -51,6 +51,7 @@ conveyor configurator
 * Suspend/resume commands for running conveyor
 * derby-memory engine
 * P-Balanced conveyor
+* Bugfixes
 
 ### 1.4.1
 * Added Persistence Engine for MariaDB
