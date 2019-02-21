@@ -99,8 +99,6 @@ public class PBalancedConvTest {
 		ResultMap<Integer, String> results = new ResultMap<>();
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(StringConcatBuilder1::new);
 		SimpleConveyor<Integer, String> c2 = new SimpleConveyor<>(StringConcatBuilder2::new);
-		c1.setName("C1");
-		c2.setName("C2");
 		
 		CartPropertyTester<Integer, String, String> t1 = new CartPropertyTester<>(c1);
 		t1.addKeyPredicate("version", x->x.equals(1));
@@ -108,7 +106,7 @@ public class PBalancedConvTest {
 		t2.addKeyPredicate("version", x->x.equals(2));
 		
 		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(Arrays.asList(t1,t2));
-		
+		pbc.setName("testPConveyorSimple");
 		pbc.setReadinessEvaluator(Conveyor.getTesterFor(pbc).accepted("first", "second"));
 		pbc.resultConsumer(results).set();
 
@@ -134,11 +132,6 @@ public class PBalancedConvTest {
 		SimpleConveyor<Integer, String> c3 = new SimpleConveyor<>(StringConcatBuilder3::new);
 		SimpleConveyor<Integer, String> c4 = new SimpleConveyor<>(StringConcatBuilder4::new);
 		
-		c1.setName("C1");
-		c2.setName("C2");
-		c3.setName("C3");
-		c4.setName("C4");
-		
 		CartPropertyTester<Integer, String, String> t1 = new CartPropertyTester<>(c1);
 		t1.addKeyPredicate("version", x->x.equals(1));
 		t1.addKeyPredicate("abtest", x->"A".equals(x));
@@ -156,7 +149,7 @@ public class PBalancedConvTest {
 		t4.addKeyPredicate("abtest", x->"B".equals(x));
 		
 		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(Arrays.asList(t1,t2,t3,t4));
-		
+		pbc.setName("testPConveyorDouble");
 		pbc.setReadinessEvaluator(Conveyor.getTesterFor(pbc).accepted("first", "second"));
 		pbc.resultConsumer(results).set();
 
