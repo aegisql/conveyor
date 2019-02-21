@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.BuilderAndFutureSupplier;
@@ -28,6 +29,7 @@ public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	public PBalancedParallelConveyor(List<CartPropertyTester<K, L, OUT>> testers) {
 		super();
 		this.testers.addAll(testers);
+		this.conveyors.addAll(testers.stream().map(CartPropertyTester::getConveyor).collect(Collectors.toList()));
 	}
 	
 	@Override
