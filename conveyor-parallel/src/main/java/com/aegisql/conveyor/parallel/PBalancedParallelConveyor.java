@@ -19,17 +19,17 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
 
 public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L, OUT> {
 	
-	private final List<CartPropertyTester<K, L, OUT>> testers = new ArrayList<>();
+	private final List<PropertyTester<K, L, OUT>> testers = new ArrayList<>();
 	
 	private final CompletableFuture<Boolean> failedFuture = new CompletableFuture<Boolean>();
 	{
 		failedFuture.complete(false);
 	}
 
-	public PBalancedParallelConveyor(List<CartPropertyTester<K, L, OUT>> testers) {
+	public PBalancedParallelConveyor(List<PropertyTester<K, L, OUT>> testers) {
 		super();
 		this.testers.addAll(testers);
-		this.conveyors.addAll(testers.stream().map(CartPropertyTester::getConveyor).collect(Collectors.toList()));
+		this.conveyors.addAll(testers.stream().map(PropertyTester::getConveyor).collect(Collectors.toList()));
 	}
 	
 	@Override
@@ -38,7 +38,7 @@ public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	}
 	
 	private Conveyor<K, L, OUT> getMatched(Map<String,Object> properties) {
-		for(CartPropertyTester<K, L, OUT> tester:testers) {
+		for(PropertyTester<K, L, OUT> tester:testers) {
 			if(tester.test(properties)) {
 				return tester.getConveyor();
 			}

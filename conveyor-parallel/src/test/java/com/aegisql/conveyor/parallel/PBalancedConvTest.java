@@ -13,24 +13,26 @@ import org.junit.Test;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.consumers.result.ResultMap;
+import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.loaders.StaticPartLoader;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
 
 public class PBalancedConvTest {
-	
-	static class StringConcatBuilder1 implements Supplier<String> {
+
+	static abstract class AbstractConcatBuilder implements Supplier<String> {
 		String del = "";
 		String first;
 		String second;
+	}
+
+	static class StringConcatBuilder1 extends AbstractConcatBuilder {
 		@Override
 		public String get() {
 			return first+del+second;
 		}
 	}
 
-	static class StringConcatBuilder2 implements Supplier<String> {
-		String del = "";
-		String first;
-		String second;
+	static class StringConcatBuilder2 extends AbstractConcatBuilder {
 		@Override
 		public String get() {
 			return second+del+first;
@@ -85,10 +87,10 @@ public class PBalancedConvTest {
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(StringConcatBuilder1::new);
 		SimpleConveyor<Integer, String> c2 = new SimpleConveyor<>(StringConcatBuilder2::new);
 		
-		CartPropertyTester<Integer, String, String> t1 = new CartPropertyTester<>(c1);
-		t1.addKeyPredicate("version", x->x.equals(1));
-		CartPropertyTester<Integer, String, String> t2 = new CartPropertyTester<>(c2);
-		t2.addKeyPredicate("version", x->x.equals(2));
+		PropertyTester<Integer, String, String> t1 = new PropertyTester<>(c1);
+		t1.expectsValue("version", 1);
+		PropertyTester<Integer, String, String> t2 = new PropertyTester<>(c2);
+		t2.expectsValue("version", 2);
 		
 		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(Arrays.asList(t1,t2));
 		pbc.setName("testPConveyorSimple");
@@ -111,54 +113,54 @@ public class PBalancedConvTest {
 	}
 
 	@Test
-	public void testPConveyorDouble() {
-		
+	public void testPConveyorWithVersionAndABTest() {
+		// place results here
 		ResultMap<Integer, String> results = new ResultMap<>();
-		
+		//V1,A
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(StringConcatBuilder1::new);
+		//V1,B
 		SimpleConveyor<Integer, String> c2 = new SimpleConveyor<>(StringConcatBuilder2::new);
+		//V2,A
 		SimpleConveyor<Integer, String> c3 = new SimpleConveyor<>(StringConcatBuilder1::new);
+		//V2,B
 		SimpleConveyor<Integer, String> c4 = new SimpleConveyor<>(StringConcatBuilder2::new);
-		
-		CartPropertyTester<Integer, String, String> t1 = new CartPropertyTester<>(c1);
-		t1.addKeyPredicate("version", x->x.equals(1));
-		t1.addKeyPredicate("abtest", x->"A".equals(x));
-		
-		CartPropertyTester<Integer, String, String> t2 = new CartPropertyTester<>(c2);
-		t2.addKeyPredicate("version", x->x.equals(2));
-		t2.addKeyPredicate("abtest", x->"A".equals(x));
-		
-		CartPropertyTester<Integer, String, String> t3 = new CartPropertyTester<>(c3);
-		t3.addKeyPredicate("version", x->x.equals(1));
-		t3.addKeyPredicate("abtest", x->"B".equals(x));
-		
-		CartPropertyTester<Integer, String, String> t4 = new CartPropertyTester<>(c4);
-		t4.addKeyPredicate("version", x->x.equals(2));
-		t4.addKeyPredicate("abtest", x->"B".equals(x));
-		
+		//assign predicates
+		PropertyTester<Integer, String, String> t1 = new PropertyTester<>(c1);
+		t1.expectsValue("version", 1).expectsValue("abtest", "A");
+		PropertyTester<Integer, String, String> t2 = new PropertyTester<>(c2);
+		t2.expectsValue("version", 2).expectsValue("abtest", "A");
+		PropertyTester<Integer, String, String> t3 = new PropertyTester<>(c3);
+		t3.expectsValue("version", 1).expectsValue("abtest", "B");
+		PropertyTester<Integer, String, String> t4 = new PropertyTester<>(c4);
+		t4.expectsValue("version", 2).expectsValue("abtest", "B");
+		// wrap conveyors with PBalancedParallelConveyor
 		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(Arrays.asList(t1,t2,t3,t4));
 		pbc.setName("testPConveyorDouble");
 		pbc.setReadinessEvaluator(Conveyor.getTesterFor(pbc).accepted("first", "second"));
 		pbc.resultConsumer(results).set();
-		
-		pbc.staticPart().label("del").addProperty("version", 1).addProperty("abtest","A").value(" ").place();
-		pbc.staticPart().label("del").addProperty("version", 1).addProperty("abtest","B").value("-").place();
-		pbc.staticPart().label("del").addProperty("version", 2).addProperty("abtest","A").value(" ").place();
-		pbc.staticPart().label("del").addProperty("version", 2).addProperty("abtest","B").value("-").place();
+		// Obtain and set up loaders
+		StaticPartLoader<String> delLoader = pbc.staticPart().label("del");
+		PartLoader<Integer, String> v1Loader = pbc.part().addProperty("version", 1);
+		PartLoader<Integer, String> v2Loader = pbc.part().addProperty("version", 2);
+		// load constants
+		delLoader.addProperty("version", 1).addProperty("abtest","A").value(" ").place();
+		delLoader.addProperty("version", 1).addProperty("abtest","B").value("-").place();
+		delLoader.addProperty("version", 2).addProperty("abtest","A").value(" ").place();
+		delLoader.addProperty("version", 2).addProperty("abtest","B").value("-").place();
+		// load data and metadata
+		v1Loader.id(1).label("first").addProperty("abtest","A").value("A").place();
+		v2Loader.id(2).label("first").addProperty("abtest","A").value("X").place();
+		v1Loader.id(1).label("second").addProperty("abtest","A").value("B").place();
+		v2Loader.id(2).label("second").addProperty("abtest","A").value("Y").place();
 
-
-		pbc.part().id(1).label("first").addProperty("version", 1).addProperty("abtest","A").value("A").place();
-		pbc.part().id(2).label("first").addProperty("version", 2).addProperty("abtest","A").value("X").place();
-		pbc.part().id(1).label("second").addProperty("version", 1).addProperty("abtest","A").value("B").place();
-		pbc.part().id(2).label("second").addProperty("version", 2).addProperty("abtest","A").value("Y").place();
-
-		pbc.part().id(3).label("first").addProperty("version", 1).addProperty("abtest","B").value("W").place();
-		pbc.part().id(4).label("first").addProperty("version", 2).addProperty("abtest","B").value("R").place();
-		pbc.part().id(3).label("second").addProperty("version", 1).addProperty("abtest","B").value("S").place();
-		pbc.part().id(4).label("second").addProperty("version", 2).addProperty("abtest","B").value("T").place();
-
+		v1Loader.id(3).label("first").addProperty("abtest","B").value("W").place();
+		v2Loader.id(4).label("first").addProperty("abtest","B").value("R").place();
+		v1Loader.id(3).label("second").addProperty("abtest","B").value("S").place();
+		v2Loader.id(4).label("second").addProperty("abtest","B").value("T").place();
+		// wait and stop
 		pbc.completeAndStop().join();
 		System.out.println(results);
+		// test results
 		assertEquals(4, results.size());
 		assertEquals("A B", results.get(1));
 		assertEquals("Y X", results.get(2));

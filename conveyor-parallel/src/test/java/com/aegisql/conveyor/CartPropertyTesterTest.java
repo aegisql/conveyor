@@ -10,7 +10,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.parallel.CartPropertyTester;
+import com.aegisql.conveyor.parallel.PropertyTester;
 
 public class CartPropertyTesterTest {
 
@@ -33,7 +33,7 @@ public class CartPropertyTesterTest {
 	@Test
 	public void simpleNegativeTest() {
 		AssemblingConveyor<String, String, String> c = new AssemblingConveyor<>();
-		CartPropertyTester<String, String, String> cpt = new CartPropertyTester<>(c);
+		PropertyTester<String, String, String> cpt = new PropertyTester<>(c);
 		Map<String,Object> properties = PropertiesBuilder.putFirst("version", 1).get(); 
 		assertFalse(cpt.test(properties));
 		assertNotNull(cpt.getConveyor());
@@ -42,9 +42,9 @@ public class CartPropertyTesterTest {
 	@Test
 	public void simpleAcceptingTest() {
 		AssemblingConveyor<String, String, String> c = new AssemblingConveyor<>();
-		CartPropertyTester<String, String, String> cpt = new CartPropertyTester<>(c);
+		PropertyTester<String, String, String> cpt = new PropertyTester<>(c);
 		
-		cpt.addKeyPredicate("version",val->val.equals(1L));
+		cpt.addTestingPredicate("version",val->val.equals(1L));
 		
 		Map<String,Object> properties = PropertiesBuilder.putFirst("version", 1L).get(); 
 		assertTrue(cpt.test(properties));
@@ -53,10 +53,10 @@ public class CartPropertyTesterTest {
 	@Test
 	public void doubleFailingTestExpectsBothKeys() {
 		AssemblingConveyor<String, String, String> c = new AssemblingConveyor<>();
-		CartPropertyTester<String, String, String> cpt = new CartPropertyTester<>(c);
+		PropertyTester<String, String, String> cpt = new PropertyTester<>(c);
 		
-		cpt.addKeyPredicate("version",val->val.equals(1L));
-		cpt.addKeyPredicate("abtest",val->"A".equalsIgnoreCase(val.toString()));
+		cpt.addTestingPredicate("version",val->val.equals(1L));
+		cpt.addTestingPredicate("abtest",val->"A".equalsIgnoreCase(val.toString()));
 		
 		Map<String,Object> properties = PropertiesBuilder.putFirst("version", 1L).get(); 
 		assertFalse(cpt.test(properties));
@@ -65,10 +65,10 @@ public class CartPropertyTesterTest {
 	@Test
 	public void doubleAcceptingTestExpectsBothKeys() {
 		AssemblingConveyor<String, String, String> c = new AssemblingConveyor<>();
-		CartPropertyTester<String, String, String> cpt = new CartPropertyTester<>(c);
+		PropertyTester<String, String, String> cpt = new PropertyTester<>(c);
 		
-		cpt.addKeyPredicate("version",val->val.equals(1L));
-		cpt.addKeyPredicate("abtest",val->"A".equalsIgnoreCase(val.toString()));
+		cpt.addTestingPredicate("version",val->val.equals(1L));
+		cpt.addTestingPredicate("abtest",val->"A".equalsIgnoreCase(val.toString()));
 		
 		Map<String,Object> properties = PropertiesBuilder
 				.putFirst("version", 1L)
