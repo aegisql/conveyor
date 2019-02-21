@@ -3,6 +3,9 @@
  */
 package com.aegisql.conveyor.loaders;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -32,6 +35,10 @@ public final class StaticPartLoader<L> {
 	/**  The priority. */
 	public final long priority;
 	
+	/** The properties. */
+	private final Map<String,Object> properties = new HashMap<>();
+
+	
 	/**
 	 * Instantiates a new part loader.
 	 *
@@ -41,12 +48,19 @@ public final class StaticPartLoader<L> {
 	 * @param create the create
 	 * @param priority the priority
 	 */
-	private StaticPartLoader(Function<StaticPartLoader<L>, CompletableFuture<Boolean>> placer,L label, Object value, boolean create, long priority) {
+	private StaticPartLoader(Function<StaticPartLoader<L>
+	, CompletableFuture<Boolean>> placer
+	,L label
+	, Object value
+	, boolean create
+	, long priority
+	, Map<String,Object> properties) {
 		this.placer = placer;
 		this.label = label;
 		this.staticPartValue = value;
 		this.create = create;
 		this.priority = priority;
+		this.properties.putAll(properties);
 	}
 
 	/**
@@ -55,7 +69,7 @@ public final class StaticPartLoader<L> {
 	 * @param placer the placer
 	 */
 	public StaticPartLoader(Function<StaticPartLoader<L>, CompletableFuture<Boolean>> placer) {
-		this(placer,null,null,true,0);
+		this(placer,null,null,true,0,new HashMap<>());
 	}
 	
 	/**
@@ -64,7 +78,7 @@ public final class StaticPartLoader<L> {
 	 * @return the part loader
 	 */
 	public StaticPartLoader<L> delete() {
-		return new StaticPartLoader<L>(placer,label,staticPartValue,false,priority);
+		return new StaticPartLoader<L>(placer,label,staticPartValue,false,priority,properties);
 	}
 
 	/**
@@ -74,7 +88,7 @@ public final class StaticPartLoader<L> {
 	 * @return the part loader
 	 */
 	public StaticPartLoader<L> label(L l) {
-		return new StaticPartLoader<L>(placer,l,staticPartValue,create,priority);
+		return new StaticPartLoader<L>(placer,l,staticPartValue,create,priority,properties);
 	}
 
 	/**
@@ -84,7 +98,7 @@ public final class StaticPartLoader<L> {
 	 * @return the static part loader
 	 */
 	public StaticPartLoader<L> priority(long p) {
-		return new StaticPartLoader<L>(placer,label,staticPartValue,create,p);
+		return new StaticPartLoader<L>(placer,label,staticPartValue,create,p,properties);
 	}
 
 	/**
@@ -94,9 +108,43 @@ public final class StaticPartLoader<L> {
 	 * @return the part loader
 	 */
 	public StaticPartLoader<L> value(Object v) {
-		return new StaticPartLoader<L>(placer,label,v,true,priority);
+		return new StaticPartLoader<L>(placer,label,v,true,priority,properties);
 	}
 
+	/**
+	 * Gets the property.
+	 *
+	 * @param <X> the generic type
+	 * @param key the key
+	 * @param cls the cls
+	 * @return the property
+	 */
+	public <X> X getProperty(String key, Class<X> cls) {
+		return (X) properties.get(key);
+	}
+
+	/**
+	 * Gets the all properties.
+	 *
+	 * @return the all properties
+	 */
+	public Map<String,Object> getAllProperties() {
+		return Collections.unmodifiableMap(properties);
+	}
+	
+	public StaticPartLoader<L> addProperty(String k, Object v) {
+		Map<String,Object> newMap = new HashMap<>();
+		newMap.putAll(properties);
+		newMap.put(k, v);
+		return new StaticPartLoader<L>(placer,label,staticPartValue,create,priority,newMap);
+	}
+	
+	public StaticPartLoader<L> addProperties(Map<String,Object> moreProperties) {
+		Map<String,Object> newMap = new HashMap<>();
+		newMap.putAll(properties);
+		newMap.putAll(moreProperties);
+		return new StaticPartLoader<L>(placer,label,staticPartValue,create,priority,newMap);
+	}
 	/**
 	 * Place.
 	 *

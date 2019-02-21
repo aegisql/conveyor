@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.cart;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -43,6 +44,13 @@ public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L
 	public FutureCart(K k, CompletableFuture<B> v, long creation, long expiration, long priority) {
 		super(k, v, null, creation,expiration,null,LoadType.FUTURE,priority);
 		Objects.requireNonNull(k);
+	}
+
+	public FutureCart(K k, CompletableFuture<B> v, long creation, long expiration,
+			Map<String, Object> allProperties, long priority) {
+		super(k, v, null, creation,expiration,null,LoadType.FUTURE,priority);
+		Objects.requireNonNull(k);
+		this.properties.putAll(allProperties);
 	}
 
 	/* (non-Javadoc)

@@ -1,8 +1,10 @@
 package com.aegisql.conveyor.cart;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.BuilderSupplier.BuilderFutureSupplier;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
@@ -32,6 +34,13 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	public CreatingCart(K k, BuilderSupplier<B> v, long creation, long expiration,long priority) {
 		super(k, v, null, creation,expiration,null,LoadType.BUILDER,priority);
 		Objects.requireNonNull(k);
+	}
+
+	public CreatingCart(K key, BuilderSupplier<B> v, long creation, long expiration,
+			Map<String, Object> allProperties, long priority) {
+		super(key, v, null, creation, expiration,null,LoadType.BUILDER,priority);
+		Objects.requireNonNull(k);
+		this.properties.putAll(allProperties);
 	}
 
 	/* (non-Javadoc)
