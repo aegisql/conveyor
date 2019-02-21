@@ -37,27 +37,6 @@ public class PBalancedConvTest {
 		}
 	}
 
-	static class StringConcatBuilder3 implements Supplier<String> {
-		String del = "";
-		String first;
-		String second;
-		@Override
-		public String get() {
-			return first+del+second;
-		}
-	}
-
-	static class StringConcatBuilder4 implements Supplier<String> {
-		String del = "";
-		String first;
-		String second;
-		@Override
-		public String get() {
-			return second+del+first;
-		}
-	}
-
-	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
@@ -138,8 +117,8 @@ public class PBalancedConvTest {
 		
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(StringConcatBuilder1::new);
 		SimpleConveyor<Integer, String> c2 = new SimpleConveyor<>(StringConcatBuilder2::new);
-		SimpleConveyor<Integer, String> c3 = new SimpleConveyor<>(StringConcatBuilder3::new);
-		SimpleConveyor<Integer, String> c4 = new SimpleConveyor<>(StringConcatBuilder4::new);
+		SimpleConveyor<Integer, String> c3 = new SimpleConveyor<>(StringConcatBuilder1::new);
+		SimpleConveyor<Integer, String> c4 = new SimpleConveyor<>(StringConcatBuilder2::new);
 		
 		CartPropertyTester<Integer, String, String> t1 = new CartPropertyTester<>(c1);
 		t1.addKeyPredicate("version", x->x.equals(1));
