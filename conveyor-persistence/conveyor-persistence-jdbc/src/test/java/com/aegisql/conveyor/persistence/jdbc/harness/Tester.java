@@ -1,19 +1,15 @@
 package com.aegisql.conveyor.persistence.jdbc.harness;
 
+import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-
-import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 public class Tester {
 
@@ -36,7 +32,7 @@ public class Tester {
 			sleep(1000);
 			prevParts = parts;
 		}
-		System.out.println();
+		System.out.println("100%");
 	}
 
 	public static int getPerfTestSize() {
