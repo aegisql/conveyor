@@ -75,7 +75,7 @@ public class AcknowledgeStatus <K> implements Serializable {
 	 * @param clas the clas
 	 * @return the t
 	 */
-	public <T> T gepProperty(String key,Class<T> clas) {
+	public <T> T getProperty(String key, Class<T> clas) {
 		return(T) properties.get(key);
 	}
 	

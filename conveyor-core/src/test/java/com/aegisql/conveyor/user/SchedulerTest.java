@@ -1,20 +1,15 @@
 package com.aegisql.conveyor.user;
 
-import static org.junit.Assert.assertEquals;
+import com.aegisql.conveyor.utils.schedule.SchedulableClosure;
+import com.aegisql.conveyor.utils.schedule.Schedule;
+import com.aegisql.conveyor.utils.schedule.SimpleScheduler;
+import org.junit.*;
 
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.utils.schedule.SchedulableClosure;
-import com.aegisql.conveyor.utils.schedule.Schedule;
-import com.aegisql.conveyor.utils.schedule.SimpleScheduler;
+import static org.junit.Assert.assertEquals;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -170,5 +165,16 @@ public class SchedulerTest {
 		s.part().id("test1").value("value").label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place().get();
 	}
 
-	
+	@Test
+	public void closureTest() {
+
+		StringBuilder sb = new StringBuilder();
+
+		SchedulableClosure sc1 = ()->sb.append("A");
+		SchedulableClosure sc2 = sc1.andThen(()->sb.append("B"));
+		SchedulableClosure sc3 = sc2.compose(()->sb.append("C"));
+		sc3.apply();
+		System.out.println(sb);
+		assertEquals("CAB",sb.toString());
+	}
 }

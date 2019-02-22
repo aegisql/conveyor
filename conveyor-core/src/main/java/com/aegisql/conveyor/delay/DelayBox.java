@@ -1,12 +1,12 @@
 package com.aegisql.conveyor.delay;
 
+import com.aegisql.conveyor.Expireable;
+
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-
-import com.aegisql.conveyor.Expireable;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -122,6 +122,29 @@ public class DelayBox <K> implements Delayed, Expireable {
 		return "DelayBox [keys=" + keys.size() + ", expirationTime=" + expirationTime + "]";
 	}
 
-	
-	
+	@Override
+	public Delayed toDelayed() {
+		return new Delayed() {
+			@Override
+			public int compareTo(Delayed o) {
+				if (o == this) {
+					return 0;
+				}
+				return Long.compare(expirationTime,((Expireable) o).getExpirationTime());
+			}
+
+			@Override
+			public long getDelay(TimeUnit unit) {
+				long delta;
+				if( expirationTime <= 0 ) {
+					delta = Long.MAX_VALUE;
+				} else {
+					delta = expirationTime - System.currentTimeMillis();
+				}
+				return unit.convert(delta, TimeUnit.MILLISECONDS);
+			}
+		};
+	}
+
+
 }

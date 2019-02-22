@@ -1,14 +1,12 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import org.junit.*;
 
+import java.time.Duration;
+import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class ExpireableTest {
 
@@ -100,7 +98,8 @@ public class ExpireableTest {
 		assertFalse(e1.expired());
 		
 		Expireable e2 = e1.addTime(200,TimeUnit.MILLISECONDS);
-		
+		Expireable e3 = e1.addTime(Duration.ofMillis(200));
+		assertEquals(e2.getExpirationTime(),e3.getExpirationTime());
 		Thread.sleep(101);
 		assertTrue(e1.expired());
 		assertNotNull(e1.toDelayed());
@@ -110,6 +109,26 @@ public class ExpireableTest {
 		assertFalse(e2.expired());
 		assertNotNull(e2.toDelayed());
 		assertFalse(e2.toDelayed().getDelay(TimeUnit.MILLISECONDS) < 0);
+
+		Delayed d2 = e2.toDelayed();
+		Delayed d3 = e3.toDelayed();
+
+		Delayed d4 = new Delayed() {
+			@Override
+			public long getDelay(TimeUnit unit) {
+				return d2.getDelay(TimeUnit.MILLISECONDS);
+			}
+			@Override
+			public int compareTo(Delayed o) {
+				return 0;
+			}
+		};
+
+		assertEquals(0,d2.compareTo(d2));
+		assertEquals(0,d2.compareTo(d3));
+		assertEquals(0,d2.compareTo(d4));
+
+
 
 	}
 
