@@ -251,14 +251,6 @@ public class MysqlPerfTest {
 		fr3.get().join();
 	}
 
-	void waitUntilArchived(Persistence<Integer> p) {
-		long parts;
-		while ((parts = p.getNumberOfParts()) > 0) {
-			System.out.println(parts);
-			sleep(sleepNumber,1000.0);
-		}
-	}
-
 	@Test
 	public void testParallelAsorted() throws InterruptedException {
 
@@ -278,7 +270,7 @@ public class MysqlPerfTest {
 		long end = System.currentTimeMillis();
 		System.out.println("testParallelAsorted load complete in " + (end - start) + " msec.");
 
-		waitUntilArchived(p.copy());
+		Tester.waitUntilArchived(p.copy(),testSize);
 
 		long toComplete = System.currentTimeMillis();
 
@@ -304,7 +296,7 @@ public class MysqlPerfTest {
 		long end = System.currentTimeMillis();
 		System.out.println("testParallelSorted load complete in " + (end - start) + " msec.");
 
-		waitUntilArchived(p.copy());
+		Tester.waitUntilArchived(p.copy(),testSize);
 
 		long toComplete = System.currentTimeMillis();
 
@@ -374,7 +366,7 @@ public class MysqlPerfTest {
 		long end = System.currentTimeMillis();
 		System.out.println("testParallelUnload load complete in " + (end - start) + " msec.");
 
-		waitUntilArchived(p.copy());
+		Tester.waitUntilArchived(p.copy(),testSize);
 
 		long toComplete = System.currentTimeMillis();
 
@@ -410,8 +402,8 @@ public class MysqlPerfTest {
 		long end = System.currentTimeMillis();
 		System.out.println("testParallelParallelAsorted load complete in " + (end - start) + " msec.");
 
-		waitUntilArchived(p1.copy());
-		waitUntilArchived(p2.copy());
+		Tester.waitUntilArchived(p1.copy(),testSize);
+		Tester.waitUntilArchived(p2.copy(),testSize);
 
 		long toComplete = System.currentTimeMillis();
 
@@ -462,7 +454,7 @@ public class MysqlPerfTest {
 		long end = System.currentTimeMillis();
 		System.out.println("testInMemoryPersistence load complete in " + (end - start) + " msec.");
 
-		waitUntilArchived(p.copy());
+		Tester.waitUntilArchived(p.copy(),testSize);
 
 		long toComplete = System.currentTimeMillis();
 
@@ -489,7 +481,7 @@ public class MysqlPerfTest {
 		long end = System.currentTimeMillis();
 		System.out.println("testParallelSortedFile load complete in " + (end - start) + " msec.");
 
-		waitUntilArchived(p.copy());
+		Tester.waitUntilArchived(p.copy(),testSize);
 
 		long toComplete = System.currentTimeMillis();
 
@@ -517,7 +509,7 @@ public class MysqlPerfTest {
 		long end = System.currentTimeMillis();
 		System.out.println("testParallelSortedPersistence load complete in " + (end - start) + " msec.");
 
-		waitUntilArchived(p.copy());
+		Tester.waitUntilArchived(p.copy(),testSize);
 
 		long toComplete = System.currentTimeMillis();
 

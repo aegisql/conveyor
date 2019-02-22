@@ -12,11 +12,31 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
+import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 public class Tester {
 
 	public Tester() {
+	}
+	
+	public static void waitUntilArchived(Persistence<Integer> p, int testSize) {
+		long prevParts = 0;
+		long parts;
+		int sameNumber = 0;
+		while ((parts = p.getNumberOfParts()) > 0) {
+			System.out.print("\r"+(100-100*parts/(3*testSize))+"%");
+			if(prevParts == parts) {
+				sameNumber++;
+				if(sameNumber > 10) {
+					System.out.println();
+					throw new RuntimeException("Stuck on archiving with number of parts = "+parts);
+				}
+			}
+			sleep(1000);
+			prevParts = parts;
+		}
+		System.out.println();
 	}
 
 	public static int getPerfTestSize() {
@@ -120,6 +140,19 @@ public class Tester {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void sleep(int i, int sleepNumber, double frac) {
+		if(i % sleepNumber !=  0) {
+			return;
+		}
+		int msec = (int) frac;
+		double nsec = frac - msec;
+		try {
+			Thread.sleep(msec, (int) (999999.0 * nsec));
+		} catch (InterruptedException e) {
+		}
+	}
+
 	
 	public static void removeLocalMysqlDatabase(String database) {
 		try {
