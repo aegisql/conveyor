@@ -74,11 +74,7 @@ public enum CommandLabel implements SmartLabel<AssemblingConveyor> {
 		}
 	},
 	
-	SUSPEND {
-		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
-			return (c, o) -> {};
-		}
-	};
+	SUSPEND;//does not call any methods
 
 	;
 
