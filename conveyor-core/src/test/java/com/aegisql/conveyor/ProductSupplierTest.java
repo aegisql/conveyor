@@ -1,14 +1,10 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import org.junit.*;
 
 import java.util.function.Supplier;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -65,6 +61,7 @@ public class ProductSupplierTest {
 		ps = ps.expires(()->2000);
 		assertTrue(ps instanceof Expireable);
 		assertEquals(2000,((Expireable)ps).getExpirationTime());
+		assertTrue(ps==ps.identity());
 	}
 
 	/**
