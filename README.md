@@ -52,6 +52,7 @@ conveyor configurator
 * derby-memory engine
 * P-Balanced conveyor
 * Bugfixes
+* Improved test coverage
 
 ### 1.4.1
 * Added Persistence Engine for MariaDB

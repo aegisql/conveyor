@@ -1,38 +1,26 @@
 package com.aegisql.conveyor.consumers.result;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.ScrapBin.FailureType;
+import com.aegisql.conveyor.Status;
+import com.aegisql.conveyor.consumers.scrap.*;
+import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuulder;
+import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
+import org.junit.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.ScrapBin.FailureType;
-import com.aegisql.conveyor.Status;
-import com.aegisql.conveyor.consumers.scrap.FirstScraps;
-import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
-import com.aegisql.conveyor.consumers.scrap.LastScraps;
-import com.aegisql.conveyor.consumers.scrap.LogScrap;
-import com.aegisql.conveyor.consumers.scrap.PrintStreamScrap;
-import com.aegisql.conveyor.consumers.scrap.ScrapCounter;
-import com.aegisql.conveyor.consumers.scrap.ScrapMap;
-import com.aegisql.conveyor.consumers.scrap.ScrapQueue;
-import com.aegisql.conveyor.consumers.scrap.StreamScrap;
-import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuulder;
-import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
+import static org.junit.Assert.*;
 
 public class ResultConsumerTest {
 
@@ -51,6 +39,11 @@ public class ResultConsumerTest {
 
 	@After
 	public void tearDown() throws Exception {
+	}
+
+	public static <K,V> ProductBin getProductBin(K key, V val) {
+		ProductBin res = new ProductBin(key,val,0,Status.READY,new HashMap<>(), null);
+		return res;
 	}
 
 	@Test
@@ -318,9 +311,22 @@ public class ResultConsumerTest {
 		ResultCounter<Integer, String> counter = new ResultCounter<>();
 		rc = rc.andThen(counter);
 		rc = rc.filterStatus(status->status.equals(Status.TIMED_OUT));
-		
-		
-		
 	}
-	
+
+	@Test
+	public void functionalTest() {
+		ResultConsumer<Integer,String> rc = bin->{
+			System.out.println(bin);
+		};
+		ResultConsumer<Integer,String> rc2 = rc.filter(bin->true);
+		ResultConsumer<Integer,String> rc3 = rc.filterResult(res->true);
+		ResultConsumer<Integer,String> rc4 = rc.filterStatus(status->true);
+		assertNotNull(rc2);
+		assertNotNull(rc3);
+		assertNotNull(rc4);
+		rc.accept(getProductBin(1,"test 1"));
+		rc2.accept(getProductBin(2,"test 2"));
+		rc3.accept(getProductBin(3,"test 3"));
+		rc4.accept(getProductBin(4,"test 4"));
+	}
 }
