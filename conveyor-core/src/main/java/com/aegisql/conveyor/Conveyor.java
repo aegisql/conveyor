@@ -3,35 +3,22 @@
  */
 package com.aegisql.conveyor;
 
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+import com.aegisql.conveyor.loaders.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.command.GeneralCommand;
-import com.aegisql.conveyor.consumers.result.ResultConsumer;
-import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
-import com.aegisql.conveyor.loaders.BuilderLoader;
-import com.aegisql.conveyor.loaders.CommandLoader;
-import com.aegisql.conveyor.loaders.FutureLoader;
-import com.aegisql.conveyor.loaders.PartLoader;
-import com.aegisql.conveyor.loaders.ResultConsumerLoader;
-import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
-import com.aegisql.conveyor.loaders.StaticPartLoader;
+import java.util.function.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -46,7 +33,7 @@ import com.aegisql.conveyor.loaders.StaticPartLoader;
 public interface Conveyor<K, L, OUT> {
 	
 	/** The Constant LOG. */
-	public final static Logger LOG = LoggerFactory.getLogger(Conveyor.class);
+	Logger LOG = LoggerFactory.getLogger(Conveyor.class);
 
 	/**
 	 * Part.
@@ -465,7 +452,7 @@ public interface Conveyor<K, L, OUT> {
 	boolean isSuspended();
 	
 	/** The Constant mBeanServer. */
-	final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+	MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 	
 	/**
 	 * By name.
