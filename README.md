@@ -48,7 +48,8 @@ conveyor configurator
 ## Release History
 
 ### 1.4.2-SNAPSHOT
-* Suspend/resume commands for running conveyor
+* Suspend/resume running conveyor
+* Suspend command with Future
 * derby-memory engine
 * P-Balanced conveyor
 * Bugfixes

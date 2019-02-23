@@ -32,7 +32,7 @@ public class Tester {
 			sleep(1000);
 			prevParts = parts;
 		}
-		System.out.println("100%");
+		System.out.println("\r100%");
 	}
 
 	public static int getPerfTestSize() {
