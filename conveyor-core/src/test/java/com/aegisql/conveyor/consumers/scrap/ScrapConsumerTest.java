@@ -11,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 
 public class ScrapConsumerTest {
 
-    public ScrapBin<Integer,String> getScrapBin(int id, String scrap) {
+    public static ScrapBin<Integer,String> getScrapBin(int id, String scrap) {
         ScrapBin<Integer,String> bin = new ScrapBin<>(id,scrap,"test",new Exception("test error"),
                 ScrapBin.FailureType.GENERAL_FAILURE,new HashMap<>(),null);
         return bin;
