@@ -1,12 +1,9 @@
 package com.aegisql.conveyor.consumers.scrap;
 
-import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -70,6 +67,7 @@ public class LogScrap <K> implements ScrapConsumer<K,Object> {
 	 * @param level the level
 	 */
 	public LogScrap(Logger log, Level level) {
+		ScrapConsumer<?,?> consumer = stdout;
 		switch (level) {
 		case TRACE:
 			consumer = bin->log.trace("{}",bin);
@@ -92,10 +90,8 @@ public class LogScrap <K> implements ScrapConsumer<K,Object> {
 		case STDERR:
 			consumer = stderr;
 			break;
-		default:
-			consumer = stdout;
-			break;
 		}
+		this.consumer = consumer;
 	}
 
 	/* (non-Javadoc)
