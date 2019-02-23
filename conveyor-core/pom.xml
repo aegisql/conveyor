@@ -3,7 +3,15 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.aegisql</groupId>
 	<artifactId>conveyor-core</artifactId>
-	<parent>
+    <dependencies>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <parent>
 		<groupId>com.aegisql</groupId>
 		<artifactId>conveyor</artifactId>
 		<version>1.4.2-SNAPSHOT</version>
