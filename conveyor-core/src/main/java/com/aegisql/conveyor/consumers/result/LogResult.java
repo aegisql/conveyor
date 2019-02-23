@@ -1,10 +1,9 @@
 package com.aegisql.conveyor.consumers.result;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -71,6 +70,7 @@ public class LogResult <K,E> implements ResultConsumer<K,E> {
 	 * @param level the level
 	 */
 	public LogResult(Logger log, Level level) {
+		ResultConsumer consumer = stdout;
 		switch (level) {
 		case TRACE:
 			consumer = bin->log.trace("{}",bin);
@@ -93,10 +93,8 @@ public class LogResult <K,E> implements ResultConsumer<K,E> {
 		case STDERR:
 			consumer = stderr;
 			break;
-		default:
-			consumer = stdout;
-			break;
 		}
+		this.consumer = consumer;
 	}
 
 	/* (non-Javadoc)
