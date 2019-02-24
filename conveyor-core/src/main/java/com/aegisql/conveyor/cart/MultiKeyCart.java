@@ -1,8 +1,8 @@
 package com.aegisql.conveyor.cart;
 
-import java.util.Map;
-
 import com.aegisql.conveyor.serial.SerializablePredicate;
+
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -85,7 +85,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 	 * @param priority the priority
 	 */
 	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, LoadType loadType,long priority) {
-		super(null, new Load<>(v, filter, loadType), label, creation,expiration,null,LoadType.MULTI_KEY_PART);
+		super(null, new Load<>(v, filter, loadType), label, creation,expiration,null,LoadType.MULTI_KEY_PART,priority);
 	}
 
 	/* (non-Javadoc)
