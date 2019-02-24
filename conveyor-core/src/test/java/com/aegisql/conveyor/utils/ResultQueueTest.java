@@ -1,20 +1,5 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.TimeUnit;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.Status;
@@ -23,6 +8,16 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
+import org.junit.*;
+
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -79,7 +74,10 @@ public class ResultQueueTest {
 		q.accept(b1);
 
 		assertEquals(1, q.size());
-		
+		assertTrue(q.contains(b1.product));
+		assertNotNull(q.iterator());
+		assertNotNull(q.toArray());
+		assertNotNull(q.toArray(new User[]{}));
 		User u1 = q.poll();
 		assertNotNull(u1);
 		assertEquals(0, q.size());
@@ -91,9 +89,47 @@ public class ResultQueueTest {
 		assertNotNull(u2);
 		assertEquals(0, u.size());
 
-		
+		ResultQueue<String,User> q2 = new ResultQueue<>(u);
+
+		ProductBin<String, User> b3 = new ProductBin<>("", new User("a","a",1999), 0, Status.READY, new HashMap<>(), null);
+		ProductBin<String, User> b4 = new ProductBin<>("", new User("b","b",1999), 0, Status.READY, new HashMap<>(), null);
+		try {
+			q2.addAll(Arrays.asList(b3.product,b4.product));
+			fail("Must fail");
+		} catch (Exception e) {}
+		q2.accept(b3);
+		q2.accept(b4);
+		assertTrue(q2.containsAll(Arrays.asList(b3.product,b4.product)));
+		assertTrue(q2.removeAll(Arrays.asList(b3.product,b4.product)));
+		q2.accept(b3);
+		q2.accept(b4);
+		assertTrue(q2.remove(b3.product));
+		q2.accept(b3);
+		assertTrue(q2.retainAll(Arrays.asList(b3.product)));
+		assertNotNull(q2.remove());
+		q2.accept(b3);
+		assertNotNull(q2.peek());
+		assertNotNull(q2.element());
+		q2.clear();
+
+		ResultQueue<String,User> q3 = ResultQueue.of(null);
+		ResultQueue<String,User> q4 = ResultQueue.of(null,new LinkedList<>());
+		ResultQueue<String,User> q5 = ResultQueue.of(null,LinkedList::new);
+
 	}
-	
+
+	@Test(expected = RuntimeException.class)
+	public void addTest() {
+		ResultQueue<String,User> q = new ResultQueue<>();
+		q.add(new User("","",0));
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void offerTest() {
+		ResultQueue<String,User> q = new ResultQueue<>();
+		q.offer(new User("","",0));
+	}
+
 	/**
 	 * Test simple conveyor.
 	 *

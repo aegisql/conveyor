@@ -1,24 +1,17 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderSmart;
+import org.junit.*;
+
+import java.util.concurrent.TimeUnit;
+
 import static com.aegisql.conveyor.user.UserBuilderEvents.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class TestSuspendResume {
 
@@ -69,4 +62,8 @@ public class TestSuspendResume {
 		assertEquals(2, outQueue.size());
 	}
 
+	@Test(expected = AbstractMethodError.class)
+	public void suspendEnumTest() {
+		CommandLabel.SUSPEND.get();
+	}
 }

@@ -19,7 +19,7 @@ public class LogResult <K,E> implements ResultConsumer<K,E> {
 	/**
 	 * The Enum Level.
 	 */
-	public static enum Level {
+	public enum Level {
 		
 		/** The trace. */
 		TRACE,
@@ -44,17 +44,14 @@ public class LogResult <K,E> implements ResultConsumer<K,E> {
 	}
 	
 	/** The Constant stdout. */
-	private final static ResultConsumer <?,?> stdout = bin->{
-		System.out.println(""+bin);		
-	};
+	private final static ResultConsumer <?,?> stdout = bin->System.out.println(""+bin);
+
 	
 	/** The Constant stderr. */
-	private final static ResultConsumer <?,?> stderr = bin->{
-		System.err.println(""+bin);		
-	};
+	private final static ResultConsumer <?,?> stderr = bin->System.err.println(""+bin);
 	
 	/** The consumer. */
-	private final ResultConsumer consumer;
+	private final ResultConsumer<?,?>  consumer;
 	
 	/**
 	 * Instantiates a new log result.
@@ -102,7 +99,7 @@ public class LogResult <K,E> implements ResultConsumer<K,E> {
 	 */
 	@Override
 	public void accept(ProductBin<K, E> t) {
-		consumer.accept(t);
+		consumer.accept((ProductBin)t);
 	}
 
 	/**

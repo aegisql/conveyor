@@ -1,13 +1,13 @@
 package com.aegisql.conveyor.consumers.result;
 
-import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
-
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.serial.SerializableConsumer;
 import com.aegisql.conveyor.serial.SerializablePredicate;
+
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -101,11 +101,8 @@ public interface ResultConsumer <K,V> extends SerializableConsumer<ProductBin<K,
 	 */
 	default ResultConsumer<K,V> async(ExecutorService pool) {
 		Objects.requireNonNull(pool);
-		return bin -> {
-			pool.submit(()->{
-				accept(bin);
-			});
-		};
+		return bin ->
+			pool.submit(()->accept(bin));
 	}
 
 	/**
