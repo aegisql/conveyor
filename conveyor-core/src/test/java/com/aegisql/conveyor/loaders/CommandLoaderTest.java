@@ -1,27 +1,21 @@
 package com.aegisql.conveyor.loaders;
 
-import static org.junit.Assert.*;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.user.UserBuilderEvents;
+import org.junit.*;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
 
 public class CommandLoaderTest {
 
@@ -41,7 +35,18 @@ public class CommandLoaderTest {
 	public void tearDown() throws Exception {
 	}
 
-	@Test
+	@Test(expected = CompletionException.class)
+	public void testFailMementoKey() {
+
+		CommandLoader cl0 = new CommandLoader<>(c -> {
+			System.out.println("Final: " + c);
+			CompletableFuture<Boolean> f = new CompletableFuture();
+			f.complete(false);
+			return f;
+		});
+		cl0.id(1).memento().join();
+	}
+		@Test
 	public void testSingleKey() {
 		long current = System.currentTimeMillis();
 
@@ -61,6 +66,8 @@ public class CommandLoaderTest {
 		
 		assertEquals(1,cl1.key);
 		assertEquals(cl0.creationTime,cl1.creationTime);
+
+		cl0.creationTime(0).creationTime(Instant.now());
 
 		CommandLoader cl2et = cl1.expirationTime(current+1000);
 		CommandLoader cl2in = cl1.expirationTime(Instant.ofEpochMilli(current+1000));
