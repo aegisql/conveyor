@@ -1,19 +1,14 @@
 package com.aegisql.conveyor.loaders;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.*;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class PartLoaderTest {
 
@@ -123,7 +118,10 @@ public class PartLoaderTest {
 
 		PartLoader pl32 = pl2.clearProperty("A");
 		assertEquals(1, pl32.getAllProperties().size());
-
+		PartLoader pl33 = pl32.creationTime(1).creationTime(Instant.now()).
+				addProperties(new HashMap<String,Object>(){{put("test","val");}});
+		Object val = pl33.getProperty("test", String.class);
+		assertEquals("val",val);
 	}
 	
 }

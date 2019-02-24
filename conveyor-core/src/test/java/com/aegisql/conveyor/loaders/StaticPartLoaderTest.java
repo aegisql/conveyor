@@ -1,10 +1,12 @@
 package com.aegisql.conveyor.loaders;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class StaticPartLoaderTest {
 
@@ -43,7 +45,17 @@ public class StaticPartLoaderTest {
 		assertEquals("V", spl4.staticPartValue);
 		
 		assertNotNull(spl4.place());
-		
+
+		StaticPartLoader spl5 = spl1.addProperty("p1", "test1")
+				.addProperty("p2", "test2")
+				.addProperties(new HashMap<String, Object>() {{
+					put("p3", "test3");
+				}});
+		Map allProperties = spl5.getAllProperties();
+		assertNotNull(allProperties);
+		assertEquals("test2",spl5.getProperty("p2",String.class));
+		assertEquals(3,allProperties.size());
+		System.out.println(spl1);
 		
 	}
 

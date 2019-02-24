@@ -1,20 +1,15 @@
 package com.aegisql.conveyor.loaders;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.*;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class BuilderLoaderTest {
 
@@ -54,7 +49,12 @@ public class BuilderLoaderTest {
 		assertTrue(bl0.creationTime >= current);
 		
 		current = bl0.creationTime;
-		
+
+		BuilderLoader<Integer,String> bl1 = bl0.creationTime(1).creationTime(Instant.now())
+				.addProperties(new HashMap<String,Object>(){{put("test","test");}});
+		String pr = bl1.getProperty("test",String.class);
+		assertEquals("test",pr);
+
 		BuilderLoader cl1 = bl0.id(1).priority(1);
 		System.out.println(cl1);
 		
