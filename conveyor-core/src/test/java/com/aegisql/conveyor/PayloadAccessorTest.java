@@ -1,18 +1,16 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.Load;
+import com.aegisql.conveyor.cart.LoadType;
+import com.aegisql.conveyor.consumers.result.LastResultReference;
+import org.junit.*;
 
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.consumers.result.LastResultReference;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class PayloadAccessorTest {
 	
@@ -85,6 +83,26 @@ public class PayloadAccessorTest {
 		c.part().id(1).label("SET_PAYLOAD").value("X").place().join();
 		assertEquals("X", ref.getCurrent().a);
 		
+	}
+
+	@Test
+	public void loadTest() {
+		Load<Integer,String> l1 = new Load<>("test",k->true, LoadType.COMMAND);
+		Load<Integer,String> l2 = new Load<>("test",k->true, LoadType.COMMAND);
+		Load<Integer,String> l3 = new Load<>("test",k->true, LoadType.PART);
+		Load<Integer,String> l4 = new Load<>("test2",k->true, LoadType.COMMAND);
+		Load<Integer,String> l5 = new Load<>(null,k->true, LoadType.COMMAND);
+		Load<Integer,String> l6 = new Load<>(null,k->true, LoadType.COMMAND);
+		assertEquals(l1,l1);
+		assertEquals(l1,l2);
+		assertEquals(l5,l6);
+		assertEquals(l1.hashCode(),l2.hashCode());
+		assertNotEquals(l1,null);
+		assertNotEquals(l1,"test");
+		assertNotEquals(l1,l3);
+		assertNotEquals(l5,l1);
+		assertNotEquals(l4,l1);
+		System.out.println(l1);
 	}
 	
 }
