@@ -1,27 +1,20 @@
 package com.aegisql.conveyor.loaders;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
+import org.junit.*;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
 
 public class FutureLoaderTest {
 
@@ -82,7 +75,14 @@ public class FutureLoaderTest {
 		assertEquals(1000,cl2dur.ttlMsec);
 
 		assertNotNull(cl2et.get());
-		
+
+		FutureLoader fl = cl0
+				.creationTime(1)
+				.creationTime(Instant.now())
+				.addProperties(new HashMap<String, Object>() {{
+					put("test", "val");
+				}});
+		assertEquals("val",fl.getProperty("test",String.class));
 	}
 	
 	@Test(expected=ExecutionException.class)
