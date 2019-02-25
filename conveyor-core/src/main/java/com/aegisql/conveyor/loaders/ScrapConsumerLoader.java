@@ -1,14 +1,14 @@
 package com.aegisql.conveyor.loaders;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -97,8 +97,7 @@ public final class ScrapConsumerLoader<K> {
 	public ScrapConsumerLoader<K> andThen(ScrapConsumer<K, ?> consumer) {
 		return new ScrapConsumerLoader<>(
 				this.globalPlacer,
-				this.consumer != null ? this.consumer.andThen((ScrapConsumer) consumer)
-						: CART_CONSUMER.andThen((ScrapConsumer) consumer)
+				this.consumer.andThen((ScrapConsumer) consumer)
 		);
 	}
 

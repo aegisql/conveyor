@@ -1,22 +1,18 @@
 package com.aegisql.conveyor.loaders;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.consumers.result.IgnoreResult;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import org.junit.*;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import static org.junit.Assert.*;
 
 public class ResultConsumerLoaderTest {
 
@@ -235,6 +231,17 @@ public class ResultConsumerLoaderTest {
 		ResultConsumerLoader<Integer, String> pl33 = pl2.andThen(x->{});
 		assertEquals(2, pl33.getAllProperties().size());
 
+		ResultConsumerLoader<Integer, String> pl34 = pl33
+				.foreach()
+				.creationTime(1)
+				.creationTime(Instant.now())
+				.addProperties(new HashMap<String,Object>(){{
+					put("test","val");
+				}});
+		assertEquals("val",pl34.getProperty("test",String.class));
+		AssemblingConveyor<Integer,String,String> ac = new AssemblingConveyor<>();
+		ac.setName("rcac");
+		ResultConsumerLoader<Integer, String> pl35 = ResultConsumerLoader.byConveyorName("rcac",new IgnoreResult<>());
 	}
 	
 }
