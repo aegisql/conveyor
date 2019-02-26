@@ -2,24 +2,16 @@
  * COPYRIGHT (C) AEGIS DATA SOLUTIONS, LLC, 2015
  */
 package com.aegisql.conveyor;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.concurrent.TimeUnit;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
+import org.junit.*;
+
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -104,7 +96,9 @@ public class BuildingSiteTest {
 				100, TimeUnit.MILLISECONDS,false,false,false,0,false,null,null,null);
 		assertEquals(0, bs.getAcceptCount());
 		assertEquals(Status.WAITING_DATA, bs.getStatus());
+
 		bs.accept(new ShoppingCart<>(1,"XXX","l",100,TimeUnit.MILLISECONDS));
+		assertNotNull(bs.getLastCart());
 		User u = bs.build();
 		assertNotNull(u);
 		assertEquals(1, bs.getAcceptCount());

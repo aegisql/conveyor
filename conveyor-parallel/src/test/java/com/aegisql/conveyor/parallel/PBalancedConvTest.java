@@ -1,21 +1,19 @@
 package com.aegisql.conveyor.parallel;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Arrays;
-import java.util.function.Supplier;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ConveyorRuntimeException;
 import com.aegisql.conveyor.consumers.result.ResultMap;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
+import org.junit.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.function.Supplier;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class PBalancedConvTest {
 
@@ -87,9 +85,9 @@ public class PBalancedConvTest {
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(StringConcatBuilder1::new);
 		SimpleConveyor<Integer, String> c2 = new SimpleConveyor<>(StringConcatBuilder2::new);
 		
-		PropertyTester<Integer, String, String> t1 = new PropertyTester<>(c1);
+		ConveyorAcceptor<Integer, String, String> t1 = new ConveyorAcceptor<>(c1);
 		t1.expectsValue("version", 1);
-		PropertyTester<Integer, String, String> t2 = new PropertyTester<>(c2);
+		ConveyorAcceptor<Integer, String, String> t2 = new ConveyorAcceptor<>(c2);
 		t2.expectsValue("version", 2);
 		
 		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(Arrays.asList(t1,t2));
@@ -125,13 +123,13 @@ public class PBalancedConvTest {
 		//V2,B
 		SimpleConveyor<Integer, String> c4 = new SimpleConveyor<>(StringConcatBuilder2::new);
 		//assign predicates
-		PropertyTester<Integer, String, String> t1 = new PropertyTester<>(c1);
+		ConveyorAcceptor<Integer, String, String> t1 = new ConveyorAcceptor<>(c1);
 		t1.expectsValue("version", 1).expectsValue("abtest", "A");
-		PropertyTester<Integer, String, String> t2 = new PropertyTester<>(c2);
+		ConveyorAcceptor<Integer, String, String> t2 = new ConveyorAcceptor<>(c2);
 		t2.expectsValue("version", 2).expectsValue("abtest", "A");
-		PropertyTester<Integer, String, String> t3 = new PropertyTester<>(c3);
+		ConveyorAcceptor<Integer, String, String> t3 = new ConveyorAcceptor<>(c3);
 		t3.expectsValue("version", 1).expectsValue("abtest", "B");
-		PropertyTester<Integer, String, String> t4 = new PropertyTester<>(c4);
+		ConveyorAcceptor<Integer, String, String> t4 = new ConveyorAcceptor<>(c4);
 		t4.expectsValue("version", 2).expectsValue("abtest", "B");
 		// wrap conveyors with PBalancedParallelConveyor
 		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(Arrays.asList(t1,t2,t3,t4));
@@ -167,6 +165,67 @@ public class PBalancedConvTest {
 		assertEquals("W-S", results.get(3));
 		assertEquals("T-R", results.get(4));
 
+	}
+
+	@Test(expected = ConveyorRuntimeException.class)
+	public void testFailNotSamePropTest() {
+		// place results here
+		ResultMap<Integer, String> results = new ResultMap<>();
+		//V1,A
+		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(StringConcatBuilder1::new);
+		//V1,B
+		SimpleConveyor<Integer, String> c2 = new SimpleConveyor<>(StringConcatBuilder2::new);
+		//V2,A
+		SimpleConveyor<Integer, String> c3 = new SimpleConveyor<>(StringConcatBuilder1::new);
+		//V2,B
+		SimpleConveyor<Integer, String> c4 = new SimpleConveyor<>(StringConcatBuilder2::new);
+		//assign predicates
+		ConveyorAcceptor<Integer, String, String> t1 = new ConveyorAcceptor<>(c1);
+		t1.expectsValue("version", 1).expectsValue("abtest", "A");
+		ConveyorAcceptor<Integer, String, String> t2 = new ConveyorAcceptor<>(c2);
+		t2.expectsValue("version", 2).expectsValue("abtest", "A");
+		ConveyorAcceptor<Integer, String, String> t3 = new ConveyorAcceptor<>(c3);
+		ConveyorAcceptor<Integer, String, String> t4 = new ConveyorAcceptor<>(c4);
+		t4.expectsValue("version", 2).expectsValue("abtest", "B");
+		// wrap conveyors with PBalancedParallelConveyor
+		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(Arrays.asList(t1, t2, t3, t4));
+	}
+
+	@Test(expected = ConveyorRuntimeException.class)
+	public void testFailNotSetPropTest() {
+		// place results here
+		ResultMap<Integer, String> results = new ResultMap<>();
+		//V1,A
+		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(StringConcatBuilder1::new);
+		//V1,B
+		SimpleConveyor<Integer, String> c2 = new SimpleConveyor<>(StringConcatBuilder2::new);
+		//V2,A
+		SimpleConveyor<Integer, String> c3 = new SimpleConveyor<>(StringConcatBuilder1::new);
+		//V2,B
+		SimpleConveyor<Integer, String> c4 = new SimpleConveyor<>(StringConcatBuilder2::new);
+		//assign predicates
+		ConveyorAcceptor<Integer, String, String> t1 = new ConveyorAcceptor<>(c1);
+		ConveyorAcceptor<Integer, String, String> t2 = new ConveyorAcceptor<>(c2);
+		ConveyorAcceptor<Integer, String, String> t3 = new ConveyorAcceptor<>(c3);
+		ConveyorAcceptor<Integer, String, String> t4 = new ConveyorAcceptor<>(c4);
+		// not set, should fail
+		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(Arrays.asList(t1, t2, t3, t4));
+	}
+
+	@Test(expected = ConveyorRuntimeException.class)
+	public void testFailEmptyPropTest() {
+		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(new ArrayList<>());
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void testFailNullPropTest() {
+		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(null);
+	}
+
+	@Test
+	public void constructorTest() {
+		ConveyorAcceptor<Integer, String, String> t1 = new ConveyorAcceptor<>();
+		assertNotNull(t1.getConveyor());
 	}
 
 }

@@ -1,18 +1,13 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.parallel.ConveyorAcceptor;
+import org.junit.*;
 
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
-import com.aegisql.conveyor.parallel.PropertyTester;
-
-public class CartPropertyTesterTest {
+public class CartConveyorAcceptorTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -33,7 +28,7 @@ public class CartPropertyTesterTest {
 	@Test
 	public void simpleNegativeTest() {
 		AssemblingConveyor<String, String, String> c = new AssemblingConveyor<>();
-		PropertyTester<String, String, String> cpt = new PropertyTester<>(c);
+		ConveyorAcceptor<String, String, String> cpt = new ConveyorAcceptor<>(c);
 		Map<String,Object> properties = PropertiesBuilder.putFirst("version", 1).get(); 
 		assertFalse(cpt.test(properties));
 		assertNotNull(cpt.getConveyor());
@@ -42,7 +37,7 @@ public class CartPropertyTesterTest {
 	@Test
 	public void simpleAcceptingTest() {
 		AssemblingConveyor<String, String, String> c = new AssemblingConveyor<>();
-		PropertyTester<String, String, String> cpt = new PropertyTester<>(c);
+		ConveyorAcceptor<String, String, String> cpt = new ConveyorAcceptor<>(c);
 		
 		cpt.addTestingPredicate("version",val->val.equals(1L));
 		
@@ -53,7 +48,7 @@ public class CartPropertyTesterTest {
 	@Test
 	public void doubleFailingTestExpectsBothKeys() {
 		AssemblingConveyor<String, String, String> c = new AssemblingConveyor<>();
-		PropertyTester<String, String, String> cpt = new PropertyTester<>(c);
+		ConveyorAcceptor<String, String, String> cpt = new ConveyorAcceptor<>(c);
 		
 		cpt.addTestingPredicate("version",val->val.equals(1L));
 		cpt.addTestingPredicate("abtest",val->"A".equalsIgnoreCase(val.toString()));
@@ -65,7 +60,7 @@ public class CartPropertyTesterTest {
 	@Test
 	public void doubleAcceptingTestExpectsBothKeys() {
 		AssemblingConveyor<String, String, String> c = new AssemblingConveyor<>();
-		PropertyTester<String, String, String> cpt = new PropertyTester<>(c);
+		ConveyorAcceptor<String, String, String> cpt = new ConveyorAcceptor<>(c);
 		
 		cpt.addTestingPredicate("version",val->val.equals(1L));
 		cpt.addTestingPredicate("abtest",val->"A".equalsIgnoreCase(val.toString()));

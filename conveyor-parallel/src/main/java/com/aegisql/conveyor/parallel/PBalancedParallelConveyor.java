@@ -1,35 +1,49 @@
 package com.aegisql.conveyor.parallel;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import com.aegisql.conveyor.AcknowledgeStatus;
-import com.aegisql.conveyor.BuilderAndFutureSupplier;
-import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.*;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L, OUT> {
 	
-	private final List<PropertyTester<K, L, OUT>> testers = new ArrayList<>();
+	private final List<ConveyorAcceptor<K, L, OUT>> testers = new ArrayList<>();
 	
 	private final CompletableFuture<Boolean> failedFuture = new CompletableFuture<Boolean>();
 	{
 		failedFuture.complete(false);
 	}
 
-	public PBalancedParallelConveyor(List<PropertyTester<K, L, OUT>> testers) {
+	public PBalancedParallelConveyor(List<ConveyorAcceptor<K, L, OUT>> testers) {
 		super();
+		Objects.requireNonNull(testers,"ConveyorAcceptors must not be null");
+		if(testers.size() == 0) {
+			throw new ConveyorRuntimeException("ConveyorAcceptors size must be > 0");
+		}
+		ConveyorAcceptor<K,L,OUT> first = testers.get(0);
+		Objects.requireNonNull(first,"ConveyorAcceptor must not be null");
+		if(first.getPropertyNames().size() == 0) {
+			throw new ConveyorRuntimeException("ConveyorAcceptor must have set of property predicates");
+		}
+		for(ConveyorAcceptor<K,L,OUT> pt:testers) {
+			if( ! first.getPropertyNames().equals(pt.getPropertyNames())) {
+				throw new ConveyorRuntimeException("All testers must have the same set of properties. Expected:"
+						+first.getPropertyNames()
+				+" but was: "+pt.getPropertyNames());
+			}
+		}
 		this.testers.addAll(testers);
-		this.conveyors.addAll(testers.stream().map(PropertyTester::getConveyor).collect(Collectors.toList()));
+		this.conveyors.addAll(testers.stream().map(ConveyorAcceptor::getConveyor).collect(Collectors.toList()));
 	}
 	
 	@Override
@@ -38,7 +52,7 @@ public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	}
 	
 	private Conveyor<K, L, OUT> getMatched(Map<String,Object> properties) {
-		for(PropertyTester<K, L, OUT> tester:testers) {
+		for(ConveyorAcceptor<K, L, OUT> tester:testers) {
 			if(tester.test(properties)) {
 				return tester.getConveyor();
 			}
