@@ -1,23 +1,19 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.*;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.utils.map.MapBuilder;
 import com.aegisql.conveyor.utils.map.MapConveyor;
+import org.junit.*;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class MapBuillderTest.
  */
@@ -63,7 +59,7 @@ public class MapBuillderTest {
 	 * Test map builder.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test
 	public void testMapBuilder() throws InterruptedException, ExecutionException {

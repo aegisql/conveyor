@@ -1,9 +1,12 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.user.UserBuilder;
+import com.aegisql.conveyor.utils.caching.*;
+import org.junit.*;
 
 import java.util.Map;
 import java.util.Random;
@@ -13,24 +16,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.loaders.PartLoader;
-import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.user.UserBuilder;
-import com.aegisql.conveyor.utils.caching.CachingConveyor;
-import com.aegisql.conveyor.utils.caching.ImmutableReference;
-import com.aegisql.conveyor.utils.caching.ImmutableValueConsumer;
-import com.aegisql.conveyor.utils.caching.MutableReference;
-import com.aegisql.conveyor.utils.caching.MutableValueConsumer;
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class CachingConveyorTest.
  */
@@ -76,7 +65,7 @@ public class CachingConveyorTest {
 	 * Test big cache.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test
 	public void testBigCache() throws InterruptedException, ExecutionException {
@@ -160,7 +149,7 @@ public class CachingConveyorTest {
 		
 	}
 
-	
+
 	/**
 	 * Test simple cache.
 	 *
@@ -216,7 +205,7 @@ public class CachingConveyorTest {
 		
 		
 	}
-	
+
 	/**
 	 * Test timing out cache.
 	 *
@@ -343,7 +332,7 @@ public class CachingConveyorTest {
 	 * Test simple cache.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=IllegalStateException.class)
 	public void testImmutableScalarCache() throws InterruptedException, ExecutionException {
@@ -367,7 +356,7 @@ public class CachingConveyorTest {
 	 * Test immutable scalar expireable cache.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=IllegalStateException.class)
 	public void testImmutableScalarExpireableCache() throws InterruptedException, ExecutionException {
@@ -386,12 +375,12 @@ public class CachingConveyorTest {
 		s.get();
 	}
 
-	
+
 	/**
 	 * Test mutable scalar cache.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=IllegalStateException.class)
 	public void testMutableScalarCache() throws InterruptedException, ExecutionException {
@@ -422,7 +411,7 @@ public class CachingConveyorTest {
 	 * Test mutable expireable scalar cache.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=IllegalStateException.class)
 	public void testMutableExpireableScalarCache() throws InterruptedException, ExecutionException {

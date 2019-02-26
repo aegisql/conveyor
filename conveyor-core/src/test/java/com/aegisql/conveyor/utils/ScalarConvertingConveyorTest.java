@@ -1,29 +1,25 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.assertNotNull;
+import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
+import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
+import org.junit.*;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
-import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
+import static org.junit.Assert.assertNotNull;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class ScalarConvertingConveyorTest.
  */
 public class ScalarConvertingConveyorTest {
 
-	
+
 	/**
 	 * The Class StringToUserBuulder.
 	 */
@@ -84,7 +80,7 @@ public class ScalarConvertingConveyorTest {
 	 * Test scalar converting conveyor.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException from the future
 	 */
 	@Test
 	public void testScalarConvertingConveyorWithPart() throws InterruptedException, ExecutionException {

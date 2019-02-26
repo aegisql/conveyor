@@ -86,7 +86,7 @@ public class CommandTest {
 	 * Test check command.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException from the future
 	 */
 	@Test
 	public void testCheckCommand() throws InterruptedException, ExecutionException {

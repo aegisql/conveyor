@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.utils.delay_line.DelayLineConveyor;
+import org.junit.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -9,15 +10,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.utils.delay_line.DelayLineConveyor;
+import static org.junit.Assert.assertEquals;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class DelayLineConveyorTest.
  */
@@ -63,7 +59,7 @@ public class DelayLineConveyorTest {
 	 * Test.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test
 	public void test() throws InterruptedException, ExecutionException {
