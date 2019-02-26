@@ -12,6 +12,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * The type P balanced parallel conveyor.
+ *
+ * @param <K>   the type parameter
+ * @param <L>   the type parameter
+ * @param <OUT> the type parameter
+ */
 public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L, OUT> {
 	
 	private final List<ConveyorAcceptor<K, L, OUT>> testers = new ArrayList<>();
@@ -21,11 +28,21 @@ public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		failedFuture.complete(false);
 	}
 
+	/**
+	 * Instantiates a new P balanced parallel conveyor.
+	 *
+	 * @param testers the testers
+	 */
 	public PBalancedParallelConveyor(ConveyorAcceptor<K, L, OUT>... testers) {
 		this(Arrays.asList(testers));
 	}
 
 
+	/**
+	 * Instantiates a new P balanced parallel conveyor.
+	 *
+	 * @param testers the testers
+	 */
 	public PBalancedParallelConveyor(List<ConveyorAcceptor<K, L, OUT>> testers) {
 		super();
 		Objects.requireNonNull(testers,"ConveyorAcceptors must not be null");
