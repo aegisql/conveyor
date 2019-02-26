@@ -3,53 +3,30 @@
  */
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
-import com.aegisql.conveyor.loaders.BuilderLoader;
-import com.aegisql.conveyor.loaders.CommandLoader;
-import com.aegisql.conveyor.loaders.FutureLoader;
-import com.aegisql.conveyor.loaders.PartLoader;
-import com.aegisql.conveyor.loaders.ResultConsumerLoader;
-import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
-import com.aegisql.conveyor.loaders.StaticPartLoader;
+import com.aegisql.conveyor.loaders.*;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
+import org.junit.*;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
+
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class AssemblingConveyorTest.
- * 
+ *
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  */
@@ -91,12 +68,12 @@ public class AssemblingConveyorTest {
 	@After
 	public void tearDown() throws Exception {
 	}
-	
+
 	/**
 	 * Test unconfigured builder supplier.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test
 	public void testUnconfiguredBuilderSupplier() throws InterruptedException, ExecutionException {
@@ -121,7 +98,7 @@ public class AssemblingConveyorTest {
 	 * Test offer stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test
 	public void testOfferStopped() throws InterruptedException, ExecutionException {
@@ -142,7 +119,7 @@ public class AssemblingConveyorTest {
 	 * Test command stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=IllegalStateException.class)
 	public void testCommandStopped() throws InterruptedException, ExecutionException {
@@ -203,7 +180,7 @@ public class AssemblingConveyorTest {
 	 * Test add stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=ExecutionException.class)
 	public void testAddStopped() throws InterruptedException, ExecutionException {
@@ -224,7 +201,7 @@ public class AssemblingConveyorTest {
 	 * Test null cart content stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=ExecutionException.class)
 	public void testNullCartContentStopped() throws InterruptedException, ExecutionException {
@@ -248,7 +225,7 @@ public class AssemblingConveyorTest {
 	 * Test add expired stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=ExecutionException.class)
 	public void testAddExpiredStopped() throws InterruptedException, ExecutionException {
@@ -268,7 +245,7 @@ public class AssemblingConveyorTest {
 	 * Test offer expired stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test()
 	public void testOfferExpiredStopped() throws InterruptedException, ExecutionException {
@@ -491,8 +468,8 @@ public class AssemblingConveyorTest {
 		conveyor.stop();
 		Thread.sleep(1000);
 	}
-	
-	
+
+
 	/**
 	 * Test basics.
 	 *
@@ -559,12 +536,12 @@ public class AssemblingConveyorTest {
 		conveyor.stop();
 		Thread.sleep(1000);
 	}
-	
+
 	/**
 	 * Test simple conveyor blocking.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=ExecutionException.class)
 	public void testSimpleConveyorBlocking() throws InterruptedException, ExecutionException {
@@ -620,8 +597,7 @@ public class AssemblingConveyorTest {
 		System.out.println("Unexpected: "+res);
 	}
 
-	
-	
+
 	/**
 	 * Test error.
 	 *
@@ -653,7 +629,7 @@ public class AssemblingConveyorTest {
 		assertFalse(conveyor.isRunning());
 	}
 
-	
+
 	/**
 	 * Test delayed.
 	 *
@@ -683,8 +659,10 @@ public class AssemblingConveyorTest {
 	 * The Class MyDelayed.
 	 */
 	public static class MyDelayed implements Delayed {
-		
-		/** The delay. */
+
+		/**
+		 * The delay.
+		 */
 		public long delay = 1;
 		
 		/* (non-Javadoc)
@@ -702,7 +680,7 @@ public class AssemblingConveyorTest {
 		}
 		
 	}
-	
+
 	/**
 	 * Test managed delayed.
 	 */
@@ -723,7 +701,10 @@ public class AssemblingConveyorTest {
 		assertNull(q.poll());
 		
 	}
-	
+
+	/**
+	 * Test access by name.
+	 */
 	@Test
 	public void testAccessByName() {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
@@ -780,6 +761,9 @@ public class AssemblingConveyorTest {
 		
 	}
 
+	/**
+	 * Test unregister access by name.
+	 */
 	@Test(expected=RuntimeException.class)
 	public void testUnregisterAccessByName() {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
@@ -802,7 +786,10 @@ public class AssemblingConveyorTest {
 		
 	}
 
-	
+
+	/**
+	 * Test access by wrong name.
+	 */
 	@Test(expected=RuntimeException.class)
 	public void testAccessByWrongName() {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();

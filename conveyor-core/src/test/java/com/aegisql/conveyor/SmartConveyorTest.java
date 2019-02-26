@@ -3,50 +3,26 @@
  */
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
-
-import java.time.Duration;
-import java.util.Queue;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.result.ResultMap;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.loaders.PartLoader;
-import com.aegisql.conveyor.user.AbstractBuilderEvents;
-import com.aegisql.conveyor.user.LowerCaseUserBuilder;
-import com.aegisql.conveyor.user.LowerUser;
-import com.aegisql.conveyor.user.UpperCaseUserBuilder;
-import com.aegisql.conveyor.user.UpperUser;
-import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.user.UserBuilder;
-import com.aegisql.conveyor.user.UserBuilderEvents;
-import com.aegisql.conveyor.user.UserBuilderEvents2;
-import com.aegisql.conveyor.user.UserBuilderEvents3;
-import com.aegisql.conveyor.user.UserBuilderSmart;
-import com.aegisql.conveyor.user.UserBuilderTesting;
-import com.aegisql.conveyor.user.UserBuilderTestingState;
+import com.aegisql.conveyor.user.*;
+import org.junit.*;
+
+import java.time.Duration;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class SmartConveyorTest.
- * 
+ *
  * @author Mikhail Teplitskiy
  * @version 1.0.0
  */
@@ -56,8 +32,7 @@ public class SmartConveyorTest {
 	/**
 	 * Sets the up before class.
 	 *
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -66,8 +41,7 @@ public class SmartConveyorTest {
 	/**
 	 * Tear down after class.
 	 *
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
@@ -76,8 +50,7 @@ public class SmartConveyorTest {
 	/**
 	 * Sets the up.
 	 *
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@Before
 	public void setUp() throws Exception {
@@ -86,8 +59,7 @@ public class SmartConveyorTest {
 	/**
 	 * Tear down.
 	 *
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@After
 	public void tearDown() throws Exception {
@@ -96,8 +68,7 @@ public class SmartConveyorTest {
 	/**
 	 * Test basics smart.
 	 *
-	 * @throws InterruptedException
-	 *             the interrupted exception
+	 * @throws InterruptedException the interrupted exception
 	 */
 	@Test
 	public void testBasicsSmart() throws InterruptedException {
@@ -143,7 +114,7 @@ public class SmartConveyorTest {
 	 * Test reschedule smart.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test
 	//@Ignore
@@ -182,8 +153,7 @@ public class SmartConveyorTest {
 	/**
 	 * Test basics testing.
 	 *
-	 * @throws InterruptedException
-	 *             the interrupted exception
+	 * @throws InterruptedException the interrupted exception
 	 */
 	@Test
 	public void testBasicsTesting() throws InterruptedException {
@@ -297,7 +267,7 @@ public class SmartConveyorTest {
 	 * Test basics testing creating interface.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test
 	public void testBasicsTestingCreatingInterface() throws InterruptedException, ExecutionException {
@@ -357,8 +327,7 @@ public class SmartConveyorTest {
 	/**
 	 * Test basics testing.
 	 *
-	 * @throws InterruptedException
-	 *             the interrupted exception
+	 * @throws InterruptedException the interrupted exception
 	 */
 	@Test
 	public void testBasicsTestingState() throws InterruptedException {
@@ -397,8 +366,8 @@ public class SmartConveyorTest {
 	/**
 	 * Test rejected start offer.
 	 *
-	 * @throws InterruptedException             the interrupted exception
-	 * @throws ExecutionException the execution exception
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test
 	public void testRejectedStartOffer() throws InterruptedException, ExecutionException {
@@ -424,8 +393,8 @@ public class SmartConveyorTest {
 	/**
 	 * Test rejected start add.
 	 *
-	 * @throws InterruptedException             the interrupted exception
-	 * @throws ExecutionException the execution exception
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected = ExecutionException.class) // ???? Failed
 	public void testRejectedStartAdd() throws InterruptedException, ExecutionException {
@@ -468,8 +437,8 @@ public class SmartConveyorTest {
 	 * Test future smart.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
-	 * @throws TimeoutException the timeout exception
+	 * @throws ExecutionException   the execution exception
+	 * @throws TimeoutException     the timeout exception
 	 */
 	@Test(expected=CancellationException.class)
 	public void testFutureSmart() throws InterruptedException, ExecutionException, TimeoutException {
@@ -539,8 +508,8 @@ public class SmartConveyorTest {
 	 * Test upper case.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
-	 * @throws TimeoutException the timeout exception
+	 * @throws ExecutionException   the execution exception
+	 * @throws TimeoutException     the timeout exception
 	 */
 	@Test
 	public void testUpperCase() throws InterruptedException, ExecutionException, TimeoutException {
@@ -573,13 +542,13 @@ public class SmartConveyorTest {
 		assertEquals(user1,new UpperUser("JOHN","DOE",1999));
 		conveyor.stop();
 	}
-	
+
 	/**
 	 * Test lower case.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
-	 * @throws TimeoutException the timeout exception
+	 * @throws ExecutionException   the execution exception
+	 * @throws TimeoutException     the timeout exception
 	 */
 	@Test
 	public void testLowerCase() throws InterruptedException, ExecutionException, TimeoutException {
@@ -618,8 +587,8 @@ public class SmartConveyorTest {
 	 * Test object.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
-	 * @throws TimeoutException the timeout exception
+	 * @throws ExecutionException   the execution exception
+	 * @throws TimeoutException     the timeout exception
 	 */
 	@Test
 	public void testObject() throws InterruptedException, ExecutionException, TimeoutException {
@@ -655,8 +624,8 @@ public class SmartConveyorTest {
 	 * Test upper case with added expiration and testing.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
-	 * @throws TimeoutException the timeout exception
+	 * @throws ExecutionException   the execution exception
+	 * @throws TimeoutException     the timeout exception
 	 */
 	@Test
 	public void testUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException, TimeoutException {
@@ -694,8 +663,8 @@ public class SmartConveyorTest {
 	 * Test failing upper case with added expiration and testing.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException the execution exception
-	 * @throws TimeoutException the timeout exception
+	 * @throws ExecutionException   the execution exception
+	 * @throws TimeoutException     the timeout exception
 	 */
 	@Test(expected=CancellationException.class)
 	public void testFailingUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException, TimeoutException {
@@ -730,7 +699,13 @@ public class SmartConveyorTest {
 		assertEquals(user1,new UpperUser("JOHN","DOE",1999));
 		conveyor.stop();
 	}
-	
+
+	/**
+	 * Test static values.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException   the execution exception
+	 */
 	@Test
 	public void testStaticValues() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, SmartLabel<UserBuilder>, User> c = new AssemblingConveyor<>();
@@ -787,9 +762,8 @@ public class SmartConveyorTest {
 	/**
 	 * Test basics smart.
 	 *
-	 * @throws InterruptedException
-	 *             the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test
 	public void testCompleteAndStop() throws InterruptedException, ExecutionException {
@@ -814,6 +788,12 @@ public class SmartConveyorTest {
 		assertEquals(100, outQueue.size());
 	}
 
+	/**
+	 * Test complete and stop with expiration.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException   the execution exception
+	 */
 	@Test
 	public void testCompleteAndStopWithExpiration() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
@@ -840,13 +820,12 @@ public class SmartConveyorTest {
 		assertEquals(50, outQueue.size());
 	}
 
-	
+
 	/**
 	 * Test basics smart.
 	 *
-	 * @throws InterruptedException
-	 *             the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=ExecutionException.class)
 	public void testCompleteAndStopRejectMessages() throws InterruptedException, ExecutionException {
@@ -874,7 +853,13 @@ public class SmartConveyorTest {
 		cf.get();
 	}
 
-	
+
+	/**
+	 * Test complete and stop reject command.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 * @throws ExecutionException   the execution exception
+	 */
 	@Test(expected=IllegalStateException.class)
 	public void testCompleteAndStopRejectCommand() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
