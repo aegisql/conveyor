@@ -10,6 +10,7 @@ import org.junit.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
@@ -90,7 +91,7 @@ public class PBalancedConvTest {
 		ConveyorAcceptor<Integer, String, String> t2 = new ConveyorAcceptor<>(c2);
 		t2.expectsValue("version", 2);
 		
-		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(Arrays.asList(t1,t2));
+		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(t1,t2);
 		pbc.setName("testPConveyorSimple");
 		pbc.setReadinessEvaluator(Conveyor.getTesterFor(pbc).accepted("first", "second"));
 		pbc.resultConsumer(results).set();
@@ -132,7 +133,7 @@ public class PBalancedConvTest {
 		ConveyorAcceptor<Integer, String, String> t4 = new ConveyorAcceptor<>(c4);
 		t4.expectsValue("version", 2).expectsValue("abtest", "B");
 		// wrap conveyors with PBalancedParallelConveyor
-		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(Arrays.asList(t1,t2,t3,t4));
+		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(t1,t2,t3,t4);
 		pbc.setName("testPConveyorDouble");
 		pbc.setReadinessEvaluator(Conveyor.getTesterFor(pbc).accepted("first", "second"));
 		pbc.resultConsumer(results).set();
@@ -219,7 +220,7 @@ public class PBalancedConvTest {
 
 	@Test(expected = NullPointerException.class)
 	public void testFailNullPropTest() {
-		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(null);
+		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>((List<ConveyorAcceptor<Integer, String, String>>) null);
 	}
 
 	@Test

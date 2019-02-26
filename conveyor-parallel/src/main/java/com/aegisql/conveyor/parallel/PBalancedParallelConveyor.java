@@ -6,10 +6,7 @@ import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -23,6 +20,11 @@ public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	{
 		failedFuture.complete(false);
 	}
+
+	public PBalancedParallelConveyor(ConveyorAcceptor<K, L, OUT>... testers) {
+		this(Arrays.asList(testers));
+	}
+
 
 	public PBalancedParallelConveyor(List<ConveyorAcceptor<K, L, OUT>> testers) {
 		super();
