@@ -12,10 +12,15 @@ import java.util.function.Supplier;
 
 public class ConveyorAcceptor<K,L,OUT> implements Predicate<Map<String,Object>> {
 
-	private final Conveyor<K,L,OUT> conveyor;
+	final Conveyor<K,L,OUT> conveyor;
 	
-	private final Map<String,Predicate<Object>> testers = new HashMap<>();
-	
+	final Map<String,Predicate<Object>> testers = new HashMap<>();
+
+	public ConveyorAcceptor(Conveyor<K,L,OUT> conveyor, Map<String,Predicate<Object>> testers) {
+		this.conveyor = conveyor;
+		this.testers.putAll(testers);
+	}
+
 	public ConveyorAcceptor(Conveyor<K,L,OUT> conveyor) {
 		this.conveyor = conveyor;
 	}
