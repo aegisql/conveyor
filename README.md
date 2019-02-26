@@ -47,7 +47,9 @@ conveyor configurator
 
 ## Release History
 
-### 1.4.2-SNAPSHOT
+### 1.4.3-SNAPSHOT
+
+### 1.4.2
 * Suspend/resume running conveyor
 * Suspend command with Future
 * derby-memory engine
