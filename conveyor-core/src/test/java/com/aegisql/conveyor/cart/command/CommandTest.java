@@ -1,29 +1,24 @@
 package com.aegisql.conveyor.cart.command;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.CommandLabel;
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
+import org.junit.*;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.CommandLabel;
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.user.UserBuilder;
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class CommandTest.
  */
 public class CommandTest {
-	
+
 	/**
 	 * The Class TestOut.
 	 */

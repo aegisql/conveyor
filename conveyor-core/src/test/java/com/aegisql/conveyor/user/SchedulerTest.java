@@ -12,14 +12,17 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class SchedulerTest.
  */
 public class SchedulerTest {
 
-	/** The s. */
+	/**
+	 * The s.
+	 */
 	SimpleScheduler<String> s = new SimpleScheduler<>();
-	
+
 	/**
 	 * Sets the up before class.
 	 *
@@ -87,7 +90,7 @@ public class SchedulerTest {
 		assertEquals(0,s.getCollectorSize());
 	}
 
-	
+
 	/**
 	 * Test execute with delay.
 	 *
@@ -147,7 +150,7 @@ public class SchedulerTest {
 	 * Test execute once error.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=ExecutionException.class)
 	public void testExecuteOnceError() throws InterruptedException, ExecutionException {
@@ -158,13 +161,16 @@ public class SchedulerTest {
 	 * Test execute once error2.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException 
+	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=ExecutionException.class)
 	public void testExecuteOnceError2() throws InterruptedException, ExecutionException {
 		s.part().id("test1").value("value").label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place().get();
 	}
 
+	/**
+	 * Closure test.
+	 */
 	@Test
 	public void closureTest() {
 
