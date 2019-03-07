@@ -1,17 +1,11 @@
 package com.aegisql.conveyor.multichannel;
 
-import java.util.concurrent.TimeUnit;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.multichannel.UserBuilderEvents;
+import org.junit.*;
+
+import java.util.concurrent.TimeUnit;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -101,7 +95,7 @@ public class MultichannelConceptTest {
 			return ub.first != null && ub.last != null;
 		});
 		ch1.resultConsumer().first(bin->{
-			ShoppingCart<Integer, User, UserBuilderEvents> cart = new ShoppingCart<>(bin.key, bin.product, UserBuilderEvents.MERGE_A,bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
+			ShoppingCart<Integer, User, UserBuilderEvents> cart = new ShoppingCart<>(bin.key, bin.product, UserBuilderEvents.MERGE_A,bin.expirationTime,TimeUnit.MILLISECONDS);
 			merge.place(cart);
 			System.out.println("A sent "+bin.product);
 		}).set();
@@ -114,7 +108,7 @@ public class MultichannelConceptTest {
 			return ub.yearOfBirth != null;
 		});
 		ch2.resultConsumer().first(bin->{
-			ShoppingCart<Integer, User, UserBuilderEvents> cart = new ShoppingCart<>(bin.key, bin.product, UserBuilderEvents.MERGE_B,bin.remainingDelayMsec,TimeUnit.MILLISECONDS);
+			ShoppingCart<Integer, User, UserBuilderEvents> cart = new ShoppingCart<>(bin.key, bin.product, UserBuilderEvents.MERGE_B,bin.expirationTime,TimeUnit.MILLISECONDS);
 			merge.place(cart);
 			System.out.println("B sent "+bin.product);
 		}).set();

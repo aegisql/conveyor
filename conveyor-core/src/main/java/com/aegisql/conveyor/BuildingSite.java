@@ -625,7 +625,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				+ (initialCart != null ? "initialCart=" + initialCart + ", " : "") + "acceptCount=" + acceptCount
 				+ ", builderCreated=" + builderCreated + ", builderExpiration=" + expireableSource.getExpirationTime() + ", "
 				+ (status != null ? "status=" + status + ", " : "")
-				+"delay="+getDelayMsec() + ", "
+                + (getDelayMsec() == Long.MAX_VALUE ? "unexpireable":"delay="+getDelayMsec()) + ", "
 				+ (lastError != null ? "lastError=" + lastError + ", " : "")
 				+ (eventHistory != null ? "eventHistory=" + eventHistory : "") + "]";
 	}
@@ -674,7 +674,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 */
 	void completeWithValue(OUT value, Status status) {
 		Acknowledge ack = getAcknowledge();
-		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getDelayMsec(), status , getProperties(), ack) );
+		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getExpirationTime(), status , getProperties(), ack) );
 	}
 	
 	/**

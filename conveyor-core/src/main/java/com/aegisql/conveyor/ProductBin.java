@@ -21,7 +21,7 @@ public final class ProductBin<K,OUT> {
 	public final OUT product;
 	
 	/** The remaining delay msec. */
-	public final long remainingDelayMsec;
+	public final long expirationTime;
 	
 	/** The status. */
 	public final Status status;
@@ -37,16 +37,16 @@ public final class ProductBin<K,OUT> {
 	 *
 	 * @param key the key
 	 * @param product the product
-	 * @param remainingDelayMsec the remaining delay msec
+	 * @param expirationTime the remaining delay msec
 	 * @param status the status
 	 * @param properties the properties
 	 * @param acknowledge the acknowledge
 	 */
-	public ProductBin(K key, OUT product, long remainingDelayMsec, Status status, Map<String,Object> properties, Acknowledge acknowledge) {
+	public ProductBin(K key, OUT product, long expirationTime, Status status, Map<String,Object> properties, Acknowledge acknowledge) {
 		super();
 		this.key                = key;
 		this.product            = product;
-		this.remainingDelayMsec = remainingDelayMsec;
+		this.expirationTime = expirationTime;
 		this.status             = status;
 		this.properties         = properties;
 		this.acknowledge        = acknowledge;
@@ -58,7 +58,7 @@ public final class ProductBin<K,OUT> {
 	 */
 	@Override
 	public String toString() {
-		return "ProductBin [key=" + key + ", product='" + product + (remainingDelayMsec == Long.MAX_VALUE ? "', unexpireable":"', remainingDelayMsec="+remainingDelayMsec)
+		return "ProductBin [key=" + key + ", product='" + product + (expirationTime == 0 ? "', unexpireable":"', expirationTime="+ expirationTime)
 				+ ", status=" + status + ", properties=" + properties + "]";
 	}
 

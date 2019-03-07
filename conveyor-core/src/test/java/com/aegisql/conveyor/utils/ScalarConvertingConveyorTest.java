@@ -1,19 +1,23 @@
 package com.aegisql.conveyor.utils;
 
+import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.result.ResultMap;
+import com.aegisql.conveyor.reflection.SimpleConveyor;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 import org.junit.*;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertNotNull;
@@ -104,15 +108,23 @@ public class ScalarConvertingConveyorTest {
 		assertNotNull(usr.get());
 	}
 
-	class ToLower extends ScalarConvertingBuilder<String,String> {
-		public String get() {
-			return scalar.toLowerCase();
+	abstract class ScalarHolder<T,R> implements Testing, Supplier<R> {
+		T value;
+		@Override
+		public boolean test() {
+			return true;
 		}
 	}
 
-	class ToSet extends ScalarConvertingBuilder<String, Set<String>> {
+	class ToLower extends ScalarHolder<String,String> {
+		public String get() {
+			return value.toLowerCase();
+		}
+	}
+
+	class ToSet extends ScalarHolder<String, Set<String>> {
 		public Set<String> get() {
-			return Arrays.stream(scalar.split("\\s+")).collect(Collectors.toSet());
+			return Arrays.stream(value.split("\\s+")).collect(Collectors.toSet());
 		}
 	}
 
@@ -121,21 +133,24 @@ public class ScalarConvertingConveyorTest {
 
 		ResultMap<Integer,Set<String>> res = new ResultMap<>();
 
-		ScalarConvertingConveyor<Integer, String, String> toLower = new ScalarConvertingConveyor<>();
-		toLower.setBuilderSupplier(ToLower::new);
+		SimpleConveyor<Integer, String> toLower = new SimpleConveyor<>(ToLower::new);
 		toLower.setName("toLower");
 
-		ScalarConvertingConveyor<Integer, String, Set<String>> toSet = new ScalarConvertingConveyor<>();
-		toSet.setBuilderSupplier(ToSet::new);
+		SimpleConveyor<Integer, Set<String>> toSet = new SimpleConveyor<>(ToSet::new);
 		toSet.setName("toSet");
-		toSet.resultConsumer(res).andThen(LogResult.stdOut(toSet)).set();
+		toSet.resultConsumer(res).andThen(LogResult.debug(toSet)).set();
 
-		ForwardResult.from(toLower).to(toSet).label("RESULT").bind();
+		ForwardResult.from(toLower).to(toSet).label("value").bind();
 
-		CompletableFuture<Set<String>> future = toSet.build().id(1).createFuture();
-		toLower.part().id(1).value("to Be Or not TO be").place();
-		future.join();
-
+		toLower
+				.part()
+				.ttl(Duration.ofMillis(1000))
+				.id(1)
+				.label("value")
+				.value("to Be Or not TO be")
+				.place();
+		toLower.completeAndStop().join();
+		toSet.completeAndStop();
 	}
 
 }

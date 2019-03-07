@@ -3,64 +3,31 @@
  */
 package com.aegisql.conveyor;
 
-import static com.aegisql.conveyor.cart.LoadType.BUILDER;
-import static com.aegisql.conveyor.cart.LoadType.FUTURE;
-import static com.aegisql.conveyor.cart.LoadType.MULTI_KEY_PART;
-import static com.aegisql.conveyor.cart.LoadType.PART;
-import static com.aegisql.conveyor.cart.LoadType.RESULT_CONSUMER;
-import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import javax.management.ObjectName;
-import javax.management.StandardMBean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.aegisql.conveyor.BuildingSite.Memento;
 import com.aegisql.conveyor.ScrapBin.FailureType;
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.CreatingCart;
-import com.aegisql.conveyor.cart.FutureCart;
-import com.aegisql.conveyor.cart.Load;
-import com.aegisql.conveyor.cart.LoadType;
-import com.aegisql.conveyor.cart.MultiKeyCart;
-import com.aegisql.conveyor.cart.ResultConsumerCart;
-import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.*;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.delay.DelayProvider;
-import com.aegisql.conveyor.loaders.BuilderLoader;
-import com.aegisql.conveyor.loaders.CommandLoader;
-import com.aegisql.conveyor.loaders.FutureLoader;
-import com.aegisql.conveyor.loaders.PartLoader;
-import com.aegisql.conveyor.loaders.ResultConsumerLoader;
-import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
-import com.aegisql.conveyor.loaders.StaticPartLoader;
+import com.aegisql.conveyor.loaders.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.*;
+import java.util.stream.Collectors;
+
+import static com.aegisql.conveyor.cart.LoadType.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -1509,13 +1476,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			BuildingSite<K, ?, ?, ? extends OUT> bs = conveyor.collector.get(key);
 			try {
 				OUT prod = bs.unsafeBuild();
-				ProductBin<K, OUT> bin = new ProductBin<K, OUT>(key, prod, bs.getDelayMsec(), bs.getStatus(), bs.getProperties(), null);
+				ProductBin<K, OUT> bin = new ProductBin<K, OUT>(key, prod, bs.getExpirationTime(), bs.getStatus(), bs.getProperties(), null);
 				cart.getValue().accept(bin);
 				cart.getFuture().complete(true);
 			} catch (Exception e) {
 				Map<String,Object> prop = bs.getProperties();
 				prop.put("ERROR", e);
-				ProductBin<K, OUT> bin = new ProductBin<K, OUT>(key, null, bs.getDelayMsec(), Status.INVALID, bs.getProperties(), null);
+				ProductBin<K, OUT> bin = new ProductBin<K, OUT>(key, null, bs.getExpirationTime(), Status.INVALID, bs.getProperties(), null);
 				cart.getValue().accept(bin);
 				cart.getFuture().complete(false);
 			}

@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 // TODO: Auto-generated Javadoc
@@ -114,8 +113,8 @@ public class ForwardResult<K2, L2> {
 				forwardedProperty = (String) bin.properties.get("FORWARDED");
 			}
 			PartLoader<K2, L> loader = getToConv().part().label(label).value(bin.product).addProperty("FORWARDED", forwardedProperty);
-			if(bin.remainingDelayMsec < Long.MAX_VALUE) {
-				loader = loader.ttl(bin.remainingDelayMsec, TimeUnit.MILLISECONDS);
+			if(bin.expirationTime > 0) {
+				loader = loader.expirationTime(bin.expirationTime);
 			}
 			if (filter == null) {
 				loader = loader.id(keyTransformer.apply(bin)).value(bin.product);
