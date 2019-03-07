@@ -1,14 +1,20 @@
 package com.aegisql.conveyor.utils;
 
+import com.aegisql.conveyor.consumers.result.ForwardResult;
+import com.aegisql.conveyor.consumers.result.LogResult;
+import com.aegisql.conveyor.consumers.result.ResultMap;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 import org.junit.*;
 
+import java.util.Arrays;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -96,6 +102,40 @@ public class ScalarConvertingConveyorTest {
 		CompletableFuture<Boolean> cf = sc.part().id("test").value(csv).place();
 		cf.get();
 		assertNotNull(usr.get());
+	}
+
+	class ToLower extends ScalarConvertingBuilder<String,String> {
+		public String get() {
+			return scalar.toLowerCase();
+		}
+	}
+
+	class ToSet extends ScalarConvertingBuilder<String, Set<String>> {
+		public Set<String> get() {
+			return Arrays.stream(scalar.split("\\s+")).collect(Collectors.toSet());
+		}
+	}
+
+	@Test
+	public void testChainedScalarConv() {
+
+		ResultMap<Integer,Set<String>> res = new ResultMap<>();
+
+		ScalarConvertingConveyor<Integer, String, String> toLower = new ScalarConvertingConveyor<>();
+		toLower.setBuilderSupplier(ToLower::new);
+		toLower.setName("toLower");
+
+		ScalarConvertingConveyor<Integer, String, Set<String>> toSet = new ScalarConvertingConveyor<>();
+		toSet.setBuilderSupplier(ToSet::new);
+		toSet.setName("toSet");
+		toSet.resultConsumer(res).andThen(LogResult.stdOut(toSet)).set();
+
+		ForwardResult.from(toLower).to(toSet).label("RESULT").bind();
+
+		CompletableFuture<Set<String>> future = toSet.build().id(1).createFuture();
+		toLower.part().id(1).value("to Be Or not TO be").place();
+		future.join();
+
 	}
 
 }

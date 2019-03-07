@@ -58,7 +58,7 @@ public final class ProductBin<K,OUT> {
 	 */
 	@Override
 	public String toString() {
-		return "ProductBin [key=" + key + ", product=" + product + ", remainingDelayMsec=" + remainingDelayMsec
+		return "ProductBin [key=" + key + ", product='" + product + (remainingDelayMsec == Long.MAX_VALUE ? "', unexpireable":"', remainingDelayMsec="+remainingDelayMsec)
 				+ ", status=" + status + ", properties=" + properties + "]";
 	}
 

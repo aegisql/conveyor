@@ -3,14 +3,13 @@
  */
 package com.aegisql.conveyor;
 
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,12 +20,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.consumers.result.ResultConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -561,7 +554,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	public long getDelayMsec() {
 		long expirationTime = expireableSource.getExpirationTime() ;
 		if(expirationTime == 0 ) {
-			return 0;
+			return Long.MAX_VALUE;
 		} else {
 			return expireableSource.getExpirationTime() - System.currentTimeMillis();
 		}

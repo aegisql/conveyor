@@ -1,15 +1,15 @@
 package com.aegisql.conveyor.consumers.result;
 
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.serial.SerializablePredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ProductBin;
-import com.aegisql.conveyor.serial.SerializablePredicate;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -113,15 +113,16 @@ public class ForwardResult<K2, L2> {
 			} else {
 				forwardedProperty = (String) bin.properties.get("FORWARDED");
 			}
-			if (filter == null) {
-				getToConv().part().label(label).id(keyTransformer.apply(bin)).value(bin.product)
-						.ttl(bin.remainingDelayMsec, TimeUnit.MILLISECONDS).addProperty("FORWARDED", forwardedProperty)
-						.place();
-			} else {
-				getToConv().part().label(label).foreach(filter).value(bin.product)
-				.ttl(bin.remainingDelayMsec, TimeUnit.MILLISECONDS).addProperty("FORWARDED", forwardedProperty)
-				.place();
+			PartLoader<K2, L> loader = getToConv().part().label(label).value(bin.product).addProperty("FORWARDED", forwardedProperty);
+			if(bin.remainingDelayMsec < Long.MAX_VALUE) {
+				loader = loader.ttl(bin.remainingDelayMsec, TimeUnit.MILLISECONDS);
 			}
+			if (filter == null) {
+				loader = loader.id(keyTransformer.apply(bin)).value(bin.product);
+			} else {
+				loader = loader.foreach(filter).value(bin.product);
+			}
+			loader.place();
 		}
 
 		/**
