@@ -3,7 +3,6 @@ package com.aegisql.conveyor.utils;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.LogResult;
-import com.aegisql.conveyor.consumers.result.ResultMap;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
@@ -131,14 +130,12 @@ public class ScalarConvertingConveyorTest {
 	@Test
 	public void testChainedScalarConv() {
 
-		ResultMap<Integer,Set<String>> res = new ResultMap<>();
-
 		SimpleConveyor<Integer, String> toLower = new SimpleConveyor<>(ToLower::new);
 		toLower.setName("toLower");
 
 		SimpleConveyor<Integer, Set<String>> toSet = new SimpleConveyor<>(ToSet::new);
 		toSet.setName("toSet");
-		toSet.resultConsumer(res).andThen(LogResult.debug(toSet)).set();
+		toSet.resultConsumer(LogResult.debug(toSet)).set();
 
 		ForwardResult.from(toLower).to(toSet).label("value").bind();
 
