@@ -1,13 +1,13 @@
 package com.aegisql.conveyor.consumers.scrap;
 
+import com.aegisql.conveyor.ScrapBin;
+import com.aegisql.conveyor.ScrapBin.FailureType;
+import com.aegisql.conveyor.serial.SerializablePredicate;
+
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
-
-import com.aegisql.conveyor.ScrapBin;
-import com.aegisql.conveyor.ScrapBin.FailureType;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -39,7 +39,7 @@ public interface ScrapConsumer<K,V> extends Consumer<ScrapBin<K,V>>{
 	 * @param filter the filter
 	 * @return the scrap consumer
 	 */
-	default ScrapConsumer<K,V> filter(Predicate<ScrapBin<K,V>> filter) {
+	default ScrapConsumer<K,V> filter(SerializablePredicate<ScrapBin<K,V>> filter) {
 	      Objects.requireNonNull(filter);
 	      return  bin -> {
 	    	  if( filter.test(bin) ) {
@@ -48,13 +48,33 @@ public interface ScrapConsumer<K,V> extends Consumer<ScrapBin<K,V>>{
 	      };	
 	}
 
+	default ScrapConsumer<K,V> filterProperty(String property, SerializablePredicate<Object> filter) {
+		Objects.requireNonNull(property,"Property must not be null");
+		Objects.requireNonNull(filter,"Predicate must be defined");
+		return bin -> {
+			if( bin.properties.containsKey(property) && filter.test(bin.properties.get(property)) ) {
+				accept(bin);
+			}
+		};
+	}
+
+	default ScrapConsumer<K,V> propertyEquals(String property, Object obj) {
+		Objects.requireNonNull(property,"Property must not be null");
+		return bin -> {
+			if( bin.properties.containsKey(property) && Objects.equals(obj,bin.properties.get(property)) ) {
+				accept(bin);
+			}
+		};
+	}
+
+
 	/**
 	 * Filter key.
 	 *
 	 * @param filter the filter
 	 * @return the scrap consumer
 	 */
-	default ScrapConsumer<K,V> filterKey(Predicate<K> filter) {
+	default ScrapConsumer<K,V> filterKey(SerializablePredicate<K> filter) {
 	      Objects.requireNonNull(filter);
 	      return  bin -> {
 	    	  if( bin.key != null && filter.test(bin.key) ) {
@@ -69,7 +89,7 @@ public interface ScrapConsumer<K,V> extends Consumer<ScrapBin<K,V>>{
 	 * @param filter the filter
 	 * @return the scrap consumer
 	 */
-	default ScrapConsumer<K,V> filterScrap(Predicate<V> filter) {
+	default ScrapConsumer<K,V> filterScrap(SerializablePredicate<V> filter) {
 	      Objects.requireNonNull(filter);
 	      return  bin -> {
 	    	  if( filter.test(bin.scrap) ) {
@@ -84,7 +104,7 @@ public interface ScrapConsumer<K,V> extends Consumer<ScrapBin<K,V>>{
 	 * @param filter the filter
 	 * @return the scrap consumer
 	 */
-	default ScrapConsumer<K,V> filterScrapType(Predicate<Class<?>> filter) {
+	default ScrapConsumer<K,V> filterScrapType(SerializablePredicate<Class<?>> filter) {
 	      Objects.requireNonNull(filter);
 	      return  bin -> {
 	    	  if( filter.test( bin.scrap.getClass() ) ) {
@@ -99,7 +119,7 @@ public interface ScrapConsumer<K,V> extends Consumer<ScrapBin<K,V>>{
 	 * @param filter the filter
 	 * @return the scrap consumer
 	 */
-	default ScrapConsumer<K,V> filterFailureType(Predicate<FailureType> filter) {
+	default ScrapConsumer<K,V> filterFailureType(SerializablePredicate<FailureType> filter) {
 	      Objects.requireNonNull(filter);
 	      return  bin -> {
 	    	  if( filter.test(bin.failureType) ) {
@@ -114,7 +134,7 @@ public interface ScrapConsumer<K,V> extends Consumer<ScrapBin<K,V>>{
 	 * @param filter the filter
 	 * @return the scrap consumer
 	 */
-	default ScrapConsumer<K,V> filterError(Predicate<Throwable> filter) {
+	default ScrapConsumer<K,V> filterError(SerializablePredicate<Throwable> filter) {
 	      Objects.requireNonNull(filter);
 	      return  bin -> {
 	    	  if( bin.error != null && filter.test(bin.error) ) {

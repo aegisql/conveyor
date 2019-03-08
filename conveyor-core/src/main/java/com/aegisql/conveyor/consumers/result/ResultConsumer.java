@@ -93,6 +93,25 @@ public interface ResultConsumer <K,V> extends SerializableConsumer<ProductBin<K,
 		};
 	}
 
+	default ResultConsumer<K,V> filterProperty(String property, SerializablePredicate<Object> filter) {
+		Objects.requireNonNull(property,"Property must not be null");
+		Objects.requireNonNull(filter,"Predicate must be defined");
+		return bin -> {
+			if( bin.properties.containsKey(property) && filter.test(bin.properties.get(property)) ) {
+				accept(bin);
+			}
+		};
+	}
+
+	default ResultConsumer<K,V> propertyEquals(String property, Object obj) {
+		Objects.requireNonNull(property,"Property must not be null");
+		return bin -> {
+			if( bin.properties.containsKey(property) && Objects.equals(obj,bin.properties.get(property)) ) {
+				accept(bin);
+			}
+		};
+	}
+
 	/**
 	 * Async.
 	 *

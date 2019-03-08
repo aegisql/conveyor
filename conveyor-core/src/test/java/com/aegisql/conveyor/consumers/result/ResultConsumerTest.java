@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -329,4 +330,44 @@ public class ResultConsumerTest {
 		rc3.accept(getProductBin(3,"test 3"));
 		rc4.accept(getProductBin(4,"test 4"));
 	}
+
+	@Test
+	public void  filterByPropertyTest() {
+
+		AtomicBoolean res1 = new AtomicBoolean(false);
+
+		ResultConsumer<Integer,String> rc1 = bin->{
+			res1.set(true);
+		};
+		rc1 = rc1.filterProperty("test",s->s.equals("TEST"));
+
+		ProductBin<Integer,String> bin1 = getProductBin(1,"val");
+		bin1.properties.put("test","BEST");
+		rc1.accept(bin1);
+		assertFalse(res1.get());
+		bin1.properties.put("test","TEST");
+		rc1.accept(bin1);
+		assertTrue(res1.get());
+	}
+
+	@Test
+	public void  filterByPropertyEqualsTest() {
+
+		AtomicBoolean res1 = new AtomicBoolean(false);
+
+		ResultConsumer<Integer,String> rc1 = bin->{
+			res1.set(true);
+		};
+		rc1 = rc1.propertyEquals("test","TEST");
+
+		ProductBin<Integer,String> bin1 = getProductBin(1,"val");
+		bin1.properties.put("test","BEST");
+		rc1.accept(bin1);
+		assertFalse(res1.get());
+		bin1.properties.put("test","TEST");
+		rc1.accept(bin1);
+		assertTrue(res1.get());
+	}
+
+
 }

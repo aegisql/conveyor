@@ -6,7 +6,9 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class ScrapConsumerTest {
@@ -50,4 +52,43 @@ public class ScrapConsumerTest {
         assertTrue(res.size()>=8);
 
     }
+
+    @Test
+    public void  filterByPropertyTest() {
+
+        AtomicBoolean res1 = new AtomicBoolean(false);
+
+        ScrapConsumer<Integer,String> rc1 = bin->{
+            res1.set(true);
+        };
+        rc1 = rc1.filterProperty("test",s->s.equals("TEST"));
+
+        ScrapBin<Integer,String> bin1 = getScrapBin(1,"val");
+        bin1.properties.put("test","BEST");
+        rc1.accept(bin1);
+        assertFalse(res1.get());
+        bin1.properties.put("test","TEST");
+        rc1.accept(bin1);
+        assertTrue(res1.get());
+    }
+
+    @Test
+    public void  filterByPropertyEqualsTest() {
+
+        AtomicBoolean res1 = new AtomicBoolean(false);
+
+        ScrapConsumer<Integer,String> rc1 = bin->{
+            res1.set(true);
+        };
+        rc1 = rc1.propertyEquals("test","TEST");
+
+        ScrapBin<Integer,String> bin1 = getScrapBin(1,"val");
+        bin1.properties.put("test","BEST");
+        rc1.accept(bin1);
+        assertFalse(res1.get());
+        bin1.properties.put("test","TEST");
+        rc1.accept(bin1);
+        assertTrue(res1.get());
+    }
+
 }
