@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Interface ResultConsumer.
  *
@@ -18,28 +19,28 @@ import java.util.concurrent.ForkJoinPool;
  */
 @FunctionalInterface
 public interface ResultConsumer <K,V> extends SerializableConsumer<ProductBin<K,V>>{
-	
-	/**
-	 * And then.
-	 *
-	 * @param other the other
-	 * @return the result consumer
-	 */
-	default ResultConsumer<K,V> andThen(ResultConsumer <K,V> other) {
+
+    /**
+     * And then.
+     *
+     * @param other the other
+     * @return the result consumer
+     */
+    default ResultConsumer<K,V> andThen(ResultConsumer <K,V> other) {
 	      Objects.requireNonNull(other);
 	      return  bin -> { 
 	    	  accept(bin); 
 	    	  other.accept(bin); 
 	      };	
 	}
-	
-	/**
-	 * Filter.
-	 *
-	 * @param filter the filter
-	 * @return the result consumer
-	 */
-	default ResultConsumer<K,V> filter(SerializablePredicate<ProductBin<K,V>> filter) {
+
+    /**
+     * Filter.
+     *
+     * @param filter the filter
+     * @return the result consumer
+     */
+    default ResultConsumer<K,V> filter(SerializablePredicate<ProductBin<K,V>> filter) {
 		Objects.requireNonNull(filter);
 		return bin -> {
 			if( filter.test(bin) ) {
@@ -48,13 +49,13 @@ public interface ResultConsumer <K,V> extends SerializableConsumer<ProductBin<K,
 		};
 	}
 
-	/**
-	 * Filter key.
-	 *
-	 * @param filter the filter
-	 * @return the result consumer
-	 */
-	default ResultConsumer<K,V> filterKey(SerializablePredicate<K> filter) {
+    /**
+     * Filter key.
+     *
+     * @param filter the filter
+     * @return the result consumer
+     */
+    default ResultConsumer<K,V> filterKey(SerializablePredicate<K> filter) {
 		Objects.requireNonNull(filter);
 		return bin -> {
 			if( filter.test(bin.key) ) {
@@ -63,13 +64,13 @@ public interface ResultConsumer <K,V> extends SerializableConsumer<ProductBin<K,
 		};
 	}
 
-	/**
-	 * Filter result.
-	 *
-	 * @param filter the filter
-	 * @return the result consumer
-	 */
-	default ResultConsumer<K,V> filterResult(SerializablePredicate<V> filter) {
+    /**
+     * Filter result.
+     *
+     * @param filter the filter
+     * @return the result consumer
+     */
+    default ResultConsumer<K,V> filterResult(SerializablePredicate<V> filter) {
 		Objects.requireNonNull(filter);
 		return bin -> {
 			if( filter.test(bin.product) ) {
@@ -78,13 +79,13 @@ public interface ResultConsumer <K,V> extends SerializableConsumer<ProductBin<K,
 		};
 	}
 
-	/**
-	 * Filter status.
-	 *
-	 * @param filter the filter
-	 * @return the result consumer
-	 */
-	default ResultConsumer<K,V> filterStatus(SerializablePredicate<Status> filter) {
+    /**
+     * Filter status.
+     *
+     * @param filter the filter
+     * @return the result consumer
+     */
+    default ResultConsumer<K,V> filterStatus(SerializablePredicate<Status> filter) {
 		Objects.requireNonNull(filter);
 		return bin -> {
 			if( filter.test(bin.status) ) {
@@ -93,7 +94,14 @@ public interface ResultConsumer <K,V> extends SerializableConsumer<ProductBin<K,
 		};
 	}
 
-	default ResultConsumer<K,V> filterProperty(String property, SerializablePredicate<Object> filter) {
+    /**
+     * Filter property result consumer.
+     *
+     * @param property the property
+     * @param filter   the filter
+     * @return the result consumer
+     */
+    default ResultConsumer<K,V> filterProperty(String property, SerializablePredicate<Object> filter) {
 		Objects.requireNonNull(property,"Property must not be null");
 		Objects.requireNonNull(filter,"Predicate must be defined");
 		return bin -> {
@@ -103,7 +111,14 @@ public interface ResultConsumer <K,V> extends SerializableConsumer<ProductBin<K,
 		};
 	}
 
-	default ResultConsumer<K,V> propertyEquals(String property, Object obj) {
+    /**
+     * Property equals result consumer.
+     *
+     * @param property the property
+     * @param obj      the obj
+     * @return the result consumer
+     */
+    default ResultConsumer<K,V> propertyEquals(String property, Object obj) {
 		Objects.requireNonNull(property,"Property must not be null");
 		return bin -> {
 			if( bin.properties.containsKey(property) && Objects.equals(obj,bin.properties.get(property)) ) {
@@ -112,24 +127,24 @@ public interface ResultConsumer <K,V> extends SerializableConsumer<ProductBin<K,
 		};
 	}
 
-	/**
-	 * Async.
-	 *
-	 * @param pool the pool
-	 * @return the result consumer
-	 */
-	default ResultConsumer<K,V> async(ExecutorService pool) {
+    /**
+     * Async.
+     *
+     * @param pool the pool
+     * @return the result consumer
+     */
+    default ResultConsumer<K,V> async(ExecutorService pool) {
 		Objects.requireNonNull(pool);
 		return bin ->
 			pool.submit(()->accept(bin));
 	}
 
-	/**
-	 * Async.
-	 *
-	 * @return the result consumer
-	 */
-	default ResultConsumer<K,V> async() {
+    /**
+     * Async.
+     *
+     * @return the result consumer
+     */
+    default ResultConsumer<K,V> async() {
 		return async(ForkJoinPool.commonPool());
 	}
 

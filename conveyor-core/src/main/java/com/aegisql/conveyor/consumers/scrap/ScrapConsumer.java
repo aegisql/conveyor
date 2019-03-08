@@ -10,6 +10,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Interface ScrapConsumer.
  *
@@ -48,6 +49,13 @@ public interface ScrapConsumer<K,V> extends Consumer<ScrapBin<K,V>>{
 	      };	
 	}
 
+	/**
+	 * Filter property scrap consumer.
+	 *
+	 * @param property the property
+	 * @param filter   the filter
+	 * @return the scrap consumer
+	 */
 	default ScrapConsumer<K,V> filterProperty(String property, SerializablePredicate<Object> filter) {
 		Objects.requireNonNull(property,"Property must not be null");
 		Objects.requireNonNull(filter,"Predicate must be defined");
@@ -58,6 +66,13 @@ public interface ScrapConsumer<K,V> extends Consumer<ScrapBin<K,V>>{
 		};
 	}
 
+	/**
+	 * Property equals scrap consumer.
+	 *
+	 * @param property the property
+	 * @param obj      the obj
+	 * @return the scrap consumer
+	 */
 	default ScrapConsumer<K,V> propertyEquals(String property, Object obj) {
 		Objects.requireNonNull(property,"Property must not be null");
 		return bin -> {
@@ -112,7 +127,7 @@ public interface ScrapConsumer<K,V> extends Consumer<ScrapBin<K,V>>{
 	    	  }
 	      };	
 	}
-	
+
 	/**
 	 * Filter failure type.
 	 *
