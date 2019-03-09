@@ -1,56 +1,28 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
-
-import java.io.IOException;
-import java.time.Duration;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-
-import javax.management.ObjectName;
-import javax.management.StandardMBean;
-
-import com.aegisql.conveyor.AcknowledgeStatus;
-import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.LabeledValueConsumer;
-import com.aegisql.conveyor.SmartLabel;
-import com.aegisql.conveyor.State;
-import com.aegisql.conveyor.Status;
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.CreatingCart;
-import com.aegisql.conveyor.cart.LoadType;
-import com.aegisql.conveyor.cart.MultiKeyCart;
-import com.aegisql.conveyor.cart.ResultConsumerCart;
-import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.*;
+import com.aegisql.conveyor.cart.*;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
-import com.aegisql.conveyor.loaders.BuilderLoader;
-import com.aegisql.conveyor.loaders.CommandLoader;
-import com.aegisql.conveyor.loaders.FutureLoader;
-import com.aegisql.conveyor.loaders.PartLoader;
-import com.aegisql.conveyor.loaders.ResultConsumerLoader;
-import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
-import com.aegisql.conveyor.loaders.StaticPartLoader;
+import com.aegisql.conveyor.loaders.*;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuilder;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuildingConveyor;
 import com.aegisql.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
 import com.aegisql.conveyor.serial.SerializablePredicate;
+
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.*;
+
+import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
 
 /**
  * The Class PersistentConveyor.
@@ -416,7 +388,13 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public ScrapConsumerLoader<K> scrapConsumer() {
-		return forward.scrapConsumer();
+
+		ScrapConsumerLoader<K> skl = new ScrapConsumerLoader<>(sc->{
+			ackConveyor.scrapConsumer(sc).set();
+			forward.scrapConsumer(sc).set();
+		}, LogScrap.error(this));
+
+		return skl;
 	}
 
 	/*
@@ -427,7 +405,12 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public ScrapConsumerLoader<K> scrapConsumer(ScrapConsumer<K, ?> scrapConsumer) {
-		return forward.scrapConsumer(scrapConsumer);
+		ScrapConsumerLoader<K> skl = new ScrapConsumerLoader<>(sc->{
+			ackConveyor.scrapConsumer(sc).set();
+			forward.scrapConsumer(sc).set();
+		}, scrapConsumer);
+
+		return skl;
 	}
 
 	/*

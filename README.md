@@ -50,6 +50,9 @@ conveyor configurator
 ## Release History
 
 ### 1.4.3-SNAPSHOT
+* Additional filters for Result and Scrap consumers
+* Tests
+* Bugfixes
 
 ### 1.4.2
 * Suspend/resume running conveyor

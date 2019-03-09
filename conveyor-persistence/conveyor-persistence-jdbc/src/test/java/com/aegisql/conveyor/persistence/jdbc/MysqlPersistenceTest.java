@@ -1,27 +1,26 @@
 package com.aegisql.conveyor.persistence.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.consumers.result.LastResultReference;
+import com.aegisql.conveyor.consumers.result.LogResult;
+import com.aegisql.conveyor.consumers.scrap.LogScrap;
+import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.core.PersistentConveyor;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
+import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import org.junit.*;
 
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
-import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import static org.junit.Assert.*;
 
 public class MysqlPersistenceTest {
 
@@ -169,7 +168,7 @@ public class MysqlPersistenceTest {
 				.completedLogTable("COMPLETED_LOG2")
 				.user("root")
 				.addField(String.class, "ADDON")
-				.addUniqueFields("ADDON");
+				.addUniqueFields("ADDON")
 				;
 		
 		JdbcPersistence<Integer> p = jpb.build();
@@ -181,6 +180,7 @@ public class MysqlPersistenceTest {
 		cartB.addProperty("ADDON", "B");
 		Cart<Integer,String,String> cartC = new ShoppingCart<Integer, String, String>(100, "test", "label");
 		cartC.addProperty("ADDON", "A");
+
 		p.savePart(1, cartA);
 		p.savePart(2, cartB);
 		Cart restored = p.getPart(1);
@@ -197,6 +197,88 @@ public class MysqlPersistenceTest {
 		}
 	}
 
+	class BalanceBuilder implements Supplier<Double> {
+		Double summ = 0.00;
+		@Override
+		public Double get() {
+			return summ;
+		}
+		public void add(Double m) {
+			summ += m;
+		}
+		public void withdraw(Double m) {
+			summ -= m;
+		}
+	}
 
+	enum BALANCE_OPERATION implements SmartLabel<BalanceBuilder>{
+		ADD{{ setter = (bb,val)->bb.add((Double)val); }},
+		WITHDRAW{{ setter = (bb,val)->bb.withdraw((Double)val); }},
+		CLOSE{{ setter = (bb,val)->{}; }}
+		;
+		BiConsumer<BalanceBuilder, Object> setter;
+		@Override
+		public BiConsumer<BalanceBuilder, Object> get() {
+			return setter;
+		}
+	}
+
+	@Test
+	public void testCOnvWithTransactionField() throws Exception {
+
+		LastResultReference<Integer,Double> result = new LastResultReference();
+
+		JdbcPersistenceBuilder<Integer> jpb = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
+				.autoInit(true)
+				.partTable("BALANCE")
+				.completedLogTable("BALANCE_LOG")
+				.user("root")
+				.addField(Long.class, "TRANSACTION_ID")
+				.addUniqueFields("TRANSACTION_ID")
+				;
+		AssemblingConveyor<Integer, BALANCE_OPERATION, Double> balance = new AssemblingConveyor<>();
+
+		PersistentConveyor<Integer, BALANCE_OPERATION, Double> persistentBalance = jpb.build().wrapConveyor(balance);
+
+		persistentBalance.setReadinessEvaluator(Conveyor.getTesterFor(balance).accepted(BALANCE_OPERATION.CLOSE));
+		persistentBalance.setBuilderSupplier(BalanceBuilder::new);
+		persistentBalance.resultConsumer(LogResult.stdOut(balance)).andThen(result).set();
+		persistentBalance.scrapConsumer(LogScrap.stdErr(balance)).set();
+		persistentBalance
+				.part()
+				.id(1)
+				.label(BALANCE_OPERATION.ADD)
+				.value(100.00)
+				.addProperty("TRANSACTION_ID",1)
+				.place();
+		persistentBalance
+				.part()
+				.id(1)
+				.label(BALANCE_OPERATION.ADD)
+				.value(100.00)
+				.addProperty("TRANSACTION_ID",1)
+				.place();
+		persistentBalance
+				.part()
+				.id(1)
+				.label(BALANCE_OPERATION.ADD)
+				.value(200.00)
+				.addProperty("TRANSACTION_ID",2)
+				.place();
+		persistentBalance
+				.part()
+				.id(1)
+				.label(BALANCE_OPERATION.WITHDRAW)
+				.value(50.00)
+				.addProperty("TRANSACTION_ID",3)
+				.place();
+		persistentBalance
+				.part()
+				.id(1)
+				.label(BALANCE_OPERATION.CLOSE)
+				.addProperty("TRANSACTION_ID",4)
+				.place().join();
+		System.out.println(result);
+	}
 	
 }
