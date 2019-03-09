@@ -2,12 +2,14 @@ package com.aegisql.conveyor.persistence.jdbc;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.KeepRunningConveyorException;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
+import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
@@ -207,6 +209,9 @@ public class MysqlPersistenceTest {
 			summ += m;
 		}
 		public void withdraw(Double m) {
+			if(m > summ) {
+				throw new KeepRunningConveyorException("Withdraw of "+m+" rejected. Balance is low");
+			}
 			summ -= m;
 		}
 	}
@@ -244,41 +249,42 @@ public class MysqlPersistenceTest {
 		persistentBalance.setBuilderSupplier(BalanceBuilder::new);
 		persistentBalance.resultConsumer(LogResult.stdOut(balance)).andThen(result).set();
 		persistentBalance.scrapConsumer(LogScrap.stdErr(balance)).set();
-		persistentBalance
+
+		PartLoader<Integer, BALANCE_OPERATION> loader = persistentBalance
 				.part()
-				.id(1)
+				.id(1);
+
+		loader
 				.label(BALANCE_OPERATION.ADD)
 				.value(100.00)
 				.addProperty("TRANSACTION_ID",1)
 				.place();
-		persistentBalance
-				.part()
-				.id(1)
+		loader
 				.label(BALANCE_OPERATION.ADD)
 				.value(100.00)
 				.addProperty("TRANSACTION_ID",1)
 				.place();
-		persistentBalance
-				.part()
-				.id(1)
+		loader
 				.label(BALANCE_OPERATION.ADD)
 				.value(200.00)
 				.addProperty("TRANSACTION_ID",2)
 				.place();
-		persistentBalance
-				.part()
-				.id(1)
+		loader
 				.label(BALANCE_OPERATION.WITHDRAW)
 				.value(50.00)
 				.addProperty("TRANSACTION_ID",3)
 				.place();
-		persistentBalance
-				.part()
-				.id(1)
-				.label(BALANCE_OPERATION.CLOSE)
+		loader
+				.label(BALANCE_OPERATION.WITHDRAW)
+				.value(500.00)
 				.addProperty("TRANSACTION_ID",4)
+				.place();
+		loader
+				.label(BALANCE_OPERATION.CLOSE)
+				.addProperty("TRANSACTION_ID",5)
 				.place().join();
 		System.out.println(result);
+		assertEquals(250.00,result.getCurrent(),0.001);
 	}
 	
 }

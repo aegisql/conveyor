@@ -1129,7 +1129,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				currentSite.setLastCart(cart);
 				cart.getScrapConsumer().accept(new ScrapBin(cart.getKey(), cart,
 						"Cart Processor failed. Keep running", e, FailureType.KEEP_RUNNING_EXCEPTION,cart.getAllProperties(), null));
-				scrapConsumer.accept(new ScrapBin(cart.getKey(), currentSite,
+				scrapConsumer.accept(new ScrapBin(cart.getKey(), cart,
 						"Site Processor failed. Keep running", e, FailureType.KEEP_RUNNING_EXCEPTION,cart.getAllProperties(), currentSite.getAcknowledge()));
 				currentSite.completeFuturesExceptionaly(e);
 			}
