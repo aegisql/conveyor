@@ -7,7 +7,6 @@ import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
-import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.persistence.core.Persistence;
@@ -247,7 +246,7 @@ public class MysqlPersistenceTest {
 
 		persistentBalance.setReadinessEvaluator(Conveyor.getTesterFor(balance).accepted(BALANCE_OPERATION.CLOSE));
 		persistentBalance.setBuilderSupplier(BalanceBuilder::new);
-		persistentBalance.resultConsumer(LogResult.stdOut(balance)).andThen(result).set();
+		persistentBalance.resultConsumer(result).set();
 		persistentBalance.scrapConsumer(LogScrap.stdErr(balance)).set();
 
 		PartLoader<Integer, BALANCE_OPERATION> loader = persistentBalance
@@ -262,7 +261,7 @@ public class MysqlPersistenceTest {
 		loader
 				.label(BALANCE_OPERATION.ADD)
 				.value(100.00)
-				.addProperty("TRANSACTION_ID",1)
+				.addProperty("TRANSACTION_ID",1) //duplicate
 				.place();
 		loader
 				.label(BALANCE_OPERATION.ADD)
@@ -276,7 +275,7 @@ public class MysqlPersistenceTest {
 				.place();
 		loader
 				.label(BALANCE_OPERATION.WITHDRAW)
-				.value(500.00)
+				.value(500.00) //over the limit
 				.addProperty("TRANSACTION_ID",4)
 				.place();
 		loader
