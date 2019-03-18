@@ -1,18 +1,14 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.user.UserBuilderSmart;
+import org.junit.*;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.user.UserBuilderSmart;
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -151,7 +147,9 @@ public class SmartLabelFunctionalTest {
 			System.out.println("Intercepted Error");			
 		});
 		assertNotNull(l1);
-		l1.get().accept(b, "TEST");	
+
+		l1.get().accept(b, null);
+		l1.get().accept(b, "TEST");
 		l1.get().accept(b, 1);
 		l1.get().accept(b, new Exception("error"));
 		User u = b.get();
@@ -171,11 +169,13 @@ public class SmartLabelFunctionalTest {
 			
 		});
 		assertNotNull(l1);
+		assertNotNull(l1.identity());
 		l1 = l1.intercept(Exception.class, (error)->{
 			System.out.println("Intercepted Error "+error.getMessage());			
 		});
 		assertNotNull(l1);
-		l1.get().accept(b, "TEST");	
+		l1.get().accept(b, null);
+		l1.get().accept(b, "TEST");
 		l1.get().accept(b, 1);
 		l1.get().accept(b, new Exception("error"));
 		User u = b.get();
@@ -199,7 +199,8 @@ public class SmartLabelFunctionalTest {
 			System.out.println("Intercepted Error "+value.getMessage());			
 		});
 		assertNotNull(l1);
-		l1.get().accept(b, "TEST");	
+		l1.get().accept(b, null);
+		l1.get().accept(b, "TEST");
 		l1.get().accept(b, 1);
 		l1.get().accept(b, new Exception("error"));
 		User u = b.get();
@@ -362,5 +363,73 @@ public class SmartLabelFunctionalTest {
 		assertTrue(f.isDone());
 		System.out.println(f.get());
 	}
+
+	@Test
+	public void peekNamedTest() throws InterruptedException, ExecutionException {
+		UserBuilderSmart b = new UserBuilderSmart();
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.peek("name");
+		assertNotNull(l1);
+		l1 = l1.labelName("P");
+		assertNotNull(l1);
+		System.out.println(l1);
+		assertNotNull(l1.get());
+		CompletableFuture<User> f = new CompletableFuture<>();
+		l1.get().accept(b, f);
+		assertNotNull(b.get());
+		assertNull(b.get().getFirst());
+		assertTrue(f.isDone());
+		System.out.println(f.get());
+	}
+
+	class Failing implements Supplier<String> {
+
+		@Override
+		public String get() {
+			throw new RuntimeException("fail!");
+		}
+	}
+
+	@Test
+	public void peekFailTest() throws InterruptedException, ExecutionException {
+		Failing b = new Failing();
+		SmartLabel<Failing> l1 = SmartLabel.peek();
+		assertNotNull(l1);
+		l1 = l1.labelName("P");
+		assertNotNull(l1);
+		System.out.println(l1);
+		assertNotNull(l1.get());
+		CompletableFuture<User> f = new CompletableFuture<>();
+		l1.get().accept(b, f);
+		try {
+			assertNotNull(b.get());
+			fail("not expected");
+		} catch (Exception e) {
+
+		}
+		assertTrue(f.isDone());
+		assertTrue(f.isCompletedExceptionally());
+	}
+
+	@Test
+	public void peekNamedFailTest() throws InterruptedException, ExecutionException {
+		Failing b = new Failing();
+		SmartLabel<Failing> l1 = SmartLabel.peek("peek");
+		assertNotNull(l1);
+		l1 = l1.labelName("P");
+		assertNotNull(l1);
+		System.out.println(l1);
+		assertNotNull(l1.get());
+		CompletableFuture<User> f = new CompletableFuture<>();
+		l1.get().accept(b, f);
+		try {
+			assertNotNull(b.get());
+			fail("not expected");
+		} catch (Exception e) {
+
+		}
+		assertTrue(f.isDone());
+		assertTrue(f.isCompletedExceptionally());
+	}
+
 
 }
