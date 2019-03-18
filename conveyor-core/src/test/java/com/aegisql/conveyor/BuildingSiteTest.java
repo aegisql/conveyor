@@ -74,6 +74,20 @@ public class BuildingSiteTest {
 				null,
 				100, TimeUnit.MILLISECONDS,false,false,false,0,false,null,null,null);
 		assertNull(bs.getLastError());
+		BuildingSite.Memento memento = bs.getMemento();
+		memento.getTimestamp();
+		memento.getExpirationTime();
+		memento.getCreationTime();
+		BuildingSite.NON_LOCKING_LOCK.lock();
+		try {
+			BuildingSite.NON_LOCKING_LOCK.lockInterruptibly();
+			assertTrue(BuildingSite.NON_LOCKING_LOCK.tryLock(1,TimeUnit.SECONDS));
+		} catch (InterruptedException e) {
+			fail("not expected");
+		}
+		assertTrue(BuildingSite.NON_LOCKING_LOCK.tryLock());
+		BuildingSite.NON_LOCKING_LOCK.newCondition();
+
 		User u = bs.build();
 	}
 
@@ -93,7 +107,7 @@ public class BuildingSiteTest {
 				(label,value,builder)-> { }, 
 				(state,builder)->{return true;}, 
 				null,
-				100, TimeUnit.MILLISECONDS,false,false,false,0,false,null,null,null);
+				100, TimeUnit.MILLISECONDS,false,false,false,0,false,null,null,(a)->{});
 		assertEquals(0, bs.getAcceptCount());
 		assertEquals(Status.WAITING_DATA, bs.getStatus());
 
@@ -105,6 +119,12 @@ public class BuildingSiteTest {
 		Thread.sleep(110);
 		assertEquals(Status.READY, bs.getStatus());
 		assertEquals(0, bs.getAcceptedCarts().size());
+		assertFalse(bs.getAcknowledge().isAcknowledged());
+		bs.getAcknowledge().ack();
+		assertNotNull(bs.getBuilder());
+		assertNotNull(bs.getLock());
+		assertNotNull(bs.getCreatingCart());
+
 	}
 
 	@Test()
