@@ -6,8 +6,10 @@ import com.aegisql.conveyor.utils.map.MapBuilder;
 import com.aegisql.conveyor.utils.map.MapConveyor;
 import org.junit.*;
 
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -79,4 +81,12 @@ public class MapBuillderTest {
 		Thread.sleep(10);
 	}
 
+	@Test
+	public void constructorTests() {
+		MapBuilder mb1 = new MapBuilder(1000);
+		MapBuilder mb2 = new MapBuilder(1000, TimeUnit.SECONDS);
+		MapBuilder mb3 = new MapBuilder(new HashMap(),1000);
+		MapBuilder mb4 = new MapBuilder(new HashMap(),1000, TimeUnit.SECONDS);
+		MapBuilder mb5 = new MapBuilder(new HashMap());
+	}
 }

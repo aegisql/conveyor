@@ -20,6 +20,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 // TODO: Auto-generated Javadoc
 
@@ -35,9 +36,17 @@ public class ScalarConvertingConveyorTest {
 	public static class StringToUserBuulder extends ScalarConvertingBuilder<String,User> {
 		
 		public StringToUserBuulder() {
-			super(1000,TimeUnit.MILLISECONDS);
+			super();
 		}
-		
+
+		public StringToUserBuulder(long t, TimeUnit tu) {
+			super(t,tu);
+		}
+
+		public StringToUserBuulder(long l) {
+			super(l);
+		}
+
 		/* (non-Javadoc)
 		 * @see java.util.function.Supplier#get()
 		 */
@@ -150,4 +159,11 @@ public class ScalarConvertingConveyorTest {
 		toSet.completeAndStop();
 	}
 
+	@Test
+	public void testConstructors() {
+		ScalarConvertingBuilder scb1 = new StringToUserBuulder(1L);
+		ScalarConvertingBuilder scb2 = new StringToUserBuulder(1L,TimeUnit.MINUTES);
+		ScalarConvertingBuilder scb3 = new StringToUserBuulder();
+		assertTrue(scb1.test());
+	}
 }
