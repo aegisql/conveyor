@@ -79,7 +79,7 @@ public class SmartConveyorTest {
 		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
-		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
+		Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR).set();
 		conveyor.setName("User Assembler");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);

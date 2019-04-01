@@ -3,19 +3,17 @@
  */
 package com.aegisql.conveyor.demo.simple_conveyor;
 
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.consumers.result.LastResultReference;
+import com.aegisql.conveyor.demo.ThreadPool;
+import org.junit.Test;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.junit.Test;
-
-import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.consumers.result.LastResultReference;
-import com.aegisql.conveyor.demo.ThreadPool;
 
 public class Demo {
 
@@ -47,7 +45,7 @@ public class Demo {
 		);
 		
 		// IV - Build is ready when builder accepted three different pieces of data
-		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(3));
+		Conveyor.getTesterFor(conveyor).accepted(3).set();
 		
 		// V - Tell conveyor where to put created Person object
 		//     Product receiver should not block the thread 

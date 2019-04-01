@@ -353,5 +353,13 @@ public class ProductSupplierTest {
 		assertTrue(ss == ps.getSupplier());
 	}
 
+	@Test
+	public void testStrngBuilderWithLabels() {
+
+		ProductSupplier<String> ps = ProductSupplier.of(new StringBuilder()::toString);
+
+
+	}
+
 	
 }

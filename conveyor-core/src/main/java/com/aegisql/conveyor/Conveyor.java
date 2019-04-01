@@ -358,7 +358,7 @@ public interface Conveyor<K, L, OUT> {
 	 * @return the tester for
 	 */
 	public static <K, L,OUT> ReadinessTester<K, L,OUT> getTesterFor(Conveyor<K, L, OUT> conveyor) {
-		return new ReadinessTester<>();
+		return new ReadinessTester<K,L,OUT>(conveyor::setReadinessEvaluator);
 	}
 	
 	/**
