@@ -1,4 +1,9 @@
-package com.aegisql.conveyor;
+package com.aegisql.conveyor.utils;
+
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.State;
+import com.aegisql.conveyor.TestingState;
+import com.aegisql.conveyor.TimeoutAction;
 
 import java.util.function.*;
 
@@ -63,12 +68,8 @@ public class BuilderUtils<K, L, OUT, B> {
         this.timeoutActon = timeoutActon;
     }
 
-    public static <K, L, OUT> BuilderUtils<K, L, OUT, ?> forConveyor(Conveyor<K, L, OUT> conveyor) {
-        return new BuilderUtils<>(conveyor, null, null, null, null, b->{});
-    }
-
-    public <B> BuilderUtils<K, L, OUT, B> builderSupplier(Supplier<B> bs) {
-        return new BuilderUtils(conveyor, bs, productSupplier, stateTester, timeoutStateTester, timeoutActon);
+    public static <K, L, OUT, B> BuilderUtils<K, L, OUT, B> wrapBuilderSupplier(Conveyor<K, L, OUT> conveyor, Supplier<B> bs) {
+        return new BuilderUtils<>(conveyor, bs, null, null, null, b->{});
     }
 
     public BuilderUtils<K, L, OUT, B> productSupplier(Function<B, OUT> ps) {
