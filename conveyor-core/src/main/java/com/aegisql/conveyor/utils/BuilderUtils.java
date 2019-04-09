@@ -5,6 +5,7 @@ import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.TestingState;
 import com.aegisql.conveyor.TimeoutAction;
 
+import java.util.Objects;
 import java.util.function.*;
 
 public class BuilderUtils<K, L, OUT, B> {
@@ -69,6 +70,8 @@ public class BuilderUtils<K, L, OUT, B> {
     }
 
     public static <K, L, OUT, B> BuilderUtils<K, L, OUT, B> wrapBuilderSupplier(Conveyor<K, L, OUT> conveyor, Supplier<B> bs) {
+        Objects.requireNonNull(conveyor, "Conveyor instance required");
+        Objects.requireNonNull(bs, "Supplier instance required");
         return new BuilderUtils<>(conveyor, bs, null, null, null, b->{});
     }
 
@@ -121,6 +124,7 @@ public class BuilderUtils<K, L, OUT, B> {
     }
 
     public void setBuilderSupplier() {
+        Objects.requireNonNull(productSupplier, "Product Supplier instance required");
         if (stateTester != null) {
             conveyor.setBuilderSupplier(() -> new ProductSupplierTestingState(builderSupplier.get()));
         } else {
