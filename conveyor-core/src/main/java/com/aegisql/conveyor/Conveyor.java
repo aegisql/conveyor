@@ -13,8 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -453,7 +456,9 @@ public interface Conveyor<K, L, OUT> {
 	
 	/** The Constant mBeanServer. */
 	MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-	
+
+	final static Map<String,Conveyor> knownConveyors = new HashMap<>();
+
 	/**
 	 * By name.
 	 *
@@ -461,16 +466,20 @@ public interface Conveyor<K, L, OUT> {
 	 * @return the conveyor
 	 */
 	public static Conveyor byName(String name) {
-		ObjectName objectName;
 		try {
-			objectName = new ObjectName("com.aegisql.conveyor:type=" + name);
-			Object res = mBeanServer.invoke(objectName, "conveyor", null, null);
-			return (Conveyor) res;
+			String fullName = "com.aegisql.conveyor:type=" + name;
+			if(knownConveyors.containsKey(fullName)) {
+				return knownConveyors.get(fullName);
+			}
+			ObjectName objectName = new ObjectName(fullName);
+			Conveyor res = (Conveyor) mBeanServer.invoke(objectName, "conveyor", null, null);
+			knownConveyors.put(fullName,res);
+			return res;
 		} catch (Exception e) {
 			throw new RuntimeException("Conveyor with name '"+name +"' not found",e);
 		}
 	}
-	
+
 	/**
 	 * Lazy supplier.
 	 *
@@ -480,22 +489,46 @@ public interface Conveyor<K, L, OUT> {
 	public static Supplier<Conveyor> lazySupplier(String name) {
 		return new LazyConveyorSupplier(name);
 	}
-	
+
+
+
 	/**
 	 * Un register.
 	 *
 	 * @param name the name
 	 */
 	public static void unRegister(String name) {
-		ObjectName objectName;
 		try {
-			objectName = new ObjectName("com.aegisql.conveyor:type=" + name);
-			if(mBeanServer.isRegistered(objectName)) {
-				mBeanServer.unregisterMBean(objectName);
+			String fullName = "com.aegisql.conveyor:type=" + name;
+			ObjectName objectName = new ObjectName(fullName);
+			synchronized (mBeanServer) {
+				if (mBeanServer.isRegistered(objectName)) {
+					LOG.warn("Unregister existing mbean with name {}", objectName);
+					mBeanServer.unregisterMBean(objectName);
+					knownConveyors.remove(fullName);
+				}
 			}
 		} catch (Exception e) {
 			throw new RuntimeException("Conveyor with name '"+name +"' not found",e);
 		}
 	}
-	
+
+	public static ObjectName register(Conveyor conveyor, Object mbeanObject) {
+		try {
+			if(mbeanObject.getClass().getInterfaces().length != 1) {
+				throw new ConveyorRuntimeException("Conveyor Mbean Object must implement a single interface");
+			}
+			String fullName = "com.aegisql.conveyor:type=" + conveyor.getName();
+			Object mbean = new StandardMBean(mbeanObject, (Class) mbeanObject.getClass().getInterfaces()[0], false);
+			ObjectName objectName = new ObjectName(fullName);
+			synchronized (mBeanServer) {
+				unRegister(conveyor.getName());
+				mBeanServer.registerMBean(mbean, objectName);
+				knownConveyors.put(fullName,conveyor);
+			}
+			return objectName;
+		} catch (Exception e) {
+			throw new ConveyorRuntimeException("Error registering conveyor " + conveyor.getName(), e);
+		}
+	}
 }

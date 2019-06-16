@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.management.ObjectName;
-import javax.management.StandardMBean;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -458,7 +457,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected void setMbean(String name) {
 		try {
 			final AssemblingConveyor<K, L, OUT> thisConv = this;
-			Object mbean = new StandardMBean(new AssemblingConveyorMBean() {
+			this.objectName = Conveyor.register(this, new AssemblingConveyorMBean() {
 				@Override
 				public String getName() {
 					return thisConv.name;
@@ -617,26 +616,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				public void resume() {
 					thisConv.resume();
 				}
-			}, AssemblingConveyorMBean.class, false);
-			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type=" + name);
-			synchronized (mBeanServer) {
-				if (this.objectName == null) {
-					this.objectName = newObjectName;
-					this.setMbean(name);
-				}
-				if (mBeanServer.isRegistered(this.objectName)) {
-					mBeanServer.unregisterMBean(objectName);
-					this.objectName = newObjectName;
-					this.setMbean(name);
-				} else {
-					if (mBeanServer.isRegistered(newObjectName)) {
-						LOG.warn("Replacing existing mbean with name {}",newObjectName);
-						mBeanServer.unregisterMBean(newObjectName);
-					}
-					mBeanServer.registerMBean(mbean, newObjectName);
-					this.objectName = newObjectName;
-				}
-			}
+			});
 		} catch (Exception e) {
 			LOG.error("MBEAN error " + name, e);
 			throw new ConveyorRuntimeException(e);
