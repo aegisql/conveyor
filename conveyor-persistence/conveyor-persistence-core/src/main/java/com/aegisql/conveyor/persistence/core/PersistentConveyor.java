@@ -13,7 +13,6 @@ import com.aegisql.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
 import com.aegisql.conveyor.serial.SerializablePredicate;
 
 import javax.management.ObjectName;
-import javax.management.StandardMBean;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
@@ -879,10 +878,9 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param name the new mbean
 	 */
 	protected void setMbean(String name) {
-		try {
 			final PersistentConveyor<K,L,OUT> thisConv = this;
 
-			Object mbean = new StandardMBean(new PersistentConveyorMBean() {
+			this.objectName = Conveyor.register(this, new PersistentConveyorMBean() {
 				@Override
 				public String getName() {
 					return name;
@@ -950,31 +948,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				public void resume() {
 					thisConv.resume();					
 				}
-			}, PersistentConveyorMBean.class, false);
-			
-			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type="+name);
-			synchronized(mBeanServer) {
-				if(this.objectName == null) {
-					this.objectName = newObjectName;
-					this.setMbean(name);
-				}
-				if(mBeanServer.isRegistered(this.objectName)) {
-					mBeanServer.unregisterMBean(objectName);
-					this.objectName = newObjectName;
-					this.setMbean(name);
-				} else {
-					if(mBeanServer.isRegistered(newObjectName)) {
-						LOG.warn("Replacing existing mbean with name {}",newObjectName);
-						mBeanServer.unregisterMBean(newObjectName);
-					} 
-					mBeanServer.registerMBean(mbean, newObjectName);
-					this.objectName = newObjectName;
-				}
-			}
-		} catch (Exception e) {
-			LOG.error("MBEAN error",e);
-			throw new RuntimeException(e);
-		}
+			});
 	}
 
 	@Override

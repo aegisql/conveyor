@@ -3,55 +3,24 @@
  */
 package com.aegisql.conveyor.parallel;
 
-import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-
-import javax.management.ObjectName;
-import javax.management.StandardMBean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.aegisql.conveyor.AcknowledgeStatus;
-import com.aegisql.conveyor.BuilderAndFutureSupplier;
-import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.LabeledValueConsumer;
-import com.aegisql.conveyor.State;
-import com.aegisql.conveyor.Status;
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.CreatingCart;
-import com.aegisql.conveyor.cart.FutureCart;
-import com.aegisql.conveyor.cart.LoadType;
-import com.aegisql.conveyor.cart.MultiKeyCart;
-import com.aegisql.conveyor.cart.ResultConsumerCart;
-import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.*;
+import com.aegisql.conveyor.cart.*;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
-import com.aegisql.conveyor.loaders.BuilderLoader;
-import com.aegisql.conveyor.loaders.CommandLoader;
-import com.aegisql.conveyor.loaders.FutureLoader;
-import com.aegisql.conveyor.loaders.PartLoader;
-import com.aegisql.conveyor.loaders.ResultConsumerLoader;
-import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
-import com.aegisql.conveyor.loaders.StaticPartLoader;
+import com.aegisql.conveyor.loaders.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.management.ObjectName;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.*;
+
+import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -660,10 +629,9 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 * @param name the new mbean
 	 */
 	protected void setMbean(String name) {
-		try {
 			final ParallelConveyor<K,L,OUT> thisConv = this;
 
-			Object mbean = new StandardMBean(new ParallelConveyorMBean() {
+			this.objectName = Conveyor.register(this, new ParallelConveyorMBean() {
 				@Override
 				public String getName() {
 					return name;
@@ -731,27 +699,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 				public void resume() {
 					thisConv.resume();
 				}
-			}, ParallelConveyorMBean.class, false);
-			
-			ObjectName newObjectName = new ObjectName("com.aegisql.conveyor:type="+name);
-			synchronized(mBeanServer) {
-				if(this.objectName == null) {
-					this.objectName = newObjectName;
-					this.setMbean(name);
-				}
-				if(mBeanServer.isRegistered(this.objectName)) {
-					mBeanServer.unregisterMBean(objectName);
-					this.objectName = newObjectName;
-					this.setMbean(name);
-				} else {
-					mBeanServer.registerMBean(mbean, newObjectName);
-					this.objectName = newObjectName;
-				}
-			}
-		} catch (Exception e) {
-			LOG.error("MBEAN error",e);
-			throw new RuntimeException(e);
-		}
+			});
 	}
 	
 	@Override

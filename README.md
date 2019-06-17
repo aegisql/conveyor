@@ -51,7 +51,8 @@ conveyor configurator
 
 ### 1.4.3-SNAPSHOT
 * Additional filters for Result and Scrap consumers
-* BuilderUtils helps to add conveyor compatibility to existing builders  
+* BuilderUtils helps to add conveyor compatibility to existing builders
+* Improved performance for byName lookup
 * Tests
 * Bugfixes
 

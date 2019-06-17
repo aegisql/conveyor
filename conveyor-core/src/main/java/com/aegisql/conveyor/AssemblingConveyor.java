@@ -455,7 +455,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 *            the new mbean
 	 */
 	protected void setMbean(String name) {
-		try {
 			final AssemblingConveyor<K, L, OUT> thisConv = this;
 			this.objectName = Conveyor.register(this, new AssemblingConveyorMBean() {
 				@Override
@@ -617,10 +616,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					thisConv.resume();
 				}
 			});
-		} catch (Exception e) {
-			LOG.error("MBEAN error " + name, e);
-			throw new ConveyorRuntimeException(e);
-		}
 	}
 
 	/**
