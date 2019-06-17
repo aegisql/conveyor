@@ -2,10 +2,10 @@ package com.aegisql.conveyor;
 
 import org.junit.Test;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class LookupPerformanceTest {
 
@@ -20,8 +20,14 @@ public class LookupPerformanceTest {
         long start = System.currentTimeMillis();
         for(int i = 0; i < TESTS; i++) {
             for(String name: conveyors.keySet()) {
-                Conveyor<Integer, String, String> c = conveyors.get(name);
-                assertTrue(c.isRunning());
+                getType(name);
+                if(conveyors.containsKey(name)) {
+                    Conveyor<Integer, String, String> c = conveyors.get(name);
+                    assertNotNull(c);
+                    assertTrue(c.isRunning());
+                } else {
+                    fail("Expected conveyors!");
+                }
             }
         }
         long end = System.currentTimeMillis();
@@ -35,7 +41,8 @@ public class LookupPerformanceTest {
         long start = System.currentTimeMillis();
         for(int i = 0; i < TESTS; i++) {
             for(String name: conveyors.keySet()) {
-                Conveyor<Integer, String, String> c = Conveyor.byName(name);
+                Conveyor c = Conveyor.byName(name);
+                assertNotNull(c);
                 assertTrue(c.isRunning());
             }
         }
@@ -44,15 +51,21 @@ public class LookupPerformanceTest {
     }
 
     private Map<String,Conveyor<Integer,String,String>> createConveyors(String namePrefix) {
-        Map<String, Conveyor<Integer, String, String>> conveyors = new LinkedHashMap<>();
+        Map<String, Conveyor<Integer, String, String>> conveyors = new HashMap<>();
 
         for(int i = 0; i < CONVEYORS; i++) {
             AssemblingConveyor<Integer,String,String> c = new AssemblingConveyor<>();
             c.setName(namePrefix+(i+1));
             conveyors.put(c.getName(),c);
+            assertNotNull(Conveyor.byName(c.getName()));
         }
 
         return conveyors;
+    }
+
+
+    private String getType(String name) {
+        return "com.aegisql.conveyor:type="+name;
     }
 
 }
