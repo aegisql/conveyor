@@ -4,11 +4,11 @@
 	<parent>
 		<groupId>com.aegisql</groupId>
 		<artifactId>conveyor</artifactId>
-		<version>1.4.3-SNAPSHOT</version>
+		<version>1.4.3</version>
 	</parent>
 	<groupId>com.aegisql.persistence</groupId>
 	<artifactId>conveyor-persistence</artifactId>
-	<version>1.4.3-SNAPSHOT</version>
+	<version>1.4.3</version>
 	<name>conveyor-persistence</name>
 	<url>http://maven.apache.org</url>
 	<properties>
