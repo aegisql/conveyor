@@ -35,18 +35,20 @@ enum MBeanRegister {
 
     public ObjectName register(Conveyor conveyor, Object mbeanObject) {
         try {
-            if(mbeanObject.getClass().getInterfaces().length != 1) {
-                throw new ConveyorRuntimeException("Conveyor Mbean Object must implement a single interface");
-            }
+            Class mBeanInterface = conveyor.mBeanInterface();
             String type = getType(conveyor.getName());
-            Object mbean = new StandardMBean(mbeanObject, (Class) mbeanObject.getClass().getInterfaces()[0], false);
-            ObjectName objectName = new ObjectName(type);
-            synchronized (mBeanServer) {
-                unRegister(conveyor.getName());
-                mBeanServer.registerMBean(mbean, objectName);
-                knownConveyors.put(type,conveyor);
+            knownConveyors.put(type,conveyor);
+            if(mBeanInterface != null) {
+                Object mbean = new StandardMBean(mbeanObject, mBeanInterface, false);
+                ObjectName objectName = new ObjectName(type);
+                synchronized (mBeanServer) {
+                    unRegister(conveyor.getName());
+                    mBeanServer.registerMBean(mbean, objectName);
+                }
+                return objectName;
+            } else {
+                return null;
             }
-            return objectName;
         } catch (Exception e) {
             throw new ConveyorRuntimeException("Error registering conveyor " + conveyor.getName(), e);
         }

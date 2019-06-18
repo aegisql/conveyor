@@ -837,5 +837,8 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return suspended;
 	}
 
-	
+	@Override
+	public Class<?> mBeanInterface() {
+		return ParallelConveyorMBean.class;
+	}
 }

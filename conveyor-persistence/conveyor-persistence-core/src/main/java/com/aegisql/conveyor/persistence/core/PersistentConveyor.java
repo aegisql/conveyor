@@ -968,5 +968,10 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return suspended;
 	}
 
+	@Override
+	public Class<?> mBeanInterface() {
+		return PersistentConveyorMBean.class;
+	}
+
 
 }

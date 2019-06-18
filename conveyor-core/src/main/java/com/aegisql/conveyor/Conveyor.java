@@ -450,6 +450,8 @@ public interface Conveyor<K, L, OUT> {
 	 * @return true, if is suspended
 	 */
 	boolean isSuspended();
+
+	Class<?> mBeanInterface();
 	
 	/**
 	 * By name.

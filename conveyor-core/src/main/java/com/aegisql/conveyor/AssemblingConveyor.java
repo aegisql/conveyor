@@ -1877,5 +1877,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public boolean isSuspended() {
 		return suspended;
 	}
-	
+
+	@Override
+	public Class<?> mBeanInterface() {
+		return AssemblingConveyorMBean.class;
+	}
+
 }
