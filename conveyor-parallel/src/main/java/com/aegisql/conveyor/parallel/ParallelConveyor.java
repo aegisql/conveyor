@@ -631,7 +631,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	protected void setMbean(String name) {
 			final ParallelConveyor<K,L,OUT> thisConv = this;
 
-			this.objectName = Conveyor.register(this, new ParallelConveyorMBean() {
+			Conveyor.register(this, new ParallelConveyorMBean() {
 				@Override
 				public String getName() {
 					return name;

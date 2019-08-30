@@ -880,7 +880,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected void setMbean(String name) {
 			final PersistentConveyor<K,L,OUT> thisConv = this;
 
-			this.objectName = Conveyor.register(this, new PersistentConveyorMBean() {
+			Conveyor.register(this, new PersistentConveyorMBean() {
 				@Override
 				public String getName() {
 					return name;

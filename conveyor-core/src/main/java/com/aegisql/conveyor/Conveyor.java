@@ -11,7 +11,6 @@ import com.aegisql.conveyor.loaders.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.ObjectName;
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -484,7 +483,7 @@ public interface Conveyor<K, L, OUT> {
 		MBEAN.unRegister(name);
 	}
 
-	public static ObjectName register(Conveyor conveyor, Object mbeanObject) {
-		return MBEAN.register(conveyor,mbeanObject);
+	public static void register(Conveyor conveyor, Object mbeanObject) {
+		MBEAN.register(conveyor,mbeanObject);
 	}
 }

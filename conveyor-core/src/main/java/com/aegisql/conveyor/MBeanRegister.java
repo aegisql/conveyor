@@ -52,7 +52,7 @@ enum MBeanRegister {
      * @param mbeanObject the mbean object
      * @return the object name
      */
-    public ObjectName register(Conveyor conveyor, Object mbeanObject) {
+    public void register(Conveyor conveyor, Object mbeanObject) {
         try {
             Class mBeanInterface = conveyor.mBeanInterface();
             String type = getType(conveyor.getName());
@@ -64,10 +64,12 @@ enum MBeanRegister {
                     mBeanServer.registerMBean(mbean, objectName);
                     knownConveyors.put(type,conveyor);
                 }
-                return objectName;
+                Conveyor.LOG.debug("Registered conveyor MBean {}", type);
+                return;
             } else {
                 knownConveyors.put(type,conveyor);
-                return null;
+                Conveyor.LOG.debug("Registered conveyor {}", type);
+                return;
             }
         } catch( ConveyorRuntimeException cre) {
           throw cre;
@@ -93,7 +95,7 @@ enum MBeanRegister {
                 }
             }
         } catch (Exception e) {
-            throw new ConveyorRuntimeException("Conveyor with name '"+name +"' not found",e);
+            throw new ConveyorRuntimeException("Unregister conveyor with name '"+name +"' with issues",e);
         }
     }
 

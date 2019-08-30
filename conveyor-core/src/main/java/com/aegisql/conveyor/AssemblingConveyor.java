@@ -15,7 +15,6 @@ import com.aegisql.conveyor.loaders.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.ObjectName;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -267,9 +266,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The forwarding results. */
 	private boolean forwardingResults = false;
 
-	/** The object name. */
-	protected ObjectName objectName;
-
 	/** The forwarding to. */
 	private List<String> forwardingTo = new ArrayList<>();
 
@@ -456,7 +452,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	protected void setMbean(String name) {
 			final AssemblingConveyor<K, L, OUT> thisConv = this;
-			this.objectName = Conveyor.register(this, new AssemblingConveyorMBean() {
+			Conveyor.register(this, new AssemblingConveyorMBean() {
 				@Override
 				public String getName() {
 					return thisConv.name;
