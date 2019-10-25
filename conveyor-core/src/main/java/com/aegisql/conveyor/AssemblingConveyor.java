@@ -408,7 +408,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		acceptedLabels.add(null);
 		this.innerThread = new Thread(() -> {
 			try {
-				while (running || (inQueue.peek() != null) || (mQueue.peek() != null)) {
+				while (running || ! inQueue.isEmpty() || ! mQueue.isEmpty()) {
 					if (!waitData())
 						break; //When interrupted, which is exceptional behavior, should return right away
 					processManagementCommands();
