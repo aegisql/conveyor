@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 
 import static com.aegisql.conveyor.cart.LoadType.*;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class AssemblingConveyor.
  *
@@ -36,9 +35,9 @@ import static com.aegisql.conveyor.cart.LoadType.*;
  * @param <K>
  *            the key type
  * @param <L>
- *            the generic type
+ *            the label type
  * @param <OUT>
- *            the generic type
+ *            the product type
  */
 public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 

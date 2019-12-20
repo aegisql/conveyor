@@ -4,7 +4,6 @@ package com.aegisql.conveyor;
 /**
  * The Interface Interruptable.
  */
-@FunctionalInterface
 public interface Interruptable {
 	
 	/**
