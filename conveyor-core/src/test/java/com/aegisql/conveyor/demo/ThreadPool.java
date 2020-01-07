@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor.demo;
 
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -27,6 +28,15 @@ public class ThreadPool {
 			runnable.run();
 			}
 		);
+	}
+
+	public Future<?> runAsynchWithRandomDelay(int bound, Runnable runnable) {
+		Random r = new Random();
+		return runAsynchWithDelay(r.nextInt(bound)+1,runnable);
+	}
+
+	public Future<?> runAsynchWithRandomDelay(Runnable runnable) {
+		return runAsynchWithRandomDelay(100,runnable);
 	}
 
 	public Future<?> runAsynch(Runnable runnable) {

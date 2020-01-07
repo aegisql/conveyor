@@ -1,17 +1,5 @@
 package com.aegisql.conveyor.persistence.jdbc.archive;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import org.apache.commons.io.FileUtils;
-
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
@@ -19,6 +7,13 @@ import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.utils.CartOutputStream;
 import com.aegisql.conveyor.persistence.utils.PersistUtils;
+import org.apache.commons.io.FileUtils;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -67,6 +62,16 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 		}
 	}
 
+	private void truncateFile(String name) {
+		File f = new File(name);
+		try(FileOutputStream fos = new FileOutputStream(f, false)) {
+
+		} catch (IOException e) {
+			throw new PersistenceException("Error truncating file " + bLogConf.getPath(), e);
+		}
+
+	}
+
 	/**
 	 * Archive carts.
 	 *
@@ -83,8 +88,8 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 				String originalName = bLogConf.getFilePath();
 				String renameName   = bLogConf.getStampedFilePath();
 
-				FileUtils.moveFile(new File(originalName), new File(renameName));
-
+				FileUtils.copyFile(new File(originalName), new File(renameName));
+				truncateFile(originalName);
 				if(bLogConf.isZipFile()) {
 					String zipName = renameName + ".zip";
 					FileOutputStream fileOS = new FileOutputStream(zipName);

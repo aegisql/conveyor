@@ -3,12 +3,6 @@
  */
 package com.aegisql.conveyor.demo.map_reduce;
 
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
@@ -16,8 +10,14 @@ import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.demo.ThreadPool;
 import com.aegisql.conveyor.loaders.PartLoader;
-
 import org.junit.Test;
+
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class Demo {
 	
@@ -36,7 +36,7 @@ public class Demo {
 	
 	Future<?> countWordsAsynch(AssemblingConveyor<String, SmartLabel<WordCounter>, WordCount> collectingConveyor, String... words ) {
 		//Run code in its own thread with some random delay
-		return pool.runAsynchWithDelay(System.nanoTime() % 100, 
+		return pool.runAsynchWithRandomDelay( 100,
 			()->{
 			//Detaching new conveyor from collectingConveyor helps to make further 
 			//configuration easier

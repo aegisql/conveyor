@@ -3,17 +3,16 @@
  */
 package com.aegisql.conveyor.demo.reflection;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import org.junit.Test;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.demo.ThreadPool;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
+import org.junit.Test;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class Demo {
 
@@ -41,7 +40,7 @@ public class Demo {
 		CompletableFuture<Person> future = conveyor.build().id(1).createFuture();
 		
 		// VI - Send data to conveyor asynchronously
-		pool.runAsynchWithDelay(10,()->{
+		pool.runAsynchWithRandomDelay(10,()->{
 			conveyor
 				.part()
 				.value("John")
@@ -50,7 +49,7 @@ public class Demo {
 				.place();
 			}
 		);
-		pool.runAsynchWithDelay(10,()->{
+		pool.runAsynchWithRandomDelay(10,()->{
 			conveyor
 				.part()
 				.value("Silver")
@@ -59,7 +58,7 @@ public class Demo {
 				.place();
 			}
 		);
-		pool.runAsynchWithDelay(10,()->{
+		pool.runAsynchWithRandomDelay(10,()->{
 			try {
 				conveyor
 					.part()
