@@ -54,6 +54,7 @@ conveyor configurator
 * BuilderUtils helps to add conveyor compatibility to existing builders
 * Improved performance for byName lookup
 * Derby persistence limited to version 10.14
+* Added support for config properties
 * Tests
 * Bugfixes
 
