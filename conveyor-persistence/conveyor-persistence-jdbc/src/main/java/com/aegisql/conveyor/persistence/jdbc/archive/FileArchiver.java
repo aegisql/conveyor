@@ -40,7 +40,6 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 	 * @param bLogConf the b log conf
 	 */
 	public FileArchiver(EngineDepo<K> engine, BinaryLogConfiguration bLogConf) {
-		
 		super(engine);
 		this.deleteArchiver = new DeleteArchiver<>(engine);
 		this.bLogConf = bLogConf;
@@ -69,7 +68,6 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 		} catch (IOException e) {
 			throw new PersistenceException("Error truncating file " + bLogConf.getPath(), e);
 		}
-
 	}
 
 	/**
@@ -123,15 +121,12 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 			return;
 		}
 
-		try {
-			CartOutputStream<K, ?> cos = getCartOutputStream();
+		try(CartOutputStream<K, ?> cos = getCartOutputStream()) {
 			Collection<Collection<Long>> balanced = PersistUtils.balanceIdList(ids, bLogConf.getBucketSize());
 			for(Collection<Long> bucket: balanced) {
 				Collection<Cart<K, ?, Object>> carts = persistence.getParts(bucket);
 				archiveCarts(carts,cos);
 			}
-			cos.close();
-
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new PersistenceException("Error saving carts", e);
@@ -173,11 +168,9 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 	 */
 	@Override
 	public void archiveExpiredParts() {
-		try {
-			CartOutputStream<K, ?> cos = getCartOutputStream();
+		try(CartOutputStream<K, ?> cos = getCartOutputStream()) {
 			Collection<Cart<K, ?, Object>> carts = persistence.getExpiredParts();
 			archiveCarts(carts,cos);
-			cos.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new PersistenceException("Error saving expired carts", e);
@@ -190,11 +183,9 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 	 */
 	@Override
 	public void archiveAll() {
-		try {
-			CartOutputStream<K, ?> cos = getCartOutputStream();
+		try(CartOutputStream<K, ?> cos = getCartOutputStream()) {
 			Collection<Cart<K, ?, Object>> carts = persistence.getAllParts();
 			archiveCarts(carts,cos);
-			cos.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new PersistenceException("Error saving expired carts", e);
@@ -209,7 +200,5 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 	public String toString() {
 		return super.toString()+" bLogConf="+bLogConf;
 	}
-	
-	
 
 }

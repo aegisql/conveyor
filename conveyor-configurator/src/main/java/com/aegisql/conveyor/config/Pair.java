@@ -1,10 +1,9 @@
 package com.aegisql.conveyor.config;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class Pair.
  *
- * @param <L> the generic type
+ * @param <L> the label type
  * @param <V> the value type
  */
 public class Pair<L,V> {

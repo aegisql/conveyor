@@ -1,3 +1,6 @@
+package: com.aegisql.conveyor
+config: ${package}.config
+harness: ${config}.harness
 test.testName: yaml properties
 conveyor:
   idleHeartBeat:  1.5 SECONDS
@@ -17,13 +20,14 @@ conveyor:
     parallel:  2
   c4-1:
     defaultBuilderTimeout:  1 SECONDS
-    rejectUnexpireableCartsOlderThan:  10000
+    # next line should set default value of 10000
+    rejectUnexpireableCartsOlderThan:  ${rejectOldCartsTimeout:10000}
     staticPart: 
       - >
-        label = com.aegisql.conveyor.config.harness.NameLabel.FIRST;
+        label = ${harness}.NameLabel.FIRST;
         value = "preffix-";
       - >
-        label = com.aegisql.conveyor.config.harness.NameLabel.LAST;
+        label = ${harness}.NameLabel.LAST;
         value = "-suffix";
     firstResultConsumer:  new com.aegisql.conveyor.consumers.result.LogResult()
     nextResultConsumer:  com.aegisql.conveyor.config.ConfigUtilsTest.rCounter

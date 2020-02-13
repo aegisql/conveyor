@@ -1,11 +1,10 @@
 package com.aegisql.conveyor.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -15,7 +14,7 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
 public class ConveyorNameSetter implements ResultConsumer<String, Conveyor> {
 
 	/** The log. */
-	Logger LOG = LoggerFactory.getLogger(ConveyorNameSetter.class);
+	private final static Logger LOG = LoggerFactory.getLogger(ConveyorNameSetter.class);
 	
 	/** The conv. */
 	private final Conveyor conv;

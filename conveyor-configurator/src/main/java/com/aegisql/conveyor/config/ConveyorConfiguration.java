@@ -1,5 +1,14 @@
 package com.aegisql.conveyor.config;
 
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.LabeledValueConsumer;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
+
 import java.io.FileReader;
 import java.time.Duration;
 import java.util.Map;
@@ -7,19 +16,6 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
-
-import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.LabeledValueConsumer;
-import com.aegisql.conveyor.consumers.result.ForwardResult;
-import com.aegisql.conveyor.consumers.result.LogResult;
-import com.aegisql.conveyor.consumers.result.ResultConsumer;
-import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
-import com.aegisql.conveyor.persistence.core.Persistence;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -51,7 +47,7 @@ public class ConveyorConfiguration {
 	/**
 	 * Instantiates a new conveyor configuration.
 	 */
-	ConveyorConfiguration() {
+	private ConveyorConfiguration() {
 	}
 
 	/**
@@ -90,6 +86,9 @@ public class ConveyorConfiguration {
 	 *
 	 * @param file the file
 	 */
+
+	private static TemplateEditor templateEditor = new TemplateEditor();
+
 	private static void processConfFile(String file) {
 
 		lock.lock();
@@ -140,7 +139,8 @@ public class ConveyorConfiguration {
 				LOG.info("Unprocessed value {}={}", l, v);
 			};
 
-			conveyorConfiguration.setDefaultCartConsumer(lvc.<String>when("supplier", ConveyorBuilder::supplier)
+			conveyorConfiguration.setDefaultCartConsumer(lvc
+					.<String>when("supplier", ConveyorBuilder::supplier)
 					.<String>when("defaultBuilderTimeout", ConveyorBuilder::defaultBuilderTimeout)
 					.<String>when("idleHeartBeat", ConveyorBuilder::idleHeartBeat)
 					.<String>when("rejectUnexpireableCartsOlderThan", ConveyorBuilder::rejectUnexpireableCartsOlderThan)
@@ -234,9 +234,9 @@ public class ConveyorConfiguration {
 	 * @param obj the obj
 	 */
 	private static void processPair(Conveyor<String, String, Conveyor> buildingConveyor, String key, Object obj) {
-		
 		ConveyorProperty.eval(key, obj, cp->{
 			String value = cp.getValueAsString();
+
 			if(cp.isConveyorProperty()) {
 				if(cp.isDefaultProperty()) {
 					if ("postInit".equals(cp.getProperty())) {

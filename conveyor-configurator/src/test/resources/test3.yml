@@ -1,4 +1,9 @@
 test.testName: yaml properties
+package: com.aegisql.conveyor
+config: ${package}.config
+harness: ${config}.harness
+rejectOldCartsTimeout: 30000
+parallel: 3
 conveyor.idleHeartBeat:  1.5 SECONDS
 conveyor.c3-0.defaultBuilderTimeout:  1 SECONDS
 conveyor.c3-0.forward: >
@@ -9,7 +14,8 @@ conveyor.c3-0.acceptLabels: '"X"'
 conveyor.c3-2.defaultBuilderTimeout: 1 SECONDS
 conveyor.c3-2.parallel:  2
 conveyor.c3-1.defaultBuilderTimeout:  1 SECONDS
-conveyor.c3-1.rejectUnexpireableCartsOlderThan:  10000
+# next line should use explicit value of 30000
+conveyor.c3-1.rejectUnexpireableCartsOlderThan: ${rejectOldCartsTimeout:10000}
 conveyor.c3-1.staticPart:  >
   label = com.aegisql.conveyor.config.harness.NameLabel.FIRST;
   value = "preffix-";
@@ -24,7 +30,7 @@ conveyor.c3-1.onTimeoutAction:  com.aegisql.conveyor.config.ConfigUtilsTest.time
 conveyor.c3-1.defaultCartConsumer:  com.aegisql.conveyor.config.ConfigUtilsTest.lvc
 conveyor.c3-1.readinessEvaluator:  com.aegisql.conveyor.config.ConfigUtilsTest.biPredRE; //BiPredicate
 conveyor.c3-1.readinessEvaluator:  com.aegisql.conveyor.config.ConfigUtilsTest.predRE; //Predicate
-conveyor.c3-1.builderSupplier:  com.aegisql.conveyor.config.harness.StringSupplier("c3-1"); //JavaScript
+conveyor.c3-1.builderSupplier:  ${harness}.StringSupplier("c3-1"); //JavaScript
 conveyor.c3-1.addCartBeforePlacementValidator:  com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator1
 conveyor.c3-1.addCartBeforePlacementValidator:  com.aegisql.conveyor.config.ConfigUtilsTest.cartValidator2
 conveyor.c3-1.addBeforeKeyEvictionAction:  com.aegisql.conveyor.config.ConfigUtilsTest.beforeEviction
@@ -42,7 +48,7 @@ conveyor.c3-1.postInit:  com.aegisql.conveyor.config.ConfigUtilsTest.test2PostCr
 
 #more
 conveyor.c3-1.supplier:  new com.aegisql.conveyor.AssemblingConveyor();
-conveyor.c3-1.parallel:  3
+conveyor.c3-1.parallel:  ${parallel}
 
 #circle dependency
 #conveyor.test3.dependency :  test4

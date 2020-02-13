@@ -1,12 +1,11 @@
 package com.aegisql.conveyor.config;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class Trio.
  *
- * @param <L> the generic type
- * @param <V> the value type
- * @param <T> the generic type
+ * @param <L> the label type
+ * @param <V> the value 1 type
+ * @param <T> the value 2 type
  */
 public class Trio<L,V,T> {
 	

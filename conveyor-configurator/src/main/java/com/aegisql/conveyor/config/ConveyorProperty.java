@@ -25,7 +25,9 @@ public class ConveyorProperty {
 	
 	/** The value. */
 	private final Object value;
-	
+
+	private static TemplateEditor templateEditor = new TemplateEditor();
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -104,8 +106,15 @@ public class ConveyorProperty {
 	 * @param consumer the consumer
 	 */
 	public static void eval(String propertyKey, Object value, Consumer<ConveyorProperty> consumer) {
+		String processedValue = null;
+		if(value != null) {
+			processedValue = templateEditor.setVariables(propertyKey, value.toString());
+		}
 		if(propertyKey == null || ! propertyKey.toUpperCase().startsWith(ConveyorConfiguration.PROPERTY_PREFIX.toUpperCase())){
 			return;
+		}
+		if(processedValue != null && value instanceof String) {
+			value = processedValue;
 		}
 		if(value == null) {
 			ConveyorProperty cp = evalProperty(propertyKey, value);

@@ -1,6 +1,10 @@
+time1: 1
+time2: 2
+time3: 10
+timeUnits: SECONDS
 test:
   testName: test1
 conveyor.test1:
-  idleHeartBeat: 2 SECONDS
-  defaultBuilderTimeout: 1  SECONDS
-  rejectUnexpireableCartsOlderThan: 10  SECONDS 
+  idleHeartBeat: ${time2} ${timeUnits}
+  defaultBuilderTimeout: ${time1} ${timeUnits}
+  rejectUnexpireableCartsOlderThan: ${time3}   ${timeUnits}
