@@ -49,12 +49,16 @@ conveyor configurator
 
 ## Release History
 
-### 1.4.3-SNAPSHOT
+### 1.4.4-SNAPSHOT
+* Added support for config properties
+* Tests
+* Bugfixes
+
+### 1.4.3
 * Additional filters for Result and Scrap consumers
 * BuilderUtils helps to add conveyor compatibility to existing builders
 * Improved performance for byName lookup
 * Derby persistence limited to version 10.14
-* Added support for config properties
 * Tests
 * Bugfixes
 
