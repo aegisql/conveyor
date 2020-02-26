@@ -192,30 +192,45 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 		for (Method m : bClass.getDeclaredMethods()) {
 			Label label = m.getAnnotation(Label.class);
 			if (label != null) {
+				Class<?> returnType = m.getReturnType();
 				if (m.getParameterCount() == 0) {
-					Class<?> returnType = m.getReturnType();
 					if( ! Void.TYPE.equals(returnType)) {
-						//getter
+						for (String match : label.value()) {
+							if (savedGetters.containsKey(match)) {
+								throw new RuntimeException(
+										"Duplicate getter label match found: " + match + "; method " + m.getName());
+							} else {
+								savedGetters.put(match, buildGetter(m,match));
+							}
+						}
 					}
 				} else if (m.getParameterCount() == 1) {
 					for (String match : label.value()) {
-						if (savedSetters.containsKey(match)) {
-							throw new RuntimeException(
-									"Duplicate label match found: " + match + "; method " + m.getName());
+						if( Void.TYPE.equals(returnType)) {
+							if (savedSetters.containsKey(match)) {
+								throw new RuntimeException(
+										"Duplicate setter label match found: " + match + "; method " + m.getName());
+							} else {
+								savedSetters.put(match, buildSetter(m, match));
+							}
 						} else {
-							savedSetters.put(match, buildSetter(m,match));
+							if (savedGetters.containsKey(match)) {
+								throw new RuntimeException(
+										"Duplicate static getter label match found: " + match + "; method " + m.getName());
+							} else {
+								savedGetters.put(match, buildStaticGetter(m, match));
+							}
 						}
 					}
 				} else if (m.getParameterCount() == 2) {
 					for (String match : label.value()) {
 						if (savedSetters.containsKey(match)) {
 							throw new RuntimeException(
-									"Duplicate label match found: " + match + "; static method " + m.getName());
+									"Duplicate setter label match found: " + match + "; static method " + m.getName());
 						} else {
 							savedSetters.put(match, buildStaticSetter(m,match));
 						}
 					}
-
 				} else {
 					throw new RuntimeException("@Label annotation is not applicable to " + m.getName());
 				}

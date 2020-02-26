@@ -4,6 +4,7 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.TestingState;
 import com.aegisql.conveyor.TimeoutAction;
+import com.aegisql.conveyor.reflection.Label;
 
 import java.util.Objects;
 import java.util.function.*;
@@ -25,6 +26,7 @@ public class BuilderUtils<K, L, OUT, B> {
         }
 
         @Override
+        @Label({"instance","$"})
         public B unwrap() {
             return builder;
         }

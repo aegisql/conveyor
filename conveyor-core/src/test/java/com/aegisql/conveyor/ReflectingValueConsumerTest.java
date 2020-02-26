@@ -282,7 +282,7 @@ public class ReflectingValueConsumerTest {
 				.tester(abc->abc.ab.a.val != null)
 				.setBuilderSupplier();
 		Future<String> f = c.build().id(1).createFuture();
-		c.part().id(1).label("unwrap.ab.a.value").value("test").place();
+		c.part().id(1).label("$.ab.a.value").value("test").place();
 		assertEquals("test", f.get());
 	}
 
