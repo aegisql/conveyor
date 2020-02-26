@@ -1,21 +1,18 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.function.Supplier;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.reflection.Label;
 import com.aegisql.conveyor.reflection.NoLabel;
 import com.aegisql.conveyor.reflection.ReflectingValueConsumer;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
+import com.aegisql.conveyor.utils.BuilderUtils;
+import org.junit.*;
+
+import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.function.Supplier;
+
+import static org.junit.Assert.*;
 
 public class ReflectingValueConsumerTest {
 
@@ -100,6 +97,39 @@ public class ReflectingValueConsumerTest {
 			return getVal()+" "+getX()+" "+getHidden();
 		}
 
+	}
+
+	public static class AB {
+		private static A staticA;
+		private A a;
+		private String other;
+		private ArrayList<String> data;
+
+		public A getA() {
+			if(a==null) {
+				a = new A();
+			}
+			return a;
+		}
+
+		public static A getStaticA() {
+			if(staticA == null) {
+				staticA = new A();
+			}
+			return staticA;
+		}
+
+		public ArrayList<String> getData() {
+			if(data == null){
+				data = new ArrayList<>();
+			}
+			return data;
+		}
+
+	}
+
+	public static class ABC {
+		AB ab;
 	}
 
 	public static class DUP1 {
@@ -211,7 +241,7 @@ public class ReflectingValueConsumerTest {
 		AssemblingConveyor<Integer, String, String> c = new AssemblingConveyor<>();
 		
 		c.setBuilderSupplier(D::new);
-		c.setDefaultCartConsumer(new ReflectingValueConsumer<D>());
+		c.setDefaultCartConsumer(new ReflectingValueConsumer());
 		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted("setVal", "setX","hidden"));
 		
 		Future<String> f = c.build().id(1).createFuture();
@@ -241,6 +271,19 @@ public class ReflectingValueConsumerTest {
 		System.out.println(f.get());
 		assertEquals("test 100 hide", f.get());
 
+	}
+
+	@Test
+	public void testWithSimpleConveyorAndBuilderUtils() throws InterruptedException, ExecutionException {
+		SimpleConveyor<Integer,String> c = new SimpleConveyor<>();
+		BuilderUtils
+				.wrapBuilderSupplier(c,ABC::new)
+				.productSupplier(abc->abc.ab.a.val)
+				.tester(abc->abc.ab.a.val != null)
+				.setBuilderSupplier();
+		Future<String> f = c.build().id(1).createFuture();
+		c.part().id(1).label("unwrap.ab.a.value").value("test").place();
+		assertEquals("test", f.get());
 	}
 
 	@Test
@@ -301,5 +344,65 @@ public class ReflectingValueConsumerTest {
 	assertNotNull(a.getIVal());
 	}
 
-	
+	@Test
+	public void testDeepLabel() {
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		AB ab = new AB();
+		vc.accept("other","test",ab);
+		assertEquals("test",ab.other);
+		vc.accept("a.value","a-test",ab);
+		assertNotNull(ab.a);
+		assertEquals("a-test",ab.a.val);
+		vc.accept("data.add","a",ab);
+		vc.accept("data.add","b",ab);
+		assertNotNull(ab.data);
+		assertEquals(2,ab.data.size());
+		assertEquals("a",ab.data.get(0));
+		assertEquals("b",ab.data.get(1));
+		vc.accept("staticA.value","static-test",ab);
+		assertNotNull(AB.staticA);
+		assertEquals("static-test",AB.staticA.val);
+	}
+
+	@Test
+	public void testDeep3Label() {
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		ABC abc = new ABC();
+		vc.accept("ab.a.value","a-test",abc);
+		assertNotNull(abc.ab);
+		assertNotNull(abc.ab.a);
+		assertEquals("a-test",abc.ab.a.val);
+	}
+
+	@Test
+	public void testDeepLabelWithGetters() {
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		AB ab = new AB();
+		vc.accept("getA.value","a-test",ab);
+		assertNotNull(ab.a);
+		assertEquals("a-test",ab.a.val);
+
+		vc.accept("getStaticA.value","static-test-2",ab);
+		assertNotNull(AB.staticA);
+		assertEquals("static-test-2",AB.staticA.val);
+
+		vc.accept("getData.add","a",ab);
+		vc.accept("getData.add","b",ab);
+		assertNotNull(ab.data);
+		assertEquals(2,ab.data.size());
+		assertEquals("a",ab.data.get(0));
+		assertEquals("b",ab.data.get(1));
+	}
+
+	@Test
+	public void testWithStringBuilder() {
+		StringBuilder sb = new StringBuilder("X=");
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		vc.accept("append","test",sb);
+		assertEquals("X=test",sb.toString());
+		vc.accept("append","1",sb); //once started with strings keep sending strings
+		assertEquals("X=test1",sb.toString());
+		//vc.accept("append",1,sb); //fails. need to find how to fix it?
+	}
+
 }
