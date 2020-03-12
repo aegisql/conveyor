@@ -8,6 +8,7 @@ import com.aegisql.conveyor.utils.BuilderUtils;
 import org.junit.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
@@ -237,6 +238,16 @@ public class ReflectingValueConsumerTest {
 	}
 
 	@Test
+	public void testAWithNullLabeled() {
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		A a = new A();
+		a.setVal("NO");
+		assertNotNull(a.getVal());
+		vc.accept("VALUE", null, a);
+		assertNull(a.getVal());
+	}
+
+	@Test
 	public void testWithConveyor() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, String> c = new AssemblingConveyor<>();
 		
@@ -255,7 +266,6 @@ public class ReflectingValueConsumerTest {
 
 	}
 
-	
 	@Test
 	public void testWithSimpleConveyor() throws InterruptedException, ExecutionException {
 		SimpleConveyor<Integer,String> c = new SimpleConveyor<>(D::new);
@@ -312,7 +322,7 @@ public class ReflectingValueConsumerTest {
 	assertEquals(100,a.getX());
 	}
 
-	@Test(expected=RuntimeException.class)
+	@Test(expected=ConveyorRuntimeException.class)
 	public void testBEWithDuplicatedAnnotation() {
 	ReflectingValueConsumer vc = new ReflectingValueConsumer();
 	BE a = new BE();
@@ -403,6 +413,134 @@ public class ReflectingValueConsumerTest {
 		vc.accept("append","1",sb); //once started with strings keep sending strings
 		assertEquals("X=test1",sb.toString());
 		//vc.accept("append",1,sb); //fails. need to find how to fix it?
+	}
+
+	static class AMap {
+		HashMap<String,String> map;
+		ArrayList<String> list;
+		public void doIt(){}
+	}
+
+	@Test
+	public void testIdentityGetter() {
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		AMap aMap = new AMap();
+		vc.accept(".doIt",null,aMap);
+	}
+
+	@Test
+	public void testIgnoredLabel() {
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		AMap aMap = new AMap();
+		vc.accept("@label",null,aMap);
+	}
+
+	static class PG {
+		public B b;
+		public C c;
+		public static C staticC;
+
+		@Label("b")
+		public B getB(String val) {
+			this.b = new B();
+			b.setVal(val);
+			return b;
+		}
+		@Label("c")
+		public C getC(String val,String hide) {
+			this.c = new C();
+			c.setVal(val);
+			c.hidden = hide;
+			return c;
+		}
+
+		@Label("sc")
+		public static C getStaticC(String val,String hide) {
+			PG.staticC = new C();
+			staticC.setVal(val);
+			staticC.hidden = hide;
+			return staticC;
+		}
+
+		@Label("psc")
+		public static C getStaticPC(PG pg, String val,String hide) {
+			pg.c = new C();
+			pg.c.setVal(val);
+			pg.c.hidden = hide;
+			return pg.c;
+		}
+
+	}
+
+	@Test
+	public void parametrizedGetterTest() {
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		PG pg = new PG();
+
+		B b = new B();
+		b.x = 10;
+		b.setVal("init");
+		vc.accept("b",b,pg);
+		assertEquals("init",pg.b.getVal());
+		assertEquals(10,pg.b.getX());
+
+		vc.accept("b{test}.x",1,pg);
+		assertEquals("test",pg.b.getVal());
+		assertEquals(1,pg.b.getX());
+
+		vc.accept("c{test,hide}.x",2,pg);
+		assertEquals("test",pg.c.getVal());
+		assertEquals("hide",pg.c.getHidden());
+		assertEquals(2,pg.c.getX());
+
+		vc.accept("sc{staticTest,staticHide}.x",3,pg);
+		assertEquals("staticTest",PG.staticC.getVal());
+		assertEquals("staticHide",PG.staticC.getHidden());
+		assertEquals(3,PG.staticC.getX());
+
+		vc.accept("psc{staticPTest,staticPHide}.x",4,pg);
+		assertEquals("staticPTest",pg.c.getVal());
+		assertEquals("staticPHide",pg.c.getHidden());
+		assertEquals(4,pg.c.getX());
+
+
+	}
+
+	static class PS{
+		HashMap<String,String> map;
+
+		static HashMap<String,String> staticMap;
+
+		public static void setMap(PS b, String key, String val) {
+			b.map.put(key,val);
+		}
+
+	}
+
+	@Test
+	public void parametrizedSetterTest(){
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		PS ps = new PS();
+		vc.accept("map.put{test}","value",ps);
+		assertNotNull(ps.map);
+		assertEquals("value",ps.map.get("test"));
+
+		vc.accept("map.put{null}",null,ps);
+		assertTrue(ps.map.containsKey("null"));
+		assertNull(ps.map.get("null"));
+
+		vc.accept("staticMap.put{staticTest}","staticValue",ps);
+		assertNotNull(PS.staticMap);
+		assertEquals("staticValue",PS.staticMap.get("staticTest"));
+
+		vc.accept("setMap{builderTest}","builderValue",ps);
+		assertTrue(ps.map.containsKey("builderTest"));
+		assertEquals("builderValue",ps.map.get("builderTest"));
+
+		vc.accept("setMap{builderNullTest}",null,ps);
+		assertTrue(ps.map.containsKey("builderNullTest"));
+		assertEquals(null,ps.map.get("builderNullTest"));
+
 	}
 
 }

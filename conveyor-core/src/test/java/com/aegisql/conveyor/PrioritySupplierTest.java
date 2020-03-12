@@ -97,7 +97,7 @@ public class PrioritySupplierTest {
 
         Cart<Integer,String,String> c4 = new ShoppingCart<>(4,"v4","l4",now,now+10_000,0);
         Cart<Integer,String,String> c1 = new ShoppingCart<>(1,"v1","l1",now,now+100_000,0);
-        Cart<Integer,String,String> c2 = new ShoppingCart<>(2,"v2","l2",now,0,0);
+        Cart<Integer,String,String> c2 = new ShoppingCart<>(2,"v2","l2",now,0,0);//unexpireable
         Cart<Integer,String,String> c3 = new ShoppingCart<>(3,"v3","l3",now,now+10_000,0);
 
         queue.add(c1);
@@ -191,6 +191,9 @@ public class PrioritySupplierTest {
     }
     @Test
     public void testPropertyPriorityWithConveyor() {
+
+        AssemblingConveyor<Integer,String, A> ac = new AssemblingConveyor(Priority.FILO);
+
         SimpleConveyor<Integer,A> c = new SimpleConveyor(Priority.prioritizedByProperty("TEST_PRIORITY"),ABuilder::new);
         c.suspend();
         ResultQueue<Integer, A> results = ResultQueue.of(c);
