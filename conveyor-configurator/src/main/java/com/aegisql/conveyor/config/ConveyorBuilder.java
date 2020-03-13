@@ -1,38 +1,7 @@
 package com.aegisql.conveyor.config;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.LabeledValueConsumer;
-import com.aegisql.conveyor.ReadinessTester;
-import com.aegisql.conveyor.Status;
-import com.aegisql.conveyor.Testing;
+import com.aegisql.conveyor.*;
+import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
@@ -47,6 +16,14 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.builders.RestoreOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.function.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -1034,20 +1011,36 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		}
 	}
 
-	/**
-	 * Enable priority queue.
-	 *
-	 * @param b the b
-	 * @param s the s
-	 */
-	public static void enablePriorityQueue(ConveyorBuilder b, String s) {
-		LOG.debug("Applying enablePriorityQueue={}", s);
-		Boolean enablePriorityQueue = Boolean.parseBoolean(s.split("\\s+")[0]);
-		b.enablePriorityQueue  = enablePriorityQueue;
-		if(Objects.nonNull(b.enablePriorityQueue) && b.enablePriorityQueue) {
-			b.maxQueueSize = 0;
-			b.constructor = ()->new AssemblingConveyor( PriorityBlockingQueue::new );
+	public static void priority(ConveyorBuilder b, String s) {
+		LOG.debug("Applying priority={}", s);
+		Supplier<PriorityBlockingQueue<Cart>> queueSupplier = null;
+		switch (s.toUpperCase()) {
+			case "FIFO":
+				queueSupplier = Priority.FIFO;
+				break;
+			case "FILO":
+				queueSupplier = Priority.FILO;
+				break;
+			case "NEWEST_FIRST":
+				queueSupplier = Priority.NEWEST_FIRST;
+				break;
+			case "OLDEST_FIRST":
+				queueSupplier = Priority.OLDEST_FIRST;
+				break;
+			case "EXPIRE_SOONER_FIRST":
+				queueSupplier = Priority.EXPIRE_SOONER_FIRST;
+				break;
+			case "PRIORITIZED":
+				queueSupplier = Priority.PRIORITIZED;
+				break;
+			default:
+				LOG.warn("Undefined priority {}. Ignored. Supported priorities:  FIFO,FILO,NEWEST_FIRST,OLDEST_FIRST,EXPIRE_SOONER_FIRST,PRIORITIZED",s);
+				return;
 		}
+		b.enablePriorityQueue  = true;
+		b.maxQueueSize = 0;
+		Supplier<PriorityBlockingQueue<Cart>> finalQueueSupplier = queueSupplier;
+		b.constructor = ()->new AssemblingConveyor(finalQueueSupplier);
 	}
 
 	/**
