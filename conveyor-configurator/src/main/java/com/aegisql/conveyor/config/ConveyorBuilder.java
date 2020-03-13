@@ -1035,6 +1035,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				break;
 			default:
 				LOG.warn("Undefined priority {}. Ignored. Supported priorities:  FIFO,FILO,NEWEST_FIRST,OLDEST_FIRST,EXPIRE_SOONER_FIRST,PRIORITIZED",s);
+				b.enablePriorityQueue  = false;
 				return;
 		}
 		b.enablePriorityQueue  = true;
