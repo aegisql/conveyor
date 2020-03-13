@@ -1,20 +1,17 @@
 package com.aegisql.conveyor.reflection;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ParametrizedLabel {
 
+    private final static Class<?>[] EMPTY_CLASS_ARRAY = new Class<?>[]{};
+    private final static Object[] EMPTY_OBJECT_ARRAY = new Object[]{};
+
     private final String wholeLabel;
     private final String label;
-    private Object[] properties;
-    private Class<?>[] classes;
-    private String tmpl;
-    private final List<Integer> builderPositions = new ArrayList<>();
-    private final List<Integer> valuePositions = new ArrayList<>();
+    private boolean hasValueType = false;
+    private final List<LabelProperty> labelProperties;
 
     public ParametrizedLabel(Class<?> bClass, String label) {
         this(bClass,null,label);
@@ -26,14 +23,18 @@ public class ParametrizedLabel {
         if(isParametrized()) {
             String[] parts = label.split("\\{|\\}",3);
             this.label = parts[0];
-            this.properties = parts[1].split(",");
+            String[] properties = parts[1].split(",");
+            this.labelProperties = Arrays.stream(properties)
+                    .map(LabelProperty::new)
+                    .peek(lp->{if(lp.isValue() && lp.getPropertyType() != null) hasValueType = true;})
+                    .collect(Collectors.toList());
         } else {
+            this.labelProperties = Collections.EMPTY_LIST;
             this.label = label;
         }
     }
 
-
-    public boolean isParametrized() {
+    private boolean isParametrized() {
         return wholeLabel.endsWith("}") && wholeLabel.contains("{");
     }
 
@@ -41,25 +42,74 @@ public class ParametrizedLabel {
         return label;
     }
 
-    public Object[] getProperties() {
-        return properties;
+    public Object[] getPropertiesForGetter(Object builder, Object value) {
+        List<Object> objects = new ArrayList<>();
+        for(LabelProperty lp:labelProperties) {
+            if(lp.isBuilder()) {
+                objects.add(builder);
+            } else if(lp.isValue()) {
+                objects.add( value );
+            } else {
+                objects.add(lp.getProperty());
+            }
+        }
+        return objects.toArray(EMPTY_OBJECT_ARRAY);
     }
 
-    public Object[] getProperties(Object builder, Object value) {
-        return properties;
+    public Object[] getPropertiesForSetter(Object builder, Object value) {
+        boolean valueNotSet = true;
+        List<Object> objects = new ArrayList<>();
+        for(LabelProperty lp:labelProperties) {
+            if(lp.isBuilder()) {
+                objects.add(builder);
+            } else if(lp.isValue()) {
+                objects.add( value );
+                valueNotSet = false;
+            } else {
+                objects.add(lp.getProperty());
+            }
+        }
+        if(valueNotSet) {
+            objects.add( value );
+        }
+        return objects.toArray(EMPTY_OBJECT_ARRAY);
     }
 
-    public String getTemplate() {
-        if(tmpl != null) {
-            return tmpl;
+    public Class<?>[] getClassesForGetter(Class<?> bClass, Class<?> vClass) {
+        List<Class<?>> classes = new ArrayList<>();
+        for(LabelProperty lp:labelProperties) {
+            if(lp.isBuilder()) {
+                classes.add(bClass);
+            } else if(lp.isValue()) {
+                classes.add( lp.getPropertyType() == null ? vClass : lp.getPropertyType() );
+            } else {
+                classes.add(lp.getPropertyType());
+            }
         }
-        StringBuilder sb = new StringBuilder(label);
-        if(properties != null) {
-            String template = Arrays.stream(properties).map(p -> "?").collect(Collectors.joining(",","{","}"));
-            sb.append(template);
+        return classes.toArray(EMPTY_CLASS_ARRAY);
+    }
+
+    public Class<?>[] getClassesForSetter(Class<?> bClass, Class<?> vClass) {
+        boolean valueNotSet = true;
+        List<Class<?>> classes = new ArrayList<>();
+        for(LabelProperty lp:labelProperties) {
+            if(lp.isBuilder()) {
+                classes.add(bClass);
+            } else if(lp.isValue()) {
+                classes.add( lp.getPropertyType() == null ? vClass : lp.getPropertyType() );
+                valueNotSet = false;
+            } else {
+                classes.add(lp.getPropertyType());
+            }
         }
-        tmpl = sb.toString();
-        return tmpl;
+        if(valueNotSet) {
+            classes.add(vClass);
+        }
+        return classes.toArray(EMPTY_CLASS_ARRAY);
+    }
+
+    public boolean hasValueType() {
+        return hasValueType;
     }
 
     @Override

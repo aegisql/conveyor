@@ -9,10 +9,13 @@ import org.junit.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static com.aegisql.conveyor.ReflectingValueConsumerTest.PhoneType.*;
 import static org.junit.Assert.*;
 
 public class ReflectingValueConsumerTest {
@@ -213,7 +216,7 @@ public class ReflectingValueConsumerTest {
 	public void testAS() {
 	ReflectingValueConsumer vc = new ReflectingValueConsumer();
 	AS a = new AS();
-	vc.accept("setVal", "test", a);
+	vc.accept("setVal{#}", "test", a);
 	assertEquals("test",a.getVal());
 	}
 
@@ -410,9 +413,8 @@ public class ReflectingValueConsumerTest {
 		ReflectingValueConsumer vc = new ReflectingValueConsumer();
 		vc.accept("append","test",sb);
 		assertEquals("X=test",sb.toString());
-		vc.accept("append","1",sb); //once started with strings keep sending strings
-		assertEquals("X=test1",sb.toString());
-		//vc.accept("append",1,sb); //fails. need to find how to fix it?
+		vc.accept("append",0,sb);
+		assertEquals("X=test0",sb.toString());
 	}
 
 	static class AMap {
@@ -498,7 +500,7 @@ public class ReflectingValueConsumerTest {
 		assertEquals("staticHide",PG.staticC.getHidden());
 		assertEquals(3,PG.staticC.getX());
 
-		vc.accept("psc{staticPTest,staticPHide}.x",4,pg);
+		vc.accept("psc{#,staticPTest,staticPHide}.x",4,pg);
 		assertEquals("staticPTest",pg.c.getVal());
 		assertEquals("staticPHide",pg.c.getHidden());
 		assertEquals(4,pg.c.getX());
@@ -533,14 +535,62 @@ public class ReflectingValueConsumerTest {
 		assertNotNull(PS.staticMap);
 		assertEquals("staticValue",PS.staticMap.get("staticTest"));
 
-		vc.accept("setMap{builderTest}","builderValue",ps);
+		vc.accept("setMap{#,builderTest}","builderValue",ps);
 		assertTrue(ps.map.containsKey("builderTest"));
 		assertEquals("builderValue",ps.map.get("builderTest"));
 
-		vc.accept("setMap{builderNullTest}",null,ps);
+		vc.accept("setMap{#,builderNullTest}",null,ps);
 		assertTrue(ps.map.containsKey("builderNullTest"));
 		assertEquals(null,ps.map.get("builderNullTest"));
 
 	}
+
+	enum PhoneType{HOME,CELL,WORK}
+
+	static class GS {
+		ArrayList<A> list;
+		HashMap<PhoneType, List<String>> phones;
+	}
+	@Test
+	public void getterSetterTest() {
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		GS gs = new GS();
+		vc.accept("list.add",new A(),gs);
+		vc.accept("list.get{i 0}.val","test",gs);
+		assertNotNull(gs.list);
+		assertNotNull(gs.list.get(0));
+		assertEquals("test",gs.list.get(0).val);
+
+	}
+
+	@Test
+	public void getterEnumSetterTest() {
+		Function<String,PhoneType> converter = PhoneType::valueOf;
+		ReflectingValueConsumer.registerStringConverter(PhoneType.class,converter);
+		ReflectingValueConsumer.registerClassShortName(PhoneType.class,"PhoneType");
+
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+
+		GS gs = new GS();
+
+		vc.accept("phones.put{PhoneType HOME}",new ArrayList<>(),gs);
+		vc.accept("phones.put{PhoneType CELL}",new ArrayList<>(),gs);
+		vc.accept("phones.put{PhoneType WORK}",new ArrayList<>(),gs);
+
+		vc.accept("phones.get{PhoneType CELL}.add","111-2233",gs);
+		vc.accept("phones.get{PhoneType WORK}.add","222-3334",gs);
+		vc.accept("phones.get{PhoneType WORK}.add","222-3335",gs);
+		vc.accept("phones.get{PhoneType HOME}.add","111-1133",gs);
+
+		assertNotNull(gs.phones);
+		assertTrue(gs.phones.containsKey(HOME));
+		assertTrue(gs.phones.containsKey(CELL));
+		assertTrue(gs.phones.containsKey(WORK));
+		assertEquals(1,gs.phones.get(CELL).size());
+		assertEquals(1,gs.phones.get(HOME).size());
+		assertEquals(2,gs.phones.get(WORK).size());
+
+	}
+
 
 }

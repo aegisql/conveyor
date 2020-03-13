@@ -11,39 +11,63 @@ import java.util.function.Function;
 
 public class LabelProperty {
 
-    final static Map<Class<?>, Function<String,Object>> CONVERSION_MAP = new HashMap<>();
+    final static Map<Class<?>, Function<String,?>> CONVERSION_MAP = new HashMap<>();
 
     final static Map<String,Class<?>> CLASS_MAP = new HashMap<>();
     static {
         CLASS_MAP.put("s",String.class);
         CLASS_MAP.put("str",String.class);
         CLASS_MAP.put("string",String.class);
+        CLASS_MAP.put("String",String.class);
 
-        CLASS_MAP.put("i",Integer.class);
-        CLASS_MAP.put("int",Integer.class);
-        CLASS_MAP.put("integer",Integer.class);
+        CLASS_MAP.put("i",int.class);
+        CLASS_MAP.put("int",int.class);
+        CLASS_MAP.put("integer",int.class);
+        CLASS_MAP.put("I",Integer.class);
+        CLASS_MAP.put("Int",Integer.class);
+        CLASS_MAP.put("Integer",Integer.class);
 
-        CLASS_MAP.put("l",Long.class);
-        CLASS_MAP.put("long",Long.class);
+        CLASS_MAP.put("l",long.class);
+        CLASS_MAP.put("long",long.class);
+        CLASS_MAP.put("L",Long.class);
+        CLASS_MAP.put("Long",Long.class);
 
-        CLASS_MAP.put("b",Byte.class);
-        CLASS_MAP.put("byte",Byte.class);
+        CLASS_MAP.put("b",byte.class);
+        CLASS_MAP.put("byte",byte.class);
+        CLASS_MAP.put("B",Byte.class);
+        CLASS_MAP.put("Byte",Byte.class);
 
-        CLASS_MAP.put("c",Character.class);
-        CLASS_MAP.put("ch",Character.class);
-        CLASS_MAP.put("char",Character.class);
+        CLASS_MAP.put("c",char.class);
+        CLASS_MAP.put("ch",char.class);
+        CLASS_MAP.put("char",char.class);
+        CLASS_MAP.put("C",Character.class);
+        CLASS_MAP.put("Ch",Character.class);
+        CLASS_MAP.put("Char",Character.class);
 
-        CLASS_MAP.put("d",Double.class);
-        CLASS_MAP.put("double",Double.class);
-        CLASS_MAP.put("f",Float.class);
-        CLASS_MAP.put("float",Float.class);
+        CLASS_MAP.put("d",double.class);
+        CLASS_MAP.put("double",double.class);
+        CLASS_MAP.put("D",Double.class);
+        CLASS_MAP.put("Double",Double.class);
+
+        CLASS_MAP.put("f",float.class);
+        CLASS_MAP.put("float",float.class);
+        CLASS_MAP.put("F",Float.class);
+        CLASS_MAP.put("Float",Float.class);
 
         CONVERSION_MAP.put(String.class,str->fromConstructor(String.class,str));
+        CONVERSION_MAP.put(Character.class,str->fromValueOf(Character.class,str));
         CONVERSION_MAP.put(Integer.class,str->fromValueOf(Integer.class,str));
         CONVERSION_MAP.put(Long.class,str->fromValueOf(Long.class,str));
         CONVERSION_MAP.put(Byte.class,str->fromValueOf(Byte.class,str));
         CONVERSION_MAP.put(Double.class,str->fromValueOf(Double.class,str));
         CONVERSION_MAP.put(Float.class,str->fromValueOf(Float.class,str));
+
+        CONVERSION_MAP.put(char.class,str->fromValueOf(Character.class,str));
+        CONVERSION_MAP.put(int.class,str->fromValueOf(Integer.class,str));
+        CONVERSION_MAP.put(long.class,str->fromValueOf(Long.class,str));
+        CONVERSION_MAP.put(byte.class,str->fromValueOf(Byte.class,str));
+        CONVERSION_MAP.put(double.class,str->fromValueOf(Double.class,str));
+        CONVERSION_MAP.put(float.class,str->fromValueOf(Float.class,str));
     }
 
     private final String propertyStr;
@@ -69,11 +93,17 @@ public class LabelProperty {
         }
     }
 
+    private String removeQuotes(String s) {
+        if(s.startsWith("'") && s.endsWith("'")) {
+            return s.substring(1,s.lastIndexOf("'"));
+        }
+        return s;
+    }
 
     public LabelProperty(String p) {
         String property = Objects.requireNonNull(p,"Requires property").trim();
         if(property.startsWith("'") && property.endsWith("'")) {
-            property = property.substring(1,property.lastIndexOf("'"));
+            property = removeQuotes(property);
             propertyType = String.class;
             builder = false;
             value = false;
@@ -81,7 +111,7 @@ public class LabelProperty {
             String[] parts = property.split("\\s+",2);
             if(parts.length == 2) {
                 if(CLASS_MAP.containsKey(parts[0])) {
-                    property = parts[1];
+                    property = removeQuotes(parts[1]);
                     propertyType = CLASS_MAP.get(parts[0]);
                     builder = false;
                     value = false;
@@ -92,7 +122,7 @@ public class LabelProperty {
                         builder = false;
                         value = false;
                     } else {
-                        property = parts[1];
+                        property = removeQuotes(parts[1]);
                         propertyType = CLASS_MAP.computeIfAbsent(parts[0], typeName->aClass);
                         builder = false;
                         value = false;
@@ -157,18 +187,19 @@ public class LabelProperty {
         } else if(value) {
             return null;
         } else {
-            Function<String, Object> supplier = CONVERSION_MAP.computeIfAbsent(propertyType, type ->
+            Function<String, ?> supplier = CONVERSION_MAP.computeIfAbsent(propertyType, type ->
                     cls -> {
                         try {
                             Constructor<?> constructor = propertyType.getConstructor(String.class);
-                            return constructor.newInstance(propertyStr);
+                            constructor.setAccessible(true);
+                            return constructor.newInstance(cls);
                         } catch (Exception e) {
                         }
                         try {
                             Method valueOf = propertyType.getMethod("valueOf", String.class);
-                            return valueOf.invoke(null, propertyStr);
-                        } catch (Exception e) {
-                        }
+                            valueOf.setAccessible(true);
+                            return valueOf.invoke(null, cls);
+                        } catch (Exception e) {}
                         throw new ConveyorRuntimeException("Failed to find instantiation method for " + cls);
                     }
             );

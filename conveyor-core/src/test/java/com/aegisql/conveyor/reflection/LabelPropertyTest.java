@@ -37,11 +37,31 @@ public class LabelPropertyTest {
     }
 
     @Test
+    public void basicTestWithStrTypeAndQuotes() {
+        LabelProperty lp1 = new LabelProperty("str 'a b'");
+        assertEquals("a b",lp1.getPropertyStr());
+        assertEquals("a b",lp1.getProperty());
+        assertEquals(String.class,lp1.getPropertyType());
+        assertFalse(lp1.isBuilder());
+        assertFalse(lp1.isValue());
+    }
+
+    @Test
     public void basicTestWithIntType() {
-        LabelProperty lp1 = new LabelProperty("int 0");
+        LabelProperty lp1 = new LabelProperty("i 0");
         assertEquals("0",lp1.getPropertyStr());
         assertEquals(0,lp1.getProperty());
-        assertEquals(Integer.class,lp1.getPropertyType());
+        assertEquals(int.class,lp1.getPropertyType());
+        assertFalse(lp1.isBuilder());
+        assertFalse(lp1.isValue());
+    }
+
+    @Test
+    public void quotesWorkTest() {
+        LabelProperty lp1 = new LabelProperty("'int 0'");
+        assertEquals("int 0",lp1.getPropertyStr());
+        assertEquals("int 0",lp1.getProperty());
+        assertEquals(String.class,lp1.getPropertyType());
         assertFalse(lp1.isBuilder());
         assertFalse(lp1.isValue());
     }
@@ -83,7 +103,7 @@ public class LabelPropertyTest {
         LabelProperty lp1 = new LabelProperty("$int");
         assertEquals("$",lp1.getPropertyStr());
         assertEquals(null,lp1.getProperty());
-        assertEquals(Integer.class,lp1.getPropertyType());
+        assertEquals(int.class,lp1.getPropertyType());
         assertFalse(lp1.isBuilder());
         assertTrue(lp1.isValue());
     }
@@ -97,4 +117,7 @@ public class LabelPropertyTest {
         assertFalse(lp1.isBuilder());
         assertTrue(lp1.isValue());
     }
+
+
+
 }
