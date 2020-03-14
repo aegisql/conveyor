@@ -106,6 +106,13 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 	public static <T> void registerStringConverter(Class<T> aClass, Function<String,T> converter) {
 		Objects.requireNonNull(aClass,"registerStringConverter requires non empty class");
 		Objects.requireNonNull(converter,"registerStringConverter requires converter for class "+aClass.getSimpleName());
-		LabelProperty.CONVERSION_MAP.put(aClass,converter);
+		LabelProperty.CONVERSION_MAP.put(aClass.getCanonicalName(),converter);
 	}
+
+	public static <T> void registerStringConverter(String alias, Function<String,T> converter) {
+		Objects.requireNonNull(alias,"registerStringConverter requires non empty class alias");
+		Objects.requireNonNull(converter,"registerStringConverter requires converter for class "+alias);
+		LabelProperty.CONVERSION_MAP.put(alias,converter);
+	}
+
 }

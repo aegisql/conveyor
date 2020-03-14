@@ -592,5 +592,32 @@ public class ReflectingValueConsumerTest {
 
 	}
 
+	@Test
+	public void getterEnumSetterWithNewTest() {
+		Function<String,PhoneType> converter = PhoneType::valueOf;
+		ReflectingValueConsumer.registerStringConverter(PhoneType.class,converter);
+		ReflectingValueConsumer.registerClassShortName(PhoneType.class,"PhoneType");
+		ReflectingValueConsumer.registerClassShortName(ArrayList.class,"ArrayList");
+
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+
+		GS gs = new GS();
+
+
+		vc.accept("phones.computeIfAbsent{PhoneType CELL,new ArrayList}.add","111-2233",gs);
+		vc.accept("phones.computeIfAbsent{PhoneType WORK,new ArrayList}.add","222-3334",gs);
+		vc.accept("phones.computeIfAbsent{PhoneType WORK,new ArrayList}.add","222-3335",gs);
+		vc.accept("phones.computeIfAbsent{PhoneType HOME,new ArrayList}.add","111-1133",gs);
+
+		assertNotNull(gs.phones);
+		assertTrue(gs.phones.containsKey(HOME));
+		assertTrue(gs.phones.containsKey(CELL));
+		assertTrue(gs.phones.containsKey(WORK));
+		assertEquals(1,gs.phones.get(CELL).size());
+		assertEquals(1,gs.phones.get(HOME).size());
+		assertEquals(2,gs.phones.get(WORK).size());
+
+	}
+
 
 }
