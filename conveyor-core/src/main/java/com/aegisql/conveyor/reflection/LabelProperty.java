@@ -4,6 +4,7 @@ import com.aegisql.conveyor.ConveyorRuntimeException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -16,7 +17,26 @@ public class LabelProperty {
 
     final static Map<String,Class<?>> CLASS_MAP = new HashMap<>();
 
-    private static Function<String,Function<?,?>> defaultSupplier = alias->{
+    final static Function<String,?> voidConstructorSupplier = type->{
+        if(CLASS_MAP.containsKey(type)) {
+            try {
+                Constructor<?> constructor = CLASS_MAP.get(type).getConstructor(null);
+                constructor.setAccessible(true);
+                return constructor.newInstance(null);
+            } catch (Exception e) {
+                throw new ConveyorRuntimeException(e);
+            }
+        }
+        try {
+            Class<?> aClass = Class.forName(type);
+            CLASS_MAP.put(type,aClass);
+            return aClass.getConstructor(null).newInstance(null);
+        } catch (Exception e) {
+            throw new ConveyorRuntimeException(e);
+        }
+    };
+
+    final static Function<String,Function<?,?>> defaultSupplier = alias->{
         return type->{
             if(CLASS_MAP.containsKey(type)) {
                 try {
@@ -85,6 +105,10 @@ public class LabelProperty {
         CLASS_MAP.put("Float",Float.class);
 
         CLASS_MAP.put("new",Function.class);
+        CLASS_MAP.put("key->new",Function.class);
+
+        CLASS_MAP.put("list", ArrayList.class);
+        CLASS_MAP.put("map", HashMap.class);
 
         CONVERSION_MAP.put(String.class.getCanonicalName(),str->fromConstructor(String.class,str));
         CONVERSION_MAP.put(Character.class.getCanonicalName(),str->fromValueOf(Character.class,str));
@@ -101,7 +125,8 @@ public class LabelProperty {
         CONVERSION_MAP.put(double.class.getCanonicalName(),str->fromValueOf(Double.class,str));
         CONVERSION_MAP.put(float.class.getCanonicalName(),str->fromValueOf(Float.class,str));
 
-        CONVERSION_MAP.put("new",defaultSupplier);
+        CONVERSION_MAP.put("key->new",defaultSupplier);
+        CONVERSION_MAP.put("new",voidConstructorSupplier);
     }
 
     private final String propertyStr;
@@ -181,7 +206,7 @@ public class LabelProperty {
                     }
                 }
             } else {
-                this.typeAlias = "s";
+                this.typeAlias = null;
                 if("#".equals(property)) {
                     propertyType = null;
                     builder = true;
@@ -248,6 +273,10 @@ public class LabelProperty {
             }
             return supplier.apply(propertyStr);
         }
+    }
+
+    String getTypeAlias() {
+        return typeAlias;
     }
 
     @Override

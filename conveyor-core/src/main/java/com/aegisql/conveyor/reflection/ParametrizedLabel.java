@@ -12,6 +12,7 @@ public class ParametrizedLabel {
     private final String label;
     private boolean hasValueType = false;
     private final List<LabelProperty> labelProperties;
+    private final LabelProperty labelProperty;
 
     public ParametrizedLabel(Class<?> bClass, String label) {
         this(bClass,null,label);
@@ -28,9 +29,11 @@ public class ParametrizedLabel {
                     .map(LabelProperty::new)
                     .peek(lp->{if(lp.isValue() && lp.getPropertyType() != null) hasValueType = true;})
                     .collect(Collectors.toList());
+            this.labelProperty = null;
         } else {
             this.labelProperties = Collections.EMPTY_LIST;
-            this.label = label;
+            this.labelProperty = new LabelProperty(label);
+            this.label = labelProperty.getPropertyStr();
         }
     }
 
@@ -118,5 +121,13 @@ public class ParametrizedLabel {
         sb.append(wholeLabel);
         sb.append('}');
         return sb.toString();
+    }
+
+    List<LabelProperty> getLabelProperties() {
+        return labelProperties;
+    }
+
+    LabelProperty getLabelProperty() {
+        return labelProperty;
     }
 }

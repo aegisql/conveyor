@@ -47,7 +47,7 @@ public class ConsumerFactory {
             if(field == null) {
                 return (b,v)->b;
             } else {
-                return (b,v)->get(field,b);
+                return (b,v)->get(pl,field,b);
             }
         }
     }
@@ -74,7 +74,7 @@ public class ConsumerFactory {
                 return (b, v) -> invoke(finalMethod, b, pl.getPropertiesForSetter(b, v));
             }
         } else {
-            return fieldSetter(pl.getLabel());
+            return fieldSetter(pl);
         }
     }
 
@@ -122,12 +122,19 @@ public class ConsumerFactory {
         }
     }
 
-    private Object get(final Field field, Object builder) {
+    private Object get(ParametrizedLabel pl, final Field field, Object builder) {
         try {
             field.setAccessible(true);
             Object o = field.get(builder);
             if(o==null) {
-                Constructor<?> constructor = field.getType().getConstructor(null);
+                LabelProperty labelProperty = pl.getLabelProperty();
+                Class<?> fieldType;
+                if(labelProperty.getTypeAlias() != null) {
+                    fieldType = labelProperty.getPropertyType();
+                } else {
+                    fieldType = field.getType();
+                }
+                Constructor<?> constructor = fieldType.getConstructor(null);
                 Object newInstance = constructor.newInstance(null);
                 field.setAccessible(true);
                 field.set(builder,newInstance);
@@ -148,13 +155,15 @@ public class ConsumerFactory {
         }
     }
 
-    private BiConsumer<Object, Object> fieldSetter(String label) {
-        Field field = fieldsByName.get(label);
+    private BiConsumer<Object, Object> fieldSetter(ParametrizedLabel pl) {
+        String label = pl.getLabel();
+        Field field = fieldsByName.get(pl.getLabel());
         if(field != null) {
             return (b, v)->set(field, b, v);
-        } else {
-            return (b,v)->{throw new ConveyorRuntimeException("No setter found for "+label);};
         }
+        LabelProperty labelProperty = pl.getLabelProperty();
+        return (b,v)->{throw new ConveyorRuntimeException("No setter found for "+label);};
+
     }
 
 }

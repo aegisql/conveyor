@@ -550,6 +550,8 @@ public class ReflectingValueConsumerTest {
 	static class GS {
 		ArrayList<A> list;
 		HashMap<PhoneType, List<String>> phones;
+		HashMap<String, PhoneType> reversedPhones;
+		List<String> values;
 	}
 	@Test
 	public void getterSetterTest() {
@@ -604,10 +606,10 @@ public class ReflectingValueConsumerTest {
 		GS gs = new GS();
 
 
-		vc.accept("phones.computeIfAbsent{PhoneType CELL,new ArrayList}.add","111-2233",gs);
-		vc.accept("phones.computeIfAbsent{PhoneType WORK,new ArrayList}.add","222-3334",gs);
-		vc.accept("phones.computeIfAbsent{PhoneType WORK,new ArrayList}.add","222-3335",gs);
-		vc.accept("phones.computeIfAbsent{PhoneType HOME,new ArrayList}.add","111-1133",gs);
+		vc.accept("phones.computeIfAbsent{PhoneType CELL,key->new ArrayList}.add","111-2233",gs);
+		vc.accept("phones.computeIfAbsent{PhoneType WORK,key->new ArrayList}.add","222-3334",gs);
+		vc.accept("phones.computeIfAbsent{PhoneType WORK,key->new ArrayList}.add","222-3335",gs);
+		vc.accept("phones.computeIfAbsent{PhoneType HOME,key->new ArrayList}.add{$str}","111-1133",gs);
 
 		assertNotNull(gs.phones);
 		assertTrue(gs.phones.containsKey(HOME));
@@ -617,6 +619,12 @@ public class ReflectingValueConsumerTest {
 		assertEquals(1,gs.phones.get(HOME).size());
 		assertEquals(2,gs.phones.get(WORK).size());
 
+		vc.accept("reversedPhones.put{$,PhoneType HOME}","111-1133",gs);
+		assertTrue(gs.reversedPhones.containsKey("111-1133"));
+
+		vc.accept("ArrayList values.add","111-1133",gs);
+		assertEquals(1,gs.values.size());
+		assertEquals("111-1133",gs.values.get(0));
 	}
 
 
