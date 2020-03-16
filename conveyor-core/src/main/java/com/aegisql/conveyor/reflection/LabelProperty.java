@@ -87,6 +87,11 @@ public class LabelProperty {
         CLASS_MAP.put("B",Byte.class);
         CLASS_MAP.put("Byte",Byte.class);
 
+        CLASS_MAP.put("bool",boolean.class);
+        CLASS_MAP.put("boolean",boolean.class);
+        CLASS_MAP.put("Bool",Boolean.class);
+        CLASS_MAP.put("Boolean",Boolean.class);
+
         CLASS_MAP.put("c",char.class);
         CLASS_MAP.put("ch",char.class);
         CLASS_MAP.put("char",char.class);
@@ -110,20 +115,22 @@ public class LabelProperty {
         CLASS_MAP.put("list", ArrayList.class);
         CLASS_MAP.put("map", HashMap.class);
 
-        CONVERSION_MAP.put(String.class.getCanonicalName(),str->fromConstructor(String.class,str));
-        CONVERSION_MAP.put(Character.class.getCanonicalName(),str->fromValueOf(Character.class,str));
-        CONVERSION_MAP.put(Integer.class.getCanonicalName(),str->fromValueOf(Integer.class,str));
-        CONVERSION_MAP.put(Long.class.getCanonicalName(),str->fromValueOf(Long.class,str));
-        CONVERSION_MAP.put(Byte.class.getCanonicalName(),str->fromValueOf(Byte.class,str));
-        CONVERSION_MAP.put(Double.class.getCanonicalName(),str->fromValueOf(Double.class,str));
-        CONVERSION_MAP.put(Float.class.getCanonicalName(),str->fromValueOf(Float.class,str));
+        CONVERSION_MAP.put(String.class.getName(),str->fromConstructor(String.class,str));
+        CONVERSION_MAP.put(Character.class.getName(),str->fromValueOf(Character.class,str));
+        CONVERSION_MAP.put(Integer.class.getName(),str->fromValueOf(Integer.class,str));
+        CONVERSION_MAP.put(Long.class.getName(),str->fromValueOf(Long.class,str));
+        CONVERSION_MAP.put(Byte.class.getName(),str->fromValueOf(Byte.class,str));
+        CONVERSION_MAP.put(Double.class.getName(),str->fromValueOf(Double.class,str));
+        CONVERSION_MAP.put(Float.class.getName(),str->fromValueOf(Float.class,str));
+        CONVERSION_MAP.put(Boolean.class.getName(),str->fromValueOf(Boolean.class,str));
 
-        CONVERSION_MAP.put(char.class.getCanonicalName(),str->fromValueOf(Character.class,str));
-        CONVERSION_MAP.put(int.class.getCanonicalName(),str->fromValueOf(Integer.class,str));
-        CONVERSION_MAP.put(long.class.getCanonicalName(),str->fromValueOf(Long.class,str));
-        CONVERSION_MAP.put(byte.class.getCanonicalName(),str->fromValueOf(Byte.class,str));
-        CONVERSION_MAP.put(double.class.getCanonicalName(),str->fromValueOf(Double.class,str));
-        CONVERSION_MAP.put(float.class.getCanonicalName(),str->fromValueOf(Float.class,str));
+        CONVERSION_MAP.put(char.class.getName(),str->fromValueOf(Character.class,str));
+        CONVERSION_MAP.put(int.class.getName(),str->fromValueOf(Integer.class,str));
+        CONVERSION_MAP.put(long.class.getName(),str->fromValueOf(Long.class,str));
+        CONVERSION_MAP.put(byte.class.getName(),str->fromValueOf(Byte.class,str));
+        CONVERSION_MAP.put(double.class.getName(),str->fromValueOf(Double.class,str));
+        CONVERSION_MAP.put(float.class.getName(),str->fromValueOf(Float.class,str));
+        CONVERSION_MAP.put(boolean.class.getName(),str->fromValueOf(Boolean.class,str));
 
         CONVERSION_MAP.put("key->new",defaultSupplier);
         CONVERSION_MAP.put("new",voidConstructorSupplier);
@@ -174,8 +181,11 @@ public class LabelProperty {
         }
         return s;
     }
-
     public LabelProperty(String p) {
+        this(p,false);
+    }
+
+    LabelProperty(String p, boolean forField) {
         String property = Objects.requireNonNull(p,"Requires property").trim();
         if(property.startsWith("'") && property.endsWith("'")) {
             property = removeQuotes(property);
@@ -195,7 +205,7 @@ public class LabelProperty {
                 } else {
                     Class<?> aClass = toClass(parts[0]);
                     if(aClass == null) {
-                        propertyType = String.class;
+                        propertyType = forField ? null : String.class;
                         builder = false;
                         value = false;
                     } else {
@@ -226,7 +236,7 @@ public class LabelProperty {
                         propertyType = null;
                     }
                 } else {
-                    propertyType = String.class;
+                    propertyType = forField ? null : String.class;
                     builder = false;
                     value = false;
                 }
@@ -269,7 +279,7 @@ public class LabelProperty {
             if(CONVERSION_MAP.containsKey(this.typeAlias)){
                 supplier = CONVERSION_MAP.get(this.typeAlias);
             } else {
-                supplier = CONVERSION_MAP.computeIfAbsent(propertyType.getCanonicalName(), type -> defaultConverter);
+                supplier = CONVERSION_MAP.computeIfAbsent(propertyType.getName(), type -> defaultConverter);
             }
             return supplier.apply(propertyStr);
         }

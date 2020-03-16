@@ -38,7 +38,7 @@ public class ReflectingValueConsumerTest {
 
 	public static class A {
 		@Label("value")
-		private String val;
+		protected String val;
 
 		public String getVal() {
 			return val;
@@ -63,7 +63,7 @@ public class ReflectingValueConsumerTest {
 	}
 
 	public static class B extends A {
-		private int x;
+		protected int x;
 
 		public int getX() {
 			return x;
@@ -80,6 +80,13 @@ public class ReflectingValueConsumerTest {
 
 		public String getHidden() {
 			return hidden;
+		}
+
+		public C() {}
+
+		public C(String a, int b) {
+			val = a;
+			x = b;
 		}
 
 	}
@@ -553,6 +560,7 @@ public class ReflectingValueConsumerTest {
 		HashMap<String, PhoneType> reversedPhones;
 		List<String> values;
 	}
+
 	@Test
 	public void getterSetterTest() {
 		ReflectingValueConsumer vc = new ReflectingValueConsumer();
@@ -627,5 +635,30 @@ public class ReflectingValueConsumerTest {
 		assertEquals("111-1133",gs.values.get(0));
 	}
 
+	class PGF {
+		C c;
+		C c1;
+		C c2;
+	}
+	@Test
+	public void parametrizedFieldGetterTest() {
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		PGF pgf = new PGF();
+		vc.accept("c{str val,int 100}.hidden","hidden",pgf);
+		assertEquals("hidden",pgf.c.getHidden());
+		assertEquals(100,pgf.c.getX());
+		assertEquals("val",pgf.c.getVal());
+		String cClass = C.class.getName();
+		vc.accept(cClass+" c1{str val1,int 101}.hidden","hidden1",pgf);
+		assertEquals("hidden1",pgf.c1.getHidden());
+		assertEquals(101,pgf.c1.getX());
+		assertEquals("val1",pgf.c1.getVal());
+
+		ReflectingValueConsumer.registerClassShortName(C.class,"$C");
+		vc.accept("$C c2{str val2,int 102}.hidden","hidden2",pgf);
+		assertEquals("hidden2",pgf.c2.getHidden());
+		assertEquals(102,pgf.c2.getX());
+		assertEquals("val2",pgf.c2.getVal());
+	}
 
 }

@@ -65,7 +65,8 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 	private String[] split(String s){
 		boolean inParam = false;
 		boolean inB1 = true;
-		char[] chars = s.toCharArray();
+		boolean neverBeenInParam = true;
+		char[] chars = s.trim().toCharArray();
 		StringBuilder b1 = new StringBuilder();
 		StringBuilder b2 = new StringBuilder();
 		StringBuilder sb = b1;
@@ -73,6 +74,9 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 			if(inB1) {
 				if('{'==ch) {
 					inParam = true;
+					if( neverBeenInParam ) {
+						neverBeenInParam = false;
+					}
 				}
 				if('}'==ch) {
 					inParam = false;
@@ -84,7 +88,18 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 				}
 				sb.append(ch);
 			} else {
-				b2.append(ch);
+				//b2.append(ch);
+				if('{' == ch) {
+					neverBeenInParam = false;
+				}
+				if(' ' == ch && b2.length() > 0 && neverBeenInParam) {
+					b1.append('.').append(b2).append(' ');
+					b2 = new StringBuilder();
+					inB1 = true;
+					sb = b1;
+				} else {
+					b2.append(ch);
+				}
 			}
 		}
 		if(b2.length() == 0) {
@@ -106,7 +121,7 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 	public static <T> void registerStringConverter(Class<T> aClass, Function<String,T> converter) {
 		Objects.requireNonNull(aClass,"registerStringConverter requires non empty class");
 		Objects.requireNonNull(converter,"registerStringConverter requires converter for class "+aClass.getSimpleName());
-		LabelProperty.CONVERSION_MAP.put(aClass.getCanonicalName(),converter);
+		LabelProperty.CONVERSION_MAP.put(aClass.getName(),converter);
 	}
 
 	public static <T> void registerStringConverter(String alias, Function<String,T> converter) {

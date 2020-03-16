@@ -23,16 +23,16 @@ public class ParametrizedLabel {
         this.wholeLabel = label.trim();
         if(isParametrized()) {
             String[] parts = label.split("\\{|\\}",3);
-            this.label = parts[0];
+            this.labelProperty = new LabelProperty(parts[0],true);
+            this.label = labelProperty.getPropertyStr();
             String[] properties = parts[1].split(",");
             this.labelProperties = Arrays.stream(properties)
                     .map(LabelProperty::new)
                     .peek(lp->{if(lp.isValue() && lp.getPropertyType() != null) hasValueType = true;})
                     .collect(Collectors.toList());
-            this.labelProperty = null;
         } else {
             this.labelProperties = Collections.EMPTY_LIST;
-            this.labelProperty = new LabelProperty(label);
+            this.labelProperty = new LabelProperty(label,true);
             this.label = labelProperty.getPropertyStr();
         }
     }

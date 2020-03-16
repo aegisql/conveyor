@@ -43,7 +43,8 @@ public class ConsumerFactory {
             Method finalMethod = method;
             return (b, v)->invoke(finalMethod,b,pl.getPropertiesForGetter(b,v));
         } else {
-            Field field = fieldsByName.get(pl.getLabel());
+            String label = pl.getLabel();
+            Field field = fieldsByName.get(label);
             if(field == null) {
                 return (b,v)->b;
             } else {
@@ -129,13 +130,13 @@ public class ConsumerFactory {
             if(o==null) {
                 LabelProperty labelProperty = pl.getLabelProperty();
                 Class<?> fieldType;
-                if(labelProperty.getTypeAlias() != null) {
+                if(labelProperty.getTypeAlias() != null && labelProperty.getPropertyType() != null) {
                     fieldType = labelProperty.getPropertyType();
                 } else {
                     fieldType = field.getType();
                 }
-                Constructor<?> constructor = fieldType.getConstructor(null);
-                Object newInstance = constructor.newInstance(null);
+                Constructor<?> constructor = fieldType.getConstructor(pl.getClassesForGetter(aClass,null));
+                Object newInstance = constructor.newInstance(pl.getPropertiesForGetter(aClass,null));
                 field.setAccessible(true);
                 field.set(builder,newInstance);
                 return newInstance;
@@ -161,9 +162,7 @@ public class ConsumerFactory {
         if(field != null) {
             return (b, v)->set(field, b, v);
         }
-        LabelProperty labelProperty = pl.getLabelProperty();
         return (b,v)->{throw new ConveyorRuntimeException("No setter found for "+label);};
-
     }
 
 }
