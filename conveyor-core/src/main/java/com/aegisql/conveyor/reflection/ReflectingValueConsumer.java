@@ -65,7 +65,8 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 	private String[] split(String s){
 		boolean inParam = false;
 		boolean inB1 = true;
-		boolean neverBeenInParam = true;
+		boolean paramNotFound = true;
+		boolean spaceFound = false;
 		char[] chars = s.trim().toCharArray();
 		StringBuilder b1 = new StringBuilder();
 		StringBuilder b2 = new StringBuilder();
@@ -74,8 +75,8 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 			if(inB1) {
 				if('{'==ch) {
 					inParam = true;
-					if( neverBeenInParam ) {
-						neverBeenInParam = false;
+					if( paramNotFound ) {
+						paramNotFound = false;
 					}
 				}
 				if('}'==ch) {
@@ -86,17 +87,22 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 					inB1 = false;
 					continue;
 				}
+				if(' ' == ch) {
+				    spaceFound = true;
+                }
 				sb.append(ch);
-			} else {
-				//b2.append(ch);
+			} else if(spaceFound){
+                b2.append(ch);
+            } else {
 				if('{' == ch) {
-					neverBeenInParam = false;
+					paramNotFound = false;
 				}
-				if(' ' == ch && b2.length() > 0 && neverBeenInParam) {
+				if(' ' == ch && paramNotFound) {
 					b1.append('.').append(b2).append(' ');
 					b2 = new StringBuilder();
 					inB1 = true;
 					sb = b1;
+					spaceFound = true;
 				} else {
 					b2.append(ch);
 				}

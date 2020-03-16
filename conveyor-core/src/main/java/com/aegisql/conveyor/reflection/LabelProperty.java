@@ -4,10 +4,7 @@ import com.aegisql.conveyor.ConveyorRuntimeException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 
 public class LabelProperty {
@@ -114,6 +111,7 @@ public class LabelProperty {
 
         CLASS_MAP.put("list", ArrayList.class);
         CLASS_MAP.put("map", HashMap.class);
+        CLASS_MAP.put("set", HashSet.class);
 
         CONVERSION_MAP.put(String.class.getName(),str->fromConstructor(String.class,str));
         CONVERSION_MAP.put(Character.class.getName(),str->fromValueOf(Character.class,str));

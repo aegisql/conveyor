@@ -1,5 +1,7 @@
 package com.aegisql.conveyor;
 
+import com.aegisql.conveyor.consumers.result.LastResultReference;
+import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.reflection.Label;
 import com.aegisql.conveyor.reflection.NoLabel;
 import com.aegisql.conveyor.reflection.ReflectingValueConsumer;
@@ -7,9 +9,7 @@ import com.aegisql.conveyor.reflection.SimpleConveyor;
 import com.aegisql.conveyor.utils.BuilderUtils;
 import org.junit.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
@@ -280,14 +280,15 @@ public class ReflectingValueConsumerTest {
 	public void testWithSimpleConveyor() throws InterruptedException, ExecutionException {
 		SimpleConveyor<Integer,String> c = new SimpleConveyor<>(D::new);
 		
-		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted("setVal", "setX","hidden"));
+		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted("@done"));
 		
 		Future<String> f = c.build().id(1).createFuture();
 		
 		c.part().id(1).value("test").label("setVal").place();
 		c.part().id(1).value(100).label("setX").place();
-		c.part().id(1).value("hide").label("hidden").place().get();
-		
+		c.part().id(1).value("hide").label("hidden").place();
+        c.part().id(1).label("@done").place().get();
+
 		System.out.println(f.get());
 		assertEquals("test 100 hide", f.get());
 
@@ -394,7 +395,29 @@ public class ReflectingValueConsumerTest {
 		assertEquals("a-test",abc.ab.a.val);
 	}
 
-	@Test
+    @Test
+    public void testDeep3LabelWithShortClassNames() {
+        ReflectingValueConsumer vc = new ReflectingValueConsumer();
+        ReflectingValueConsumer.registerClassShortName(AB.class,"$AB");
+        ReflectingValueConsumer.registerClassShortName(A.class,"$A");
+        ABC abc = new ABC();
+        vc.accept("$AB ab.$A a.value","a-test",abc);
+        assertNotNull(abc.ab);
+        assertNotNull(abc.ab.a);
+        assertEquals("a-test",abc.ab.a.val);
+    }
+
+    @Test
+    public void testDeep3LabelWithLongClassNames() {
+        ReflectingValueConsumer vc = new ReflectingValueConsumer();
+        ABC abc = new ABC();
+        vc.accept(AB.class.getName()+" ab."+A.class.getName()+" a.value","a-test",abc);
+        assertNotNull(abc.ab);
+        assertNotNull(abc.ab.a);
+        assertEquals("a-test",abc.ab.a.val);
+    }
+
+    @Test
 	public void testDeepLabelWithGetters() {
 		ReflectingValueConsumer vc = new ReflectingValueConsumer();
 		AB ab = new AB();
@@ -661,4 +684,87 @@ public class ReflectingValueConsumerTest {
 		assertEquals("val2",pgf.c2.getVal());
 	}
 
+	static class Phones {
+		final String firstName;
+		final String lastName;
+		final Map<PhoneType, Set<String>> phones;
+		final Map<String, PhoneType> reversedPhones;
+
+		public Phones(String firstName, String lastName, Map<PhoneType, Set<String>> phones, Map<String, PhoneType> reversedPhones) {
+			this.firstName = firstName;
+			this.lastName = lastName;
+			this.phones = Collections.unmodifiableMap(phones);
+			this.reversedPhones = Collections.unmodifiableMap(reversedPhones);
+		}
+
+		@Override
+		public String toString() {
+			final StringBuilder sb = new StringBuilder("Phones{");
+			sb.append("firstName='").append(firstName).append('\'');
+			sb.append(", lastName='").append(lastName).append('\'');
+			sb.append(", phones=").append(phones);
+			sb.append(", reversedPhones=").append(reversedPhones);
+			sb.append('}');
+			return sb.toString();
+		}
+	}
+
+	static class PhonesBuilder implements Supplier<Phones>{
+		String firstName;
+		String lastName;
+		Map<PhoneType, Set<String>> phones;
+		Map<String, PhoneType> reversedPhones;
+
+		@Override
+		public Phones get() {
+			return new Phones(firstName,lastName,phones,reversedPhones);
+		}
+	}
+
+	@Test
+	public void demoPhonesTest() {
+
+		//Function<String,PhoneType> converter = PhoneType::valueOf;
+		//ReflectingValueConsumer.registerStringConverter(PhoneType.class,converter);
+		ReflectingValueConsumer.registerClassShortName(PhoneType.class,"PhoneType");
+		ReflectingValueConsumer.registerClassShortName(HashSet.class,"HashSet");
+
+		LastResultReference<Integer,Phones> result = new LastResultReference<>();
+
+		SimpleConveyor<Integer,Phones> sc = new SimpleConveyor<>(PhonesBuilder::new);
+		sc.resultConsumer(result).set();
+		//label @done has no action inside the builder, but will be accepted by the readiness evaluator
+		sc.setReadinessEvaluator(Conveyor.getTesterFor(sc).accepted("@done"));
+
+		PartLoader<Integer, String> loader = sc.part().id(1);
+		//Just set first and last name
+		loader.label("firstName").value("John").place();
+		loader.label("lastName").value("Smith").place();
+		//Load phones
+		loader.label("map phones.computeIfAbsent{PhoneType CELL,key->new HashSet}.add").value("111-2233").place();
+		loader.label("map phones.computeIfAbsent{PhoneType WORK,key->new HashSet}.add").value("222-3334").place();
+		//made a mistake, remove value
+		loader.label("map phones.get{PhoneType WORK}.remove").value("222-3334").place();
+		//add more
+		loader.label("map phones.computeIfAbsent{PhoneType WORK,key->new HashSet}.add").value("222-3335").place();
+		loader.label("map phones.computeIfAbsent{PhoneType WORK,key->new HashSet}.add").value("222-3336").place();
+		//type alias 'map' is technically redundant after first use.
+		loader.label("phones.computeIfAbsent{PhoneType HOME,key->new HashSet}.add").value("111-1133").place();
+
+		//In reversed map phone is the first parameter and passed value
+		//We explicitly refer it as a $
+		loader.label("map reversedPhones.put{$,PhoneType CELL}").value("111-2233").place();
+		loader.label("map reversedPhones.put{$,PhoneType WORK}").value("222-3335").place();
+		loader.label("map reversedPhones.put{$,PhoneType WORK}").value("222-3336").place();
+		loader.label("map reversedPhones.put{$,PhoneType HOME}").value("111-1133").place();
+
+		loader.label("@done").place().join();
+
+		Phones phones = result.getCurrent();
+		assertNotNull(phones);
+		System.out.println(phones);
+		assertFalse(phones.phones.get(WORK).contains("222-3334")); //removed
+		assertTrue(phones.phones.get(WORK).contains("222-3335"));
+		assertTrue(phones.phones.get(WORK).contains("222-3336"));
+	}
 }
