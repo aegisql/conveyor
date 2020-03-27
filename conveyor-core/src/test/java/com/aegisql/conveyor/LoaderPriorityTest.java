@@ -1,6 +1,8 @@
 package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.reflection.SimpleConveyor;
+import com.aegisql.java_path.ClassRegistry;
+import com.aegisql.java_path.Label;
 import org.junit.*;
 
 import java.util.ArrayList;
@@ -14,7 +16,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 public class LoaderPriorityTest {
-	
+
+	@BeforeClass
+	public static void initClass() {
+		ClassRegistry.registerGlobalClassShortName(TestStringBuilder.class,TestStringBuilder.class.getName());
+	}
 	
 	public static class TestStringBuilder implements Supplier<String>{
 		String partA;
@@ -23,13 +29,15 @@ public class LoaderPriorityTest {
 		public TestStringBuilder(List<String> order) {
 			this.order = order;
 		}
-		
+
+		@Label("partA")
 		public void setPartA(String partA) {
 			this.partA = partA;
 			order.add(partA);
 			sleep(100);
 		}
 
+		@Label("partB")
 		public void setPartB(String partB) {
 			this.partB = partB;
 			order.add(partB);
