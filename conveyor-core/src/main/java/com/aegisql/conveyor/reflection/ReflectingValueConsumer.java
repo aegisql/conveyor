@@ -2,12 +2,13 @@ package com.aegisql.conveyor.reflection;
 
 import com.aegisql.conveyor.ConveyorRuntimeException;
 import com.aegisql.conveyor.LabeledValueConsumer;
-import com.aegisql.java_path.*;
+import com.aegisql.java_path.ClassRegistry;
+import com.aegisql.java_path.PathUtils;
+import com.aegisql.java_path.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -40,8 +41,7 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 			throw new ConveyorRuntimeException("Label must not be empty");
 		}
 		PathUtils consumerFactory = consumerFactoryMap.computeIfAbsent(builder.getClass(),cls -> new PathUtils(cls,classRegistry));
-		List<TypedPathElement> path = JavaPathParser.parse(label);
-		consumerFactory.applyValueToPath(path,builder,value);
+		consumerFactory.applyValueToPath(label,builder,value);
 	}
 
 	public void registerClassShortName(Class<?> aClass, String shortName) {
