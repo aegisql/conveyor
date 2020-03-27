@@ -51,6 +51,10 @@ conveyor configurator
 
 ### 1.4.4-SNAPSHOT
 * Added support for config properties
+* Added class Priority. Contains pre-defined suppliers for priority queue 
+* Extended SimpleConveyor with DSL labels
+* Added Sample Result Consumer
+* Added Observable Result Consumer
 * Tests
 * Bugfixes
 

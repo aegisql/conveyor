@@ -1,18 +1,18 @@
 package com.aegisql.conveyor;
 
-import com.aegisql.conveyor.consumers.result.LastResultReference;
+import com.aegisql.conveyor.consumers.result.ObservableResultConsumer;
 import com.aegisql.conveyor.loaders.PartLoader;
-import com.aegisql.conveyor.reflection.Label;
-import com.aegisql.conveyor.reflection.NoLabel;
+import com.aegisql.conveyor.loaders.StaticPartLoader;
 import com.aegisql.conveyor.reflection.ReflectingValueConsumer;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
 import com.aegisql.conveyor.utils.BuilderUtils;
+import com.aegisql.java_path.*;
 import org.junit.*;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static com.aegisql.conveyor.ReflectingValueConsumerTest.PhoneType.*;
@@ -303,7 +303,7 @@ public class ReflectingValueConsumerTest {
 				.tester(abc->abc.ab.a.val != null)
 				.setBuilderSupplier();
 		Future<String> f = c.build().id(1).createFuture();
-		c.part().id(1).label("$.ab.a.value").value("test").place();
+		c.part().id(1).label("#.ab.a.value").value("test").place();
 		assertEquals("test", f.get());
 	}
 
@@ -333,7 +333,7 @@ public class ReflectingValueConsumerTest {
 	assertEquals(100,a.getX());
 	}
 
-	@Test(expected=ConveyorRuntimeException.class)
+	@Test(expected= JavaPathRuntimeException.class)
 	public void testBEWithDuplicatedAnnotation() {
 	ReflectingValueConsumer vc = new ReflectingValueConsumer();
 	BE a = new BE();
@@ -398,10 +398,10 @@ public class ReflectingValueConsumerTest {
     @Test
     public void testDeep3LabelWithShortClassNames() {
         ReflectingValueConsumer vc = new ReflectingValueConsumer();
-        ReflectingValueConsumer.registerClassShortName(AB.class,"$AB");
-        ReflectingValueConsumer.registerClassShortName(A.class,"$A");
+        vc.registerClassShortName(AB.class,"$AB");
+        vc.registerClassShortName(A.class,"$A");
         ABC abc = new ABC();
-        vc.accept("$AB ab.$A a.value","a-test",abc);
+        vc.accept("($AB ab).($A a).value","a-test",abc);
         assertNotNull(abc.ab);
         assertNotNull(abc.ab.a);
         assertEquals("a-test",abc.ab.a.val);
@@ -411,7 +411,7 @@ public class ReflectingValueConsumerTest {
     public void testDeep3LabelWithLongClassNames() {
         ReflectingValueConsumer vc = new ReflectingValueConsumer();
         ABC abc = new ABC();
-        vc.accept(AB.class.getName()+" ab."+A.class.getName()+" a.value","a-test",abc);
+        vc.accept("("+AB.class.getName()+" ab).("+A.class.getName()+" a).value","a-test",abc);
         assertNotNull(abc.ab);
         assertNotNull(abc.ab.a);
         assertEquals("a-test",abc.ab.a.val);
@@ -457,7 +457,7 @@ public class ReflectingValueConsumerTest {
 	public void testIdentityGetter() {
 		ReflectingValueConsumer vc = new ReflectingValueConsumer();
 		AMap aMap = new AMap();
-		vc.accept(".doIt",null,aMap);
+		vc.accept("doIt",null,aMap);
 	}
 
 	@Test
@@ -598,11 +598,11 @@ public class ReflectingValueConsumerTest {
 
 	@Test
 	public void getterEnumSetterTest() {
-		Function<String,PhoneType> converter = PhoneType::valueOf;
-		ReflectingValueConsumer.registerStringConverter(PhoneType.class,converter);
-		ReflectingValueConsumer.registerClassShortName(PhoneType.class,"PhoneType");
+		StringConverter<PhoneType> converter = PhoneType::valueOf;
 
 		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		vc.registerStringConverter(PhoneType.class,converter);
+		vc.registerClassShortName(PhoneType.class,"PhoneType");
 
 		GS gs = new GS();
 
@@ -627,12 +627,15 @@ public class ReflectingValueConsumerTest {
 
 	@Test
 	public void getterEnumSetterWithNewTest() {
-		Function<String,PhoneType> converter = PhoneType::valueOf;
-		ReflectingValueConsumer.registerStringConverter(PhoneType.class,converter);
-		ReflectingValueConsumer.registerClassShortName(PhoneType.class,"PhoneType");
-		ReflectingValueConsumer.registerClassShortName(ArrayList.class,"ArrayList");
+		StringConverter<PhoneType> converter = PhoneType::valueOf;
 
 		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		vc.registerStringConverter(PhoneType.class,converter);
+		vc.registerStringConverter("ArrayList",x->new ArrayList<>());
+		//vc.registerStringConverter("PhoneType",converter);
+		vc.registerClassShortName(PhoneType.class,"PhoneType");
+
+		vc.registerClassShortName(ArrayList.class,"ArrayList");
 
 		GS gs = new GS();
 
@@ -640,11 +643,11 @@ public class ReflectingValueConsumerTest {
 		vc.accept("phones.computeIfAbsent{PhoneType CELL,key->new ArrayList}.add","111-2233",gs);
 		vc.accept("phones.computeIfAbsent{PhoneType WORK,key->new ArrayList}.add","222-3334",gs);
 		vc.accept("phones.computeIfAbsent{PhoneType WORK,key->new ArrayList}.add","222-3335",gs);
-		vc.accept("phones.computeIfAbsent{PhoneType HOME,key->new ArrayList}.add{$str}","111-1133",gs);
+		vc.accept("phones.computeIfAbsent{PhoneType HOME,key->new ArrayList}.add{str $}","111-1133",gs);
 
 		assertNotNull(gs.phones);
-		assertTrue(gs.phones.containsKey(HOME));
 		assertTrue(gs.phones.containsKey(CELL));
+		assertTrue(gs.phones.containsKey(HOME));
 		assertTrue(gs.phones.containsKey(WORK));
 		assertEquals(1,gs.phones.get(CELL).size());
 		assertEquals(1,gs.phones.get(HOME).size());
@@ -653,7 +656,7 @@ public class ReflectingValueConsumerTest {
 		vc.accept("reversedPhones.put{$,PhoneType HOME}","111-1133",gs);
 		assertTrue(gs.reversedPhones.containsKey("111-1133"));
 
-		vc.accept("ArrayList values.add","111-1133",gs);
+		vc.accept("(ArrayList values).add","111-1133",gs);
 		assertEquals(1,gs.values.size());
 		assertEquals("111-1133",gs.values.get(0));
 	}
@@ -672,13 +675,13 @@ public class ReflectingValueConsumerTest {
 		assertEquals(100,pgf.c.getX());
 		assertEquals("val",pgf.c.getVal());
 		String cClass = C.class.getName();
-		vc.accept(cClass+" c1{str val1,int 101}.hidden","hidden1",pgf);
+		vc.accept("("+cClass+" c1{str val1,int 101}).hidden","hidden1",pgf);
 		assertEquals("hidden1",pgf.c1.getHidden());
 		assertEquals(101,pgf.c1.getX());
 		assertEquals("val1",pgf.c1.getVal());
 
-		ReflectingValueConsumer.registerClassShortName(C.class,"$C");
-		vc.accept("$C c2{str val2,int 102}.hidden","hidden2",pgf);
+		vc.registerClassShortName(C.class,"$C");
+		vc.accept("($C c2{str val2,int 102}).hidden","hidden2",pgf);
 		assertEquals("hidden2",pgf.c2.getHidden());
 		assertEquals(102,pgf.c2.getX());
 		assertEquals("val2",pgf.c2.getVal());
@@ -717,54 +720,71 @@ public class ReflectingValueConsumerTest {
 
 		@Override
 		public Phones get() {
-			return new Phones(firstName,lastName,phones,reversedPhones);
+			Map<PhoneType, Set<String>> phonesNew = new HashMap<>();
+			phonesNew.putAll(phones);
+			Map<String, PhoneType> reversedPhonesNew = new HashMap<>() ;
+			reversedPhonesNew.putAll(reversedPhones);
+
+			return new Phones(firstName,lastName,phonesNew,reversedPhonesNew);
 		}
 	}
 
 	@Test
 	public void demoPhonesTest() {
 
-		//Function<String,PhoneType> converter = PhoneType::valueOf;
-		//ReflectingValueConsumer.registerStringConverter(PhoneType.class,converter);
-		ReflectingValueConsumer.registerClassShortName(PhoneType.class,"PhoneType");
-		ReflectingValueConsumer.registerClassShortName(HashSet.class,"HashSet");
-
-		LastResultReference<Integer,Phones> result = new LastResultReference<>();
+		ClassRegistry.registerGlobalStringConverter(PhoneType.class,PhoneType::valueOf);
+		ClassRegistry.registerGlobalClassShortName(PhoneType.class,"PhoneType");
 
 		SimpleConveyor<Integer,Phones> sc = new SimpleConveyor<>(PhonesBuilder::new);
+		ObservableResultConsumer<Integer, Phones> result = ObservableResultConsumer.of(sc);
 		sc.resultConsumer(result).set();
+
+		CompletableFuture<Phones> phonesFuture = result.waitFor(1);
+
 		//label @done has no action inside the builder, but will be accepted by the readiness evaluator
 		sc.setReadinessEvaluator(Conveyor.getTesterFor(sc).accepted("@done"));
+		//init variables using static parts. Note '@' at the end - meaning 'do nothing with created object'
+
+		StaticPartLoader<String> stаticLoader = sc.staticPart();
+		stаticLoader.label("(map phones).computeIfAbsent{PhoneType HOME,key->new set}.@").place();
+		stаticLoader.label("(map phones).computeIfAbsent{PhoneType WORK,key->new set}.@").place();
+		stаticLoader.label("(map phones).computeIfAbsent{PhoneType CELL,key->new set}.@").place();
+		stаticLoader.label("(map reversedPhones).@").place();
 
 		PartLoader<Integer, String> loader = sc.part().id(1);
 		//Just set first and last name
 		loader.label("firstName").value("John").place();
 		loader.label("lastName").value("Smith").place();
 		//Load phones
-		loader.label("map phones.computeIfAbsent{PhoneType CELL,key->new HashSet}.add").value("111-2233").place();
-		loader.label("map phones.computeIfAbsent{PhoneType WORK,key->new HashSet}.add").value("222-3334").place();
+		loader.label("phones.get{PhoneType CELL}.add").value("111-2233").place();
+		loader.label("phones.get{PhoneType WORK}.add").value("222-3334").place();
 		//made a mistake, remove value
-		loader.label("map phones.get{PhoneType WORK}.remove").value("222-3334").place();
+		loader.label("phones.get{PhoneType WORK}.remove").value("222-3334").place();
 		//add more
-		loader.label("map phones.computeIfAbsent{PhoneType WORK,key->new HashSet}.add").value("222-3335").place();
-		loader.label("map phones.computeIfAbsent{PhoneType WORK,key->new HashSet}.add").value("222-3336").place();
+		loader.label("phones.get{PhoneType WORK}.add").value("222-3335").place();
+		loader.label("phones.get{PhoneType WORK}.add").value("222-3336").place();
 		//type alias 'map' is technically redundant after first use.
-		loader.label("phones.computeIfAbsent{PhoneType HOME,key->new HashSet}.add").value("111-1133").place();
+		loader.label("phones.get{PhoneType HOME}.add").value("111-1133").place();
 
 		//In reversed map phone is the first parameter and passed value
 		//We explicitly refer it as a $
-		loader.label("map reversedPhones.put{$,PhoneType CELL}").value("111-2233").place();
-		loader.label("map reversedPhones.put{$,PhoneType WORK}").value("222-3335").place();
-		loader.label("map reversedPhones.put{$,PhoneType WORK}").value("222-3336").place();
-		loader.label("map reversedPhones.put{$,PhoneType HOME}").value("111-1133").place();
+		loader.label("reversedPhones.put{$,PhoneType CELL}").value("111-2233").place();
+		loader.label("reversedPhones.put{$,PhoneType WORK}").value("222-3335").place();
+		loader.label("reversedPhones.put{$,PhoneType WORK}").value("222-3336").place();
+		loader.label("reversedPhones.put{$,PhoneType HOME}").value("111-1133").place();
 
-		loader.label("@done").place().join();
+		loader.label("@done").place();
 
-		Phones phones = result.getCurrent();
+		Phones phones = phonesFuture.join();
 		assertNotNull(phones);
 		System.out.println(phones);
+		System.out.println(phones.phones);
+		System.out.println(phones.phones.get("WORK"));
 		assertFalse(phones.phones.get(WORK).contains("222-3334")); //removed
 		assertTrue(phones.phones.get(WORK).contains("222-3335"));
 		assertTrue(phones.phones.get(WORK).contains("222-3336"));
+
+		//phones.phones.computeIfAbsent(HOME,kye->new HashSet<>()).add("123-4567");
+
 	}
 }

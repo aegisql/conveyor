@@ -10,6 +10,11 @@
             <version>2.6</version>
             <scope>test</scope>
         </dependency>
+		<dependency>
+			<groupId>com.aegisql</groupId>
+			<artifactId>java-path</artifactId>
+			<version>0.0.3-SNAPSHOT</version>
+		</dependency>
     </dependencies>
     <parent>
 		<groupId>com.aegisql</groupId>

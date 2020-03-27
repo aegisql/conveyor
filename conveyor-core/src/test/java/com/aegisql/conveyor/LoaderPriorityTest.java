@@ -1,7 +1,7 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import com.aegisql.conveyor.reflection.SimpleConveyor;
+import org.junit.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,14 +10,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.function.Supplier;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.reflection.Label;
-import com.aegisql.conveyor.reflection.SimpleConveyor;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class LoaderPriorityTest {
 	
@@ -30,14 +24,12 @@ public class LoaderPriorityTest {
 			this.order = order;
 		}
 		
-		@Label("partA")
 		public void setPartA(String partA) {
 			this.partA = partA;
 			order.add(partA);
 			sleep(100);
 		}
 
-		@Label("partB")
 		public void setPartB(String partB) {
 			this.partB = partB;
 			order.add(partB);
