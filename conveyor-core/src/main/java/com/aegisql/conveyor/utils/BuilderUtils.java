@@ -25,7 +25,7 @@ public class BuilderUtils<K, L, OUT, B> {
             return productSupplier.apply(builder);
         }
 
-        @Label({"instance","#"})
+        @Label({"instance","#","#0"})
         @Override
         public B unwrap() {
             return builder;
