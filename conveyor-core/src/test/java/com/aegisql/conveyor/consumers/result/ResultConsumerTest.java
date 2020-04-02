@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.consumers.result;
 
 import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.consumers.scrap.*;
@@ -195,7 +196,43 @@ public class ResultConsumerTest {
 		System.out.println(s);
 	}
 
-	
+	@Test
+	public void testObservableConsumers() throws InterruptedException, ExecutionException, TimeoutException {
+		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
+		sc.setDefaultBuilderTimeout(Duration.ofMillis(100));
+		ObservableResultConsumer<String,User> q = ObservableResultConsumer.of(sc);
+		ObservableScrapConsumer<String> s = ObservableScrapConsumer.of(sc);
+
+		assertNotNull(q);
+		assertNotNull(s);
+
+		sc.setBuilderSupplier(StringToUserBuulder::new);
+		sc.resultConsumer().first(q).set();
+		sc.scrapConsumer(s).set();
+		String csv = "John,Dow,199";
+		CompletableFuture<ScrapBin<String, Object>> cf = s.waitFor("bad");
+		CompletableFuture<User> test1 = q.waitFor("test1");
+		CompletableFuture<User> test2 = q.waitFor("test2");
+		CompletableFuture<User> test3 = q.waitFor("test3");
+		CompletableFuture<User> test4 = q.waitFor("test4");
+		sc.part().id("bad").ttl(-1,TimeUnit.MILLISECONDS).value(csv).place();
+		sc.part().id("test1").value(csv+"0").place();
+		sc.part().id("test2").value(csv+"1").place();
+		sc.part().id("test3").value(csv+"2").place();
+		sc.part().id("test4").value(csv+"3").place();
+		sc.completeAndStop().get();
+		ScrapBin<String, Object> bin = cf.get();
+
+		assertNotNull(test1.get());
+		assertNotNull(test2.get());
+		assertNotNull(test3.get());
+		assertNotNull(test4.get());
+		assertNotNull(bin);
+
+		System.out.println(bin);
+	}
+
+
 	@Test
 	public void testLastConsumers() throws InterruptedException, ExecutionException, TimeoutException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();

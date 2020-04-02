@@ -55,6 +55,7 @@ conveyor configurator
 * Extended SimpleConveyor with DSL labels
 * Added Sample Result Consumer
 * Added Observable Result Consumer
+* Added Observable Scrap Consumer
 * Tests
 * Bugfixes
 
