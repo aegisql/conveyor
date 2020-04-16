@@ -1013,11 +1013,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 								return c;
 							};
 					}
-					LOG.trace("READY TO APPLY MULTY");
+					LOG.trace("READY TO APPLY MULTI");
 					collector.entrySet().stream().map(entry -> entry.getKey()).filter(filter)
 							.collect(Collectors.toList())
 					.forEach(k -> {
-						LOG.trace("MULTI FILTER MATCH {}",k);
+								LOG.trace("MULTI FILTER MATCH {}",k);
 								processSite(cartBuilder.apply(k), accept);
 							});
 					cart.getFuture().complete(true);
@@ -1126,7 +1126,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					collector.remove(key);
 				}
 			}
-//			cart.getFuture().completeExceptionally(e);
 		}
 	}
 

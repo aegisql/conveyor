@@ -4,7 +4,7 @@ import com.aegisql.conveyor.ConveyorRuntimeException;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.utils.MultiValue;
 import com.aegisql.java_path.ClassRegistry;
-import com.aegisql.java_path.PathUtils;
+import com.aegisql.java_path.JavaPath;
 import com.aegisql.java_path.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 	private static final long serialVersionUID = 1L;
 
 	private final ClassRegistry classRegistry = new ClassRegistry();
-	private final Map<Class<?>, PathUtils> consumerFactoryMap = new HashMap<>();
+	private final Map<Class<?>, JavaPath> consumerFactoryMap = new HashMap<>();
 	private final Map<String,ReflectingValueConsumer<?>> inDepthConsumers = new HashMap<>();
 
 	/* (non-Javadoc)
@@ -41,7 +41,7 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 		if(label.isEmpty()) {
 			throw new ConveyorRuntimeException("Label must not be empty");
 		}
-		PathUtils consumerFactory = consumerFactoryMap.computeIfAbsent(builder.getClass(),cls -> new PathUtils(cls,classRegistry));
+		JavaPath consumerFactory = consumerFactoryMap.computeIfAbsent(builder.getClass(), cls -> new JavaPath(cls,classRegistry));
 		if(value != null && value instanceof MultiValue) {
 			MultiValue multiValue = (MultiValue) value;
 			consumerFactory.applyValuesToPath(label,builder,multiValue.getValues());

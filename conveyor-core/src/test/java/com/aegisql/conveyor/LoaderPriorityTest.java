@@ -1,7 +1,7 @@
 package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.reflection.SimpleConveyor;
-import com.aegisql.java_path.Label;
+import com.aegisql.java_path.PathElement;
 import org.junit.*;
 
 import java.util.ArrayList;
@@ -24,14 +24,14 @@ public class LoaderPriorityTest {
 			this.order = order;
 		}
 
-		@Label("partA")
+		@PathElement("partA")
 		public void setPartA(String partA) {
 			this.partA = partA;
 			order.add(partA);
 			sleep(100);
 		}
 
-		@Label("partB")
+		@PathElement("partB")
 		public void setPartB(String partB) {
 			this.partB = partB;
 			order.add(partB);

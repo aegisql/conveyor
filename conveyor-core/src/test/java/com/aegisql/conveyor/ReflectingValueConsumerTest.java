@@ -39,14 +39,14 @@ public class ReflectingValueConsumerTest {
 	}
 
 	public static class A {
-		@Label("value")
+		@PathElement("value")
 		protected String val;
 
 		public String getVal() {
 			return val;
 		}
 
-		@Label({"VALUE","SET_VALUE"})
+		@PathElement({"VALUE","SET_VALUE"})
 		public void setVal(String val) {
 			this.val = val;
 		}
@@ -71,7 +71,7 @@ public class ReflectingValueConsumerTest {
 			return x;
 		}
 
-		@Label("X")
+		@PathElement("X")
 		private void setX(Integer x) {
 			this.x = x;
 		}
@@ -94,7 +94,7 @@ public class ReflectingValueConsumerTest {
 	}
 	
 	public static class BE extends B {
-		@Label("X") //duplicate
+		@PathElement("X") //duplicate
 		private String other;
 
 		public String getOther() {
@@ -178,7 +178,7 @@ public class ReflectingValueConsumerTest {
 		public void setVal(String val) {
 			this.sVal = val;
 		}
-		@NoLabel
+		@NoPathElement
 		public void setVal(Integer val) {
 			this.iVal = val;
 		}
@@ -474,13 +474,13 @@ public class ReflectingValueConsumerTest {
 		public C c;
 		public static C staticC;
 
-		@Label("b")
+		@PathElement("b")
 		public B getB(String val) {
 			this.b = new B();
 			b.setVal(val);
 			return b;
 		}
-		@Label("c")
+		@PathElement("c")
 		public C getC(String val,String hide) {
 			this.c = new C();
 			c.setVal(val);
@@ -488,7 +488,7 @@ public class ReflectingValueConsumerTest {
 			return c;
 		}
 
-		@Label("sc")
+		@PathElement("sc")
 		public static C getStaticC(String val,String hide) {
 			PG.staticC = new C();
 			staticC.setVal(val);
@@ -496,7 +496,7 @@ public class ReflectingValueConsumerTest {
 			return staticC;
 		}
 
-		@Label("psc")
+		@PathElement("psc")
 		public static C getStaticPC(PG pg, String val,String hide) {
 			pg.c = new C();
 			pg.c.setVal(val);
