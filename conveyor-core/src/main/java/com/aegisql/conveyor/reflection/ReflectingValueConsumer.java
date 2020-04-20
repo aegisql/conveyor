@@ -44,9 +44,9 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 		JavaPath consumerFactory = consumerFactoryMap.computeIfAbsent(builder.getClass(), cls -> new JavaPath(cls,classRegistry));
 		if(value != null && value instanceof MultiValue) {
 			MultiValue multiValue = (MultiValue) value;
-			consumerFactory.applyValuesToPath(label,builder,multiValue.getValues());
+			consumerFactory.evalPath(label,builder,multiValue.asArray());
 		} else {
-			consumerFactory.applyValueToPath(label, builder, value);
+			consumerFactory.evalPath(label, builder, value);
 		}
 	}
 
