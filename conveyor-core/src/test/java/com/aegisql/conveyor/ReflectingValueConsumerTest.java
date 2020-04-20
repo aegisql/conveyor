@@ -777,7 +777,7 @@ public class ReflectingValueConsumerTest {
 	public void demoPhonesTest() {
 
 		ClassRegistry.registerGlobalStringConverter(PhoneType.class,PhoneType::valueOf);
-		ClassRegistry.registerGlobalClassShortName(PhoneType.class,"PhoneType");
+		ClassRegistry.registerGlobalClass(PhoneType.class,"PhoneType");
 
 		SimpleConveyor<Integer,Phones> sc = new SimpleConveyor<>(PhonesBuilder::new);
 		ObservableResultConsumer<Integer, Phones> result = ObservableResultConsumer.of(sc);

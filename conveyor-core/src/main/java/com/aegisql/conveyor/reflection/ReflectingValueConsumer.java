@@ -66,7 +66,7 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 	public <T> void registerStringConverter(String alias, StringConverter<T> converter) {
 		Objects.requireNonNull(alias,"registerStringConverter requires non empty class alias");
 		Objects.requireNonNull(converter,"registerStringConverter requires converter for class "+alias);
-		classRegistry.registerStringConverter(alias,converter);
+		classRegistry.registerStringConverter(converter,alias);
 	}
 
 }
