@@ -53,8 +53,7 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 	public void registerClassShortName(Class<?> aClass, String shortName) {
 		Objects.requireNonNull(shortName,"registerClassShortName requires non empty name");
 		Objects.requireNonNull(aClass,"registerClassShortName requires non empty class");
-		classRegistry.registerClass(aClass);
-		classRegistry.registerClassShortName(aClass,shortName);
+		classRegistry.registerClass(aClass,shortName);
 	}
 
 	public <T> void registerStringConverter(Class<T> aClass, StringConverter<T> converter) {
