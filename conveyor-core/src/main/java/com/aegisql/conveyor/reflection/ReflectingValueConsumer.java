@@ -50,10 +50,9 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 		}
 	}
 
-	public void registerClassShortName(Class<?> aClass, String shortName) {
-		Objects.requireNonNull(shortName,"registerClassShortName requires non empty name");
+	public void registerClass(Class<?> aClass, String... names) {
 		Objects.requireNonNull(aClass,"registerClassShortName requires non empty class");
-		classRegistry.registerClass(aClass,shortName);
+		classRegistry.registerClass(aClass,names);
 	}
 
 	public <T> void registerStringConverter(Class<T> aClass, StringConverter<T> converter) {
@@ -62,10 +61,9 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 		classRegistry.registerStringConverter(aClass,converter);
 	}
 
-	public <T> void registerStringConverter(String alias, StringConverter<T> converter) {
-		Objects.requireNonNull(alias,"registerStringConverter requires non empty class alias");
-		Objects.requireNonNull(converter,"registerStringConverter requires converter for class "+alias);
-		classRegistry.registerStringConverter(converter,alias);
+	public <T> void registerStringConverter(StringConverter<T> converter, String... names) {
+		Objects.requireNonNull(converter,"registerStringConverter requires converter for class "+String.join(",",names));
+		classRegistry.registerStringConverter(converter,names);
 	}
 
 }

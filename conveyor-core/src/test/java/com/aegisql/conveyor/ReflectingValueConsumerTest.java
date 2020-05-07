@@ -400,8 +400,8 @@ public class ReflectingValueConsumerTest {
     @Test
     public void testDeep3LabelWithShortClassNames() {
         ReflectingValueConsumer vc = new ReflectingValueConsumer();
-        vc.registerClassShortName(AB.class,"$AB");
-        vc.registerClassShortName(A.class,"$A");
+        vc.registerClass(AB.class,"$AB");
+        vc.registerClass(A.class,"$A");
         ABC abc = new ABC();
         vc.accept("($AB ab).($A a).value","a-test",abc);
         assertNotNull(abc.ab);
@@ -604,7 +604,7 @@ public class ReflectingValueConsumerTest {
 
 		ReflectingValueConsumer vc = new ReflectingValueConsumer();
 		vc.registerStringConverter(PhoneType.class,converter);
-		vc.registerClassShortName(PhoneType.class,"PhoneType");
+		vc.registerClass(PhoneType.class,"PhoneType");
 
 		GS gs = new GS();
 
@@ -641,11 +641,11 @@ public class ReflectingValueConsumerTest {
 
 		ReflectingValueConsumer vc = new ReflectingValueConsumer();
 		vc.registerStringConverter(PhoneType.class,converter);
-		vc.registerStringConverter("ArrayList",x->new ArrayList<>());
+		vc.registerStringConverter(x->new ArrayList<>(),"ArrayList");
 		//vc.registerStringConverter("PhoneType",converter);
-		vc.registerClassShortName(PhoneType.class,"PhoneType");
+		vc.registerClass(PhoneType.class,"PhoneType");
 
-		vc.registerClassShortName(ArrayList.class,"ArrayList");
+		vc.registerClass(ArrayList.class,"ArrayList");
 
 		GS gs = new GS();
 
@@ -675,11 +675,11 @@ public class ReflectingValueConsumerTest {
 
 		ReflectingValueConsumer vc = new ReflectingValueConsumer();
 		vc.registerStringConverter(PhoneType.class,converter);
-		vc.registerStringConverter("ArrayList",x->new ArrayList<>());
+		vc.registerStringConverter(x->new ArrayList<>(),"ArrayList");
 		//vc.registerStringConverter("PhoneType",converter);
-		vc.registerClassShortName(PhoneType.class,"PhoneType");
+		vc.registerClass(PhoneType.class,"PhoneType");
 
-		vc.registerClassShortName(ArrayList.class,"ArrayList");
+		vc.registerClass(ArrayList.class,"ArrayList");
 
 		GS gs = new GS();
 
@@ -724,7 +724,7 @@ public class ReflectingValueConsumerTest {
 		assertEquals(101,pgf.c1.getX());
 		assertEquals("val1",pgf.c1.getVal());
 
-		vc.registerClassShortName(C.class,"$C");
+		vc.registerClass(C.class,"$C");
 		vc.accept("($C c2(str val2,int 102)).hidden","hidden2",pgf);
 		assertEquals("hidden2",pgf.c2.getHidden());
 		assertEquals(102,pgf.c2.getX());

@@ -9,7 +9,7 @@ conveyor-core
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-core</artifactId>
-  <version>1.4.2</version>
+  <version>1.4.4</version>
 </dependency>
 ```
 
@@ -18,7 +18,7 @@ conveyor-parallel
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-parallel</artifactId>
-  <version>1.4.2</version>
+  <version>1.4.4</version>
 </dependency>
 ```
 
@@ -27,14 +27,14 @@ conveyor-persistence
 <dependency>
 <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.4.2</version>
+  <version>1.4.4</version>
 </dependency>
 ```
 ```xml
 <dependency>
   <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-jdbc</artifactId>
-  <version>1.4.2</version>
+  <version>1.4.4</version>
 </dependency>
 ```
 
@@ -43,7 +43,7 @@ conveyor configurator
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-configurator</artifactId>
-  <version>1.4.2</version>
+  <version>1.4.4</version>
 </dependency>
 ```
 
@@ -52,9 +52,10 @@ conveyor configurator
 ### 1.4.4-SNAPSHOT
 * Added support for config properties
 * Added class Priority. Contains pre-defined suppliers for priority queue 
-* Extended SimpleConveyor with DSL labels
+* Switched SimpleConveyor to [JavaPath](https://github.com/aegisql/java-path) v 0.1.2 labels
 * Added Sample Result Consumer
 * Added Observable Result Consumer
+* Added Runnable Consumer
 * Added Observable Scrap Consumer
 * Tests
 * Bugfixes

@@ -11,6 +11,8 @@ import com.aegisql.conveyor.ScrapBin;
  */
 public class IgnoreScrap<K> implements ScrapConsumer<K,Object>{
 
+	public final static IgnoreScrap INSTANCE = new IgnoreScrap();
+
 	/* (non-Javadoc)
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */

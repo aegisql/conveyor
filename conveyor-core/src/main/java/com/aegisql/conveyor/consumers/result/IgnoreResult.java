@@ -12,6 +12,8 @@ import com.aegisql.conveyor.ProductBin;
  */
 public class IgnoreResult <K,E> implements ResultConsumer<K,E> {
 
+	public final static IgnoreResult INSTANCE = new IgnoreResult();
+
 	/* (non-Javadoc)
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
 	 */
