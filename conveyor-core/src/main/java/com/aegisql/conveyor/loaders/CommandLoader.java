@@ -1,5 +1,14 @@
 package com.aegisql.conveyor.loaders;
 
+import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.BuildingSite.Memento;
+import com.aegisql.conveyor.CommandLabel;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.cart.command.CreateCommand;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.serial.SerializablePredicate;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
@@ -8,14 +17,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.BuildingSite.Memento;
-import com.aegisql.conveyor.CommandLabel;
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ProductBin;
-import com.aegisql.conveyor.cart.command.CreateCommand;
-import com.aegisql.conveyor.cart.command.GeneralCommand;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -110,7 +111,7 @@ public final class CommandLoader<K,OUT> {
 	 * @return the multi key command loader
 	 */
 	public MultiKeyCommandLoader<K,OUT> foreach() {
-		return foreach(k->true);
+		return foreach(SerializablePredicate.ANY);
 	}
 
 	

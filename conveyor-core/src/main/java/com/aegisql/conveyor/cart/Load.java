@@ -1,8 +1,10 @@
 package com.aegisql.conveyor.cart;
 
-import java.io.Serializable;
-
+import com.aegisql.conveyor.BuildingSite;
 import com.aegisql.conveyor.serial.SerializablePredicate;
+
+import java.io.Serializable;
+import java.util.function.Predicate;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -11,7 +13,7 @@ import com.aegisql.conveyor.serial.SerializablePredicate;
  * @param <K> the key type
  * @param <V> the value type
  */
-public class Load <K,V> implements Serializable {
+public class Load <K,V> implements Serializable, Predicate<BuildingSite> {
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -20,8 +22,8 @@ public class Load <K,V> implements Serializable {
 	private final V value;
 	
 	/** The filter. */
-	private final SerializablePredicate<K> filter;
-	
+	private final SerializablePredicate<BuildingSite<K,?,?,?>> filter;
+
 	/** The load type. */
 	private final LoadType loadType;
 	
@@ -32,7 +34,7 @@ public class Load <K,V> implements Serializable {
 	 * @param filter the filter
 	 * @param loadType the load type
 	 */
-	public Load(V value, SerializablePredicate<K> filter, LoadType loadType) {
+	public Load(V value, SerializablePredicate<BuildingSite<K,?,?,?>> filter, LoadType loadType) {
 		this.value    = value;
 		this.filter   = filter;
 		this.loadType = loadType;
@@ -52,7 +54,7 @@ public class Load <K,V> implements Serializable {
 	 *
 	 * @return the filter
 	 */
-	public SerializablePredicate<K> getFilter() {
+	public SerializablePredicate<BuildingSite<K,?,?,?>> getFilter() {
 		return filter;
 	}
 
@@ -107,5 +109,9 @@ public class Load <K,V> implements Serializable {
 		return true;
 	}
 
-	
+
+	@Override
+	public boolean test(BuildingSite buildingSite) {
+		return false;
+	}
 }

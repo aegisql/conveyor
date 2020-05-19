@@ -5,5 +5,5 @@ import java.util.function.Predicate;
 
 @FunctionalInterface
 public interface SerializablePredicate<T> extends Predicate<T>, Serializable {
-
+    SerializablePredicate ANY = k->true;
 }

@@ -1,5 +1,9 @@
 package com.aegisql.conveyor.loaders;
 
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.serial.SerializablePredicate;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -10,10 +14,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.consumers.result.ResultConsumer;
-import com.aegisql.conveyor.serial.SerializablePredicate;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -189,7 +189,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the result consumer loader
 	 */
 	public ResultConsumerLoader<K,OUT> foreach() {
-		return foreach(k->true);
+		return foreach(SerializablePredicate.ANY);
 	}
 
 	/**
