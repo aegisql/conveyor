@@ -699,7 +699,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return new PartLoader<K, L>(cl -> {
 			Cart <K, ?, L> cart;
 			if(cl.filter != null) {
-				cart = new MultiKeyCart<K, Object, L>(bs->cl.filter.test(bs.getKey()), cl.partValue, cl.label, cl.creationTime, cl.expirationTime,cl.priority);
+				cart = new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime,cl.priority);
 			} else {
 				cart = new ShoppingCart<K, Object, L>(cl.key, cl.partValue, cl.label,cl.creationTime ,cl.expirationTime,cl.priority);
 			}
@@ -818,7 +818,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(rcl.key != null) {
 				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime, rcl.priority);
 			} else {
-				cart = new MultiKeyCart<>(bs->rcl.filter.test(bs.getKey()), rcl.consumer, null, rcl.creationTime, rcl.expirationTime, LoadType.RESULT_CONSUMER,rcl.priority);
+				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, LoadType.RESULT_CONSUMER,rcl.priority);
 			}
 			rcl.getAllProperties().forEach((k,v)->{ cart.addProperty(k, v);});
 			return this.place(cart);
@@ -996,7 +996,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					MultiKeyCart<K,?,L> mc = ((MultiKeyCart<K,?,L>)cart);
 					final L label = cart.getLabel();
 					final Load<K,?> load = mc.getValue();
-					final Predicate<BuildingSite<K,?,?,?>> filter = load.getFilter();
+					final Predicate<K> filter = load.getFilter();
 					final Function<K,Cart<K, ?, L>> cartBuilder;
 					switch(load.getLoadType()) {
 						case RESULT_CONSUMER:
@@ -1014,13 +1014,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							};
 					}
 					LOG.trace("READY TO APPLY MULTI");
-					collector.values()
-							.stream()
-							.filter(filter)
+					collector.entrySet().stream().map(entry -> entry.getKey()).filter(filter)
 							.collect(Collectors.toList())
-							.forEach(k -> {
+					.forEach(k -> {
 								LOG.trace("MULTI FILTER MATCH {}",k);
-								processSite(cartBuilder.apply(k.getKey()), accept);
+								processSite(cartBuilder.apply(k), accept);
 							});
 					cart.getFuture().complete(true);
 				} catch (Exception e) {

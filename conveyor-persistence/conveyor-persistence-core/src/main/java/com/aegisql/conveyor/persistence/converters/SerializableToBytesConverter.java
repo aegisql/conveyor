@@ -1,12 +1,8 @@
 package com.aegisql.conveyor.persistence.converters;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+
+import java.io.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -26,7 +22,7 @@ public class SerializableToBytesConverter<O extends Serializable> implements Obj
 			oos.writeObject(obj);
 			return bos.toByteArray();
 		} catch (Exception e) {
-			throw new PersistenceException(e);
+			throw new PersistenceException("toPersistence failed serializing "+(obj==null?"null":obj.getClass().getName()),e);
 		}
 	}
 

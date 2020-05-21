@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.cart;
 
-import com.aegisql.conveyor.BuildingSite;
 import com.aegisql.conveyor.serial.SerializablePredicate;
 
 import java.util.Map;
@@ -30,7 +29,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 	 * @param properties the properties
 	 * @param priority the priority
 	 */
-	public MultiKeyCart(SerializablePredicate<BuildingSite<K,?,?,?>> filter, V v, L label, long creation, long expiration, LoadType loadType, Map<String,Object> properties, long priority) {
+	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, LoadType loadType,Map<String,Object> properties,long priority) {
 		super(null, new Load<>(v, filter, loadType), label, creation,expiration,properties,LoadType.MULTI_KEY_PART,priority);
 	}
 
@@ -56,7 +55,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 	 * @param creation the creation time
 	 * @param expiration the expiration time
 	 */
-	public MultiKeyCart(SerializablePredicate<BuildingSite<K,?,?,?>> filter, V v, L label, long creation, long expiration) {
+	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration) {
 		super(null, new Load<>(v, filter, LoadType.PART), label, creation,expiration,null,LoadType.MULTI_KEY_PART);
 	}
 
@@ -70,7 +69,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 	 * @param expiration the expiration
 	 * @param priority the priority
 	 */
-	public MultiKeyCart(SerializablePredicate<BuildingSite<K,?,?,?>> filter, V v, L label, long creation, long expiration,long priority) {
+	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration,long priority) {
 		super(null, new Load<>(v, filter, LoadType.PART), label, creation,expiration,null,LoadType.MULTI_KEY_PART,priority);
 	}
 
@@ -85,7 +84,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 	 * @param loadType the load type
 	 * @param priority the priority
 	 */
-	public MultiKeyCart(SerializablePredicate<BuildingSite<K,?,?,?>> filter, V v, L label, long creation, long expiration, LoadType loadType,long priority) {
+	public MultiKeyCart(SerializablePredicate<K> filter, V v, L label, long creation, long expiration, LoadType loadType,long priority) {
 		super(null, new Load<>(v, filter, loadType), label, creation,expiration,null,LoadType.MULTI_KEY_PART,priority);
 	}
 

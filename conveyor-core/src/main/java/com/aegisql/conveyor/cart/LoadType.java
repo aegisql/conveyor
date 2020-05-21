@@ -11,10 +11,7 @@ public enum LoadType {
 	
 	/** The multi key part. */
 	MULTI_KEY_PART,
-
-	/** The multi property part. */
-	MULTI_PROPERTY_PART,
-
+	
 	/** The static part. */
 	STATIC_PART,
 	
