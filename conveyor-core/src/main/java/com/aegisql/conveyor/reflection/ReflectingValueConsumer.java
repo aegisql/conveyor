@@ -28,8 +28,10 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 	private static final long serialVersionUID = 1L;
 
 	private final ClassRegistry classRegistry = new ClassRegistry();
+	private final Map<String,String> pathAliases = new HashMap<>();
 	private final Map<Class<?>, JavaPath> consumerFactoryMap = new HashMap<>();
 	private final Map<String,ReflectingValueConsumer<?>> inDepthConsumers = new HashMap<>();
+	private boolean enablePathCaching = false;
 
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.LabeledValueConsumer#accept(java.lang.Object, java.lang.Object, java.lang.Object)
@@ -41,7 +43,12 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 		if(label.isEmpty()) {
 			throw new ConveyorRuntimeException("Label must not be empty");
 		}
-		JavaPath consumerFactory = consumerFactoryMap.computeIfAbsent(builder.getClass(), cls -> new JavaPath(cls,classRegistry));
+		JavaPath consumerFactory = consumerFactoryMap.computeIfAbsent(builder.getClass(), cls -> {
+			JavaPath javaPath = new JavaPath(cls,classRegistry);
+			javaPath.setEnablePathCaching(enablePathCaching);
+			pathAliases.forEach(javaPath::setPathAlias);
+			return javaPath;
+		});
 		if(value != null && value instanceof MultiValue) {
 			MultiValue multiValue = (MultiValue) value;
 			consumerFactory.evalPath(label,builder,multiValue.asArray());
@@ -64,6 +71,20 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 	public <T> void registerStringConverter(StringConverter<T> converter, String... names) {
 		Objects.requireNonNull(converter,"registerStringConverter requires converter for class "+String.join(",",names));
 		classRegistry.registerStringConverter(converter,names);
+	}
+
+	public void setPathAlias(String path, String alias) {
+		pathAliases.put(path,alias);
+		consumerFactoryMap.forEach((clas,javaPath)->{
+			javaPath.setPathAlias(path,alias);
+		});
+	}
+
+	public void setEnablePathCaching(boolean enablePathCaching) {
+		this.enablePathCaching = enablePathCaching;
+		consumerFactoryMap.forEach((clas,javaPath)->{
+			javaPath.setEnablePathCaching(enablePathCaching);
+		});
 	}
 
 }
