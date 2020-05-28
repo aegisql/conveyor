@@ -13,7 +13,7 @@
 		<dependency>
 			<groupId>com.aegisql</groupId>
 			<artifactId>java-path</artifactId>
-			<version>0.2.0</version>
+			<version>0.2.1</version>
 		</dependency>
     </dependencies>
     <parent>
