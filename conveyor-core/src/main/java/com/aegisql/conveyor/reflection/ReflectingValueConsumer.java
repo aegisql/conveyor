@@ -44,6 +44,7 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 			throw new ConveyorRuntimeException("Label must not be empty");
 		}
 		JavaPath consumerFactory = consumerFactoryMap.computeIfAbsent(builder.getClass(), cls -> {
+			classRegistry.registerClass(cls,cls.getSimpleName());
 			JavaPath javaPath = new JavaPath(cls,classRegistry);
 			javaPath.setEnablePathCaching(enablePathCaching);
 			pathAliases.forEach(javaPath::setPathAlias);

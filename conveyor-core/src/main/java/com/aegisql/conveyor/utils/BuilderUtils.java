@@ -12,7 +12,7 @@ import java.util.function.*;
 public class BuilderUtils<K, L, OUT, B> {
 
 
-    private class ProductSupplierSimple implements Supplier<OUT>, Wrapped<B>, TimeoutAction {
+    public class ProductSupplierSimple implements Supplier<OUT>, Wrapped<B>, TimeoutAction {
         Supplier<B> builderSupplier;
         B builder;
 

@@ -449,7 +449,7 @@ public class ReflectingValueConsumerTest {
 		assertEquals("X=test0",sb.toString());
 	}
 
-	static class AMap {
+	public static class AMap {
 		HashMap<String,String> map;
 		ArrayList<String> list;
 		public void doIt(){}
@@ -469,7 +469,7 @@ public class ReflectingValueConsumerTest {
 		vc.accept("@label",null,aMap);
 	}
 
-	static class PG {
+	public static class PG {
 		public B b;
 		public C c;
 		public static C staticC;
@@ -540,7 +540,7 @@ public class ReflectingValueConsumerTest {
 
 	}
 
-	static class PS{
+	public static class PS{
 		HashMap<String,String> map;
 
 		static HashMap<String,String> staticMap;
