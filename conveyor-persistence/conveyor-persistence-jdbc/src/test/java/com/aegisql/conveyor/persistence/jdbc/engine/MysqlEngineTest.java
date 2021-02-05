@@ -1,10 +1,10 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.builders.Field;
+import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import org.apache.log4j.BasicConfigurator;
+import org.junit.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -14,17 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.BasicConfigurator;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.builders.Field;
-import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import static org.junit.Assert.*;
 
 public class MysqlEngineTest {
 
@@ -61,7 +51,7 @@ public class MysqlEngineTest {
 		GenericEngine<Integer> de = new MysqlEngine<>(Integer.class);
 		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
 		de.setDatabase(SCHEMA);
-		de.setUser("root");
+		de.setUser("tester");
 		assertFalse(de.databaseExists(SCHEMA));
 		assertTrue(de.schemaExists(SCHEMA));
 		de.createDatabase(SCHEMA);

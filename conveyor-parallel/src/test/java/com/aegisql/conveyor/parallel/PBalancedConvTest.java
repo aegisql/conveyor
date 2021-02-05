@@ -67,10 +67,10 @@ public class PBalancedConvTest {
 		c2.resultConsumer(results).set();
 		c1.staticPart().label("del").value(" ").place();
 		c2.staticPart().label("del").value(" ").place();
-		c1.part().id(1).label("first").value("A").place();
+		c1.part().id(1).label("first").value("A").place().join();
 		c2.part().id(2).label("first").value("X").place();
-		c1.part().id(1).label("second").value("B").place();
-		c2.part().id(2).label("second").value("Y").place();
+		c1.part().id(1).label("second").value("B").place().join();
+		c2.part().id(2).label("second").value("Y").place().join();
 		c1.completeAndStop().join();
 		c2.completeAndStop().join();
 		System.out.println(results);
@@ -155,7 +155,7 @@ public class PBalancedConvTest {
 		v1Loader.id(3).label("first").addProperty("abtest","B").value("W").place();
 		v2Loader.id(4).label("first").addProperty("abtest","B").value("R").place();
 		v1Loader.id(3).label("second").addProperty("abtest","B").value("S").place();
-		v2Loader.id(4).label("second").addProperty("abtest","B").value("T").place();
+		v2Loader.id(4).label("second").addProperty("abtest","B").value("T").place().join();
 		// wait and stop
 		pbc.completeAndStop().join();
 		System.out.println(results);

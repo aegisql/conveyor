@@ -69,7 +69,7 @@ public class LoaderPriorityTest {
 	@Test
 	public synchronized void testRegularPartPriority() throws InterruptedException, ExecutionException {
 		List<String> order = new ArrayList<>();
-		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(PriorityBlockingQueue::new,()-> new TestStringBuilder(order));
+		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(()->new PriorityBlockingQueue(),()-> new TestStringBuilder(order));
 		c1.resultConsumer(System.out::println).set();
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
 		c1.part().id(1).label("partA").value("A").place();
@@ -87,7 +87,7 @@ public class LoaderPriorityTest {
 		List<String> order = new ArrayList<>();
 		
 		
-		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(PriorityBlockingQueue::new,()-> new TestStringBuilder(order));
+		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(()->new PriorityBlockingQueue(),()-> new TestStringBuilder(order));
 		c1.resultConsumer(System.out::println).set();
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
 		c1.command().id(1).create().get();
@@ -102,13 +102,15 @@ public class LoaderPriorityTest {
 	@Test
 	public synchronized void testStaticPartPriority() throws InterruptedException, ExecutionException {
 		List<String> order = new ArrayList<>();
-		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(PriorityBlockingQueue::new,()-> new TestStringBuilder(order));
+		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(()->new PriorityBlockingQueue(),()-> new TestStringBuilder(order));
 		c1.resultConsumer(System.out::println).set();
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
-		c1.staticPart().label("partB").value("X").place();
+		c1.command().suspend().join();
+		c1.staticPart().label("partB").priority(-1).value("X").place();
 		c1.part().id(1).label("partA").value("A").place();
 		c1.part().id(2).label("partA").value("B").place();
 		c1.staticPart().label("partB").priority(1).value("Y").place();
+		c1.resume();
 		c1.completeAndStop().get();
 		assertEquals("Y",order.get(2));
 		assertEquals("B",order.get(3));
@@ -139,7 +141,7 @@ public class LoaderPriorityTest {
 	@Test
 	public void testAccumulationWithPriority() throws InterruptedException, ExecutionException {
 		List<String> order = new ArrayList<>();
-		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(PriorityBlockingQueue::new,()-> new TestStringBuilder(order));
+		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(()->new PriorityBlockingQueue(),()-> new TestStringBuilder(order));
 		c1.resultConsumer(bin->{}).set();
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
 

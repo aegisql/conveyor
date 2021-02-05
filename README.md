@@ -49,7 +49,11 @@ conveyor configurator
 
 ## Release History
 
+### 1.5.0-SNAPSHOT
+* Switching to OpenJDK 11
+
 ### 1.4.4-SNAPSHOT
+* Last release on ORACLE JDK 8
 * Added support for config properties
 * Added class Priority. Contains pre-defined suppliers for priority queue 
 * Switched SimpleConveyor to [JavaPath](https://github.com/aegisql/java-path) v 0.1.2 labels

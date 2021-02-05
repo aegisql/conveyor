@@ -74,7 +74,7 @@ public class Tester {
 	public static Connection getMySqlConnection() {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
-			return getConnection(LOCAL_MYSQL_URL, "root", "");
+			return getConnection(LOCAL_MYSQL_URL, "tester", "");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			return null;
@@ -153,7 +153,7 @@ public class Tester {
 	public static void removeLocalMysqlDatabase(String database) {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
-			Connection connnection=DriverManager.getConnection(LOCAL_MYSQL_URL,"root","");
+			Connection connnection=DriverManager.getConnection(LOCAL_MYSQL_URL,"tester","");
 			Statement st = connnection.createStatement();
 			st.execute("DROP SCHEMA IF EXISTS "+database);
 			st.close();

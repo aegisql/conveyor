@@ -1,37 +1,28 @@
 package com.aegisql.conveyor.persistence.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import org.junit.*;
 
+import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static org.junit.Assert.*;
+@Ignore
 public class MariadbPersistenceTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mariadb", Integer.class)
 			.autoInit(true)
-			.user("root");
+			.user("tester");
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		Assume.assumeTrue(Tester.testMySqlConnection());
-		Tester.removeLocalMysqlDatabase("conveyor_db");
+		Tester.removeLocalMysqlDatabase("conveyor_maria_db");
 	}
 
 	@AfterClass
@@ -166,7 +157,7 @@ public class MariadbPersistenceTest {
 				.autoInit(true)
 				.partTable("PART2")
 				.completedLogTable("COMPLETED_LOG2")
-				.user("root")
+				.user("tester")
 				;
 		
 		JdbcPersistence<Integer> p = jpb.build();

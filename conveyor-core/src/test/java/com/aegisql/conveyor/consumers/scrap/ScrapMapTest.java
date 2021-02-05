@@ -20,7 +20,7 @@ public class ScrapMapTest {
     @Test
     public void creationTests() {
         ScrapMap<Integer> sm1 = new ScrapMap<>(new ConcurrentHashMap<>());
-        ScrapMap<Integer> sm2 = new ScrapMap<>(ConcurrentHashMap::new);
+        ScrapMap<Integer> sm2 = new ScrapMap<>(()->new ConcurrentHashMap());
         assertTrue(sm1.isEmpty());
         assertTrue(sm2.isEmpty());
         assertFalse(sm1.containsValue("X"));
@@ -35,7 +35,7 @@ public class ScrapMapTest {
     public void ofTests() {
         assertNotNull(ScrapMap.of(null));
         assertNotNull(ScrapMap.of(null,new ConcurrentHashMap<>()));
-        assertNotNull(ScrapMap.of(null,ConcurrentHashMap::new));
+        assertNotNull(ScrapMap.of(null,()->new ConcurrentHashMap()));
     }
 
     @Test(expected = RuntimeException.class)

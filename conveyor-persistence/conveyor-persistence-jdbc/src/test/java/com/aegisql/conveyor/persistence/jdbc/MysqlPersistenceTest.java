@@ -27,7 +27,7 @@ public class MysqlPersistenceTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
 			.autoInit(true)
-			.user("root");
+			.user("tester");
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -167,7 +167,7 @@ public class MysqlPersistenceTest {
 				.autoInit(true)
 				.partTable("PART2")
 				.completedLogTable("COMPLETED_LOG2")
-				.user("root")
+				.user("tester")
 				.addField(String.class, "ADDON")
 				.addUniqueFields("ADDON")
 				;
@@ -236,7 +236,7 @@ public class MysqlPersistenceTest {
 				.autoInit(true)
 				.partTable("BALANCE")
 				.completedLogTable("BALANCE_LOG")
-				.user("root")
+				.user("tester")
 				.addField(Long.class, "TRANSACTION_ID")
 				.addUniqueFields("TRANSACTION_ID")
 				;
