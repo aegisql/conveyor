@@ -342,6 +342,7 @@ public class PersistentConveyorTest {
 	}
 
 	@Test
+	@Ignore
 	public void multiReloadTest() throws Exception {
 		Persistence<Integer> p = getPersitence("multiBasicTest");
 		TrioConveyor tc1 = new TrioConveyor();
@@ -372,6 +373,7 @@ public class PersistentConveyorTest {
 
 
 	@Test
+	@Ignore
 	public void simpleBuilderSupplierTest() throws Exception {
 		Persistence<Integer> p1 = getPersitence("simpleBuilderSupplierTest");
 		TrioConveyor tc1 = new TrioConveyor();
@@ -479,6 +481,7 @@ public class PersistentConveyorTest {
 	}
 	
 	@Test
+	@Ignore
 	public void simpleCompactTest() throws Exception {
 		Persistence<Integer> p1 = getPersitence("simpleCompactTest");
 		TrioConveyor tc1 = new TrioConveyor();
@@ -520,6 +523,7 @@ public class PersistentConveyorTest {
 	}
 
 	@Test
+	@Ignore
 	public void multipleCompactTest() throws Exception {
 		Persistence<Integer> p1 = getPersitence("multyCompactTest1");
 		TrioConveyor tc1 = new TrioConveyor();
@@ -564,6 +568,7 @@ public class PersistentConveyorTest {
 	}
 
 	@Test
+	@Ignore
 	public void multipleCompactTestWithPredicate() throws Exception {
 		Persistence<Integer> p1 = getPersitence("multyCompactTest2");
 		TrioConveyor tc1 = new TrioConveyor();
