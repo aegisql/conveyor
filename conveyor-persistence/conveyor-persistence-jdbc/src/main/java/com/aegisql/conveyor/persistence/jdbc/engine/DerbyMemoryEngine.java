@@ -16,7 +16,7 @@ public class DerbyMemoryEngine <K> extends GenericEngine<K> {
 	public DerbyMemoryEngine(Class<K> keyClass) {
 		super(
 				keyClass,
-				"org.apache.derby.jdbc.EmbeddedDriver",
+				"",
 				"",
 				"jdbc:derby:memory:{schema};create=true",
 				"jdbc:derby:memory:{schema};create=true",

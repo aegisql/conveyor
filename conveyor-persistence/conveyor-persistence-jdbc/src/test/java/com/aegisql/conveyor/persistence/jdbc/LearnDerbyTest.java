@@ -1,27 +1,18 @@
 package com.aegisql.conveyor.persistence.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Collection;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringConverter;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import org.junit.*;
+
+import java.sql.*;
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class LearnDerbyTest {
 
@@ -66,10 +57,7 @@ public class LearnDerbyTest {
 	@Test
 	public void testDbConnection() throws Exception {
 		String connectionURL = "jdbc:derby:testDb1;create=true";
-		String driver = "org.apache.derby.jdbc.EmbeddedDriver";
 
-	    Class.forName(driver);
-	    
 	    Connection conn = DriverManager.getConnection(connectionURL);
 	    Statement st = conn.createStatement();
 	    try {
