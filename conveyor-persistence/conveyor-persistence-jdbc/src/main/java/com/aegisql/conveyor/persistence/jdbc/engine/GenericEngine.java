@@ -1,35 +1,17 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.builders.Field;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.sql.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -646,6 +628,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#buildCompletedLogTableQueries(java.lang.String)
 	 */
 	@Override
+	//TODO: Replace INCERT with UPSERT
 	public void buildCompletedLogTableQueries(String completedLogTable) {
 		this.deleteFromCompletedSql = "DELETE FROM "+completedLogTable + " WHERE CART_KEY IN(?)";
 		this.deleteAllCompletedSql  = "DELETE FROM "+completedLogTable;

@@ -1,9 +1,18 @@
 package com.aegisql.conveyor.persistence.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.aegisql.conveyor.*;
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.LoadType;
+import com.aegisql.conveyor.consumers.result.LastResultReference;
+import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.core.PersistentConveyor;
+import com.aegisql.conveyor.persistence.core.harness.*;
+import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
+import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
+import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import org.apache.log4j.BasicConfigurator;
+import org.junit.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -13,36 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.log4j.BasicConfigurator;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import com.aegisql.conveyor.Acknowledge;
-import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.SmartLabel;
-import com.aegisql.conveyor.Status;
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.LoadType;
-import com.aegisql.conveyor.consumers.result.LastResultReference;
-import com.aegisql.conveyor.loaders.PartLoader;
-import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.core.PersistentConveyor;
-import com.aegisql.conveyor.persistence.core.harness.SummBuilder;
-import com.aegisql.conveyor.persistence.core.harness.Trio;
-import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
-import com.aegisql.conveyor.persistence.core.harness.TrioBuilderExpireable;
-import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
-import com.aegisql.conveyor.persistence.core.harness.TrioConveyorExpireable;
-import com.aegisql.conveyor.persistence.core.harness.TrioPart;
-import com.aegisql.conveyor.persistence.core.harness.TrioPartExpireable;
-import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
-import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
-import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import static org.junit.Assert.*;
 
 public class PersistentConveyorTest {
 
@@ -439,6 +419,7 @@ public class PersistentConveyorTest {
 
 
 	@Test
+	@Ignore
 	public void simpleResultConsumerTest() throws Exception {
 		Persistence<Integer> p1 = getPersitence("simpleResultConsumerTest");
 		TrioConveyor tc = new TrioConveyor();
