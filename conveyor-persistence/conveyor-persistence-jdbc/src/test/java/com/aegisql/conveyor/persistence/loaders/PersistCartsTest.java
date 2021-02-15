@@ -1,23 +1,6 @@
 package com.aegisql.conveyor.persistence.loaders;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Collection;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.CreatingCart;
-import com.aegisql.conveyor.cart.MultiKeyCart;
-import com.aegisql.conveyor.cart.ResultConsumerCart;
-import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.*;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
@@ -26,7 +9,13 @@ import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringConverter;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import com.aegisql.conveyor.serial.SerializablePredicate;
+import org.junit.*;
 
+import java.util.Collection;
+
+import static org.junit.Assert.*;
+
+@Ignore
 public class PersistCartsTest {
 
 	@BeforeClass
