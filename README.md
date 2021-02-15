@@ -50,9 +50,9 @@ conveyor configurator
 ## Release History
 
 ### 1.5.0-SNAPSHOT
-* Switching to OpenJDK 11
+* Switching to OpenJDK and Java 11
 
-### 1.4.4-SNAPSHOT
+### 1.4.4
 * Last release on ORACLE JDK 8
 * Added support for config properties
 * Added class Priority. Contains pre-defined suppliers for priority queue 
