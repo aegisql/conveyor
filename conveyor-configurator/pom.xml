@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>com.aegisql</groupId>
 		<artifactId>conveyor</artifactId>
-		<version>1.5.0-SNAPSHOT</version>
+		<version>1.5.0</version>
 	</parent>
 	<artifactId>conveyor-configurator</artifactId>
 	<description>Conveyor Configurator and Factory</description>
@@ -11,25 +11,25 @@
 		<dependency>
 			<groupId>com.aegisql</groupId>
 			<artifactId>conveyor-core</artifactId>
-			<version>1.5.0-SNAPSHOT</version>
+			<version>1.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.aegisql</groupId>
 			<artifactId>conveyor-parallel</artifactId>
 			<scope>provided</scope>
-			<version>1.5.0-SNAPSHOT</version>
+			<version>1.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.aegisql.persistence</groupId>
 			<artifactId>conveyor-persistence-core</artifactId>
 			<scope>provided</scope>
-			<version>1.5.0-SNAPSHOT</version>
+			<version>1.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.aegisql.conveyor-persistence-jdbc</groupId>
 			<artifactId>conveyor-persistence-jdbc</artifactId>
 			<scope>provided</scope>
-			<version>1.5.0-SNAPSHOT</version>
+			<version>1.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.yaml</groupId>
@@ -87,6 +87,15 @@
 			<artifactId>id_builder</artifactId>
 			<version>1.0.0</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.graalvm.js</groupId>
+			<artifactId>js</artifactId>
+			<version>21.0.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.graalvm.js</groupId>
+			<artifactId>js-scriptengine</artifactId>
+			<version>21.0.0.2</version>
+		</dependency>
 	</dependencies>
 </project>
