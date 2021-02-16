@@ -49,8 +49,12 @@ conveyor configurator
 
 ## Release History
 
-### 1.5.0-SNAPSHOT
+### 1.5.2-SNAPSHOT
+
+### 1.5.1
 * Switching to OpenJDK and Java 11
+* JavaScript Engine switched to GRAAL.JS
+* DerbyDB client switched to 10.15
 
 ### 1.4.4
 * Last release on ORACLE JDK 8
