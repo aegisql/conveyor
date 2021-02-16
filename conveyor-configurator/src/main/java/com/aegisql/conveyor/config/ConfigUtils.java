@@ -1,25 +1,29 @@
 package com.aegisql.conveyor.config;
 
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.LongSupplier;
-import java.util.function.Supplier;
-
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
-import com.aegisql.id_builder.IdSource;
+
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**
  * The Class ConfigUtils.
  */
 class ConfigUtils {
+
+	public final static String JAVASCRIPT_ENGINE = "graal.js";
+
+	static {
+		System.setProperty("polyglot.js.nashorn-compat", "true");
+	}
 
 	/** The Constant timeToMillsConverter. */
 	public final static Function<String,Object> timeToMillsConverter = val -> {
@@ -65,7 +69,7 @@ class ConfigUtils {
 	/** The Constant stringToBuilderSupplier. */
 	public final static Function<String,Object> stringToBuilderSupplier = js-> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getBuilderSupplierJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getBuilderSupplier");
@@ -90,7 +94,7 @@ class ConfigUtils {
 	/** The Constant stringToResultConsumerSupplier. */
 	public final static Function<String,Object> stringToResultConsumerSupplier = js -> {
 		try {			
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getResultConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getResultConsumer");
@@ -116,7 +120,7 @@ class ConfigUtils {
 	/** The Constant stringToScrapConsumerSupplier. */
 	public final static Function<String,Object> stringToScrapConsumerSupplier = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getScrapConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getScrapConsumer");
@@ -152,7 +156,7 @@ class ConfigUtils {
 	/** The Constant stringToLabelValuePairSupplier. */
 	public final static Function<String,Object> stringToLabelValuePairSupplier = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getLabelValuePairJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getLabelValuePair");
@@ -165,7 +169,7 @@ class ConfigUtils {
 	/** The Constant stringToForwardTrioSupplier. */
 	public final static Function<String,Object> stringToForwardTrioSupplier = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getLabelForwardTrioJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getLabelValueTrio");
@@ -191,7 +195,7 @@ class ConfigUtils {
 	/** The Constant stringToConsumerSupplier. */
 	public final static Function<String,Object> stringToConsumerSupplier = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(consumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getConsumer");
@@ -216,7 +220,7 @@ class ConfigUtils {
 	/** The Constant stringToLabeledValueConsumerSupplier. */
 	public static final Function<String,Object> stringToLabeledValueConsumerSupplier = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getLabeledValueConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getLabeledValueConsumer");
@@ -259,7 +263,7 @@ class ConfigUtils {
 	/** The Constant stringToReadinessEvaluatorSupplier. */
 	public static final Function<String, Object> stringToReadinessEvaluatorSupplier = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getReadinessEvaluatorJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getReadinessEvaluator");
@@ -284,7 +288,7 @@ class ConfigUtils {
 	/** The Constant stringToBiConsumerSupplier. */
 	public final static Function<String,Object> stringToBiConsumerSupplier = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(biConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getBiConsumer");
@@ -307,7 +311,7 @@ class ConfigUtils {
 	/** The Constant stringToLabelArraySupplier. */
 	public static final Function<String, Object> stringToLabelArraySupplier = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getLabelArrayConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getLabelArrayConsumer");
@@ -333,7 +337,7 @@ class ConfigUtils {
 	/** The Constant stringToFunctionSupplier. */
 	public static final Function<String, Object> stringToFunctionSupplier = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(functionJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getFunction");
@@ -357,7 +361,7 @@ class ConfigUtils {
 	/** The Constant stringToConveyorSupplier. */
 	public final static Function<String,Supplier<Conveyor>> stringToConveyorSupplier = js-> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getSupplierJs, js));
 			Invocable invocable = (Invocable) engine;
 			return (Supplier<Conveyor>) invocable.invokeFunction("getSupplier");
@@ -376,7 +380,7 @@ class ConfigUtils {
 	/** The Constant stringToObjectConverter. */
 	public static final Function<String,ObjectConverter> stringToObjectConverter = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getObjectConverterJs, js));
 			Invocable invocable = (Invocable) engine;
 			ObjectConverter result = (ObjectConverter) invocable.invokeFunction("getObjectConverter");
@@ -389,7 +393,7 @@ class ConfigUtils {
 	/** The Constant stringToArchiverConverter. */
 	public static final Function<String,Archiver> stringToArchiverConverter = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getObjectConverterJs, js));
 			Invocable invocable = (Invocable) engine;
 			Archiver result = (Archiver) invocable.invokeFunction("getObjectConverter");
@@ -402,7 +406,7 @@ class ConfigUtils {
 	/** The Constant stringToRefConverter. */
 	public static final Function<String,Object> stringToRefConverter = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getObjectConverterJs, js));
 			Invocable invocable = (Invocable) engine;
 			Object result = invocable.invokeFunction("getObjectConverter");
@@ -426,7 +430,7 @@ class ConfigUtils {
 	/** The Constant stringToIdSupplier. */
 	public static final Function<String,LongSupplier> stringToIdSupplier = js -> {
 		try {
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getLongSupplierJs, js));
 			Invocable invocable = (Invocable) engine;
 			LongSupplier result = (LongSupplier) invocable.invokeFunction("getLongSupplier");
