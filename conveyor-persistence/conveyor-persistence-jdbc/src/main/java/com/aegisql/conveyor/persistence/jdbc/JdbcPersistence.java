@@ -1,30 +1,9 @@
 package com.aegisql.conveyor.persistence.jdbc;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.LongSupplier;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.BuildingSite.Memento;
 import com.aegisql.conveyor.CommandLabel;
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.CreatingCart;
-import com.aegisql.conveyor.cart.Load;
-import com.aegisql.conveyor.cart.LoadType;
-import com.aegisql.conveyor.cart.MultiKeyCart;
-import com.aegisql.conveyor.cart.ResultConsumerCart;
-import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.*;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.persistence.archive.Archiver;
@@ -36,6 +15,15 @@ import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.converters.MapToJsonConverter;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.function.LongSupplier;
+import java.util.stream.Collectors;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -170,15 +158,15 @@ public class JdbcPersistence<K> implements Persistence<K> {
 				properties.put(k, v);
 			}
 		});
-
+		String valueClassName = value == null ? null : value.getClass().getTypeName();
 		if (cart instanceof GeneralCommand) {
 			byteConverter = converterAdviser.getConverter(RESTORE_BUILD_COMMAND,
-					value == null ? null : value.getClass().getCanonicalName());
+					valueClassName);
 			hint = byteConverter.conversionHint();
 			label = labelConverter.toPersistence(RESTORE_BUILD_COMMAND);
 		} else {
 			byteConverter = converterAdviser.getConverter(label,
-					value == null ? null : value.getClass().getCanonicalName());
+					valueClassName);
 			hint = byteConverter.conversionHint();
 			label = labelConverter.toPersistence(cart.getLabel());
 		}

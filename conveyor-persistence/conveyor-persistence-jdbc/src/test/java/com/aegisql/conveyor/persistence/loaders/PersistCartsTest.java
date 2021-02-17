@@ -15,7 +15,6 @@ import java.util.Collection;
 
 import static org.junit.Assert.*;
 
-@Ignore
 public class PersistCartsTest {
 
 	@BeforeClass

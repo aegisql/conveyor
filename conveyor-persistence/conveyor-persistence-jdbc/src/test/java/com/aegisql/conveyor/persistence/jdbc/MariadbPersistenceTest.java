@@ -5,6 +5,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import org.apache.log4j.BasicConfigurator;
 import org.junit.*;
 
 import java.util.Collection;
@@ -12,7 +13,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.Assert.*;
-@Ignore
+
 public class MariadbPersistenceTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mariadb", Integer.class)
@@ -21,8 +22,9 @@ public class MariadbPersistenceTest {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Assume.assumeTrue(Tester.testMySqlConnection());
-		Tester.removeLocalMysqlDatabase("conveyor_maria_db");
+		BasicConfigurator.configure();
+		Assume.assumeTrue(Tester.testMariaDbConnection());
+		Tester.removeLocalMariaDbDatabase("conveyor_maria_db");
 	}
 
 	@AfterClass

@@ -16,7 +16,6 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 
-@Ignore
 public class MariadbEngineTest {
 
 	private static String SCHEMA = "test_engine";
@@ -26,8 +25,8 @@ public class MariadbEngineTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		BasicConfigurator.configure();
-		Assume.assumeTrue(Tester.testMySqlConnection());
-		Tester.removeLocalMysqlDatabase(SCHEMA);
+		Assume.assumeTrue(Tester.testMariaDbConnection());
+		Tester.removeLocalMariaDbDatabase(SCHEMA);
 	}
 
 	@AfterClass

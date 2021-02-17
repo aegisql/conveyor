@@ -117,7 +117,6 @@ public class SmartConveyorTest {
 	 * @throws ExecutionException   the execution exception
 	 */
 	@Test
-	//@Ignore
 	public void testRescheduleSmart() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);

@@ -342,7 +342,6 @@ public class PersistentConveyorTest {
 	}
 
 	@Test
-	@Ignore
 	public void multiReloadTest() throws Exception {
 		Persistence<Integer> p = getPersitence("multiBasicTest");
 		TrioConveyor tc1 = new TrioConveyor();
@@ -373,7 +372,6 @@ public class PersistentConveyorTest {
 
 
 	@Test
-	@Ignore
 	public void simpleBuilderSupplierTest() throws Exception {
 		Persistence<Integer> p1 = getPersitence("simpleBuilderSupplierTest");
 		TrioConveyor tc1 = new TrioConveyor();
@@ -421,23 +419,22 @@ public class PersistentConveyorTest {
 
 
 	@Test
-	@Ignore
 	public void simpleResultConsumerTest() throws Exception {
 		Persistence<Integer> p1 = getPersitence("simpleResultConsumerTest");
 		TrioConveyor tc = new TrioConveyor();
 		
 		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p1.wrapConveyor(tc);
 	
-		pc.resultConsumer().andThen(bin->{
-			System.setProperty("PERSISTENT", "PERSISTENT "+bin);
-		}).id(1).set();
 		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").place();
 
 		Persistence<Integer> p2 = getPersitence("simpleResultConsumerTest");
 		TrioConveyor tc2 = new TrioConveyor();
 		
 		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc2 = p2.wrapConveyor(tc2);
-		pc2.part().id(1).label(TrioPart.TEXT2).value("txt2").place().join();
+		pc2.resultConsumer().andThen(bin->{
+			System.setProperty("PERSISTENT", "PERSISTENT "+bin);
+		}).id(1).set();
+		pc2.part().id(1).label(TrioPart.TEXT2).value("txt2").place();
 		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
 		System.out.println(tc2);
 		String sysProperty = System.getProperty("PERSISTENT");
@@ -481,7 +478,6 @@ public class PersistentConveyorTest {
 	}
 	
 	@Test
-	@Ignore
 	public void simpleCompactTest() throws Exception {
 		Persistence<Integer> p1 = getPersitence("simpleCompactTest");
 		TrioConveyor tc1 = new TrioConveyor();
@@ -523,7 +519,6 @@ public class PersistentConveyorTest {
 	}
 
 	@Test
-	@Ignore
 	public void multipleCompactTest() throws Exception {
 		Persistence<Integer> p1 = getPersitence("multyCompactTest1");
 		TrioConveyor tc1 = new TrioConveyor();
@@ -568,7 +563,6 @@ public class PersistentConveyorTest {
 	}
 
 	@Test
-	@Ignore
 	public void multipleCompactTestWithPredicate() throws Exception {
 		Persistence<Integer> p1 = getPersitence("multyCompactTest2");
 		TrioConveyor tc1 = new TrioConveyor();

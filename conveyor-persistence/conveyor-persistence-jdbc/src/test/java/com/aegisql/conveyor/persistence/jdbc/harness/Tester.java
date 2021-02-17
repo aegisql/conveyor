@@ -57,9 +57,10 @@ public class Tester {
 		}
 		return size;
 	}
-	
-	
+
+
 	public static String LOCAL_MYSQL_URL = "jdbc:mysql://localhost:3306/";
+	public static String LOCAL_MARIADB_URL = "jdbc:mariadb://localhost:3306/";
 	public static String LOCAL_POSTGRES_URL = "jdbc:postgresql://localhost:5432/";
 	
 	public static Connection getConnection(String url, String user, String password) {
@@ -84,6 +85,31 @@ public class Tester {
 	public static boolean testMySqlConnection() {
 		try {
 			Connection c = getMySqlConnection();
+			if(c != null) {
+				c.close();
+				return true;
+			} else {
+				return false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public static Connection getMariaDbConnection() {
+		try {
+			Class.forName("org.mariadb.jdbc.Driver");
+			return getConnection(LOCAL_MARIADB_URL, "tester", "");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static boolean testMariaDbConnection() {
+		try {
+			Connection c = getMariaDbConnection();
 			if(c != null) {
 				c.close();
 				return true;
@@ -162,7 +188,20 @@ public class Tester {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
+	}
 
+	public static void removeLocalMariaDbDatabase(String database) {
+		try {
+			Class.forName("org.mariadb.jdbc.Driver");
+			Connection connnection=DriverManager.getConnection(LOCAL_MYSQL_URL,"tester","");
+			Statement st = connnection.createStatement();
+			st.execute("DROP SCHEMA IF EXISTS "+database);
+			st.close();
+			connnection.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static void removeLocalPostgresDatabase(String database) {
