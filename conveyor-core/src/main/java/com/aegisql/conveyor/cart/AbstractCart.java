@@ -3,10 +3,11 @@
  */
 package com.aegisql.conveyor.cart;
 
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -233,14 +234,6 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	@Override
 	public <X> void addProperty(String name, X property) {
 		properties.put(name, property);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.cart.Cart#getProperty(java.lang.String, java.lang.Class)
-	 */
-	@Override
-	public <X> X getProperty(String name, Class<X> cls) {
-		return (X) properties.get(name);
 	}
 
 	/* (non-Javadoc)

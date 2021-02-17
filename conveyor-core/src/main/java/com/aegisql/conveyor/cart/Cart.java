@@ -1,11 +1,11 @@
 package com.aegisql.conveyor.cart;
 
+import com.aegisql.conveyor.Expireable;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-
-import com.aegisql.conveyor.Expireable;
-import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -29,6 +29,21 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 * @return the value
 	 */
 	public V getValue();
+
+	/**
+	 * Gets value.
+	 *
+	 * @param <X> the type parameter
+	 * @param cls the cls
+	 * @return the value
+	 */
+	default <X> X getValue(Class<X> cls) {
+		var value = getValue();
+		if(value == null) {
+			return null;
+		}
+		return (X) value;
+	}
 	
 	/**
 	 * Gets the label.
@@ -92,7 +107,9 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 * @param cls the cls
 	 * @return the property
 	 */
-	public <X> X getProperty(String name, Class<X> cls); 
+	default <X> X getProperty(String name, Class<X> cls) {
+		return (X) getAllProperties().get(name);
+	}
 
 	/**
 	 * Gets the all properties.

@@ -139,7 +139,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private BiConsumer<K, Long> keyBeforeReschedule = (key, newExpirationTime) -> {
 		Objects.requireNonNull(key, "NULL key cannot be rescheduld");
 		Objects.requireNonNull(newExpirationTime, "NULL newExpirationTime cannot be applied to the schedile");
-		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> buildingSite = collector.get(key);
+		var buildingSite = collector.get(key);
 		if (buildingSite != null) {
 			long oldExpirationTime = buildingSite.expireableSource.getExpirationTime();
 			delayProvider.getBox(oldExpirationTime).delete(key);
@@ -301,8 +301,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	private BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> getBuildingSite(Cart<K, ?, L> cart) {
 		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> buildingSite = null;
-		boolean returnNull = false;
-		K key = cart.getKey();
+		var returnNull = false;
+		var key = cart.getKey();
 		if (key == null && (cart.getValue() != null && !(cart.getValue() instanceof Cart))) {
 			returnNull = true;
 		} else if (Status.TIMED_OUT.equals(cart.getValue())) {
@@ -321,8 +321,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues,resultConsumer,
 							ackAction);
 					if (cart.getValue() instanceof FutureSupplier) {
-						FutureSupplier fs = (FutureSupplier) cart.getValue();
-						buildingSite.addFuture(fs.getFuture());
+						var futureSupplier = (FutureSupplier) cart.getValue();
+						buildingSite.addFuture(futureSupplier.getFuture());
 					}
 				} else {
 					cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(cart.getKey(), cart,
@@ -414,7 +414,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					if(suspended) {
 						continue;
 					}
-					Cart<K, ?, L> cart = inQueue.poll();
+					var cart = inQueue.poll();
 					if (cart != null) {
 						cartCounter++;
 						processSite(cart, true);
@@ -450,7 +450,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 *            the new mbean
 	 */
 	protected void setMbean(String name) {
-			final AssemblingConveyor<K, L, OUT> thisConv = this;
+			final var thisConv = this;
 			Conveyor.register(this, new AssemblingConveyorMBean() {
 				@Override
 				public String getName() {
@@ -619,14 +619,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private void processManagementCommands() {
 		GeneralCommand<K, ?> cmdCart = null;
 		while ((cmdCart = mQueue.poll()) != null) {
-			K key = cmdCart.getKey();
+			var key = cmdCart.getKey();
 			if(key != null) {
 				processManagementCommand(cmdCart);
 			} else {
-				final CommandLabel label = cmdCart.getLabel();
-				final Object value = cmdCart.getValue();
-				final long expTime = cmdCart.getExpirationTime();
-				final CompletableFuture<Boolean> cmdFuture = cmdCart.getFuture();
+				final var label = cmdCart.getLabel();
+				final var value = cmdCart.getValue();
+				final var expTime = cmdCart.getExpirationTime();
+				final var cmdFuture = cmdCart.getFuture();
 				if(label == CommandLabel.SUSPEND) {
 					suspend();
 					cmdFuture.complete(true);
@@ -660,10 +660,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	private void processManagementCommand(GeneralCommand<K, ?> cmdCart) {
 		commandCounter++;
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("processing command {}", cmdCart);
-		}
-		CommandLabel l = cmdCart.getLabel();
+		LOG.debug("processing command {}", cmdCart);
+		var l = cmdCart.getLabel();
 		try {
 			l.get().accept(this, cmdCart);
 		} catch (Exception e) {
@@ -714,9 +712,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public StaticPartLoader<L> staticPart() {
 		return  new StaticPartLoader<L>(cl -> {
-			Map<String,Object> properties = new HashMap<>();
+			var properties = new HashMap<String,Object>();
 			properties.put("CREATE", cl.create);
-			Cart<K,?,L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART,cl.priority);
+			var staticPart = new ShoppingCart<K,Object,L>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART,cl.priority);
 			return place(staticPart);
 		});
 	}
@@ -728,28 +726,28 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public BuilderLoader<K, OUT> build() {
 		return new BuilderLoader<K, OUT>(cl -> {
-			BuilderSupplier<OUT> bs = cl.value;
+			var bs = cl.value;
 			if(bs == null) {
 				bs = builderSupplier;
 			}
-			final CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime,cl.priority);
+			final var cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime,cl.priority);
 			cl.getAllProperties().forEach((k,v)->{cart.addProperty(k, v);});
 			return place(cart);
 		},
 		cl -> {
-			BuilderSupplier<OUT> bs = cl.value;
+			var bs = cl.value;
 			if(bs == null) {
 				bs = builderSupplier;
 			}
-			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
+			var future = new CompletableFuture<OUT>();
 			if (bs == null) {
 				bs = builderSupplier.withFuture(future);
 			} else {
 				bs = bs.withFuture(future);
 			}
-			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime,cl.priority);
-			FutureSupplier supplier = (FutureSupplier<OUT>) cart.getValue();
-			CompletableFuture<Boolean> cartFuture = place(cart);
+			var cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime,cl.priority);
+			var supplier = (FutureSupplier) cart.getValue();
+			var cartFuture = place(cart);
 			if (cartFuture.isCancelled()) {
 				supplier.getFuture().cancel(true);
 			}
@@ -765,10 +763,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public FutureLoader<K, OUT> future() {
 		return new FutureLoader<K, OUT>(cl -> {
-			CompletableFuture<OUT> future = new CompletableFuture<OUT>();
-			final FutureCart<K, OUT, L> cart = new FutureCart<K, OUT, L>(cl.key, future, cl.creationTime, cl.expirationTime,cl.priority);
+			var future = new CompletableFuture<OUT>();
+			final var cart = new FutureCart<K, OUT, L>(cl.key, future, cl.creationTime, cl.expirationTime,cl.priority);
 			cl.getAllProperties().forEach((k,v)->{cart.addProperty(k, v);});
-			CompletableFuture<Boolean> cartFuture = this.place(cart);
+			var cartFuture = this.place(cart);
 			if (cartFuture.isCancelled()) {
 				future.cancel(true);
 			}
@@ -784,9 +782,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> cart) {
 		try {
-			CompletableFuture<Boolean> future = cart.getFuture();
+			var future = cart.getFuture();
 			commandBeforePlacementValidator.accept(cart);
-			boolean r = mQueue.add(cart);
+			var r = mQueue.add(cart);
 			if (!r) {
 				future.cancel(true);
 			}
@@ -864,7 +862,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public <V> CompletableFuture<Boolean> place(Cart<K, V, L> cart) {
-		CompletableFuture<Boolean> future = cart.getFuture();
+		var future = cart.getFuture();
 		try {
 			cartBeforePlacementValidator.accept(cart);
 			if ( ! inQueue.add(cart) ) {
@@ -941,13 +939,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			synchronized (this.conveyorFutureLock) {
 				if(this.conveyorFuture == null) {
 					this.addCartBeforePlacementValidator(c->{
-						K key = c.getKey();
+						var key = c.getKey();
 						if(key != null && ! this.collector.containsKey(key)) {
 							throw new IllegalStateException("Conveyor preparing to shut down. No new messages can be accepted");
 						}
 					});
 					this.commandBeforePlacementValidator = commandBeforePlacementValidator.andThen(cmd -> {
-						K key = cmd.getKey();
+						var key = cmd.getKey();
 						if(key != null && ! this.collector.containsKey(key)) {
 							throw new IllegalStateException("Conveyor preparing to shut down. No new commands can be accepted");
 						}
@@ -989,14 +987,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@SuppressWarnings("unchecked")
 	private void processSite(Cart<K, ?, L> cart, boolean accept) {
-		K key = cart.getKey();
+		var key = cart.getKey();
 		if (key == null) {
 			if (cart.getLoadType() == MULTI_KEY_PART) {
 				try {
 					MultiKeyCart<K,?,L> mc = ((MultiKeyCart<K,?,L>)cart);
-					final L label = cart.getLabel();
-					final Load<K,?> load = mc.getValue();
-					final Predicate<K> filter = load.getFilter();
+					final var label = cart.getLabel();
+					final var load = mc.getValue();
+					final var filter = load.getFilter();
 					final Function<K,Cart<K, ?, L>> cartBuilder;
 					switch(load.getLoadType()) {
 						case RESULT_CONSUMER:
@@ -1041,18 +1039,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		CompletableFuture resultFuture = null;
 		ResultConsumer newConsumer     = null;
 		if (cart.getLoadType() == FUTURE) {
-			FutureCart<K, ? extends OUT, L> fc = (FutureCart<K, ? extends OUT, L>) cart;
+			var fc = (FutureCart<K, ? extends OUT, L>) cart;
 			resultFuture = fc.getValue();
 		}
 		if (cart.getLoadType() == RESULT_CONSUMER) {
-			ResultConsumerCart<K,OUT, L> rc = (ResultConsumerCart<K,OUT, L>) cart;
+			var rc = (ResultConsumerCart<K,OUT, L>) cart;
 			newConsumer = rc.getValue();
 		}
-		FailureType failureType = FailureType.GENERAL_FAILURE;
+		var failureType = FailureType.GENERAL_FAILURE;
 		try {
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("Read " + cart);
-			}
+			LOG.trace("Read {}",cart);
 			currentSite = getBuildingSite(cart);
 			if (currentSite == null) {
 				if (cart.getLoadType() == BUILDER) {
@@ -1139,9 +1135,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private boolean postponeTimeout(BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> bs) {
 		if (postponeExpirationEnabled) {
 			if (!bs.expired()) {
-				if (LOG.isTraceEnabled()) {
-					LOG.trace("Expiration will bin postponed for key={}", bs.getKey());
-				}
+				LOG.trace("Expiration will bin postponed for key={}", bs.getKey());
 				delayProvider.getBox(bs.getExpirationTime()).add(bs.getKey());
 				return true;
 			}
@@ -1155,33 +1149,29 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	private void removeExpired() {
 		int cnt = 0;
-		Status statusForEviction = Status.TIMED_OUT;
+		var statusForEviction = Status.TIMED_OUT;
 		for (K key : delayProvider.getAllExpiredKeys()) {
-			BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> buildingSite = collector.get(key);
+			var buildingSite = collector.get(key);
 			if (buildingSite == null) {
 				continue;
 			}
 
 			if (timeoutAction != null || buildingSite.getTimeoutAction() != null) {
 				try {
-					ShoppingCart<K, Object, L> to = new ShoppingCart<K, Object, L>(buildingSite.getKey(),
+					var to = new ShoppingCart<K, Object, L>(buildingSite.getKey(),
 							Status.TIMED_OUT, null);
 					buildingSite.timeout((Cart<K, ?, L>) to);
 
 					if (buildingSite.ready()) {
-						if (LOG.isTraceEnabled()) {
-							LOG.trace("Expired and finished " + key);
-						}
-						OUT res = buildingSite.build();
+						LOG.trace("Expired and finished {}",key);
+						var res = buildingSite.build();
 						completeSuccessfully((BuildingSite<K, L, ?, OUT>) buildingSite,res,Status.TIMED_OUT);
 						statusForEviction = Status.READY;
 					} else {
 						if (postponeTimeout(buildingSite)) {
 							continue;
 						}
-						if (LOG.isTraceEnabled()) {
-							LOG.trace("Expired and not finished " + key);
-						}
+						LOG.trace("Expired and not finished {}",key);
 						scrapConsumer.accept(new ScrapBin(key,
 								buildingSite, "Site expired", null, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
 						buildingSite.cancelFutures();
@@ -1198,9 +1188,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				if (postponeTimeout(buildingSite)) {
 					continue;
 				}
-				if (LOG.isTraceEnabled()) {
-					LOG.trace("Expired and removed " + key);
-				}
+				LOG.trace("Expired and removed {}",key);
 				scrapConsumer.accept(new ScrapBin(key,
 						buildingSite, "Site expired. No timeout action", null, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
 				buildingSite.cancelFutures();
@@ -1209,9 +1197,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			cnt++;
 		}
 		if (cnt > 0) {
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("Timeout collected: " + cnt);
-			}
+			LOG.trace("Timeout collected: {}",cnt);
 		}
 	}
 
@@ -1372,9 +1358,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static <K> void cancelNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
-		K key = cart.getKey();
-		BuildingSite bs = (BuildingSite) conveyor.collector.get(key);
-		Map<String,Object> properties = bs == null ? new HashMap<>():bs.getProperties();
+		var key = cart.getKey();
+		var bs = (BuildingSite) conveyor.collector.get(key);
+		var properties = bs == null ? new HashMap<String,Object>():bs.getProperties();
 		conveyor.keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.CANCELED, properties));
 		if(bs != null) {
 			bs.cancelFutures();
@@ -1391,8 +1377,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static <K> void rescheduleNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
-		K key = cart.getKey();
-		long newExpirationTime = cart.getExpirationTime();
+		var key = cart.getKey();
+		var newExpirationTime = cart.getExpirationTime();
 		conveyor.keyBeforeReschedule.accept(key, newExpirationTime);
 		cart.getFuture().complete(true);
 	}
@@ -1406,7 +1392,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static <K> void timeoutNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
-		K key = cart.getKey();
+		var key = cart.getKey();
 		conveyor.collector.get(key);
 		conveyor.keyBeforeReschedule.accept(key, System.currentTimeMillis());
 		cart.getFuture().complete(true);
@@ -1420,7 +1406,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cart            the cart
 	 */
 	static <K> void checkBuild(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
-		K key = cart.getKey();
+		var key = cart.getKey();
 		if (conveyor.collector.containsKey(key)) {
 			conveyor.processSite(cart, false);
 			cart.getFuture().complete(true);
@@ -1439,25 +1425,25 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 */
 	static <K,OUT> void peekBuild(AssemblingConveyor<K,?,OUT> conveyor, Cart<K, Consumer<ProductBin<K, OUT>>, ?> cart) {
-		K key = cart.getKey();
+		var key = cart.getKey();
 		
 		if (conveyor.collector.containsKey(key)) {
-			BuildingSite<K, ?, ?, ? extends OUT> bs = conveyor.collector.get(key);
+			var bs = conveyor.collector.get(key);
 			try {
-				OUT prod = bs.unsafeBuild();
-				ProductBin<K, OUT> bin = new ProductBin<K, OUT>(key, prod, bs.getExpirationTime(), bs.getStatus(), bs.getProperties(), null);
+				var prod = bs.unsafeBuild();
+				var bin = new ProductBin<K, OUT>(key, prod, bs.getExpirationTime(), bs.getStatus(), bs.getProperties(), null);
 				cart.getValue().accept(bin);
 				cart.getFuture().complete(true);
 			} catch (Exception e) {
-				Map<String,Object> prop = bs.getProperties();
+				var prop = bs.getProperties();
 				prop.put("ERROR", e);
-				ProductBin<K, OUT> bin = new ProductBin<K, OUT>(key, null, bs.getExpirationTime(), Status.INVALID, bs.getProperties(), null);
+				var bin = new ProductBin<K, OUT>(key, null, bs.getExpirationTime(), Status.INVALID, bs.getProperties(), null);
 				cart.getValue().accept(bin);
 				cart.getFuture().complete(false);
 			}
 		} else {
 			LOG.debug("Key '{}' does not exist. Ignoring peek command.", key);
-			ProductBin<K, OUT> bin = new ProductBin<K, OUT>(key, null, 0, Status.NOT_FOUND, null, null);
+			var bin = new ProductBin<K, OUT>(key, null, 0, Status.NOT_FOUND, null, null);
 			cart.getValue().accept(bin);
 			cart.getFuture().complete(false);
 		}
@@ -1472,11 +1458,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 */
 	static <K,OUT> void mementoBuild(AssemblingConveyor<K,?,OUT> conveyor, Cart<K, Consumer<Memento>, ?> cart) {
-		K key = cart.getKey();
+		var key = cart.getKey();
 		
 		if (conveyor.collector.containsKey(key)) {
-			BuildingSite<K, ?, ?, ? extends OUT> bs = conveyor.collector.get(key);
-			Memento memento = bs.getMemento();
+			var bs = conveyor.collector.get(key);
+			var memento = bs.getMemento();
 			cart.getValue().accept(memento);
 			cart.getFuture().complete(true);
 		} else {
@@ -1495,11 +1481,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @param cart the cart
 	 */
 	static <K,OUT> void restoreBuild(AssemblingConveyor<K,?,OUT> conveyor, Cart<K, Memento, ?> cart) {
-		K key = cart.getKey();
+		var key = cart.getKey();
 		
 		if (conveyor.collector.containsKey(key)) {
-			BuildingSite<K, ?, ?, ? extends OUT> bs = conveyor.collector.get(key);
-			Memento memento = cart.getValue();
+			var bs = conveyor.collector.get(key);
+			var memento = cart.getValue();
 			bs.restore(memento);
 			cart.getFuture().complete(true);
 		} else {
@@ -1599,7 +1585,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @see com.aegisql.conveyor.Conveyor#getExpirationTime(java.lang.Object)
 	 */
 	public long getExpirationTime(K key) {
-		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> bs = collector.get(key);
+		var bs = collector.get(key);
 		if (bs == null) {
 			return -1;
 		} else {
@@ -1636,7 +1622,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * @return the assembling conveyor
 	 */
 	public AssemblingConveyor<K, L, OUT> detach() {
-		AssemblingConveyor<K, L, OUT> c = new AssemblingConveyor<>();
+		var c = new AssemblingConveyor<K,L,OUT>();
 		c.setBuilderSupplier(builderSupplier);
 		c.setDefaultBuilderTimeout(builderTimeout, TimeUnit.MILLISECONDS);
 		c.setIdleHeartBeat(getExpirationCollectionIdleInterval(), getExpirationCollectionIdleTimeUnit());
