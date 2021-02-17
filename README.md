@@ -4,6 +4,8 @@ Reactive Aggregating and Creational Framework
 [Tutorial](https://github.com/aegisql/conveyor/wiki)
 
 ### Maven dependencies
+
+## For JAVA8
 conveyor-core
 ```xml
 <dependency>
@@ -47,9 +49,56 @@ conveyor configurator
 </dependency>
 ```
 
+## For JAVA11 & OpenJDK
+conveyor-core
+```xml
+<dependency>
+  <groupId>com.aegisql</groupId>
+  <artifactId>conveyor-core</artifactId>
+  <version>1.5.2</version>
+</dependency>
+```
+
+conveyor-parallel
+```xml
+<dependency>
+  <groupId>com.aegisql</groupId>
+  <artifactId>conveyor-parallel</artifactId>
+  <version>1.5.2</version>
+</dependency>
+```
+
+conveyor-persistence
+```xml
+<dependency>
+<groupId>com.aegisql.persistence</groupId>
+  <artifactId>conveyor-persistence-core</artifactId>
+  <version>1.5.2</version>
+</dependency>
+```
+```xml
+<dependency>
+  <groupId>com.aegisql.persistence</groupId>
+  <artifactId>conveyor-persistence-jdbc</artifactId>
+  <version>1.5.2</version>
+</dependency>
+```
+
+conveyor configurator
+```xml
+<dependency>
+  <groupId>com.aegisql</groupId>
+  <artifactId>conveyor-configurator</artifactId>
+  <version>1.5.2</version>
+</dependency>
+```
+
 ## Release History
 
-### 1.5.2-SNAPSHOT
+### 1.5.3-SNAPSHOT
+
+### 1.5.2
+* compatibility bugfixes
 
 ### 1.5.1
 * Switching to OpenJDK and Java 11
