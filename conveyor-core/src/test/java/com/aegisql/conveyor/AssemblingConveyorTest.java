@@ -758,7 +758,10 @@ public class AssemblingConveyorTest {
 		PartLoader<Integer, String> pl2 = PartLoader.<Integer, String>lazySupplier("test_name").get();
 		pl.id(1).label("label").value("value").place();
 		pl2.id(2).label("label").value("value2").place();
-		
+
+		System.out.println("Known Names: "+Conveyor.getKnownConveyorNames());
+		System.out.println("Loaded Names: "+Conveyor.getLoadedConveyorNames());
+
 	}
 
 	/**

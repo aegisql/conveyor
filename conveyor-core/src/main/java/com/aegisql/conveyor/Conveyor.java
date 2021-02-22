@@ -12,11 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.*;
 
+import static com.aegisql.conveyor.InitiationServiceRegister.SERVICES;
 import static com.aegisql.conveyor.MBeanRegister.MBEAN;
 
 /**
@@ -28,7 +29,7 @@ import static com.aegisql.conveyor.MBeanRegister.MBEAN;
  * @author Mikhail Teplitskiy
  * @version 1.1.0
  */
-public interface Conveyor<K, L, OUT> {
+public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 
 	/**
 	 * The Constant LOG.
@@ -495,6 +496,22 @@ public interface Conveyor<K, L, OUT> {
 		unRegister(this.getName());
 	}
 
+	static void loadServices() {
+		SERVICES.reload();
+		SERVICES.getLoadedConveyorNames();
+	}
+
+	static Set<String> getKnownConveyorNames() {
+		loadServices();
+		var set = new HashSet<String>();
+		set.addAll(MBEAN.getKnownConveyorNames());
+		return Collections.unmodifiableSet(set);
+	}
+
+	static Set<String> getLoadedConveyorNames() {
+		return Collections.unmodifiableSet(SERVICES.getLoadedConveyorNames());
+	}
+
 	/**
 	 * Register.
 	 *
@@ -514,4 +531,8 @@ public interface Conveyor<K, L, OUT> {
 		register(this,mbeanObject);
 	}
 
+	@Override
+	default List<String> getInitiatedConveyorNames() {
+		return Arrays.asList(getName());
+	}
 }

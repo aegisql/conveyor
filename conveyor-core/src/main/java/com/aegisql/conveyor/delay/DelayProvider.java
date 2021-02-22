@@ -27,7 +27,7 @@ public class DelayProvider <K> {
 	 * @return the box
 	 */
 	public DelayBox<K> getBox(Long expirationTime) {
-		DelayBox<K> box = boxes.get(expirationTime);
+		var box = boxes.get(expirationTime);
 		if(box == null) {
 			box = new DelayBox<>(expirationTime);
 			boxes.put(expirationTime, box);
@@ -42,7 +42,7 @@ public class DelayProvider <K> {
 	 * @return the all expired keys
 	 */
 	public List<K> getAllExpiredKeys() {
-		List<K> expired = new LinkedList<>();
+		var expired = new LinkedList<K>();
 		DelayBox<K> box = null;
 		while( (box = queue.poll()) != null ) {
 			expired.addAll(box.getKeys());

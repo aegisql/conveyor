@@ -297,10 +297,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			this.resultConsumer = resultConsumer;
 		}
 		
-		Supplier<? extends OUT> productSupplier = builderSupplier.get();
+		var productSupplier = builderSupplier.get();
 		
 		if(cart.getValue() != null && cart.getValue() instanceof BuildingSite.Memento) {
-			Memento memento = (BuildingSite.Memento) cart.getValue();
+			var memento = (BuildingSite.Memento) cart.getValue();
 			this.restore(memento);
 		} else {
 			if( productSupplier instanceof ProductSupplier && ((ProductSupplier)productSupplier).getSupplier() != null) {
@@ -354,7 +354,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		}
 		this.eventHistory.put(cart.getLabel(), new AtomicInteger(0));
 		if(productSupplier instanceof Expireable) {
-			Expireable expireable = (Expireable)productSupplier;
+			var expireable = (Expireable)productSupplier;
 			builderCreated    = System.currentTimeMillis();
 			expireableSource  = expireable;
 		} else {
@@ -428,7 +428,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				timeoutAction.accept(builder);
 				postponeAlg.accept(this, cart);
 			} else {
-				long expTimestamp = this.expireableSource.getExpirationTime();
+				var expTimestamp = this.expireableSource.getExpirationTime();
 				this.expireableSource = () -> expTimestamp;				
 				timeoutAction.accept(builder);
 			}
@@ -475,7 +475,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 */
 	public Supplier<? extends OUT> getProductSupplier() {
 		if(productSupplier == null ) {
-			final BuildingSite <K, L, C, OUT> bs = this;
+			final var bs = this;
 			productSupplier = new Supplier<OUT>() {
 				@Override
 				public OUT get() {
@@ -503,7 +503,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @return the state
 	 */
 	public State<K,L> getState() {
-		final Map<L,Integer> history = new LinkedHashMap<>();
+		final var history = new LinkedHashMap<L,Integer>();
 		eventHistory.forEach((k,v)->history.put(k, v.get()));
 		return new State<>(
 				initialCart.getKey(),
@@ -523,8 +523,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @return true, if successful
 	 */
 	public boolean ready() {
-		boolean res = false;
-		State<K,L> state = getState();
+		var res = false;
+		var state = getState();
 		lock.lock();
 		try {
 			res = readiness.test(state, builder);
@@ -552,7 +552,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @return the delay msec
 	 */
 	public long getDelayMsec() {
-		long expirationTime = expireableSource.getExpirationTime() ;
+		var expirationTime = expireableSource.getExpirationTime() ;
 		if(expirationTime == 0 ) {
 			return Long.MAX_VALUE;
 		} else {
@@ -673,7 +673,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param status the status
 	 */
 	void completeWithValue(OUT value, Status status) {
-		Acknowledge ack = getAcknowledge();
+		var ack = getAcknowledge();
 		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getExpirationTime(), status , getProperties(), ack) );
 	}
 	

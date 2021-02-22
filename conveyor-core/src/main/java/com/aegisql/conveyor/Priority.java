@@ -15,8 +15,8 @@ public final class Priority {
     public final static Supplier<PriorityBlockingQueue<Cart>> FILO = priorityQueueSupplier((c1,c2)->Long.compare(c2.getCartCreationNanoTime(),c1.getCartCreationNanoTime()));
 
     public final static Supplier<PriorityBlockingQueue<Cart>> OLDEST_FIRST = priorityQueueSupplier((c1,c2)->{
-        long ct1 = c1.getCreationTime();
-        long ct2 = c2.getCreationTime();
+        var ct1 = c1.getCreationTime();
+        var ct2 = c2.getCreationTime();
         if(ct1==ct2) {
             return Long.compare(c1.getCartCreationNanoTime(),c2.getCartCreationNanoTime());
         } else {
@@ -25,8 +25,8 @@ public final class Priority {
     });
 
     public final static Supplier<PriorityBlockingQueue<Cart>> NEWEST_FIRST = priorityQueueSupplier((c1,c2)->{
-        long ct1 = c1.getCreationTime();
-        long ct2 = c2.getCreationTime();
+        var ct1 = c1.getCreationTime();
+        var ct2 = c2.getCreationTime();
         if(ct1==ct2) {
             return Long.compare(c1.getCartCreationNanoTime(),c2.getCartCreationNanoTime());
         } else {
@@ -35,8 +35,8 @@ public final class Priority {
     });
 
     public final static Supplier<PriorityBlockingQueue<Cart>> EXPIRE_SOONER_FIRST = priorityQueueSupplier((c1,c2)->{
-        long et1 = c1.getExpirationTime();
-        long et2 = c2.getExpirationTime();
+        var et1 = c1.getExpirationTime();
+        var et2 = c2.getExpirationTime();
         if(et1 == 0) et1 = Long.MAX_VALUE; //never
         if(et2 == 0) et2 = Long.MAX_VALUE; //never
         if(et1==et2) {
@@ -54,11 +54,11 @@ public final class Priority {
 
     public static Supplier<PriorityBlockingQueue<Cart>> prioritizedByProperty(String property) {
         return priorityQueueSupplier((c1,c2)->{
-            Comparable p1 = (Comparable)c1.getProperty(property,Object.class);
-            Comparable p2 = (Comparable)c2.getProperty(property,Object.class);
+            var p1 = (Comparable)c1.getProperty(property,Object.class);
+            var p2 = (Comparable)c2.getProperty(property,Object.class);
             if(p1 == null) p1 = Long.MIN_VALUE;
             if(p2 == null) p2 = Long.MIN_VALUE;
-            int cmpRes = p2.compareTo(p1); //cart with higher priority go's first
+            var cmpRes = p2.compareTo(p1); //cart with higher priority go's first
             if(cmpRes==0) {
                 cmpRes = Long.compare(c1.getCartCreationNanoTime(),c2.getCartCreationNanoTime()); //cart with same priority, first go's oldest
             }

@@ -4,8 +4,8 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 import java.lang.management.ManagementFactory;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The singleton MBean register.
@@ -32,14 +32,14 @@ enum MBeanRegister {
      */
     public Conveyor byName(String name) {
         try {
-            String type = getType(name);
+            var type = getType(name);
             if(knownConveyors.containsKey(type)) {
                 return knownConveyors.get(type);
             }
-            ObjectName objectName = new ObjectName(type);
-            Conveyor res = (Conveyor) mBeanServer.invoke(objectName, "conveyor", null, null);
-            knownConveyors.put(type,res);
-            return res;
+            var objectName = new ObjectName(type);
+            var conveyor = (Conveyor) mBeanServer.invoke(objectName, "conveyor", null, null);
+            knownConveyors.put(type,conveyor);
+            return conveyor;
         } catch (Exception e) {
             throw new ConveyorRuntimeException("Conveyor with name '"+name +"' not found",e);
         }
@@ -54,11 +54,11 @@ enum MBeanRegister {
      */
     public void register(Conveyor conveyor, Object mbeanObject) {
         try {
-            Class mBeanInterface = conveyor.mBeanInterface();
-            String type = getType(conveyor.getName());
+            var mBeanInterface = conveyor.mBeanInterface();
+            var type = getType(conveyor.getName());
             if(mBeanInterface != null) {
-                Object mbean = new StandardMBean(mbeanObject, mBeanInterface, false);
-                ObjectName objectName = new ObjectName(type);
+                var mbean = new StandardMBean(mbeanObject, mBeanInterface, false);
+                var objectName = new ObjectName(type);
                 synchronized (mBeanServer) {
                     unRegister(conveyor.getName());
                     mBeanServer.registerMBean(mbean, objectName);
@@ -85,8 +85,8 @@ enum MBeanRegister {
      */
     public void unRegister(String name) {
         try {
-            String type = getType(name);
-            ObjectName objectName = new ObjectName(type);
+            var type = getType(name);
+            var objectName = new ObjectName(type);
             knownConveyors.remove(type);
             synchronized (mBeanServer) {
                 if (mBeanServer.isRegistered(objectName)) {
@@ -97,6 +97,18 @@ enum MBeanRegister {
         } catch (Exception e) {
             throw new ConveyorRuntimeException("Unregister conveyor with name '"+name +"' with issues",e);
         }
+    }
+
+    public Set<String> getKnownConveyorNames() {
+        return Collections.unmodifiableSet(knownConveyors
+                .keySet()
+                .stream()
+                .filter(Objects::nonNull)
+                .map(longName->{
+                    var parts = longName.split("=");
+                    return parts[1];
+                })
+                .collect(Collectors.toSet()));
     }
 
 }

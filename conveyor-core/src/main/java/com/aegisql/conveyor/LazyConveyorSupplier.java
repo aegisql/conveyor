@@ -51,7 +51,7 @@ public class LazyConveyorSupplier <K,L,OUT> implements Supplier<Conveyor<K,L,OUT
 	 */
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
+		var builder = new StringBuilder();
 		builder.append("LazyConveyorSupplier [name=").append(name).append(", conveyor=").append(conveyor).append("]");
 		return builder.toString();
 	}

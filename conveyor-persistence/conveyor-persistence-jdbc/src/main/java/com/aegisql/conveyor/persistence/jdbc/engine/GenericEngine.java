@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 // TODO: Auto-generated Javadoc
@@ -47,13 +48,17 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	
 	/** The connection url template for init tables and indexes. */
 	protected final String connectionUrlTemplateForInitTablesAndIndexes;
-	
+
+	protected String getConnectionUrlTemplate() {
+		return connectionUrlTemplate;
+	}
+
 	/** The connection url template. */
 	protected final String connectionUrlTemplate;
 
 	/** The connection. */
-	protected Connection connection; 
-	
+	private Connection connection;
+
 	/** The host. */
 	protected String host;
 	
@@ -146,7 +151,25 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	
 	/** The additional fields. */
 	protected List<Field<?>> additionalFields = new ArrayList<>();
-	
+
+	protected Supplier<Connection> connectionSupplier = ()-> {
+		try {
+			return DriverManager.getConnection(toConnectionUrl(getConnectionUrlTemplate()), properties);
+		} catch (SQLException e) {
+			throw new PersistenceException("Failed get connection for "+getConnectionUrlTemplate()+" properties:"+properties, e);
+		}
+	};
+
+	protected Function<String,Connection> connectionFunction = connectionUrl -> {
+		LOG.debug("Connecting to {}",connectionUrl);
+		try {
+			return DriverManager.getConnection(connectionUrl, properties);
+		} catch (SQLException e) {
+			LOG.error("Failed connection to {}",connectionUrl,e);
+			throw new PersistenceException("Failed connection to URL " + connectionUrl + " " + properties, e);
+		}
+	};
+
 	/**
 	 * Instantiates a new generic engine.
 	 *
@@ -690,14 +713,12 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @return the connection
 	 */
 	public Connection getConnection() {
-		if(connection == null) {
-			String connectionUrl = toConnectionUrl(connectionUrlTemplate);
-			try {
-				connection = DriverManager.getConnection(connectionUrl, properties);
-				LOG.info("Connection created: {}",this);
-			} catch (SQLException e) {
-				throw new PersistenceException("Failed connection to URL " + connectionUrl + " " + properties, e);
+		try {
+			if(connection == null || connection.isClosed()) {
+				connection = connectionSupplier.get();
 			}
+		} catch (SQLException e) {
+			throw new PersistenceException("Cannot check if connection is closed",e);
 		}
 		return connection;
 	}
@@ -718,18 +739,17 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	/**
 	 * Connect and do.
 	 *
-	 * @param url the url
+	 * @param urlTemplate the url
 	 * @param connectionConsumer the connection consumer
 	 */
-	protected void connectAndDo(String url, Consumer<Connection> connectionConsumer) {
-		String connectionUrl = toConnectionUrl(url);
-		LOG.debug("Connecting to {}",connectionUrl);
+	protected void connectAndDo(String urlTemplate, Consumer<Connection> connectionConsumer) {
+		String connectionUrl = toConnectionUrl(urlTemplate);
 		if (notEmpty(connectionUrl)) {
-			try (Connection con = DriverManager.getConnection(connectionUrl, properties)) {
+			try (Connection con = connectionFunction.apply(connectionUrl)) {
 				connectionConsumer.accept(con);
 			} catch (SQLException e) {
-				LOG.error("Failed connection to {}",connectionUrl,e);
-				throw new PersistenceException("Failed connection to URL " + url + " " + properties, e);
+				LOG.error("Failed applying to {}",connectionUrl,e);
+				throw new PersistenceException("Failed applying to connection to URL " + urlTemplate + " " + properties, e);
 			}
 		}
 	}
@@ -774,22 +794,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		});
 	}
 
-	/**
-	 * Execute.
-	 *
-	 * @param url the url
-	 * @param sql the sql
-	 */
-	protected void execute(String url, String sql) {
-		connectAndDo(url, con->{
-			try(Statement statement = con.createStatement()) {
-				statement.execute(sql);
-			} catch (SQLException e) {
-				throw new PersistenceException(e);
-			}
-		});
-	}
-	
 	/**
 	 * Execute prepared.
 	 *
@@ -1284,6 +1288,15 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	public void setAdditionalFields(List<Field<?>> additionalFields) {
 		this.additionalFields = additionalFields;
+	}
+
+	/**
+	 * Sets connection supplier.
+	 *
+	 * @param connectionSupplier the JDBC connection supplier
+	 */
+	public void setConnectionSupplier(Supplier<Connection> connectionSupplier) {
+		this.connectionSupplier = connectionSupplier;
 	}
 
 	/* (non-Javadoc)
