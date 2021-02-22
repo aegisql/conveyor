@@ -96,6 +96,7 @@ conveyor configurator
 ## Release History
 
 ### 1.5.3-SNAPSHOT
+* Added Conveyor Initiating Services support
 
 ### 1.5.2
 * compatibility bugfixes
