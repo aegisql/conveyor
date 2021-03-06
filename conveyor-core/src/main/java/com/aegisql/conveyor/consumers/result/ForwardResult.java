@@ -158,7 +158,7 @@ public class ForwardResult<K2, L2> {
 	 *
 	 * @param fromConv the from conv
 	 */
-	private ForwardResult(Conveyor fromConv) {
+	ForwardResult(Conveyor fromConv) {
 		this.fromConv = fromConv;
 	}
 

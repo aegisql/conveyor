@@ -11,6 +11,8 @@ public class ForwardResultTest {
     @Test
     public void constructionTest() {
 
+        ForwardResult fr = new ForwardResult(null);//for coverage
+
         AssemblingConveyor<Integer,String,String> ac1 = new AssemblingConveyor<>();
         AssemblingConveyor<Integer,String,String> ac2 = new AssemblingConveyor<>();
 

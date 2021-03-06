@@ -51,7 +51,7 @@ public final class PartLoader<K,L> {
 	
 	/** The properties. */
 	private final Map<String,Object> properties = new HashMap<>();
-	
+
 	/**
 	 * Instantiates a new part loader.
 	 *

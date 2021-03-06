@@ -12,7 +12,8 @@ public class LogResultTest {
 
     @Test
     public void logResConstructorsTest() {
-        ResultConsumer lr = new LogResult();
+
+        LogResult lr = new LogResult();
         lr.accept(ResultConsumerTest.getProductBin(1,"test 1"));
         LogResult trace = new LogResult(L, LogResult.Level.TRACE);
         LogResult debug = new LogResult(L, LogResult.Level.DEBUG);

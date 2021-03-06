@@ -91,7 +91,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	};
 	
 	/** The payload function. */
-	protected Function<Cart<K,?,L>,Object> payloadFunction = cart->cart.getValue();
+	protected Function<Cart<K,?,L>,Object> payloadFunction = Cart::getValue;
 
 	/** The ready. */
 	protected BiPredicate<State<K, L>, Supplier<? extends OUT>> readiness = null;
@@ -125,7 +125,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The key before eviction. */
 	private Consumer<AcknowledgeStatus<K>> keyBeforeEviction = status -> {
 		LOG.trace("Key is ready to be evicted {} status:{}", status.getKey(), status.getStatus());
-		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> bs = collector.remove(status.getKey());
+		collector.remove(status.getKey());
 		if(autoAck) {
 			if(ackStatusSet.contains(status.getStatus())) {
 				ackAction.accept(status);
@@ -266,7 +266,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private boolean forwardingResults = false;
 
 	/** The forwarding to. */
-	private List<String> forwardingTo = new ArrayList<>();
+	private final List<String> forwardingTo = new ArrayList<>();
 
 	/** The postpone expiration on timeout enabled. */
 	private boolean postponeExpirationOnTimeoutEnabled;
@@ -316,7 +316,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 
 				if (bs != null) {
-					buildingSite = new BuildingSite<K, L, Cart<K, ?, L>, OUT>(cart, bs, cartConsumer, readiness,
+					buildingSite = new BuildingSite<>(cart, bs, cartConsumer, readiness,
 							timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder, saveCarts,
 							postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues,resultConsumer,
 							ackAction);
@@ -332,7 +332,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 				returnNull = true;
 			} else if (builderSupplier != null) {
-				buildingSite = new BuildingSite<K, L, Cart<K, ?, L>, OUT>(cart, builderSupplier, cartConsumer,
+				buildingSite = new BuildingSite<>(cart, builderSupplier, cartConsumer,
 						readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder, saveCarts,
 						postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues,resultConsumer,
 						ackAction);
@@ -536,8 +536,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 
 				@Override
-				public <K, L, OUT> Conveyor<K, L, OUT> conveyor() {
-					return (Conveyor<K, L, OUT>) thisConv;
+				public Conveyor<K, L, OUT> conveyor() {
+					return thisConv;
 				}
 
 				@Override
@@ -814,7 +814,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return new ResultConsumerLoader<>(rcl->{
 			final Cart<K,?,L> cart;
 			if(rcl.key != null) {
-				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime, rcl.priority);
+				cart = new ResultConsumerCart<>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime, rcl.priority);
 			} else {
 				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, LoadType.RESULT_CONSUMER,rcl.priority);
 			}
@@ -950,7 +950,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							throw new IllegalStateException("Conveyor preparing to shut down. No new commands can be accepted");
 						}
 					});
-					this.conveyorFuture = new CompletableFuture<Boolean>();
+					this.conveyorFuture = new CompletableFuture<>();
 				}
 			}
 		}
@@ -1074,10 +1074,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			if (Status.TIMED_OUT.equals(cart.getValue())) {
 				failureType = FailureType.ON_TIMEOUT_FAILED;
-				currentSite.timeout((Cart<K, ?, L>) cart);
+				currentSite.timeout(cart);
 			} else if (accept) {
 				failureType = FailureType.DATA_REJECTED;
-				currentSite.accept((Cart<K, ?, L>) cart);
+				currentSite.accept(cart);
 			}
 			failureType = FailureType.READY_FAILED;
 			if (currentSite.ready()) {
@@ -1086,7 +1086,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				failureType = FailureType.RESULT_CONSUMER_FAILED;
 				completeSuccessfully((BuildingSite<K, L, ?, OUT>) currentSite,res,Status.READY);
 				failureType = FailureType.BEFORE_EVICTION_FAILED;
-				keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.READY, currentSite.getProperties()));
+				keyBeforeEviction.accept(new AcknowledgeStatus<>(key, Status.READY, currentSite.getProperties()));
 			}
 			cart.getFuture().complete(Boolean.TRUE);
 		} catch (KeepRunningConveyorException e) {
@@ -1115,7 +1115,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			if (!failureType.equals(FailureType.BEFORE_EVICTION_FAILED)) {
 				try {
-					keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.INVALID, currentSite==null?null:currentSite.getProperties()));
+					keyBeforeEviction.accept(new AcknowledgeStatus<>(key, Status.INVALID, currentSite==null?null:currentSite.getProperties()));
 				} catch (Exception e2) {
 					LOG.error("BeforeEviction failed after processing failure: {} {} {}", failureType, e.getMessage(),
 							e2.getMessage());
@@ -1160,7 +1160,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				try {
 					var to = new ShoppingCart<K, Object, L>(buildingSite.getKey(),
 							Status.TIMED_OUT, null);
-					buildingSite.timeout((Cart<K, ?, L>) to);
+					buildingSite.timeout(to);
 
 					if (buildingSite.ready()) {
 						LOG.trace("Expired and finished {}",key);
@@ -1193,7 +1193,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						buildingSite, "Site expired. No timeout action", null, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
 				buildingSite.cancelFutures();
 			}
-			keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, statusForEviction, buildingSite.getProperties()));
+			keyBeforeEviction.accept(new AcknowledgeStatus<>(key, statusForEviction, buildingSite.getProperties()));
 			cnt++;
 		}
 		if (cnt > 0) {
@@ -1431,7 +1431,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			var bs = conveyor.collector.get(key);
 			try {
 				var prod = bs.unsafeBuild();
-				var bin = new ProductBin<K, OUT>(key, prod, bs.getExpirationTime(), bs.getStatus(), bs.getProperties(), null);
+				var bin = new ProductBin<>(key, prod, bs.getExpirationTime(), bs.getStatus(), bs.getProperties(), null);
 				cart.getValue().accept(bin);
 				cart.getFuture().complete(true);
 			} catch (Exception e) {
@@ -1844,11 +1844,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	@Override
 	public void suspend() {
+		this.statusLine = "Suspended";
 		this.suspended = true;
 	}
 
 	@Override
 	public void resume() {
+		this.statusLine = "Accepting Parts";
 		this.suspended = false;
 		lock.tell();
 	}
