@@ -97,6 +97,7 @@ conveyor configurator
 
 ### 1.5.3-SNAPSHOT
 * Added Conveyor Initiating Services support
+* Key, Label and Value converters register
 
 ### 1.5.2
 * compatibility bugfixes
