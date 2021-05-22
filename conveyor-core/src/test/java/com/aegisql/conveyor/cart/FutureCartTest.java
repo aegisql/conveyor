@@ -24,10 +24,10 @@ public class FutureCartTest {
 
         ScrapConsumer<Integer, Cart<Integer, CompletableFuture<String>, String>> sc1 = fc1.getScrapConsumer();
         ScrapBin<Integer,Cart<Integer,CompletableFuture<String>,String>> sb1
-                = new ScrapBin<>(1,fc1,"test",new Exception("test"),
+                = new ScrapBin<>(null,1,fc1,"test",new Exception("test"),
                 ScrapBin.FailureType.CART_REJECTED,new HashMap<>(),null);
         ScrapBin<Integer,Cart<Integer,CompletableFuture<String>,String>> sb2
-                = new ScrapBin<>(1,fc1,"test",null,
+                = new ScrapBin<>(null,1,fc1,"test",null,
                 ScrapBin.FailureType.CART_REJECTED,new HashMap<>(),null);
         sc1.accept(sb1);
         sc1.accept(sb2);

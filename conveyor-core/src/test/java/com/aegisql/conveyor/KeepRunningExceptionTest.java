@@ -1,17 +1,13 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.consumers.result.LastResultReference;
+import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
+import com.aegisql.conveyor.exception.KeepRunningConveyorException;
+import org.junit.*;
 
 import java.util.function.Supplier;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.consumers.result.LastResultReference;
-import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
+import static org.junit.Assert.*;
 
 public class KeepRunningExceptionTest {
 	

@@ -1,8 +1,8 @@
 package com.aegisql.conveyor.parallel;
 
 import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ConveyorRuntimeException;
 import com.aegisql.conveyor.consumers.result.ResultMap;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
 import com.aegisql.conveyor.reflection.SimpleConveyor;

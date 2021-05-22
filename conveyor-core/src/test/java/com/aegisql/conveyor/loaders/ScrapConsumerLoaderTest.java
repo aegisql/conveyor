@@ -47,7 +47,7 @@ public class ScrapConsumerLoaderTest {
         },sm);
         CompletableFuture<String> f = new CompletableFuture<>();
         FutureCart<Integer,String,String> fc = new FutureCart<>(1,f,0);
-        ScrapBin sb = new ScrapBin(1,fc,"test",null, ScrapBin.FailureType.CART_REJECTED,null,null);
+        ScrapBin sb = new ScrapBin(null,1,fc,"test",null, ScrapBin.FailureType.CART_REJECTED,null,null);
         scl.CART_CONSUMER.accept(sb);
     }
 
@@ -59,11 +59,11 @@ public class ScrapConsumerLoaderTest {
         },sm);
         CompletableFuture<String> f = new CompletableFuture<>();
         FutureCart<Integer,String,String> fc = new FutureCart<>(1,f,0);
-        ScrapBin sb = new ScrapBin(1,fc,"test",null, ScrapBin.FailureType.CART_REJECTED,null,null);
+        ScrapBin sb = new ScrapBin(null,1,fc,"test",null, ScrapBin.FailureType.CART_REJECTED,null,null);
         scl.FUTURE_CONSUMER.accept(sb);
-        ScrapBin sb1 = new ScrapBin(1,null,"test",null, ScrapBin.FailureType.CART_REJECTED,null,null);
+        ScrapBin sb1 = new ScrapBin(null,1,null,"test",null, ScrapBin.FailureType.CART_REJECTED,null,null);
         scl.FUTURE_CONSUMER.accept(sb1);
-        ScrapBin sb2 = new ScrapBin(1,fc,"test",new Exception("test"), ScrapBin.FailureType.CART_REJECTED,null,null);
+        ScrapBin sb2 = new ScrapBin(null,1,fc,"test",new Exception("test"), ScrapBin.FailureType.CART_REJECTED,null,null);
         scl.FUTURE_CONSUMER.accept(sb2);
         assertTrue(fc.getValue().isCompletedExceptionally());
 
@@ -77,8 +77,8 @@ public class ScrapConsumerLoaderTest {
         },sm);
         CompletableFuture<String> f = new CompletableFuture<>();
         FutureCart<Integer,String,String> fc = new FutureCart<>(1,f,0);
-        ScrapBin sb = new ScrapBin(1,null,"test",null, ScrapBin.FailureType.CART_REJECTED,null,null);
-        ScrapBin sb1 = new ScrapBin(1,fc,"test",new Exception("test"), ScrapBin.FailureType.CART_REJECTED,null,null);
+        ScrapBin sb = new ScrapBin(null,1,null,"test",null, ScrapBin.FailureType.CART_REJECTED,null,null);
+        ScrapBin sb1 = new ScrapBin(null,1,fc,"test",new Exception("test"), ScrapBin.FailureType.CART_REJECTED,null,null);
         scl.CART_FUTURE_CONSUMER.accept(sb);
         scl.CART_FUTURE_CONSUMER.accept(sb1);
         assertTrue(fc.getFuture().isCompletedExceptionally());

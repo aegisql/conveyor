@@ -1,5 +1,7 @@
 package com.aegisql.conveyor;
 
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;

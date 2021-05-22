@@ -9,7 +9,7 @@ public class RunnableConsumerTest {
     @Test
     public void runnableTest() {
         RunnableConsumer<Integer> rc = new RunnableConsumer<>();
-        ProductBin<Integer,Runnable> bin = new ProductBin<>(
+        ProductBin<Integer,Runnable> bin = new ProductBin<>(null,
                 1, new Runnable() {
             @Override
             public void run() {

@@ -256,6 +256,16 @@ public final class PartLoader<K,L> {
 	}
 
 	/**
+	 * Increase priority part loader.
+	 *
+	 * @return the part loader
+	 */
+	public PartLoader<K,L>  increasePriority() {
+		return new PartLoader<K,L>(placer,creationTime,expirationTime,ttlMsec,priority+1,key,label,partValue,filter,properties);
+	}
+
+
+	/**
 	 * Clear properties.
 	 *
 	 * @return the part loader

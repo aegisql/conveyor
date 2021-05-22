@@ -227,6 +227,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	/** The acknowledge. */
 	private final Acknowledge acknowledge;
+
+	private final Conveyor<K,Object,OUT> conveyor;
 	
 	/**
 	 * Instantiates a new building site.
@@ -263,7 +265,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			boolean postponeExpirationOnTimeoutEnabled,
 			Map<L,C> staticValues,
 			ResultConsumer<K,OUT> resultConsumer,
-			Consumer<AcknowledgeStatus<K>> ackAction
+			Consumer<AcknowledgeStatus<K>> ackAction,
+			Conveyor<K,L,OUT> conveyor
 			) {
 		this.initialCart               = cart;
 		this.lastCart                  = cart;
@@ -288,7 +291,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				}
 			}
 		};
-		
+		this.conveyor = (Conveyor<K, Object, OUT>) conveyor;
 		if(resultConsumer == null) {
 			this.resultConsumer = bin->{
 				LOG.error("LOST RESULT {} {}", bin.key, bin.product);
@@ -674,7 +677,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 */
 	void completeWithValue(OUT value, Status status) {
 		var ack = getAcknowledge();
-		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(getKey(), value, getExpirationTime(), status , getProperties(), ack) );
+		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(conveyor, getKey(), value, getExpirationTime(), status , getProperties(), ack) );
 	}
 	
 	/**

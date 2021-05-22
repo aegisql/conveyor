@@ -70,7 +70,7 @@ public class ResultQueueTest {
 		assertEquals(0, q.size());
 		ConcurrentLinkedDeque<User> u = q.<ConcurrentLinkedDeque<User>>unwrap();
 		assertNotNull(u);
-		ProductBin<String, User> b1 = new ProductBin<>("", new User("","",1999), 0, Status.READY, new HashMap<>(), null);
+		ProductBin<String, User> b1 = new ProductBin<>(null,"", new User("","",1999), 0, Status.READY, new HashMap<>(), null);
 		q.accept(b1);
 
 		assertEquals(1, q.size());
@@ -82,7 +82,7 @@ public class ResultQueueTest {
 		assertNotNull(u1);
 		assertEquals(0, q.size());
 
-		ProductBin<String, User> b2 = new ProductBin<>("", new User("","",1999), 0, Status.READY, new HashMap<>(),null);
+		ProductBin<String, User> b2 = new ProductBin<>(null,"", new User("","",1999), 0, Status.READY, new HashMap<>(),null);
 		q.accept(b2);
 		assertEquals(1, u.size());
 		User u2 = u.poll();
@@ -91,8 +91,8 @@ public class ResultQueueTest {
 
 		ResultQueue<String,User> q2 = new ResultQueue<>(u);
 
-		ProductBin<String, User> b3 = new ProductBin<>("", new User("a","a",1999), 0, Status.READY, new HashMap<>(), null);
-		ProductBin<String, User> b4 = new ProductBin<>("", new User("b","b",1999), 0, Status.READY, new HashMap<>(), null);
+		ProductBin<String, User> b3 = new ProductBin<>(null,"", new User("a","a",1999), 0, Status.READY, new HashMap<>(), null);
+		ProductBin<String, User> b4 = new ProductBin<>(null,"", new User("b","b",1999), 0, Status.READY, new HashMap<>(), null);
 		try {
 			q2.addAll(Arrays.asList(b3.product,b4.product));
 			fail("Must fail");

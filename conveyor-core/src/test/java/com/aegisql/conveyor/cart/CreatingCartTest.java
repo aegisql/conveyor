@@ -27,9 +27,9 @@ public class CreatingCartTest {
 
 
         ScrapBin<Integer,Cart<Integer, BuilderSupplier<String>, String>> bin1 =
-                new ScrapBin<>(1,cc1,"test",new Exception(), ScrapBin.FailureType.CART_REJECTED,new HashMap<>(),null);
+                new ScrapBin<>(null,1,cc1,"test",new Exception(), ScrapBin.FailureType.CART_REJECTED,new HashMap<>(),null);
         ScrapBin<Integer,Cart<Integer, BuilderSupplier<String>, String>> bin2 =
-                new ScrapBin<>(1,cc1,"test",null, ScrapBin.FailureType.CART_REJECTED,new HashMap<>(),null);
+                new ScrapBin<>(null,1,cc1,"test",null, ScrapBin.FailureType.CART_REJECTED,new HashMap<>(),null);
         scrapConsumer.accept(bin1);
         scrapConsumer.accept(bin2);
     }

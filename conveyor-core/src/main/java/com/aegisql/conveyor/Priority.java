@@ -3,12 +3,15 @@ package com.aegisql.conveyor;
 import com.aegisql.conveyor.cart.Cart;
 
 import java.util.Comparator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.function.Supplier;
 
 public final class Priority {
 
     private final static int INITIAL_CAPACITY = 100;
+
+    public final static Supplier DEFAULT = ConcurrentLinkedQueue::new;
 
     public final static Supplier<PriorityBlockingQueue<Cart>> FIFO = priorityQueueSupplier(Comparator.comparingLong(Cart::getCartCreationNanoTime));
 
@@ -47,6 +50,8 @@ public final class Priority {
     });
 
     public final static Supplier<PriorityBlockingQueue<Cart>> PRIORITIZED = PriorityBlockingQueue::new;
+
+    public final static Supplier<PriorityBlockingQueue<Cart>> EXISTING_BUILDS_FIRST = PriorityBlockingQueue::new;
 
     public static Supplier<PriorityBlockingQueue<Cart>> priorityQueueSupplier(Comparator<Cart> comparator) {
         return ()->new PriorityBlockingQueue(INITIAL_CAPACITY,comparator);

@@ -1,4 +1,4 @@
-package com.aegisql.conveyor;
+package com.aegisql.conveyor.exception;
 
 // TODO: Auto-generated Javadoc
 /**

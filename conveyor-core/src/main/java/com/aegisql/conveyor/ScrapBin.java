@@ -14,7 +14,7 @@ import java.util.Optional;
  * @param <K> the key type
  * @param <O> the generic type
  */
-public final class ScrapBin<K,O> {
+public final class ScrapBin<K,O>  extends AbstractBin<K,Object,Object> {
 	
 	/**
 	 * The Enum FailureType.
@@ -62,9 +62,6 @@ GENERAL_FAILURE
 KEEP_RUNNING_EXCEPTION
 	}
 	
-	/** The key. */
-	public final K key;
-	
 	/** The comment. */
 	public final String comment;
 	
@@ -94,8 +91,8 @@ KEEP_RUNNING_EXCEPTION
 	 * @param properties the properties
 	 * @param acknowledge the acknowledge
 	 */
-	public ScrapBin(K key, O scrap, String comment, Throwable error, FailureType type, Map<String,Object> properties, Acknowledge acknowledge) {
-		this.key         = key;
+	public ScrapBin(Conveyor<K, Object, Object> conveyor, K key, O scrap, String comment, Throwable error, FailureType type, Map<String, Object> properties, Acknowledge acknowledge) {
+		super(conveyor,key);
 		this.comment     = comment;
 		this.scrap       = scrap;
 		this.error       = error;
@@ -109,7 +106,7 @@ KEEP_RUNNING_EXCEPTION
 	 */
 	@Override
 	public String toString() {
-		return "ScrapBin ["+failureType+" key=" + key + ": " + comment + "; " + scrap 
+		return "ScrapBin ["+failureType+" conveyor="+(conveyor==null?"N/A":conveyor.getName())+" key=" + key + ": " + comment + "; " + scrap
 				+ (error == null ? "": " error="+error.getMessage() ) 
 				+"]";
 	}

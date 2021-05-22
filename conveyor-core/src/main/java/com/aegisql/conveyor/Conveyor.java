@@ -42,35 +42,35 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 *
 	 * @return the part loader
 	 */
-	public PartLoader<K,L> part();
+	PartLoader<K,L> part();
 
 	/**
 	 * StaticPart.
 	 *
 	 * @return the static part loader
 	 */
-	public StaticPartLoader<L> staticPart();
+	StaticPartLoader<L> staticPart();
 
 	/**
 	 * Builds the.
 	 *
 	 * @return the builder loader
 	 */
-	public BuilderLoader<K, OUT> build();
+	BuilderLoader<K, OUT> build();
 
 	/**
 	 * Future.
 	 *
 	 * @return the future loader
 	 */
-	public FutureLoader<K, OUT> future();
+	FutureLoader<K, OUT> future();
 
 	/**
 	 * Command.
 	 *
 	 * @return the command loader
 	 */
-	public CommandLoader<K, OUT> command();
+	CommandLoader<K, OUT> command();
 
 	/**
 	 * Adds the cart to the input queue.
@@ -79,7 +79,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param cart the cart
 	 * @return true, if successful
 	 */
-	public <V> CompletableFuture<Boolean> place(Cart<K,V,L> cart);
+	<V> CompletableFuture<Boolean> place(Cart<K, V, L> cart);
 
 	/**
 	 * Adds the command to the management queue.
@@ -88,14 +88,14 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param command Cart
 	 * @return true, if successful
 	 */
-	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> command);
+	<V> CompletableFuture<Boolean> command(GeneralCommand<K, V> command);
 
 	/**
 	 * Result consumer.
 	 *
 	 * @return the result consumer loader
 	 */
-	public ResultConsumerLoader<K, OUT> resultConsumer();
+	ResultConsumerLoader<K, OUT> resultConsumer();
 
 	/**
 	 * Result consumer.
@@ -103,42 +103,42 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param consumer the consumer
 	 * @return the result consumer loader
 	 */
-	public ResultConsumerLoader<K, OUT> resultConsumer(ResultConsumer<K,OUT> consumer);
+	ResultConsumerLoader<K, OUT> resultConsumer(ResultConsumer<K, OUT> consumer);
 
 	/**
 	 * Gets the result consumer.
 	 *
 	 * @return the result consumer
 	 */
-	public ResultConsumer<K,OUT> getResultConsumer();
+	ResultConsumer<K,OUT> getResultConsumer();
 
 	/**
 	 * Gets the collector size.
 	 *
 	 * @return the collector size
 	 */
-	public int getCollectorSize();
+	int getCollectorSize();
 
 	/**
 	 * Gets the input queue size.
 	 *
 	 * @return the input queue size
 	 */
-	public int getInputQueueSize();
+	int getInputQueueSize();
 
 	/**
 	 * Gets the delayed queue size.
 	 *
 	 * @return the delayed queue size
 	 */
-	public int getDelayedQueueSize();
+	int getDelayedQueueSize();
 
 	/**
 	 * Scrap consumer.
 	 *
 	 * @return the scrap consumer loader
 	 */
-	public ScrapConsumerLoader<K> scrapConsumer();
+	ScrapConsumerLoader<K> scrapConsumer();
 
 	/**
 	 * Scrap consumer.
@@ -146,19 +146,19 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param scrapConsumer the scrap consumer
 	 * @return the scrap consumer loader
 	 */
-	public ScrapConsumerLoader<K> scrapConsumer(ScrapConsumer<K,?> scrapConsumer);
+	ScrapConsumerLoader<K> scrapConsumer(ScrapConsumer<K, ?> scrapConsumer);
 
 	/**
 	 * Stop.
 	 */
-	public void stop();
+	void stop();
 
 	/**
 	 * complete all tasks and stop.
 	 *
 	 * @return the completable future
 	 */
-	public CompletableFuture<Boolean> completeAndStop();
+	CompletableFuture<Boolean> completeAndStop();
 
 	/**
 	 * Sets the idle heart beat.
@@ -166,14 +166,14 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param heartbeat the heartbeat
 	 * @param unit      the unit
 	 */
-	public void setIdleHeartBeat(long heartbeat, TimeUnit unit);
+	void setIdleHeartBeat(long heartbeat, TimeUnit unit);
 
 	/**
 	 * Sets the idle heart beat.
 	 *
 	 * @param duration the duration
 	 */
-	public void setIdleHeartBeat(Duration duration);
+	void setIdleHeartBeat(Duration duration);
 
 	/**
 	 * Sets the default builder timeout.
@@ -181,14 +181,14 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param builderTimeout the builder timeout
 	 * @param unit           the unit
 	 */
-	public void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit);
+	void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit);
 
 	/**
 	 * Sets the default builder timeout.
 	 *
 	 * @param duration the duration
 	 */
-	public void setDefaultBuilderTimeout(Duration duration);
+	void setDefaultBuilderTimeout(Duration duration);
 
 	/**
 	 * Reject unexpireable carts older than.
@@ -196,14 +196,14 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param timeout the timeout
 	 * @param unit    the unit
 	 */
-	public void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit);
+	void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit);
 
 	/**
 	 * Reject unexpireable carts older than.
 	 *
 	 * @param duration the duration
 	 */
-	public void rejectUnexpireableCartsOlderThan(Duration duration);
+	void rejectUnexpireableCartsOlderThan(Duration duration);
 
 
 	/**
@@ -211,7 +211,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 *
 	 * @param timeoutAction the new on timeout action
 	 */
-	public void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction);
+	void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction);
 
 	/**
 	 * Sets the default cart consumer.
@@ -219,63 +219,63 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param <B>          the generic type
 	 * @param cartConsumer the cart consumer
 	 */
-	public <B extends Supplier<? extends OUT>> void setDefaultCartConsumer(LabeledValueConsumer<L, ?, B> cartConsumer);
+	<B extends Supplier<? extends OUT>> void setDefaultCartConsumer(LabeledValueConsumer<L, ?, B> cartConsumer);
 
 	/**
 	 * Sets the readiness evaluator.
 	 *
 	 * @param ready the ready
 	 */
-	public void setReadinessEvaluator(BiPredicate<State<K, L>, Supplier<? extends OUT>> ready);
+	void setReadinessEvaluator(BiPredicate<State<K, L>, Supplier<? extends OUT>> ready);
 
 	/**
 	 * Sets the readiness evaluator.
 	 *
 	 * @param readiness the new readiness evaluator
 	 */
-	public void setReadinessEvaluator(Predicate<Supplier<? extends OUT>> readiness);
+	void setReadinessEvaluator(Predicate<Supplier<? extends OUT>> readiness);
 
 	/**
 	 * Sets the builder supplier.
 	 *
 	 * @param builderSupplier the new builder supplier
 	 */
-	public void setBuilderSupplier(BuilderSupplier<OUT> builderSupplier);
+	void setBuilderSupplier(BuilderSupplier<OUT> builderSupplier);
 
 	/**
 	 * Sets the name.
 	 *
 	 * @param string the new name
 	 */
-	public void setName(String string);
+	void setName(String string);
 
 	/**
 	 * Checks if is running.
 	 *
 	 * @return true, if is running
 	 */
-	public boolean isRunning();
+	boolean isRunning();
 
 	/**
 	 * Adds the cart before placement validator.
 	 *
 	 * @param cartBeforePlacementValidator the cart before placement validator
 	 */
-	public void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator);
+	void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator);
 
 	/**
 	 * Adds the before key eviction action.
 	 *
 	 * @param keyBeforeEviction the key before eviction
 	 */
-	public void addBeforeKeyEvictionAction(Consumer<AcknowledgeStatus<K>> keyBeforeEviction);
+	void addBeforeKeyEvictionAction(Consumer<AcknowledgeStatus<K>> keyBeforeEviction);
 
 	/**
 	 * Adds the before key rescheduling action.
 	 *
 	 * @param keyBeforeRescheduling the key before rescheduling
 	 */
-	public void addBeforeKeyReschedulingAction(BiConsumer<K, Long> keyBeforeRescheduling);
+	void addBeforeKeyReschedulingAction(BiConsumer<K, Long> keyBeforeRescheduling);
 
 	/**
 	 * Gets the expiration time.
@@ -283,49 +283,49 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param key the key
 	 * @return the expiration time
 	 */
-	public long getExpirationTime(K key);
+	long getExpirationTime(K key);
 
 	/**
 	 * Checks if is l balanced.
 	 *
 	 * @return true, if is l balanced
 	 */
-	public boolean isLBalanced();
+	boolean isLBalanced();
 
 	/**
 	 * Gets the accepted labels.
 	 *
 	 * @return the accepted labels
 	 */
-	public Set<L> getAcceptedLabels();
+	Set<L> getAcceptedLabels();
 
 	/**
 	 * Accept labels.
 	 *
 	 * @param labels the labels
 	 */
-	public void acceptLabels(L... labels);
+	void acceptLabels(L... labels);
 
 	/**
 	 * Gets the name.
 	 *
 	 * @return the name
 	 */
-	public String getName();
+	String getName();
 
 	/**
 	 * Enable postpone expiration.
 	 *
 	 * @param flag the flag
 	 */
-	public void enablePostponeExpiration(boolean flag);
+	void enablePostponeExpiration(boolean flag);
 
 	/**
 	 * Enable postpone expiration on timeout.
 	 *
 	 * @param flag the flag
 	 */
-	public void enablePostponeExpirationOnTimeout(boolean flag);
+	void enablePostponeExpirationOnTimeout(boolean flag);
 
 	/**
 	 * Sets the expiration postpone time.
@@ -333,14 +333,14 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param time the time
 	 * @param unit the unit
 	 */
-	public void setExpirationPostponeTime(long time, TimeUnit unit);
+	void setExpirationPostponeTime(long time, TimeUnit unit);
 
 	/**
 	 * Sets the expiration postpone time.
 	 *
 	 * @param duration the duration
 	 */
-	public void setExpirationPostponeTime(Duration duration);
+	void setExpirationPostponeTime(Duration duration);
 
 	/**
 	 * Checks if is forwarding results.
@@ -359,7 +359,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param conveyor the conveyor
 	 * @return the tester for
 	 */
-	public static <K, L,OUT> ReadinessTester<K, L,OUT> getTesterFor(Conveyor<K, L, OUT> conveyor) {
+	static <K, L,OUT> ReadinessTester<K, L,OUT> getTesterFor(Conveyor<K, L, OUT> conveyor) {
 		return new ReadinessTester<K,L,OUT>(conveyor::setReadinessEvaluator);
 	}
 
@@ -371,7 +371,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param conveyor the conveyor
 	 * @return the consumer for
 	 */
-	public static <L,OUT> LabeledValueConsumer<L, ?, Supplier<? extends OUT>> getConsumerFor(Conveyor<?, L, OUT> conveyor) {
+	static <L,OUT> LabeledValueConsumer<L, ?, Supplier<? extends OUT>> getConsumerFor(Conveyor<?, L, OUT> conveyor) {
 		return (l,v,b)->{
 			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
 		};
@@ -387,7 +387,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param builder  the builder
 	 * @return the consumer for
 	 */
-	public static <L,OUT,B extends Supplier<? extends OUT>> LabeledValueConsumer<L, ?, B> getConsumerFor(Conveyor<?, L, OUT> conveyor,Class<B> builder) {
+	static <L,OUT,B extends Supplier<? extends OUT>> LabeledValueConsumer<L, ?, B> getConsumerFor(Conveyor<?, L, OUT> conveyor, Class<B> builder) {
 		return (l,v,b)->{
 			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
 		};
@@ -466,7 +466,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param name the name
 	 * @return the conveyor
 	 */
-	public static Conveyor byName(String name) {
+	static Conveyor byName(String name) {
 		return MBEAN.byName(name);
 	}
 
@@ -476,7 +476,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param name the name
 	 * @return the supplier
 	 */
-	public static Supplier<Conveyor> lazySupplier(String name) {
+	static Supplier<Conveyor> lazySupplier(String name) {
 		return new LazyConveyorSupplier(name);
 	}
 
@@ -486,7 +486,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 *
 	 * @param name the name
 	 */
-	public static void unRegister(String name) {
+	static void unRegister(String name) {
 		MBEAN.unRegister(name);
 	}
 
@@ -519,7 +519,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @param conveyor    the conveyor
 	 * @param mbeanObject the mbean object
 	 */
-	public static void register(Conveyor conveyor, Object mbeanObject) {
+	static void register(Conveyor conveyor, Object mbeanObject) {
 		MBEAN.register(conveyor,mbeanObject);
 	}
 

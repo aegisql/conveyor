@@ -17,6 +17,6 @@ public class StreamScrapTest {
         StreamScrap<Integer> ss = new StreamScrap<>(os);
         assertNotNull(ss.getPrintStream());
         ss.close();
-        ss.accept(new ScrapBin<>(1,this,"TEST", null, ScrapBin.FailureType.GENERAL_FAILURE,null,null));
+        ss.accept(new ScrapBin<>(null,1,this,"TEST", null, ScrapBin.FailureType.GENERAL_FAILURE,null,null));
     }
 }

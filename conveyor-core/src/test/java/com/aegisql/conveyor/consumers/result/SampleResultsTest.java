@@ -19,7 +19,7 @@ public class SampleResultsTest {
         SampleResults<Integer,Integer> sr0 = new SampleResults<>(10,0);
         SampleResults<Integer,Integer> sr05 = new SampleResults<>(10,0.005);
         for(int i = 1;i<10000;i++) {
-            ProductBin<Integer,Integer> b = new ProductBin<>(i,i,0,null,null,null);
+            ProductBin<Integer,Integer> b = new ProductBin<>(null,i,i,0,null,null,null);
             sr1.accept(b);
             sr0.accept(b);
             sr05.accept(b);

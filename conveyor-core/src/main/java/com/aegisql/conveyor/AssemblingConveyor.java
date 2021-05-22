@@ -11,6 +11,8 @@ import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.delay.DelayProvider;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
+import com.aegisql.conveyor.exception.KeepRunningConveyorException;
 import com.aegisql.conveyor.loaders.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -115,6 +116,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The auto ack. */
 	protected boolean autoAck = true;
+
+	protected boolean existingBuildsFirst;
 	
 	/** The ack action. */
 	protected Consumer<AcknowledgeStatus<K>> ackAction = status->{};
@@ -278,92 +281,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected String statusLine = "Accepting Parts";
 
 	/**
-	 * Wait data.
-	 *
-	 * @return true, if successful
-	 */
-	private boolean waitData() {
-		try {
-			lock.waitData(suspended, inQueue);
-		} catch (InterruptedException e) {
-			LOG.info("Interrupted {}",name,e);
-			stop();
-		}
-		return running;
-	}
-
-	/**
-	 * Gets the building site.
-	 *
-	 * @param cart
-	 *            the cart
-	 * @return the building site
-	 */
-	private BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> getBuildingSite(Cart<K, ?, L> cart) {
-		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> buildingSite = null;
-		var returnNull = false;
-		var key = cart.getKey();
-		if (key == null && (cart.getValue() != null && !(cart.getValue() instanceof Cart))) {
-			returnNull = true;
-		} else if (Status.TIMED_OUT.equals(cart.getValue())) {
-			returnNull = true;
-		} else if ((buildingSite = collector.get(key)) == null) {
-			BuilderSupplier<OUT> bs;
-			if (cart.getValue() != null && cart.getValue() instanceof BuilderSupplier) {
-				bs = ((Supplier<BuilderSupplier<OUT>>) cart).get();
-				if (bs == null) {
-					bs = builderSupplier;
-				}
-
-				if (bs != null) {
-					buildingSite = new BuildingSite<>(cart, bs, cartConsumer, readiness,
-							timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder, saveCarts,
-							postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues,resultConsumer,
-							ackAction);
-					if (cart.getValue() instanceof FutureSupplier) {
-						var futureSupplier = (FutureSupplier) cart.getValue();
-						buildingSite.addFuture(futureSupplier.getFuture());
-					}
-				} else {
-					cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(cart.getKey(), cart,
-							"Ignore cart. Neither creating cart nor default builder supplier available",
-							null, 
-							FailureType.BUILD_INITIALIZATION_FAILED,cart.getAllProperties(), null));
-				}
-				returnNull = true;
-			} else if (builderSupplier != null) {
-				buildingSite = new BuildingSite<>(cart, builderSupplier, cartConsumer,
-						readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder, saveCarts,
-						postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues,resultConsumer,
-						ackAction);
-			} else {
-				cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(cart.getKey(), cart,
-						"Ignore cart. Neither builder nor builder supplier available",
-						null, 
-						FailureType.BUILD_INITIALIZATION_FAILED,cart.getAllProperties(), null));
-				returnNull = true;
-			}
-			if (buildingSite != null) {
-				collector.put(key, buildingSite);
-				if (buildingSite.isExpireable()) {
-					delayProvider.getBox(buildingSite.getExpirationTime()).add(key);
-				}
-			}
-		}
-		if (returnNull) {
-			return null;
-		} else {
-			return buildingSite;
-		}
-	}
-
-	/**
 	 * Instantiates a new assembling conveyor.
 	 */
 	public AssemblingConveyor() {
-		this(ConcurrentLinkedQueue<Cart<K, ?, L>>::new); // this class does not
-															// permit null
-															// elements.
+		this( Priority.DEFAULT);
 	}
 
 	/**
@@ -375,6 +296,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public AssemblingConveyor(Supplier<Queue<? extends Cart<K, ?, ?>>> cartQueueSupplier) {
 		this.inQueue = (Queue<Cart<K, ?, L>>) cartQueueSupplier.get();
 		this.mQueue = (Queue<GeneralCommand<K, ?>>) cartQueueSupplier.get();
+		existingBuildsFirst = Priority.EXISTING_BUILDS_FIRST.equals(cartQueueSupplier);
 		this.addCartBeforePlacementValidator(cart -> {
 			if (!running) {
 				throw new IllegalStateException("Conveyor "+getName()+" is not running");
@@ -442,6 +364,87 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.setMbean(this.name);
 		innerThread.start();
 	}
+
+	/**
+	 * Wait data.
+	 *
+	 * @return true, if successful
+	 */
+	private boolean waitData() {
+		try {
+			lock.waitData(suspended, inQueue);
+		} catch (InterruptedException e) {
+			LOG.info("Interrupted {}",name,e);
+			stop();
+		}
+		return running;
+	}
+
+	/**
+	 * Gets the building site.
+	 *
+	 * @param cart
+	 *            the cart
+	 * @return the building site
+	 */
+	private BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> getBuildingSite(Cart<K, ?, L> cart) {
+		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> buildingSite = null;
+		var returnNull = false;
+		var key = cart.getKey();
+		if (key == null && (cart.getValue() != null && !(cart.getValue() instanceof Cart))) {
+			returnNull = true;
+		} else if (Status.TIMED_OUT.equals(cart.getValue())) {
+			returnNull = true;
+		} else if ((buildingSite = collector.get(key)) == null) {
+			BuilderSupplier<OUT> bs;
+			if (cart.getValue() != null && cart.getValue() instanceof BuilderSupplier) {
+				bs = ((Supplier<BuilderSupplier<OUT>>) cart).get();
+				if (bs == null) {
+					bs = builderSupplier;
+				}
+
+				if (bs != null) {
+					buildingSite = new BuildingSite<>(cart, bs, cartConsumer, readiness,
+							timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder, saveCarts,
+							postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues,resultConsumer,
+							ackAction,null);
+					if (cart.getValue() instanceof FutureSupplier) {
+						var futureSupplier = (FutureSupplier) cart.getValue();
+						buildingSite.addFuture(futureSupplier.getFuture());
+					}
+				} else {
+					cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(this, cart.getKey(), cart,
+							"Ignore cart. Neither creating cart nor default builder supplier available",
+							null,
+							FailureType.BUILD_INITIALIZATION_FAILED,cart.getAllProperties(), null));
+				}
+				returnNull = true;
+			} else if (builderSupplier != null) {
+				buildingSite = new BuildingSite<>(cart, builderSupplier, cartConsumer,
+						readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder, saveCarts,
+						postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues,resultConsumer,
+						ackAction,null);
+			} else {
+				cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(this, cart.getKey(), cart,
+						"Ignore cart. Neither builder nor builder supplier available",
+						null,
+						FailureType.BUILD_INITIALIZATION_FAILED,cart.getAllProperties(), null));
+				returnNull = true;
+			}
+			if (buildingSite != null) {
+				collector.put(key, buildingSite);
+				if (buildingSite.isExpireable()) {
+					delayProvider.getBox(buildingSite.getExpirationTime()).add(key);
+				}
+			}
+		}
+		if (returnNull) {
+			return null;
+		} else {
+			return buildingSite;
+		}
+	}
+
 
 	/**
 	 * Sets the mbean.
@@ -643,7 +646,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					try {
 						processManagementCommand(nextCommandCart);
 					} catch(Exception e) {
-						RuntimeException ex = new ConveyorRuntimeException("Failed milti-key command "+label+"("+nextCommandCart.getKey()+")",e); 
+						RuntimeException ex = new ConveyorRuntimeException("Failed milti-key command "+label+"("+nextCommandCart.getKey()+")",e);
 						cmdFuture.completeExceptionally(ex);
 						throw ex;
 					}
@@ -676,14 +679,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected void drainQueues() {
 		Cart<K, ?, L> cart = null;
 		while ((cart = inQueue.poll()) != null) {
-			cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(cart.getKey(), cart, "Draining inQueue",
+			cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(this, cart.getKey(), cart, "Draining inQueue",
 					null, 
 					FailureType.CONVEYOR_STOPPED,cart.getAllProperties(), null));
 		}
 		delayProvider.clear();
 		collector.forEach((k, bs) -> {
 			bs.setStatus(Status.CANCELED);
-			scrapConsumer.accept(new ScrapBin(k, bs, "Draining collector", null, FailureType.CONVEYOR_STOPPED,bs.getProperties(), bs.getAcknowledge()));
+			scrapConsumer.accept(new ScrapBin(this, k, bs, "Draining collector", null, FailureType.CONVEYOR_STOPPED,bs.getProperties(), bs.getAcknowledge()));
 			bs.cancelFutures();
 		});
 		collector.clear();
@@ -694,14 +697,20 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public PartLoader<K,L> part() {
-		return new PartLoader<K, L>(cl -> {
-			Cart <K, ?, L> cart;
-			if(cl.filter != null) {
-				cart = new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime,cl.priority);
+		return new PartLoader<K, L>(pl -> {
+			PartLoader<K, L> partLoader;
+			if(existingBuildsFirst && collector.containsKey(pl.key)) {
+				partLoader = pl.increasePriority();
 			} else {
-				cart = new ShoppingCart<K, Object, L>(cl.key, cl.partValue, cl.label,cl.creationTime ,cl.expirationTime,cl.priority);
+				partLoader = pl;
 			}
-			cl.getAllProperties().forEach((k,v)->cart.addProperty(k, v));
+			Cart <K, ?, L> cart;
+			if(partLoader.filter != null) {
+				cart = new MultiKeyCart<K, Object, L>(partLoader.filter, partLoader.partValue, partLoader.label, partLoader.creationTime, partLoader.expirationTime,partLoader.priority);
+			} else {
+				cart = new ShoppingCart<K, Object, L>(partLoader.key, partLoader.partValue, partLoader.label,partLoader.creationTime ,partLoader.expirationTime,partLoader.priority);
+			}
+			partLoader.getAllProperties().forEach((k,v)->cart.addProperty(k, v));
 			return place(cart);
 		});
 	}
@@ -791,7 +800,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			return future;
 		} catch (RuntimeException e) {
 			cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(
-					new ScrapBin(cart.getKey(), cart, e.getMessage(), e, FailureType.COMMAND_REJECTED,cart.getAllProperties(), null));
+					new ScrapBin(this, cart.getKey(), cart, e.getMessage(), e, FailureType.COMMAND_REJECTED,cart.getAllProperties(), null));
 			throw e;
 		} finally {
 			lock.tell();
@@ -870,7 +879,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 		} catch (RuntimeException e) {
 			cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(
-					new ScrapBin(cart.getKey(), cart, e.getMessage(), e, FailureType.CART_REJECTED,cart.getAllProperties(), null));
+					new ScrapBin(this, cart.getKey(), cart, e.getMessage(), e, FailureType.CART_REJECTED,cart.getAllProperties(), null));
 		} finally {
 			lock.tell();
 		}
@@ -1020,7 +1029,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							});
 					cart.getFuture().complete(true);
 				} catch (Exception e) {
-					cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(cart.getLabel(), cart, "MultiKey cart failure", e, FailureType.GENERAL_FAILURE,cart.getAllProperties(), null));
+					cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(this, cart.getLabel(), cart, "MultiKey cart failure", e, FailureType.GENERAL_FAILURE,cart.getAllProperties(), null));
 					throw e;
 				}
 			} else if(cart.getLoadType() == STATIC_PART) {
@@ -1093,9 +1102,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if (currentSite != null) {
 				currentSite.setLastError(e);
 				currentSite.setLastCart(cart);
-				cart.getScrapConsumer().accept(new ScrapBin(cart.getKey(), cart,
+				cart.getScrapConsumer().accept(new ScrapBin(this, cart.getKey(), cart,
 						"Cart Processor failed. Keep running", e, FailureType.KEEP_RUNNING_EXCEPTION,cart.getAllProperties(), null));
-				scrapConsumer.accept(new ScrapBin(cart.getKey(), cart,
+				scrapConsumer.accept(new ScrapBin(this, cart.getKey(), cart,
 						"Site Processor failed. Keep running", e, FailureType.KEEP_RUNNING_EXCEPTION,cart.getAllProperties(), currentSite.getAcknowledge()));
 				currentSite.completeFuturesExceptionaly(e);
 			}
@@ -1104,14 +1113,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				currentSite.setStatus(Status.INVALID);
 				currentSite.setLastError(e);
 				currentSite.setLastCart(cart);
-				cart.getScrapConsumer().accept(new ScrapBin(cart.getKey(), cart,
+				cart.getScrapConsumer().accept(new ScrapBin(this, cart.getKey(), cart,
 						"Cart Processor failed", e, failureType,cart.getAllProperties(), null));
-				scrapConsumer.accept(new ScrapBin(cart.getKey(), currentSite,
+				scrapConsumer.accept(new ScrapBin(this, cart.getKey(), currentSite,
 						"Site Processor failed", e, failureType,cart.getAllProperties(), currentSite.getAcknowledge()));
 				currentSite.completeFuturesExceptionaly(e);
 			} else {
 				cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(
-						new ScrapBin(cart.getKey(), cart, "Cart Processor Failed", e, failureType,cart.getAllProperties(), null));
+						new ScrapBin(this, cart.getKey(), cart, "Cart Processor Failed", e, failureType,cart.getAllProperties(), null));
 			}
 			if (!failureType.equals(FailureType.BEFORE_EVICTION_FAILED)) {
 				try {
@@ -1172,7 +1181,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							continue;
 						}
 						LOG.trace("Expired and not finished {}",key);
-						scrapConsumer.accept(new ScrapBin(key,
+						scrapConsumer.accept(new ScrapBin(this, key,
 								buildingSite, "Site expired", null, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
 						buildingSite.cancelFutures();
 					}
@@ -1180,7 +1189,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					buildingSite.setStatus(Status.INVALID);
 					buildingSite.setLastError(e);
 					statusForEviction = Status.INVALID;
-					scrapConsumer.accept(new ScrapBin(key,
+					scrapConsumer.accept(new ScrapBin(this, key,
 							buildingSite, "Timeout processor failed ", e, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
 					buildingSite.completeFuturesExceptionaly(e);
 				}
@@ -1189,7 +1198,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					continue;
 				}
 				LOG.trace("Expired and removed {}",key);
-				scrapConsumer.accept(new ScrapBin(key,
+				scrapConsumer.accept(new ScrapBin(this, key,
 						buildingSite, "Site expired. No timeout action", null, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
 				buildingSite.cancelFutures();
 			}
@@ -1431,19 +1440,19 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			var bs = conveyor.collector.get(key);
 			try {
 				var prod = bs.unsafeBuild();
-				var bin = new ProductBin<>(key, prod, bs.getExpirationTime(), bs.getStatus(), bs.getProperties(), null);
+				var bin = new ProductBin(conveyor, key, prod, bs.getExpirationTime(), bs.getStatus(), bs.getProperties(), null);
 				cart.getValue().accept(bin);
 				cart.getFuture().complete(true);
 			} catch (Exception e) {
 				var prop = bs.getProperties();
 				prop.put("ERROR", e);
-				var bin = new ProductBin<K, OUT>(key, null, bs.getExpirationTime(), Status.INVALID, bs.getProperties(), null);
+				var bin = new ProductBin(conveyor, key, null, bs.getExpirationTime(), Status.INVALID, bs.getProperties(), null);
 				cart.getValue().accept(bin);
 				cart.getFuture().complete(false);
 			}
 		} else {
 			LOG.debug("Key '{}' does not exist. Ignoring peek command.", key);
-			var bin = new ProductBin<K, OUT>(key, null, 0, Status.NOT_FOUND, null, null);
+			var bin = new ProductBin(conveyor, key, null, 0, Status.NOT_FOUND, null, null);
 			cart.getValue().accept(bin);
 			cart.getFuture().complete(false);
 		}

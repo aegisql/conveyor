@@ -12,11 +12,8 @@ import java.util.Map;
  * @param <K> the key type
  * @param <OUT> the generic type
  */
-public final class ProductBin<K,OUT> {
+public final class ProductBin<K,OUT> extends AbstractBin<K,Object,OUT>{
 
-	/** The key. */
-	public final K key;
-	
 	/** The product. */
 	public final OUT product;
 	
@@ -42,14 +39,13 @@ public final class ProductBin<K,OUT> {
 	 * @param properties the properties
 	 * @param acknowledge the acknowledge
 	 */
-	public ProductBin(K key, OUT product, long expirationTime, Status status, Map<String,Object> properties, Acknowledge acknowledge) {
-		super();
-		this.key                = key;
-		this.product            = product;
+	public ProductBin(Conveyor<K, Object, OUT> conveyor, K key, OUT product, long expirationTime, Status status, Map<String, Object> properties, Acknowledge acknowledge) {
+		super(conveyor,key);
+		this.product        = product;
 		this.expirationTime = expirationTime;
-		this.status             = status;
-		this.properties         = properties;
-		this.acknowledge        = acknowledge;
+		this.status         = status;
+		this.properties     = properties;
+		this.acknowledge    = acknowledge;
 	}
 
 
@@ -58,7 +54,7 @@ public final class ProductBin<K,OUT> {
 	 */
 	@Override
 	public String toString() {
-		return "ProductBin [key=" + key + ", product='" + product + (expirationTime == 0 ? "', unexpireable":"', expirationTime="+ expirationTime)
+		return "ProductBin [conveyor= "+(conveyor==null?"N/A":conveyor.getName())+" key=" + key + ", product='" + product + (expirationTime == 0 ? "', unexpireable":"', expirationTime="+ expirationTime)
 				+ ", status=" + status + ", properties=" + properties + "]";
 	}
 

@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
 public class LastScrapsTest {
 
     public ScrapBin<Integer,Object> getScrapBin(int id,String scrap) {
-        ScrapBin<Integer,Object> bin = new ScrapBin<>(id,scrap,"test",null,
+        ScrapBin<Integer,Object> bin = new ScrapBin<>(null,id,scrap,"test",null,
                 ScrapBin.FailureType.GENERAL_FAILURE,new HashMap<>(),null);
         return bin;
     }

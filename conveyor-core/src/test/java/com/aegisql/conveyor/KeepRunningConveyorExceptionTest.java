@@ -1,8 +1,7 @@
 package com.aegisql.conveyor;
 
+import com.aegisql.conveyor.exception.KeepRunningConveyorException;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class KeepRunningConveyorExceptionTest {
 

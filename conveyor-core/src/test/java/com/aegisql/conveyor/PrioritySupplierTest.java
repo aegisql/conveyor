@@ -191,9 +191,6 @@ public class PrioritySupplierTest {
     }
     @Test
     public void testPropertyPriorityWithConveyor() {
-
-        AssemblingConveyor<Integer,String, A> ac = new AssemblingConveyor(Priority.FILO);
-
         SimpleConveyor<Integer,A> c = new SimpleConveyor(Priority.prioritizedByProperty("TEST_PRIORITY"),ABuilder::new);
         c.suspend();
         ResultQueue<Integer, A> results = ResultQueue.of(c);
@@ -211,5 +208,48 @@ public class PrioritySupplierTest {
         assertEquals("v3",results.poll().val);
         assertEquals("v1",results.poll().val);
     }
+
+    class B {
+        String val1;
+        String val2;
+        public B(String val1, String val2) {
+            this.val1 = val1;
+            this.val2 = val2;
+        }
+        public String toString() {
+            return val1+" "+val2;
+        }
+    }
+    class BBuilder implements Supplier<B> {
+        String val1;
+        String val2;
+        public B get() {
+            return new B(val1,val2);
+        }
+    }
+
+    @Test
+    public void testExistingPriorityWithConveyor() {
+
+        SimpleConveyor<Integer,B> c = new SimpleConveyor(Priority.EXISTING_BUILDS_FIRST,BBuilder::new);
+
+        ResultQueue<Integer, B> results = ResultQueue.of(c);
+        c.resultConsumer(results).set();
+        c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted("val1","val2"));
+        c.part().id(1).label("val1").value("v1-1").place().join(); //1 is created
+        c.suspend();
+        c.part().id(2).label("val1").value("v2-1").place(); //both 2s placed before last 1
+        c.part().id(2).label("val2").value("v2-2").place();
+        c.part().id(1).label("val2").value("v1-2").place(); //last 1
+        assertEquals(3,c.getInputQueueSize());
+        c.resume();
+        c.completeAndStop().join();
+        assertEquals(2,results.size());
+        B r1 = results.poll();
+        B r2 = results.poll();
+        assertEquals("v1-1 v1-2",r1.toString());
+        assertEquals("v2-1 v2-2",r2.toString());// 1 completed before 2
+    }
+
 
 }

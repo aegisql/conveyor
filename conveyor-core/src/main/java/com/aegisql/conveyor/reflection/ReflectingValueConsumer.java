@@ -1,7 +1,7 @@
 package com.aegisql.conveyor.reflection;
 
-import com.aegisql.conveyor.ConveyorRuntimeException;
 import com.aegisql.conveyor.LabeledValueConsumer;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.utils.MultiValue;
 import com.aegisql.java_path.ClassRegistry;
 import com.aegisql.java_path.JavaPath;

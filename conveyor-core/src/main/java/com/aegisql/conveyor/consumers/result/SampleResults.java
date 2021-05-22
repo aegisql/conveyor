@@ -1,8 +1,8 @@
 package com.aegisql.conveyor.consumers.result;
 
 import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ConveyorRuntimeException;
 import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Collections;
