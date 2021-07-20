@@ -27,6 +27,7 @@ import java.util.function.*;
 import java.util.stream.Collectors;
 
 import static com.aegisql.conveyor.cart.LoadType.*;
+import static com.aegisql.conveyor.validation.CommonValidators.*;
 
 /**
  * The Class AssemblingConveyor.
@@ -297,21 +298,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.inQueue = (Queue<Cart<K, ?, L>>) cartQueueSupplier.get();
 		this.mQueue = (Queue<GeneralCommand<K, ?>>) cartQueueSupplier.get();
 		existingBuildsFirst = Priority.EXISTING_BUILDS_FIRST.equals(cartQueueSupplier);
-		this.addCartBeforePlacementValidator(cart -> {
-			if (!running) {
-				throw new IllegalStateException("Conveyor "+getName()+" is not running");
-			}
-		});
-		this.addCartBeforePlacementValidator(cart -> {
-			if (cart.expired()) {
-				throw new IllegalStateException("Cart has already expired " + cart);
-			}
-		});
-		this.addCartBeforePlacementValidator(cart -> {
-			if (cart.getCreationTime() < (System.currentTimeMillis() - startTimeReject)) {
-				throw new IllegalStateException("Cart is too old " + cart);
-			}
-		});
+		this.addCartBeforePlacementValidator(CART_NOT_NULL());
+		this.addCartBeforePlacementValidator(NOT_RUNNING(()->running,()->name));
+		this.addCartBeforePlacementValidator(CART_EXPIRED());
+		this.addCartBeforePlacementValidator(CART_TOO_OLD(()->startTimeReject));
 
 		commandBeforePlacementValidator = commandBeforePlacementValidator.andThen(cmd -> {
 			if (!running) {
@@ -376,6 +366,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		} catch (InterruptedException e) {
 			LOG.info("Interrupted {}",name,e);
 			stop();
+			Thread.currentThread().interrupt();
 		}
 		return running;
 	}

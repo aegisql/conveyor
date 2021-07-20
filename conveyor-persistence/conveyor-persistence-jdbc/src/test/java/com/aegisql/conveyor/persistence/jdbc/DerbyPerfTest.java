@@ -1,25 +1,5 @@
 package com.aegisql.conveyor.persistence.jdbc;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Stack;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.apache.log4j.BasicConfigurator;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
@@ -27,17 +7,19 @@ import com.aegisql.conveyor.parallel.ParallelConveyor;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
-import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
-import com.aegisql.conveyor.persistence.core.harness.ThreadPool;
-import com.aegisql.conveyor.persistence.core.harness.Trio;
-import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
-import com.aegisql.conveyor.persistence.core.harness.TrioBuilderExpireable;
-import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
-import com.aegisql.conveyor.persistence.core.harness.TrioConveyorExpireable;
-import com.aegisql.conveyor.persistence.core.harness.TrioPart;
-import com.aegisql.conveyor.persistence.core.harness.TrioPartExpireable;
+import com.aegisql.conveyor.persistence.core.harness.*;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import org.apache.log4j.BasicConfigurator;
+import org.junit.*;
+
+import java.io.File;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.Assert.assertEquals;
 
 public class DerbyPerfTest {
 
@@ -201,6 +183,7 @@ public class DerbyPerfTest {
 		try {
 			Thread.sleep(msec, (int) (999999.0 * nsec));
 		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		}
 	}
 

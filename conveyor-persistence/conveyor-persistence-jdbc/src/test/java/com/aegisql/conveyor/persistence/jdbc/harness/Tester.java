@@ -159,7 +159,7 @@ public class Tester {
 		try {
 			Thread.sleep(msec);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			Thread.currentThread().interrupt();
 		}
 	}
 	
@@ -172,6 +172,7 @@ public class Tester {
 		try {
 			Thread.sleep(msec, (int) (999999.0 * nsec));
 		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		}
 	}
 
