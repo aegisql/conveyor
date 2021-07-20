@@ -96,8 +96,10 @@ conveyor configurator
 ## Release History
 
 ### 1.5.3-SNAPSHOT
+* Updated dependencies
 * Added Conveyor Initiating Services support
 * Key, Label and Value converters register
+* Bugfixes and tests
 
 ### 1.5.2
 * compatibility bugfixes
