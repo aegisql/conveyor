@@ -1,6 +1,11 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
 // TODO: Auto-generated Javadoc
+
+import org.sqlite.SQLiteDataSource;
+
+import javax.sql.DataSource;
+
 /**
  * The Class SqliteEngine.
  *
@@ -32,4 +37,8 @@ public class SqliteEngine <K> extends GenericEngine<K> {
 		return "EXPIRATION_TIME > 0 AND EXPIRATION_TIME < strftime('%s','now')*1000";
 	}
 
+	@Override
+	public DataSource getDataSource() {
+		return new SQLiteDataSource();
+	}
 }

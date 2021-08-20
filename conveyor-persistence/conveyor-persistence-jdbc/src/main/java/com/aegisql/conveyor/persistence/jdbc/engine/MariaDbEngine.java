@@ -1,6 +1,13 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
 // TODO: Auto-generated Javadoc
+
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+import org.mariadb.jdbc.MariaDbDataSource;
+
+import javax.sql.DataSource;
+import java.sql.SQLException;
+
 /**
  * The Class MariaDbEngine.
  *
@@ -47,6 +54,14 @@ public class MariaDbEngine <K> extends GenericEngine<K> {
 			setProperty("password", password);
 		}
 	}
-	
-	
+
+
+	@Override
+	public DataSource getDataSource() {
+		try {
+			return new MariaDbDataSource("localhost");
+		} catch (SQLException e) {
+			throw new PersistenceException(e);
+		}
+	}
 }

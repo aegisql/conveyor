@@ -2,6 +2,9 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.builders.Field;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerConnectionFactory;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -152,6 +155,8 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	/** The additional fields. */
 	protected List<Field<?>> additionalFields = new ArrayList<>();
 
+	private BasicDataSource poolSource = new BasicDataSource();
+
 	protected Supplier<Connection> connectionSupplier = ()-> {
 		try {
 			return DriverManager.getConnection(toConnectionUrl(getConnectionUrlTemplate()), properties);
@@ -170,6 +175,8 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}
 	};
 
+	protected ConnectionFactory connectionFactory = new DriverManagerConnectionFactory();
+
 	/**
 	 * Instantiates a new generic engine.
 	 *
@@ -183,6 +190,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	protected GenericEngine(Class<K> keyClass, String driver, String connectionUrlTemplateForInitDatabase,
 			String connectionUrlTemplateForInitSchema, String connectionUrlTemplateForInitTablesAndIndexes,
 			String connectionUrlTemplate) {
+		this.poolSource.setDriverClassName(driver);
+		this.poolSource.setTestWhileIdle(true);
+
 		this.keyClass = keyClass;
 		this.driver = driver;
 		this.connectionUrlTemplateForInitDatabase = connectionUrlTemplateForInitDatabase;
@@ -431,7 +441,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @return the creates the part table index sql
 	 */
 	protected String getCreatePartTableIndexSql(String partTable) {
-		return "CREATE INDEX "+partTable+"_IDX ON "+partTable+"("+EngineDepo.CART_KEY+")";
+		return "CREATE INDEX "+indexName(partTable)+" ON "+partTable+"("+EngineDepo.CART_KEY+")";
 	}
 	
 	/* (non-Javadoc)
@@ -451,7 +461,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @return the creates the uniq part table index sql
 	 */
 	protected String getCreateUniqPartTableIndexSql(String partTable, List<String> fields) {
-		String indexName = partTable+"_"+String.join("_", fields)+"_IDX";
+		String indexName = indexName(partTable,fields);
 		return "CREATE UNIQUE INDEX "+indexName+" ON "+partTable+"("+String.join(",", fields)+")";
 	}
 
@@ -688,26 +698,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	}
 
 	/**
-	 * Can use database url.
-	 *
-	 * @param database the database
-	 * @return true, if successful
-	 */
-	protected boolean canUseDatabaseUrl(String database) {
-		return notEmpty(connectionUrlTemplateForInitDatabase) && notEmpty(database);
-	}
-
-	/**
-	 * Can use schema url.
-	 *
-	 * @param schema the schema
-	 * @return true, if successful
-	 */
-	protected boolean canUseSchemaUrl(String schema) {
-		return notEmpty(connectionUrlTemplateForInitSchema) && notEmpty(schema);
-	}
-
-	/**
 	 * Gets the connection.
 	 *
 	 * @return the connection
@@ -729,8 +719,8 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param sql the sql
 	 */
 	protected void execute(String sql) {
-		try(Statement statement = getConnection().createStatement()) {
-			statement.execute(sql);
+		try(PreparedStatement statement = getConnection().prepareStatement(sql)) {
+			statement.execute();
 		} catch (SQLException e) {
 			throw new PersistenceException("Failed executing "+sql+"; "+e.getMessage(),e);
 		}
@@ -784,9 +774,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	protected void connectAndExecuteUpdate(String url, String sql) {
 		connectAndDo(url, con->{
-			try(Statement statement = con.createStatement()) {
+			try(PreparedStatement statement = con.prepareStatement(sql)) {
 				LOG.debug("Executing {}",sql);
-				statement.executeUpdate(sql);
+				statement.executeUpdate();
 			} catch (SQLException e) {
 				LOG.error("Failed executing to {}",sql,e);
 				throw new PersistenceException(e);

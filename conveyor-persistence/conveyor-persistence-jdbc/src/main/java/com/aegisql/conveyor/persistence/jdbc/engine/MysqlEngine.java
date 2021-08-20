@@ -1,6 +1,11 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
 // TODO: Auto-generated Javadoc
+
+import com.mysql.cj.jdbc.MysqlDataSource;
+
+import javax.sql.DataSource;
+
 /**
  * The Class MysqlEngine.
  *
@@ -47,6 +52,10 @@ public class MysqlEngine <K> extends GenericEngine<K> {
 			setProperty("password", password);
 		}
 	}
-	
-	
+
+
+	@Override
+	public DataSource getDataSource() {
+		return new MysqlDataSource();
+	}
 }

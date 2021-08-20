@@ -1,6 +1,11 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
 // TODO: Auto-generated Javadoc
+
+import org.apache.derby.client.BasicClientDataSource;
+
+import javax.sql.DataSource;
+
 /**
  * The Class DerbyEngine.
  *
@@ -25,5 +30,10 @@ public class DerbyMemoryEngine <K> extends GenericEngine<K> {
 		setField(CART_PROPERTIES, "CLOB");
 		setField(CREATION_TIME, "TIMESTAMP");
 		setField(EXPIRATION_TIME, "TIMESTAMP");
+	}
+
+	@Override
+	public DataSource getDataSource() {
+		return new BasicClientDataSource();
 	}
 }

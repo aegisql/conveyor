@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
+import javax.sql.DataSource;
 import java.io.Closeable;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
@@ -97,6 +98,12 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param database the database
 	 */
 	public void createDatabase(String database);
+
+	default void createDatabaseIfNotExists(String database) {
+		if( ! databaseExists(database)) {
+			createDatabase(database);
+		}
+	}
 	
 	/**
 	 * Creates the schema.
@@ -104,6 +111,12 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param schema the schema
 	 */
 	public void createSchema(String schema);
+
+	default void createSchemaIfNotExists(String schema) {
+		if( ! schemaExists(schema)) {
+			createSchema(schema);
+		}
+	}
 	
 	/**
 	 * Creates the part table.
@@ -111,13 +124,43 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param partTable the part table
 	 */
 	public void createPartTable(String partTable);
-	
+
+	default void createPartTableIfNotExists(String partTable) {
+		if( ! partTableExists(partTable)) {
+			createPartTable(partTable);
+		}
+	}
+
+	default String indexName(String table) {
+		return table+"_IDX";
+	}
+
+	default String indexName(String table, String... fields) {
+		if(fields==null || fields.length==0) {
+			return indexName(table);
+		}
+		return table+"_"+String.join("_",fields)+"_IDX";
+	}
+
+	default String indexName(String table, List<String> fields) {
+		if(fields==null) {
+			return indexName(table);
+		}
+		return indexName(table, fields.toArray(new String[]{}));
+	}
+
 	/**
 	 * Creates the part table index.
 	 *
 	 * @param partTable the part table
 	 */
 	public void createPartTableIndex(String partTable);
+
+	default void createPartTableIndexIfNotExists(String partTable) {
+		if( ! partTableIndexExists(partTable,indexName(partTable))) {
+			createPartTableIndex(partTable);
+		}
+	}
 
 	/**
 	 * Creates the uniq part table index.
@@ -127,12 +170,24 @@ public interface EngineDepo <K> extends Closeable {
 	 */
 	public void createUniqPartTableIndex(String partTable,List<String> fields);
 
+	default void createUniqPartTableIndexIfNotExists(String partTable,List<String> fields) {
+		if( ! partTableIndexExists(partTable,indexName(partTable,fields))) {
+			createUniqPartTableIndex(partTable,fields);
+		}
+	}
+
 	/**
 	 * Creates the completed log table.
 	 *
 	 * @param completedLogTable the completed log table
 	 */
 	public void createCompletedLogTable(String completedLogTable);
+
+	default void createCompletedLogTableIfNotExists(String completedLogTable) {
+		if( ! completedLogTableExists(completedLogTable)) {
+			createCompletedLogTable(completedLogTable);
+		}
+	}
 	
 	/**
 	 * Sets the sorting order.
@@ -312,4 +367,6 @@ public interface EngineDepo <K> extends Closeable {
 	 * @return the number of parts
 	 */
 	public long getNumberOfParts();
+
+	public DataSource getDataSource();
 }

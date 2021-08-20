@@ -1,25 +1,5 @@
 package com.aegisql.conveyor.persistence.jdbc.builders;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.LongSupplier;
-
-import javax.crypto.SecretKey;
-import javax.management.ObjectName;
-import javax.management.StandardMBean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
 import com.aegisql.conveyor.persistence.archive.Archiver;
@@ -38,16 +18,19 @@ import com.aegisql.conveyor.persistence.jdbc.archive.PersistenceArchiver;
 import com.aegisql.conveyor.persistence.jdbc.archive.SetArchivedArchiver;
 import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringLabelConverter;
-import com.aegisql.conveyor.persistence.jdbc.engine.DerbyClientEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.DerbyEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.DerbyMemoryEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
-import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.MariaDbEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.MysqlEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.PostgresqlEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.SqliteEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.*;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.crypto.SecretKey;
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.LongSupplier;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -888,7 +871,33 @@ public class JdbcPersistenceBuilder<K> {
 		return this;
 	}
 
-	
+	public JdbcPersistenceBuilder<K> init() {
+		EngineDepo<K> sqlEngine = null;
+		if(this.engineDepo != null) {
+			sqlEngine = this.engineDepo;
+		} else {
+			sqlEngine = buildSqlEngine(engineType, keyClass);
+		}
+		sqlEngine.createDatabaseIfNotExists(database);
+		sqlEngine.createSchemaIfNotExists(schema);
+		sqlEngine.createPartTableIfNotExists(partTable);
+		sqlEngine.createPartTableIndexIfNotExists(partTable);
+		sqlEngine.createCompletedLogTableIfNotExists(completedLogTable);
+		for(List<String> fields: uniqueFields) {
+			sqlEngine.createUniqPartTableIndexIfNotExists(partTable, fields);
+		}
+		if(sqlEngine==this.engineDepo) {
+			return this;
+		} else {
+			return new JdbcPersistenceBuilder<K>(idSupplier, autoInit, keyClass, engineType, host, port,
+					database, schema, partTable, completedLogTable, user, password,
+					new Properties(properties), new ArrayList<>(additionalFields),
+					archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
+					encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
+					sqlEngine, restoreOrder, new ArrayList<>(uniqueFields));
+		}
+	}
+
 	/**
 	 * Builds the.
 	 *
@@ -904,27 +913,7 @@ public class JdbcPersistenceBuilder<K> {
 			sqlEngine = buildSqlEngine(engineType, keyClass);
 		}
 		if(autoInit) {
-			if( ! sqlEngine.databaseExists(database) ) {
-				sqlEngine.createDatabase(database);
-			}
-			if( ! sqlEngine.schemaExists(schema) ) {
-				sqlEngine.createSchema(schema);
-			}
-			if( ! sqlEngine.partTableExists(partTable)) {
-				sqlEngine.createPartTable(partTable);
-			}
-			if( ! sqlEngine.partTableIndexExists(partTable,partTable+"_IDX")) {
-				sqlEngine.createPartTableIndex(partTable);
-			}
-			if( ! sqlEngine.completedLogTableExists(completedLogTable)) {
-				sqlEngine.createCompletedLogTable(completedLogTable);
-			}
-			for(List<String> list: uniqueFields) {
-				String indexName = partTable+"_"+String.join("_", list)+"_IDX";
-				if( ! sqlEngine.partTableIndexExists(partTable, indexName)) {
-					sqlEngine.createUniqPartTableIndex(partTable, list);
-				}
-			}
+			init();
 		}
 		
 		Archiver<K> archiver = null;
@@ -1097,7 +1086,7 @@ public class JdbcPersistenceBuilder<K> {
 	 * @param kClass the k class
 	 * @return the engine depo
 	 */
-	public EngineDepo<K> buildSqlEngine(String type, Class<K> kClass) {
+	private EngineDepo<K> buildSqlEngine(String type, Class<K> kClass) {
 		GenericEngine<K> engine = null;
 		switch (type) {
 		case "derby":

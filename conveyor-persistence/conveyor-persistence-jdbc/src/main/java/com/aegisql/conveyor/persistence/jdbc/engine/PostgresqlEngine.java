@@ -1,11 +1,13 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+import org.postgresql.ds.PGSimpleDataSource;
+
+import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -75,6 +77,11 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 			}
 		});
 		return res.get();
+	}
+
+	@Override
+	public DataSource getDataSource() {
+		return new PGSimpleDataSource();
 	}
 
 	/* (non-Javadoc)

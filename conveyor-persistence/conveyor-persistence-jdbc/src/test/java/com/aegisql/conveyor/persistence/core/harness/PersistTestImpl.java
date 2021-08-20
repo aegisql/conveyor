@@ -1,21 +1,17 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
+
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 public class PersistTestImpl implements Persistence<Integer>{
 	
@@ -206,6 +202,11 @@ public class PersistTestImpl implements Persistence<Integer>{
 		public long getNumberOfParts() {
 			// TODO Auto-generated method stub
 			return 0;
+		}
+
+		@Override
+		public DataSource getDataSource() {
+			return null;
 		}
 
 		@Override

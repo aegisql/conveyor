@@ -96,6 +96,7 @@ conveyor configurator
 ## Release History
 
 ### 1.5.3-SNAPSHOT
+* Use DBCP2 in persistence
 * Updated dependencies
 * Added Conveyor Initiating Services support
 * Key, Label and Value converters register
