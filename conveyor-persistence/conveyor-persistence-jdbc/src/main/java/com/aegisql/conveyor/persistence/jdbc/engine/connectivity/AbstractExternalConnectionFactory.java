@@ -1,7 +1,6 @@
 package com.aegisql.conveyor.persistence.jdbc.engine.connectivity;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.StatementExecutor;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -9,8 +8,10 @@ import java.util.function.Supplier;
 
 public abstract class AbstractExternalConnectionFactory implements ConnectionFactory {
 
-    private final Supplier<Connection> supplier;
-    private Connection connection;
+    protected final Supplier<Connection> supplier;
+    protected Connection connection;
+    protected String database;
+    protected String schema;
 
     public AbstractExternalConnectionFactory(Supplier<Connection> supplier) {
         this.supplier = supplier;
@@ -29,11 +30,6 @@ public abstract class AbstractExternalConnectionFactory implements ConnectionFac
     }
 
     @Override
-    public StatementExecutor getStatementExecutor() {
-        return null;
-    }
-
-    @Override
     public void closeConnection() {
         if(connection != null) {
             try {
@@ -48,5 +44,39 @@ public abstract class AbstractExternalConnectionFactory implements ConnectionFac
     public void resetConnection() {
         closeConnection();
         connection = null;
+    }
+
+    @Override
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
+    @Override
+    public void setSchema(String schema) {
+        this.schema = schema;
+    }
+
+    @Override
+    public String getDatabase() {
+        if(database==null) {
+            try {
+                database = getConnection().getCatalog();
+            } catch (SQLException e) {
+                throw new PersistenceException("Cannot retrieve database catalog", e);
+            }
+        }
+        return database;
+    }
+
+    @Override
+    public String getSchema() {
+        if(schema==null) {
+            try {
+                schema = getConnection().getSchema();
+            } catch (SQLException e) {
+                throw new PersistenceException("Cannot retrieve database schema", e);
+            }
+        }
+        return schema;
     }
 }

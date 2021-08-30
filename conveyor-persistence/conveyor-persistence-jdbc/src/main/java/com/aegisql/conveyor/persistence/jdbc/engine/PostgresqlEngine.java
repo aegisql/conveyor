@@ -1,9 +1,8 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
-import org.postgresql.ds.PGSimpleDataSource;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
-import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,21 +21,8 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 	 *
 	 * @param keyClass the key class
 	 */
-	public PostgresqlEngine(Class<K> keyClass) {
-		super(
-				keyClass,
-				"org.postgresql.Driver",
-				"jdbc:postgresql://{host}:{port}/",
-				"jdbc:postgresql://{host}:{port}/{database}",
-				"jdbc:postgresql://{host}:{port}/{database}?currentSchema={schema}",
-				"jdbc:postgresql://{host}:{port}/{database}?currentSchema={schema}"
-				);
-		setPort(5432);
-		setHost("localhost");
-		setField(CART_VALUE, "BYTEA");
-		setField(CREATION_TIME, "TIMESTAMP");
-		setField(EXPIRATION_TIME, "TIMESTAMP");
-
+	public PostgresqlEngine(Class<K> keyClass, ConnectionFactory connectionFactory) {
+		super(keyClass,connectionFactory);
 	}
 	
 	/* (non-Javadoc)
@@ -79,11 +65,6 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 		return res.get();
 	}
 
-	@Override
-	public DataSource getDataSource() {
-		return new PGSimpleDataSource();
-	}
-
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine#getEngineSpecificExpirationTimeRange()
 	 */
@@ -113,6 +94,20 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 			setProperty("password", password);
 		}
 	}
-	
-	
+
+	@Override
+	protected void init() {
+		setPort(5432);
+		setHost("localhost");
+		setField(CART_VALUE, "BYTEA");
+		setField(CREATION_TIME, "TIMESTAMP");
+		setField(EXPIRATION_TIME, "TIMESTAMP");
+		setDriver("org.postgresql.Driver");
+		setConnectionUrlTemplateForInitDatabase("jdbc:postgresql://{host}:{port}/");
+		setConnectionUrlTemplateForInitSchema("jdbc:postgresql://{host}:{port}/{database}");
+		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:postgresql://{host}:{port}/{database}?currentSchema={schema}");
+		setConnectionUrlTemplate("jdbc:postgresql://{host}:{port}/{database}?currentSchema={schema}");
+	}
+
+
 }

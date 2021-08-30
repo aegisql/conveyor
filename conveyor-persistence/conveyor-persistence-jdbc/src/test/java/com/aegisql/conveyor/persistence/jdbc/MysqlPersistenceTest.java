@@ -164,7 +164,7 @@ public class MysqlPersistenceTest {
 	@Test
 	public void testSaveAndRead() throws Exception {
 		JdbcPersistenceBuilder<Integer> jpb = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
-				.autoInit(true)
+				.autoInit(false)
 				.partTable("PART2")
 				.completedLogTable("COMPLETED_LOG2")
 				.user("tester")
@@ -172,7 +172,7 @@ public class MysqlPersistenceTest {
 				.addUniqueFields("ADDON")
 				;
 		
-		JdbcPersistence<Integer> p = jpb.build();
+		JdbcPersistence<Integer> p = jpb.init().build();
 		
 		assertNotNull(p);
 		Cart<Integer,String,String> cartA = new ShoppingCart<Integer, String, String>(100, "test", "label");
@@ -233,7 +233,7 @@ public class MysqlPersistenceTest {
 		LastResultReference<Integer,Double> result = new LastResultReference();
 
 		JdbcPersistenceBuilder<Integer> jpb = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
-				.autoInit(true)
+				.autoInit(false)
 				.partTable("BALANCE")
 				.completedLogTable("BALANCE_LOG")
 				.user("tester")
@@ -242,7 +242,7 @@ public class MysqlPersistenceTest {
 				;
 		AssemblingConveyor<Integer, BALANCE_OPERATION, Double> balance = new AssemblingConveyor<>();
 
-		PersistentConveyor<Integer, BALANCE_OPERATION, Double> persistentBalance = jpb.build().wrapConveyor(balance);
+		PersistentConveyor<Integer, BALANCE_OPERATION, Double> persistentBalance = jpb.init().build().wrapConveyor(balance);
 
 		persistentBalance.setReadinessEvaluator(Conveyor.getTesterFor(balance).accepted(BALANCE_OPERATION.CLOSE));
 		persistentBalance.setBuilderSupplier(BalanceBuilder::new);

@@ -2,9 +2,9 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.builders.Field;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.AbstractConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
-import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerConnectionFactory;
-import org.apache.commons.dbcp2.BasicDataSource;
+import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.StatementExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +14,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 // TODO: Auto-generated Javadoc
@@ -41,23 +40,23 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	protected final Class<K> keyClass;
 
 	/** The driver. */
-	protected final String driver;
+	protected String driver;
 	
 	/** The connection url template for init database. */
-	protected final String connectionUrlTemplateForInitDatabase;
+	protected String connectionUrlTemplateForInitDatabase;
 	
 	/** The connection url template for init schema. */
-	protected final String connectionUrlTemplateForInitSchema;
+	protected String connectionUrlTemplateForInitSchema;
 	
 	/** The connection url template for init tables and indexes. */
-	protected final String connectionUrlTemplateForInitTablesAndIndexes;
+	protected String connectionUrlTemplateForInitTablesAndIndexes;
 
 	protected String getConnectionUrlTemplate() {
 		return connectionUrlTemplate;
 	}
 
 	/** The connection url template. */
-	protected final String connectionUrlTemplate;
+	protected String connectionUrlTemplate;
 
 	/** The connection. */
 	private Connection connection;
@@ -67,16 +66,10 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	
 	/** The port. */
 	protected int port;
-	
-	/** The database. */
-	protected String database;
-	
-	/** The schema. */
-	protected String schema;
-	
+
 	/** The user. */
 	protected String user;
-	
+
 	/** The password. */
 	protected String password;
 	
@@ -155,16 +148,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	/** The additional fields. */
 	protected List<Field<?>> additionalFields = new ArrayList<>();
 
-	private BasicDataSource poolSource = new BasicDataSource();
-
-	protected Supplier<Connection> connectionSupplier = ()-> {
-		try {
-			return DriverManager.getConnection(toConnectionUrl(getConnectionUrlTemplate()), properties);
-		} catch (SQLException e) {
-			throw new PersistenceException("Failed get connection for "+getConnectionUrlTemplate()+" properties:"+properties, e);
-		}
-	};
-
 	protected Function<String,Connection> connectionFunction = connectionUrl -> {
 		LOG.debug("Connecting to {}",connectionUrl);
 		try {
@@ -175,57 +158,62 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}
 	};
 
-	protected ConnectionFactory connectionFactory = new DriverManagerConnectionFactory();
+	protected ConnectionFactory connectionFactory;
 
 	/**
 	 * Instantiates a new generic engine.
 	 *
 	 * @param keyClass the key class
-	 * @param driver the driver
-	 * @param connectionUrlTemplateForInitDatabase the connection url template for init database
-	 * @param connectionUrlTemplateForInitSchema the connection url template for init schema
-	 * @param connectionUrlTemplateForInitTablesAndIndexes the connection url template for init tables and indexes
-	 * @param connectionUrlTemplate the connection url template
 	 */
-	protected GenericEngine(Class<K> keyClass, String driver, String connectionUrlTemplateForInitDatabase,
-			String connectionUrlTemplateForInitSchema, String connectionUrlTemplateForInitTablesAndIndexes,
-			String connectionUrlTemplate) {
-		this.poolSource.setDriverClassName(driver);
-		this.poolSource.setTestWhileIdle(true);
-
+	protected GenericEngine(Class<K> keyClass, ConnectionFactory connectionFactory) {
 		this.keyClass = keyClass;
-		this.driver = driver;
-		this.connectionUrlTemplateForInitDatabase = connectionUrlTemplateForInitDatabase;
-		this.connectionUrlTemplateForInitSchema = connectionUrlTemplateForInitSchema;
-		this.connectionUrlTemplateForInitTablesAndIndexes = connectionUrlTemplateForInitTablesAndIndexes;
-		this.connectionUrlTemplate = connectionUrlTemplate;
+
+		this.connectionFactory = connectionFactory;
+
 		this.keySqlType = getKeySqlType(this.keyClass);
 		if(Number.class.isAssignableFrom(keyClass)) {
 			this.q = "";
 		} else {
 			this.q = "'";
 		}
-		if(this.fields.size() == 0) {
-			this.fields.put(ID, "BIGINT PRIMARY KEY");
-			this.fields.put(LOAD_TYPE, "CHAR("+LOAD_TYPE_MAX_LENGTH+")");
-			this.fields.put(CART_KEY,this.keySqlType);
-			this.fields.put(CART_LABEL, "VARCHAR("+LABEL_MAX_LENGTH +")");
-			this.fields.put(CREATION_TIME, "DATETIME NOT NULL");
-			this.fields.put(EXPIRATION_TIME, "DATETIME NOT NULL");
-			this.fields.put(PRIORITY, "BIGINT NOT NULL DEFAULT 0");
-			this.fields.put(CART_VALUE, "BLOB");
-			this.fields.put(VALUE_TYPE, "VARCHAR("+VALUE_CLASS_MAX_LENGTH+")");
-			this.fields.put(CART_PROPERTIES, "TEXT");
-			this.fields.put(ARCHIVED, "SMALLINT NOT NULL DEFAULT 0");
+		this.fields.putIfAbsent(ID, "BIGINT PRIMARY KEY");
+		this.fields.putIfAbsent(LOAD_TYPE, "CHAR(" + LOAD_TYPE_MAX_LENGTH + ")");
+		this.fields.putIfAbsent(CART_KEY,this.keySqlType);
+		this.fields.putIfAbsent(CART_LABEL, "VARCHAR("+LABEL_MAX_LENGTH +")");
+		this.fields.putIfAbsent(CREATION_TIME, "DATETIME NOT NULL");
+		this.fields.putIfAbsent(EXPIRATION_TIME, "DATETIME NOT NULL");
+		this.fields.putIfAbsent(PRIORITY, "BIGINT NOT NULL DEFAULT 0");
+		this.fields.putIfAbsent(CART_VALUE, "BLOB");
+		this.fields.putIfAbsent(VALUE_TYPE, "VARCHAR("+VALUE_CLASS_MAX_LENGTH+")");
+		this.fields.putIfAbsent(CART_PROPERTIES, "TEXT");
+		this.fields.putIfAbsent(ARCHIVED, "SMALLINT NOT NULL DEFAULT 0");
+		sortingOrder.putIfAbsent(ID, "ASC");
+		init();
+	}
+
+	public void setDriver(String driver) {
+		if(connectionFactory instanceof AbstractConnectionFactory) {
+			AbstractConnectionFactory abstractConnectionFactory = (AbstractConnectionFactory) connectionFactory;
+			abstractConnectionFactory.setDriverClassName(driver);
 		}
-		sortingOrder.put(ID, "ASC");
-		try {
-			if (notEmpty(driver)) {
-				Class.forName(driver);
-			}
-		} catch (ClassNotFoundException e) {
-			throw new PersistenceException("Driver not found: " + driver, e);
-		}
+		this.driver = driver;
+	}
+
+	public void setConnectionUrlTemplateForInitDatabase(String connectionUrlTemplateForInitDatabase) {
+		this.connectionUrlTemplateForInitDatabase = connectionUrlTemplateForInitDatabase;
+	}
+
+	public void setConnectionUrlTemplateForInitSchema(String connectionUrlTemplateForInitSchema) {
+		this.connectionUrlTemplateForInitSchema = connectionUrlTemplateForInitSchema;
+	}
+
+	public void setConnectionUrlTemplateForInitTablesAndIndexes(String connectionUrlTemplateForInitTablesAndIndexes) {
+		this.connectionUrlTemplateForInitTablesAndIndexes = connectionUrlTemplateForInitTablesAndIndexes;
+	}
+
+	public void setConnectionUrlTemplate(String connectionUrlTemplate) {
+		this.connectionUrlTemplate = connectionUrlTemplate;
+		switchUrlTemplae(connectionUrlTemplate);
 	}
 
 	/* (non-Javadoc)
@@ -233,24 +221,31 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public boolean databaseExists(String database) {
+		if( ! switchUrlTemplae(connectionUrlTemplateForInitDatabase) ) {
+			return true;
+		}
 		AtomicBoolean res = new AtomicBoolean(true);
-		connectAndDo(connectionUrlTemplateForInitDatabase, con -> {
-			try {
-				DatabaseMetaData meta = con.getMetaData();
-				ResultSet databaseRs = meta.getCatalogs();
-				boolean databaseExists = false;
-				while (databaseRs.next()) {
-					String db = databaseRs.getString("TABLE_CAT");
-					if (db.equalsIgnoreCase(database)) {
-						databaseExists = true;
-						break;
+
+		try(StatementExecutor se = connectionFactory.getStatementExecutor()) {
+			se.meta(meta->{
+				try {
+					ResultSet databaseRs = meta.getCatalogs();
+					boolean databaseExists = false;
+					while (databaseRs.next()) {
+						String db = databaseRs.getString("TABLE_CAT");
+						if (db.equalsIgnoreCase(database)) {
+							databaseExists = true;
+							break;
+						}
 					}
+					res.set(databaseExists);
+				} catch (SQLException e) {
+					throw new PersistenceException("Failed detecting database " + database, e);
 				}
-				res.set(databaseExists);
-			} catch (SQLException e) {
-				throw new PersistenceException("Failed detecting database " + database, e);
-			}
-		});
+			});
+		}catch (Exception e) {
+			throw new PersistenceException("Failed detecting database " + database, e);
+		}
 		return res.get();
 	}
 
@@ -259,25 +254,34 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public boolean schemaExists(String schema) {
+
+		if( ! switchUrlTemplae(connectionUrlTemplateForInitSchema) ) {
+			return true;
+		}
+
 		AtomicBoolean res = new AtomicBoolean(true);
-		if (notEmpty(schema)) {
-			connectAndDo(connectionUrlTemplateForInitSchema, con -> {
-				try {
-					DatabaseMetaData meta = con.getMetaData();
-					ResultSet schemasRs = meta.getSchemas();
-					boolean schemaExists = false;
-					while( schemasRs.next()) {
-						String sch = schemasRs.getString("TABLE_SCHEM");
-						if(Objects.equals(sch.toLowerCase(), schema.toLowerCase())) {
-							schemaExists = true;
-							break;
+		if(notEmpty(schema)) {
+			try (StatementExecutor se = connectionFactory.getStatementExecutor()) {
+				se.meta(meta -> {
+					try {
+						ResultSet schemasRs = meta.getSchemas();
+						boolean schemaExists = false;
+						while( schemasRs.next()) {
+							String sch = schemasRs.getString("TABLE_SCHEM");
+							if(Objects.equals(sch.toLowerCase(), schema.toLowerCase())) {
+								schemaExists = true;
+								break;
+							}
 						}
+						res.set(schemaExists);
+					} catch (SQLException e) {
+						throw new PersistenceException("Failed detecting schema " + schema, e);
 					}
-					res.set(schemaExists);
-				} catch (SQLException e) {
-					throw new PersistenceException("Failed detecting schema " + schema, e);
-				}
-			});
+
+				});
+			} catch (Exception e) {
+				throw new PersistenceException("Failed detecting schema " + schema, e);
+			}
 		}
 		return res.get();
 	}
@@ -287,24 +291,33 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public boolean partTableExists(String partTable) {
+
+
+		if( ! switchUrlTemplae(connectionUrlTemplateForInitTablesAndIndexes) ) {
+			return true;
+		}
+
 		AtomicBoolean res = new AtomicBoolean(true);
-		connectAndDo(connectionUrlTemplateForInitTablesAndIndexes, con -> {
-			try {
-				DatabaseMetaData meta = con.getMetaData();
-				ResultSet tables = meta.getTables(database,null,null,null);
-				boolean partTableFound   = false;
-				while(tables.next()) {
-					String tableName = tables.getString("TABLE_NAME");
-					if(tableName.equalsIgnoreCase(partTable)) {
-						partTableFound = true;
-						break;
+		try (StatementExecutor se = connectionFactory.getStatementExecutor()) {
+			se.meta(meta -> {
+				try {
+					ResultSet tables = meta.getTables(connectionFactory.getDatabase(),null,null,null);
+					boolean partTableFound   = false;
+					while(tables.next()) {
+						String tableName = tables.getString("TABLE_NAME");
+						if(tableName.equalsIgnoreCase(partTable)) {
+							partTableFound = true;
+							break;
+						}
 					}
+					res.set(partTableFound);
+				} catch (SQLException e) {
+					throw new PersistenceException("Failed detecting part table " + partTable, e);
 				}
-				res.set(partTableFound);
-			} catch (SQLException e) {
-				throw new PersistenceException("Failed detecting part table " + partTable, e);
-			}
-		});
+			});
+		} catch (Exception e) {
+			throw new PersistenceException("Failed detecting part table " + partTable, e);
+		}
 		return res.get();
 	}
 
@@ -313,24 +326,32 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public boolean partTableIndexExists(String partTable, String indexName) {
+
+		if( ! switchUrlTemplae(connectionUrlTemplateForInitTablesAndIndexes) ) {
+			return true;
+		}
+
 		AtomicBoolean res = new AtomicBoolean(true);
-		connectAndDo(connectionUrlTemplateForInitTablesAndIndexes, con -> {
-			try {
-				DatabaseMetaData meta = con.getMetaData();
-				ResultSet indexRs = meta.getIndexInfo(null, schema, partTable, false, false);
-				boolean indexExists = false;
-				while(indexRs.next()) {
-					String idxName = indexRs.getString("INDEX_NAME");
-					if(idxName.equalsIgnoreCase(indexName)) {
-						indexExists = true;
-						break;
+		try (StatementExecutor se = connectionFactory.getStatementExecutor()) {
+			se.meta(meta -> {
+				try {
+					ResultSet indexRs = meta.getIndexInfo(null, connectionFactory.getSchema(), partTable, false, false);
+					boolean indexExists = false;
+					while(indexRs.next()) {
+						String idxName = indexRs.getString("INDEX_NAME");
+						if(idxName.equalsIgnoreCase(indexName)) {
+							indexExists = true;
+							break;
+						}
 					}
+					res.set(indexExists);
+				} catch (SQLException e) {
+					throw new PersistenceException("Failed detecting part table index " + partTable, e);
 				}
-				res.set(indexExists);
-			} catch (SQLException e) {
-				throw new PersistenceException("Failed detecting part table index " + partTable, e);
-			}
-		});
+			});
+		} catch (Exception e) {
+			throw new PersistenceException("Failed detecting part table " + partTable, e);
+		}
 		return res.get();
 	}
 
@@ -339,24 +360,32 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public boolean completedLogTableExists(String completedLogTable) {
+
+		if( ! switchUrlTemplae(connectionUrlTemplateForInitTablesAndIndexes) ) {
+			return true;
+		}
+
 		AtomicBoolean res = new AtomicBoolean(true);
-		connectAndDo(connectionUrlTemplateForInitTablesAndIndexes, con -> {
-			try {
-				DatabaseMetaData meta = con.getMetaData();
-				ResultSet tables = meta.getTables(database,null,null,null);
-				boolean completedLogTableExists   = false;
-				while(tables.next()) {
-					String tableName = tables.getString("TABLE_NAME");
-					if(tableName.equalsIgnoreCase(completedLogTable)) {
-						completedLogTableExists = true;
-						break;
+		try (StatementExecutor se = connectionFactory.getStatementExecutor()) {
+			se.meta(meta -> {
+				try {
+					ResultSet tables = meta.getTables(connectionFactory.getDatabase(),null,null,null);
+					boolean completedLogTableExists   = false;
+					while(tables.next()) {
+						String tableName = tables.getString("TABLE_NAME");
+						if(tableName.equalsIgnoreCase(completedLogTable)) {
+							completedLogTableExists = true;
+							break;
+						}
 					}
+					res.set(completedLogTableExists);
+				} catch (SQLException e) {
+					throw new PersistenceException("Failed detecting completedLogTable " + completedLogTable, e);
 				}
-				res.set(completedLogTableExists);
-			} catch (SQLException e) {
-				throw new PersistenceException("Failed detecting completedLogTable " + completedLogTable, e);
-			}
-		});
+			});
+		} catch (Exception e) {
+			throw new PersistenceException("Failed detecting completed log table " + completedLogTable, e);
+		}
 		return res.get();
 	}
 
@@ -365,6 +394,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void createDatabase(String database) {
+		switchUrlTemplae(connectionUrlTemplateForInitDatabase);
 		connectAndExecuteUpdate(connectionUrlTemplateForInitDatabase, getCreateDatabaseSql(database));
 		LOG.info("Created database {}",database);
 	}
@@ -384,6 +414,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void createSchema(String schema) {
+		switchUrlTemplae(connectionUrlTemplateForInitSchema);
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitSchema), getCreateSchemaSql(schema));
 		LOG.info("Created schema {}",schema);
 	}
@@ -403,6 +434,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void createPartTable(String partTable) {
+		switchUrlTemplae(connectionUrlTemplateForInitTablesAndIndexes);
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitTablesAndIndexes), getCreatePartTableSql(partTable));
 		LOG.info("Created part table {}",partTable);
 	}
@@ -430,6 +462,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void createPartTableIndex(String partTable) {
+		switchUrlTemplae(connectionUrlTemplateForInitTablesAndIndexes);
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitTablesAndIndexes), getCreatePartTableIndexSql(partTable));
 		LOG.info("Created partTable index {}",partTable);
 	}
@@ -449,6 +482,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void createUniqPartTableIndex(String partTable, List<String> fields) {
+		switchUrlTemplae(connectionUrlTemplateForInitTablesAndIndexes);
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitTablesAndIndexes), getCreateUniqPartTableIndexSql(partTable,fields));
 		LOG.info("Created unique partTable index {} {}",partTable,fields);
 	}
@@ -471,6 +505,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void createCompletedLogTable(String completedLogTable) {
+		switchUrlTemplae(connectionUrlTemplateForInitTablesAndIndexes);
 		connectAndExecuteUpdate(toConnectionUrl(connectionUrlTemplateForInitTablesAndIndexes), getCompletedLogTableSql(completedLogTable));
 		LOG.info("Created completedLogTable {}",completedLogTable);
 	}
@@ -661,7 +696,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#buildCompletedLogTableQueries(java.lang.String)
 	 */
 	@Override
-	//TODO: Replace INCERT with UPSERT
+	//TODO: Replace INSERT with UPSERT
 	public void buildCompletedLogTableQueries(String completedLogTable) {
 		this.deleteFromCompletedSql = "DELETE FROM "+completedLogTable + " WHERE CART_KEY IN(?)";
 		this.deleteAllCompletedSql  = "DELETE FROM "+completedLogTable;
@@ -681,8 +716,8 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 			return null;
 		} else {
 			return template.replace("{host}", host == null ? "" : host).replace("{port}", "" + port)
-					.replace("{database}", database == null ? "" : database)
-					.replace("{schema}", schema == null ? "" : schema).replace("{user}", user == null ? "" : user)
+					.replace("{database}", connectionFactory.getDatabase() == null ? "" : connectionFactory.getDatabase())
+					.replace("{schema}", connectionFactory.getSchema() == null ? "" : connectionFactory.getSchema()).replace("{user}", user == null ? "" : user)
 					.replace("{password}", password == null ? "" : password);
 		}
 	}
@@ -698,30 +733,14 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	}
 
 	/**
-	 * Gets the connection.
-	 *
-	 * @return the connection
-	 */
-	public Connection getConnection() {
-		try {
-			if(connection == null || connection.isClosed()) {
-				connection = connectionSupplier.get();
-			}
-		} catch (SQLException e) {
-			throw new PersistenceException("Cannot check if connection is closed",e);
-		}
-		return connection;
-	}
-
-	/**
 	 * Execute.
 	 *
 	 * @param sql the sql
 	 */
 	protected void execute(String sql) {
-		try(PreparedStatement statement = getConnection().prepareStatement(sql)) {
-			statement.execute();
-		} catch (SQLException e) {
+		try(StatementExecutor se = connectionFactory.getStatementExecutor()) {
+			se.execute(sql);
+		} catch (Exception e) {
 			throw new PersistenceException("Failed executing "+sql+"; "+e.getMessage(),e);
 		}
 	}
@@ -733,6 +752,12 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param connectionConsumer the connection consumer
 	 */
 	protected void connectAndDo(String urlTemplate, Consumer<Connection> connectionConsumer) {
+		try(StatementExecutor se = connectionFactory.getStatementExecutor()) {
+
+		}catch (Exception e) {
+			throw new PersistenceException(e);
+		}
+
 		String connectionUrl = toConnectionUrl(urlTemplate);
 		if (notEmpty(connectionUrl)) {
 			try (Connection con = connectionFunction.apply(connectionUrl)) {
@@ -745,43 +770,19 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	}
 
 	/**
-	 * Connect and do.
-	 *
-	 * @param connectionConsumer the connection consumer
-	 */
-	protected void connectAndDo(Consumer<Connection> connectionConsumer) {
-		Connection con = getConnection();
-		connectionConsumer.accept(con);
-	}
-
-	/**
-	 * Connect and do.
-	 *
-	 * @param <T> the generic type
-	 * @param connectionConsumer the connection consumer
-	 * @return the t
-	 */
-	protected <T> T connectAndDo(Function<Connection,T> connectionConsumer) {
-		Connection con = getConnection();
-		return connectionConsumer.apply(con);
-	}
-
-	/**
 	 * Connect and execute update.
 	 *
 	 * @param url the url
 	 * @param sql the sql
 	 */
 	protected void connectAndExecuteUpdate(String url, String sql) {
-		connectAndDo(url, con->{
-			try(PreparedStatement statement = con.prepareStatement(sql)) {
-				LOG.debug("Executing {}",sql);
-				statement.executeUpdate();
-			} catch (SQLException e) {
-				LOG.error("Failed executing to {}",sql,e);
-				throw new PersistenceException(e);
-			}
-		});
+		try(StatementExecutor se = connectionFactory.getStatementExecutor()) {
+			LOG.debug("Executing {}",sql);
+			se.executeUpdate(sql);
+		} catch (Exception e) {
+			LOG.error("Failed executing to {}",sql,e);
+			throw new PersistenceException(e);
+		}
 	}
 
 	/**
@@ -791,46 +792,13 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param consumer the consumer
 	 */
 	protected void executePrepared(String sql, Consumer<PreparedStatement> consumer) {
-		connectAndDo(con->{
-			try(PreparedStatement statement = con.prepareStatement(sql)) {
-				consumer.accept(statement);
-				statement.execute();
-			} catch (SQLException e) {
-				throw new PersistenceException(e);
-			}
-		});
+		try(StatementExecutor se = connectionFactory.getStatementExecutor()) {
+			se.execute(sql,consumer);
+		} catch (Exception e) {
+			throw new PersistenceException(e);
+		}
 	}
 	
-	/**
-	 * Gets the scalar value.
-	 *
-	 * @param <T> the generic type
-	 * @param url the url
-	 * @param sql the sql
-	 * @param consumer the consumer
-	 * @param transformer the transformer
-	 * @return the scalar value
-	 */
-	protected <T> T getScalarValue(String url, String sql, Consumer<PreparedStatement> consumer, Function<ResultSet,T> transformer) {
-		return connectAndDo(con->{
-			try(PreparedStatement statement = con.prepareStatement(sql)) {
-				T t = null;
-				consumer.accept(statement);
-				ResultSet rs =statement.executeQuery();
-				while(rs.next()) {
-					if(t != null) {
-						throw new PersistenceException("Expected single object for "+t);
-					}
-					t = transformer.apply(rs);
-				}
-				return t;
-			} catch (SQLException e) {
-				throw new PersistenceException(e);
-			}
-		});
-	}
-
-
 	/**
 	 * Gets the scalar value.
 	 *
@@ -841,22 +809,11 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @return the scalar value
 	 */
 	protected <T> T getScalarValue(String sql, Consumer<PreparedStatement> consumer, Function<ResultSet,T> transformer) {
-		return connectAndDo(con->{
-			try(PreparedStatement statement = con.prepareStatement(sql)) {
-				T t = null;
-				consumer.accept(statement);
-				ResultSet rs =statement.executeQuery();
-				while(rs.next()) {
-					if(t != null) {
-						throw new PersistenceException("Expected single object for "+t);
-					}
-					t = transformer.apply(rs);
-				}
-				return t;
-			} catch (SQLException e) {
-				throw new PersistenceException(e);
-			}
-		});
+		try(StatementExecutor se = connectionFactory.getStatementExecutor()) {
+			return se.fetchOne(sql,consumer,transformer);
+		} catch (Exception e) {
+			throw new PersistenceException(e);
+		}
 	}
 
 	/**
@@ -869,19 +826,11 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @return the collection of values
 	 */
 	protected <T> List<T> getCollectionOfValues(String sql, Consumer<PreparedStatement> consumer, Function<ResultSet,T> transformer) {
-		return connectAndDo(con->{
-			try(PreparedStatement statement = con.prepareStatement(sql)) {
-				List<T> res = new LinkedList<>();
-				consumer.accept(statement);
-				ResultSet rs =statement.executeQuery();
-				while(rs.next()) {
-					res.add(transformer.apply(rs));
-				}
-				return res;
-			} catch (SQLException e) {
-				throw new PersistenceException(e);
-			}
-		});
+		try(StatementExecutor se = connectionFactory.getStatementExecutor()) {
+			return se.fetchMany(sql,consumer,transformer);
+		} catch (Exception e) {
+			throw new PersistenceException(e);
+		}
 	}
 	
 	/**
@@ -964,6 +913,10 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param port the new port
 	 */
 	public void setPort(int port) {
+		if(connectionFactory instanceof AbstractConnectionFactory) {
+			AbstractConnectionFactory abstractConnectionFactory = (AbstractConnectionFactory) connectionFactory;
+			abstractConnectionFactory.setPort(port);
+		}
 		this.port = port;
 	}
 
@@ -973,7 +926,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param database the new database
 	 */
 	public void setDatabase(String database) {
-		this.database = database;
+		connectionFactory.setDatabase(database);
 	}
 
 	/**
@@ -982,7 +935,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param schema the new schema
 	 */
 	public void setSchema(String schema) {
-		this.schema = schema;
+		this.connectionFactory.setSchema(schema);
 	}
 
 	/**
@@ -1010,6 +963,10 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	public void setProperties(Properties properties) {
 		if(properties != null) {
+			if(connectionFactory instanceof AbstractConnectionFactory) {
+				AbstractConnectionFactory abstractConnectionFactory = (AbstractConnectionFactory) connectionFactory;
+				abstractConnectionFactory.setProperties(properties);
+			}
 			this.properties.putAll(properties);
 		}
 	}
@@ -1021,6 +978,10 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param value the value
 	 */
 	public void setProperty(String key, String value) {
+		if(connectionFactory instanceof AbstractConnectionFactory) {
+			AbstractConnectionFactory abstractConnectionFactory = (AbstractConnectionFactory) connectionFactory;
+			abstractConnectionFactory.getProperties().put(key,value);
+		}
 		this.properties.put(key, value);
 	}
 
@@ -1101,6 +1062,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void updateAllParts() {
+		switchUrlTemplae(connectionUrlTemplate);
 		execute(updateAllPartsSql);		
 	}
 
@@ -1239,12 +1201,8 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void close() throws IOException {
-		try {
-			getConnection().close();
-			connection = null;
-		} catch (SQLException e) {
-			throw new IOException(e);
-		}
+		connectionFactory.closeConnection();
+		connection = null;
 	}
 
 	/**
@@ -1280,15 +1238,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		this.additionalFields = additionalFields;
 	}
 
-	/**
-	 * Sets connection supplier.
-	 *
-	 * @param connectionSupplier the JDBC connection supplier
-	 */
-	public void setConnectionSupplier(Supplier<Connection> connectionSupplier) {
-		this.connectionSupplier = connectionSupplier;
-	}
-
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -1299,7 +1248,17 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 				.append(properties).append("]");
 		return builder.toString();
 	}
-	
-	
 
+	protected abstract void init();
+	
+	protected boolean switchUrlTemplae(String temlate) {
+		if(notEmpty(temlate)) {
+			if (connectionFactory instanceof AbstractConnectionFactory) {
+				AbstractConnectionFactory abstractConnectionFactory = (AbstractConnectionFactory) connectionFactory;
+				abstractConnectionFactory.setUrlTemplate(temlate);
+			}
+			return true;
+		}
+		return false;
+	}
 }

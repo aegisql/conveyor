@@ -1,17 +1,15 @@
 package com.aegisql.conveyor.persistence.jdbc.engine.connectivity;
 
-import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.JdbcStatementExecutor;
-import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.StatementExecutor;
-
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ConnectionBuilder;
 import java.sql.SQLException;
 import java.sql.ShardingKey;
 
-public class DataSourceConnectionFactory <T extends DataSource> extends AbstractConnectionFactory {
+public abstract class AbstractDataSourceConnectionFactory<T extends DataSource> extends AbstractConnectionFactory {
 
     protected final T dataSource;
+    protected boolean dataSourceInitialized = false;
 
     public T getDataSource() {
         return dataSource;
@@ -33,12 +31,14 @@ public class DataSourceConnectionFactory <T extends DataSource> extends Abstract
         this.shardingKey = shardingKey;
     }
 
-    ShardingKey superShardingKey;
-    ShardingKey shardingKey;
+    protected ShardingKey superShardingKey;
+    protected ShardingKey shardingKey;
 
-    public DataSourceConnectionFactory(T dataSource) {
+    public AbstractDataSourceConnectionFactory(T dataSource) {
         this.dataSource = dataSource;
     }
+
+    protected void initDataSource() {}
 
     @Override
     public Connection getConnection() {
@@ -63,11 +63,6 @@ public class DataSourceConnectionFactory <T extends DataSource> extends Abstract
             throwables.printStackTrace();
         }
         return connection;
-    }
-
-    @Override
-    public StatementExecutor getStatementExecutor() {
-        return new JdbcStatementExecutor(this);
     }
 
 }

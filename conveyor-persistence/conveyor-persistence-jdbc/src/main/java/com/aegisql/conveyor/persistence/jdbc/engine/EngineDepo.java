@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
-import javax.sql.DataSource;
 import java.io.Closeable;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
@@ -368,5 +367,4 @@ public interface EngineDepo <K> extends Closeable {
 	 */
 	public long getNumberOfParts();
 
-	public DataSource getDataSource();
 }

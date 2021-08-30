@@ -13,7 +13,7 @@ public class JdbcStatementExecutor extends AbstractStatementExecutor {
 
     @Override
     public void close() throws IOException {
-
+        // just do nothings. close with the connection factory
     }
 
 }

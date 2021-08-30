@@ -2,9 +2,7 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 
 // TODO: Auto-generated Javadoc
 
-import org.apache.derby.client.BasicClientDataSource;
-
-import javax.sql.DataSource;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
 /**
  * The Class DerbyClientEngine.
@@ -18,24 +16,21 @@ public class DerbyClientEngine <K> extends GenericEngine<K> {
 	 *
 	 * @param keyClass the key class
 	 */
-	public DerbyClientEngine(Class<K> keyClass) {
-		super(
-				keyClass,
-				"org.apache.derby.jdbc.ClientDriver",
-				"",
-				"jdbc:derby://{host}:{port}/{schema};create=true",
-				"jdbc:derby://{host}:{port}/{schema};create=true",
-				"jdbc:derby://{host}:{port}/{schema};"
-				);
+	public DerbyClientEngine(Class<K> keyClass, ConnectionFactory connectionFactory) {
+		super(keyClass, connectionFactory);
+	}
+
+	@Override
+	protected void init() {
 		setHost("localhost");
 		setPort(1527);
 		setField(CART_PROPERTIES, "CLOB");
 		setField(CREATION_TIME, "TIMESTAMP");
 		setField(EXPIRATION_TIME, "TIMESTAMP");
-	}
-
-	@Override
-	public DataSource getDataSource() {
-		return new BasicClientDataSource();
+		setDriver("org.apache.derby.jdbc.ClientDriver");
+		setConnectionUrlTemplateForInitDatabase("");
+		setConnectionUrlTemplateForInitSchema("jdbc:derby://{host}:{port}/{schema};create=true");
+		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:derby://{host}:{port}/{schema};create=true");
+		setConnectionUrlTemplate("jdbc:derby://{host}:{port}/{schema};");
 	}
 }

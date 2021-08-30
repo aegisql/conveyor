@@ -2,9 +2,7 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 
 // TODO: Auto-generated Javadoc
 
-import org.sqlite.SQLiteDataSource;
-
-import javax.sql.DataSource;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
 /**
  * The Class SqliteEngine.
@@ -18,15 +16,8 @@ public class SqliteEngine <K> extends GenericEngine<K> {
 	 *
 	 * @param keyClass the key class
 	 */
-	public SqliteEngine(Class<K> keyClass) {
-		super(
-				keyClass,
-				"org.sqlite.JDBC",
-				"",
-				"",
-				"jdbc:sqlite:{database}",
-				"jdbc:sqlite:{database}"
-				);
+	public SqliteEngine(Class<K> keyClass, ConnectionFactory connectionFactory) {
+		super(keyClass,connectionFactory);
 	}
 	
 	/* (non-Javadoc)
@@ -38,7 +29,12 @@ public class SqliteEngine <K> extends GenericEngine<K> {
 	}
 
 	@Override
-	public DataSource getDataSource() {
-		return new SQLiteDataSource();
+	protected void init() {
+		setDriver("org.sqlite.JDBC");
+		setConnectionUrlTemplateForInitDatabase("");
+		setConnectionUrlTemplateForInitSchema("");
+		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:sqlite:{database}");
+		setConnectionUrlTemplate("jdbc:sqlite:{database}");
 	}
+
 }

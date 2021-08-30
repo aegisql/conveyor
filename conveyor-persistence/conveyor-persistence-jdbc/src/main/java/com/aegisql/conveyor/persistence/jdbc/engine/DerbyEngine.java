@@ -2,9 +2,7 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 
 // TODO: Auto-generated Javadoc
 
-import org.apache.derby.jdbc.EmbeddedDataSource;
-
-import javax.sql.DataSource;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
 /**
  * The Class DerbyEngine.
@@ -18,22 +16,19 @@ public class DerbyEngine <K> extends GenericEngine<K> {
 	 *
 	 * @param keyClass the key class
 	 */
-	public DerbyEngine(Class<K> keyClass) {
-		super(
-				keyClass,
-				"",
-				"",
-				"jdbc:derby:{schema};create=true",
-				"jdbc:derby:{schema};create=true",
-				"jdbc:derby:{schema};"
-				);
-		setField(CART_PROPERTIES, "CLOB");
-		setField(CREATION_TIME, "TIMESTAMP");
-		setField(EXPIRATION_TIME, "TIMESTAMP");
+	public DerbyEngine(Class<K> keyClass, ConnectionFactory connectionFactory) {
+		super(keyClass, connectionFactory);
 	}
 
 	@Override
-	public DataSource getDataSource() {
-		return new EmbeddedDataSource();
+	protected void init() {
+		setField(CART_PROPERTIES, "CLOB");
+		setField(CREATION_TIME, "TIMESTAMP");
+		setField(EXPIRATION_TIME, "TIMESTAMP");
+		setDriver("");
+		setConnectionUrlTemplateForInitDatabase("");
+		setConnectionUrlTemplateForInitSchema("jdbc:derby:{schema};create=true");
+		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:derby:{schema};create=true");
+		setConnectionUrlTemplate("jdbc:derby:{schema};");
 	}
 }

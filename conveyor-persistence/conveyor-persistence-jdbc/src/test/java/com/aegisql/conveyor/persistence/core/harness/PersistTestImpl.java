@@ -4,7 +4,6 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
@@ -202,11 +201,6 @@ public class PersistTestImpl implements Persistence<Integer>{
 		public long getNumberOfParts() {
 			// TODO Auto-generated method stub
 			return 0;
-		}
-
-		@Override
-		public DataSource getDataSource() {
-			return null;
 		}
 
 		@Override

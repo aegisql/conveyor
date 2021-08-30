@@ -2,9 +2,7 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 
 // TODO: Auto-generated Javadoc
 
-import com.mysql.cj.jdbc.MysqlDataSource;
-
-import javax.sql.DataSource;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
 /**
  * The Class MysqlEngine.
@@ -18,17 +16,8 @@ public class MysqlEngine <K> extends GenericEngine<K> {
 	 *
 	 * @param keyClass the key class
 	 */
-	public MysqlEngine(Class<K> keyClass) {
-		super(
-				keyClass,
-				"com.mysql.cj.jdbc.Driver",
-				"jdbc:mysql://{host}:{port}/",
-				"",
-				"jdbc:mysql://{host}:{port}/{database}",
-				"jdbc:mysql://{host}:{port}/{database}"
-				);
-		setPort(3306);
-		setHost("localhost");
+	public MysqlEngine(Class<K> keyClass, ConnectionFactory connectionFactory) {
+		super(keyClass,connectionFactory);
 	}
 
 	/* (non-Javadoc)
@@ -53,9 +42,15 @@ public class MysqlEngine <K> extends GenericEngine<K> {
 		}
 	}
 
-
 	@Override
-	public DataSource getDataSource() {
-		return new MysqlDataSource();
+	protected void init() {
+		setPort(3306);
+		setHost("localhost");
+		setDriver("com.mysql.cj.jdbc.Driver");
+		setConnectionUrlTemplateForInitDatabase("jdbc:mysql://{host}:{port}/");
+		setConnectionUrlTemplateForInitSchema("");
+		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:mysql://{host}:{port}/{database}");
+		setConnectionUrlTemplate("jdbc:mysql://{host}:{port}/{database}");
 	}
+
 }

@@ -9,4 +9,9 @@ public interface ConnectionFactory {
     StatementExecutor getStatementExecutor();
     void closeConnection();
     void resetConnection();
+    String getDatabase();
+    String getSchema();
+    void setDatabase(String database);
+    void setSchema(String schema);
+    ConnectionFactory copy();
 }

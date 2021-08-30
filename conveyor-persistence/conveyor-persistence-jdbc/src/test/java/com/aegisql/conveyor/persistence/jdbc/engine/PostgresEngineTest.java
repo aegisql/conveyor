@@ -1,10 +1,11 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.builders.Field;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import org.apache.log4j.BasicConfigurator;
+import org.junit.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -14,17 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.BasicConfigurator;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.builders.Field;
-import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import static org.junit.Assert.*;
 
 public class PostgresEngineTest {
 
@@ -58,7 +49,7 @@ public class PostgresEngineTest {
 		order.put("PRIORITY", "DESC");
 		order.put("ID", "ASC");
 
-		GenericEngine<Integer> de = new PostgresqlEngine<>(Integer.class);
+		GenericEngine<Integer> de = new PostgresqlEngine<>(Integer.class, new DriverManagerConnectionFactory());
 		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
 		de.setDatabase(SCHEMA);
 		de.setSchema(SCHEMA);

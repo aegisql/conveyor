@@ -1,29 +1,17 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.builders.Field;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import org.junit.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.builders.Field;
-import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import static org.junit.Assert.*;
 
 public class DerbyEngineTest {
 
@@ -55,13 +43,14 @@ public class DerbyEngineTest {
 		order.put("PRIORITY", "DESC");
 		order.put("ID", "ASC");
 		
-		GenericEngine<Integer> de = new DerbyEngine<>(Integer.class);
+		GenericEngine<Integer> de = new DerbyEngine<>(Integer.class, new DriverManagerConnectionFactory());
 		de.setAdditionalFields(Arrays.asList(new Field(UUID.class,"ADDON")));
 		de.setSchema(SCHEMA);
 		assertTrue(de.databaseExists(SCHEMA));
 		assertFalse(de.schemaExists(SCHEMA));
 		de.createSchema(SCHEMA);
 		de.createPartTable(PARTS);
+		assertTrue(de.partTableExists(PARTS));
 		de.createPartTableIndex(PARTS);
 		de.createCompletedLogTable(LOGS);
 		de.setSortingOrder(order);
@@ -191,7 +180,7 @@ public class DerbyEngineTest {
 		order.put("PRIORITY", "DESC");
 		order.put("ID", "ASC");
 		
-		GenericEngine<Integer> de = new DerbyMemoryEngine<>(Integer.class);
+		GenericEngine<Integer> de = new DerbyMemoryEngine<>(Integer.class, new DriverManagerConnectionFactory());
 		de.setAdditionalFields(Arrays.asList(new Field(UUID.class,"ADDON")));
 		de.setSchema(SCHEMA);
 		assertTrue(de.databaseExists(SCHEMA));

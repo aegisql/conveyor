@@ -42,6 +42,7 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
 
     public void setUrlTemplate(String urlTemplate) {
         this.urlTemplate = urlTemplate;
+        resetConnection();
     }
 
     public String getHost() {
@@ -76,18 +77,22 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
         this.password = password;
     }
 
+    @Override
     public String getDatabase() {
         return database;
     }
 
+    @Override
     public void setDatabase(String database) {
         this.database = database;
     }
 
+    @Override
     public String getSchema() {
         return schema;
     }
 
+    @Override
     public void setSchema(String schema) {
         this.schema = schema;
     }
@@ -116,10 +121,6 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
         }
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     protected static boolean notBlank(String str) {
         return str != null && ! str.isBlank();
     }
@@ -139,5 +140,19 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
     public void resetConnection() {
         closeConnection();
         connection = null;
+        url = null;
     }
+
+    protected void copyThisToOther(AbstractConnectionFactory other) {
+        other.driverClassName = this.driverClassName;
+        other.urlTemplate = this.urlTemplate;
+        other.port = this.port;
+        other.database = this.database;
+        other.schema = this.schema;
+        other.user = this.user;
+        other.password = this.password;
+        other.properties = new Properties(this.properties);
+    }
+
+
 }

@@ -6,7 +6,6 @@ import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.Statement
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 
 public class DriverManagerConnectionFactory extends AbstractConnectionFactory {
     @Override
@@ -15,8 +14,8 @@ public class DriverManagerConnectionFactory extends AbstractConnectionFactory {
             if(connection == null || connection.isClosed()) {
                 connection = DriverManager.getConnection(getUrl(), getProperties());
             }
-        } catch (SQLException e) {
-            throw new PersistenceException("Failed get connection for "+getUrlTemplate()+" properties:"+properties, e);
+        } catch (Exception e) {
+            throw new PersistenceException("Failed get connection for "+getUrl()+" properties:"+properties, e);
         }
         return connection;
     }
@@ -24,6 +23,13 @@ public class DriverManagerConnectionFactory extends AbstractConnectionFactory {
     @Override
     public StatementExecutor getStatementExecutor() {
         return new JdbcStatementExecutor(this);
+    }
+
+    @Override
+    public ConnectionFactory copy() {
+        DriverManagerConnectionFactory next = new DriverManagerConnectionFactory();
+        copyThisToOther(next);
+        return next;
     }
 
 }
