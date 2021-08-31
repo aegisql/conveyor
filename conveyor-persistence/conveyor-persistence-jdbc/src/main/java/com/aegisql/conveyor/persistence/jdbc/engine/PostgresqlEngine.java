@@ -3,10 +3,7 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -30,19 +27,22 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 	 */
 	@Override
 	public boolean databaseExists(String database) {
-		AtomicBoolean res = new AtomicBoolean(false);
 		String query = "SELECT 1 FROM pg_catalog.pg_database WHERE lower(datname) = lower(?)";
-
-		connectAndDo(connectionUrlTemplateForInitDatabase, con->{
-			try(PreparedStatement st = con.prepareStatement(query)) {
+		switchUrlTemplae(connectionUrlTemplateForInitDatabase);
+		Boolean hasValue = getScalarValue(query,st->{
+			try {
 				st.setString(1, database);
-				ResultSet rs = st.executeQuery();
-				res.set(rs.next());
+			} catch (SQLException e) {
+				throw new PersistenceException(e);
+			}
+		},rs->{
+			try {
+				return rs.getBoolean(1);
 			} catch (SQLException e) {
 				throw new PersistenceException(e);
 			}
 		});
-		return res.get();
+		return hasValue == null? false : hasValue;
 	}
 
 	/* (non-Javadoc)
@@ -50,19 +50,22 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 	 */
 	@Override
 	public boolean partTableIndexExists(String partTable, String indexName) {
-		AtomicBoolean res = new AtomicBoolean(false);
 		String query = "SELECT 1 FROM pg_catalog. pg_indexes WHERE lower(indexname) = lower(?)";
-
-		connectAndDo(connectionUrlTemplateForInitTablesAndIndexes, con->{
-			try(PreparedStatement st = con.prepareStatement(query)) {
+		switchUrlTemplae(connectionUrlTemplateForInitTablesAndIndexes);
+		Boolean hasValue = getScalarValue(query,st->{
+			try {
 				st.setString(1, indexName);
-				ResultSet rs = st.executeQuery();
-				res.set(rs.next());
+			} catch (SQLException e) {
+				throw new PersistenceException(e);
+			}
+		},rs->{
+			try {
+				return rs.getBoolean(1);
 			} catch (SQLException e) {
 				throw new PersistenceException(e);
 			}
 		});
-		return res.get();
+		return hasValue == null? false : hasValue;
 	}
 
 	/* (non-Javadoc)

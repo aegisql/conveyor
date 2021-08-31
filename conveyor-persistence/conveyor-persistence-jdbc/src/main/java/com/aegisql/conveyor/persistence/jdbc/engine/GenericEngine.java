@@ -9,7 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -57,9 +60,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 
 	/** The connection url template. */
 	protected String connectionUrlTemplate;
-
-	/** The connection. */
-	private Connection connection;
 
 	/** The host. */
 	protected String host;
@@ -147,16 +147,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	
 	/** The additional fields. */
 	protected List<Field<?>> additionalFields = new ArrayList<>();
-
-	protected Function<String,Connection> connectionFunction = connectionUrl -> {
-		LOG.debug("Connecting to {}",connectionUrl);
-		try {
-			return DriverManager.getConnection(connectionUrl, properties);
-		} catch (SQLException e) {
-			LOG.error("Failed connection to {}",connectionUrl,e);
-			throw new PersistenceException("Failed connection to URL " + connectionUrl + " " + properties, e);
-		}
-	};
 
 	protected ConnectionFactory connectionFactory;
 
@@ -746,30 +736,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	}
 	
 	/**
-	 * Connect and do.
-	 *
-	 * @param urlTemplate the url
-	 * @param connectionConsumer the connection consumer
-	 */
-	protected void connectAndDo(String urlTemplate, Consumer<Connection> connectionConsumer) {
-		try(StatementExecutor se = connectionFactory.getStatementExecutor()) {
-
-		}catch (Exception e) {
-			throw new PersistenceException(e);
-		}
-
-		String connectionUrl = toConnectionUrl(urlTemplate);
-		if (notEmpty(connectionUrl)) {
-			try (Connection con = connectionFunction.apply(connectionUrl)) {
-				connectionConsumer.accept(con);
-			} catch (SQLException e) {
-				LOG.error("Failed applying to {}",connectionUrl,e);
-				throw new PersistenceException("Failed applying to connection to URL " + urlTemplate + " " + properties, e);
-			}
-		}
-	}
-
-	/**
 	 * Connect and execute update.
 	 *
 	 * @param url the url
@@ -1202,7 +1168,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	@Override
 	public void close() throws IOException {
 		connectionFactory.closeConnection();
-		connection = null;
 	}
 
 	/**
