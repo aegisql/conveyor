@@ -1,15 +1,20 @@
 package com.aegisql.conveyor.persistence.jdbc.engine.connectivity;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.ConnectionBuilder;
-import java.sql.SQLException;
 import java.sql.ShardingKey;
+import java.util.function.Function;
 
 public abstract class AbstractDataSourceConnectionFactory<T extends DataSource> extends AbstractConnectionFactory {
 
-    protected final T dataSource;
+    protected T dataSource;
+    protected final Function<AbstractDataSourceConnectionFactory<T>,T> dataSourceInitializer;
     protected boolean dataSourceInitialized = false;
+
+    @Override
+    public void resetConnection() {
+        super.resetConnection();
+        dataSource = null;
+    }
 
     public T getDataSource() {
         return dataSource;
@@ -34,35 +39,14 @@ public abstract class AbstractDataSourceConnectionFactory<T extends DataSource> 
     protected ShardingKey superShardingKey;
     protected ShardingKey shardingKey;
 
-    public AbstractDataSourceConnectionFactory(T dataSource) {
-        this.dataSource = dataSource;
+    public AbstractDataSourceConnectionFactory(Function<AbstractDataSourceConnectionFactory<T>,T> dataSourceInitializer) {
+        this.dataSourceInitializer = dataSourceInitializer;
     }
 
-    protected void initDataSource() {}
-
-    @Override
-    public Connection getConnection() {
-        try {
-            if(connection == null || connection.isClosed()) {
-                ConnectionBuilder connectionBuilder = dataSource.createConnectionBuilder();
-                if(notBlank(user)) {
-                    connectionBuilder.user(user);
-                }
-                if(notBlank(password)) {
-                    connectionBuilder.password(password);
-                }
-                if(superShardingKey != null) {
-                    connectionBuilder.superShardingKey(superShardingKey);
-                }
-                if(shardingKey != null) {
-                    connectionBuilder.shardingKey(shardingKey);
-                }
-                connection = connectionBuilder.build();
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+    protected void initDataSource() {
+        if(dataSource==null) {
+            dataSource = dataSourceInitializer.apply(this);
         }
-        return connection;
     }
 
 }

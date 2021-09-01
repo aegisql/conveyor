@@ -17,12 +17,4 @@ public class ExternalJdbcConnectionFactory extends AbstractExternalConnectionFac
         return new JdbcStatementExecutor(this);
     }
 
-    @Override
-    public ConnectionFactory copy() {
-        ExternalJdbcConnectionFactory next = new ExternalJdbcConnectionFactory(supplier);
-        next.database = this.database;
-        next.schema = this.schema;
-        return next;
-    }
-
 }

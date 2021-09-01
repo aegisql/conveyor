@@ -25,11 +25,4 @@ public class DriverManagerConnectionFactory extends AbstractConnectionFactory {
         return new JdbcStatementExecutor(this);
     }
 
-    @Override
-    public ConnectionFactory copy() {
-        DriverManagerConnectionFactory next = new DriverManagerConnectionFactory();
-        copyThisToOther(next);
-        return next;
-    }
-
 }

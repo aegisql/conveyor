@@ -6,10 +6,10 @@ import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.Connection;
 
-public class DBCP2ConnectionFactory extends AbstractDataSourceConnectionFactory<BasicDataSource> {
+public class DBCP2ConnectionFactory extends DbcpConnectionFactory<BasicDataSource> {
 
     public DBCP2ConnectionFactory() {
-        super(new BasicDataSource());
+        super(f->new BasicDataSource());
     }
 
     @Override
@@ -29,10 +29,4 @@ public class DBCP2ConnectionFactory extends AbstractDataSourceConnectionFactory<
         return new DBCPStatementExecutor(this);
     }
 
-    @Override
-    public ConnectionFactory copy() {
-        DBCP2ConnectionFactory next = new DBCP2ConnectionFactory();
-        copyThisToOther(next);
-        return next;
-    }
 }

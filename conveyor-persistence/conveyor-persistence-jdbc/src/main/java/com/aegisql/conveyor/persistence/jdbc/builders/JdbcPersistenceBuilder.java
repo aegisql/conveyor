@@ -849,8 +849,16 @@ public class JdbcPersistenceBuilder<K> {
 		return connectionFactory( new JdbcConnectionFactory<>(dataSource));
 	}
 
+	public JdbcPersistenceBuilder<K> jdbcConnection(Function<JdbcConnectionFactory<? extends DataSource>,? extends DataSource> initializer) {
+		return connectionFactory( new JdbcConnectionFactory(initializer));
+	}
+
 	public JdbcPersistenceBuilder<K> dbcpConnection(DataSource dataSource) {
 		return connectionFactory( new DbcpConnectionFactory<>(dataSource));
+	}
+
+	public JdbcPersistenceBuilder<K> dbcpConnection(Function<DbcpConnectionFactory<? extends DataSource>,? extends DataSource> initializer) {
+		return connectionFactory( new DbcpConnectionFactory(initializer));
 	}
 
 	public JdbcPersistenceBuilder<K> dbcp2Connection() {

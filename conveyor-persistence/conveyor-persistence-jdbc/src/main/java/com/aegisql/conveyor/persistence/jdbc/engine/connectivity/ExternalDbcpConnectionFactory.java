@@ -17,11 +17,4 @@ public class ExternalDbcpConnectionFactory extends AbstractExternalConnectionFac
         return new DBCPStatementExecutor(this);
     }
 
-    @Override
-    public ConnectionFactory copy() {
-        ExternalDbcpConnectionFactory next = new ExternalDbcpConnectionFactory(supplier);
-        next.database = this.database;
-        next.schema = this.schema;
-        return next;
-    }
 }
