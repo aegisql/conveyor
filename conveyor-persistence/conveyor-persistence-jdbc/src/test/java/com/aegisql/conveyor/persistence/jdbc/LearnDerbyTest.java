@@ -83,6 +83,7 @@ public class LearnDerbyTest {
 	    r.next();
 	    long id = r.getLong(1);
 	    System.out.println(id);
+	    r.close();
 	    st.close();
 
 	    conn.close();

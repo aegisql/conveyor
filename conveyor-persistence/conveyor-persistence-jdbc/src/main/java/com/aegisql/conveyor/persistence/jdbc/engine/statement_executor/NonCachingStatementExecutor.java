@@ -1,16 +1,17 @@
 package com.aegisql.conveyor.persistence.jdbc.engine.statement_executor;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.function.Supplier;
 
-public class DBCPStatementExecutor extends AbstractStatementExecutor {
+public class NonCachingStatementExecutor extends AbstractStatementExecutor {
 
 
-    public DBCPStatementExecutor(ConnectionFactory connection) {
-        super(connection);
+    public NonCachingStatementExecutor(Supplier<Connection> connectionSupplier) {
+        super(connectionSupplier);
     }
 
     @Override

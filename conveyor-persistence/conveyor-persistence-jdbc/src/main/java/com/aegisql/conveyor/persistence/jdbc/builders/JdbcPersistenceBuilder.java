@@ -19,7 +19,7 @@ import com.aegisql.conveyor.persistence.jdbc.archive.SetArchivedArchiver;
 import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringLabelConverter;
 import com.aegisql.conveyor.persistence.jdbc.engine.*;
-import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.*;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,7 +191,7 @@ public class JdbcPersistenceBuilder<K> {
 	public JdbcPersistenceBuilder(Class<K> keyClass) {
 		this(TimeHostIdGenerator.idGenerator_10x8(System.currentTimeMillis()/1000)::getId, false, keyClass, null, null, 0, null, null, null, null, null, null, new Properties(), new ArrayList<>(),
 				ArchiveStrategy.DELETE,null,null,null,new StringLabelConverter(), new EncryptingConverterBuilder(),
-				0,100,60_000,new HashSet<>(), null,RestoreOrder.BY_ID, new ArrayList<>(), new DriverManagerConnectionFactory());
+				0,100,60_000,new HashSet<>(), null,RestoreOrder.BY_ID, new ArrayList<>(), ConnectionFactory.driverManagerFactoryInstance());
 	}	
 	
 	/**
@@ -832,7 +832,7 @@ public class JdbcPersistenceBuilder<K> {
 				engineDepo,restoreOrder, new ArrayList<>(uf),connectionFactory);
 	}
 
-	public JdbcPersistenceBuilder<K> connectionFactory(ConnectionFactory connectionFactory) {
+	public JdbcPersistenceBuilder<K> connectionFactory(ConnectionFactory<? extends DataSource> connectionFactory) {
 		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new ArrayList<>(additionalFields),
@@ -842,35 +842,35 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> driverManagerJdbcConnection() {
-		return connectionFactory( new DriverManagerConnectionFactory());
+		return connectionFactory( ConnectionFactory.driverManagerFactoryInstance());
 	}
 
 	public JdbcPersistenceBuilder<K> jdbcConnection(DataSource dataSource) {
-		return connectionFactory( new JdbcConnectionFactory<>(dataSource));
+		return connectionFactory( ConnectionFactory.cachingFactoryInstance(cf->dataSource));
 	}
 
-	public JdbcPersistenceBuilder<K> jdbcConnection(Function<JdbcConnectionFactory<? extends DataSource>,? extends DataSource> initializer) {
-		return connectionFactory( new JdbcConnectionFactory(initializer));
+	public JdbcPersistenceBuilder<K> jdbcConnection(Function<ConnectionFactory<? extends DataSource>,? extends DataSource> initializer) {
+		return connectionFactory( ConnectionFactory.cachingFactoryInstance((Function)initializer));
 	}
 
 	public JdbcPersistenceBuilder<K> dbcpConnection(DataSource dataSource) {
-		return connectionFactory( new DbcpConnectionFactory<>(dataSource));
+		return connectionFactory( ConnectionFactory.nonCachingFactoryInstance(cf->dataSource));
 	}
 
-	public JdbcPersistenceBuilder<K> dbcpConnection(Function<DbcpConnectionFactory<? extends DataSource>,? extends DataSource> initializer) {
-		return connectionFactory( new DbcpConnectionFactory(initializer));
+	public JdbcPersistenceBuilder<K> dbcpConnection(Function<ConnectionFactory<? extends DataSource>,? extends DataSource> initializer) {
+		return connectionFactory( ConnectionFactory.nonCachingFactoryInstance((Function)initializer));
 	}
 
 	public JdbcPersistenceBuilder<K> dbcp2Connection() {
-		return connectionFactory( new DBCP2ConnectionFactory());
+		return connectionFactory( ConnectionFactory.DBCP2FactoryInstance());
 	}
 
 	public JdbcPersistenceBuilder<K> externalJdbcConnection(Supplier<Connection> connectionSupplier) {
-		return connectionFactory( new ExternalJdbcConnectionFactory(connectionSupplier));
+		return connectionFactory( ConnectionFactory.cachingExternalConnectionFactoryInstance(connectionSupplier));
 	}
 
 	public JdbcPersistenceBuilder<K> externalDbcpConnection(Supplier<Connection> connectionSupplier) {
-		return connectionFactory(new ExternalDbcpConnectionFactory(connectionSupplier));
+		return connectionFactory(ConnectionFactory.nonCachingExternalConnectionFactoryInstance(connectionSupplier));
 	}
 
 	public JdbcPersistenceBuilder<K> addUniqueFields(String f1, String...more) {
@@ -1139,14 +1139,11 @@ public class JdbcPersistenceBuilder<K> {
 		GenericEngine<K> engine = null;
 		connectionFactory.setDatabase(database);
 		connectionFactory.setSchema(schema);
-		if(connectionFactory instanceof AbstractConnectionFactory) {
-			AbstractConnectionFactory abstractConnectionFactory = (AbstractConnectionFactory) connectionFactory;
-			abstractConnectionFactory.setUser(user);
-			abstractConnectionFactory.setPassword(password);
-			abstractConnectionFactory.setHost(host);
-			abstractConnectionFactory.setPort(port);
-			abstractConnectionFactory.setProperties(properties);
-		}
+		connectionFactory.setUser(user);
+		connectionFactory.setPassword(password);
+		connectionFactory.setHost(host);
+		connectionFactory.setPort(port);
+		connectionFactory.setProperties(properties);
 		switch (type) {
 		case "derby":
 			engine = new DerbyEngine<>(kClass,connectionFactory);

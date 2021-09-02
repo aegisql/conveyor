@@ -10,7 +10,6 @@ import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.*;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.*;
 
@@ -26,16 +25,7 @@ public class MysqlDbcpPerfTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
 			.user("tester")
-			.dbcpConnection(cf->{
-				BasicDataSource dataSource = new BasicDataSource();
-				dataSource.setUrl(cf.getUrl());
-				dataSource.setDriverClassName(cf.getDriverClassName());
-				dataSource.setUsername(cf.getUser());
-				dataSource.setPassword(cf.getPassword());
-				dataSource.setInitialSize(30);
-				System.err.println("DBCP Data Source initialized "+cf.getUrl());
-				return dataSource;
-			})
+			.dbcp2Connection()
 			.autoInit(true).setArchived();
 	
 	@BeforeClass
@@ -91,17 +81,6 @@ public class MysqlDbcpPerfTest {
 				.labelConverter(TrioPart.class)
 				.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS)
 				.maxBatchSize(batchSize)
-					.dbcpConnection(cf->{
-						BasicDataSource dataSource = new BasicDataSource();
-						dataSource.setUrl(cf.getUrl());
-						dataSource.setDriverClassName(cf.getDriverClassName());
-						dataSource.setUsername(cf.getUser());
-						dataSource.setPassword(cf.getPassword());
-						dataSource.setInitialSize(3);
-						System.err.println("DBCP Data Source 2 initialized "+cf.getUrl());
-						return dataSource;
-					})
-					.setArchived()
 				.build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -171,16 +150,6 @@ public class MysqlDbcpPerfTest {
 					.labelConverter(TrioPart.class)
 					.maxBatchSize(batchSize)
 					.archiver(archive)
-					.dbcpConnection(cf->{
-						BasicDataSource dataSource = new BasicDataSource();
-						dataSource.setUrl(cf.getUrl());
-						dataSource.setDriverClassName(cf.getDriverClassName());
-						dataSource.setUsername(cf.getUser());
-						dataSource.setPassword(cf.getPassword());
-						dataSource.setInitialSize(3);
-						System.err.println("DBCP Data Source 2 initialized "+cf.getUrl());
-						return dataSource;
-					})
 					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS)
 					.maxBatchSize(batchSize)
 					.build();

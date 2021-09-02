@@ -1,6 +1,6 @@
 package com.aegisql.conveyor.persistence.jdbc.engine.connectivity;
 
-import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.DBCPStatementExecutor;
+import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.NonCachingStatementExecutor;
 import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.StatementExecutor;
 import org.apache.commons.dbcp2.BasicDataSource;
 
@@ -26,7 +26,7 @@ public class DBCP2ConnectionFactory extends DbcpConnectionFactory<BasicDataSourc
 
     @Override
     public StatementExecutor getStatementExecutor() {
-        return new DBCPStatementExecutor(this);
+        return new NonCachingStatementExecutor(this::getConnection);
     }
 
 }

@@ -2,7 +2,6 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.builders.Field;
-import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.AbstractConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.StatementExecutor;
 import org.slf4j.Logger;
@@ -182,10 +181,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	}
 
 	public void setDriver(String driver) {
-		if(connectionFactory instanceof AbstractConnectionFactory) {
-			AbstractConnectionFactory abstractConnectionFactory = (AbstractConnectionFactory) connectionFactory;
-			abstractConnectionFactory.setDriverClassName(driver);
-		}
+		connectionFactory.setDriverClassName(driver);
 		this.driver = driver;
 	}
 
@@ -852,10 +848,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param port the new port
 	 */
 	public void setPort(int port) {
-		if(connectionFactory instanceof AbstractConnectionFactory) {
-			AbstractConnectionFactory abstractConnectionFactory = (AbstractConnectionFactory) connectionFactory;
-			abstractConnectionFactory.setPort(port);
-		}
+		connectionFactory.setPort(port);
 		this.port = port;
 	}
 
@@ -902,10 +895,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	public void setProperties(Properties properties) {
 		if(properties != null) {
-			if(connectionFactory instanceof AbstractConnectionFactory) {
-				AbstractConnectionFactory abstractConnectionFactory = (AbstractConnectionFactory) connectionFactory;
-				abstractConnectionFactory.setProperties(properties);
-			}
+			connectionFactory.setProperties(properties);
 			this.properties.putAll(properties);
 		}
 	}
@@ -917,10 +907,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param value the value
 	 */
 	public void setProperty(String key, String value) {
-		if(connectionFactory instanceof AbstractConnectionFactory) {
-			AbstractConnectionFactory abstractConnectionFactory = (AbstractConnectionFactory) connectionFactory;
-			abstractConnectionFactory.getProperties().put(key,value);
-		}
+		connectionFactory.getProperties().put(key,value);
 		this.properties.put(key, value);
 	}
 
@@ -1192,10 +1179,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	
 	protected boolean switchUrlTemplae(String temlate) {
 		if(notEmpty(temlate)) {
-			if (connectionFactory instanceof AbstractConnectionFactory) {
-				AbstractConnectionFactory abstractConnectionFactory = (AbstractConnectionFactory) connectionFactory;
-				abstractConnectionFactory.setUrlTemplate(temlate);
-			}
+			connectionFactory.setUrlTemplate(temlate);
 			return true;
 		}
 		return false;

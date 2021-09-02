@@ -1,6 +1,6 @@
 package com.aegisql.conveyor.persistence.jdbc.engine.connectivity;
 
-import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.JdbcStatementExecutor;
+import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.CachingStatementExecutor;
 import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.StatementExecutor;
 
 import java.sql.Connection;
@@ -14,7 +14,7 @@ public class ExternalJdbcConnectionFactory extends AbstractExternalConnectionFac
 
     @Override
     public StatementExecutor getStatementExecutor() {
-        return new JdbcStatementExecutor(this);
+        return new CachingStatementExecutor(this::getConnection);
     }
 
 }

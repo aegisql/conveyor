@@ -1,26 +1,26 @@
 package com.aegisql.conveyor.persistence.jdbc.engine.statement_executor;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public abstract class AbstractStatementExecutor implements StatementExecutor {
 
-    protected final ConnectionFactory connectionFactory;
+    protected final Supplier<Connection> connectionFactory;
     protected Connection connection;
 
-    public AbstractStatementExecutor(ConnectionFactory connection) {
+    public AbstractStatementExecutor(Supplier<Connection> connection) {
         this.connectionFactory = connection;
     }
 
     @Override
     public void execute(String sql) {
-        connection = connectionFactory.getConnection();
+        connection = connectionFactory.get();
         try(PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.execute();
         } catch (SQLException e) {
@@ -30,7 +30,7 @@ public abstract class AbstractStatementExecutor implements StatementExecutor {
 
     @Override
     public void execute(String sql, Consumer<PreparedStatement> consumer) {
-        connection = connectionFactory.getConnection();
+        connection = connectionFactory.get();
         try(PreparedStatement statement = connection.prepareStatement(sql)) {
             consumer.accept(statement);
             statement.execute();
@@ -41,7 +41,7 @@ public abstract class AbstractStatementExecutor implements StatementExecutor {
 
     @Override
     public void executeUpdate(String sql) {
-        connection = connectionFactory.getConnection();
+        connection = connectionFactory.get();
         try(PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -51,17 +51,17 @@ public abstract class AbstractStatementExecutor implements StatementExecutor {
 
     @Override
     public <T> T fetchOne(String sql, Consumer<PreparedStatement> consumer, Function<ResultSet,T> transformer) {
-        connection = connectionFactory.getConnection();
+        connection = connectionFactory.get();
         try(PreparedStatement statement = connection.prepareStatement(sql)) {
             consumer.accept(statement);
-            ResultSet resultSet = statement.executeQuery();
             T t = null;
-            ResultSet rs =statement.executeQuery();
-            while(rs.next()) {
-                if(t != null) {
-                    throw new PersistenceException("Expected single object for "+t);
+            try (ResultSet rs =statement.executeQuery() ) {
+                while (rs.next()) {
+                    if (t != null) {
+                        throw new PersistenceException("Expected single object for " + t);
+                    }
+                    t = transformer.apply(rs);
                 }
-                t = transformer.apply(rs);
             }
             return t;
         } catch (SQLException e) {
@@ -71,15 +71,15 @@ public abstract class AbstractStatementExecutor implements StatementExecutor {
 
     @Override
     public <T> List<T> fetchMany(String sql, Consumer<PreparedStatement> consumer, Function<ResultSet,T> transformer) {
-        connection = connectionFactory.getConnection();
+        connection = connectionFactory.get();
         try(PreparedStatement statement = connection.prepareStatement(sql)) {
             consumer.accept(statement);
-            ResultSet resultSet = statement.executeQuery();
             List<T> list = new ArrayList<>();
-            ResultSet rs =statement.executeQuery();
-            while(rs.next()) {
-                T t = transformer.apply(rs);
-                list.add(t);
+            try (ResultSet rs =statement.executeQuery() ) {
+                while (rs.next()) {
+                    T t = transformer.apply(rs);
+                    list.add(t);
+                }
             }
             return list;
         } catch (SQLException e) {
@@ -90,7 +90,7 @@ public abstract class AbstractStatementExecutor implements StatementExecutor {
 
     @Override
     public void meta(Consumer<DatabaseMetaData> metaDataConsumer) {
-        connection = connectionFactory.getConnection();
+        connection = connectionFactory.get();
         try {
             DatabaseMetaData metaData = connection.getMetaData();
             metaDataConsumer.accept(metaData);

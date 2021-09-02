@@ -6,7 +6,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.Supplier;
 
-public abstract class AbstractExternalConnectionFactory implements ConnectionFactory {
+public abstract class AbstractExternalConnectionFactory implements ConnectionFactoryI {
 
     protected final Supplier<Connection> supplier;
     protected Connection connection;
@@ -44,6 +44,8 @@ public abstract class AbstractExternalConnectionFactory implements ConnectionFac
     public void resetConnection() {
         closeConnection();
         connection = null;
+        database = null;
+        schema = null;
     }
 
     @Override

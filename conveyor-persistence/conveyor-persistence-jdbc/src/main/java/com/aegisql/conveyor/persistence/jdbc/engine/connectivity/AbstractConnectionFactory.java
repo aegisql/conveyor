@@ -6,7 +6,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public abstract class AbstractConnectionFactory implements ConnectionFactory {
+public abstract class AbstractConnectionFactory implements ConnectionFactoryI {
 
     protected String driverClassName;
     protected String urlTemplate;
@@ -113,9 +113,11 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
         if (notBlank(url)) {
             return url;
         } else {
-            url =  urlTemplate.replace("{host}", host == null ? "" : host).replace("{port}", "" + port)
+            url =  urlTemplate.replace("{host}", host == null ? "" : host)
+                    .replace("{port}", "" + port)
                     .replace("{database}", database == null ? "" : database)
-                    .replace("{schema}", schema == null ? "" : schema).replace("{user}", user == null ? "" : user)
+                    .replace("{schema}", schema == null ? "" : schema)
+                    .replace("{user}", user == null ? "" : user)
                     .replace("{password}", password == null ? "" : password);
             return url;
         }

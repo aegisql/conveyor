@@ -1,7 +1,7 @@
 package com.aegisql.conveyor.persistence.jdbc.engine.connectivity;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.DBCPStatementExecutor;
+import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.NonCachingStatementExecutor;
 import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.StatementExecutor;
 
 import javax.sql.DataSource;
@@ -22,9 +22,8 @@ public class DbcpConnectionFactory<T extends DataSource> extends AbstractDataSou
     @Override
     public Connection getConnection() {
         try {
-                initDataSource();
-                return dataSource.getConnection();
-//                System.err.println("Created connection "+connection.getClass().getSimpleName()+" "+connection.getMetaData().getURL());
+            initDataSource();
+            return dataSource.getConnection();
         } catch (SQLException e) {
             throw new PersistenceException("Failed obtaining connection",e);
         }
@@ -33,18 +32,16 @@ public class DbcpConnectionFactory<T extends DataSource> extends AbstractDataSou
     @Override
     public void resetConnection() {
         super.resetConnection();
-        //dataSource = null;
     }
 
     @Override
     public void closeConnection() {
         super.closeConnection();
-        connection = null;
     }
 
     @Override
     public StatementExecutor getStatementExecutor() {
-        return new DBCPStatementExecutor(this);
+        return new NonCachingStatementExecutor(this::getConnection);
     }
 
 }

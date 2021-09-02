@@ -2,7 +2,7 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.builders.Field;
-import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.junit.*;
 
@@ -46,7 +46,7 @@ public class SqliteEngineTest {
 		order.put("PRIORITY", "DESC");
 		order.put("ID", "ASC");
 
-		GenericEngine<Integer> de = new SqliteEngine<>(Integer.class,new DriverManagerConnectionFactory());
+		GenericEngine<Integer> de = new SqliteEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance());
 		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
 		de.setDatabase(SCHEMA+".db");
 		de.setSortingOrder(order);
