@@ -34,7 +34,6 @@ public class MysqlPersistenceDataSourceTest {
 				dataSource.setURL(cf.getUrl());
 				dataSource.setUser(cf.getUser());
 				dataSource.setPassword(cf.getPassword());
-				System.err.println("JDBC Data Source initialized");
 				return dataSource;
 			});
 
