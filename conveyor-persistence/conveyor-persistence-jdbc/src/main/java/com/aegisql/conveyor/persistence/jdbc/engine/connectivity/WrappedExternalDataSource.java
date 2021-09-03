@@ -8,11 +8,19 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
+/**
+ * The type Wrapped external data source.
+ */
 public class WrappedExternalDataSource implements DataSource {
 
     private final Supplier<Connection> connectionSupplier;
     private PrintWriter logWriter;
 
+    /**
+     * Instantiates a new Wrapped external data source.
+     *
+     * @param connectionSupplier the connection supplier
+     */
     public WrappedExternalDataSource(Supplier<Connection> connectionSupplier) {
         this.connectionSupplier = connectionSupplier;
     }

@@ -12,6 +12,9 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+/**
+ * The type Driver manager data source.
+ */
 public class DriverManagerDataSource implements DataSource {
 
     private String driverClassName = "";
@@ -20,6 +23,11 @@ public class DriverManagerDataSource implements DataSource {
 
     private PrintWriter logWriter;
 
+    /**
+     * Sets driver class name.
+     *
+     * @param driverClassName the driver class name
+     */
     public void setDriverClassName(String driverClassName) {
         try {
             if (driverClassName != null && ! driverClassName.isBlank()) {
@@ -31,14 +39,30 @@ public class DriverManagerDataSource implements DataSource {
         }
     }
 
+    /**
+     * Sets properties.
+     *
+     * @param properties the properties
+     */
     public void setProperties(Properties properties) {
         this.properties = properties;
     }
 
+    /**
+     * Add property.
+     *
+     * @param key   the key
+     * @param value the value
+     */
     public void addProperty(String key, String value) {
         properties.put(key,value);
     }
 
+    /**
+     * Sets url.
+     *
+     * @param url the url
+     */
     public void setUrl(String url) {
         Objects.requireNonNull(url,"URL is null");
         this.url = url;

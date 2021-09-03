@@ -7,9 +7,17 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.Supplier;
 
+/**
+ * The type Non caching statement executor.
+ */
 public class NonCachingStatementExecutor extends AbstractStatementExecutor {
 
 
+    /**
+     * Instantiates a new Non caching statement executor.
+     *
+     * @param connectionSupplier the connection supplier
+     */
     public NonCachingStatementExecutor(Supplier<Connection> connectionSupplier) {
         super(connectionSupplier);
     }

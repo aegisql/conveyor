@@ -9,11 +9,25 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * The type Abstract statement executor.
+ */
 public abstract class AbstractStatementExecutor implements StatementExecutor {
 
+    /**
+     * The Connection factory.
+     */
     protected final Supplier<Connection> connectionFactory;
+    /**
+     * The Connection.
+     */
     protected Connection connection;
 
+    /**
+     * Instantiates a new Abstract statement executor.
+     *
+     * @param connection the connection
+     */
     public AbstractStatementExecutor(Supplier<Connection> connection) {
         this.connectionFactory = connection;
     }
