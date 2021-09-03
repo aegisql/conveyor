@@ -19,14 +19,17 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class GenericEngine.
  *
  * @param <K> the key type
  */
 public abstract class GenericEngine <K> implements EngineDepo <K>  {
-	
-	/** The Constant LOG. */
+
+	/**
+	 * The Constant LOG.
+	 */
 	protected static final Logger LOG = LoggerFactory.getLogger(EngineDepo.class);
 
 	/** The Constant LOAD_TYPE_MAX_LENGTH. */
@@ -37,122 +40,201 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 
 	/** The Constant VALUE_CLASS_MAX_LENGTH. */
 	private static final int VALUE_CLASS_MAX_LENGTH = 255;
-	
-	/** The key class. */
+
+	/**
+	 * The key class.
+	 */
 	protected final Class<K> keyClass;
 
-	/** The driver. */
+	/**
+	 * The driver.
+	 */
 	protected String driver;
-	
-	/** The connection url template for init database. */
+
+	/**
+	 * The connection url template for init database.
+	 */
 	protected String connectionUrlTemplateForInitDatabase;
-	
-	/** The connection url template for init schema. */
+
+	/**
+	 * The connection url template for init schema.
+	 */
 	protected String connectionUrlTemplateForInitSchema;
-	
-	/** The connection url template for init tables and indexes. */
+
+	/**
+	 * The connection url template for init tables and indexes.
+	 */
 	protected String connectionUrlTemplateForInitTablesAndIndexes;
 
+	/**
+	 * Gets connection url template.
+	 *
+	 * @return the connection url template
+	 */
 	protected String getConnectionUrlTemplate() {
 		return connectionUrlTemplate;
 	}
 
-	/** The connection url template. */
+	/**
+	 * The connection url template.
+	 */
 	protected String connectionUrlTemplate;
 
-	/** The host. */
+	/**
+	 * The host.
+	 */
 	protected String host;
-	
-	/** The port. */
+
+	/**
+	 * The port.
+	 */
 	protected int port;
 
-	/** The user. */
+	/**
+	 * The user.
+	 */
 	protected String user;
 
-	/** The password. */
+	/**
+	 * The password.
+	 */
 	protected String password;
-	
-	/** The properties. */
+
+	/**
+	 * The properties.
+	 */
 	protected Properties properties = new Properties();
-	
-	/** The fields. */
+
+	/**
+	 * The fields.
+	 */
 	protected final LinkedHashMap<String,String> fields = new LinkedHashMap<>();
-	
-	/** The delete from completed sql. */
+
+	/**
+	 * The delete from completed sql.
+	 */
 	protected String deleteFromCompletedSql;
-	
-	/** The delete all completed sql. */
+
+	/**
+	 * The delete all completed sql.
+	 */
 	protected String deleteAllCompletedSql;
-	
-	/** The delete from parts by id sql. */
+
+	/**
+	 * The delete from parts by id sql.
+	 */
 	protected String deleteFromPartsByIdSql;
-	
-	/** The delete from parts by cart key sql. */
+
+	/**
+	 * The delete from parts by cart key sql.
+	 */
 	protected String deleteFromPartsByCartKeySql;
-	
-	/** The delete expired parts sql. */
+
+	/**
+	 * The delete expired parts sql.
+	 */
 	protected String deleteExpiredPartsSql;
-	
-	/** The delete all parts sql. */
+
+	/**
+	 * The delete all parts sql.
+	 */
 	protected String deleteAllPartsSql;
-	
-	/** The update parts by id sql. */
+
+	/**
+	 * The update parts by id sql.
+	 */
 	protected String updatePartsByIdSql;
-	
-	/** The update parts by cart key sql. */
+
+	/**
+	 * The update parts by cart key sql.
+	 */
 	protected String updatePartsByCartKeySql;
-	
-	/** The update expired parts sql. */
+
+	/**
+	 * The update expired parts sql.
+	 */
 	protected String updateExpiredPartsSql;
-	
-	/** The update all parts sql. */
+
+	/**
+	 * The update all parts sql.
+	 */
 	protected String updateAllPartsSql;
 
-	/** The q. */
+	/**
+	 * The q.
+	 */
 	protected final String q;
 
-	/** The key sql type. */
+	/**
+	 * The key sql type.
+	 */
 	protected final String keySqlType;
 
-	/** The save cart query. */
+	/**
+	 * The save cart query.
+	 */
 	protected String saveCartQuery;
-	
-	/** The save completed build key query. */
+
+	/**
+	 * The save completed build key query.
+	 */
 	protected String saveCompletedBuildKeyQuery;
-	
-	/** The get part query. */
+
+	/**
+	 * The get part query.
+	 */
 	protected String getPartQuery;
-	
-	/** The get expired part query. */
+
+	/**
+	 * The get expired part query.
+	 */
 	protected String getExpiredPartQuery;
-	
-	/** The get all part ids query. */
+
+	/**
+	 * The get all part ids query.
+	 */
 	protected String getAllPartIdsQuery;
-	
-	/** The get all unfinished parts query. */
+
+	/**
+	 * The get all unfinished parts query.
+	 */
 	protected String getAllUnfinishedPartsQuery;
-	
-	/** The get all completed keys query. */
+
+	/**
+	 * The get all completed keys query.
+	 */
 	protected String getAllCompletedKeysQuery;
-	
-	/** The get all static parts query. */
+
+	/**
+	 * The get all static parts query.
+	 */
 	protected String getAllStaticPartsQuery;
-	
-	/** The get number of parts query. */
+
+	/**
+	 * The get number of parts query.
+	 */
 	protected String getNumberOfPartsQuery;
-	
-	/** The sorting order. */
+
+	/**
+	 * The sorting order.
+	 */
 	protected Map<String,String> sortingOrder = new LinkedHashMap<>();
-	
-	/** The additional fields. */
+
+	/**
+	 * The additional fields.
+	 */
 	protected List<Field<?>> additionalFields = new ArrayList<>();
 
+	/**
+	 * The Connection factory.
+	 */
 	protected ConnectionFactory connectionFactory;
 
 	/**
 	 * Instantiates a new generic engine.
 	 *
-	 * @param keyClass the key class
+	 * @param keyClass          the key class
+	 * @param connectionFactory the connection factory
 	 */
 	protected GenericEngine(Class<K> keyClass, ConnectionFactory connectionFactory) {
 		this.keyClass = keyClass;
@@ -180,23 +262,48 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		init();
 	}
 
+	/**
+	 * Sets driver.
+	 *
+	 * @param driver the driver
+	 */
 	public void setDriver(String driver) {
 		connectionFactory.setDriverClassName(driver);
 		this.driver = driver;
 	}
 
+	/**
+	 * Sets connection url template for init database.
+	 *
+	 * @param connectionUrlTemplateForInitDatabase the connection url template for init database
+	 */
 	public void setConnectionUrlTemplateForInitDatabase(String connectionUrlTemplateForInitDatabase) {
 		this.connectionUrlTemplateForInitDatabase = connectionUrlTemplateForInitDatabase;
 	}
 
+	/**
+	 * Sets connection url template for init schema.
+	 *
+	 * @param connectionUrlTemplateForInitSchema the connection url template for init schema
+	 */
 	public void setConnectionUrlTemplateForInitSchema(String connectionUrlTemplateForInitSchema) {
 		this.connectionUrlTemplateForInitSchema = connectionUrlTemplateForInitSchema;
 	}
 
+	/**
+	 * Sets connection url template for init tables and indexes.
+	 *
+	 * @param connectionUrlTemplateForInitTablesAndIndexes the connection url template for init tables and indexes
+	 */
 	public void setConnectionUrlTemplateForInitTablesAndIndexes(String connectionUrlTemplateForInitTablesAndIndexes) {
 		this.connectionUrlTemplateForInitTablesAndIndexes = connectionUrlTemplateForInitTablesAndIndexes;
 	}
 
+	/**
+	 * Sets connection url template.
+	 *
+	 * @param connectionUrlTemplate the connection url template
+	 */
 	public void setConnectionUrlTemplate(String connectionUrlTemplate) {
 		this.connectionUrlTemplate = connectionUrlTemplate;
 		switchUrlTemplae(connectionUrlTemplate);
@@ -467,7 +574,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * Gets the creates the uniq part table index sql.
 	 *
 	 * @param partTable the part table
-	 * @param fields the fields
+	 * @param fields    the fields
 	 * @return the creates the uniq part table index sql
 	 */
 	protected String getCreateUniqPartTableIndexSql(String partTable, List<String> fields) {
@@ -637,7 +744,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		}
 		return sb.toString();
 	}
-	
+
 	/**
 	 * Quote number.
 	 *
@@ -702,11 +809,12 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 			throw new PersistenceException("Failed executing "+sql+"; "+e.getMessage(),e);
 		}
 	}
-	
+
 	/**
 	 * Connect and execute update.
 	 *
-	 * @param sql the sql
+	 * @param urlTemplate the url template
+	 * @param sql         the sql
 	 */
 	protected void connectAndExecuteUpdate(String urlTemplate, String sql) {
 		if(switchUrlTemplae(urlTemplate)) {
@@ -723,7 +831,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	/**
 	 * Execute prepared.
 	 *
-	 * @param sql the sql
+	 * @param sql      the sql
 	 * @param consumer the consumer
 	 */
 	protected void executePrepared(String sql, Consumer<PreparedStatement> consumer) {
@@ -733,13 +841,13 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 			throw new PersistenceException(e);
 		}
 	}
-	
+
 	/**
 	 * Gets the scalar value.
 	 *
-	 * @param <T> the generic type
-	 * @param sql the sql
-	 * @param consumer the consumer
+	 * @param <T>         the generic type
+	 * @param sql         the sql
+	 * @param consumer    the consumer
 	 * @param transformer the transformer
 	 * @return the scalar value
 	 */
@@ -754,9 +862,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	/**
 	 * Gets the collection of values.
 	 *
-	 * @param <T> the generic type
-	 * @param sql the sql
-	 * @param consumer the consumer
+	 * @param <T>         the generic type
+	 * @param sql         the sql
+	 * @param consumer    the consumer
 	 * @param transformer the transformer
 	 * @return the collection of values
 	 */
@@ -767,11 +875,11 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 			throw new PersistenceException(e);
 		}
 	}
-	
+
 	/**
 	 * Gets the key sql type.
 	 *
-	 * @param <K> the key type
+	 * @param <K>    the key type
 	 * @param kClass the k class
 	 * @return the key sql type
 	 */
@@ -804,11 +912,11 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	protected static String sqlFieldType(Field<?> f) {
 		return f.getName()+" "+getFieldType(f.getFieldClass());
 	}
-	
+
 	/**
 	 * Gets the field type.
 	 *
-	 * @param <K> the key type
+	 * @param <K>    the key type
 	 * @param kClass the k class
 	 * @return the field type
 	 */
@@ -903,7 +1011,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	/**
 	 * Sets the property.
 	 *
-	 * @param key the key
+	 * @param key   the key
 	 * @param value the value
 	 */
 	public void setProperty(String key, String value) {
@@ -996,7 +1104,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * Sets the field.
 	 *
 	 * @param field the field
-	 * @param type the type
+	 * @param type  the type
 	 */
 	public void setField(String field, String type) {
 		fields.put(field, type);
@@ -1154,7 +1262,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	public void setSortingOrder(LinkedHashMap<String, String> order) {
 		this.sortingOrder = order;
 	}
-	
+
 	/**
 	 * Sets the additional fields.
 	 *
@@ -1175,8 +1283,17 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return builder.toString();
 	}
 
+	/**
+	 * Init.
+	 */
 	protected abstract void init();
-	
+
+	/**
+	 * Switch url templae boolean.
+	 *
+	 * @param temlate the temlate
+	 * @return the boolean
+	 */
 	protected boolean switchUrlTemplae(String temlate) {
 		if(notEmpty(temlate)) {
 			connectionFactory.setUrlTemplate(temlate);
