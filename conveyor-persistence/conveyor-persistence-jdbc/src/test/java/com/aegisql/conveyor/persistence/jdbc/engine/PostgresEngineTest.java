@@ -67,7 +67,7 @@ public class PostgresEngineTest {
 		de.createCompletedLogTable(LOGS);
 		de.createUniqPartTableIndex(PARTS, Arrays.asList(EngineDepo.CART_KEY,EngineDepo.CART_LABEL));
 		de.createUniqPartTableIndex(PARTS, Arrays.asList("ADDON"));
-
+		de.deleteAllParts();
 		de.saveCart(1L
 				, PARTS
 				, 1, "LABEL"

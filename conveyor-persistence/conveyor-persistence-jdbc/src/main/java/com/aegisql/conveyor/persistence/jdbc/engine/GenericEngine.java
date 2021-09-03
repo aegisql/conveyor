@@ -356,6 +356,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 			try (StatementExecutor se = connectionFactory.getStatementExecutor()) {
 				se.meta(meta -> {
 					try(ResultSet schemasRs = meta.getSchemas()) {
+
 						boolean schemaExists = false;
 						while( schemasRs.next()) {
 							String sch = schemasRs.getString("TABLE_SCHEM");

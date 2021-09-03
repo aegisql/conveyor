@@ -95,7 +95,9 @@ conveyor configurator
 
 ## Release History
 
-### 1.5.3-SNAPSHOT
+### 1.5.4-SNAPSHOT
+
+### 1.5.3
 * Extended persistence connectivity with data sources and connection pools
 * Updated dependencies
 * Added Conveyor Initiating Services support

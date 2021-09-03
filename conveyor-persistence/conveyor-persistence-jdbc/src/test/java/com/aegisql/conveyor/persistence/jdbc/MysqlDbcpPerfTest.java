@@ -62,7 +62,7 @@ public class MysqlDbcpPerfTest {
 		pool = new ThreadPool(3);
 		batchSize = testSize / 20;
 		sleepNumber = batchSize;
-		System.out.println("--- MysqlPerfTest " + new Date());
+		System.out.println("--- Mysql DBCP2 Perf Test " + new Date());
 	}
 
 	@After

@@ -35,7 +35,7 @@ public class PersistCartsTest {
 	}
 	
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", Integer.class)
-			.schema("carts_db").autoInit(true).setArchived();
+			.database("carts_db").schema("carts_schema").autoInit(true).setArchived();
 
 	
 	public Persistence<Integer> getPersistence(String table) {

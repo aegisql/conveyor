@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.Assert.*;
 
+@Ignore
 public class MariadbPersistenceTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mariadb", Integer.class)

@@ -17,6 +17,7 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 
+@Ignore
 public class MariadbEngineTest {
 
 	private static String SCHEMA = "test_engine";

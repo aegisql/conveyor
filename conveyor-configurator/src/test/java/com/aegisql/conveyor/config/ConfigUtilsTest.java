@@ -1,39 +1,21 @@
 package com.aegisql.conveyor.config;
 
-import static org.junit.Assert.*;
-
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.AcknowledgeStatus;
-import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.LabeledValueConsumer;
-import com.aegisql.conveyor.ProductBin;
-import com.aegisql.conveyor.ScrapBin;
+import com.aegisql.conveyor.*;
 import com.aegisql.conveyor.ScrapBin.FailureType;
-import com.aegisql.conveyor.State;
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.config.harness.IntegerSupplier;
 import com.aegisql.conveyor.config.harness.NameLabel;
 import com.aegisql.conveyor.config.harness.StringSupplier;
-import com.aegisql.conveyor.Status;
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.result.ResultCounter;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapCounter;
+import org.junit.*;
+
+import java.util.function.*;
+
+import static org.junit.Assert.*;
 
 public class ConfigUtilsTest {
 
@@ -187,7 +169,7 @@ public class ConfigUtilsTest {
 	public void resultConsumerSupplierTest() {
 		ResultConsumer rc = (ResultConsumer)ConfigUtils.stringToResultConsumerSupplier.apply("new com.aegisql.conveyor.consumers.result.LogResult()");
 		assertNotNull(rc);
-		rc.accept(new ProductBin(1, "test", 10000, Status.READY, null, null));
+		rc.accept(new ProductBin(null,1, "test", 10000, Status.READY, null, null));
 	}
 
 	@Test
@@ -196,7 +178,7 @@ public class ConfigUtilsTest {
 		assertNotNull(rc);
 		Conveyor c = new AssemblingConveyor<>();
 		c.setName("test_conv");
-		rc.accept(new ProductBin(1, c, 10000, Status.READY, null, null));
+		rc.accept(new ProductBin(null, 1, c, 10000, Status.READY, null, null));
 	}
 
 	@Test
@@ -212,7 +194,7 @@ public class ConfigUtilsTest {
 	public void scrapConsumerSupplierTest() {
 		ScrapConsumer rc = (ScrapConsumer)ConfigUtils.stringToScrapConsumerSupplier.apply("new com.aegisql.conveyor.consumers.scrap.LogScrap()");
 		assertNotNull(rc);
-		rc.accept(new ScrapBin(1, "scrap", "test", null	, FailureType.BUILD_EXPIRED, null, null));
+		rc.accept(new ScrapBin(null, 1, "scrap", "test", null	, FailureType.BUILD_EXPIRED, null, null));
 	}
 
 	@Test
