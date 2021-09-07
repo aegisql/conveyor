@@ -41,8 +41,8 @@
 
 	<scm>
 		<url>https://github.com/aegisql/conveyor</url>
-		<connection>scm:git:git:https://github.com/aegisql/conveyor.git</connection>
-		<developerConnection>scm:git:github.com/aegisql/conveyor.git</developerConnection>
+		<connection>scm:git:git:github.com/aegisql/conveyor.git</connection>
+		<developerConnection>scm:git:https://git@github.com/aegisql/conveyor.git</developerConnection>
 	</scm>
 
 	<build>
