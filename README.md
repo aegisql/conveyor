@@ -5,6 +5,50 @@ Reactive Aggregating and Creational Framework
 
 ### Maven dependencies
 
+## For JAVA11 & OpenJDK
+conveyor-core
+```xml
+<dependency>
+  <groupId>com.aegisql</groupId>
+  <artifactId>conveyor-core</artifactId>
+  <version>1.5.3</version>
+</dependency>
+```
+
+conveyor-parallel
+```xml
+<dependency>
+  <groupId>com.aegisql</groupId>
+  <artifactId>conveyor-parallel</artifactId>
+  <version>1.5.3</version>
+</dependency>
+```
+
+conveyor-persistence
+```xml
+<dependency>
+<groupId>com.aegisql.persistence</groupId>
+  <artifactId>conveyor-persistence-core</artifactId>
+  <version>1.5.3</version>
+</dependency>
+```
+```xml
+<dependency>
+  <groupId>com.aegisql.persistence</groupId>
+  <artifactId>conveyor-persistence-jdbc</artifactId>
+  <version>1.5.3</version>
+</dependency>
+```
+
+conveyor configurator
+```xml
+<dependency>
+  <groupId>com.aegisql</groupId>
+  <artifactId>conveyor-configurator</artifactId>
+  <version>1.5.3</version>
+</dependency>
+```
+
 ## For JAVA8
 conveyor-core
 ```xml
@@ -46,50 +90,6 @@ conveyor configurator
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-configurator</artifactId>
   <version>1.4.4</version>
-</dependency>
-```
-
-## For JAVA11 & OpenJDK
-conveyor-core
-```xml
-<dependency>
-  <groupId>com.aegisql</groupId>
-  <artifactId>conveyor-core</artifactId>
-  <version>1.5.2</version>
-</dependency>
-```
-
-conveyor-parallel
-```xml
-<dependency>
-  <groupId>com.aegisql</groupId>
-  <artifactId>conveyor-parallel</artifactId>
-  <version>1.5.2</version>
-</dependency>
-```
-
-conveyor-persistence
-```xml
-<dependency>
-<groupId>com.aegisql.persistence</groupId>
-  <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.5.2</version>
-</dependency>
-```
-```xml
-<dependency>
-  <groupId>com.aegisql.persistence</groupId>
-  <artifactId>conveyor-persistence-jdbc</artifactId>
-  <version>1.5.2</version>
-</dependency>
-```
-
-conveyor configurator
-```xml
-<dependency>
-  <groupId>com.aegisql</groupId>
-  <artifactId>conveyor-configurator</artifactId>
-  <version>1.5.2</version>
 </dependency>
 ```
 
