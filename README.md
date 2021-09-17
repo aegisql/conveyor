@@ -1,5 +1,5 @@
-# conveyor
-Reactive Aggregating and Creational Framework
+# RACE FRAMEWORK
+Reactive Aggregation and Creation for Enterprise
 
 [Tutorial](https://github.com/aegisql/conveyor/wiki)
 
