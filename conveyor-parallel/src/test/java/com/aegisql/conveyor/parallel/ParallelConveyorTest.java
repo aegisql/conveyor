@@ -209,7 +209,7 @@ public class ParallelConveyorTest {
 	conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 	assertFalse(conveyor.isOnTimeoutAction());
 	conveyor.setOnTimeoutAction((builder)->{
-		System.out.println("---");
+		System.out.println("timeout "+builder.get());
 	});
 	assertTrue(conveyor.isOnTimeoutAction());
 	/** The out queue. */
