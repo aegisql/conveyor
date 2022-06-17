@@ -95,7 +95,8 @@ conveyor configurator
 
 ## Release History
 
-### 1.5.4-SNAPSHOT
+### 1.6.1-SNAPSHOT
+* Java 17
 
 ### 1.5.3
 * Extended persistence connectivity with data sources and connection pools
