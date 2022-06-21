@@ -72,8 +72,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getBuilderSupplierJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getBuilderSupplier");
-			return result;
+			return invocable.invokeFunction("getBuilderSupplier");
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToBuilderSupplier error",e);
 		}
@@ -97,8 +96,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getResultConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getResultConsumer");
-			return result;
+			return invocable.invokeFunction("getResultConsumer");
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new ConveyorConfigurationException("stringToResultConsumerSupplier error",e);
@@ -123,8 +121,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getScrapConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getScrapConsumer");
-			return result;
+			return invocable.invokeFunction("getScrapConsumer");
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToScrapConsumerSupplier error",e);
 		}
@@ -159,8 +156,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getLabelValuePairJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getLabelValuePair");
-			return result;
+			return invocable.invokeFunction("getLabelValuePair");
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToLabelValuePairSupplier error",e);
 		}
@@ -172,8 +168,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getLabelForwardTrioJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getLabelValueTrio");
-			return result;
+			return invocable.invokeFunction("getLabelValueTrio");
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new ConveyorConfigurationException("stringToForwardTrioSupplier error",e);
@@ -198,8 +193,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(consumerJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getConsumer");
-			return result;
+			return invocable.invokeFunction("getConsumer");
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToConsumerSupplier error",e);
 		}
@@ -223,8 +217,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getLabeledValueConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getLabeledValueConsumer");
-			return result;
+			return invocable.invokeFunction("getLabeledValueConsumer");
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToLabeledValueConsumerSupplier error",e);
 		}		
@@ -266,8 +259,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getReadinessEvaluatorJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getReadinessEvaluator");
-			return result;
+			return invocable.invokeFunction("getReadinessEvaluator");
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToReadinessEvaluatorSupplier error",e);
 		}		
@@ -291,8 +283,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(biConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getBiConsumer");
-			return result;
+			return invocable.invokeFunction("getBiConsumer");
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToBiConsumerSupplier error",e);
 		}
@@ -314,8 +305,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getLabelArrayConsumerJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getLabelArrayConsumer");
-			return result;
+			return invocable.invokeFunction("getLabelArrayConsumer");
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new ConveyorConfigurationException("stringToLabelArraySupplier error",e);
@@ -340,8 +330,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(functionJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getFunction");
-			return result;
+			return invocable.invokeFunction("getFunction");
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToFunctionSupplier error",e);
 		}
@@ -383,8 +372,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getObjectConverterJs, js));
 			Invocable invocable = (Invocable) engine;
-			ObjectConverter result = (ObjectConverter) invocable.invokeFunction("getObjectConverter");
-			return result;
+			return (ObjectConverter) invocable.invokeFunction("getObjectConverter");
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToObjectConverter error",e);
 		}		
@@ -396,8 +384,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getObjectConverterJs, js));
 			Invocable invocable = (Invocable) engine;
-			Archiver result = (Archiver) invocable.invokeFunction("getObjectConverter");
-			return result;
+			return (Archiver) invocable.invokeFunction("getObjectConverter");
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToArchiverConverter error",e);
 		}		
@@ -409,8 +396,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getObjectConverterJs, js));
 			Invocable invocable = (Invocable) engine;
-			Object result = invocable.invokeFunction("getObjectConverter");
-			return result;
+			return invocable.invokeFunction("getObjectConverter");
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToRefConverter error",e);
 		}		
@@ -433,8 +419,7 @@ class ConfigUtils {
 			ScriptEngine engine = new ScriptEngineManager().getEngineByName(JAVASCRIPT_ENGINE);
 			engine.eval(String.format(getLongSupplierJs, js));
 			Invocable invocable = (Invocable) engine;
-			LongSupplier result = (LongSupplier) invocable.invokeFunction("getLongSupplier");
-			return result;
+			return (LongSupplier) invocable.invokeFunction("getLongSupplier");
 		} catch (Exception e) {
 			throw new ConveyorConfigurationException("stringToIdSupplier error",e);
 		}		

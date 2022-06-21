@@ -26,7 +26,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>>, Ser
 	 *
 	 * @param <T> the generic type
 	 */
-	interface BuilderFutureSupplier<T> extends BuilderSupplier<T>, FutureSupplier<T>, Serializable {};
+	interface BuilderFutureSupplier<T> extends BuilderSupplier<T>, FutureSupplier<T>, Serializable {}
 
 	/**
 	 * Of.

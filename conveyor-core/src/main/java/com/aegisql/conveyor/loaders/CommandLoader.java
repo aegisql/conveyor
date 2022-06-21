@@ -256,8 +256,7 @@ public final class CommandLoader<K,OUT> {
 	 */
 	public CompletableFuture<Boolean> peek(Consumer<ProductBin<K,OUT>> consumer) {
 		GeneralCommand<K, Consumer<ProductBin<K,OUT>>> command = new GeneralCommand<>(key,consumer,CommandLabel.PEEK_BUILD,creationTime,expirationTime);
-		CompletableFuture<Boolean> cf = conveyor.apply(command);
-		return cf;
+		return conveyor.apply(command);
 	}
 
 	/**
@@ -268,8 +267,7 @@ public final class CommandLoader<K,OUT> {
 	 */
 	public CompletableFuture<Boolean> memento(Consumer<Memento> consumer) {
 		GeneralCommand<K, Consumer<Memento>> command = new GeneralCommand<>(key,consumer,CommandLabel.MEMENTO_BUILD,creationTime,expirationTime);
-		CompletableFuture<Boolean> cf = conveyor.apply(command);
-		return cf;
+		return conveyor.apply(command);
 	}
 
 	/**
@@ -301,14 +299,12 @@ public final class CommandLoader<K,OUT> {
 			id = (K) memento.getId();
 		}
 		GeneralCommand<K, Memento> command = new GeneralCommand<>(id,memento,CommandLabel.RESTORE_BUILD,creationTime,expirationTime);
-		CompletableFuture<Boolean> cf = conveyor.apply(command);
-		return cf;
+		return conveyor.apply(command);
 	}
 
 	public CompletableFuture<Boolean> suspend() {
 		GeneralCommand<K, Boolean> command = new GeneralCommand<>(x->true,true,CommandLabel.SUSPEND,creationTime,expirationTime);
-		CompletableFuture<Boolean> cf = conveyor.apply(command);
-		return cf;
+		return conveyor.apply(command);
 	}
 	
 	/* (non-Javadoc)

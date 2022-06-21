@@ -19,10 +19,8 @@ import static org.junit.Assert.*;
 
 public class PostgresEngineTest {
 
-	private static String SCHEMA = "test_engine";
-	private static String PARTS = "PART";
-	private static String LOGS = "COMPLETED_LOG";
-	
+	private static final String SCHEMA = "test_engine";
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		BasicConfigurator.configure();
@@ -56,7 +54,9 @@ public class PostgresEngineTest {
 		de.setUser("postgres");
 		de.setPassword("root");
 		de.setSortingOrder(order);
+		String PARTS = "PART";
 		de.buildPartTableQueries(PARTS);
+		String LOGS = "COMPLETED_LOG";
 		de.buildCompletedLogTableQueries(LOGS);
 		assertFalse(de.databaseExists(SCHEMA));
 		de.createDatabase(SCHEMA);

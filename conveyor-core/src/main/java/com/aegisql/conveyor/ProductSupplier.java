@@ -25,15 +25,15 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 	 * @param <T> the generic type
 	 */
 	//all possible permutations 
-	interface PE<T>       extends ProductSupplier<T>, Expireable {};
-	
+	interface PE<T>       extends ProductSupplier<T>, Expireable {}
+
 	/**
 	 * The Interface PT.
 	 *
 	 * @param <T> the generic type
 	 */
-	interface PT<T>       extends ProductSupplier<T>, Testing {};
-	
+	interface PT<T>       extends ProductSupplier<T>, Testing {}
+
 	/**
 	 * The Interface PS.
 	 *
@@ -41,22 +41,22 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 	 * @param <K> the key type
 	 * @param <L> the generic type
 	 */
-	interface PS<T,K,L>   extends ProductSupplier<T>, TestingState<K,L> {};
-	
+	interface PS<T,K,L>   extends ProductSupplier<T>, TestingState<K,L> {}
+
 	/**
 	 * The Interface PO.
 	 *
 	 * @param <T> the generic type
 	 */
-	interface PO<T>       extends ProductSupplier<T>, TimeoutAction {};
+	interface PO<T>       extends ProductSupplier<T>, TimeoutAction {}
 
 	/**
 	 * The Interface PET.
 	 *
 	 * @param <T> the generic type
 	 */
-	interface PET<T>      extends PE<T>, Testing {};
-	
+	interface PET<T>      extends PE<T>, Testing {}
+
 	/**
 	 * The Interface PES.
 	 *
@@ -64,22 +64,22 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 	 * @param <K> the key type
 	 * @param <L> the generic type
 	 */
-	interface PES<T,K,L>  extends PE<T>, TestingState<K,L> {};
-	
+	interface PES<T,K,L>  extends PE<T>, TestingState<K,L> {}
+
 	/**
 	 * The Interface PEO.
 	 *
 	 * @param <T> the generic type
 	 */
-	interface PEO<T>      extends PE<T>, TimeoutAction {};
+	interface PEO<T>      extends PE<T>, TimeoutAction {}
 
 	/**
 	 * The Interface PTO.
 	 *
 	 * @param <T> the generic type
 	 */
-	interface PTO<T>      extends PT<T>, TimeoutAction {};
-	
+	interface PTO<T>      extends PT<T>, TimeoutAction {}
+
 	/**
 	 * The Interface PSO.
 	 *
@@ -87,15 +87,15 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 	 * @param <K> the key type
 	 * @param <L> the generic type
 	 */
-	interface PSO<T,K,L>  extends PS<T,K,L>, TimeoutAction {};
+	interface PSO<T,K,L>  extends PS<T,K,L>, TimeoutAction {}
 
 	/**
 	 * The Interface PETO.
 	 *
 	 * @param <T> the generic type
 	 */
-	interface PETO<T>     extends PET<T>, TimeoutAction {};
-	
+	interface PETO<T>     extends PET<T>, TimeoutAction {}
+
 	/**
 	 * The Interface PESO.
 	 *
@@ -103,14 +103,14 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 	 * @param <K> the key type
 	 * @param <L> the generic type
 	 */
-	interface PESO<T,K,L> extends PES<T,K,L>, TimeoutAction {};
-	
+	interface PESO<T,K,L> extends PES<T,K,L>, TimeoutAction {}
+
 	/**
 	 * Gets the supplier.
 	 *
 	 * @return the supplier
 	 */
-	public Supplier<T> getSupplier();
+	Supplier<T> getSupplier();
 	
 	/**
 	 * Of.

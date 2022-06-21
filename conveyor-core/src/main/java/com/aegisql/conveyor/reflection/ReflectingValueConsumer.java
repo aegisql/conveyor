@@ -22,7 +22,7 @@ import java.util.Objects;
  */
 public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, Object, B> {
 
-	private static Logger LOG = LoggerFactory.getLogger(ReflectingValueConsumer.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ReflectingValueConsumer.class);
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;

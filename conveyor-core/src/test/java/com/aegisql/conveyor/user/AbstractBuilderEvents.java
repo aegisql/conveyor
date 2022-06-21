@@ -30,7 +30,7 @@ public enum AbstractBuilderEvents implements SmartLabel<AbstractSmartUserBuilder
 	;
 
 	/** The setter. */
-	BiConsumer<AbstractSmartUserBuilder, Object> setter;
+	final BiConsumer<AbstractSmartUserBuilder, Object> setter;
 
 	/**
 	 * Instantiates a new user builder events.

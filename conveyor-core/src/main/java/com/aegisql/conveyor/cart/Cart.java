@@ -21,14 +21,14 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 *
 	 * @return the key
 	 */
-	public K getKey();
+	K getKey();
 	
 	/**
 	 * Gets the value.
 	 *
 	 * @return the value
 	 */
-	public V getValue();
+	V getValue();
 
 	/**
 	 * Gets value.
@@ -50,28 +50,28 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 *
 	 * @return the label
 	 */
-	public L getLabel();
+	L getLabel();
 	
 	/**
 	 * Gets the creation time.
 	 *
 	 * @return the creation time
 	 */
-	public long getCreationTime();
+	long getCreationTime();
 
 	/**
 	 * Gets the cart creation nano time.
 	 *
 	 * @return the cart creation nano time
 	 */
-	public long getCartCreationNanoTime();
+	long getCartCreationNanoTime();
 
 	/**
 	 * Gets the expiration time.
 	 *
 	 * @return the expiration time
 	 */
-	public long getExpirationTime();
+	long getExpirationTime();
 	
 	/**
 	 * Gets Future for the cart. get() methods return:
@@ -81,14 +81,14 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 *
 	 * @return the future
 	 */
-	public CompletableFuture<Boolean> getFuture();
+	CompletableFuture<Boolean> getFuture();
 	
 	/**
 	 * Gets the scrap consumer.
 	 *
 	 * @return the scrap consumer
 	 */
-	public ScrapConsumer<K,Cart<K,V,L>> getScrapConsumer();
+	ScrapConsumer<K,Cart<K,V,L>> getScrapConsumer();
 	
 	/**
 	 * Adds the serializable property.
@@ -97,7 +97,7 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 * @param name the name
 	 * @param property the property
 	 */
-	public <X> void addProperty(String name, X property);
+	<X> void addProperty(String name, X property);
 	
 	/**
 	 * Gets the property.
@@ -116,7 +116,7 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 *
 	 * @return the all properties
 	 */
-	public Map<String,Object> getAllProperties(); 
+	Map<String,Object> getAllProperties();
 
 	
 	/**
@@ -124,7 +124,7 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 *
 	 * @param name the name
 	 */
-	public void clearProperty(String name);
+	void clearProperty(String name);
 	
 	
 	/**
@@ -132,21 +132,21 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 *
 	 * @return the load type
 	 */
-	public LoadType getLoadType();
+	LoadType getLoadType();
 	
 	/**
 	 * copy().
 	 *
 	 * @return the cart
 	 */
-	public Cart <K,V,L> copy();
+	Cart <K,V,L> copy();
 	
 	/**
 	 * Gets the priority.
 	 *
 	 * @return the priority
 	 */
-	public long getPriority();
+	long getPriority();
 	
 	
 }

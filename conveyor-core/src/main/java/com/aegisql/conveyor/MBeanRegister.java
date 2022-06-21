@@ -52,7 +52,6 @@ enum MBeanRegister {
      *
      * @param conveyor    the conveyor
      * @param mbeanObject the mbean object
-     * @return the object name
      */
     public void register(Conveyor conveyor, Object mbeanObject) {
         try {
@@ -67,12 +66,11 @@ enum MBeanRegister {
                     knownConveyors.put(type,conveyor);
                 }
                 Conveyor.LOG.debug("Registered conveyor MBean {}", type);
-                return;
             } else {
                 knownConveyors.put(type,conveyor);
                 Conveyor.LOG.debug("Registered conveyor {}", type);
-                return;
             }
+            return;
         } catch( ConveyorRuntimeException cre) {
           throw cre;
         } catch (Exception e) {
@@ -110,7 +108,7 @@ enum MBeanRegister {
                     var parts = longName.split("=");
                     return parts[1];
                 })
-                .collect(Collectors.toSet()));
+                .collect(Collectors.toUnmodifiableSet()));
     }
 
 }

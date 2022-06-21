@@ -14,7 +14,7 @@ import java.util.function.Function;
 
 public class PersistTestImpl implements Persistence<Integer>{
 	
-	public class Engine implements EngineDepo<Integer> {
+	public static class Engine implements EngineDepo<Integer> {
 
 		@Override
 		public boolean databaseExists(String database) {

@@ -19,10 +19,8 @@ import static org.junit.Assert.*;
 
 public class MysqlEngineTest {
 
-	private static String SCHEMA = "test_engine";
-	private static String PARTS = "PART";
-	private static String LOGS = "COMPLETED_LOG";
-	
+	private static final String SCHEMA = "test_engine";
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		BasicConfigurator.configure();
@@ -56,8 +54,10 @@ public class MysqlEngineTest {
 		assertFalse(de.databaseExists(SCHEMA));
 		assertTrue(de.schemaExists(SCHEMA));
 		de.createDatabase(SCHEMA);
+		String PARTS = "PART";
 		de.createPartTable(PARTS);
 		de.createPartTableIndex(PARTS);
+		String LOGS = "COMPLETED_LOG";
 		de.createCompletedLogTable(LOGS);
 		de.setSortingOrder(order);
 		de.createUniqPartTableIndex(PARTS, Arrays.asList(EngineDepo.CART_KEY,EngineDepo.CART_LABEL));

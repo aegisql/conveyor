@@ -16,28 +16,28 @@ public interface ParallelConveyorMBean {
 	 *
 	 * @return the name
 	 */
-	public String getName();
+	String getName();
 	
 	/**
 	 * Gets the type.
 	 *
 	 * @return the type
 	 */
-	public String getType();
+	String getType();
 	
 	/**
 	 * Gets the inner conveyors count.
 	 *
 	 * @return the inner conveyors count
 	 */
-	public int getInnerConveyorsCount();
+	int getInnerConveyorsCount();
 	
 	/**
 	 * Checks if is running.
 	 *
 	 * @return true, if is running
 	 */
-	public boolean isRunning();
+	boolean isRunning();
 
 	/**
 	 * Conveyor.
@@ -47,17 +47,17 @@ public interface ParallelConveyorMBean {
 	 * @param <OUT> the generic type
 	 * @return the conveyor
 	 */
-	public <K,L,OUT> Conveyor<K, L, OUT> conveyor();
+	<K,L,OUT> Conveyor<K, L, OUT> conveyor();
 	
 	/**
 	 * Stop.
 	 */
-	public void stop();
+	void stop();
 	
 	/**
 	 * Complete and stop.
 	 */
-	public void completeAndStop();
+	void completeAndStop();
 	
 	/**
 	 * Sets the idle heart beat msec.

@@ -108,8 +108,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	public <V> CompletableFuture<Boolean> place(Cart<K,V,L> cart) {
 		Objects.requireNonNull(cart, "Cart is null");
 		Conveyor<K,L,OUT> balancedCobveyor    = this.balancingCart.apply(cart).get(0);
-		CompletableFuture<Boolean> cartFuture = balancedCobveyor.place(cart);
-		return cartFuture;
+		return balancedCobveyor.place(cart);
 	}
 
 	/* (non-Javadoc)
@@ -176,7 +175,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	public void setAcknowledgeAction(Consumer<AcknowledgeStatus<K>> ackAction) {
 		for(Conveyor<K, L, OUT> conv: conveyors) {
 			conv.setAcknowledgeAction(ackAction);
-		};		
+		}
 	}
 
 }

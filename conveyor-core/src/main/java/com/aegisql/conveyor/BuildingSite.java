@@ -157,9 +157,6 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	/** The readiness. */
 	private final BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness;
-	
-	/** The default timeout action. */
-	private final Consumer<Supplier<? extends OUT>> defaultTimeoutAction;
 
 	/** The timeout action. */
 	private final Consumer<Supplier<? extends OUT>> timeoutAction;
@@ -270,7 +267,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			) {
 		this.initialCart               = cart;
 		this.lastCart                  = cart;
-		this.defaultTimeoutAction      = timeoutAction;
+		/* The default timeout action. */
 		this.saveCarts                 = saveCarts;
 		this.postponeExpirationOnTimeoutEnabled = postponeExpirationOnTimeoutEnabled;
 		this.addExpirationTimeMsec     = addExpirationTimeMsec;
@@ -322,8 +319,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			this.timeoutAction = b -> {
 				((TimeoutAction) productSupplier).onTimeout();
 			};
-		} else if (defaultTimeoutAction != null) {
-			this.timeoutAction = defaultTimeoutAction;
+		} else if (timeoutAction != null) {
+			this.timeoutAction = timeoutAction;
 		} else {
 			this.timeoutAction = null;
 		}

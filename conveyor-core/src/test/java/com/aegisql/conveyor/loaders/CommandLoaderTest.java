@@ -115,14 +115,13 @@ public class CommandLoaderTest {
 		assertTrue(cl0.creationTime >= current);
 		
 		current = cl0.creationTime;
+
+		System.out.println(cl0);
 		
-		MultiKeyCommandLoader cl1 = cl0;
-		System.out.println(cl1);
-		
-		MultiKeyCommandLoader cl2et = cl1.expirationTime(current+1000);
-		MultiKeyCommandLoader cl2in = cl1.expirationTime(Instant.ofEpochMilli(current+1000));
-		MultiKeyCommandLoader cl2ttl = cl1.ttl(1000,TimeUnit.MILLISECONDS);
-		MultiKeyCommandLoader cl2dur = cl1.ttl(Duration.ofMillis(1000));
+		MultiKeyCommandLoader cl2et = cl0.expirationTime(current+1000);
+		MultiKeyCommandLoader cl2in = cl0.expirationTime(Instant.ofEpochMilli(current+1000));
+		MultiKeyCommandLoader cl2ttl = cl0.ttl(1000,TimeUnit.MILLISECONDS);
+		MultiKeyCommandLoader cl2dur = cl0.ttl(Duration.ofMillis(1000));
 		
 		System.out.println(cl2et);
 		System.out.println(cl2in);

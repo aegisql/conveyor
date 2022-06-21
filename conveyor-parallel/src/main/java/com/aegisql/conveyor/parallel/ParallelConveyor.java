@@ -78,7 +78,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	protected boolean lBalanced = false;
 
 	/** The accepted labels. */
-	private Set<L> acceptedLabels = new HashSet<>();
+	private final Set<L> acceptedLabels = new HashSet<>();
 
 	/** The forwarding results. */
 	protected boolean forwardingResults = false;
@@ -558,9 +558,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	@Override
 	public void acceptLabels(L... labels) {
 		if(labels != null && labels.length > 0) {
-			for(L l:labels) {
-				acceptedLabels.add(l);
-			}
+			acceptedLabels.addAll(Arrays.asList(labels));
 			acceptedLabels.add(null);
 			this.addCartBeforePlacementValidator(cart->{
 				if( ! acceptedLabels.contains(cart.getLabel())) {
@@ -749,15 +747,15 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 			
 			for(Conveyor<K, L, OUT> conv: conveyors) {
 				f = f.thenCombine( conv.place(cart.copy()), (a,b) -> a && b );
-			};
-			
+			}
+
 			return f;
 		}, 
 		rc->{
 			this.resultConsumer = rc;
 			for(Conveyor<K, L, OUT> conv: conveyors) {
 				conv.resultConsumer().first(this.resultConsumer).set();
-			};
+			}
 			if(rc instanceof ForwardingConsumer) {
 				this.forwardingResults = true;
 			}
@@ -775,8 +773,8 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 			this.scrapConsumer = sc;
 			for(Conveyor<K, L, OUT> conv: conveyors) {
 				conv.scrapConsumer().first(this.scrapConsumer).set();
-			};
-			
+			}
+
 		}, scrapConsumer );
 	}
 
@@ -789,14 +787,14 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public void setAutoAcknowledge(boolean auto) {
 		for(Conveyor<K, L, OUT> conv: conveyors) {
 			conv.setAutoAcknowledge(auto);
-		};
+		}
 	}
 
 	@Override
 	public void autoAcknowledgeOnStatus(Status first, Status... other) {
 		for(Conveyor<K, L, OUT> conv: conveyors) {
 			conv.autoAcknowledgeOnStatus(first,other);
-		};		
+		}
 	}
 
 

@@ -116,7 +116,7 @@ public class LoaderPriorityTest {
 		assertEquals("B",order.get(3));
 	}
 
-	private static int N_OF_TESTS=20;
+	private static final int N_OF_TESTS=20;
 	
 	@Test
 	public void testAccumulationWithoutPriority() throws InterruptedException, ExecutionException {

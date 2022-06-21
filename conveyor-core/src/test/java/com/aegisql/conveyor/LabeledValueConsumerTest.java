@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 
 public class LabeledValueConsumerTest {
 
-    class ListBuilder implements Supplier<Collection<String>>, Testing {
+    static class ListBuilder implements Supplier<Collection<String>>, Testing {
         Map<Integer,String> data;
         boolean ready = false;
         public ListBuilder() {

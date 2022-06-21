@@ -38,7 +38,7 @@ public class BatchConveyor <V> extends AssemblingConveyor<String, SmartLabel<Bat
 		v.forEach(val->{
 			BatchCollectingBuilder.add(b, (V)val);
 		});
-	}).intercept(BatchComplete.class, (b,v) -> b.complete(b, v) ); 
+	}).intercept(BatchComplete.class, (b,v) -> BatchCollectingBuilder.complete(b, v) );
 
 	@Override
 	public PartLoader<String, SmartLabel<BatchCollectingBuilder<V>>> part() {

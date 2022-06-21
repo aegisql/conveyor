@@ -228,8 +228,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 */
 	public CompletableFuture<Boolean> peek(Consumer<ProductBin<K,OUT>> consumer) {
 		GeneralCommand<K, Consumer<ProductBin<K,OUT>>> command = new GeneralCommand<>(filter,consumer,CommandLabel.PEEK_BUILD,creationTime,expirationTime);
-		CompletableFuture<Boolean> cf = conveyor.apply(command);
-		return cf;
+		return conveyor.apply(command);
 	}
 
 	/**
@@ -270,8 +269,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 */
 	public CompletableFuture<Boolean> memento(Consumer<Memento> memento) {
 		GeneralCommand<K, Consumer<Memento>> command = new GeneralCommand<>(filter,memento,CommandLabel.MEMENTO_BUILD,creationTime,expirationTime);
-		CompletableFuture<Boolean> cf = conveyor.apply(command);
-		return cf;
+		return conveyor.apply(command);
 	}
 
 	

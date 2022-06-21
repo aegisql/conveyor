@@ -9,12 +9,12 @@ public interface Acknowledge {
 	/**
 	 * Ack.
 	 */
-	public void ack();
+	void ack();
 	
 	/**
 	 * Checks if is acknowledged.
 	 *
 	 * @return true, if is acknowledged
 	 */
-	public boolean isAcknowledged();
+	boolean isAcknowledged();
 }

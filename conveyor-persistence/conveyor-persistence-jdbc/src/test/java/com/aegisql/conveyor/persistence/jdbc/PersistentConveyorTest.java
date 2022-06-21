@@ -386,7 +386,7 @@ public class PersistentConveyorTest {
 		
 		pc1.build().id(1).supplier(()->{
 			TrioBuilder tb = new TrioBuilder();
-			tb.setText1(tb, "TEXT1_PERSIST");
+			TrioBuilder.setText1(tb, "TEXT1_PERSIST");
 			return tb;
 		}).create();
 		

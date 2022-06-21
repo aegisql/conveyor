@@ -36,7 +36,7 @@ public class AcknowledgeStatus <K> implements Serializable {
 		this.key = key;
 		this.status = status;
 		if(pm != null) {
-			pm.forEach( (k,v) -> properties.put(k, v) );
+			properties.putAll(pm);
 		}
 	}
 	

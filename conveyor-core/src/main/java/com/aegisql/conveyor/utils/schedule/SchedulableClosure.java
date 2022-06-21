@@ -10,7 +10,7 @@ public interface SchedulableClosure {
 	/**
 	 * Apply.
 	 */
-	public void apply();
+	void apply();
 	
 	/**
 	 * And then.

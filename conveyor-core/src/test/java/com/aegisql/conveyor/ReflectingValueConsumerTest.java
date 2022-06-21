@@ -705,7 +705,7 @@ public class ReflectingValueConsumerTest {
 		assertEquals("111-1133",gs.values.get(0));
 	}
 
-	class PGF {
+	static class PGF {
 		C c;
 		C c1;
 		C c2;

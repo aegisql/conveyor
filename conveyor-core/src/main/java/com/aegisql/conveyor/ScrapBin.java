@@ -78,6 +78,7 @@ KEEP_RUNNING_EXCEPTION
 	public final Map<String,Object> properties;
 	
 	/** The acknowledge. */
+	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 	public final Optional<Acknowledge> acknowledge;
 
 	/**

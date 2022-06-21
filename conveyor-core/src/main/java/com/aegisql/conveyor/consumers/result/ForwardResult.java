@@ -34,22 +34,22 @@ public class ForwardResult<K2, L2> {
 		private static final long serialVersionUID = 1L;
 
 		/** The from name. */
-		private String fromName;
+		private final String fromName;
 		
 		/** The to conv name. */
-		private String toConvName;
+		private final String toConvName;
 		
 		/** The to conv. */
 		private Conveyor<K2, L, ?> toConv;
 		
 		/** The label. */
-		private L label;
+		private final L label;
 		
 		/** The key transformer. */
-		private Function<ProductBin, K2> keyTransformer;
+		private final Function<ProductBin, K2> keyTransformer;
 		
 		/** The filter. */
-		private SerializablePredicate<K2> filter;
+		private final SerializablePredicate<K2> filter;
 
 		/**
 		 * Instantiates a new forwarding consumer.
@@ -136,7 +136,7 @@ public class ForwardResult<K2, L2> {
 	}
 
 	/** The from conv. */
-	private Conveyor fromConv;
+	private final Conveyor fromConv;
 	
 	/** The to conv name. */
 	private String toConvName;

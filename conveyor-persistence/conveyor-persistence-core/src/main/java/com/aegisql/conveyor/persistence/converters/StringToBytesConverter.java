@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.persistence.converters;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 
@@ -18,11 +19,7 @@ public class StringToBytesConverter implements ObjectToByteArrayConverter<String
 		if(obj==null) {
 			return null;
 		}
-		try {
-			return obj.getBytes("UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			throw new PersistenceException("Unexpected string to bytes conversion error",e);
-		}
+		return obj.getBytes(StandardCharsets.UTF_8);
 	}
 
 	/* (non-Javadoc)

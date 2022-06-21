@@ -25,9 +25,7 @@ public class PersistTestImpl implements Persistence<Integer> {
 	Set<Integer> completed = new HashSet<>();
 	
 	AtomicInteger idGen = new AtomicInteger(0);
-	private int maxBatchSize   = 3;
-	private long maxBatchTime  = 60_000;
-	
+
 	public PersistTestImpl() {
 		
 	}
@@ -193,12 +191,12 @@ public class PersistTestImpl implements Persistence<Integer> {
 
 	@Override
 	public int getMaxArchiveBatchSize() {
-		return maxBatchSize;
+		return 3;
 	}
 
 	@Override
 	public long getMaxArchiveBatchTime() {
-		return maxBatchTime;
+		return 60_000;
 	}
 
 	@Override

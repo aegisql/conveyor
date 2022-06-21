@@ -76,8 +76,6 @@ public enum CommandLabel implements SmartLabel<AssemblingConveyor> {
 	
 	SUSPEND;//does not call any methods
 
-	;
-
 	/**
 	 * The setter.
 	 *

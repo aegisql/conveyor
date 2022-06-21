@@ -141,14 +141,13 @@ public class ConnectionFactory <T extends DataSource> {
      * @return the connection factory
      */
     public static ConnectionFactory<DriverManagerDataSource> driverManagerFactoryInstance() {
-        ConnectionFactory<DriverManagerDataSource> cf = cachingFactoryInstance(f->{
-            DriverManagerDataSource dataSource = new DriverManagerDataSource();
-            dataSource.setDriverClassName(f.driverClassName);
-            dataSource.setUrl(f.getUrl());
-            dataSource.setProperties(f.getProperties());
-            return dataSource;
+        return cachingFactoryInstance(f->{
+            DriverManagerDataSource dataSource1 = new DriverManagerDataSource();
+            dataSource1.setDriverClassName(f.driverClassName);
+            dataSource1.setUrl(f.getUrl());
+            dataSource1.setProperties(f.getProperties());
+            return dataSource1;
         });
-        return cf;
     }
 
     /**
@@ -157,16 +156,15 @@ public class ConnectionFactory <T extends DataSource> {
      * @return the connection factory
      */
     public static ConnectionFactory<BasicDataSource> DBCP2FactoryInstance() {
-        ConnectionFactory<BasicDataSource> cf = nonCachingFactoryInstance(f->{
-            BasicDataSource dataSource = new BasicDataSource();
-            dataSource.setUrl(f.getUrl());
-            dataSource.setDriverClassName(f.getDriverClassName());
-            dataSource.setUsername(f.getUser());
-            dataSource.setPassword(f.getPassword());
-            dataSource.setInitialSize(3);
-            return dataSource;
+        return nonCachingFactoryInstance(f->{
+            BasicDataSource dataSource1 = new BasicDataSource();
+            dataSource1.setUrl(f.getUrl());
+            dataSource1.setDriverClassName(f.getDriverClassName());
+            dataSource1.setUsername(f.getUser());
+            dataSource1.setPassword(f.getPassword());
+            dataSource1.setInitialSize(3);
+            return dataSource1;
         });
-        return cf;
     }
 
     /**
@@ -176,11 +174,9 @@ public class ConnectionFactory <T extends DataSource> {
      * @return the connection factory
      */
     public static ConnectionFactory<WrappedExternalDataSource> nonCachingExternalConnectionFactoryInstance(Supplier<Connection> connectionSupplier) {
-        ConnectionFactory<WrappedExternalDataSource> cf = nonCachingFactoryInstance(f->{
-            WrappedExternalDataSource dataSource = new WrappedExternalDataSource(connectionSupplier);
-            return dataSource;
+        return nonCachingFactoryInstance(f->{
+            return new WrappedExternalDataSource(connectionSupplier);
         });
-        return cf;
     }
 
     /**
@@ -190,11 +186,9 @@ public class ConnectionFactory <T extends DataSource> {
      * @return the connection factory
      */
     public static ConnectionFactory<WrappedExternalDataSource> cachingExternalConnectionFactoryInstance(Supplier<Connection> connectionSupplier) {
-        ConnectionFactory<WrappedExternalDataSource> cf = cachingFactoryInstance(f->{
-            WrappedExternalDataSource dataSource = new WrappedExternalDataSource(connectionSupplier);
-            return dataSource;
+        return cachingFactoryInstance(f->{
+            return new WrappedExternalDataSource(connectionSupplier);
         });
-        return cf;
     }
 
     /**

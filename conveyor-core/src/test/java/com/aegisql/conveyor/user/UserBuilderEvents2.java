@@ -32,7 +32,7 @@ public enum UserBuilderEvents2 implements SmartLabel<UserBuilderTesting> {
 	;
 
 	/** The setter. */
-	BiConsumer<UserBuilderTesting, Object> setter;
+	final BiConsumer<UserBuilderTesting, Object> setter;
 
 	/**
 	 * Instantiates a new user builder events2.

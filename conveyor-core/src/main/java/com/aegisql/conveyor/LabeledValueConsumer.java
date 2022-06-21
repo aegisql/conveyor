@@ -30,7 +30,7 @@ public interface LabeledValueConsumer<L,V,B> extends Serializable {
 	 * @param value the value
 	 * @param builder the builder
 	 */
-	public void accept(L label, V value, B builder);
+	void accept(L label, V value, B builder);
 	
 	/**
 	 * And then.

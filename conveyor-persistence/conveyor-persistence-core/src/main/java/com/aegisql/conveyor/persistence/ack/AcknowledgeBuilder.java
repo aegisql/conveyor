@@ -43,7 +43,7 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 	private final Persistence<K> persistence;
 
 	/** The cart ids. */
-	private Set<Long> cartIds = new LinkedHashSet<>();
+	private final Set<Long> cartIds = new LinkedHashSet<>();
 	
 	/** The forward. */
 	private final Conveyor<K, ?, ?> forward;

@@ -23,5 +23,4 @@ public enum Status{
 	
 	/** Build not found. */
 	NOT_FOUND
-	;
 }

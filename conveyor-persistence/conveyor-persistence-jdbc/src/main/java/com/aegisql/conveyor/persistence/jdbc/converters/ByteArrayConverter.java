@@ -22,7 +22,7 @@ public class ByteArrayConverter<O> implements ObjectConverter<O, byte[]> {
 	@Override
 	public byte[] toPersistence(O obj) {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		try(ObjectOutputStream oos = new ObjectOutputStream(bos);) {
+		try(ObjectOutputStream oos = new ObjectOutputStream(bos)) {
 			oos.writeObject(obj);
 			return bos.toByteArray();
 		} catch (Exception e) {

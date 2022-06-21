@@ -11,9 +11,8 @@ import static org.junit.Assert.*;
 public class LastScrapsTest {
 
     public ScrapBin<Integer,Object> getScrapBin(int id,String scrap) {
-        ScrapBin<Integer,Object> bin = new ScrapBin<>(null,id,scrap,"test",null,
+        return new ScrapBin<>(null,id,scrap,"test",null,
                 ScrapBin.FailureType.GENERAL_FAILURE,new HashMap<>(),null);
-        return bin;
     }
 
     @Test
@@ -22,7 +21,7 @@ public class LastScrapsTest {
         ls.accept(getScrapBin(1,"s1"));
         ls.accept(getScrapBin(2,"s2"));
         ls.accept(getScrapBin(3,"s3"));
-        System.out.println(ls.toString());
+        System.out.println(ls);
         List<?> last = ls.getLast();
         assertEquals(2,last.size());
         assertTrue(last.contains("s2"));

@@ -15,9 +15,9 @@ import static org.junit.Assert.*;
 
 public class DerbyEngineTest {
 
-	private static String SCHEMA = "test_engine";
-	private static String PARTS = "PART";
-	private static String LOGS = "COMPLETED_LOG";
+	private static final String SCHEMA = "test_engine";
+	private static final String PARTS = "PART";
+	private static final String LOGS = "COMPLETED_LOG";
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {

@@ -16,7 +16,7 @@ public class LogScrap <K> implements ScrapConsumer<K,Object> {
 	/**
 	 * The Enum Level.
 	 */
-	public static enum Level {
+	public enum Level {
 		
 		/** The trace. */
 		TRACE,

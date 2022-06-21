@@ -23,8 +23,7 @@ public class DelayLineConveyor <K,IN> extends AssemblingConveyor<K, SmartLabel<D
 	}
 
 	public SmartLabel<DelayLineBuilder<IN>> DELAY = SmartLabel.of((b,v)->{
-		DelayLineBuilder<IN> builder = (DelayLineBuilder<IN>)b;
-		DelayLineBuilder.add(builder, (IN)v);
+		DelayLineBuilder.add((DelayLineBuilder<IN>)b, (IN)v);
 	});
 	
 	@Override

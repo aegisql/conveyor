@@ -328,7 +328,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 				}
 
 			} catch (Exception e) {
-				LOG.error("getAllUnfinishedPartIdsQuery exception: ", e.getMessage());
+				LOG.error("getAllUnfinishedPartIdsQuery exception", e);
 				throw new PersistenceException("getAllUnfinishedPartIdsQuery failed", e);
 			}
 			throw new PersistenceException("Unexpected result in getAllParts");
@@ -388,7 +388,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 						}
 				}
 			} catch (Exception e) {
-				LOG.error("getExpiredParts exception: ", e.getMessage());
+				LOG.error("getExpiredParts exception", e);
 				throw new PersistenceException("getExpiredParts failed", e);
 			}
 			throw new PersistenceException("Unexpected result in getExpiredParts");
@@ -407,7 +407,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 			try {
 				return (K) rs.getObject(1);
 			} catch (Exception e) {
-				LOG.error("getCompletedKeys Exception:", e.getMessage());
+				LOG.error("getCompletedKeys Exception", e);
 				throw new PersistenceException("getCompletedKeys failed", e);
 			}
 		});
@@ -479,7 +479,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 					// LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
 					return new ShoppingCart<>(key, val, label, creationTime, expirationTime, properties, loadType, 0);
 			} catch (Exception e) {
-				LOG.error("getAllStaticParts exception: ", e.getMessage());
+				LOG.error("getAllStaticParts exception", e);
 				throw new PersistenceException("getAllStaticParts failed", e);
 			}
 

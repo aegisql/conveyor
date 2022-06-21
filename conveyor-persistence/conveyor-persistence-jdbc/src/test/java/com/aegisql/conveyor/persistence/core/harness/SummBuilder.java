@@ -21,7 +21,6 @@ public class SummBuilder implements Supplier<Long>,Serializable {
 				return (a,b)->{};
 			}
 		}
-		;
 	}
 	
 	private static final long serialVersionUID = 1L;

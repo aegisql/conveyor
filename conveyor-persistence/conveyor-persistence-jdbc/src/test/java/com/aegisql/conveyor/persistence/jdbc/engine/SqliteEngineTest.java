@@ -18,10 +18,8 @@ import static org.junit.Assert.*;
 
 public class SqliteEngineTest {
 
-	private static String SCHEMA = "test_engine";
-	private static String PARTS = "PART";
-	private static String LOGS = "COMPLETED_LOG";
-	
+	private static final String SCHEMA = "test_engine";
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		Tester.removeFile(SCHEMA+".db");
@@ -50,7 +48,9 @@ public class SqliteEngineTest {
 		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
 		de.setDatabase(SCHEMA+".db");
 		de.setSortingOrder(order);
+		String PARTS = "PART";
 		de.buildPartTableQueries(PARTS);
+		String LOGS = "COMPLETED_LOG";
 		de.buildCompletedLogTableQueries(LOGS);
 		assertTrue(de.databaseExists(SCHEMA));
 		assertTrue(de.schemaExists(SCHEMA));

@@ -300,7 +300,7 @@ public class AssemblingConveyorTest {
 				throw new RuntimeException("Unknown label " + label);
 			}
 		});
-		/** The out queue. */
+		/* The out queue. */
 		ResultQueue<Integer,User> outQueue = ResultQueue.of(conveyor);
 		conveyor.resultConsumer().first(outQueue).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {

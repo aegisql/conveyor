@@ -26,7 +26,7 @@ public class ConveyorProperty {
 	/** The value. */
 	private final Object value;
 
-	private static TemplateEditor templateEditor = new TemplateEditor();
+	private static final TemplateEditor templateEditor = new TemplateEditor();
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()

@@ -21,57 +21,57 @@ public interface EngineDepo <K> extends Closeable {
 	/**
 	 * The Constant ID.
 	 */
-	public static final String ID="ID";
+	String ID="ID";
 
 	/**
 	 * The Constant LOAD_TYPE.
 	 */
-	public static final String LOAD_TYPE="LOAD_TYPE";
+	String LOAD_TYPE="LOAD_TYPE";
 
 	/**
 	 * The Constant CART_KEY.
 	 */
-	public static final String CART_KEY="CART_KEY";
+	String CART_KEY="CART_KEY";
 
 	/**
 	 * The Constant CART_LABEL.
 	 */
-	public static final String CART_LABEL="CART_LABEL";
+	String CART_LABEL="CART_LABEL";
 
 	/**
 	 * The Constant CREATION_TIME.
 	 */
-	public static final String CREATION_TIME="CREATION_TIME";
+	String CREATION_TIME="CREATION_TIME";
 
 	/**
 	 * The Constant EXPIRATION_TIME.
 	 */
-	public static final String EXPIRATION_TIME="EXPIRATION_TIME";
+	String EXPIRATION_TIME="EXPIRATION_TIME";
 
 	/**
 	 * The Constant PRIORITY.
 	 */
-	public static final String PRIORITY="PRIORITY";
+	String PRIORITY="PRIORITY";
 
 	/**
 	 * The Constant CART_VALUE.
 	 */
-	public static final String CART_VALUE="CART_VALUE";
+	String CART_VALUE="CART_VALUE";
 
 	/**
 	 * The Constant VALUE_TYPE.
 	 */
-	public static final String VALUE_TYPE="VALUE_TYPE";
+	String VALUE_TYPE="VALUE_TYPE";
 
 	/**
 	 * The Constant CART_PROPERTIES.
 	 */
-	public static final String CART_PROPERTIES="CART_PROPERTIES";
+	String CART_PROPERTIES="CART_PROPERTIES";
 
 	/**
 	 * The Constant ARCHIVED.
 	 */
-	public static final String ARCHIVED="ARCHIVED";
+	String ARCHIVED="ARCHIVED";
 
 	/**
 	 * Database exists.
@@ -79,7 +79,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param database the database
 	 * @return true, if successful
 	 */
-	public boolean databaseExists(String database);
+	boolean databaseExists(String database);
 
 	/**
 	 * Schema exists.
@@ -87,7 +87,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param schema the schema
 	 * @return true, if successful
 	 */
-	public boolean schemaExists(String schema);
+	boolean schemaExists(String schema);
 
 	/**
 	 * Part table exists.
@@ -95,7 +95,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param partTable the part table
 	 * @return true, if successful
 	 */
-	public boolean partTableExists(String partTable);
+	boolean partTableExists(String partTable);
 
 	/**
 	 * Part table index exists.
@@ -104,7 +104,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param indexName the index name
 	 * @return true, if successful
 	 */
-	public boolean partTableIndexExists(String partTable, String indexName);
+	boolean partTableIndexExists(String partTable, String indexName);
 
 	/**
 	 * Completed log table exists.
@@ -112,14 +112,14 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param completedLogTable the completed log table
 	 * @return true, if successful
 	 */
-	public boolean completedLogTableExists(String completedLogTable);
+	boolean completedLogTableExists(String completedLogTable);
 
 	/**
 	 * Creates the database.
 	 *
 	 * @param database the database
 	 */
-	public void createDatabase(String database);
+	void createDatabase(String database);
 
 	/**
 	 * Create database if not exists.
@@ -137,7 +137,7 @@ public interface EngineDepo <K> extends Closeable {
 	 *
 	 * @param schema the schema
 	 */
-	public void createSchema(String schema);
+	void createSchema(String schema);
 
 	/**
 	 * Create schema if not exists.
@@ -155,7 +155,7 @@ public interface EngineDepo <K> extends Closeable {
 	 *
 	 * @param partTable the part table
 	 */
-	public void createPartTable(String partTable);
+	void createPartTable(String partTable);
 
 	/**
 	 * Create part table if not exists.
@@ -211,7 +211,7 @@ public interface EngineDepo <K> extends Closeable {
 	 *
 	 * @param partTable the part table
 	 */
-	public void createPartTableIndex(String partTable);
+	void createPartTableIndex(String partTable);
 
 	/**
 	 * Create part table index if not exists.
@@ -230,7 +230,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param partTable the part table
 	 * @param fields    the fields
 	 */
-	public void createUniqPartTableIndex(String partTable,List<String> fields);
+	void createUniqPartTableIndex(String partTable,List<String> fields);
 
 	/**
 	 * Create uniq part table index if not exists.
@@ -249,7 +249,7 @@ public interface EngineDepo <K> extends Closeable {
 	 *
 	 * @param completedLogTable the completed log table
 	 */
-	public void createCompletedLogTable(String completedLogTable);
+	void createCompletedLogTable(String completedLogTable);
 
 	/**
 	 * Create completed log table if not exists.
@@ -267,21 +267,21 @@ public interface EngineDepo <K> extends Closeable {
 	 *
 	 * @param order the order
 	 */
-	public void setSortingOrder(LinkedHashMap<String, String> order);
+	void setSortingOrder(LinkedHashMap<String, String> order);
 
 	/**
 	 * Builds the part table queries.
 	 *
 	 * @param partTable the part table
 	 */
-	public void buildPartTableQueries(String partTable);
+	void buildPartTableQueries(String partTable);
 
 	/**
 	 * Builds the completed log table queries.
 	 *
 	 * @param completedLogTable the completed log table
 	 */
-	public void buildCompletedLogTableQueries(String completedLogTable);
+	void buildCompletedLogTableQueries(String completedLogTable);
 
 	/**
 	 * Delete from completed log.
@@ -289,60 +289,60 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param keys the keys
 	 */
 //Archiver commands
-	public void deleteFromCompletedLog(Collection<K> keys);
+	void deleteFromCompletedLog(Collection<K> keys);
 
 	/**
 	 * Delete all completed log.
 	 */
-	public void deleteAllCompletedLog();
+	void deleteAllCompletedLog();
 
 	/**
 	 * Delete from parts by ids.
 	 *
 	 * @param ids the ids
 	 */
-	public void deleteFromPartsByIds(Collection<? extends Number> ids);
+	void deleteFromPartsByIds(Collection<? extends Number> ids);
 
 	/**
 	 * Delete from parts by cart keys.
 	 *
 	 * @param keys the keys
 	 */
-	public void deleteFromPartsByCartKeys(Collection<K> keys);
+	void deleteFromPartsByCartKeys(Collection<K> keys);
 
 	/**
 	 * Delete expired parts.
 	 */
-	public void deleteExpiredParts();
+	void deleteExpiredParts();
 
 	/**
 	 * Delete all parts.
 	 */
-	public void deleteAllParts();
+	void deleteAllParts();
 
 	/**
 	 * Update parts by ids.
 	 *
 	 * @param ids the ids
 	 */
-	public void updatePartsByIds(Collection<? extends Number> ids);
+	void updatePartsByIds(Collection<? extends Number> ids);
 
 	/**
 	 * Update parts by cart keys.
 	 *
 	 * @param keys the keys
 	 */
-	public void updatePartsByCartKeys(Collection<K> keys);
+	void updatePartsByCartKeys(Collection<K> keys);
 
 	/**
 	 * Update expired parts.
 	 */
-	public void updateExpiredParts();
+	void updateExpiredParts();
 
 	/**
 	 * Update all parts.
 	 */
-	public void updateAllParts();
+	void updateAllParts();
 
 	/**
 	 * Save cart.
@@ -360,7 +360,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param additionalFields the additional fields
 	 */
 //Persistence commands
-	public void saveCart(
+	void saveCart(
 			  long id
 			, String loadType
 			, Object key
@@ -379,7 +379,7 @@ public interface EngineDepo <K> extends Closeable {
 	 *
 	 * @param key the key
 	 */
-	public void saveCompletedBuildKey(Object key);
+	void saveCompletedBuildKey(Object key);
 
 	/**
 	 * Gets the parts.
@@ -389,7 +389,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param transformer the transformer
 	 * @return the parts
 	 */
-	public <T> List<T> getParts(Collection<Long> ids,Function<ResultSet,T> transformer);
+	<T> List<T> getParts(Collection<Long> ids,Function<ResultSet,T> transformer);
 
 	/**
 	 * Gets the expired parts.
@@ -398,7 +398,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param transformer the transformer
 	 * @return the expired parts
 	 */
-	public <T> List<T> getExpiredParts(Function<ResultSet,T> transformer);
+	<T> List<T> getExpiredParts(Function<ResultSet,T> transformer);
 
 	/**
 	 * Gets the static parts.
@@ -407,7 +407,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param transformer the transformer
 	 * @return the static parts
 	 */
-	public <T> List<T> getStaticParts(Function<ResultSet,T> transformer);
+	<T> List<T> getStaticParts(Function<ResultSet,T> transformer);
 
 	/**
 	 * Gets the all part ids.
@@ -415,7 +415,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param key the key
 	 * @return the all part ids
 	 */
-	public List<Long> getAllPartIds(K key);
+	List<Long> getAllPartIds(K key);
 
 	/**
 	 * Gets the unfinished parts.
@@ -424,7 +424,7 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param transformer the transformer
 	 * @return the unfinished parts
 	 */
-	public <T> List<T> getUnfinishedParts(Function<ResultSet,T> transformer);
+	<T> List<T> getUnfinishedParts(Function<ResultSet,T> transformer);
 
 	/**
 	 * Gets the all completed keys.
@@ -432,13 +432,13 @@ public interface EngineDepo <K> extends Closeable {
 	 * @param transformer the transformer
 	 * @return the all completed keys
 	 */
-	public Set<K> getAllCompletedKeys(Function<ResultSet,K> transformer);
+	Set<K> getAllCompletedKeys(Function<ResultSet,K> transformer);
 
 	/**
 	 * Gets the number of parts.
 	 *
 	 * @return the number of parts
 	 */
-	public long getNumberOfParts();
+	long getNumberOfParts();
 
 }

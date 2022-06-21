@@ -116,7 +116,7 @@ public class ScalarConvertingConveyorTest {
 		assertNotNull(usr.get());
 	}
 
-	abstract class ScalarHolder<T,R> implements Testing, Supplier<R> {
+	abstract static class ScalarHolder<T,R> implements Testing, Supplier<R> {
 		T value;
 		@Override
 		public boolean test() {

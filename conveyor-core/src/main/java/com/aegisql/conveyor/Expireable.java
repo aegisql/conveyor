@@ -20,7 +20,7 @@ public interface Expireable {
 	 *
 	 * @return the expiration time
 	 */
-	public long getExpirationTime();
+	long getExpirationTime();
 	
 	/**
 	 * addTime.

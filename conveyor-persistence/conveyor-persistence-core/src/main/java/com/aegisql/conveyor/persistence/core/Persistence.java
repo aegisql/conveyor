@@ -29,7 +29,7 @@ public interface Persistence <K> extends Closeable {
 	 * @return the long
 	 */
 	//SETTERS
-	public long nextUniquePartId();
+	long nextUniquePartId();
 	
 	/**
 	 * Save part.
@@ -38,7 +38,7 @@ public interface Persistence <K> extends Closeable {
 	 * @param id the id
 	 * @param cart the cart
 	 */
-	public <L> void savePart(long id,Cart<K,?,L> cart);
+	<L> void savePart(long id,Cart<K,?,L> cart);
 	
 	/**
 	 * Save part id.
@@ -46,14 +46,14 @@ public interface Persistence <K> extends Closeable {
 	 * @param key the key
 	 * @param partId the part id
 	 */
-	public void savePartId(K key, long partId);
+	void savePartId(K key, long partId);
 	
 	/**
 	 * Save completed build key.
 	 *
 	 * @param key the key
 	 */
-	public void saveCompletedBuildKey(K key);
+	void saveCompletedBuildKey(K key);
 	
 	/**
 	 * Gets the part.
@@ -62,7 +62,7 @@ public interface Persistence <K> extends Closeable {
 	 * @param id the id
 	 * @return the part
 	 */
-	default public <L> Cart<K, ?, L> getPart(long id) {
+	default <L> Cart<K, ?, L> getPart(long id) {
 		Collection<Cart<K, ?, L>> res = getParts(Arrays.asList(Long.valueOf(id)));
 		switch(res.size()) {
 		case 1:
@@ -81,7 +81,7 @@ public interface Persistence <K> extends Closeable {
 	 * @param id the id
 	 * @return the parts
 	 */
-	public <L> Collection<Cart<K,?,L>> getParts(Collection<Long> id);
+	<L> Collection<Cart<K,?,L>> getParts(Collection<Long> id);
 	
 	
 	/**
@@ -90,7 +90,7 @@ public interface Persistence <K> extends Closeable {
 	 * @param key the key
 	 * @return the all part ids
 	 */
-	public Collection<Long> getAllPartIds(K key);
+	Collection<Long> getAllPartIds(K key);
 	
 	/**
 	 * Gets the all parts.
@@ -98,7 +98,7 @@ public interface Persistence <K> extends Closeable {
 	 * @param <L> the generic type
 	 * @return the all parts
 	 */
-	public <L> Collection<Cart<K,?,L>> getAllParts();
+	<L> Collection<Cart<K,?,L>> getAllParts();
 
 	/**
 	 * Gets the expired parts.
@@ -106,7 +106,7 @@ public interface Persistence <K> extends Closeable {
 	 * @param <L> the generic type
 	 * @return the expired parts
 	 */
-	public <L> Collection<Cart<K,?,L>> getExpiredParts();
+	<L> Collection<Cart<K,?,L>> getExpiredParts();
 
 	/**
 	 * Gets the all static parts.
@@ -114,14 +114,14 @@ public interface Persistence <K> extends Closeable {
 	 * @param <L> the generic type
 	 * @return the all static parts
 	 */
-	public <L> Collection<Cart<K,?,L>> getAllStaticParts();
+	<L> Collection<Cart<K,?,L>> getAllStaticParts();
 	
 	/**
 	 * Gets the completed keys.
 	 *
 	 * @return the completed keys
 	 */
-	public Set<K> getCompletedKeys();
+	Set<K> getCompletedKeys();
 	
 	/**
 	 * Archive parts.
@@ -129,31 +129,31 @@ public interface Persistence <K> extends Closeable {
 	 * @param ids the ids
 	 */
 	//ARCHIVE OPERATIONS
-	public void archiveParts(Collection<Long> ids);
+	void archiveParts(Collection<Long> ids);
 	
 	/**
 	 * Archive keys.
 	 *
 	 * @param keys the keys
 	 */
-	public void archiveKeys(Collection<K> keys);
+	void archiveKeys(Collection<K> keys);
 	
 	/**
 	 * Archive complete keys.
 	 *
 	 * @param keys the keys
 	 */
-	public void archiveCompleteKeys(Collection<K> keys);
+	void archiveCompleteKeys(Collection<K> keys);
 	
 	/**
 	 * Archive expired parts.
 	 */
-	public void archiveExpiredParts();
+	void archiveExpiredParts();
 	
 	/**
 	 * Archive all.
 	 */
-	public void archiveAll();
+	void archiveAll();
 	
 	/**
 	 * Gets the max archive batch size.
@@ -161,14 +161,14 @@ public interface Persistence <K> extends Closeable {
 	 * @return the max archive batch size
 	 */
 	//BATCH 
-	public int getMaxArchiveBatchSize();
+	int getMaxArchiveBatchSize();
 	
 	/**
 	 * Gets the max archive batch time.
 	 *
 	 * @return the max archive batch time
 	 */
-	public long getMaxArchiveBatchTime();
+	long getMaxArchiveBatchTime();
 	
 	/**
 	 * Gets the number of parts.
@@ -176,9 +176,9 @@ public interface Persistence <K> extends Closeable {
 	 * @return the number of parts
 	 */
 	//HELP
-	public long getNumberOfParts();
+	long getNumberOfParts();
 
-	public int getMinCompactSize();
+	int getMinCompactSize();
 
 	/**
 	 * Absorb.
@@ -258,7 +258,7 @@ public interface Persistence <K> extends Closeable {
 	}
 
 	/** The Constant mBeanServer. */
-	final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+	MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 	
 	/**
 	 * By name.
@@ -266,7 +266,7 @@ public interface Persistence <K> extends Closeable {
 	 * @param name the name
 	 * @return the persistence
 	 */
-	public static Persistence byName(String name) {
+	static Persistence byName(String name) {
 		ObjectName objectName = null;
 		try {
 			if(name.startsWith("com.aegisql.conveyor.persistence.")) {
@@ -291,7 +291,7 @@ public interface Persistence <K> extends Closeable {
 	 * @param name the name
 	 * @return the supplier
 	 */
-	public static Supplier<Persistence> lazySupplier(String name) {
+	static Supplier<Persistence> lazySupplier(String name) {
 		return new LazyPersistenceSupplier(name);
 	}
 }

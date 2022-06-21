@@ -17,5 +17,5 @@ public interface Testing extends Serializable {
 	 *
 	 * @return true, if successful
 	 */
-	public boolean test();
+	boolean test();
 }

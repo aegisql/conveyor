@@ -18,5 +18,5 @@ public interface FutureSupplier<T> {
 	 *
 	 * @return the future
 	 */
-	public CompletableFuture<? extends T> getFuture();
+	CompletableFuture<? extends T> getFuture();
 }

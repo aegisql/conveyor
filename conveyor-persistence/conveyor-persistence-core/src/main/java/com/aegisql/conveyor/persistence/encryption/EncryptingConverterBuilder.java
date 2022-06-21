@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.persistence.encryption;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.function.Supplier;
@@ -26,7 +27,7 @@ public class EncryptingConverterBuilder implements Supplier<EncryptingConverter>
 	private final String encryptionTransformation;
 	
 	/** The encryption key length. */
-	private int encryptionKeyLength;
+	private final int encryptionKeyLength;
 
 	public EncryptingConverterBuilder() {
 		this(
@@ -74,7 +75,7 @@ public class EncryptingConverterBuilder implements Supplier<EncryptingConverter>
 		try {
 			Cipher encryptionCipher = Cipher.getInstance(encryptionTransformation);
 			if(secretKey == null) {
-				byte[] key = encryptionSecret.getBytes("UTF-8");
+				byte[] key = encryptionSecret.getBytes(StandardCharsets.UTF_8);
 				MessageDigest sha = MessageDigest.getInstance("SHA-1");
 				key = sha.digest(key);
 				key = Arrays.copyOf(key, encryptionKeyLength);

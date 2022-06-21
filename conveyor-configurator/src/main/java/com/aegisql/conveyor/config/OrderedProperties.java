@@ -134,7 +134,7 @@ class OrderedProperties extends LinkedList<Pair<String,String>> {
      * Method returns the char length of the "logical line" and stores
      * the line in "lineBuf".
      */
-    class LineReader {
+    static class LineReader {
         
         /**
          * Instantiates a new line reader.

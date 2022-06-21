@@ -20,7 +20,7 @@ import static org.junit.Assert.assertNotNull;
 //@Ignore
 public class ConnectionFactoryTest {
 
-    private JDBCMockObjectFactory factory  = new JDBCMockObjectFactory();;
+    private final JDBCMockObjectFactory factory  = new JDBCMockObjectFactory();
 
     @Before
     public void setUp() throws Exception {

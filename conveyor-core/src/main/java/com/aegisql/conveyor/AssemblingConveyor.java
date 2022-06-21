@@ -996,20 +996,18 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					final var load = mc.getValue();
 					final var filter = load.getFilter();
 					final Function<K,Cart<K, ?, L>> cartBuilder;
-					switch(load.getLoadType()) {
-						case RESULT_CONSUMER:
-							cartBuilder = k->{
-								ResultConsumerCart rcc = new ResultConsumerCart(k, (ResultConsumer)load.getValue(), cart.getCreationTime(), cart.getExpirationTime(),cart.getPriority());
-								rcc.putAllProperties(cart.getAllProperties());
-								return rcc;
-							};
-						break;
-						default:
-							cartBuilder = k->{
-								ShoppingCart<K,?,L> c = new ShoppingCart<>(k, load.getValue(), label,cart.getCreationTime(), cart.getExpirationTime());
-								c.putAllProperties(mc.getAllProperties());
-								return c;
-							};
+					if (load.getLoadType() == RESULT_CONSUMER) {
+						cartBuilder = k -> {
+							ResultConsumerCart rcc = new ResultConsumerCart(k, (ResultConsumer) load.getValue(), cart.getCreationTime(), cart.getExpirationTime(), cart.getPriority());
+							rcc.putAllProperties(cart.getAllProperties());
+							return rcc;
+						};
+					} else {
+						cartBuilder = k -> {
+							ShoppingCart<K, ?, L> c = new ShoppingCart<>(k, load.getValue(), label, cart.getCreationTime(), cart.getExpirationTime());
+							c.putAllProperties(mc.getAllProperties());
+							return c;
+						};
 					}
 					LOG.trace("READY TO APPLY MULTI");
 					collector.entrySet().stream().map(entry -> entry.getKey()).filter(filter)
@@ -1600,9 +1598,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public void acceptLabels(L... labels) {
 		if (labels != null && labels.length > 0) {
-			for (L l : labels) {
-				acceptedLabels.add(l);
-			}
+			acceptedLabels.addAll(Arrays.asList(labels));
 			this.addCartBeforePlacementValidator(cart -> {
 				if (!acceptedLabels.contains(cart.getLabel())) {
 					throw new IllegalStateException(

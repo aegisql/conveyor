@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 
 public class PropertiesBuilder implements Supplier<Map<String,Object>> {
 
-	private Map<String,Object> map = new HashMap<>();
+	private final Map<String,Object> map = new HashMap<>();
 	
 	private PropertiesBuilder() {
 		

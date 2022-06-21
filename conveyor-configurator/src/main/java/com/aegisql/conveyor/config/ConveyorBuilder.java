@@ -37,13 +37,13 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	private boolean allFilesRead = false;
 
 	/** The l parallel. */
-	private Set<String> lParallel = new LinkedHashSet<>();
+	private final Set<String> lParallel = new LinkedHashSet<>();
 
 	/** The dependencies. */
-	private Set<String> dependencies = new HashSet<>();
+	private final Set<String> dependencies = new HashSet<>();
 
 	/** The completed. */
-	private Set<String> completed = new HashSet<>();
+	private final Set<String> completed = new HashSet<>();
 
 	/** The Constant serialVersionUID. */
 	// setters
@@ -65,19 +65,19 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	private Duration expirationPostponeTime = null;
 
 	/** The static parts. */
-	private Collection<Pair> staticParts = new LinkedList<>();
+	private final Collection<Pair> staticParts = new LinkedList<>();
 
 	/** The first result consumer. */
 	private ResultConsumer firstResultConsumer = null;
 
 	/** The next result consumers. */
-	private Collection<ResultConsumer> nextResultConsumers = new LinkedList<>();
+	private final Collection<ResultConsumer> nextResultConsumers = new LinkedList<>();
 
 	/** The first scrap consumer. */
 	private ScrapConsumer firstScrapConsumer = null;
 
 	/** The next scrap consumers. */
-	private Collection<ScrapConsumer> nextScrapConsumers = new LinkedList<>();
+	private final Collection<ScrapConsumer> nextScrapConsumers = new LinkedList<>();
 
 	/** The timeout action. */
 	private Consumer timeoutAction = null;
@@ -95,22 +95,22 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	private BuilderSupplier builderSupplier = null;
 
 	/** The add cart before placement validator. */
-	private Collection<Consumer> addCartBeforePlacementValidator = new LinkedList<>();
+	private final Collection<Consumer> addCartBeforePlacementValidator = new LinkedList<>();
 
 	/** The add before key eviction action. */
-	private Collection<Consumer> addBeforeKeyEvictionAction = new LinkedList<>();
+	private final Collection<Consumer> addBeforeKeyEvictionAction = new LinkedList<>();
 
 	/** The add before key rescheduling action. */
-	private Collection<BiConsumer> addBeforeKeyReschedulingAction = new LinkedList<>();
+	private final Collection<BiConsumer> addBeforeKeyReschedulingAction = new LinkedList<>();
 
 	/** The accepted labels. */
-	private Set acceptedLabels = new HashSet<>();
+	private final Set acceptedLabels = new HashSet<>();
 
 	/** The readiness tester. */
 	private ReadinessTester readinessTester = null;
 
 	/** The ready labels. */
-	private Map<Object, Integer> readyLabels = new HashMap<>();
+	private final Map<Object, Integer> readyLabels = new HashMap<>();
 
 	/** The enable postpone expiration. */
 	private Boolean enablePostponeExpiration = null;
@@ -131,7 +131,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	private Function cartPayloadAccessor = null;
 
 	/** The forward. */
-	private Collection<Trio> forward = new LinkedList<>();
+	private final Collection<Trio> forward = new LinkedList<>();
 
 	/** The parallel factor. */
 	private int parallelFactor = 1;
@@ -146,7 +146,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorBuilder.class);
 
 	/** The persistence properties. */
-	private Map<String, PersistenceProperties> persistenceProperties = new TreeMap<>(new Comparator<String>() {
+	private final Map<String, PersistenceProperties> persistenceProperties = new TreeMap<>(new Comparator<String>() {
 		@Override
 		public int compare(String o1, String o2) {
 			String l1 = o1.toLowerCase();
@@ -156,7 +156,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	});
 
 	/** The default properties. */
-	private Map<String, PersistenceProperties> defaultProperties = new TreeMap<>();
+	private final Map<String, PersistenceProperties> defaultProperties = new TreeMap<>();
 
 	private Boolean enablePriorityQueue = false;
 
@@ -422,8 +422,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 			if (persistence != null) {
 				Persistence p = Persistence.byName(persistence);
-				PersistentConveyor pc = new PersistentConveyor(p.copy(), instance);
-				instance = pc;
+				instance = new PersistentConveyor(p.copy(), instance);
 			}
 
 			final Conveyor c = instance;
@@ -582,8 +581,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void firstResultConsumer(ConveyorBuilder b, String s) {
 		LOG.debug("Applying firstResultConsumer={}", s);
-		ResultConsumer value = (ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(s);
-		b.firstResultConsumer = value;
+		b.firstResultConsumer = (ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(s);
 	}
 
 	/**
@@ -610,8 +608,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void firstScrapConsumer(ConveyorBuilder b, String s) {
 		LOG.debug("Applying firstScrapConsumer={}", s);
-		ScrapConsumer value = (ScrapConsumer) ConfigUtils.stringToScrapConsumerSupplier.apply(s);
-		b.firstScrapConsumer = value;
+		b.firstScrapConsumer = (ScrapConsumer) ConfigUtils.stringToScrapConsumerSupplier.apply(s);
 	}
 
 	/**
@@ -638,8 +635,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void timeoutAction(ConveyorBuilder b, String s) {
 		LOG.debug("Applying timeoutAction={}", s);
-		Consumer value = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(s);
-		b.timeoutAction = value;
+		b.timeoutAction = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(s);
 	}
 
 	/**
@@ -652,8 +648,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void acknowledgeAction(ConveyorBuilder b, String s) {
 		LOG.debug("Applying acknowledgeAction={}", s);
-		Consumer value = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(s);
-		b.acknowledgeAction = value;
+		b.acknowledgeAction = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(s);
 	}
 
 	/**
@@ -694,8 +689,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void defaultCartConsumer(ConveyorBuilder b, String s) {
 		LOG.debug("Applying defaultCartConsumer={}", s);
-		LabeledValueConsumer value = (LabeledValueConsumer) ConfigUtils.stringToLabeledValueConsumerSupplier.apply(s);
-		b.defaultCartConsumer = value;
+		b.defaultCartConsumer = (LabeledValueConsumer) ConfigUtils.stringToLabeledValueConsumerSupplier.apply(s);
 	}
 
 	/**
@@ -710,8 +704,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		LOG.debug("Applying readinessEvaluator={}", s);
 		Object obj = ConfigUtils.stringToReadinessEvaluatorSupplier.apply(s);
 		if (obj instanceof BiPredicate) {
-			BiPredicate re = (BiPredicate) obj;
-			b.readinessEvaluatorBiP = re;
+			b.readinessEvaluatorBiP = (BiPredicate) obj;
 			b.readinessEvaluatorP = null;
 		} else if (obj instanceof Predicate) {
 			Predicate re = (Predicate) obj;
@@ -768,8 +761,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void builderSupplier(ConveyorBuilder b, String s) {
 		LOG.debug("Applying builderSupplier={}", s);
-		BuilderSupplier value = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply(s);
-		b.builderSupplier = value;
+		b.builderSupplier = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply(s);
 	}
 
 	/**
@@ -810,8 +802,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void enablePostponeExpiration(ConveyorBuilder b, String s) {
 		LOG.debug("Applying enablePostponeExpiration={}", s);
-		Boolean value = Boolean.valueOf(s);
-		b.enablePostponeExpiration = value;
+		b.enablePostponeExpiration = Boolean.valueOf(s);
 	}
 
 	/**
@@ -824,8 +815,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void enablePostponeExpirationOnTimeout(ConveyorBuilder b, String s) {
 		LOG.debug("Applying enablePostponeExpirationOnTimeout={}", s);
-		Boolean value = Boolean.valueOf(s);
-		b.enablePostponeExpirationOnTimeout = value;
+		b.enablePostponeExpirationOnTimeout = Boolean.valueOf(s);
 	}
 
 	/**
@@ -838,8 +828,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void autoAcknowledge(ConveyorBuilder b, String s) {
 		LOG.debug("Applying autoAcknowledge={}", s);
-		Boolean value = Boolean.valueOf(s);
-		b.autoAcknowledge = value;
+		b.autoAcknowledge = Boolean.valueOf(s);
 	}
 
 	/**
@@ -852,8 +841,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void autoAcknowledgeOnStatus(ConveyorBuilder b, String s) {
 		LOG.debug("Applying autoAcknowledgeOnStatus={}", s);
-		Status[] value = (Status[]) ConfigUtils.stringToStatusConverter.apply(s);
-		b.autoAcknowledgeOnStatus = value;
+		b.autoAcknowledgeOnStatus = (Status[]) ConfigUtils.stringToStatusConverter.apply(s);
 	}
 
 	/**
@@ -866,8 +854,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void cartPayloadAccessor(ConveyorBuilder b, String s) {
 		LOG.debug("Applying cartPayloadAccessor={}", s);
-		Function value = (Function) ConfigUtils.stringToFunctionSupplier.apply(s);
-		b.cartPayloadAccessor = value;
+		b.cartPayloadAccessor = (Function) ConfigUtils.stringToFunctionSupplier.apply(s);
 	}
 
 	/**
@@ -894,8 +881,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void supplier(ConveyorBuilder b, String s) {
 		LOG.debug("Applying conveyor supplier={}", s);
-		Supplier<Conveyor> value = ConfigUtils.stringToConveyorSupplier.apply(s);
-		b.constructor = value;
+		b.constructor = ConfigUtils.stringToConveyorSupplier.apply(s);
 		b.maxQueueSize = 0;
 		b.enablePriorityQueue = false;
 	}
@@ -977,8 +963,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	public static void parallel(ConveyorBuilder b, String s) {
 		LOG.debug("Applying parallel={}", s);
 		try {
-			Integer pf = Integer.parseInt(s.split("\\s+")[0]);
-			b.parallelFactor = pf;
+			b.parallelFactor = Integer.parseInt(s.split("\\s+")[0]);
 			b.lParallel.clear();
 		} catch (Exception e) {
 			String[] parts = s.split(",");

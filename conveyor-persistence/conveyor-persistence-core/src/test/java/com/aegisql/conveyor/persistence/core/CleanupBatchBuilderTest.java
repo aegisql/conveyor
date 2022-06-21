@@ -50,9 +50,9 @@ public class CleanupBatchBuilderTest {
 		CleaunupBatchBuilder<Integer> cb = new CleaunupBatchBuilder<>(p);
 		
 		assertFalse(cb.test());
-		cb.addCartId(cb, 1L);
-		cb.addCartId(cb, 2L);
-		cb.addCartId(cb, 3L);
+		CleaunupBatchBuilder.addCartId(cb, 1L);
+		CleaunupBatchBuilder.addCartId(cb, 2L);
+		CleaunupBatchBuilder.addCartId(cb, 3L);
 		assertTrue(cb.test());
 	}
 
@@ -64,8 +64,8 @@ public class CleanupBatchBuilderTest {
 		l.add(1L);
 		l.add(2L);
 		assertFalse(cb.test());
-		cb.addCartIds(cb, l);
-		cb.addKey(cb, 2);
+		CleaunupBatchBuilder.addCartIds(cb, l);
+		CleaunupBatchBuilder.addKey(cb, 2);
 		assertTrue(cb.test());
 	}
 

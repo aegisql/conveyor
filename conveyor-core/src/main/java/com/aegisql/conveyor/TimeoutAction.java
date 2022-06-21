@@ -12,5 +12,5 @@ public interface TimeoutAction {
 	/**
 	 * On timeout.
 	 */
-	public void onTimeout();
+	void onTimeout();
 }

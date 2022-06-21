@@ -16,104 +16,104 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 public interface JdbcPersistenceMBean<K> extends Supplier<Persistence<K>>{
 	
 	/** The Constant mBeanServer. */
-	final static MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+	MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 	
 	/**
 	 * Gets the engine type.
 	 *
 	 * @return the engine type
 	 */
-	public String getEngineType();
+	String getEngineType();
 	
 	/**
 	 * Gets the database.
 	 *
 	 * @return the database
 	 */
-	public String getDatabase();
+	String getDatabase();
 	
 	/**
 	 * Gets the schema.
 	 *
 	 * @return the schema
 	 */
-	public String getSchema();
+	String getSchema();
 	
 	/**
 	 * Gets the part table.
 	 *
 	 * @return the part table
 	 */
-	public String getPartTable();
+	String getPartTable();
 	
 	/**
 	 * Gets the complete table.
 	 *
 	 * @return the complete table
 	 */
-	public String getCompleteTable();
+	String getCompleteTable();
 	
 	/**
 	 * Gets the archive strategy.
 	 *
 	 * @return the archive strategy
 	 */
-	public String getArchiveStrategy();
+	String getArchiveStrategy();
 	
 	/**
 	 * Gets the archive strategy details.
 	 *
 	 * @return the archive strategy details
 	 */
-	public String getArchiveStrategyDetails();
+	String getArchiveStrategyDetails();
 	
 	/**
 	 * Checks if is encrypted.
 	 *
 	 * @return true, if is encrypted
 	 */
-	public boolean isEncrypted();
+	boolean isEncrypted();
 	
 	/**
 	 * Gets the engine.
 	 *
 	 * @return the engine
 	 */
-	public String getEngine();
+	String getEngine();
 	
 	/**
 	 * Gets the host.
 	 *
 	 * @return the host
 	 */
-	public String getHost();
+	String getHost();
 	
 	/**
 	 * Gets the port.
 	 *
 	 * @return the port
 	 */
-	public int getPort();
+	int getPort();
 	
 	/**
 	 * Min compact size.
 	 *
 	 * @return the int
 	 */
-	public int minCompactSize();
+	int minCompactSize();
 	
 	/**
 	 * Gets the max batch size.
 	 *
 	 * @return the max batch size
 	 */
-	public int getMaxBatchSize();
+	int getMaxBatchSize();
 	
 	/**
 	 * Gets the max batch time.
 	 *
 	 * @return the max batch time
 	 */
-	public long getMaxBatchTime();
+	long getMaxBatchTime();
 	
 }

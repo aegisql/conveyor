@@ -20,7 +20,7 @@ SCHEDULE_AND_EXECUTE_NOW(ScheduleBuilder::setAndExecuteClosure)
 	;
 
 	/** The setter. */
- 	SerializableBiConsumer<ScheduleBuilder<?>,Object> setter;
+	final SerializableBiConsumer<ScheduleBuilder<?>,Object> setter;
 	
 	/**
 	 * Instantiates a new schedule.

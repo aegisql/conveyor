@@ -727,7 +727,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		if(key == null) {
 			return "NULL";
 		} else {
-			return q+key.toString()+q;
+			return q+ key +q;
 		}
 	}
 

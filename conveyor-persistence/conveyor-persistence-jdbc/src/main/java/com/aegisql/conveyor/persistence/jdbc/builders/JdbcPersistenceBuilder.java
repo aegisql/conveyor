@@ -90,11 +90,11 @@ public class JdbcPersistenceBuilder<K> {
 	private static final String ARCHIVED="ARCHIVED";
 
 	/** The info builder. */
-	private StringBuilder infoBuilder = new StringBuilder();
+	private final StringBuilder infoBuilder = new StringBuilder();
 	
 	/** The converter adviser. */
 	@SuppressWarnings("rawtypes")
-	private ConverterAdviser converterAdviser = new ConverterAdviser<>();
+	private final ConverterAdviser converterAdviser = new ConverterAdviser<>();
 
 
 	/** The auto init. */
@@ -102,10 +102,7 @@ public class JdbcPersistenceBuilder<K> {
 	
 	/** The key class. */
 	private final Class<K> keyClass;
-	
-	/** The key sql type. */
-	private final String keySqlType;
-	
+
 	/** The engine type. */
 	private final String engineType;
 	
@@ -247,7 +244,8 @@ public class JdbcPersistenceBuilder<K> {
 		this.password = password;
 		this.properties = properties;
 		this.additionalFields = fields;
-		this.keySqlType = getKeySqlType(this.keyClass);
+		/** The key sql type. */
+		String keySqlType = getKeySqlType(this.keyClass);
 		this.archiveStrategy = archiveStrategy;
 		this.customArchiver = customArchiver;
 		this.archivingPersistence = archivingPersistence;

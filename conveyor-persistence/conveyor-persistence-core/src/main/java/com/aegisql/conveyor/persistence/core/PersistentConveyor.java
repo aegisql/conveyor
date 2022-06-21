@@ -48,20 +48,11 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private ResultConsumer<K, OUT> resultConsumer = bin -> {
 	};
 
-	/** The ack persistence. */
-	private final Persistence<K> ackPersistence;
-
 	/** The forward persistence. */
 	private final Persistence<K> forwardPersistence;
 
-	/** The clean persistence. */
-	private final Persistence<K> cleanPersistence;
-
 	/** The on status. */
 	private final EnumMap<Status, Consumer<AcknowledgeStatus<K>>> onStatus = new EnumMap<>(Status.class);
-
-	/** The initialization mode. */
-	private final AtomicBoolean initializationMode = new AtomicBoolean(true);
 
 	private String doNotPersist = "~";
 	
@@ -85,9 +76,11 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	public PersistentConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward) {
 
-		ackPersistence = persistence.copy();
+		/** The ack persistence. */
+		Persistence<K> ackPersistence = persistence.copy();
 		forwardPersistence = persistence.copy();
-		cleanPersistence = persistence.copy();
+		/** The clean persistence. */
+		Persistence<K> cleanPersistence = persistence.copy();
 
 		this.forward = forward;
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(cleanPersistence);
@@ -142,7 +135,9 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		} catch (IOException e) {
 			throw new PersistenceException(e.getMessage(), e);
 		}
-		this.initializationMode.set(false);
+		/** The initialization mode. */
+		AtomicBoolean initializationMode = new AtomicBoolean(true);
+		initializationMode.set(false);
 		this.ackConveyor.setInitializationMode(false);
 		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(false).place().join();
 	}
@@ -388,12 +383,10 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public ScrapConsumerLoader<K> scrapConsumer() {
 
-		ScrapConsumerLoader<K> skl = new ScrapConsumerLoader<>(sc->{
+		return new ScrapConsumerLoader<>(sc->{
 			ackConveyor.scrapConsumer(sc).set();
 			forward.scrapConsumer(sc).set();
 		}, LogScrap.error(this));
-
-		return skl;
 	}
 
 	/*
@@ -404,12 +397,11 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public ScrapConsumerLoader<K> scrapConsumer(ScrapConsumer<K, ?> scrapConsumer) {
-		ScrapConsumerLoader<K> skl = new ScrapConsumerLoader<>(sc->{
+
+		return new ScrapConsumerLoader<>(sc->{
 			ackConveyor.scrapConsumer(sc).set();
 			forward.scrapConsumer(sc).set();
 		}, scrapConsumer);
-
-		return skl;
 	}
 
 	/*
@@ -677,29 +669,6 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public String getName() {
 		return name;
 	}
-
-//	/*
-//	 * (non-Javadoc)
-//	 * 
-//	 * @see com.aegisql.conveyor.Conveyor#forwardResultTo(com.aegisql.conveyor.
-//	 * Conveyor, java.lang.Object)
-//	 */
-//	@Override
-//	public <L2, OUT2> void forwardResultTo(Conveyor<K, L2, OUT2> destination, L2 label) {
-//		forward.forwardResultTo(destination, label);
-//	}
-//
-//	/*
-//	 * (non-Javadoc)
-//	 * 
-//	 * @see com.aegisql.conveyor.Conveyor#forwardResultTo(com.aegisql.conveyor.
-//	 * Conveyor, java.util.function.Function, java.lang.Object)
-//	 */
-//	@Override
-//	public <K2, L2, OUT2> void forwardResultTo(Conveyor<K2, L2, OUT2> destination,
-//			Function<ProductBin<K, OUT>, K2> keyConverter, L2 label) {
-//		forward.forwardResultTo(destination, keyConverter, label);
-//	}
 
 	/*
 	 * (non-Javadoc)

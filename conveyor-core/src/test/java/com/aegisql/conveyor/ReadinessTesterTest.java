@@ -10,7 +10,7 @@ import static org.junit.Assert.*;
 
 public class ReadinessTesterTest {
 
-    class B implements Supplier<String> {
+    static class B implements Supplier<String> {
 
         @Override
         public String get() {

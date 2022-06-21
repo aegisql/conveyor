@@ -13,7 +13,7 @@ public enum PersonBuilderLabel implements SmartLabel<PersonBuilder> {
 	SET_LAST(PersonBuilder::setLastName),
 	SET_YEAR(PersonBuilder::setDateOfBirth);
 
-	BiConsumer<PersonBuilder, Object> setter;
+	final BiConsumer<PersonBuilder, Object> setter;
 
 	<T> PersonBuilderLabel(BiConsumer<PersonBuilder,T> setter) {
 		this.setter = (BiConsumer<PersonBuilder, Object>) setter;

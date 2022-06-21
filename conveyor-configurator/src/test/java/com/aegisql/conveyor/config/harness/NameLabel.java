@@ -12,7 +12,7 @@ public enum NameLabel implements SmartLabel<StringSupplier>{
 	;
 
 	
-	BiConsumer<StringSupplier, Object> consumer;
+	final BiConsumer<StringSupplier, Object> consumer;
 
 	NameLabel(BiConsumer<StringSupplier, Object> consumer) {
 		this.consumer = consumer;

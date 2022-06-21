@@ -11,5 +11,5 @@ public interface Interruptable {
 	 *
 	 * @param conveyorThread the conveyor thread
 	 */
-	public void interrupt(Thread conveyorThread);
+	void interrupt(Thread conveyorThread);
 }

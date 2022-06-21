@@ -44,8 +44,7 @@ public class ResultConsumerTest {
 	}
 
 	public static <K,V> ProductBin getProductBin(K key, V val) {
-		ProductBin res = new ProductBin(null,key,val,0,Status.READY,new HashMap<>(), null);
-		return res;
+		return new ProductBin(null,key,val,0,Status.READY,new HashMap<>(), null);
 	}
 
 	@Test

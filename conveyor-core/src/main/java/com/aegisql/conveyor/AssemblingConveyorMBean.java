@@ -14,112 +14,112 @@ public interface AssemblingConveyorMBean {
 	 *
 	 * @return the status
 	 */
-	public String getStatus();
+	String getStatus();
 	
 	/**
 	 * Gets the name.
 	 *
 	 * @return the name
 	 */
-	public String getName();
+	String getName();
 	
 	/**
 	 * Gets the type.
 	 *
 	 * @return the type
 	 */
-	public String getType();
+	String getType();
 	
 	/**
 	 * Gets the thread id.
 	 *
 	 * @return the thread id
 	 */
-	public long getThreadId();
+	long getThreadId();
 	
 	/**
 	 * Gets the input queue size.
 	 *
 	 * @return the input queue size
 	 */
-	public int getInputQueueSize();
+	int getInputQueueSize();
 	
 	/**
 	 * Gets the collector size.
 	 *
 	 * @return the collector size
 	 */
-	public int getCollectorSize();
+	int getCollectorSize();
 	
 	/**
 	 * Gets the command queue size.
 	 *
 	 * @return the command queue size
 	 */
-	public int getCommandQueueSize();
+	int getCommandQueueSize();
 	
 	/**
 	 * Checks if is running.
 	 *
 	 * @return true, if is running
 	 */
-	public boolean isRunning();
+	boolean isRunning();
 	
 	/**
 	 * Checks if is l balanced.
 	 *
 	 * @return true, if is l balanced
 	 */
-	public boolean isLBalanced();
+	boolean isLBalanced();
 	
 	/**
 	 * Gets the default builder timeout msec.
 	 *
 	 * @return the default builder timeout msec
 	 */
-	public long getDefaultBuilderTimeoutMsec();
+	long getDefaultBuilderTimeoutMsec();
 	
 	/**
 	 * Gets the idle heart beat msec.
 	 *
 	 * @return the idle heart beat msec
 	 */
-	public long getIdleHeartBeatMsec();
+	long getIdleHeartBeatMsec();
 	
 	/**
 	 * Gets the expiration pospone time msec.
 	 *
 	 * @return the expiration pospone time msec
 	 */
-	public long getExpirationPostponeTimeMsec();
+	long getExpirationPostponeTimeMsec();
 	
 	/**
 	 * Gets the forwarding results to.
 	 *
 	 * @return the forwarding results to
 	 */
-	public String getForwardingResultsTo();
+	String getForwardingResultsTo();
 	
 	/**
 	 * Gets the accepted labels.
 	 *
 	 * @return the accepted labels
 	 */
-	public String getAcceptedLabels();
+	String getAcceptedLabels();
 	
 	/**
 	 * Gets the cart counter.
 	 *
 	 * @return the cart counter
 	 */
-	public long getCartCounter();
+	long getCartCounter();
 	
 	/**
 	 * Gets the command counter.
 	 *
 	 * @return the command counter
 	 */
-	public long getCommandCounter();
+	long getCommandCounter();
 	
 	/**
 	 * Conveyor.
@@ -129,22 +129,22 @@ public interface AssemblingConveyorMBean {
 	 * @param <OUT> the generic type
 	 * @return the conveyor
 	 */
-	public <K,L,OUT> Conveyor<K, L, OUT> conveyor();
+	<K,L,OUT> Conveyor<K, L, OUT> conveyor();
 	
 	/**
 	 * Stop.
 	 */
-	public void stop();
+	void stop();
 	
 	/**
 	 * Complete and stop.
 	 */
-	public void completeAndStop();
+	void completeAndStop();
 	
 	/**
 	 * Interrupt.
 	 */
-	public void interrupt();
+	void interrupt();
 	
 	/**
 	 * Sets the idle heart beat msec.

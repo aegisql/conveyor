@@ -2,12 +2,12 @@ package com.aegisql.conveyor.persistence.core;
 
 public interface PersistenceInit <K> {
 
-	public void initDatabase(String database);
-	public void initSchema(String schema);
-	public void initPartPersistence(Class<K> keyClass, String partTableName);
-	public void initLogPersistence(Class<K> keyClass, String partTableName);
+	void initDatabase(String database);
+	void initSchema(String schema);
+	void initPartPersistence(Class<K> keyClass, String partTableName);
+	void initLogPersistence(Class<K> keyClass, String partTableName);
 	
-	public static <K> PersistenceInit<K> NO_ACTION(Class<K> keyClass) {
+	static <K> PersistenceInit<K> NO_ACTION(Class<K> keyClass) {
 		return new PersistenceInit<K>() {
 			@Override
 			public void initDatabase(String database) {

@@ -26,8 +26,7 @@ public class CollectionConveyor <K,V> extends AssemblingConveyor<K, SmartLabel<C
 	}
 
 	public final SmartLabel<CollectionBuilder<V>> ITEM = SmartLabel.of((b,v)->{
-		CollectionBuilder<V> builder = (CollectionBuilder<V>)b;
-		CollectionBuilder.add(builder, (V)v);
+		CollectionBuilder.add((CollectionBuilder<V>)b, (V)v);
 	});
 
 	public final SmartLabel<CollectionBuilder<V>> COMPLETE = SmartLabel.of(()->{});

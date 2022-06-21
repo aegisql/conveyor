@@ -87,7 +87,7 @@ public class ConveyorConfiguration {
 	 * @param file the file
 	 */
 
-	private static TemplateEditor templateEditor = new TemplateEditor();
+	private static final TemplateEditor templateEditor = new TemplateEditor();
 
 	private static void processConfFile(String file) {
 

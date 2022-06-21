@@ -8,7 +8,7 @@ public enum RestoreOrder {
 	,BY_PRIORITY_AND_ID("PRIORITY","DESC","ID","ASC")
 	;
 	
-	LinkedHashMap<String, String> order = new LinkedHashMap<>();
+	final LinkedHashMap<String, String> order = new LinkedHashMap<>();
 	
 	public LinkedHashMap<String, String> getOrder() {
 		return order;

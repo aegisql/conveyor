@@ -174,7 +174,7 @@ public class PrioritySupplierTest {
 
     }
 
-    class A {
+    static class A {
         String val;
         public A(String val) {
             this.val = val;
@@ -209,7 +209,7 @@ public class PrioritySupplierTest {
         assertEquals("v1",results.poll().val);
     }
 
-    class B {
+    static class B {
         String val1;
         String val2;
         public B(String val1, String val2) {
@@ -224,7 +224,7 @@ public class PrioritySupplierTest {
         String val1;
         String val2;
         public B get() {
-            return new B(val1,val2);
+            return new B(val1, val2);
         }
     }
 

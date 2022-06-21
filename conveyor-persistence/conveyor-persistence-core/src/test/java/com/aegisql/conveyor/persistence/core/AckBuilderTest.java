@@ -42,14 +42,14 @@ public class AckBuilderTest {
 		
 		AcknowledgeBuilder<Integer> ab = new AcknowledgeBuilder<>(p, null,null);
 		
-		ab.processCart(ab, new ShoppingCart<>(1, 1, "A"));
-		ab.processCart(ab, new ShoppingCart<>(1, 2, "B"));
-		ab.processCart(ab, new ShoppingCart<>(1, 3, "C"));
-		ab.processCart(ab, new ShoppingCart<>(1, 4, "D"));
+		AcknowledgeBuilder.processCart(ab, new ShoppingCart<>(1, 1, "A"));
+		AcknowledgeBuilder.processCart(ab, new ShoppingCart<>(1, 2, "B"));
+		AcknowledgeBuilder.processCart(ab, new ShoppingCart<>(1, 3, "C"));
+		AcknowledgeBuilder.processCart(ab, new ShoppingCart<>(1, 4, "D"));
 		
 		assertFalse(ab.test());
 		assertFalse(ab.test());
-		ab.complete(ab, new AcknowledgeStatus<>(1, Status.READY, null));
+		AcknowledgeBuilder.complete(ab, new AcknowledgeStatus<>(1, Status.READY, null));
 		assertTrue(ab.test());
 		assertTrue(ab.get());
 		System.out.println(ab.get());

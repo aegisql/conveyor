@@ -13,7 +13,7 @@ import static org.junit.Assert.assertTrue;
 
 public class InputQueueLengthValidatorTest {
 
-    class A{
+    static class A{
         String val;
     }
     class ABuilder implements Supplier<A>, Testing {

@@ -9,8 +9,7 @@ import static org.junit.Assert.*;
 
 public class LookupPerformanceTest {
 
-    private static int CONVEYORS = 10;
-    private static int TESTS = 10_000_000;
+    private static final int TESTS = 10_000_000;
 
 
     @Test
@@ -53,6 +52,7 @@ public class LookupPerformanceTest {
     private Map<String,Conveyor<Integer,String,String>> createConveyors(String namePrefix) {
         Map<String, Conveyor<Integer, String, String>> conveyors = new HashMap<>();
 
+        int CONVEYORS = 10;
         for(int i = 0; i < CONVEYORS; i++) {
             AssemblingConveyor<Integer,String,String> c = new AssemblingConveyor<>();
             c.setName(namePrefix+(i+1));

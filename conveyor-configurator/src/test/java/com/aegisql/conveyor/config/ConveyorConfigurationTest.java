@@ -134,8 +134,6 @@ public class ConveyorConfigurationTest {
 	@Test
 	public void testSimplePropertiesFileByAbsolutePath() throws Exception {
 		ConveyorConfiguration.build("src/test/resources/test2.properties");
-		// assertNotNull(Conveyor.byName("test0"));
-		// assertNotNull(Conveyor.byName("test1"));
 		assertNotNull(Conveyor.byName("test.part"));
 		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("test2");
 		assertNotNull(c);
@@ -145,8 +143,6 @@ public class ConveyorConfigurationTest {
 	@Test
 	public void testSimplePropertiesFileByClassPath() throws Exception {
 		ConveyorConfiguration.build("CLASSPATH:test2.properties");
-		// assertNotNull(Conveyor.byName("test0"));
-		// assertNotNull(Conveyor.byName("test1"));
 		assertNotNull(Conveyor.byName("test2"));
 		assertNotNull(Conveyor.byName("test.part"));
 	}
@@ -154,8 +150,6 @@ public class ConveyorConfigurationTest {
 	@Test
 	public void testSimpleYampFileIdenticalToProperties() throws Exception {
 		ConveyorConfiguration.build("CLASSPATH:test3.yml");
-		// assertNotNull(Conveyor.byName("test0"));
-		// assertNotNull(Conveyor.byName("test1"));
 		assertNotNull(Conveyor.byName("c3-1"));
 		assertNotNull(Conveyor.byName("c3.p1"));
 	}
@@ -163,8 +157,6 @@ public class ConveyorConfigurationTest {
 	@Test
 	public void testSimpleYampFileWithStructure() throws Exception {
 		ConveyorConfiguration.build("CLASSPATH:test4.yml");
-		// assertNotNull(Conveyor.byName("test0"));
-		// assertNotNull(Conveyor.byName("test1"));
 		assertNotNull(Conveyor.byName("c4.p1.x"));
 		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c4-1");
 		assertNotNull(c);
@@ -196,8 +188,6 @@ public class ConveyorConfigurationTest {
 	@Test
 	public void testYampFileWithStructureAndReadiness() throws Exception {
 		ConveyorConfiguration.build("CLASSPATH:test5.yml");
-		// assertNotNull(Conveyor.byName("test0"));
-		// assertNotNull(Conveyor.byName("test1"));
 		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c5-1");
 		assertNotNull(c);
 		CompletableFuture<String> f = c.build().id(1).createFuture();

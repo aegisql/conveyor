@@ -17,38 +17,38 @@ public interface Archiver<K> {
 	 *
 	 * @param ids the ids
 	 */
-	public void archiveParts(Collection<Long> ids);
+	void archiveParts(Collection<Long> ids);
 	
 	/**
 	 * Archive keys.
 	 *
 	 * @param keys the keys
 	 */
-	public void archiveKeys(Collection<K> keys);
+	void archiveKeys(Collection<K> keys);
 	
 	/**
 	 * Archive complete keys.
 	 *
 	 * @param keys the keys
 	 */
-	public void archiveCompleteKeys(Collection<K> keys);
+	void archiveCompleteKeys(Collection<K> keys);
 	
 	/**
 	 * Archive expired parts.
 	 */
-	public void archiveExpiredParts();
+	void archiveExpiredParts();
 	
 	/**
 	 * Archive all.
 	 */
-	public void archiveAll();
+	void archiveAll();
 	
 	/**
 	 * Sets the persistence.
 	 *
 	 * @param persistence the new persistence
 	 */
-	public void setPersistence(Persistence<K> persistence);
+	void setPersistence(Persistence<K> persistence);
 
 }
 

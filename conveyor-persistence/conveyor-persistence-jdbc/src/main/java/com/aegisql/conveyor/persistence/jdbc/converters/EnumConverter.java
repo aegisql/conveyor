@@ -14,7 +14,7 @@ import com.aegisql.conveyor.persistence.core.ObjectConverter;
 public class EnumConverter <E extends Enum<E>> implements ObjectConverter<E, String> {
 
 	/** The map. */
-	private Map<String,E> map = new HashMap<>();
+	private final Map<String,E> map = new HashMap<>();
 	
 	/**
 	 * Instantiates a new enum converter.

@@ -26,7 +26,7 @@ public class UserBuilderExpireable implements Supplier<User>, Expireable {
 	Integer yearOfBirth;
 
 	/** The builder created. */
-	private long builderCreated = System.currentTimeMillis();
+	private final long builderCreated = System.currentTimeMillis();
 	
 	/** The builder expiration. */
 	private long builderExpiration;

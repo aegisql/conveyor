@@ -94,7 +94,7 @@ public class FileArchiverTest {
 	}
 
 	@Test
-	public void FileArchiverTest() throws Exception {
+	public void fileArchiverTest() throws Exception {
 		PersistTestImpl p = new PersistTestImpl();
 		BinaryLogConfiguration blc = BinaryLogConfiguration.builder()
 				.maxFileSize("200")

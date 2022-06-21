@@ -15,6 +15,6 @@ public class LazyConveyorSupplierTest {
         assertNotNull(ls.get());
         ls.reset();
         assertNotNull(ls.get());
-        System.out.println(ls.toString());
+        System.out.println(ls);
     }
 }

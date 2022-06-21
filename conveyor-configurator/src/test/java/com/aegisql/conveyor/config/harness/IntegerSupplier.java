@@ -4,7 +4,7 @@ import java.util.function.Supplier;
 
 public class IntegerSupplier implements Supplier<Integer> {
 
-	private Integer s;
+	private final Integer s;
 	
 	public IntegerSupplier() {
 		System.out.println("StringSupplier init");

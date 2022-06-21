@@ -198,7 +198,7 @@ public class MysqlPersistenceTest {
 		}
 	}
 
-	class BalanceBuilder implements Supplier<Double> {
+	static class BalanceBuilder implements Supplier<Double> {
 		Double summ = 0.00;
 		@Override
 		public Double get() {

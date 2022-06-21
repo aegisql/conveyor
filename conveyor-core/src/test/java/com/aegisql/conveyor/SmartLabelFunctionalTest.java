@@ -381,7 +381,7 @@ public class SmartLabelFunctionalTest {
 		System.out.println(f.get());
 	}
 
-	class Failing implements Supplier<String> {
+	static class Failing implements Supplier<String> {
 
 		@Override
 		public String get() {

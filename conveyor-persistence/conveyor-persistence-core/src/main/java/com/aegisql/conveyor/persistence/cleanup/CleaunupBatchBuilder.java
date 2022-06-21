@@ -24,7 +24,7 @@ public class CleaunupBatchBuilder <K> implements Supplier<Runnable>, Testing, Ti
 	private static final long serialVersionUID = 1L;
 
 	/** The log. */
-	private static Logger LOG = LoggerFactory.getLogger(CleaunupBatchBuilder.class);
+	private static final Logger LOG = LoggerFactory.getLogger(CleaunupBatchBuilder.class);
 
 	/** The ready. */
 	private boolean ready = false;
