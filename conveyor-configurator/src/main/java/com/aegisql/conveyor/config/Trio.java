@@ -76,11 +76,8 @@ public class Trio<L,V,T> {
 		} else if (!value1.equals(other.value1))
 			return false;
 		if (value2 == null) {
-			if (other.value2 != null)
-				return false;
-		} else if (!value2.equals(other.value2))
-			return false;
-		return true;
+			return other.value2 == null;
+		} else return value2.equals(other.value2);
 	}
 
 }

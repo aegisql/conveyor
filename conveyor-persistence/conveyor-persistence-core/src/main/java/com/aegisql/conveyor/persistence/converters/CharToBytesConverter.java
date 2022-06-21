@@ -17,7 +17,7 @@ public class CharToBytesConverter implements ObjectToByteArrayConverter<Characte
 			return null;
 		}
 		byte[] bytes = new byte[2];
-		ByteBuffer.wrap(bytes).putChar(obj.charValue());
+		ByteBuffer.wrap(bytes).putChar(obj);
 		return bytes;
 	}
 

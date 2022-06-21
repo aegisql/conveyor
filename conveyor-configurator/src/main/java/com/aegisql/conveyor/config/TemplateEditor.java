@@ -13,9 +13,7 @@ public class TemplateEditor {
         Map<String,String> env = System.getenv();
         map.putAll(env);
         Properties p = System.getProperties();
-        p.forEach((key,value)->{
-            map.put(""+key,""+value);
-        });
+        p.forEach((key,value)-> map.put(""+key,""+value));
     }
 
     private String extractDefaultValue(String match) {

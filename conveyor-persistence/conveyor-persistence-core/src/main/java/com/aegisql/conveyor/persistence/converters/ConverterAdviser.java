@@ -196,7 +196,7 @@ public class ConverterAdviser <L> {
 		} else {
 			final ObjectConverter<byte[], byte[]> eConverter = encryptor;
 			final ObjectConverter<Object, byte[]> oConverter = converter;
-			return new ObjectConverter<Object, byte[]>(){
+			return new ObjectConverter<>() {
 
 				@Override
 				public byte[] toPersistence(Object obj) {
@@ -210,8 +210,9 @@ public class ConverterAdviser <L> {
 
 				@Override
 				public String conversionHint() {
-					return "__##"+oConverter.conversionHint();
-				}};
+					return "__##" + oConverter.conversionHint();
+				}
+			};
 		}
 	}
 

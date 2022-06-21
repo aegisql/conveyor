@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.Conveyor;

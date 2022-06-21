@@ -3,7 +3,6 @@ package com.aegisql.conveyor.consumers.scrap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;

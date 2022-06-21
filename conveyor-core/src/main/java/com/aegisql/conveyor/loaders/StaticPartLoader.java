@@ -78,7 +78,7 @@ public final class StaticPartLoader<L> {
 	 * @return the part loader
 	 */
 	public StaticPartLoader<L> delete() {
-		return new StaticPartLoader<L>(placer,label,staticPartValue,false,priority,properties);
+		return new StaticPartLoader<>(placer, label, staticPartValue, false, priority, properties);
 	}
 
 	/**
@@ -88,7 +88,7 @@ public final class StaticPartLoader<L> {
 	 * @return the part loader
 	 */
 	public StaticPartLoader<L> label(L l) {
-		return new StaticPartLoader<L>(placer,l,staticPartValue,create,priority,properties);
+		return new StaticPartLoader<>(placer, l, staticPartValue, create, priority, properties);
 	}
 
 	/**
@@ -98,7 +98,7 @@ public final class StaticPartLoader<L> {
 	 * @return the static part loader
 	 */
 	public StaticPartLoader<L> priority(long p) {
-		return new StaticPartLoader<L>(placer,label,staticPartValue,create,p,properties);
+		return new StaticPartLoader<>(placer, label, staticPartValue, create, p, properties);
 	}
 
 	/**
@@ -108,7 +108,7 @@ public final class StaticPartLoader<L> {
 	 * @return the part loader
 	 */
 	public StaticPartLoader<L> value(Object v) {
-		return new StaticPartLoader<L>(placer,label,v,true,priority,properties);
+		return new StaticPartLoader<>(placer, label, v, true, priority, properties);
 	}
 
 	/**
@@ -136,14 +136,14 @@ public final class StaticPartLoader<L> {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.put(k, v);
-		return new StaticPartLoader<L>(placer,label,staticPartValue,create,priority,newMap);
+		return new StaticPartLoader<>(placer, label, staticPartValue, create, priority, newMap);
 	}
 	
 	public StaticPartLoader<L> addProperties(Map<String,Object> moreProperties) {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.putAll(moreProperties);
-		return new StaticPartLoader<L>(placer,label,staticPartValue,create,priority,newMap);
+		return new StaticPartLoader<>(placer, label, staticPartValue, create, priority, newMap);
 	}
 	/**
 	 * Place.
@@ -181,19 +181,20 @@ public final class StaticPartLoader<L> {
 	 * @return the supplier
 	 */
 	public static <L> Supplier<StaticPartLoader<L>> lazySupplier(String name) {
-		return new Supplier<StaticPartLoader<L>>() {
-			StaticPartLoader<L> spl;
-			@Override
-			public StaticPartLoader<L> get() {
-				if(spl == null) {
-					Conveyor<?,L,?> c = Conveyor.byName(name);
-					if(c != null) {
-						spl = c.staticPart();
-					}
-				}
-				return spl;
-			}
-		};
+		return new Supplier<>() {
+            StaticPartLoader<L> spl;
+
+            @Override
+            public StaticPartLoader<L> get() {
+                if (spl == null) {
+                    Conveyor<?, L, ?> c = Conveyor.byName(name);
+                    if (c != null) {
+                        spl = c.staticPart();
+                    }
+                }
+                return spl;
+            }
+        };
 	}
 
 }

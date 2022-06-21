@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.persistence.utils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
@@ -29,21 +30,20 @@ public enum DataSize {
 			StringBuilder valBulder     = new StringBuilder();
 			StringBuilder dsTypeBulder  = new StringBuilder();
 			boolean readingVal          = true;
-			for(int i = 0; i < chars.length; i++) {
-				char c = chars[i];
-				if(Character.isDigit(c) || c=='.') {
-					if(readingVal) {
+			for (char c : chars) {
+				if (Character.isDigit(c) || c == '.') {
+					if (readingVal) {
 						valBulder.append(c);
 					} else {
 						throw new RuntimeException("Unexpected digit after size type");
 					}
 				} else {
 					readingVal = false;
-					if(Character.isSpaceChar(c)) {
+					if (Character.isSpaceChar(c)) {
 						continue;
 					}
-					if(types.indexOf(c)==-1) {
-						throw new PersistenceException("UnExpected character "+c+" in DataSize string "+s);
+					if (types.indexOf(c) == -1) {
+						throw new PersistenceException("UnExpected character " + c + " in DataSize string " + s);
 					} else {
 						dsTypeBulder.append(c);
 					}

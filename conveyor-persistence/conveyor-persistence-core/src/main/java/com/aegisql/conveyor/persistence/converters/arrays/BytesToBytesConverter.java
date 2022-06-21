@@ -16,7 +16,7 @@ public class BytesToBytesConverter implements ObjectArrayToByteArrayConverter<By
 		}
 		byte[] res = new byte[obj.length];
 		for(int i=0; i< obj.length; i++){
-			res[i] = obj[i].byteValue();
+			res[i] = obj[i];
 		}
 		return res;
 	}

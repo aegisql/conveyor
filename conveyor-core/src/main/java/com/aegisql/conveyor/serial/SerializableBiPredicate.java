@@ -11,9 +11,7 @@ public interface SerializableBiPredicate<T> extends BiPredicate<String,T>, Seria
     SerializableBiPredicate ANY = (str,val)->true;
 
     static <T> SerializableBiPredicate<T> forKey(final String key, Predicate<T> filter){
-        return (str,val)->{
-            return str.equals(key) && filter.test(val);
-        };
+        return (str,val)-> str.equals(key) && filter.test(val);
     }
 
     default boolean testMap(Map<String,T> map) {

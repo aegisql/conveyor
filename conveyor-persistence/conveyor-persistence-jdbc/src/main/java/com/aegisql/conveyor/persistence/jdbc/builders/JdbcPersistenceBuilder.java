@@ -515,7 +515,7 @@ public class JdbcPersistenceBuilder<K> {
 	 * @return the jdbc persistence builder
 	 */
 	public <T> JdbcPersistenceBuilder<K> addField(Class<T> fieldClass, String name) {
-		ArrayList<Field<?>> f = new ArrayList<Field<?>>(additionalFields);
+		ArrayList<Field<?>> f = new ArrayList<>(additionalFields);
 		f.add( new Field<>(fieldClass,name));
 		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
@@ -930,7 +930,7 @@ public class JdbcPersistenceBuilder<K> {
 			if (sqlEngine == this.engineDepo) {
 				return this;
 			} else {
-				return new JdbcPersistenceBuilder<K>(idSupplier, autoInit, keyClass, engineType, host, port,
+				return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 						database, schema, partTable, completedLogTable, user, password,
 						new Properties(properties), new ArrayList<>(additionalFields),
 						archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
@@ -963,29 +963,16 @@ public class JdbcPersistenceBuilder<K> {
 			init();
 		}
 		EngineDepo<K> sqlEngine = getDepoInstance();
-		Archiver<K> archiver;
-		switch (archiveStrategy) {
-		case CUSTOM:
-			archiver = customArchiver;
-			break;
-		case DELETE:
-			archiver = new DeleteArchiver<>(sqlEngine);
-			break;
-		case SET_ARCHIVED:
-			archiver = new SetArchivedArchiver<>(sqlEngine);
-			break;
-		case MOVE_TO_PERSISTENCE:
-			archiver = new PersistenceArchiver<>(sqlEngine, archivingPersistence);
-			break;
-		case MOVE_TO_FILE:
-			archiver = new FileArchiver<>(sqlEngine, bLogConf);
-			break;
-		case NO_ACTION:
-		default:
-			archiver = new DoNothingArchiver<>();
-			break;
-		}
-		
+		Archiver<K> archiver = switch (archiveStrategy) {
+			case CUSTOM -> customArchiver;
+			case DELETE -> new DeleteArchiver<>(sqlEngine);
+			case SET_ARCHIVED -> new SetArchivedArchiver<>(sqlEngine);
+			case MOVE_TO_PERSISTENCE -> new PersistenceArchiver<>(sqlEngine, archivingPersistence);
+			case MOVE_TO_FILE -> new FileArchiver<>(sqlEngine, bLogConf);
+			case NO_ACTION -> new DoNothingArchiver<>();
+			default -> new DoNothingArchiver<>();
+		};
+
 		converterAdviser.setEncryptor(encryptionBuilder.get());
 		
 		infoBuilder.append(engineType.toUpperCase()).append(" Persistence ");
@@ -1015,22 +1002,22 @@ public class JdbcPersistenceBuilder<K> {
 		ObjectName objectName = new ObjectName(objName);
 		synchronized (JdbcPersistenceMBean.mBeanServer) {
 			if( ! JdbcPersistenceMBean.mBeanServer.isRegistered(objectName)) {
-				JdbcPersistenceMBean<K> jdbcMbean = new JdbcPersistenceMBean<K>() {
+				JdbcPersistenceMBean<K> jdbcMbean = new JdbcPersistenceMBean<>() {
 					@Override
 					public String getSchema() {
 						return schema;
 					}
-					
+
 					@Override
 					public String getPartTable() {
 						return partTable;
 					}
-					
+
 					@Override
 					public String getCompleteTable() {
 						return completedLogTable;
 					}
-					
+
 					@Override
 					public String getArchiveStrategy() {
 						return archiveStrategy.name();
@@ -1043,7 +1030,7 @@ public class JdbcPersistenceBuilder<K> {
 
 					@Override
 					public String getEngine() {
-						return ""+engineDepo;
+						return "" + engineDepo;
 					}
 
 					@Override
@@ -1083,7 +1070,7 @@ public class JdbcPersistenceBuilder<K> {
 
 					@Override
 					public String getArchiveStrategyDetails() {
-						return ""+customArchiver;
+						return "" + customArchiver;
 					}
 
 					@Override
@@ -1142,31 +1129,16 @@ public class JdbcPersistenceBuilder<K> {
 		connectionFactory.setHost(host);
 		connectionFactory.setPort(port);
 		connectionFactory.setProperties(properties);
-		switch (type) {
-		case "derby":
-			engine = new DerbyEngine<>(kClass,connectionFactory);
-			break;
-		case "derby-client":
-			engine = new DerbyClientEngine<>(kClass,connectionFactory);
-			break;
-		case "derby-memory":
-			engine = new DerbyMemoryEngine<>(kClass,connectionFactory);
-			break;
-		case "mysql":
-			engine = new MysqlEngine<>(kClass,connectionFactory);
-			break;
-		case "mariadb":
-			engine = new MariaDbEngine<>(kClass,connectionFactory);
-			break;
-		case "postgres":
-			engine = new PostgresqlEngine<>(kClass,connectionFactory);
-			break;
-		case "sqlite":
-			engine = new SqliteEngine<>(kClass,connectionFactory);
-			break;
-		default:
-			throw new PersistenceException("pre-setted sql engine is not available for type "+type+".");
-		}
+		engine = switch (type) {
+			case "derby" -> new DerbyEngine<>(kClass, connectionFactory);
+			case "derby-client" -> new DerbyClientEngine<>(kClass, connectionFactory);
+			case "derby-memory" -> new DerbyMemoryEngine<>(kClass, connectionFactory);
+			case "mysql" -> new MysqlEngine<>(kClass, connectionFactory);
+			case "mariadb" -> new MariaDbEngine<>(kClass, connectionFactory);
+			case "postgres" -> new PostgresqlEngine<>(kClass, connectionFactory);
+			case "sqlite" -> new SqliteEngine<>(kClass, connectionFactory);
+			default -> throw new PersistenceException("pre-setted sql engine is not available for type " + type + ".");
+		};
 		if(notEmpty(host)) {
 			engine.setHost(host);
 		}
@@ -1202,21 +1174,13 @@ public class JdbcPersistenceBuilder<K> {
 				.engineType(type)
 				;
 
-		switch (type) {
-		case "derby":
-		case "derby-client":
-		case "derby-memory":
-			return pi.schema("conveyor_db");
-		case "mysql":
-		case "mariadb":
-			return pi.database("conveyor_db");
-		case "postgres":
-			return pi.database("conveyor_db").schema("conveyor_db");
-		case "sqlite":
-			return pi.database("conveyor.db");
-		default:
-			throw new PersistenceException("pre-setted initializer is not available for type "+type+".");
-		}
+		return switch (type) {
+			case "derby", "derby-client", "derby-memory" -> pi.schema("conveyor_db");
+			case "mysql", "mariadb" -> pi.database("conveyor_db");
+			case "postgres" -> pi.database("conveyor_db").schema("conveyor_db");
+			case "sqlite" -> pi.database("conveyor.db");
+			default -> throw new PersistenceException("pre-setted initializer is not available for type " + type + ".");
+		};
 		
 	}
 	

@@ -17,7 +17,7 @@ public class FloatToBytesConverter implements ObjectToByteArrayConverter<Float> 
 			return null;
 		}
 		byte[] bytes = new byte[4];
-		ByteBuffer.wrap(bytes).putFloat(obj.floatValue());
+		ByteBuffer.wrap(bytes).putFloat(obj);
 		return bytes;
 	}
 

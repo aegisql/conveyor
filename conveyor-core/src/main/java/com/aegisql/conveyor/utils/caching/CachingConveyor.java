@@ -30,9 +30,7 @@ public class CachingConveyor<K, L, OUT> extends AssemblingConveyor<K, L, OUT> {
 		super();
 		this.setReadinessEvaluator( (k,l) -> false);
 		this.setName("CachingConveyor");
-		this.setOnTimeoutAction(builder->{
-			LOG.debug("Cache Timeout {}", builder);			
-		});
+		this.setOnTimeoutAction(builder-> LOG.debug("Cache Timeout {}", builder));
 		this.scrapConsumer().first(LogScrap.debug(this)).set();
 	}
 

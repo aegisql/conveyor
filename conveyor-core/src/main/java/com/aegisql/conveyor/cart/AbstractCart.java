@@ -192,7 +192,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	@Override
 	public CompletableFuture<Boolean> getFuture() {
 		if(future == null) {
-			future = new CompletableFuture<Boolean>();
+			future = new CompletableFuture<>();
 		}
 		return future;
 	}

@@ -93,7 +93,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 	 */
 	@Override
 	public Cart <K,Load<K,V>,L> copy() {
-		MultiKeyCart<K,V,L> cart = new MultiKeyCart<K,V,L>(getValue().getFilter(),getValue().getValue(), getLabel(),getCreationTime(),getExpirationTime(),getValue().getLoadType(),priority);
+		MultiKeyCart<K,V,L> cart = new MultiKeyCart<>(getValue().getFilter(), getValue().getValue(), getLabel(), getCreationTime(), getExpirationTime(), getValue().getLoadType(), priority);
 		cart.putAllProperties(this.getAllProperties());
 		return cart;
 	}
@@ -105,7 +105,7 @@ public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 	 * @return the shopping cart
 	 */
 	public ShoppingCart<K, V, L> toShoppingCart(K key) {
-		ShoppingCart<K,V,L> cart = new ShoppingCart<K,V,L>(key, getValue().getValue(), getLabel(),getExpirationTime(),getPriority());
+		ShoppingCart<K,V,L> cart = new ShoppingCart<>(key, getValue().getValue(), getLabel(), getExpirationTime(), getPriority());
 		cart.putAllProperties(this.getAllProperties());
 		return cart;
 	}

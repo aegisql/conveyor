@@ -166,11 +166,7 @@ public interface ScrapConsumer<K,V> extends Consumer<ScrapBin<K,V>>{
 	 */
 	default ScrapConsumer<K,V> async(ExecutorService pool) {
 		Objects.requireNonNull(pool);
-		return bin -> {
-			pool.submit(()->{
-				accept(bin);
-			});
-		};
+		return bin -> pool.submit(()-> accept(bin));
 	}
 
 	/**

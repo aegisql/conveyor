@@ -43,8 +43,8 @@ public class CartInputStream <K,L> extends FilterInputStream {
 		for(int i = 0; i < 4; i++) {
 			buff[pos++] = intBytes[i];
 		}
-		for(int i = 0; i < remainBytes.length; i++) {
-			buff[pos++] = remainBytes[i];
+		for (byte remainByte : remainBytes) {
+			buff[pos++] = remainByte;
 		}
 		
 		return converter.fromPersistence(buff);		

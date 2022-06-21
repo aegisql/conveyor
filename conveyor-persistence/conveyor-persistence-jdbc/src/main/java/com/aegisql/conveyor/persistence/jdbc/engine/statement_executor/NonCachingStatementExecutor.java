@@ -2,7 +2,6 @@ package com.aegisql.conveyor.persistence.jdbc.engine.statement_executor;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.Supplier;

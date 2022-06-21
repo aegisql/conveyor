@@ -70,9 +70,9 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	public Cart<K, V, CommandLabel> copy() {
 		GeneralCommand<K, V> cart;
 		if(getKey() != null) {
-			cart = new GeneralCommand<K, V>(getKey(), getValue(), getLabel(),getCreationTime(),getExpirationTime());
+			cart = new GeneralCommand<>(getKey(), getValue(), getLabel(), getCreationTime(), getExpirationTime());
 		} else {
-			cart = new GeneralCommand<K, V>(getFilter(), getValue(), getLabel(),getCreationTime(),getExpirationTime());
+			cart = new GeneralCommand<>(getFilter(), getValue(), getLabel(), getCreationTime(), getExpirationTime());
 		}
 		cart.putAllProperties(this.getAllProperties());
 		return cart;

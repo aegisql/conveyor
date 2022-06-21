@@ -77,19 +77,19 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 		pos += 8;
 		bb.putLong(pos, cart.getPriority());
 		pos += 8;
-		for (int i = 0; i < keyBytes.length; i++) {
-			bb.put(pos++, keyBytes[i]);
+		for (byte keyByte : keyBytes) {
+			bb.put(pos++, keyByte);
 		}
-		for (int i = 0; i < valueBytes.length; i++) {
-			bb.put(pos++, valueBytes[i]);
+		for (byte valueByte : valueBytes) {
+			bb.put(pos++, valueByte);
 		}
-		for (int i = 0; i < labelBytes.length; i++) {
-			bb.put(pos++, labelBytes[i]);
+		for (byte labelByte : labelBytes) {
+			bb.put(pos++, labelByte);
 		}
 		bb.putInt(pos, propertiesBytes.length);
 		pos += 4;
-		for (int i = 0; i < propertiesBytes.length; i++) {
-			bb.put(pos++, propertiesBytes[i]);
+		for (byte propertiesByte : propertiesBytes) {
+			bb.put(pos++, propertiesByte);
 		}
 
 		return buff;
@@ -111,14 +111,14 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 
 			bb.put(pos, hLength);
 			pos++;
-			for (int i = 0; i < hint.length; i++) {
-				bb.put(pos++, hint[i]);
+			for (byte b : hint) {
+				bb.put(pos++, b);
 			}
 
 			bb.putInt(pos, objBytes.length);
 			pos += 4;
-			for (int i = 0; i < objBytes.length; i++) {
-				bb.put(pos++, objBytes[i]);
+			for (byte objByte : objBytes) {
+				bb.put(pos++, objByte);
 			}
 
 			return buff;

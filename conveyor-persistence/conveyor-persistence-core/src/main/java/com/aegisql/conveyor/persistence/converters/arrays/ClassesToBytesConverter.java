@@ -1,7 +1,5 @@
 package com.aegisql.conveyor.persistence.converters.arrays;
 
-import java.util.Arrays;
-
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 public class ClassesToBytesConverter implements ObjectArrayToByteArrayConverter<Class>{

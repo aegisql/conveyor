@@ -65,9 +65,7 @@ public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplie
 	 * @return the readiness tester
 	 */
 	public ReadinessTester<K,L,OUT> accepted(int times) {
-		return new ReadinessTester<K,L,OUT>( p.and( (s,b) -> {
-			return s.previouslyAccepted == times;
-		} ), consumer );
+		return new ReadinessTester<>(p.and((s, b) -> s.previouslyAccepted == times), consumer);
 	}
 
 	/**
@@ -78,14 +76,10 @@ public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplie
 	 * @return the readiness tester
 	 */
 	public ReadinessTester<K,L,OUT> accepted(L label, L... more) {
-		ReadinessTester<K,L,OUT> f = new ReadinessTester<K,L,OUT>( p.and( (s,b) -> {
-			return s.eventHistory.containsKey(label);
-		} ), consumer );
+		ReadinessTester<K,L,OUT> f = new ReadinessTester<>(p.and((s, b) -> s.eventHistory.containsKey(label)), consumer);
 		if(more != null) {
 			for(L l:more) {
-				f = f.andThen(new ReadinessTester<K,L,OUT>((s,b) -> {
-					return s.eventHistory.containsKey(l);
-				}, consumer ) );
+				f = f.andThen(new ReadinessTester<>((s, b) -> s.eventHistory.containsKey(l), consumer) );
 			}
 		}
 		return f;
@@ -99,14 +93,14 @@ public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplie
 	 * @return the readiness tester
 	 */
 	public ReadinessTester<K,L,OUT> accepted(L label, int times) {
-		return new ReadinessTester<K,L,OUT>( p.and( (s,b) -> {
-			Integer counter = s.eventHistory.get(label);
-			if(counter == null) {
-				return false;
-			} else {
-				return counter == times;
-			}
-		} ), consumer );
+		return new ReadinessTester<>(p.and((s, b) -> {
+            Integer counter = s.eventHistory.get(label);
+            if (counter == null) {
+                return false;
+            } else {
+                return counter == times;
+            }
+        }), consumer);
 	}
 	
 	/**
@@ -116,9 +110,7 @@ public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplie
 	 * @return the readiness tester
 	 */
 	public ReadinessTester<K,L,OUT> andThen(BiPredicate<State<K,L>, Supplier<? extends OUT>> other) {
-		return new ReadinessTester<K,L,OUT>(  (s,b)->{
-			return this.test(s, b) && other.test(s, b);
-		} , consumer );
+		return new ReadinessTester<>((s, b) -> this.test(s, b) && other.test(s, b), consumer);
 	}
 
 	/**
@@ -128,9 +120,7 @@ public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplie
 	 * @return the readiness tester
 	 */
 	public ReadinessTester<K,L,OUT> andNot(BiPredicate<State<K,L>, Supplier<? extends OUT>> other) {
-		return new ReadinessTester<K,L,OUT>(  (s,b)->{
-			return this.test(s, b) && ! other.test(s, b);
-		}, consumer  );
+		return new ReadinessTester<>((s, b) -> this.test(s, b) && !other.test(s, b), consumer);
 	}
 
 	/**
@@ -140,9 +130,7 @@ public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplie
 	 * @return the readiness tester
 	 */
 	public ReadinessTester<K,L,OUT> or(ReadinessTester<K,L,OUT> other) {
-		return new ReadinessTester<K,L,OUT>( (s,b)->{
-			return this.test(s, b) || other.test(s, b);
-		}, consumer  );
+		return new ReadinessTester<>((s, b) -> this.test(s, b) || other.test(s, b), consumer);
 	}
 
 	/**
@@ -154,20 +142,20 @@ public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplie
 	public ReadinessTester<K,L,OUT> usingBuilderTest(Class<? extends Supplier<OUT>> cls) {
 		ReadinessTester<K,L,OUT> tester;
 		if( Testing.class.isAssignableFrom(cls) ) {
-			tester = new ReadinessTester<K,L,OUT>(  (s,b)->{
-				Testing t = (Testing)b;
-				return t.test();
-			}, consumer  );
+			tester = new ReadinessTester<>((s, b) -> {
+                Testing t = (Testing) b;
+                return t.test();
+            }, consumer);
 		} else if(TestingState.class.isAssignableFrom(cls)) {
-			tester = new ReadinessTester<K,L,OUT>(  (s,b)->{
-				TestingState<K,L> t = (TestingState<K,L>)b;
-				return t.test(s);
-			}, consumer  );
+			tester = new ReadinessTester<>((s, b) -> {
+                TestingState<K, L> t = (TestingState<K, L>) b;
+                return t.test(s);
+            }, consumer);
 		} else {
 			throw new ClassCastException("Builder is not implementing Testing or TestingState interface");
 		}
 		
-		return new ReadinessTester<K,L,OUT>(  p.and(tester), consumer );
+		return new ReadinessTester<>(p.and(tester), consumer);
 	}
 
 	/**
@@ -176,9 +164,7 @@ public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplie
 	 * @return the readiness tester
 	 */
 	public ReadinessTester<K,L,OUT> neverReady() {
-		return new ReadinessTester<K,L,OUT>( (s,b)->{
-			return false;
-		}, consumer  );
+		return new ReadinessTester<>((s, b) -> false, consumer);
 	}
 
 	/**
@@ -187,7 +173,7 @@ public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplie
 	 * @return the readiness tester
 	 */
 	public ReadinessTester<K,L,OUT> immediatelyReady() {
-		return new ReadinessTester<K,L,OUT>();
+		return new ReadinessTester<>();
 	}
 
 	

@@ -80,9 +80,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected ResultConsumer <K,OUT> resultConsumer = null;
 
 	/** The scrap logger. */
-	protected ScrapConsumer<K,?> scrapLogger = scrapBin->{
-		LOG.error("{}",scrapBin);
-	};
+	protected ScrapConsumer<K,?> scrapLogger = scrapBin-> LOG.error("{}",scrapBin);
 
 	/** The scrap consumer. */
 	protected ScrapConsumer<K,?> scrapConsumer = scrapLogger;
@@ -399,8 +397,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder, saveCarts,
 							postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues,resultConsumer,
 							ackAction,null);
-					if (cart.getValue() instanceof FutureSupplier) {
-						var futureSupplier = (FutureSupplier) cart.getValue();
+					if (cart.getValue() instanceof FutureSupplier futureSupplier) {
 						buildingSite.addFuture(futureSupplier.getFuture());
 					}
 				} else {
@@ -688,20 +685,20 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public PartLoader<K,L> part() {
-		return new PartLoader<K, L>(pl -> {
+		return new PartLoader<>(pl -> {
 			PartLoader<K, L> partLoader;
-			if(existingBuildsFirst && collector.containsKey(pl.key)) {
+			if (existingBuildsFirst && collector.containsKey(pl.key)) {
 				partLoader = pl.increasePriority();
 			} else {
 				partLoader = pl;
 			}
-			Cart <K, ?, L> cart;
-			if(partLoader.filter != null) {
-				cart = new MultiKeyCart<K, Object, L>(partLoader.filter, partLoader.partValue, partLoader.label, partLoader.creationTime, partLoader.expirationTime,partLoader.priority);
+			Cart<K, ?, L> cart;
+			if (partLoader.filter != null) {
+				cart = new MultiKeyCart<>(partLoader.filter, partLoader.partValue, partLoader.label, partLoader.creationTime, partLoader.expirationTime, partLoader.priority);
 			} else {
-				cart = new ShoppingCart<K, Object, L>(partLoader.key, partLoader.partValue, partLoader.label,partLoader.creationTime ,partLoader.expirationTime,partLoader.priority);
+				cart = new ShoppingCart<>(partLoader.key, partLoader.partValue, partLoader.label, partLoader.creationTime, partLoader.expirationTime, partLoader.priority);
 			}
-			partLoader.getAllProperties().forEach((k,v)->cart.addProperty(k, v));
+			partLoader.getAllProperties().forEach(cart::addProperty);
 			return place(cart);
 		});
 	}
@@ -711,10 +708,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public StaticPartLoader<L> staticPart() {
-		return  new StaticPartLoader<L>(cl -> {
-			var properties = new HashMap<String,Object>();
+		return new StaticPartLoader<>(cl -> {
+			var properties = new HashMap<String, Object>();
 			properties.put("CREATE", cl.create);
-			var staticPart = new ShoppingCart<K,Object,L>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART,cl.priority);
+			var staticPart = new ShoppingCart<K, Object, L>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART, cl.priority);
 			return place(staticPart);
 		});
 	}
@@ -725,34 +722,34 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public BuilderLoader<K, OUT> build() {
-		return new BuilderLoader<K, OUT>(cl -> {
+		return new BuilderLoader<>(cl -> {
 			var bs = cl.value;
-			if(bs == null) {
+			if (bs == null) {
 				bs = builderSupplier;
 			}
-			final var cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime,cl.priority);
-			cl.getAllProperties().forEach((k,v)->{cart.addProperty(k, v);});
+			final var cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime, cl.priority);
+			cl.getAllProperties().forEach(cart::addProperty);
 			return place(cart);
 		},
-		cl -> {
-			var bs = cl.value;
-			if(bs == null) {
-				bs = builderSupplier;
-			}
-			var future = new CompletableFuture<OUT>();
-			if (bs == null) {
-				bs = builderSupplier.withFuture(future);
-			} else {
-				bs = bs.withFuture(future);
-			}
-			var cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime,cl.priority);
-			var supplier = (FutureSupplier) cart.getValue();
-			var cartFuture = place(cart);
-			if (cartFuture.isCancelled()) {
-				supplier.getFuture().cancel(true);
-			}
-			return supplier.getFuture();
-		}
+				cl -> {
+					var bs = cl.value;
+					if (bs == null) {
+						bs = builderSupplier;
+					}
+					var future = new CompletableFuture<OUT>();
+					if (bs == null) {
+						bs = builderSupplier.withFuture(future);
+					} else {
+						bs = bs.withFuture(future);
+					}
+					var cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime, cl.expirationTime, cl.priority);
+					var supplier = (FutureSupplier) cart.getValue();
+					var cartFuture = place(cart);
+					if (cartFuture.isCancelled()) {
+						supplier.getFuture().cancel(true);
+					}
+					return supplier.getFuture();
+				}
 		);
 	}
 
@@ -762,10 +759,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public FutureLoader<K, OUT> future() {
-		return new FutureLoader<K, OUT>(cl -> {
+		return new FutureLoader<>(cl -> {
 			var future = new CompletableFuture<OUT>();
-			final var cart = new FutureCart<K, OUT, L>(cl.key, future, cl.creationTime, cl.expirationTime,cl.priority);
-			cl.getAllProperties().forEach((k,v)->{cart.addProperty(k, v);});
+			final var cart = new FutureCart<K, OUT, L>(cl.key, future, cl.creationTime, cl.expirationTime, cl.priority);
+			cl.getAllProperties().forEach(cart::addProperty);
 			var cartFuture = this.place(cart);
 			if (cartFuture.isCancelled()) {
 				future.cancel(true);
@@ -818,7 +815,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			} else {
 				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, LoadType.RESULT_CONSUMER,rcl.priority);
 			}
-			rcl.getAllProperties().forEach((k,v)->{ cart.addProperty(k, v);});
+			rcl.getAllProperties().forEach(cart::addProperty);
 			return this.place(cart);
 		}, 
 		rc->{
@@ -1010,7 +1007,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						};
 					}
 					LOG.trace("READY TO APPLY MULTI");
-					collector.entrySet().stream().map(entry -> entry.getKey()).filter(filter)
+					collector.entrySet().stream().map(Map.Entry::getKey).filter(filter)
 							.collect(Collectors.toList())
 					.forEach(k -> {
 								LOG.trace("MULTI FILTER MATCH {}",k);
@@ -1281,9 +1278,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public <B extends Supplier<? extends OUT>> void setDefaultCartConsumer(LabeledValueConsumer<L, ?, B> cartConsumer) {
-		this.cartConsumer = (l,c,b)->{
-			((LabeledValueConsumer)cartConsumer).accept(l, getPayload(c), b);
-		};
+		this.cartConsumer = (l,c,b)-> ((LabeledValueConsumer)cartConsumer).accept(l, getPayload(c), b);
 	}
 
 	/**

@@ -116,13 +116,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 				throw new RuntimeException("L-Balanced parallel conveyor cannot have more than one K-balanced default assembling conveyor");
 			} else if(kBalanced == 1) {
 				LOG.debug("L-Balanced Parallel conveyor with default labels. {}",map);
-				this.balancingCart = cart -> {
-					if(map.containsKey(cart.getLabel())) {
-						return map.get(cart.getLabel());
-					} else {
-						return defaultConv;
-					}
-				};
+				this.balancingCart = cart -> map.getOrDefault(cart.getLabel(), defaultConv);
 			} else {
 				LOG.debug("L-Balanced Parallel conveyor. {}",map);
 				this.balancingCart = cart -> { 
@@ -133,9 +127,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 					}
 				};
 			}
-			this.balancingCommand = command -> { 
-				return this.conveyors;
-			};
+			this.balancingCommand = command -> this.conveyors;
 			this.lBalanced = true;
 		}
 		this.setMbean(this.name);		
@@ -151,7 +143,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	@Override
 	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> cart) {
 		Objects.requireNonNull(cart, "Command is null");
-		CompletableFuture<Boolean> combinedFutures = new CompletableFuture<Boolean>();
+		CompletableFuture<Boolean> combinedFutures = new CompletableFuture<>();
 		combinedFutures.complete(true);
 		for(Conveyor<K, L, OUT> conv: this.balancingCommand.apply(cart)) {
 			combinedFutures = combinedFutures.thenCombine(conv.command((GeneralCommand<K, V>) cart.copy()), (a,b) -> a && b );
@@ -199,7 +191,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	protected CompletableFuture<OUT> createBuildFutureWithCart(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier) {
 		Objects.requireNonNull(cartSupplier, "Cart supplier is null");
 		CompletableFuture<Boolean> combinedCreateFuture = null;
-		CompletableFuture<OUT> productFuture   = new CompletableFuture<OUT>();
+		CompletableFuture<OUT> productFuture   = new CompletableFuture<>();
 		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(builderSupplier, productFuture);
 		CreatingCart<K, OUT, L> cart           = cartSupplier.apply( supplier );
 		
@@ -207,9 +199,9 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			if(conv.isForwardingResults()) {
 				LOG.debug("Create in conveyor {} {}",conv,cart);
 				if(combinedCreateFuture == null) {
-					combinedCreateFuture = conv.place(new CreatingCart<K, OUT, L>(cart.getKey(),builderSupplier,cart.getCreationTime(),cart.getExpirationTime(),cart.getPriority()));
+					combinedCreateFuture = conv.place(new CreatingCart<>(cart.getKey(), builderSupplier, cart.getCreationTime(), cart.getExpirationTime(), cart.getPriority()));
 				} else {
-					combinedCreateFuture = combinedCreateFuture.thenCombine(conv.place(new CreatingCart<K, OUT, L>(cart.getKey(),builderSupplier,cart.getCreationTime(),cart.getExpirationTime(),cart.getPriority())), ( a, b ) -> a && b );
+					combinedCreateFuture = combinedCreateFuture.thenCombine(conv.place(new CreatingCart<>(cart.getKey(), builderSupplier, cart.getCreationTime(), cart.getExpirationTime(), cart.getPriority())), (a, b ) -> a && b );
 				}
 			} else {
 				//this conv will finally create the product

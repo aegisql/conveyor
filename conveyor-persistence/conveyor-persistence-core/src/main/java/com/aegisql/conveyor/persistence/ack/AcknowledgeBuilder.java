@@ -18,12 +18,9 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.Expireable;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
-import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceCart;
-import com.aegisql.conveyor.persistence.utils.CartInputStream;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -58,7 +55,7 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 	private boolean unloadEnabled      = false;
 
 	/** The timestamp. */
-	private Long timestamp = Long.valueOf(0);
+	private Long timestamp = 0L;
 	
 	/** The complete. */
 	private boolean complete = false;
@@ -223,7 +220,7 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 	 */
 	public static <K, L> void unload(AcknowledgeBuilder<K> builder, AcknowledgeStatus<K> status) {
 		Set<Long> siteIds    = new HashSet<>();
-		Long timestamp = Long.valueOf(0);
+		Long timestamp = 0L;
 		
 		if(status.getProperties() != null) {
 			timestamp = (Long) status.getProperties().get("#TIMESTAMP");
@@ -276,7 +273,7 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 			if(completed.contains(key)) {
 				return;
 			} else {
-				if(builder.timestamp.equals(Long.valueOf(0))) {
+				if(builder.timestamp.equals(0L)) {
 					builder.timestamp = System.nanoTime();
 				}
 				Collection<Long> cartIds = builder.persistence.getAllPartIds(key);

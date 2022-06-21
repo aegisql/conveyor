@@ -3,7 +3,6 @@ package com.aegisql.conveyor.persistence.jdbc.engine.connectivity;
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.function.Supplier;
 import java.util.logging.Logger;

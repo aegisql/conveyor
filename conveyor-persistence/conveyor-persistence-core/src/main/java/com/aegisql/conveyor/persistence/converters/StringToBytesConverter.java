@@ -1,9 +1,6 @@
 package com.aegisql.conveyor.persistence.converters;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-
-import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 // TODO: Auto-generated Javadoc
 /**

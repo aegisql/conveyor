@@ -27,7 +27,7 @@ public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	
 	private final List<ConveyorAcceptor<K, L, OUT>> testers = new ArrayList<>();
 	
-	private final CompletableFuture<Boolean> failedFuture = new CompletableFuture<Boolean>();
+	private final CompletableFuture<Boolean> failedFuture = new CompletableFuture<>();
 	{
 		failedFuture.complete(false);
 	}
@@ -112,7 +112,7 @@ public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	protected CompletableFuture<OUT> createBuildFutureWithCart(
 			Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier,
 			BuilderSupplier<OUT> builderSupplier) {
-		CompletableFuture<OUT> productFuture   = new CompletableFuture<OUT>();
+		CompletableFuture<OUT> productFuture   = new CompletableFuture<>();
 		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(builderSupplier, productFuture);
 		CreatingCart<K, OUT, L> cart           = cartSupplier.apply( supplier );
 		Conveyor<K,L,OUT> balancedCobveyor     = this.getMatched(cart.getAllProperties());

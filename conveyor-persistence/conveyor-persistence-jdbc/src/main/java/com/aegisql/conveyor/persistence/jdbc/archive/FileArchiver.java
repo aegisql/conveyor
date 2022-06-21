@@ -63,6 +63,7 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 
 	private void truncateFile(String name) {
 		File f = new File(name);
+		//noinspection EmptyTryBlock
 		try(FileOutputStream fos = new FileOutputStream(f, false)) {
 
 		} catch (IOException e) {

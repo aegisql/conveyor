@@ -45,11 +45,7 @@ public class PersistenceProperties {
 	 * @param pp the pp
 	 */
 	public void addProperty(PersistenceProperty pp) {
-		LinkedList<PersistenceProperty> ppList = properties.get(pp.getProperty());
-		if(ppList == null) {
-			ppList = new LinkedList<>();
-			properties.put(pp.getProperty(), ppList);
-		}
+		LinkedList<PersistenceProperty> ppList = properties.computeIfAbsent(pp.getProperty(), k -> new LinkedList<>());
 		ppList.add(pp);
 	}
 

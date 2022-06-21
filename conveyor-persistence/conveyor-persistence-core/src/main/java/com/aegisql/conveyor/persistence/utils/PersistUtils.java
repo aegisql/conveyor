@@ -101,7 +101,7 @@ public class PersistUtils {
 		if( col.size() % partSize > 0) {
 			buckets++;
 		}
-		Collection<Collection<Long>> res = new ArrayList<Collection<Long>>(buckets);
+		Collection<Collection<Long>> res = new ArrayList<>(buckets);
 		Iterator<Long> it = col.iterator();
 		for(int i = 0; i < buckets; i++) {
 			Collection<Long> bucket = new ArrayList<>(partSize);

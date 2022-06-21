@@ -17,7 +17,7 @@ public class ShortToBytesConverter implements ObjectToByteArrayConverter<Short> 
 			return null;
 		}
 		byte[] bytes = new byte[2];
-		ByteBuffer.wrap(bytes).putShort(obj.shortValue());
+		ByteBuffer.wrap(bytes).putShort(obj);
 		return bytes;
 	}
 

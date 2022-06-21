@@ -360,7 +360,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 * @return the tester for
 	 */
 	static <K, L,OUT> ReadinessTester<K, L,OUT> getTesterFor(Conveyor<K, L, OUT> conveyor) {
-		return new ReadinessTester<K,L,OUT>(conveyor::setReadinessEvaluator);
+		return new ReadinessTester<>(conveyor::setReadinessEvaluator);
 	}
 
 	/**

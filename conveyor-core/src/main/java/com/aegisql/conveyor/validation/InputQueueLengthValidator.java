@@ -18,9 +18,7 @@ public class InputQueueLengthValidator <K,L> implements Consumer<Cart<K,?,L>> {
     public InputQueueLengthValidator(int maxSize, IntSupplier queueSizeSupplier) {
         this.queueSizeSupplier = queueSizeSupplier;
         this.maxSize = maxSize;
-        this.waiting = ()->{
-            prevFuture.join();
-        };
+        this.waiting = ()-> prevFuture.join();
     }
 
     public InputQueueLengthValidator(int maxSize, IntSupplier queueSizeSupplier, long maxTime, TimeUnit unit) {

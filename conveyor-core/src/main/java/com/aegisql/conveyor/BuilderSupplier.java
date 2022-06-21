@@ -108,12 +108,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>>, Ser
 	 */
 	default BuilderSupplier <T> expire(Expireable other) {
 		BuilderSupplier <T> bs = this;
-		return new BuilderSupplier<T>() {
-			@Override
-			public Supplier<? extends T> get() {
-				return ProductSupplier.of(bs.get()).expires(other);
-			}
-		};
+		return () -> ProductSupplier.of(bs.get()).expires(other);
 	}	
 
 	/**
@@ -124,12 +119,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>>, Ser
 	 */
 	default BuilderSupplier<T> readyAlgorithm(Predicate<Supplier<? extends T>> tester) {
 		BuilderSupplier <T> bs = this;
-		return new BuilderSupplier<T>() {
-			@Override
-			public Supplier<? extends T> get() {
-				return ProductSupplier.of(bs.get()).readyAlgorithm((Predicate)tester);
-			}
-		};
+		return () -> ProductSupplier.of(bs.get()).readyAlgorithm((Predicate) tester);
 	}
 
 	/**
@@ -142,12 +132,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>>, Ser
 	 */
 	default <K,L> BuilderSupplier<T> readyAlgorithm(BiPredicate<State<K,L>, Supplier<? extends T>> tester) {
 		BuilderSupplier <T> bs = this;
-		return new BuilderSupplier<T>() {
-			@Override
-			public Supplier<? extends T> get() {
-				return ProductSupplier.of(bs.get()).readyAlgorithm((BiPredicate)tester);
-			}
-		};
+		return () -> ProductSupplier.of(bs.get()).readyAlgorithm((BiPredicate) tester);
 	}
 
 	/**
@@ -158,13 +143,7 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>>, Ser
 	 */
 	default BuilderSupplier<T> onTimeout(Consumer<Supplier<? extends T>> consumer) {
 		BuilderSupplier <T> bs = this;
-		return new BuilderSupplier<T>() {
-			@Override
-			public Supplier<? extends T> get() {
-				return ProductSupplier.of(bs.get()).onTimeout((Consumer)consumer);
-
-			}
-		};
+		return () -> ProductSupplier.of(bs.get()).onTimeout((Consumer) consumer);
 	}
 	
 	/**
@@ -175,11 +154,12 @@ public interface BuilderSupplier<T> extends Supplier<Supplier<? extends T>>, Ser
 	 */
 	default BuilderSupplier<T> withFuture(CompletableFuture<T> future) {
 		BuilderSupplier <T> bs = this;
-		return new BuilderFutureSupplier<T>() {
+		return new BuilderFutureSupplier<>() {
 			@Override
 			public Supplier<? extends T> get() {
 				return bs.get();
 			}
+
 			@Override
 			public CompletableFuture<? extends T> getFuture() {
 				return future;

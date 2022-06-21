@@ -18,7 +18,7 @@ public class BooleansToBytesConverter implements ObjectArrayToByteArrayConverter
 		
 		
 		for(int i = 0; i < obj.length; i++) {
-			res[i] = (byte) (obj[i].booleanValue() ? 1:0);
+			res[i] = (byte) (obj[i] ? 1:0);
 		}
 		
 		return res;

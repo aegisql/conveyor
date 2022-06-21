@@ -17,7 +17,7 @@ public class DoubleToBytesConverter implements ObjectToByteArrayConverter<Double
 			return null;
 		}
 		byte[] bytes = new byte[8];
-		ByteBuffer.wrap(bytes).putDouble(obj.doubleValue());
+		ByteBuffer.wrap(bytes).putDouble(obj);
 		return bytes;
 	}
 

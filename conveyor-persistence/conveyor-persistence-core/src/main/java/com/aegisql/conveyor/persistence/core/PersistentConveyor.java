@@ -96,9 +96,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		onStatus.put(Status.WAITING_DATA, k -> {
 			throw new PersistenceException("Unexpected WAITING_DATA status for key=" + k);
 		});
-		forward.setAcknowledgeAction(status -> {
-			onStatus.get(status.getStatus()).accept(status);
-		});
+		forward.setAcknowledgeAction(status -> onStatus.get(status.getStatus()).accept(status));
 
 		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(true).place().join();
 		if (forward != null && forward.getResultConsumer() != null) {
@@ -113,7 +111,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		LOG.debug("Static parts: {}", staticParts);
 		Collection<Cart<K, ?, L>> allParts = persistence.<L> getAllParts();
 		LOG.debug("All parts: {}", allParts);
-		staticParts.forEach(cart -> this.place(cart));
+		staticParts.forEach(this::place);
 		allParts.forEach(cart -> {
 			long cartExpTime = cart.getExpirationTime();
 			if (cartExpTime == 0 || cartExpTime > System.currentTimeMillis()) {
@@ -201,16 +199,16 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public PartLoader<K, L> part() {
-		return new PartLoader<K, L>(cl -> {
+		return new PartLoader<>(cl -> {
 			Cart<K, ?, L> cart;
 			if (cl.filter != null) {
-				cart = new MultiKeyCart<K, Object, L>(cl.filter, cl.partValue, cl.label, cl.creationTime,
-						cl.expirationTime,LoadType.PART,cl.priority);
+				cart = new MultiKeyCart<>(cl.filter, cl.partValue, cl.label, cl.creationTime,
+						cl.expirationTime, LoadType.PART, cl.priority);
 			} else {
-				cart = new ShoppingCart<K, Object, L>(cl.key, cl.partValue, cl.label, cl.creationTime,
-						cl.expirationTime,cl.priority);
+				cart = new ShoppingCart<>(cl.key, cl.partValue, cl.label, cl.creationTime,
+						cl.expirationTime, cl.priority);
 			}
-			cl.getAllProperties().forEach((k, v) -> cart.addProperty(k, v));
+			cl.getAllProperties().forEach(cart::addProperty);
 
 			return place(cart);
 		});
@@ -223,11 +221,11 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public StaticPartLoader<L> staticPart() {
-		return new StaticPartLoader<L>(cl -> {
+		return new StaticPartLoader<>(cl -> {
 			Map<String, Object> properties = new HashMap<>();
 			properties.put("CREATE", cl.create);
 			Cart<K, ?, L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label,
-					System.currentTimeMillis(), 0, properties, STATIC_PART,cl.priority);
+					System.currentTimeMillis(), 0, properties, STATIC_PART, cl.priority);
 			return place(staticPart);
 		});
 	}
@@ -239,16 +237,14 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public BuilderLoader<K, OUT> build() {
-		return new BuilderLoader<K, OUT>(cl -> {
+		return new BuilderLoader<>(cl -> {
 			BuilderSupplier<OUT> bs = cl.value;
 			if (bs == null) {
 				// bs = builderSupplier;
 			}
-			final CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key, bs, cl.creationTime,
-					cl.expirationTime,cl.priority);
-			cl.getAllProperties().forEach((k, v) -> {
-				cart.addProperty(k, v);
-			});
+			final CreatingCart<K, OUT, L> cart = new CreatingCart<>(cl.key, bs, cl.creationTime,
+					cl.expirationTime, cl.priority);
+			cl.getAllProperties().forEach(cart::addProperty);
 			return place(cart);
 		}, cl -> {
 			throw new PersistenceException("Futures not supported in persistent builde suppliers");
@@ -320,13 +316,11 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return new ResultConsumerLoader<>(rcl -> {
 			final Cart<K, ?, L> cart;
 			if (rcl.key != null) {
-				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime,rcl.priority);
+				cart = new ResultConsumerCart<>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime, rcl.priority);
 			} else {
 				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime, LoadType.RESULT_CONSUMER,rcl.priority);
 			}
-			rcl.getAllProperties().forEach((k, v) -> {
-				cart.addProperty(k, v);
-			});
+			rcl.getAllProperties().forEach(cart::addProperty);
 			return this.place(cart);
 		}, rc -> {
 			this.resultConsumer = rc;

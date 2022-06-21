@@ -39,7 +39,7 @@ class ConfigUtils {
 		long big = d.longValue();
 		long one = u.toMillis(1);
 		
-		return u.toMillis(big)+(long)(one*(d.doubleValue()-big));
+		return u.toMillis(big)+(long)(one*(d -big));
 	};
 
 	/** The Constant stringToStatusConverter. */
@@ -56,15 +56,17 @@ class ConfigUtils {
 
 
 	/** The Constant getBuilderSupplierJs. */
-	private final static String getBuilderSupplierJs = 
-			  "var getBuilderSupplier = function() {\n" 
-			+ "		var BuilderSupplier = Java.type('com.aegisql.conveyor.BuilderSupplier');\n"
-			+ "		var SupplierImpl = Java.extend(BuilderSupplier, {\n"
-			+ "			get: function() {\n"
-	        + "				return %s;\n"
-	    		+ "			}});\n"
-			+ "    return new SupplierImpl();\n" 
-			+ "};\n";
+	private final static String getBuilderSupplierJs =
+			"""
+					var getBuilderSupplier = function() {
+							var BuilderSupplier = Java.type('com.aegisql.conveyor.BuilderSupplier');
+							var SupplierImpl = Java.extend(BuilderSupplier, {
+								get: function() {
+									return %s;
+								}});
+					    return new SupplierImpl();
+					};
+					""";
 	
 	/** The Constant stringToBuilderSupplier. */
 	public final static Function<String,Object> stringToBuilderSupplier = js-> {
@@ -79,16 +81,18 @@ class ConfigUtils {
 	};
 	
 	/** The Constant getResultConsumerJs. */
-	private final static String getResultConsumerJs = 
-			  "var getResultConsumer = function() {\n" 
-			+ "		var ResultConsumer = Java.type('com.aegisql.conveyor.consumers.result.ResultConsumer');\n"
-			+ "     var rc = %s;\n"
-			+ "		var SupplierImpl = Java.extend(ResultConsumer, {\n"
-			+ "			accept: function(bin) {\n"
-	        + "				rc(bin)\n;"
-	    		+ "			}});\n"
-			+ "    return new SupplierImpl();\n" 
-			+ "};\n";
+	private final static String getResultConsumerJs =
+			"""
+					var getResultConsumer = function() {
+							var ResultConsumer = Java.type('com.aegisql.conveyor.consumers.result.ResultConsumer');
+					     var rc = %s;
+							var SupplierImpl = Java.extend(ResultConsumer, {
+								accept: function(bin) {
+									rc(bin)
+					;			}});
+					    return new SupplierImpl();
+					};
+					""";
 
 	/** The Constant stringToResultConsumerSupplier. */
 	public final static Function<String,Object> stringToResultConsumerSupplier = js -> {
@@ -104,16 +108,18 @@ class ConfigUtils {
 	};
 
 	/** The Constant getScrapConsumerJs. */
-	private final static String getScrapConsumerJs = 
-			  "var getScrapConsumer = function() {\n" 
-			+ "		var ScrapConsumer = Java.type('com.aegisql.conveyor.consumers.scrap.ScrapConsumer');\n"
-			+ "     var sc = %s;\n"
-			+ "		var SupplierImpl = Java.extend(ScrapConsumer, {\n"
-			+ "			accept: function(bin) {\n"
-	        + "				sc(bin)\n;"
-	    		+ "			}});\n"
-			+ "    return new SupplierImpl();\n" 
-			+ "};\n";
+	private final static String getScrapConsumerJs =
+			"""
+					var getScrapConsumer = function() {
+							var ScrapConsumer = Java.type('com.aegisql.conveyor.consumers.scrap.ScrapConsumer');
+					     var sc = %s;
+							var SupplierImpl = Java.extend(ScrapConsumer, {
+								accept: function(bin) {
+									sc(bin)
+					;			}});
+					    return new SupplierImpl();
+					};
+					""";
 
 	/** The Constant stringToScrapConsumerSupplier. */
 	public final static Function<String,Object> stringToScrapConsumerSupplier = js -> {
@@ -128,27 +134,30 @@ class ConfigUtils {
 	};
 
 	/** The Constant getLabelValuePairJs. */
-	private final static String getLabelValuePairJs = 
-			  "var getLabelValuePair = function() {\n" 
-			+ "		var Pair = Java.type('com.aegisql.conveyor.config.Pair');\n"
-			+ "     %s;"
-			+ "    return new Pair(label,value);\n" 
-			+ "};\n";
+	private final static String getLabelValuePairJs =
+			"""
+					var getLabelValuePair = function() {
+							var Pair = Java.type('com.aegisql.conveyor.config.Pair');
+					     %s;    return new Pair(label,value);
+					};
+					""";
 
+	//			+ "		var keyTransformer = function(k){return k}; var x =  keyTransformer('a');\n"
 	/** The Constant getLabelForwardTrioJs. */
-	private final static String getLabelForwardTrioJs = 
-			  "var getLabelValueTrio = function() {\n" 
-			+ "%s;\n"
-			+ "var Trio = Java.type('com.aegisql.conveyor.config.Trio');\n"
-			+ "if(typeof keyTransformer === \"undefined\") {return new Trio(label,name,null);}\n"
-			+ "		var Function = Java.type('java.util.function.Function');\n"
-			+ "		var FunctionImpl = Java.extend(Function, {\n"
-			+ "			apply: function(x) {\n"
-	        + "				return keyTransformer(x)\n;"
-	    		+ "			}});\n"
-//			+ "		var keyTransformer = function(k){return k}; var x =  keyTransformer('a');\n"
-			+ "    return new Trio(label,name,new FunctionImpl());\n" 
-			+ "};\n";
+	private final static String getLabelForwardTrioJs =
+			"""
+					var getLabelValueTrio = function() {
+					%s;
+					var Trio = Java.type('com.aegisql.conveyor.config.Trio');
+					if(typeof keyTransformer === "undefined") {return new Trio(label,name,null);}
+							var Function = Java.type('java.util.function.Function');
+							var FunctionImpl = Java.extend(Function, {
+								apply: function(x) {
+									return keyTransformer(x)
+					;			}});
+					    return new Trio(label,name,new FunctionImpl());
+					};
+					""";
 
 	/** The Constant stringToLabelValuePairSupplier. */
 	public final static Function<String,Object> stringToLabelValuePairSupplier = js -> {
@@ -176,16 +185,17 @@ class ConfigUtils {
 	};
 
 	/** The Constant consumerJs. */
-	private final static String consumerJs = 
-			  "var getConsumer = function() {\n" 
-			+ "		var Consumer = Java.type('java.util.function.Consumer');\n"
-			+ "     var consumer = %s;"
-			+ "		var SupplierImpl = Java.extend(Consumer, {\n"
-			+ "			accept: function(builder) {\n"
-	        + "				consumer(builder)\n;"
-	    		+ "			}});\n"
-			+ "    return new SupplierImpl();\n" 
-			+ "};\n";
+	private final static String consumerJs =
+			"""
+					var getConsumer = function() {
+							var Consumer = Java.type('java.util.function.Consumer');
+					     var consumer = %s;		var SupplierImpl = Java.extend(Consumer, {
+								accept: function(builder) {
+									consumer(builder)
+					;			}});
+					    return new SupplierImpl();
+					};
+					""";
 
 	/** The Constant stringToConsumerSupplier. */
 	public final static Function<String,Object> stringToConsumerSupplier = js -> {
@@ -200,16 +210,17 @@ class ConfigUtils {
 	};
 
 	/** The Constant getLabeledValueConsumerJs. */
-	private final static String getLabeledValueConsumerJs = 
-			  "var getLabeledValueConsumer = function() {\n" 
-			+ "		var LabeledValueConsumer = Java.type('com.aegisql.conveyor.LabeledValueConsumer');\n"
-			+ "     var consumer = %s;"
-			+ "		var SupplierImpl = Java.extend(LabeledValueConsumer, {\n"
-			+ "			accept: function(l,v,b) {\n"
-	        + "				consumer(l,v,b)\n;"
-	    		+ "			}});\n"
-			+ "    return new SupplierImpl();\n" 
-			+ "};\n";
+	private final static String getLabeledValueConsumerJs =
+			"""
+					var getLabeledValueConsumer = function() {
+							var LabeledValueConsumer = Java.type('com.aegisql.conveyor.LabeledValueConsumer');
+					     var consumer = %s;		var SupplierImpl = Java.extend(LabeledValueConsumer, {
+								accept: function(l,v,b) {
+									consumer(l,v,b)
+					;			}});
+					    return new SupplierImpl();
+					};
+					""";
 
 	/** The Constant stringToLabeledValueConsumerSupplier. */
 	public static final Function<String,Object> stringToLabeledValueConsumerSupplier = js -> {
@@ -224,34 +235,36 @@ class ConfigUtils {
 	};
 
 	/** The Constant getReadinessEvaluatorJs. */
-	private final static String getReadinessEvaluatorJs = 
-			  "var getReadinessEvaluator = function() {\n" 
-			+ "		var Predicate = Java.type('java.util.function.Predicate');\n"
-			+ "		var BiPredicate = Java.type('java.util.function.BiPredicate');\n"
-			+ "     var re = %s;\n"
-			+ "		var REImpl;\n"
-			+ "		if(re.length == 2) {\n"
-			+ "			REImpl = Java.extend(BiPredicate, {\n"
-			+ "				test: function(a,b) {\n"
-	        + "					return re(a,b)\n;"
-	    		+ "				}});}\n"
-			+ "		 else if(re.length == 1) {\n"
-			+ "			REImpl = Java.extend(Predicate, {\n"
-			+ "				test: function(a) {\n"
-	        + "					return re(a)\n;"
-	    		+ "				}});}\n"
-			+ "		else if(BiPredicate.class.isAssignableFrom(re.getClass())) {\n"
-			+ "			REImpl = Java.extend(BiPredicate, {\n"
-			+ "				test: function(a,b) {\n"
-	        + "					return re(a,b)\n;"
-	    		+ "				}});}\n"
-			+ "		 else if(Predicate.class.isAssignableFrom(re.getClass())) {\n"
-			+ "			REImpl = Java.extend(Predicate, {\n"
-			+ "				test: function(a) {\n"
-	        + "					return re(a)\n;"
-	    		+ "				}});}\n"
-			+ "    return new REImpl();\n" 
-			+ "};\n";
+	private final static String getReadinessEvaluatorJs =
+			"""
+					var getReadinessEvaluator = function() {
+							var Predicate = Java.type('java.util.function.Predicate');
+							var BiPredicate = Java.type('java.util.function.BiPredicate');
+					     var re = %s;
+							var REImpl;
+							if(re.length == 2) {
+								REImpl = Java.extend(BiPredicate, {
+									test: function(a,b) {
+										return re(a,b)
+					;				}});}
+							 else if(re.length == 1) {
+								REImpl = Java.extend(Predicate, {
+									test: function(a) {
+										return re(a)
+					;				}});}
+							else if(BiPredicate.class.isAssignableFrom(re.getClass())) {
+								REImpl = Java.extend(BiPredicate, {
+									test: function(a,b) {
+										return re(a,b)
+					;				}});}
+							 else if(Predicate.class.isAssignableFrom(re.getClass())) {
+								REImpl = Java.extend(Predicate, {
+									test: function(a) {
+										return re(a)
+					;				}});}
+					    return new REImpl();
+					};
+					""";
 
 	/** The Constant stringToReadinessEvaluatorSupplier. */
 	public static final Function<String, Object> stringToReadinessEvaluatorSupplier = js -> {
@@ -266,16 +279,17 @@ class ConfigUtils {
 	};
 
 	/** The Constant biConsumerJs. */
-	private final static String biConsumerJs = 
-			  "var getBiConsumer = function() {\n" 
-			+ "		var BiConsumer = Java.type('java.util.function.BiConsumer');\n"
-			+ "     var consumer = %s;"
-			+ "		var SupplierImpl = Java.extend(BiConsumer, {\n"
-			+ "			accept: function(a,b) {\n"
-	        + "				consumer(a,b)\n;"
-	    		+ "			}});\n"
-			+ "    return new SupplierImpl();\n" 
-			+ "};\n";
+	private final static String biConsumerJs =
+			"""
+					var getBiConsumer = function() {
+							var BiConsumer = Java.type('java.util.function.BiConsumer');
+					     var consumer = %s;		var SupplierImpl = Java.extend(BiConsumer, {
+								accept: function(a,b) {
+									consumer(a,b)
+					;			}});
+					    return new SupplierImpl();
+					};
+					""";
 
 	/** The Constant stringToBiConsumerSupplier. */
 	public final static Function<String,Object> stringToBiConsumerSupplier = js -> {
@@ -290,14 +304,15 @@ class ConfigUtils {
 	};
 
 	/** The Constant getLabelArrayConsumerJs. */
-	private final static String getLabelArrayConsumerJs = 
-			  "var getLabelArrayConsumer = function() {\n" 
-			+ "		var ObjectArray = Java.type('java.lang.Object[]');\n"
-			+ "     var array = [%s];"
-			+ "     var res = new ObjectArray(array.length);\n" 
-			+ "     for(i = 0; i < array.length; i++) { res[i] = array[i];};\n" 
-			+ "     return res;\n" 
-			+ "};\n";
+	private final static String getLabelArrayConsumerJs =
+			"""
+					var getLabelArrayConsumer = function() {
+							var ObjectArray = Java.type('java.lang.Object[]');
+					     var array = [%s];     var res = new ObjectArray(array.length);
+					     for(i = 0; i < array.length; i++) { res[i] = array[i];};
+					     return res;
+					};
+					""";
 
 	/** The Constant stringToLabelArraySupplier. */
 	public static final Function<String, Object> stringToLabelArraySupplier = js -> {
@@ -313,16 +328,17 @@ class ConfigUtils {
 	};
 
 	/** The Constant functionJs. */
-	private final static String functionJs = 
-			  "var getFunction = function() {\n" 
-			+ "		var Function = Java.type('java.util.function.Function');\n"
-			+ "     var f = %s;"
-			+ "		var FunctionImpl = Java.extend(Function, {\n"
-			+ "			apply: function(x) {\n"
-	        + "				return f(x);\n"
-	    		+ "			}});\n"
-			+ "    return new FunctionImpl();\n" 
-			+ "};\n";
+	private final static String functionJs =
+			"""
+					var getFunction = function() {
+							var Function = Java.type('java.util.function.Function');
+					     var f = %s;		var FunctionImpl = Java.extend(Function, {
+								apply: function(x) {
+									return f(x);
+								}});
+					    return new FunctionImpl();
+					};
+					""";
 
 	/** The Constant stringToFunctionSupplier. */
 	public static final Function<String, Object> stringToFunctionSupplier = js -> {
@@ -337,15 +353,17 @@ class ConfigUtils {
 	};
 
 	/** The Constant getSupplierJs. */
-	private final static String getSupplierJs = 
-			  "var getSupplier = function() {\n" 
-			+ "		var Supplier = Java.type('java.util.function.Supplier');\n"
-			+ "		var SupplierImpl = Java.extend(Supplier, {\n"
-			+ "			get: function() {\n"
-	        + "				return %s\n;"
-	    		+ "			}});\n"
-			+ "    return new SupplierImpl();\n" 
-			+ "};\n";
+	private final static String getSupplierJs =
+			"""
+					var getSupplier = function() {
+							var Supplier = Java.type('java.util.function.Supplier');
+							var SupplierImpl = Java.extend(Supplier, {
+								get: function() {
+									return %s
+					;			}});
+					    return new SupplierImpl();
+					};
+					""";
 	
 	/** The Constant stringToConveyorSupplier. */
 	public final static Function<String,Supplier<Conveyor>> stringToConveyorSupplier = js-> {
@@ -361,10 +379,12 @@ class ConfigUtils {
 	
 	
 	/** The Constant getLabeledValueConsumerJs. */
-	private final static String getObjectConverterJs = 
-			  "var getObjectConverter = function() {\n" 
-			+ "    return %s;\n" 
-			+ "};\n";
+	private final static String getObjectConverterJs =
+			"""
+					var getObjectConverter = function() {
+					    return %s;
+					};
+					""";
 
 	/** The Constant stringToObjectConverter. */
 	public static final Function<String,ObjectConverter> stringToObjectConverter = js -> {
@@ -403,15 +423,17 @@ class ConfigUtils {
 	};
 
 	/** The Constant getLongSupplierJs. */
-	private final static String getLongSupplierJs = 
-			  "var getLongSupplier = function() {\n" 
-			+ "		var LongSupplier = Java.type('java.util.function.LongSupplier');\n"
-			+ "		var SupplierImpl = Java.extend(LongSupplier, {\n"
-			+ "			getAsLong: function() {\n"
-	        + "				return %s;\n"
-	    		+ "			}});\n"
-			+ "    return new SupplierImpl();\n" 
-			+ "};\n";
+	private final static String getLongSupplierJs =
+			"""
+					var getLongSupplier = function() {
+							var LongSupplier = Java.type('java.util.function.LongSupplier');
+							var SupplierImpl = Java.extend(LongSupplier, {
+								getAsLong: function() {
+									return %s;
+								}});
+					    return new SupplierImpl();
+					};
+					""";
 
 	/** The Constant stringToIdSupplier. */
 	public static final Function<String,LongSupplier> stringToIdSupplier = js -> {

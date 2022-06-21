@@ -54,17 +54,19 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 * @return the smart label
 	 */
 	static <B,T> SmartLabel<B> of(final String labelName, SerializableBiConsumer<B, T> method) {
-		return new SmartLabel<B>() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public SerializableBiConsumer<B, Object> get() {
-				return (SerializableBiConsumer<B, Object>) method;
-			}
-			@Override
-			public String toString() {
-				return labelName;
-			}
-		};
+		return new SmartLabel<>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public SerializableBiConsumer<B, Object> get() {
+                return (SerializableBiConsumer<B, Object>) method;
+            }
+
+            @Override
+            public String toString() {
+                return labelName;
+            }
+        };
 	}
 
 	/**
@@ -152,18 +154,20 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 */
 	default SmartLabel<B> labelName(final String name) {
 		final SmartLabel<B> sl = this;
-		return new SmartLabel<B>() {
-			
-			private static final long serialVersionUID = 5086346018176455134L;
-			@Override
-			public BiConsumer<B, Object> get() {
-				return sl.get();
-			}
-			@Override
-			public String toString() {
-				return name;
-			}
-		};
+		return new SmartLabel<>() {
+
+            private static final long serialVersionUID = 5086346018176455134L;
+
+            @Override
+            public BiConsumer<B, Object> get() {
+                return sl.get();
+            }
+
+            @Override
+            public String toString() {
+                return name;
+            }
+        };
 	}
 	
 	/**

@@ -92,7 +92,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		if(command.getKey() != null) {
 			return this.balancingCommand.apply(command).get(0).command(command);
 		} else {
-			CompletableFuture<Boolean> cf = new CompletableFuture<Boolean>();
+			CompletableFuture<Boolean> cf = new CompletableFuture<>();
 			cf.complete(true);
 			for(Conveyor<K, L, OUT> conv: this.conveyors) {
 				cf = cf.thenCombine(conv.command((GeneralCommand<K, V>) command.copy()), (a,b)-> a && b);
@@ -116,7 +116,7 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	 */
 	@Override
 	protected CompletableFuture<OUT> createBuildFutureWithCart(Function<BuilderAndFutureSupplier<OUT>, CreatingCart<K, OUT, L>> cartSupplier, BuilderSupplier<OUT> builderSupplier) {
-		CompletableFuture<OUT> productFuture   = new CompletableFuture<OUT>();
+		CompletableFuture<OUT> productFuture   = new CompletableFuture<>();
 		BuilderAndFutureSupplier<OUT> supplier = new BuilderAndFutureSupplier<>(builderSupplier, productFuture);
 		CreatingCart<K, OUT, L> cart           = cartSupplier.apply( supplier );
 		Conveyor<K,L,OUT> balancedCobveyor     = this.balancingCart.apply(cart).get(0);

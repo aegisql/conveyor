@@ -21,7 +21,7 @@ public class CharactersToBytesConverter implements ObjectArrayToByteArrayConvert
 		ByteBuffer bb = ByteBuffer.wrap(res);
 		
 		for(int i = 0; i < obj.length; i++) {
-			bb.putChar(2*i, obj[i].charValue());
+			bb.putChar(2*i, obj[i]);
 		}
 		
 		return res;

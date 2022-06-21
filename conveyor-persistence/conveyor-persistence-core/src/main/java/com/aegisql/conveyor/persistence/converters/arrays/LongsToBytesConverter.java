@@ -21,7 +21,7 @@ public class LongsToBytesConverter implements ObjectArrayToByteArrayConverter<Lo
 		ByteBuffer bb = ByteBuffer.wrap(res);
 		
 		for(int i = 0; i < obj.length; i++) {
-			bb.putLong(8*i, obj[i].longValue());
+			bb.putLong(8*i, obj[i]);
 		}
 		
 		return res;

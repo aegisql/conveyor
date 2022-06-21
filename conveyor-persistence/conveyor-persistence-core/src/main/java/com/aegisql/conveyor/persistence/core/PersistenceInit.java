@@ -8,22 +8,23 @@ public interface PersistenceInit <K> {
 	void initLogPersistence(Class<K> keyClass, String partTableName);
 	
 	static <K> PersistenceInit<K> NO_ACTION(Class<K> keyClass) {
-		return new PersistenceInit<K>() {
-			@Override
-			public void initDatabase(String database) {
-			}
-			@Override
-			public void initSchema(String schema) {
-			}
+		return new PersistenceInit<>() {
+            @Override
+            public void initDatabase(String database) {
+            }
 
-			@Override
-			public void initPartPersistence(Class<K> keyClass, String partTableName) {
-			}
+            @Override
+            public void initSchema(String schema) {
+            }
 
-			@Override
-			public void initLogPersistence(Class<K> keyClass, String partTableName) {
-			}
-		};
+            @Override
+            public void initPartPersistence(Class<K> keyClass, String partTableName) {
+            }
+
+            @Override
+            public void initLogPersistence(Class<K> keyClass, String partTableName) {
+            }
+        };
 	}
 	
 }

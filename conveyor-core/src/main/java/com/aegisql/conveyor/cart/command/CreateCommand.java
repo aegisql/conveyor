@@ -39,7 +39,7 @@ public class CreateCommand<K, OUT> extends GeneralCommand<K, BuilderSupplier<OUT
 	 */
 	@Override
 	public Cart<K, BuilderSupplier<OUT>, CommandLabel> copy() {
-		return new CreateCommand<K, OUT>(getKey(), getValue(),getCreationTime(),getExpirationTime());
+		return new CreateCommand<>(getKey(), getValue(), getCreationTime(), getExpirationTime());
 	}
 	
 }

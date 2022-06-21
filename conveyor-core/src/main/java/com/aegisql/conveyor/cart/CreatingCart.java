@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import com.aegisql.conveyor.BuilderAndFutureSupplier;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.BuilderSupplier.BuilderFutureSupplier;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
@@ -56,7 +55,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	 */
 	@Override
 	public Cart<K,BuilderSupplier<B>,L> copy() {
-		CreatingCart<K,B,L> cart =  new CreatingCart<K,B,L>(getKey(),getValue(),getCreationTime(), getExpirationTime(),getPriority());
+		CreatingCart<K,B,L> cart = new CreatingCart<>(getKey(), getValue(), getCreationTime(), getExpirationTime(), getPriority());
 		cart.putAllProperties(this.getAllProperties());
 		return cart;
 	}
@@ -68,8 +67,7 @@ public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L
 	public ScrapConsumer<K, Cart<K, BuilderSupplier<B>, L>> getScrapConsumer() {
 		return super.getScrapConsumer().andThen(bin->{
 			BuilderSupplier<B> bs = bin.scrap.getValue();
-			if(bs instanceof BuilderFutureSupplier) {
-				BuilderFutureSupplier<B> bfs = (BuilderFutureSupplier<B>)bs;
+			if(bs instanceof BuilderFutureSupplier<B> bfs) {
 				if(bin.error !=null) {
 					bfs.getFuture().completeExceptionally(bin.error);
 				} else {

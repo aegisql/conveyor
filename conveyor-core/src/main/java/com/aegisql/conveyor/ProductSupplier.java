@@ -125,16 +125,17 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 		if(isP) {
 			return (ProductSupplier<T>) instance;
 		}
-		return new ProductSupplier<T>() {
-			@Override
-			public T get() {
-				return instance.get();
-			}
-			@Override
-			public Supplier<T> getSupplier() {
-				return instance;
-			}
-		};
+		return new ProductSupplier<>() {
+            @Override
+            public T get() {
+                return instance.get();
+            }
+
+            @Override
+            public Supplier<T> getSupplier() {
+                return instance;
+            }
+        };
 	}
 	
 	/**
@@ -163,28 +164,32 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 		boolean isO = ps instanceof TimeoutAction;
 
 		if(isT && isO) {
-			return new PETO<T>(){
-				@Override
-				public T get() {
-					return ps.get();
-				}
-				@Override
-				public Supplier<T> getSupplier() {
-					return ps.getSupplier();
-				}
-				@Override
-				public long getExpirationTime() {
-					return other.getExpirationTime();
-				}
-				@Override
-				public boolean test() {
-					return ((Testing)ps).test();
-				}
-				@Override
-				public void onTimeout() {
-					((TimeoutAction)ps).onTimeout();
-				}
-			};
+			return new PETO<>() {
+                @Override
+                public T get() {
+                    return ps.get();
+                }
+
+                @Override
+                public Supplier<T> getSupplier() {
+                    return ps.getSupplier();
+                }
+
+                @Override
+                public long getExpirationTime() {
+                    return other.getExpirationTime();
+                }
+
+                @Override
+                public boolean test() {
+                    return ((Testing) ps).test();
+                }
+
+                @Override
+                public void onTimeout() {
+                    ((TimeoutAction) ps).onTimeout();
+                }
+            };
 		}
 		if(isS && isO) {
 			return new PESO<T,K,L>(){
@@ -211,24 +216,27 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 			};			
 		}
 		if(isT) {
-			return new PET<T>() {
-				@Override
-				public T get() {
-					return ps.get();
-				}
-				@Override
-				public Supplier<T> getSupplier() {
-					return ps.getSupplier();
-				}
-				@Override
-				public long getExpirationTime() {
-					return other.getExpirationTime();
-				}
-				@Override
-				public boolean test() {
-					return ((Testing)ps).test();
-				}
-			};			
+			return new PET<>() {
+                @Override
+                public T get() {
+                    return ps.get();
+                }
+
+                @Override
+                public Supplier<T> getSupplier() {
+                    return ps.getSupplier();
+                }
+
+                @Override
+                public long getExpirationTime() {
+                    return other.getExpirationTime();
+                }
+
+                @Override
+                public boolean test() {
+                    return ((Testing) ps).test();
+                }
+            };
 		}
 		if(isS) {
 			return new PES<T,K,L>() {
@@ -252,39 +260,44 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 			
 		}
 		if(isO) {
-			return new PEO<T>() {
-				@Override
-				public T get() {
-					return ps.get();
-				}
-				@Override
-				public Supplier<T> getSupplier() {
-					return ps.getSupplier();
-				}
-				@Override
-				public long getExpirationTime() {
-					return other.getExpirationTime();
-				}
-				@Override
-				public void onTimeout() {
-					((TimeoutAction)ps).onTimeout();
-				}
-			};
+			return new PEO<>() {
+                @Override
+                public T get() {
+                    return ps.get();
+                }
+
+                @Override
+                public Supplier<T> getSupplier() {
+                    return ps.getSupplier();
+                }
+
+                @Override
+                public long getExpirationTime() {
+                    return other.getExpirationTime();
+                }
+
+                @Override
+                public void onTimeout() {
+                    ((TimeoutAction) ps).onTimeout();
+                }
+            };
 		}
-		return new PE<T>() {
-			@Override
-			public T get() {
-				return ps.get();
-			}
-			@Override
-			public Supplier<T> getSupplier() {
-				return ps.getSupplier();
-			}
-			@Override
-			public long getExpirationTime() {
-				return other.getExpirationTime();
-			}
-		};
+		return new PE<>() {
+            @Override
+            public T get() {
+                return ps.get();
+            }
+
+            @Override
+            public Supplier<T> getSupplier() {
+                return ps.getSupplier();
+            }
+
+            @Override
+            public long getExpirationTime() {
+                return other.getExpirationTime();
+            }
+        };
 	}	
 
 /**
@@ -304,28 +317,32 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 		boolean isS = ps instanceof TestingState;
 
 		if(isT && isE) {
-			return new PETO<T>(){
-				@Override
-				public T get() {
-					return ps.get();
-				}
-				@Override
-				public Supplier<T> getSupplier() {
-					return ps.getSupplier();
-				}
-				@Override
-				public long getExpirationTime() {
-					return ((Expireable)ps).getExpirationTime();
-				}
-				@Override
-				public boolean test() {
-					return ((Testing)ps).test();
-				}
-				@Override
-				public void onTimeout() {
-					toAction.accept(ps);					
-				}
-			};
+			return new PETO<>() {
+                @Override
+                public T get() {
+                    return ps.get();
+                }
+
+                @Override
+                public Supplier<T> getSupplier() {
+                    return ps.getSupplier();
+                }
+
+                @Override
+                public long getExpirationTime() {
+                    return ((Expireable) ps).getExpirationTime();
+                }
+
+                @Override
+                public boolean test() {
+                    return ((Testing) ps).test();
+                }
+
+                @Override
+                public void onTimeout() {
+                    toAction.accept(ps);
+                }
+            };
 		}
 		if(isS && isE) {
 			return new PESO<T,K,L>(){
@@ -352,24 +369,27 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 			};			
 		}
 		if(isT) {
-			return new PTO<T>() {
-				@Override
-				public T get() {
-					return ps.get();
-				}
-				@Override
-				public Supplier<T> getSupplier() {
-					return ps.getSupplier();
-				}
-				@Override
-				public boolean test() {
-					return ((Testing)ps).test();
-				}
-				@Override
-				public void onTimeout() {
-					toAction.accept(ps);					
-				}
-			};			
+			return new PTO<>() {
+                @Override
+                public T get() {
+                    return ps.get();
+                }
+
+                @Override
+                public Supplier<T> getSupplier() {
+                    return ps.getSupplier();
+                }
+
+                @Override
+                public boolean test() {
+                    return ((Testing) ps).test();
+                }
+
+                @Override
+                public void onTimeout() {
+                    toAction.accept(ps);
+                }
+            };
 		}
 		if(isS) {
 			return new PSO<T,K,L>() {
@@ -393,39 +413,44 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 			
 		}
 		if(isE) {
-			return new PEO<T>() {
-				@Override
-				public T get() {
-					return ps.get();
-				}
-				@Override
-				public Supplier<T> getSupplier() {
-					return ps.getSupplier();
-				}
-				@Override
-				public long getExpirationTime() {
-					return ((Expireable)ps).getExpirationTime();
-				}
-				@Override
-				public void onTimeout() {
-					toAction.accept(ps);
-				}
-			};
+			return new PEO<>() {
+                @Override
+                public T get() {
+                    return ps.get();
+                }
+
+                @Override
+                public Supplier<T> getSupplier() {
+                    return ps.getSupplier();
+                }
+
+                @Override
+                public long getExpirationTime() {
+                    return ((Expireable) ps).getExpirationTime();
+                }
+
+                @Override
+                public void onTimeout() {
+                    toAction.accept(ps);
+                }
+            };
 		}
-		return new PO<T>() {
-			@Override
-			public T get() {
-				return ps.get();
-			}
-			@Override
-			public Supplier<T> getSupplier() {
-				return ps.getSupplier();
-			}
-			@Override
-			public void onTimeout() {
-				toAction.accept(ps);
-			}
-		};
+		return new PO<>() {
+            @Override
+            public T get() {
+                return ps.get();
+            }
+
+            @Override
+            public Supplier<T> getSupplier() {
+                return ps.getSupplier();
+            }
+
+            @Override
+            public void onTimeout() {
+                toAction.accept(ps);
+            }
+        };
 	}	
 
 /**
@@ -444,83 +469,95 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 		boolean isO = ps instanceof TimeoutAction;
 
 		if(isO && isE) {
-			return new PETO<T>(){
-				@Override
-				public T get() {
-					return ps.get();
-				}
-				@Override
-				public Supplier<T> getSupplier() {
-					return ps.getSupplier();
-				}
-				@Override
-				public long getExpirationTime() {
-					return ((Expireable)ps).getExpirationTime();
-				}
-				@Override
-				public boolean test() {
-					return tester.test(ps);
-				}
-				@Override
-				public void onTimeout() {
-					((TimeoutAction)ps).onTimeout();					
-				}
-			};
+			return new PETO<>() {
+                @Override
+                public T get() {
+                    return ps.get();
+                }
+
+                @Override
+                public Supplier<T> getSupplier() {
+                    return ps.getSupplier();
+                }
+
+                @Override
+                public long getExpirationTime() {
+                    return ((Expireable) ps).getExpirationTime();
+                }
+
+                @Override
+                public boolean test() {
+                    return tester.test(ps);
+                }
+
+                @Override
+                public void onTimeout() {
+                    ((TimeoutAction) ps).onTimeout();
+                }
+            };
 		}
 		if(isO) {
-			return new PTO<T>() {
-				@Override
-				public T get() {
-					return ps.get();
-				}
-				@Override
-				public Supplier<T> getSupplier() {
-					return ps.getSupplier();
-				}
-				@Override
-				public boolean test() {
-					return tester.test(ps);
-				}
-				@Override
-				public void onTimeout() {
-					((TimeoutAction)ps).onTimeout();
-				}
-			};			
+			return new PTO<>() {
+                @Override
+                public T get() {
+                    return ps.get();
+                }
+
+                @Override
+                public Supplier<T> getSupplier() {
+                    return ps.getSupplier();
+                }
+
+                @Override
+                public boolean test() {
+                    return tester.test(ps);
+                }
+
+                @Override
+                public void onTimeout() {
+                    ((TimeoutAction) ps).onTimeout();
+                }
+            };
 		}
 		if(isE) {
-			return new PET<T>() {
-				@Override
-				public T get() {
-					return ps.get();
-				}
-				@Override
-				public Supplier<T> getSupplier() {
-					return ps.getSupplier();
-				}
-				@Override
-				public long getExpirationTime() {
-					return ((Expireable)ps).getExpirationTime();
-				}
-				@Override
-				public boolean test() {
-					return tester.test(ps);
-				}
-			};
+			return new PET<>() {
+                @Override
+                public T get() {
+                    return ps.get();
+                }
+
+                @Override
+                public Supplier<T> getSupplier() {
+                    return ps.getSupplier();
+                }
+
+                @Override
+                public long getExpirationTime() {
+                    return ((Expireable) ps).getExpirationTime();
+                }
+
+                @Override
+                public boolean test() {
+                    return tester.test(ps);
+                }
+            };
 		}
-		return new PT<T>() {
-			@Override
-			public T get() {
-				return ps.get();
-			}
-			@Override
-			public Supplier<T> getSupplier() {
-				return ps.getSupplier();
-			}
-			@Override
-			public boolean test() {
-				return tester.test(ps);
-			}
-		};
+		return new PT<>() {
+            @Override
+            public T get() {
+                return ps.get();
+            }
+
+            @Override
+            public Supplier<T> getSupplier() {
+                return ps.getSupplier();
+            }
+
+            @Override
+            public boolean test() {
+                return tester.test(ps);
+            }
+        };
 	}	
 
 	/**

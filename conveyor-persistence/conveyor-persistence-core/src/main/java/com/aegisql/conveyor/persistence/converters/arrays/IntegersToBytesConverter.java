@@ -21,7 +21,7 @@ public class IntegersToBytesConverter implements ObjectArrayToByteArrayConverter
 		ByteBuffer bb = ByteBuffer.wrap(res);
 		
 		for(int i = 0; i < obj.length; i++) {
-			bb.putInt(4*i, obj[i].intValue());
+			bb.putInt(4*i, obj[i]);
 		}
 		
 		return res;

@@ -26,13 +26,9 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 		super();
 		this.setName("SchedulingConveyor");
 		this.setIdleHeartBeat(1, TimeUnit.SECONDS);
-		this.resultConsumer().first(bin -> {
-			LOG.debug("Task complete {}",bin);
-		}).set();
+		this.resultConsumer().first(bin -> LOG.debug("Task complete {}",bin)).set();
 		this.scrapConsumer().first(LogScrap.debug(this)).set();
-		this.addCartBeforePlacementValidator(cart -> {
-			Objects.requireNonNull(cart.getValue());
-		});
+		this.addCartBeforePlacementValidator(cart -> Objects.requireNonNull(cart.getValue()));
 		this.addCartBeforePlacementValidator(cart -> {
 			if (! ((cart instanceof CreatingCart) || (cart.getValue() instanceof SchedulableClosure)) ) {
 				throw new IllegalArgumentException(
@@ -45,17 +41,15 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 	
 	@Override
 	public PartLoader<K, Schedule> part() {
-		return new PartLoader<K,Schedule>(cl -> {
-			ScheduleBuilder<K> builder = new ScheduleBuilder<K>(cl.ttlMsec);
-			BuilderSupplier<SchedulableClosure> bs = BuilderSupplier.of(builder);
-			CompletableFuture<Boolean> f1 = build().id((K)cl.key).expirationTime(cl.expirationTime).supplier(bs).create();
-			CompletableFuture<Boolean> f2 = place(new ShoppingCart<K,Object,Schedule>(cl.key, cl.partValue, cl.label, cl.expirationTime));
-			return f1.thenCombine(f2, (v1,v2)->
-				{
-					return v1 && v2;
-				}
-			);
-		});
+		return new PartLoader<>(cl -> {
+            ScheduleBuilder<K> builder = new ScheduleBuilder<>(cl.ttlMsec);
+            BuilderSupplier<SchedulableClosure> bs = BuilderSupplier.of(builder);
+            CompletableFuture<Boolean> f1 = build().id((K) cl.key).expirationTime(cl.expirationTime).supplier(bs).create();
+            CompletableFuture<Boolean> f2 = place(new ShoppingCart<>(cl.key, cl.partValue, cl.label, cl.expirationTime));
+            return f1.thenCombine(f2, (v1, v2) ->
+                    v1 && v2
+            );
+        });
 	}
 	
 

@@ -17,7 +17,7 @@ public class IntegerToBytesConverter implements ObjectToByteArrayConverter<Integ
 			return null;
 		}
 		byte[] bytes = new byte[4];
-		ByteBuffer.wrap(bytes).putInt(obj.intValue());
+		ByteBuffer.wrap(bytes).putInt(obj);
 		return bytes;
 	}
 

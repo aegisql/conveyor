@@ -15,7 +15,7 @@ import com.aegisql.conveyor.persistence.converters.collections.CollectionToByteA
 public class BigIntegersToBytesConverter implements ObjectArrayToByteArrayConverter<BigInteger> {
 	
 	/** The cc. */
-	CollectionToByteArrayConverter<BigInteger> cc = new CollectionToByteArrayConverter<BigInteger>(ArrayList::new, new BigIntegerToBytesConverter());
+	CollectionToByteArrayConverter<BigInteger> cc = new CollectionToByteArrayConverter<>(ArrayList::new, new BigIntegerToBytesConverter());
 
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)

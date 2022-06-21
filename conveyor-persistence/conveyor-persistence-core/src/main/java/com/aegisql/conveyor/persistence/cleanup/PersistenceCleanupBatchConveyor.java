@@ -41,10 +41,8 @@ public class PersistenceCleanupBatchConveyor <K> extends AssemblingConveyor<Sing
 		super();
 		this.setName("PersistenceCleanupBatchConveyor");
 		this.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		this.setBuilderSupplier( () -> new CleaunupBatchBuilder<K>(persistence)  );
-		this.resultConsumer(bin->{
-			bin.product.run();
-		}).set();
+		this.setBuilderSupplier( () -> new CleaunupBatchBuilder<>(persistence)  );
+		this.resultConsumer(bin-> bin.product.run()).set();
 	}
 
 	/* (non-Javadoc)

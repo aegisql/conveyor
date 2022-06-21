@@ -146,13 +146,10 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorBuilder.class);
 
 	/** The persistence properties. */
-	private final Map<String, PersistenceProperties> persistenceProperties = new TreeMap<>(new Comparator<String>() {
-		@Override
-		public int compare(String o1, String o2) {
-			String l1 = o1.toLowerCase();
-			String l2 = o2.toLowerCase();
-			return -l1.compareTo(l2);
-		}
+	private final Map<String, PersistenceProperties> persistenceProperties = new TreeMap<>((o1, o2) -> {
+		String l1 = o1.toLowerCase();
+		String l2 = o2.toLowerCase();
+		return -l1.compareTo(l2);
 	});
 
 	/** The default properties. */
@@ -478,9 +475,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 			nextResultConsumers.forEach(rc -> c.resultConsumer().andThen(rc).set());
 			nextScrapConsumers.forEach(rc -> c.scrapConsumer().andThen(rc).set());
 			staticParts.forEach(pair -> c.staticPart().label(pair.label).value(pair.value).place());
-			addCartBeforePlacementValidator.forEach(pv -> c.addCartBeforePlacementValidator(pv));
-			addBeforeKeyEvictionAction.forEach(pv -> c.addBeforeKeyEvictionAction(pv));
-			addBeforeKeyReschedulingAction.forEach(ra -> c.addBeforeKeyReschedulingAction(ra));
+			addCartBeforePlacementValidator.forEach(c::addCartBeforePlacementValidator);
+			addBeforeKeyEvictionAction.forEach(c::addBeforeKeyEvictionAction);
+			addBeforeKeyReschedulingAction.forEach(c::addBeforeKeyReschedulingAction);
 			forward.forEach(f -> {
 				ForwardResult fr = ForwardResult.from(c).to((String) f.value1).label(f.label);
 				if (f.value2 != null) {
@@ -512,7 +509,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	public static void idleHeartBeat(ConveyorBuilder b, String s) {
 		LOG.debug("Applying idleHeartBeat={}", s);
 		Long value = (Long) ConfigUtils.timeToMillsConverter.apply(s);
-		b.idleHeartBeat = Duration.ofMillis(value.longValue());
+		b.idleHeartBeat = Duration.ofMillis(value);
 	}
 
 	/**
@@ -526,7 +523,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	public static void defaultBuilderTimeout(ConveyorBuilder b, String s) {
 		LOG.debug("Applying defaultBuilderTimeout={}", s);
 		Long value = (Long) ConfigUtils.timeToMillsConverter.apply(s);
-		b.defaultBuilderTimeout = Duration.ofMillis(value.longValue());
+		b.defaultBuilderTimeout = Duration.ofMillis(value);
 	}
 
 	/**
@@ -540,7 +537,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	public static void rejectUnexpireableCartsOlderThan(ConveyorBuilder b, String s) {
 		LOG.debug("Applying rejectUnexpireableCartsOlderThan={}", s);
 		Long value = (Long) ConfigUtils.timeToMillsConverter.apply(s);
-		b.rejectUnexpireableCartsOlderThan = Duration.ofMillis(value.longValue());
+		b.rejectUnexpireableCartsOlderThan = Duration.ofMillis(value);
 	}
 
 	/**
@@ -554,7 +551,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	public static void expirationPostponeTime(ConveyorBuilder b, String s) {
 		LOG.debug("Applying expirationPostponeTime={}", s);
 		Long value = (Long) ConfigUtils.timeToMillsConverter.apply(s);
-		b.expirationPostponeTime = Duration.ofMillis(value.longValue());
+		b.expirationPostponeTime = Duration.ofMillis(value);
 	}
 
 	/**
@@ -706,8 +703,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		if (obj instanceof BiPredicate) {
 			b.readinessEvaluatorBiP = (BiPredicate) obj;
 			b.readinessEvaluatorP = null;
-		} else if (obj instanceof Predicate) {
-			Predicate re = (Predicate) obj;
+		} else if (obj instanceof Predicate re) {
 			b.readinessEvaluatorBiP = null;
 			b.readinessEvaluatorP = re;
 		} else {
@@ -1000,28 +996,17 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		LOG.debug("Applying priority={}", s);
 		Supplier<PriorityBlockingQueue<Cart>> queueSupplier = null;
 		switch (s.toUpperCase()) {
-			case "FIFO":
-				queueSupplier = Priority.FIFO;
-				break;
-			case "FILO":
-				queueSupplier = Priority.FILO;
-				break;
-			case "NEWEST_FIRST":
-				queueSupplier = Priority.NEWEST_FIRST;
-				break;
-			case "OLDEST_FIRST":
-				queueSupplier = Priority.OLDEST_FIRST;
-				break;
-			case "EXPIRE_SOONER_FIRST":
-				queueSupplier = Priority.EXPIRE_SOONER_FIRST;
-				break;
-			case "PRIORITIZED":
-				queueSupplier = Priority.PRIORITIZED;
-				break;
-			default:
-				LOG.warn("Undefined priority {}. Ignored. Supported priorities:  FIFO,FILO,NEWEST_FIRST,OLDEST_FIRST,EXPIRE_SOONER_FIRST,PRIORITIZED",s);
-				b.enablePriorityQueue  = false;
+			case "FIFO" -> queueSupplier = Priority.FIFO;
+			case "FILO" -> queueSupplier = Priority.FILO;
+			case "NEWEST_FIRST" -> queueSupplier = Priority.NEWEST_FIRST;
+			case "OLDEST_FIRST" -> queueSupplier = Priority.OLDEST_FIRST;
+			case "EXPIRE_SOONER_FIRST" -> queueSupplier = Priority.EXPIRE_SOONER_FIRST;
+			case "PRIORITIZED" -> queueSupplier = Priority.PRIORITIZED;
+			default -> {
+				LOG.warn("Undefined priority {}. Ignored. Supported priorities:  FIFO,FILO,NEWEST_FIRST,OLDEST_FIRST,EXPIRE_SOONER_FIRST,PRIORITIZED", s);
+				b.enablePriorityQueue = false;
 				return;
+			}
 		}
 		b.enablePriorityQueue  = true;
 		b.maxQueueSize = 0;

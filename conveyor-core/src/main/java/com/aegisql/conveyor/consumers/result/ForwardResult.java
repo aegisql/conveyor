@@ -258,11 +258,11 @@ public class ForwardResult<K2, L2> {
 	public void bind() {
 		if (toConv != null) {
 			fromConv.resultConsumer()
-					.andThen(new ForwardingConsumer<K2, L2>(label, keyTransformer, toConv, fromConv.getName(), filter))
+					.andThen(new ForwardingConsumer<>(label, keyTransformer, toConv, fromConv.getName(), filter))
 					.set();
 		} else if (toConvName != null) {
 			fromConv.resultConsumer().andThen(
-					new ForwardingConsumer<K2, L2>(label, keyTransformer, toConvName, fromConv.getName(), filter))
+                            new ForwardingConsumer<>(label, keyTransformer, toConvName, fromConv.getName(), filter))
 					.set();
 		} else {
 			throw new RuntimeException("Either toConveyor or toConveyor name must not be null");

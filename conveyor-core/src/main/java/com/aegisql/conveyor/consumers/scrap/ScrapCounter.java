@@ -1,7 +1,6 @@
 package com.aegisql.conveyor.consumers.scrap;
 
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import com.aegisql.conveyor.Conveyor;

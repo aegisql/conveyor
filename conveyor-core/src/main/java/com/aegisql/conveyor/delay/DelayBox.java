@@ -109,9 +109,7 @@ public class DelayBox <K> implements Delayed, Expireable {
 		if (getClass() != obj.getClass())
 			return false;
 		DelayBox other = (DelayBox) obj;
-		if (expirationTime != other.expirationTime)
-			return false;
-		return true;
+		return expirationTime == other.expirationTime;
 	}
 
 	/* (non-Javadoc)

@@ -9,6 +9,7 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -174,9 +175,7 @@ public class ConnectionFactory <T extends DataSource> {
      * @return the connection factory
      */
     public static ConnectionFactory<WrappedExternalDataSource> nonCachingExternalConnectionFactoryInstance(Supplier<Connection> connectionSupplier) {
-        return nonCachingFactoryInstance(f->{
-            return new WrappedExternalDataSource(connectionSupplier);
-        });
+        return nonCachingFactoryInstance(f-> new WrappedExternalDataSource(connectionSupplier));
     }
 
     /**
@@ -186,9 +185,7 @@ public class ConnectionFactory <T extends DataSource> {
      * @return the connection factory
      */
     public static ConnectionFactory<WrappedExternalDataSource> cachingExternalConnectionFactoryInstance(Supplier<Connection> connectionSupplier) {
-        return cachingFactoryInstance(f->{
-            return new WrappedExternalDataSource(connectionSupplier);
-        });
+        return cachingFactoryInstance(f-> new WrappedExternalDataSource(connectionSupplier));
     }
 
     /**
@@ -393,11 +390,7 @@ public class ConnectionFactory <T extends DataSource> {
     }
 
     private String s(String str) {
-        if(str == null) {
-            return "";
-        } else {
-            return str;
-        }
+        return Objects.requireNonNullElse(str, "");
     }
 
     private String o(Object obj) {
@@ -423,9 +416,7 @@ public class ConnectionFactory <T extends DataSource> {
                     .replace("{schema}", s(schema))
                     .replace("{user}", s(user))
                     .replace("{password}", s(password));
-            properties.forEach((key,val)->{
-                url = url.replace("{"+key+"}",o(val));
-            });
+            properties.forEach((key,val)-> url = url.replace("{"+key+"}",o(val)));
             return url;
         }
     }

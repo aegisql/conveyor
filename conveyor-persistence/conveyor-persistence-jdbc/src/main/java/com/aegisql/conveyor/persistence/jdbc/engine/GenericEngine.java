@@ -7,7 +7,6 @@ import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.Statement
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -624,9 +623,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	private String qMarks(int n) {
 		StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < n-1; i++) {
-			sb.append("?,");
-		}
+		sb.append("?,".repeat(Math.max(0, n - 1)));
 		sb.append("?");
 		return sb.toString();
 	}

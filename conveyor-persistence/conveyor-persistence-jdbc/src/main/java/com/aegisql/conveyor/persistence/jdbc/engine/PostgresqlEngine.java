@@ -42,7 +42,7 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 				throw new PersistenceException(e);
 			}
 		});
-		return hasValue == null? false : hasValue;
+		return hasValue != null && hasValue;
 	}
 
 	/* (non-Javadoc)
@@ -65,7 +65,7 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 				throw new PersistenceException(e);
 			}
 		});
-		return hasValue == null? false : hasValue;
+		return hasValue != null && hasValue;
 	}
 
 	/* (non-Javadoc)

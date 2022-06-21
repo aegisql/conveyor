@@ -17,7 +17,7 @@ public class LongToBytesConverter implements ObjectToByteArrayConverter<Long> {
 			return null;
 		}
 		byte[] bytes = new byte[8];
-		ByteBuffer.wrap(bytes).putLong(obj.longValue());
+		ByteBuffer.wrap(bytes).putLong(obj);
 		return bytes;
 	}
 

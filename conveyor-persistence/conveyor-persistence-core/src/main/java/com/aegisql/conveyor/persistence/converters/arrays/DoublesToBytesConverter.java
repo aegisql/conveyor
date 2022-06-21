@@ -21,7 +21,7 @@ public class DoublesToBytesConverter implements ObjectArrayToByteArrayConverter<
 		ByteBuffer bb = ByteBuffer.wrap(res);
 		
 		for(int i = 0; i < obj.length; i++) {
-			bb.putDouble(8*i, obj[i].doubleValue());
+			bb.putDouble(8*i, obj[i]);
 		}
 		
 		return res;

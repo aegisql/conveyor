@@ -8,7 +8,6 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;
 
 // TODO: Auto-generated Javadoc
@@ -20,27 +19,27 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, SmartLabel<AcknowledgeBuilder<K>>, Boolean> {
 	
 	/** The cart. */
-	public final SmartLabel<AcknowledgeBuilder<K>> CART     = SmartLabel.of("CART", (b,cart)->{ AcknowledgeBuilder.processCart(b, (Cart<K,?,?>)cart); });
+	public final SmartLabel<AcknowledgeBuilder<K>> CART     = SmartLabel.of("CART", (b,cart)-> AcknowledgeBuilder.processCart(b, (Cart<K,?,?>)cart));
 	
 	/** The complete. */
-	public final SmartLabel<AcknowledgeBuilder<K>> COMPLETE = SmartLabel.of("COMPLETE", (b,key)->{ AcknowledgeBuilder.complete(b, (AcknowledgeStatus<K>)key); });
+	public final SmartLabel<AcknowledgeBuilder<K>> COMPLETE = SmartLabel.of("COMPLETE", (b,key)-> AcknowledgeBuilder.complete(b, (AcknowledgeStatus<K>)key));
 	
 	/** The replay. */
-	public final SmartLabel<AcknowledgeBuilder<K>> REPLAY   = SmartLabel.of("REPLAY", (b,key)->{ AcknowledgeBuilder.replay(b, (K)key); });
+	public final SmartLabel<AcknowledgeBuilder<K>> REPLAY   = SmartLabel.of("REPLAY", (b,key)-> AcknowledgeBuilder.replay(b, (K)key));
 	
 	/** The mode. */
-	public final SmartLabel<AcknowledgeBuilder<K>> MODE     = SmartLabel.of("MODE", (b,mode)->{ AcknowledgeBuilder.setMode(b, (Boolean)mode); });
+	public final SmartLabel<AcknowledgeBuilder<K>> MODE     = SmartLabel.of("MODE", (b,mode)-> AcknowledgeBuilder.setMode(b, (Boolean)mode));
 	
 	/** The unload enabled. */
-	public final SmartLabel<AcknowledgeBuilder<K>> UNLOAD_ENABLED = SmartLabel.of("UNLOAD_ENABLED", (b,mode)->{ AcknowledgeBuilder.setUnloadMode(b, (Boolean)mode); });
+	public final SmartLabel<AcknowledgeBuilder<K>> UNLOAD_ENABLED = SmartLabel.of("UNLOAD_ENABLED", (b,mode)-> AcknowledgeBuilder.setUnloadMode(b, (Boolean)mode));
 	
 	/** The unload. */
-	public final SmartLabel<AcknowledgeBuilder<K>> UNLOAD   = SmartLabel.of("UNLOAD", (b,key)->{ AcknowledgeBuilder.unload(b, (AcknowledgeStatus<K>)key); });
+	public final SmartLabel<AcknowledgeBuilder<K>> UNLOAD   = SmartLabel.of("UNLOAD", (b,key)-> AcknowledgeBuilder.unload(b, (AcknowledgeStatus<K>)key));
 
 	/** The compact. */
-	public final SmartLabel<AcknowledgeBuilder<K>> COMPACT   = SmartLabel.of("COMPACT", (b,key)->{ AcknowledgeBuilder.compact(b, (K)key); });
+	public final SmartLabel<AcknowledgeBuilder<K>> COMPACT   = SmartLabel.of("COMPACT", (b,key)-> AcknowledgeBuilder.compact(b, (K)key));
 
-	public final SmartLabel<AcknowledgeBuilder<K>> MIN_COMPACT   = SmartLabel.of("MIN_COMPACT", (b,key)->{ AcknowledgeBuilder.minCompactSize(b, (Integer)key); });
+	public final SmartLabel<AcknowledgeBuilder<K>> MIN_COMPACT   = SmartLabel.of("MIN_COMPACT", (b,key)-> AcknowledgeBuilder.minCompactSize(b, (Integer)key));
 
 	/** The initialization mode. */
 	private final AtomicBoolean initializationMode = new AtomicBoolean(true);
@@ -58,9 +57,7 @@ public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, Smart
 		this.setName("AcknowledgeBuildingConveyor<"+(forward == null ? "":forward.getName())+">");
 		this.setBuilderSupplier( () -> new AcknowledgeBuilder<>(persistence, forward, this)  );
 		this.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
-		this.resultConsumer(bin->{
-			LOG.debug("{} {}",bin.key,bin.product ?" COMPLETE":" UNLOADED");
-		}).set();
+		this.resultConsumer(bin-> LOG.debug("{} {}",bin.key,bin.product ?" COMPLETE":" UNLOADED")).set();
 	}
 	
 	/**

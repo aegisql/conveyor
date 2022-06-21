@@ -22,7 +22,7 @@ public class AcknowledgeStatus <K> implements Serializable {
 	private final Status status;
 	
 	/** The properties. */
-	private final Map<String,Object> properties = new HashMap<String, Object>();
+	private final Map<String,Object> properties = new HashMap<>();
 	
 	/**
 	 * Instantiates a new acknowledge status.

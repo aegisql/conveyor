@@ -1,6 +1,7 @@
 package com.aegisql.conveyor;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -83,16 +84,8 @@ public interface ReadinessPredicate <K,L,OUT> extends BiPredicate<State<K,L>, Su
 	default ReadinessPredicate <K,L,OUT> accepted(L l, int x) {
 		return (a,b) -> {
 			Integer counter = a.eventHistory.get(l);
-			
-			if( counter == null ) {
-				if(x==0) {
-					return true;
-				} else {
-					return false;
-				}
-			} else {
-				return counter.intValue() == x;
-			}
+
+			return Objects.requireNonNullElse(counter, 0) == x;
 		};
 	}
 

@@ -30,12 +30,7 @@ public interface Expireable {
 	 */
 	default Expireable addTime(long time) {
 		Expireable e = this;
-		return new Expireable() {
-			@Override
-			public long getExpirationTime() {
-				return e.getExpirationTime() + time;
-			}
-		};
+		return () -> e.getExpirationTime() + time;
 	}
 
 	/**

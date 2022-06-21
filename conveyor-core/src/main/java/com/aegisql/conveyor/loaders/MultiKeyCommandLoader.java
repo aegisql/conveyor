@@ -100,7 +100,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * @return the command loader
 	 */
 	public MultiKeyCommandLoader<K,OUT> foreach(Predicate<K> p) {
-		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,expirationTime,ttlMsec,p);
+		return new MultiKeyCommandLoader<>(conveyor, creationTime, expirationTime, ttlMsec, p);
 	}
 
 	/**
@@ -110,7 +110,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * @return the command loader
 	 */
 	public MultiKeyCommandLoader<K,OUT>  expirationTime(long et) {
-		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,et,ttlMsec,filter);
+		return new MultiKeyCommandLoader<>(conveyor, creationTime, et, ttlMsec, filter);
 	}
 
 	/**
@@ -120,7 +120,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * @return the multi key command loader
 	 */
 	public MultiKeyCommandLoader<K,OUT>  creationTime(long ct) {
-		return new MultiKeyCommandLoader<K,OUT>(conveyor,ct,expirationTime,ttlMsec,filter);
+		return new MultiKeyCommandLoader<>(conveyor, ct, expirationTime, ttlMsec, filter);
 	}
 
 	/**
@@ -130,7 +130,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * @return the command loader
 	 */
 	public MultiKeyCommandLoader<K,OUT>  expirationTime(Instant instant) {
-		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,instant.toEpochMilli(),ttlMsec,filter);
+		return new MultiKeyCommandLoader<>(conveyor, creationTime, instant.toEpochMilli(), ttlMsec, filter);
 	}
 
 	/**
@@ -140,7 +140,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * @return the multi key command loader
 	 */
 	public MultiKeyCommandLoader<K,OUT>  creationTime(Instant instant) {
-		return new MultiKeyCommandLoader<K,OUT>(conveyor,instant.toEpochMilli(),expirationTime,ttlMsec,filter);
+		return new MultiKeyCommandLoader<>(conveyor, instant.toEpochMilli(), expirationTime, ttlMsec, filter);
 	}
 
 	/**
@@ -151,7 +151,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * @return the command loader
 	 */
 	public MultiKeyCommandLoader<K,OUT>  ttl(long time, TimeUnit unit) {
-		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,TimeUnit.MILLISECONDS.convert(time, unit),filter,true);
+		return new MultiKeyCommandLoader<>(conveyor, creationTime, TimeUnit.MILLISECONDS.convert(time, unit), filter, true);
 	}
 	
 	/**
@@ -161,7 +161,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * @return the command loader
 	 */
 	public MultiKeyCommandLoader<K,OUT>  ttl(Duration duration) {
-		return new MultiKeyCommandLoader<K,OUT>(conveyor,creationTime,duration.toMillis(),filter,true);
+		return new MultiKeyCommandLoader<>(conveyor, creationTime, duration.toMillis(), filter, true);
 	}
 	
 	/**
@@ -170,7 +170,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * @return the completable future
 	 */
 	public CompletableFuture<Boolean> cancel() {
-		return conveyor.apply(new GeneralCommand<K,String>(filter,"CANCEL",CommandLabel.CANCEL_BUILD,creationTime,expirationTime));
+		return conveyor.apply(new GeneralCommand<>(filter, "CANCEL", CommandLabel.CANCEL_BUILD, creationTime, expirationTime));
 	}
 
 	/**
@@ -179,7 +179,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * @return the completable future
 	 */
 	public CompletableFuture<Boolean> timeout() {
-		return conveyor.apply(new GeneralCommand<K,String>(filter,"TIMEOUT",CommandLabel.TIMEOUT_BUILD,creationTime,expirationTime));
+		return conveyor.apply(new GeneralCommand<>(filter, "TIMEOUT", CommandLabel.TIMEOUT_BUILD, creationTime, expirationTime));
 	}
 
 	/**
@@ -188,7 +188,7 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * @return the completable future
 	 */
 	public CompletableFuture<Boolean> reschedule() {
-		return conveyor.apply(new GeneralCommand<K,String>(filter,"RESCHEDULE",CommandLabel.RESCHEDULE_BUILD,creationTime,expirationTime));
+		return conveyor.apply(new GeneralCommand<>(filter, "RESCHEDULE", CommandLabel.RESCHEDULE_BUILD, creationTime, expirationTime));
 	}
 	
 	/**

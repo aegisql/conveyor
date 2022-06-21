@@ -289,18 +289,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			}
 		};
 		this.conveyor = (Conveyor<K, Object, OUT>) conveyor;
-		if(resultConsumer == null) {
-			this.resultConsumer = bin->{
-				LOG.error("LOST RESULT {} {}", bin.key, bin.product);
-			};
-		} else {
-			this.resultConsumer = resultConsumer;
-		}
+		this.resultConsumer = Objects.requireNonNullElseGet(resultConsumer, () -> bin -> LOG.error("LOST RESULT {} {}", bin.key, bin.product));
 		
 		var productSupplier = builderSupplier.get();
 		
-		if(cart.getValue() != null && cart.getValue() instanceof BuildingSite.Memento) {
-			var memento = (BuildingSite.Memento) cart.getValue();
+		if(cart.getValue() != null && cart.getValue() instanceof Memento memento) {
 			this.restore(memento);
 		} else {
 			if( productSupplier instanceof ProductSupplier && ((ProductSupplier)productSupplier).getSupplier() != null) {
@@ -316,14 +309,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			this.lock = BuildingSite.NON_LOCKING_LOCK;
 		}
 		if (productSupplier instanceof TimeoutAction) {
-			this.timeoutAction = b -> {
-				((TimeoutAction) productSupplier).onTimeout();
-			};
-		} else if (timeoutAction != null) {
-			this.timeoutAction = timeoutAction;
-		} else {
-			this.timeoutAction = null;
-		}
+			this.timeoutAction = b -> ((TimeoutAction) productSupplier).onTimeout();
+		} else this.timeoutAction = timeoutAction;
 
 		if(readiness != null) {
 			this.readiness = readiness;			
@@ -353,8 +340,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			}			
 		}
 		this.eventHistory.put(cart.getLabel(), new AtomicInteger(0));
-		if(productSupplier instanceof Expireable) {
-			var expireable = (Expireable)productSupplier;
+		if(productSupplier instanceof Expireable expireable) {
 			builderCreated    = System.currentTimeMillis();
 			expireableSource  = expireable;
 		} else {
@@ -379,7 +365,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			}
 		}
 		if(staticValues != null && staticValues.size() > 0) {
-			staticValues.values().forEach(c->accept(c));
+			staticValues.values().forEach(this::accept);
 		}
 	}
 
@@ -476,22 +462,19 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	public Supplier<? extends OUT> getProductSupplier() {
 		if(productSupplier == null ) {
 			final var bs = this;
-			productSupplier = new Supplier<OUT>() {
-				@Override
-				public OUT get() {
-					if( ! getStatus().equals(Status.WAITING_DATA)) {
-						throw new IllegalStateException("Supplier is in a wrong state: " + getStatus());
-					}
-					OUT res = null;
-					lock.lock();
-					try {
-						res = builder.get();
-						bs.postponeAlg.accept(bs, null);
-					} finally {
-						lock.unlock();
-					}
-					return res;
+			productSupplier = (Supplier<OUT>) () -> {
+				if (!getStatus().equals(Status.WAITING_DATA)) {
+					throw new IllegalStateException("Supplier is in a wrong state: " + getStatus());
 				}
+				OUT res = null;
+				lock.lock();
+				try {
+					res = builder.get();
+					bs.postponeAlg.accept(bs, null);
+				} finally {
+					lock.unlock();
+				}
+				return res;
 			};
 		}
 		return productSupplier;
@@ -674,7 +657,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 */
 	void completeWithValue(OUT value, Status status) {
 		var ack = getAcknowledge();
-		resultConsumer.andThen(completeResultConsumer).accept( new ProductBin<K, OUT>(conveyor, getKey(), value, getExpirationTime(), status , getProperties(), ack) );
+		resultConsumer.andThen(completeResultConsumer).accept(new ProductBin<>(conveyor, getKey(), value, getExpirationTime(), status, getProperties(), ack) );
 	}
 	
 	/**
@@ -709,15 +692,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param resultFuture the result future
 	 */
 	public void addFuture(final CompletableFuture<OUT> resultFuture) {
-		this.completeResultConsumer = this.completeResultConsumer.andThen(bin->{
-			resultFuture.complete(bin.product);
-		});
-		this.cancelResultConsumer = this.cancelResultConsumer.andThen( b -> {
-			resultFuture.cancel(b);
-		});
-		this.exceptionalResultConsumer = this.exceptionalResultConsumer.andThen( t -> {
-			resultFuture.completeExceptionally(t);
-		});
+		this.completeResultConsumer = this.completeResultConsumer.andThen(bin-> resultFuture.complete(bin.product));
+		this.cancelResultConsumer = this.cancelResultConsumer.andThen(resultFuture::cancel);
+		this.exceptionalResultConsumer = this.exceptionalResultConsumer.andThen(resultFuture::completeExceptionally);
 		futures.add(resultFuture);
 	}
 
@@ -828,9 +805,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.allCarts.clear();
 		this.allCarts.addAll((Collection<? extends C>) memento.state.carts);
 		this.eventHistory.clear(); 
-		memento.state.eventHistory.forEach((l,i)->{
-			this.eventHistory.put((L) l, new AtomicInteger((int) i));
-		});
+		memento.state.eventHistory.forEach((l,i)-> this.eventHistory.put((L) l, new AtomicInteger((int) i)));
 	}
 	
 	/* (non-Javadoc)

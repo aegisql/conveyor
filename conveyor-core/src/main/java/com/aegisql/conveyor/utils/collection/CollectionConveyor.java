@@ -25,9 +25,7 @@ public class CollectionConveyor <K,V> extends AssemblingConveyor<K, SmartLabel<C
 		this.setReadinessEvaluator(Conveyor.getTesterFor(this).accepted(COMPLETE));
 	}
 
-	public final SmartLabel<CollectionBuilder<V>> ITEM = SmartLabel.of((b,v)->{
-		CollectionBuilder.add((CollectionBuilder<V>)b, (V)v);
-	});
+	public final SmartLabel<CollectionBuilder<V>> ITEM = SmartLabel.of((b,v)-> CollectionBuilder.add((CollectionBuilder<V>)b, (V)v));
 
 	public final SmartLabel<CollectionBuilder<V>> COMPLETE = SmartLabel.of(()->{});
 

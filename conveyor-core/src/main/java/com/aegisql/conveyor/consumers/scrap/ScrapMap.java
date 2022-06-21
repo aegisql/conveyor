@@ -218,7 +218,7 @@ public class ScrapMap <K> implements ConcurrentMap<K,List<?>>, ScrapConsumer<K,O
 	 * @return the scrap map
 	 */
 	public static <K> ScrapMap<K> of(Conveyor<K,?,?> conv, ConcurrentMap<K,List<?>> map) {
-		return new ScrapMap<K>(map);
+		return new ScrapMap<>(map);
 	}
 
 	/**

@@ -21,7 +21,7 @@ public class ShortsToBytesConverter implements ObjectArrayToByteArrayConverter<S
 		ByteBuffer bb = ByteBuffer.wrap(res);
 		
 		for(int i = 0; i < obj.length; i++) {
-			bb.putShort(2*i, obj[i].shortValue());
+			bb.putShort(2*i, obj[i]);
 		}
 		
 		return res;

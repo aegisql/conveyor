@@ -106,49 +106,47 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	
 	@Override
 	public PartLoader<K, L> part() {
-		return new PartLoader<K,L>(cl -> {
-			ShoppingCart<K,Object,L> cart = new ShoppingCart<K,Object,L>(cl.key, cl.partValue, cl.label, cl.creationTime, cl.expirationTime, cl.priority);
-			cl.getAllProperties().forEach((k,v)->cart.addProperty(k, v));
-			return place(cart);
-		});
+		return new PartLoader<>(cl -> {
+            ShoppingCart<K, Object, L> cart = new ShoppingCart<>(cl.key, cl.partValue, cl.label, cl.creationTime, cl.expirationTime, cl.priority);
+            cl.getAllProperties().forEach(cart::addProperty);
+            return place(cart);
+        });
 	}
 	
 	@Override
 	public StaticPartLoader<L> staticPart() {
-		return new StaticPartLoader<L>(cl -> {
-			Map<String,Object> properties = new HashMap<>();
-			properties.put("CREATE", cl.create);
-			Cart<K,?,L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART,cl.priority);
-			cl.getAllProperties().forEach((k,v)->staticPart.addProperty(k, v));
-			return place(staticPart);
-		});
+		return new StaticPartLoader<>(cl -> {
+            Map<String, Object> properties = new HashMap<>();
+            properties.put("CREATE", cl.create);
+            Cart<K, ?, L> staticPart = new ShoppingCart<>(null, cl.staticPartValue, cl.label, System.currentTimeMillis(), 0, properties, STATIC_PART, cl.priority);
+            cl.getAllProperties().forEach(staticPart::addProperty);
+            return place(staticPart);
+        });
 	}
 
 	
 	@Override
 	public BuilderLoader<K, OUT> build() {
-		return new BuilderLoader<K, OUT> (cl -> {
-			BuilderSupplier<OUT> bs = cl.value;
-			if(bs == null) {
-				bs = builderSupplier;
-			}
-			CreatingCart<K, OUT, L> cart = new CreatingCart<K, OUT, L>(cl.key,bs,cl.creationTime,cl.expirationTime,cl.priority);
-			cl.getAllProperties().forEach((k,v)->cart.addProperty(k,v));
-			return createBuildWithCart(cart);
-		},cl -> {
-			BuilderSupplier<OUT> bs = cl.value;
-			if(bs == null) {
-				bs = builderSupplier;
-			}
-			return createBuildFutureWithCart(supplier -> new CreatingCart<K, OUT, L>(cl.key,supplier,cl.creationTime,cl.expirationTime,cl.getAllProperties(),cl.priority),bs);//builderSupplier);
-		});
+		return new BuilderLoader<>(cl -> {
+            BuilderSupplier<OUT> bs = cl.value;
+            if (bs == null) {
+                bs = builderSupplier;
+            }
+            CreatingCart<K, OUT, L> cart = new CreatingCart<>(cl.key, bs, cl.creationTime, cl.expirationTime, cl.priority);
+            cl.getAllProperties().forEach(cart::addProperty);
+            return createBuildWithCart(cart);
+        }, cl -> {
+            BuilderSupplier<OUT> bs = cl.value;
+            if (bs == null) {
+                bs = builderSupplier;
+            }
+            return createBuildFutureWithCart(supplier -> new CreatingCart<>(cl.key, supplier, cl.creationTime, cl.expirationTime, cl.getAllProperties(), cl.priority), bs);//builderSupplier);
+        });
 	}
 
 	@Override
 	public FutureLoader<K, OUT> future() {
-		return new FutureLoader<K, OUT> (cl -> {
-			return getFutureByCart( new FutureCart<K,OUT,L>(cl.key,new CompletableFuture<>(),cl.creationTime,cl.expirationTime,cl.getAllProperties(),cl.priority) );
-		});
+		return new FutureLoader<>(cl -> getFutureByCart(new FutureCart<>(cl.key, new CompletableFuture<>(), cl.creationTime, cl.expirationTime, cl.getAllProperties(), cl.priority)));
 	}
 
 	
@@ -270,7 +268,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 */
 	public void stop() {
 		this.running = false;
-		this.conveyors.forEach(conv->conv.stop());
+		this.conveyors.forEach(Conveyor::stop);
 	}
 
 	/**
@@ -281,7 +279,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		if(this.conveyorFuture == null) {
 			synchronized (this.conveyorFutureLock) {
 				if(this.conveyorFuture == null) {
-					this.conveyorFuture = new CompletableFuture<Boolean>();
+					this.conveyorFuture = new CompletableFuture<>();
 					this.conveyorFuture.complete(true);
 					for(Conveyor<K, L, OUT> c:conveyors) {
 						CompletableFuture<Boolean> f = c.completeAndStop();
@@ -737,12 +735,12 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return new ResultConsumerLoader<>(rcl->{
 			Cart<K,?,L> cart = null;
 			if(rcl.key != null) {
-				cart = new ResultConsumerCart<K, OUT, L>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime,rcl.priority);
+				cart = new ResultConsumerCart<>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime, rcl.priority);
 			} else {
 				cart = new MultiKeyCart<>(rcl.filter, rcl.consumer, null, rcl.creationTime, rcl.expirationTime,  LoadType.RESULT_CONSUMER,rcl.priority);
 			}
 			
-			CompletableFuture<Boolean> f = new CompletableFuture<Boolean>();
+			CompletableFuture<Boolean> f = new CompletableFuture<>();
 			f.complete(true);
 			
 			for(Conveyor<K, L, OUT> conv: conveyors) {
@@ -769,13 +767,13 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	}
 	
 	public ScrapConsumerLoader<K> scrapConsumer() {
-		return new ScrapConsumerLoader<K>(sc->{
-			this.scrapConsumer = sc;
-			for(Conveyor<K, L, OUT> conv: conveyors) {
-				conv.scrapConsumer().first(this.scrapConsumer).set();
-			}
+		return new ScrapConsumerLoader<>(sc -> {
+            this.scrapConsumer = sc;
+            for (Conveyor<K, L, OUT> conv : conveyors) {
+                conv.scrapConsumer().first(this.scrapConsumer).set();
+            }
 
-		}, scrapConsumer );
+        }, scrapConsumer);
 	}
 
 	@Override

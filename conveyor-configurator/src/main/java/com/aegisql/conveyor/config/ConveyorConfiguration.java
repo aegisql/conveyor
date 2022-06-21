@@ -68,13 +68,9 @@ public class ConveyorConfiguration {
 		}
 		Conveyor<String, String, Conveyor> buildingConveyor  = getBuildingConveyor();
 		Map<String,String> env = System.getenv();
-		env.forEach((key,value)->{
-			processPair(buildingConveyor, key, value);
-		});
+		env.forEach((key,value)-> processPair(buildingConveyor, key, value));
 		Properties p = System.getProperties();
-		p.forEach((key,value)->{
-			processPair(buildingConveyor, ""+key, ""+value);
-		});
+		p.forEach((key,value)-> processPair(buildingConveyor, ""+key, ""+value));
 
 		buildingConveyor.part().foreach().label("complete_configuration").value(true).place();
 		buildingConveyor.completeAndStop().get();
@@ -135,9 +131,7 @@ public class ConveyorConfiguration {
 			conveyorConfiguration.setIdleHeartBeat(Duration.ofMillis(100));
 			conveyorConfiguration.setDefaultBuilderTimeout(Duration.ofMillis(DEFAULT_TIMEOUT_MSEC));
 
-			LabeledValueConsumer<String, ?, ConveyorBuilder> lvc = (l, v, b) -> {
-				LOG.info("Unprocessed value {}={}", l, v);
-			};
+			LabeledValueConsumer<String, ?, ConveyorBuilder> lvc = (l, v, b) -> LOG.info("Unprocessed value {}={}", l, v);
 
 			conveyorConfiguration.setDefaultCartConsumer(lvc
 					.<String>when("supplier", ConveyorBuilder::supplier)
@@ -268,9 +262,7 @@ public class ConveyorConfiguration {
 			}
 		});
 		
-		PersistenceProperty.eval(key, obj, pp->{
-			buildingConveyor.part().id("__PERSISTENCE__").label("persistenceProperty").value(pp).place();
-		});
+		PersistenceProperty.eval(key, obj, pp-> buildingConveyor.part().id("__PERSISTENCE__").label("persistenceProperty").value(pp).place());
 	}
 
 	/* (non-Javadoc)

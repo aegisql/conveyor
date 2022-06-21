@@ -11,7 +11,6 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.BuildingSite.Memento;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 
@@ -63,15 +62,12 @@ public interface Persistence <K> extends Closeable {
 	 * @return the part
 	 */
 	default <L> Cart<K, ?, L> getPart(long id) {
-		Collection<Cart<K, ?, L>> res = getParts(Arrays.asList(Long.valueOf(id)));
-		switch(res.size()) {
-		case 1:
-			return res.iterator().next();
-		case 0:
-			return null;
-		default:
-			throw new PersistenceException("Unexpected number of results for a single ID="+id+" "+res);
-		}
+		Collection<Cart<K, ?, L>> res = getParts(Arrays.asList(id));
+		return switch (res.size()) {
+			case 1 -> res.iterator().next();
+			case 0 -> null;
+			default -> throw new PersistenceException("Unexpected number of results for a single ID=" + id + " " + res);
+		};
 	}
 
 	/**

@@ -50,8 +50,7 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 			pathAliases.forEach(javaPath::setPathAlias);
 			return javaPath;
 		});
-		if(value != null && value instanceof MultiValue) {
-			MultiValue multiValue = (MultiValue) value;
+		if(value != null && value instanceof MultiValue multiValue) {
 			consumerFactory.evalPath(label,builder,multiValue.asArray());
 		} else {
 			consumerFactory.evalPath(label, builder, value);
@@ -76,16 +75,12 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 
 	public void setPathAlias(String path, String alias) {
 		pathAliases.put(path,alias);
-		consumerFactoryMap.forEach((clas,javaPath)->{
-			javaPath.setPathAlias(path,alias);
-		});
+		consumerFactoryMap.forEach((clas,javaPath)-> javaPath.setPathAlias(path,alias));
 	}
 
 	public void setEnablePathCaching(boolean enablePathCaching) {
 		this.enablePathCaching = enablePathCaching;
-		consumerFactoryMap.forEach((clas,javaPath)->{
-			javaPath.setEnablePathCaching(enablePathCaching);
-		});
+		consumerFactoryMap.forEach((clas,javaPath)-> javaPath.setEnablePathCaching(enablePathCaching));
 	}
 
 }

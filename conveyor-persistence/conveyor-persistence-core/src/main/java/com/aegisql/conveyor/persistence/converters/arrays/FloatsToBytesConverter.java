@@ -21,7 +21,7 @@ public class FloatsToBytesConverter implements ObjectArrayToByteArrayConverter<F
 		ByteBuffer bb = ByteBuffer.wrap(res);
 		
 		for(int i = 0; i < obj.length; i++) {
-			bb.putFloat(4*i, obj[i].floatValue());
+			bb.putFloat(4*i, obj[i]);
 		}
 		
 		return res;

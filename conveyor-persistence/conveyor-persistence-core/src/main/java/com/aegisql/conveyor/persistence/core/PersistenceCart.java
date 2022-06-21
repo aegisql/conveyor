@@ -54,19 +54,12 @@ public class PersistenceCart<K> extends AbstractCart<K,Cart<K,?,?>,SmartLabel<Ac
 	 */
 	public static <K,L> PersistenceCart<K> of(Cart<K, ?, ?> cart, SmartLabel<AcknowledgeBuilder<K>> label) {
 
-		LoadType loadType;
-		
-		switch(cart.getLoadType()) {
-			case STATIC_PART:
-			case MULTI_KEY_PART:
-			case RESULT_CONSUMER:
-				loadType = LoadType.PART;
-				break;
-			default:
-				loadType = cart.getLoadType();
-		}
-		
-		return new PersistenceCart<K>(cart.getKey(), cart, label, cart.getCreationTime(), cart.getExpirationTime(), cart.getAllProperties(), loadType);
+		LoadType loadType = switch (cart.getLoadType()) {
+			case STATIC_PART, MULTI_KEY_PART, RESULT_CONSUMER -> LoadType.PART;
+			default -> cart.getLoadType();
+		};
+
+		return new PersistenceCart<>(cart.getKey(), cart, label, cart.getCreationTime(), cart.getExpirationTime(), cart.getAllProperties(), loadType);
 	}
 	
 }

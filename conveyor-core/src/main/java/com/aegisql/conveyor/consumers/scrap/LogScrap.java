@@ -41,14 +41,10 @@ public class LogScrap <K> implements ScrapConsumer<K,Object> {
 	}
 	
 	/** The Constant stdout. */
-	private final static ScrapConsumer<?,?> stdout = bin->{
-		System.out.println(""+bin);		
-	};
+	private final static ScrapConsumer<?,?> stdout = bin-> System.out.println(""+bin);
 	
 	/** The Constant stderr. */
-	private final static ScrapConsumer<?,?> stderr = bin->{
-		System.err.println(""+bin);		
-	};
+	private final static ScrapConsumer<?,?> stderr = bin-> System.err.println(""+bin);
 	
 	/** The consumer. */
 	private final ScrapConsumer<?,?> consumer;
@@ -67,31 +63,15 @@ public class LogScrap <K> implements ScrapConsumer<K,Object> {
 	 * @param level the level
 	 */
 	public LogScrap(Logger log, Level level) {
-		ScrapConsumer<?,?> consumer = stdout;
-		switch (level) {
-		case TRACE:
-			consumer = bin->log.trace("{}",bin);
-			break;
-		case DEBUG:
-			consumer = bin->log.debug("{}",bin);
-			break;
-		case INFO:
-			consumer = bin->log.info("{}",bin);
-			break;
-		case WARN:
-			consumer = bin->log.warn("{}",bin);
-			break;
-		case ERROR:
-			consumer = bin->log.error("{}",bin);
-			break;
-		case STDOUT:
-			consumer = stdout;
-			break;
-		case STDERR:
-			consumer = stderr;
-			break;
-		}
-		this.consumer = consumer;
+		this.consumer = switch (level) {
+			case TRACE -> bin -> log.trace("{}", bin);
+			case DEBUG -> bin -> log.debug("{}", bin);
+			case INFO -> bin -> log.info("{}", bin);
+			case WARN -> bin -> log.warn("{}", bin);
+			case ERROR -> bin -> log.error("{}", bin);
+			case STDOUT -> stdout;
+			case STDERR -> stderr;
+		};
 	}
 
 	/* (non-Javadoc)
