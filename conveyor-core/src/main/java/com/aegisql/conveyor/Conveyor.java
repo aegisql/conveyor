@@ -504,7 +504,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 
 	static Set<String> getKnownConveyorNames() {
 		loadServices();
-		var set = new HashSet<String>(MBEAN.getKnownConveyorNames());
+		var set = new HashSet<>(MBEAN.getKnownConveyorNames());
 		return Collections.unmodifiableSet(set);
 	}
 

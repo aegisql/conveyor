@@ -2,7 +2,6 @@ package com.aegisql.conveyor.persistence.core;
 
 import java.io.Closeable;
 import java.lang.management.ManagementFactory;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;

@@ -1,7 +1,6 @@
 package com.aegisql.conveyor.persistence.utils;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Objects;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
