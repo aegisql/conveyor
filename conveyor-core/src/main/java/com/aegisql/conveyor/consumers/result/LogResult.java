@@ -5,6 +5,8 @@ import com.aegisql.conveyor.ProductBin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class LogResult.
@@ -14,7 +16,8 @@ import org.slf4j.LoggerFactory;
  */
 public class LogResult <K,E> implements ResultConsumer<K,E> {
 
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 
 	/**
 	 * The Enum Level.

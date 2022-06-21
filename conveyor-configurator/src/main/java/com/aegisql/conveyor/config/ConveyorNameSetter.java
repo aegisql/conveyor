@@ -6,6 +6,8 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class ConveyorNameSetter.
@@ -29,7 +31,8 @@ public class ConveyorNameSetter implements ResultConsumer<String, Conveyor> {
 	}
 	
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 
 	/* (non-Javadoc)
 	 * @see java.util.function.Consumer#accept(java.lang.Object)

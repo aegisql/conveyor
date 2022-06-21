@@ -2,6 +2,7 @@ package com.aegisql.conveyor.cart;
 
 import com.aegisql.conveyor.serial.SerializablePredicate;
 
+import java.io.Serial;
 import java.util.Map;
 
 // TODO: Auto-generated Javadoc
@@ -15,7 +16,8 @@ import java.util.Map;
 public class MultiKeyCart<K, V, L> extends AbstractCart<K, Load<K,V>, L> {
 	
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 4055225191822888396L;
+	@Serial
+    private static final long serialVersionUID = 4055225191822888396L;
 
 	/**
 	 * Instantiates a new multi key cart.

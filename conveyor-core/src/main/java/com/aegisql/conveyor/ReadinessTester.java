@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -20,7 +21,8 @@ import java.util.function.Supplier;
 public class ReadinessTester<K,L,OUT> implements BiPredicate<State<K,L>, Supplier<? extends OUT>>, Serializable {
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 	/** The p. */
 	private final BiPredicate<State<K,L>, Supplier<? extends OUT>> p;
 

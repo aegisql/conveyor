@@ -100,15 +100,15 @@ enum MBeanRegister {
     }
 
     public Set<String> getKnownConveyorNames() {
-        return Collections.unmodifiableSet(knownConveyors
+        return knownConveyors
                 .keySet()
                 .stream()
                 .filter(Objects::nonNull)
-                .map(longName->{
+                .map(longName -> {
                     var parts = longName.split("=");
                     return parts[1];
                 })
-                .collect(Collectors.toUnmodifiableSet()));
+                .collect(Collectors.toUnmodifiableSet());
     }
 
 }

@@ -65,8 +65,8 @@ public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 				+" but was: "+pt.getPropertyNames());
 			}
 		}
-		this.testers.addAll(testers.stream().map(t->new ConveyorAcceptor<>(t.conveyor,t.testers)).collect(Collectors.toList()));
-		this.conveyors.addAll(this.testers.stream().map(ConveyorAcceptor::getConveyor).collect(Collectors.toList()));
+		this.testers.addAll(testers.stream().map(t -> new ConveyorAcceptor<>(t.conveyor, t.testers)).toList());
+		this.conveyors.addAll(this.testers.stream().map(ConveyorAcceptor::getConveyor).toList());
 	}
 	
 	@Override

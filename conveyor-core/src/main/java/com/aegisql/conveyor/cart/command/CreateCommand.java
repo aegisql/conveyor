@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.cart.command;
 
+import java.io.Serial;
 import java.util.function.Supplier;
 
 import com.aegisql.conveyor.BuilderSupplier;
@@ -16,7 +17,8 @@ import com.aegisql.conveyor.cart.Cart;
 public class CreateCommand<K, OUT> extends GeneralCommand<K, BuilderSupplier<OUT>> implements Supplier<BuilderSupplier<OUT>> {
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 4603066172969708346L;
+	@Serial
+    private static final long serialVersionUID = 4603066172969708346L;
 
 	public CreateCommand(K k, BuilderSupplier<OUT> builderSupplier, long creation, long expiration) {
 		super(k, builderSupplier, CommandLabel.CREATE_BUILD, creation, expiration);

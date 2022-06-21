@@ -30,7 +30,7 @@ public class ScalarConvertingConveyor <K,IN,OUT> extends AssemblingConveyor<K, S
 
 	@Override
 	public PartLoader<K, String> part() {
-		return (PartLoader<K, String>) super.part().label("SCALAR");
+		return super.part().label("SCALAR");
 	}
 
 

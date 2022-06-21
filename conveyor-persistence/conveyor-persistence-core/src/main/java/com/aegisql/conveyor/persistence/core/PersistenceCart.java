@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.persistence.core;
 
+import java.io.Serial;
 import java.util.Map;
 
 import com.aegisql.conveyor.SmartLabel;
@@ -33,7 +34,8 @@ public class PersistenceCart<K> extends AbstractCart<K,Cart<K,?,?>,SmartLabel<Ac
 	}
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.cart.Cart#copy()

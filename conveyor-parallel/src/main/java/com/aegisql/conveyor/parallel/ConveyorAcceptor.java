@@ -89,7 +89,7 @@ public class ConveyorAcceptor<K,L,OUT> implements Predicate<Map<String,Object>> 
 	 * @return the conveyor acceptor
 	 */
 	public ConveyorAcceptor<K,L,OUT> addTestingPredicate(String key, Predicate<Object> p) {
-		testers.put(key, (Predicate<Object>) p);
+		testers.put(key, p);
 		return this;
 	}
 

@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.cart;
 
+import java.io.Serial;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -18,7 +19,8 @@ import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 public class FutureCart<K, B, L> extends AbstractCart<K, CompletableFuture<B>, L> implements Supplier<CompletableFuture<B>> {
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 4985202262573406558L;
+	@Serial
+    private static final long serialVersionUID = 4985202262573406558L;
 
 	/**
 	 * Instantiates a new future cart.

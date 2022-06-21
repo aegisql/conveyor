@@ -8,6 +8,7 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -44,7 +45,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	public static class Memento<K,L,OUT> implements Serializable {
 		
 		/** The Constant serialVersionUID. */
-		private static final long serialVersionUID = 1L;
+		@Serial
+        private static final long serialVersionUID = 1L;
 		
 		/** The timestamp. */
 		final long timestamp;

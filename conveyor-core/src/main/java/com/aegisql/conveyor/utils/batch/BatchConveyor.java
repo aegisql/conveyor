@@ -31,13 +31,13 @@ public class BatchConveyor <V> extends AssemblingConveyor<String, SmartLabel<Bat
 	
 	public static final BatchComplete COMPLETE = new BatchComplete();
 	
-	public final SmartLabel<BatchCollectingBuilder<V>> BATCH = SmartLabel.<BatchCollectingBuilder<V>,V>of((b,v)-> BatchCollectingBuilder.add(b, (V)v)).intercept(Iterable.class, (b, v)->{
+	public final SmartLabel<BatchCollectingBuilder<V>> BATCH = SmartLabel.<BatchCollectingBuilder<V>,V>of((b,v)-> BatchCollectingBuilder.add(b, v)).intercept(Iterable.class, (b, v)->{
 		v.forEach(val-> BatchCollectingBuilder.add(b, (V)val));
 	}).intercept(BatchComplete.class, BatchCollectingBuilder::complete);
 
 	@Override
 	public PartLoader<String, SmartLabel<BatchCollectingBuilder<V>>> part() {
-		return (PartLoader<String, SmartLabel<BatchCollectingBuilder<V>>>) super.part().label(BATCH).id("_BATCH_");
+		return super.part().label(BATCH).id("_BATCH_");
 	}
 
 	public CompletableFuture<Boolean> completeBatch() {

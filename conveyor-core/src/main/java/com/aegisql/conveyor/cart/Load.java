@@ -2,6 +2,7 @@ package com.aegisql.conveyor.cart;
 
 import com.aegisql.conveyor.serial.SerializablePredicate;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 // TODO: Auto-generated Javadoc
@@ -14,7 +15,8 @@ import java.io.Serializable;
 public class Load <K,V> implements Serializable {
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 	
 	/** The value. */
 	private final V value;

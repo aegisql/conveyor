@@ -2,6 +2,7 @@ package com.aegisql.conveyor.cart.command;
 
 import static com.aegisql.conveyor.cart.LoadType.COMMAND;
 
+import java.io.Serial;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -19,6 +20,7 @@ import com.aegisql.conveyor.cart.Cart;
 public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 
 	/** The Constant serialVersionUID. */
+	@Serial
 	private static final long serialVersionUID = -5709296056171099659L;
 
 	protected final Predicate<K> filter;
@@ -34,13 +36,13 @@ public class GeneralCommand<K, V> extends AbstractCart<K, V, CommandLabel> {
 	public GeneralCommand(K k, V v, CommandLabel label, long expiration) {
 		super(k, v, label, System.currentTimeMillis(),expiration,null,COMMAND);
 		Objects.requireNonNull(k);
-		filter = key -> k.equals(k);
+		filter = k::equals;
 	}
 
 	public GeneralCommand(K k, V v, CommandLabel label, long creation, long expiration) {
 		super(k, v, label, creation, expiration,null,COMMAND);
 		Objects.requireNonNull(k);
-		filter = key -> k.equals(k);
+		filter = k::equals;
 	}
 
 	public GeneralCommand(Predicate<K> f, V v, CommandLabel label, long creation, long expiration) {

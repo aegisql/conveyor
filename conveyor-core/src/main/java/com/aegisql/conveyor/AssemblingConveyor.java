@@ -624,11 +624,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					return;
 				}
 				List<GeneralCommand> commands = collector
-					.keySet()
-					.stream()
-					.filter(cmdCart.getFilter())
-					.map(k->new GeneralCommand(k,value, label, expTime))
-					.collect(Collectors.toList());
+						.keySet()
+						.stream()
+						.filter(cmdCart.getFilter())
+						.map(k -> new GeneralCommand(k, value, label, expTime)).toList();
 				
 				commands.forEach(nextCommandCart->{
 					try {
@@ -1007,8 +1006,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						};
 					}
 					LOG.trace("READY TO APPLY MULTI");
-					collector.entrySet().stream().map(Map.Entry::getKey).filter(filter)
-							.collect(Collectors.toList())
+					collector.keySet().stream().filter(filter).toList()
 					.forEach(k -> {
 								LOG.trace("MULTI FILTER MATCH {}",k);
 								processSite(cartBuilder.apply(k), accept);

@@ -1,8 +1,11 @@
 package com.aegisql.conveyor.persistence.core;
 
+import java.io.Serial;
+
 public class PersistenceException extends RuntimeException {
 
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 
 	public PersistenceException() {
 	}

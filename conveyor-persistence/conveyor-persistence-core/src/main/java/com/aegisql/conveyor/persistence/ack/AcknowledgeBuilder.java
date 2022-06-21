@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.persistence.ack;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -31,7 +32,8 @@ import com.aegisql.conveyor.persistence.core.PersistenceCart;
 public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expireable {
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 
 	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(AcknowledgeBuilder.class);
@@ -144,7 +146,7 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 			LOG.debug("NEW ID {}",id);
 		} else {
 			LOG.debug("RESTORED ID {}",id);
-			id = (Long) cart.getProperty("#CART_ID", Long.class);
+			id = cart.getProperty("#CART_ID", Long.class);
 		}
 		CompletableFuture<Boolean> f = CompletableFuture.completedFuture(true);
 		if( ! builder.initializationMode ) {
@@ -269,10 +271,7 @@ public class AcknowledgeBuilder<K> implements Supplier<Boolean>, Testing, Expire
 	 */
 	public static <K, L> void replay(AcknowledgeBuilder<K> builder, K key) {
 			builder.key = key;
-			Set<K> completed = builder.persistence.getCompletedKeys();
-			if(completed.contains(key)) {
-				return;
-			} else {
+			if( ! builder.persistence.getCompletedKeys().contains(key)) {
 				if(builder.timestamp.equals(0L)) {
 					builder.timestamp = System.nanoTime();
 				}

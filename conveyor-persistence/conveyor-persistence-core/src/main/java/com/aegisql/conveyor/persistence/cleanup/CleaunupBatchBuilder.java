@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.persistence.cleanup;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Supplier;
@@ -21,7 +22,8 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 public class CleaunupBatchBuilder <K> implements Supplier<Runnable>, Testing, TimeoutAction, Expireable {
 	
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 
 	/** The log. */
 	private static final Logger LOG = LoggerFactory.getLogger(CleaunupBatchBuilder.class);

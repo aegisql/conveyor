@@ -64,6 +64,7 @@ private final SecretKey key;
 			cipher.init(Cipher.ENCRYPT_MODE, key);
 			byte[] encrypted = cipher.doFinal( byteConverter.toPersistence(obj) );
 			os.write(encrypted);
+			os.close();
 			return blob;
 		} catch (Exception e) {
 			throw new PersistenceException("IO Runntime Exception",e);

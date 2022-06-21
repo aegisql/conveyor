@@ -9,6 +9,7 @@ import com.aegisql.java_path.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -25,7 +26,8 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 	private static final Logger LOG = LoggerFactory.getLogger(ReflectingValueConsumer.class);
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 
 	private final ClassRegistry classRegistry = new ClassRegistry();
 	private final Map<String,String> pathAliases = new HashMap<>();

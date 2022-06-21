@@ -52,6 +52,7 @@ public class BlobConverter <T extends Serializable> implements ObjectConverter<T
 		}
 		try {
 			os.write( byteConverter.toPersistence(obj));
+			os.close();
 			return blob;
 		} catch (IOException e) {
 			throw new PersistenceException("IO Runntime Exception",e);

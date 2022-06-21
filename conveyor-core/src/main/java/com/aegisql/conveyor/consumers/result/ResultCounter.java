@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.consumers.result;
 
+import java.io.Serial;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.aegisql.conveyor.Conveyor;
@@ -14,7 +15,8 @@ import com.aegisql.conveyor.ProductBin;
  */
 public class ResultCounter <K,V> implements ResultConsumer<K,V> {
 
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 	/** The counter. */
 	private final AtomicLong counter = new AtomicLong(0);
 	

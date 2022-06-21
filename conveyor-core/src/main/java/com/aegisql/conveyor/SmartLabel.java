@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -55,6 +56,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 	 */
 	static <B,T> SmartLabel<B> of(final String labelName, SerializableBiConsumer<B, T> method) {
 		return new SmartLabel<>() {
+            @Serial
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -156,6 +158,7 @@ public interface SmartLabel<B> extends Serializable, Supplier<BiConsumer<B, Obje
 		final SmartLabel<B> sl = this;
 		return new SmartLabel<>() {
 
+            @Serial
             private static final long serialVersionUID = 5086346018176455134L;
 
             @Override

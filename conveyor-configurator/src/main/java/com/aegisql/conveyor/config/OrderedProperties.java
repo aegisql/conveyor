@@ -1,9 +1,6 @@
 package com.aegisql.conveyor.config;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
+import java.io.*;
 import java.util.LinkedList;
 
 // TODO: Auto-generated Javadoc
@@ -18,7 +15,8 @@ import java.util.LinkedList;
 class OrderedProperties extends LinkedList<Pair<String,String>> {
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 
     /**
      * Creates an empty property list with no default values.

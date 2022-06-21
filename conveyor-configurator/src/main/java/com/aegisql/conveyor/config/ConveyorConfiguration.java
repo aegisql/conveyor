@@ -167,7 +167,7 @@ public class ConveyorConfiguration {
 					.<String>when("persistence", ConveyorBuilder::persitence)
 					.<String>when("readyWhenAccepted", ConveyorBuilder::readyWhen)
 					.<PersistenceProperty>when("persistenceProperty", ConveyorBuilder::persistenceProperty)
-					.<Boolean>when("complete_configuration", ConveyorBuilder::allFilesReadSuccessfully));
+					.when("complete_configuration", ConveyorBuilder::allFilesReadSuccessfully));
 			conveyorConfiguration.part().id("__PERSISTENCE__").label("builderSupplier").value("null").place();
 			conveyorConfiguration.staticPart().label("dependency").value("__PERSISTENCE__").place();
 		}
@@ -188,7 +188,7 @@ public class ConveyorConfiguration {
 		Yaml yaml = new Yaml();
 		FileReader reader = new FileReader(file);
 		Conveyor<String, String, Conveyor> buildingConveyor = getBuildingConveyor();
-		Iterable iter = (Iterable) yaml.loadAll(reader);
+		Iterable iter = yaml.loadAll(reader);
 		for (Object o : iter) {
 			LOG.info("YAML Iter {} {}", o.getClass(), o);
 			Map<String, Object> map = (Map<String, Object>) o;

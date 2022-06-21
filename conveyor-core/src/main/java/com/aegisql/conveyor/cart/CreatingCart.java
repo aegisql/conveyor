@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.cart;
 
+import java.io.Serial;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -19,7 +20,8 @@ import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 public class CreatingCart<K, B, L> extends AbstractCart<K, BuilderSupplier<B>, L> implements Supplier<BuilderSupplier<B>> {
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 4985202264573416558L;
+	@Serial
+    private static final long serialVersionUID = 4985202264573416558L;
 
 	/**
 	 * Instantiates a new creating cart.

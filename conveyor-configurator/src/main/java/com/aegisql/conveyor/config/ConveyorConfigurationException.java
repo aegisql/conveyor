@@ -1,13 +1,17 @@
 package com.aegisql.conveyor.config;
 
 // TODO: Auto-generated Javadoc
+
+import java.io.Serial;
+
 /**
  * The Class ConveyorConfigurationException.
  */
 public class ConveyorConfigurationException extends RuntimeException {
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 
 	/**
 	 * Instantiates a new conveyor configuration exception.

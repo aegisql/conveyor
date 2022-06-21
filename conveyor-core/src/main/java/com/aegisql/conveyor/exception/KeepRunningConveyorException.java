@@ -2,13 +2,16 @@ package com.aegisql.conveyor.exception;
 
 // TODO: Auto-generated Javadoc
 
+import java.io.Serial;
+
 /**
  * The Class KeepRunningConveyorException.
  */
 public class KeepRunningConveyorException extends ConveyorRuntimeException {
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 
 	/**
 	 * Instantiates a new keep running conveyor exception.

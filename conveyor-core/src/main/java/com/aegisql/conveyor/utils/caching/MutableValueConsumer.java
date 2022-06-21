@@ -5,6 +5,8 @@ import com.aegisql.conveyor.LabeledValueConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class MutableValueConsumer.
@@ -13,7 +15,8 @@ import org.slf4j.LoggerFactory;
  */
 public class MutableValueConsumer<T> implements LabeledValueConsumer<Object, Object, MutableReference<T>>{
 
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 	/** The Constant LOG. */
 	protected final static Logger LOG = LoggerFactory.getLogger(MutableValueConsumer.class);
 	

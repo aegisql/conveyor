@@ -19,6 +19,7 @@ import com.aegisql.conveyor.persistence.jdbc.builders.RestoreOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -47,6 +48,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 	/** The Constant serialVersionUID. */
 	// setters
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	/** The constructor. */
@@ -323,11 +325,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								case MOVE_TO_FILE:
 									dp = dp.archiver(bLogConf.build());
 									break;
-								case CUSTOM:
-									break;
-								case MOVE_TO_PERSISTENCE:
-									break;
-								default:
+									default:
 									break;
 								}
 								break;

@@ -7,6 +7,7 @@ import com.aegisql.conveyor.serial.SerializablePredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -31,7 +32,8 @@ public class ForwardResult<K2, L2> {
 	public static class ForwardingConsumer<K2, L> implements ResultConsumer<Object, Object> {
 
 		/** The Constant serialVersionUID. */
-		private static final long serialVersionUID = 1L;
+		@Serial
+        private static final long serialVersionUID = 1L;
 
 		/** The from name. */
 		private final String fromName;

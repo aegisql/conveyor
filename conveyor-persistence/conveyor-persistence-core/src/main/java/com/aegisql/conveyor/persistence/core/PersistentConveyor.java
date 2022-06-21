@@ -107,9 +107,9 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		}
 		// not empty only if previous conveyor could not complete.
 		// Pers must be initialized with the previous state
-		Collection<Cart<K, ?, L>> staticParts = persistence.<L> getAllStaticParts();
+		Collection<Cart<K, ?, L>> staticParts = persistence.getAllStaticParts();
 		LOG.debug("Static parts: {}", staticParts);
-		Collection<Cart<K, ?, L>> allParts = persistence.<L> getAllParts();
+		Collection<Cart<K, ?, L>> allParts = persistence.getAllParts();
 		LOG.debug("All parts: {}", allParts);
 		staticParts.forEach(this::place);
 		allParts.forEach(cart -> {
@@ -133,9 +133,6 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		} catch (IOException e) {
 			throw new PersistenceException(e.getMessage(), e);
 		}
-		/** The initialization mode. */
-		AtomicBoolean initializationMode = new AtomicBoolean(true);
-		initializationMode.set(false);
 		this.ackConveyor.setInitializationMode(false);
 		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(false).place().join();
 	}

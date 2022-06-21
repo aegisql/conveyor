@@ -3,6 +3,7 @@
  */
 package com.aegisql.conveyor;
 
+import java.io.Serial;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -17,7 +18,8 @@ import com.aegisql.conveyor.BuilderSupplier.BuilderFutureSupplier;
 public class BuilderAndFutureSupplier<T> implements BuilderFutureSupplier<T> {
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	@Serial
+    private static final long serialVersionUID = 1L;
 
 	/** The future. */
 	private final CompletableFuture<T> future;

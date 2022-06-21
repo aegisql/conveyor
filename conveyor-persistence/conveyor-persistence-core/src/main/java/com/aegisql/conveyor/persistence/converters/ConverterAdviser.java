@@ -232,7 +232,7 @@ public class ConverterAdviser <L> {
 				this.addConverter(clas, ec);
 			}
 		}
-		return (ObjectConverter<Object, byte[]>) getConverter(label,clas.getCanonicalName());
+		return getConverter(label,clas.getCanonicalName());
 	}
 
 	/**

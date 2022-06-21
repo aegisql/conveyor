@@ -44,7 +44,7 @@ public class SimpleScheduler<K> extends AssemblingConveyor<K, Schedule, Schedula
 		return new PartLoader<>(cl -> {
             ScheduleBuilder<K> builder = new ScheduleBuilder<>(cl.ttlMsec);
             BuilderSupplier<SchedulableClosure> bs = BuilderSupplier.of(builder);
-            CompletableFuture<Boolean> f1 = build().id((K) cl.key).expirationTime(cl.expirationTime).supplier(bs).create();
+            CompletableFuture<Boolean> f1 = build().id(cl.key).expirationTime(cl.expirationTime).supplier(bs).create();
             CompletableFuture<Boolean> f2 = place(new ShoppingCart<>(cl.key, cl.partValue, cl.label, cl.expirationTime));
             return f1.thenCombine(f2, (v1, v2) ->
                     v1 && v2

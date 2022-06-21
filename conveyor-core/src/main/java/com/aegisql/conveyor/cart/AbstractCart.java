@@ -5,6 +5,7 @@ package com.aegisql.conveyor.cart;
 
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
+import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -25,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 
 	/** The Constant serialVersionUID. */
+	@Serial
 	private static final long serialVersionUID = 5414733837801886611L;
 
 	/** The k. */

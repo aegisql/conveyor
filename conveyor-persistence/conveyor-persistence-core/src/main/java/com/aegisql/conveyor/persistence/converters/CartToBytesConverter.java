@@ -213,11 +213,7 @@ public class CartToBytesConverter<K, V, L> implements ObjectConverter<Cart<K, V,
 			}
 		case BUILDER:
 			return new CreatingCart(key, (BuilderSupplier) val, creationTime, expirationTime,priority);
-		case FUTURE:
-			throw new PersistenceException("Unsupported cart converter " + loadType);
-		case COMMAND:
-			throw new PersistenceException("Unsupported cart converter " + loadType);
-		default:
+			default:
 			throw new PersistenceException("Unsupported cart converter " + loadType);
 		}
 	}
