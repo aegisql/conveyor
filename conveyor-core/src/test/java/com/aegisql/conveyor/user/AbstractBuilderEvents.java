@@ -16,9 +16,8 @@ import com.aegisql.conveyor.serial.SerializableBiConsumer;
  * @version 1.0.0
  */
 public enum AbstractBuilderEvents implements SmartLabel<AbstractSmartUserBuilder> {
-	
-	/** The create. */
-	CREATE((a,b)->{}), /** The set first. */
+
+	/** The set first. */
  //Just create and do not do anything
 	SET_FIRST(AbstractSmartUserBuilder::setFirst),
 	

@@ -173,7 +173,7 @@ public class PersistTestImpl implements Persistence<Integer> {
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() {
 		
 	}
 

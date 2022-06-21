@@ -153,7 +153,7 @@ public interface ReadinessPredicate <K,L,OUT> extends BiPredicate<State<K,L>, Su
 	 * @return the readiness predicate
 	 */
 	static <K, L, OUT> ReadinessPredicate <K,L,OUT> of(Conveyor<K, L, OUT> conveyor,ReadinessPredicate <K,L,OUT> other) {
-		return (a,b)->other.test(a,b);
+		return other;
 	}
 
 }

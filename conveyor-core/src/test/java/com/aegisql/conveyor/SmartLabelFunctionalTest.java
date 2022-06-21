@@ -19,37 +19,33 @@ public class SmartLabelFunctionalTest {
 	/**
 	 * Sets the up before class.
 	 *
-	 * @throws Exception the exception
 	 */
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 	}
 
 	/**
 	 * Tear down after class.
 	 *
-	 * @throws Exception the exception
 	 */
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	/**
 	 * Sets the up.
 	 *
-	 * @throws Exception the exception
 	 */
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	/**
 	 * Tear down.
 	 *
-	 * @throws Exception the exception
 	 */
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	/**
@@ -390,7 +386,7 @@ public class SmartLabelFunctionalTest {
 	}
 
 	@Test
-	public void peekFailTest() throws InterruptedException, ExecutionException {
+	public void peekFailTest() {
 		Failing b = new Failing();
 		SmartLabel<Failing> l1 = SmartLabel.peek();
 		assertNotNull(l1);
@@ -411,7 +407,7 @@ public class SmartLabelFunctionalTest {
 	}
 
 	@Test
-	public void peekNamedFailTest() throws InterruptedException, ExecutionException {
+	public void peekNamedFailTest() {
 		Failing b = new Failing();
 		SmartLabel<Failing> l1 = SmartLabel.peek("peek");
 		assertNotNull(l1);

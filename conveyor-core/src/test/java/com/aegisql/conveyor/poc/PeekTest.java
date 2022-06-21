@@ -26,23 +26,23 @@ import com.aegisql.conveyor.Status;
 public class PeekTest {
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	@Test
-	public void testPeek() throws InterruptedException, ExecutionException {
+	public void testPeek() {
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testPeek");
 		c.setBuilderSupplier(TestProdBuilder::new);
@@ -76,7 +76,7 @@ public class PeekTest {
 	}
 
 	@Test
-	public void testPeekWithSuspend() throws InterruptedException, ExecutionException {
+	public void testPeekWithSuspend() {
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testPeek");
 		c.setBuilderSupplier(TestProdBuilder::new);
@@ -114,7 +114,7 @@ public class PeekTest {
 	}
 
 	@Test
-	public void testExtConsumerPeek() throws InterruptedException, ExecutionException {
+	public void testExtConsumerPeek() {
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testPeek");
 		c.setBuilderSupplier(TestProdBuilder::new);
@@ -152,7 +152,7 @@ public class PeekTest {
 
 	
 	@Test
-	public void testExtListConsumerPeek() throws InterruptedException, ExecutionException {
+	public void testExtListConsumerPeek() {
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testPeek");
 		c.setBuilderSupplier(TestProdBuilder::new);
@@ -204,7 +204,7 @@ public class PeekTest {
 	}
 
 	@Test
-	public void testListConsumerPeek() throws InterruptedException, ExecutionException {
+	public void testListConsumerPeek() {
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testPeek");
 		c.setBuilderSupplier(TestProdBuilder::new);
@@ -254,7 +254,7 @@ public class PeekTest {
 	}
 
 	@Test
-	public void testPeekError() throws InterruptedException, ExecutionException {
+	public void testPeekError() {
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testPeek");
 		c.setBuilderSupplier(TestProdBuilder::new);
@@ -289,7 +289,7 @@ public class PeekTest {
 	}
 
 	@Test
-	public void testListConsumerPeekError() throws InterruptedException, ExecutionException {
+	public void testListConsumerPeekError() {
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testPeek");
 		c.setBuilderSupplier(TestProdBuilder::new);

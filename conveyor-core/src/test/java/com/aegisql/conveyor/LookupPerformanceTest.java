@@ -19,7 +19,6 @@ public class LookupPerformanceTest {
         long start = System.currentTimeMillis();
         for(int i = 0; i < TESTS; i++) {
             for(String name: conveyors.keySet()) {
-                getType(name);
                 if(conveyors.containsKey(name)) {
                     Conveyor<Integer, String, String> c = conveyors.get(name);
                     assertNotNull(c);
@@ -61,11 +60,6 @@ public class LookupPerformanceTest {
         }
 
         return conveyors;
-    }
-
-
-    private String getType(String name) {
-        return "com.aegisql.conveyor:type="+name;
     }
 
 }

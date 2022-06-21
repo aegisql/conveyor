@@ -25,37 +25,33 @@ public class BuildingSiteTest {
 	/**
 	 * Sets the up before class.
 	 *
-	 * @throws Exception the exception
 	 */
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 	}
 
 	/**
 	 * Tear down after class.
 	 *
-	 * @throws Exception the exception
 	 */
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	/**
 	 * Sets the up.
 	 *
-	 * @throws Exception the exception
 	 */
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	/**
 	 * Tear down.
 	 *
-	 * @throws Exception the exception
 	 */
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	/**
@@ -128,7 +124,7 @@ public class BuildingSiteTest {
 	}
 
 	@Test()
-	public void testProperties() throws InterruptedException {
+	public void testProperties() {
 		ShoppingCart<Integer,String,String> c = new ShoppingCart<>(1,"v1","l",100,TimeUnit.MILLISECONDS);
 		c.addProperty("A", 1);
 		c.addProperty("B", "X");

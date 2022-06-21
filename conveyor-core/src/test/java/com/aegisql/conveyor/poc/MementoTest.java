@@ -28,23 +28,23 @@ import com.aegisql.conveyor.Status;
 public class MementoTest {
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	@Test
-	public void testMemento() throws InterruptedException, ExecutionException {
+	public void testMemento() {
 		AtomicBoolean ready = new AtomicBoolean(false);
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testMemento");
@@ -82,7 +82,7 @@ public class MementoTest {
 
 	
 	@Test
-	public void testEmptyFromMemento() throws InterruptedException, ExecutionException {
+	public void testEmptyFromMemento() {
 		AtomicBoolean ready = new AtomicBoolean(false);
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testMemento");
@@ -121,7 +121,7 @@ public class MementoTest {
 
 	
 	@Test
-	public void testExtConsumerMemento() throws InterruptedException, ExecutionException {
+	public void testExtConsumerMemento() {
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testMemento");
 		c.setBuilderSupplier(TestProdBuilder::new);
@@ -158,7 +158,7 @@ public class MementoTest {
 
 	
 	@Test
-	public void testExtListConsumerMemento() throws InterruptedException, ExecutionException {
+	public void testExtListConsumerMemento() {
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testPeek");
 		c.setBuilderSupplier(TestProdBuilder::new);
@@ -207,7 +207,7 @@ public class MementoTest {
 	}
 
 	@Test
-	public void testListConsumerMemento() throws InterruptedException, ExecutionException {
+	public void testListConsumerMemento() {
 		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
 		c.setName("testPeek");
 		c.setBuilderSupplier(TestProdBuilder::new);

@@ -66,7 +66,8 @@ public final class MultiKeyCommandLoader<K,OUT> {
 	 * @param filter the filter
 	 * @param dumb the dumb
 	 */
-	private MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor,long creationTime, long ttl, Predicate<K> filter, boolean dumb) {
+	@SuppressWarnings("SameParameterValue")
+	private MultiKeyCommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor, long creationTime, long ttl, Predicate<K> filter, boolean dumb) {
 		this.conveyor = conveyor;
 		this.creationTime = creationTime;
 		this.expirationTime = creationTime + ttl;

@@ -204,7 +204,7 @@ public class PersistTestImpl implements Persistence<Integer>{
 		}
 
 		@Override
-		public void close() throws IOException {
+		public void close() {
 			// TODO Auto-generated method stub
 			
 		}
@@ -358,7 +358,7 @@ public class PersistTestImpl implements Persistence<Integer>{
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() {
 		
 	}
 	

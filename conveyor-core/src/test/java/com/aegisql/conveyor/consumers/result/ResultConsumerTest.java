@@ -28,19 +28,19 @@ public class ResultConsumerTest {
 
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	public static <K,V> ProductBin getProductBin(K key, V val) {
@@ -171,7 +171,7 @@ public class ResultConsumerTest {
 	}
 
 	@Test
-	public void testFirstConsumers() throws InterruptedException, ExecutionException, TimeoutException {
+	public void testFirstConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		sc.setDefaultBuilderTimeout(Duration.ofMillis(100));
 		FirstResults<String,User> q = FirstResults.of(sc,2);
@@ -196,7 +196,7 @@ public class ResultConsumerTest {
 	}
 
 	@Test
-	public void testObservableConsumers() throws InterruptedException, ExecutionException, TimeoutException {
+	public void testObservableConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		sc.setDefaultBuilderTimeout(Duration.ofMillis(100));
 		ObservableResultConsumer<String,User> q = ObservableResultConsumer.of(sc);
@@ -233,7 +233,7 @@ public class ResultConsumerTest {
 
 
 	@Test
-	public void testLastConsumers() throws InterruptedException, ExecutionException, TimeoutException {
+	public void testLastConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		sc.setDefaultBuilderTimeout(Duration.ofMillis(100));
 		LastResults<String,User> q = LastResults.of(sc,2);

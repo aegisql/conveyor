@@ -30,21 +30,21 @@ public class PersistentConveyorTest {
 			.schema("testConv").autoInit(true).setArchived();
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
 		Tester.removeDirectory("testConv");
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 	
 	Persistence<Integer> getPersitence(String table) {
@@ -100,7 +100,7 @@ public class PersistentConveyorTest {
 	}
 
 	@Test
-	public void veryBasicTest() throws Exception {
+	public void veryBasicTest() {
 		Persistence<Integer> p = getPersitence("veryBasicTest");
 		TrioConveyor tc = new TrioConveyor();
 		
@@ -115,7 +115,7 @@ public class PersistentConveyorTest {
 	}
 
 	@Test
-	public void veryBasicTestWithAdditionalUniqField() throws Exception {
+	public void veryBasicTestWithAdditionalUniqField() {
 		Persistence<Integer> p = getPersitenceWithField("withAdditionalUniqField");
 		TrioConveyor tc = new TrioConveyor();
 		
@@ -130,7 +130,7 @@ public class PersistentConveyorTest {
 	}
 
 	@Test(expected=CompletionException.class)
-	public void veryBasicFailingTestWithAdditionalUniqField() throws Exception {
+	public void veryBasicFailingTestWithAdditionalUniqField() {
 		Persistence<Integer> p = getPersitenceWithField("withAdditionalNonUniqField");
 		TrioConveyor tc = new TrioConveyor();
 		
@@ -142,7 +142,7 @@ public class PersistentConveyorTest {
 
 	
 	@Test
-	public void veryBasicTedbstWithIgnoredCart() throws Exception {
+	public void veryBasicTedbstWithIgnoredCart() {
 		Persistence<Integer> p = getPersitence("veryBasicTestIgnoreNumber");
 		TrioConveyor tc = new TrioConveyor();
 		
@@ -419,7 +419,7 @@ public class PersistentConveyorTest {
 
 
 	@Test
-	public void simpleResultConsumerTest() throws Exception {
+	public void simpleResultConsumerTest() {
 		Persistence<Integer> p1 = getPersitence("simpleResultConsumerTest");
 		TrioConveyor tc = new TrioConveyor();
 		
@@ -467,7 +467,7 @@ public class PersistentConveyorTest {
 	}
 
 	@Test
-	public void testByName() throws Exception{
+	public void testByName() {
 		Persistence<Integer> p1 = getPersitence("nameTest");
 		Persistence<Integer> p2 = Persistence.byName("com.aegisql.conveyor.persistence.derby.testConv:type=nameTest");
 		Persistence<Integer> p3 = Persistence.lazySupplier("derby.testConv.nameTest").get();
@@ -607,7 +607,7 @@ public class PersistentConveyorTest {
 	}
 
 	@Test
-	public void summatorWithAutoCompact() throws InterruptedException {
+	public void summatorWithAutoCompact() {
 		Persistence<Integer> p1 = getPersitence("summatorWithAutoCompact");
 		LastResultReference<Integer, Long> res = new LastResultReference<>();
 		Conveyor<Integer,SummBuilder.SummStep,Long> ac = new AssemblingConveyor<>();

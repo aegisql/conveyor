@@ -27,7 +27,7 @@ public class SqlitePerfTest {
 			.autoInit(true).setArchived();
 	
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
 		Tester.removeFile("perfConv.db");
 		Tester.removeFile("perfConvArchive.db");
@@ -36,7 +36,7 @@ public class SqlitePerfTest {
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 		try {
 			File dir = new File("./");
 			
@@ -57,7 +57,7 @@ public class SqlitePerfTest {
 	int sleepNumber;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		pool = new ThreadPool(3);
 		batchSize = testSize / 20;
 		sleepNumber = batchSize;
@@ -65,7 +65,7 @@ public class SqlitePerfTest {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 		pool.shutdown();
 	}
 
@@ -253,7 +253,7 @@ public class SqlitePerfTest {
 	}
 
 	@Test
-	public void testParallelAsorted() throws InterruptedException {
+	public void testParallelAsorted() {
 
 		TrioConveyor tc = new TrioConveyor();
 
@@ -280,7 +280,7 @@ public class SqlitePerfTest {
 	}
 
 	@Test
-	public void testParallelSorted() throws InterruptedException {
+	public void testParallelSorted() {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitence("testParallelSorted");
@@ -308,7 +308,7 @@ public class SqlitePerfTest {
 	}
 
 	@Test
-	public void testParallelUnload() throws InterruptedException {
+	public void testParallelUnload() {
 
 		TrioConveyorExpireable tc = new TrioConveyorExpireable();
 
@@ -377,7 +377,7 @@ public class SqlitePerfTest {
 	}
 
 	@Test
-	public void testParallelParallelAsorted() throws InterruptedException {
+	public void testParallelParallelAsorted() {
 
 		TrioConveyor tc1 = new TrioConveyor();
 		TrioConveyor tc2 = new TrioConveyor();
@@ -465,7 +465,7 @@ public class SqlitePerfTest {
 	}
 	
 	@Test
-	public void testParallelSortedToFile() throws InterruptedException {
+	public void testParallelSortedToFile() {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitenceFile("testParallelSortedFile");
@@ -493,7 +493,7 @@ public class SqlitePerfTest {
 	}
 
 	@Test
-	public void testParallelSortedToPersistence() throws InterruptedException {
+	public void testParallelSortedToPersistence() {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitencePersistence("testParallelSortedPersistence");

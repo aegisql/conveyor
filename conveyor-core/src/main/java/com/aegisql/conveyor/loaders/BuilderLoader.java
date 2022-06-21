@@ -97,6 +97,7 @@ public final class BuilderLoader<K,OUT> {
 	 * @param priority the priority
 	 * @param dumb the dumb
 	 */
+	@SuppressWarnings("SameParameterValue")
 	private BuilderLoader(
 			Function<BuilderLoader<K,OUT>, CompletableFuture<Boolean>> placer,
 			Function<BuilderLoader<K,OUT>, CompletableFuture<OUT>> futurePlacer,

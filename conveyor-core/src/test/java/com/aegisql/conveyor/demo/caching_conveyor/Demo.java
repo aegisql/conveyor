@@ -18,7 +18,7 @@ import com.aegisql.conveyor.utils.caching.CachingConveyor;
 
 public class Demo {
 	
-	public static void main(String[] args) throws ParseException, InterruptedException, ExecutionException {
+	public static void main(String[] args) throws InterruptedException {
 		ThreadPool pool                   = new ThreadPool();
 		SimpleDateFormat format           = new SimpleDateFormat("yyyy-MM-dd");
 		

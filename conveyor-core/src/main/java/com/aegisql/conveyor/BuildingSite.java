@@ -133,11 +133,11 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	/** The Constant NON_LOCKING_LOCK. */
 	public final static Lock NON_LOCKING_LOCK = new Lock() {
 		public void lock() {}
-		public void lockInterruptibly() throws InterruptedException {}
+		public void lockInterruptibly() {}
 		public boolean tryLock() {
 			return true;
 		}
-		public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+		public boolean tryLock(long time, TimeUnit unit) {
 			return true;
 		}
 		public void unlock() {}
@@ -361,7 +361,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			if(postponeExpirationEnabled) {
 				postponeAlg = (bs,c) -> {
 					if( c != null && c.isExpireable() ) {
-						bs.expireableSource = c::getExpirationTime;
+						bs.expireableSource = c;
 					} else if( expireableSource.isExpireable() ) {
 						bs.expireableSource = ()->System.currentTimeMillis() + bs.addExpirationTimeMsec; //just add some time, if expireable, lowest priority
 					}
@@ -370,7 +370,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		}
 		if( cart.isExpireable() && ! expireableSource.isExpireable() ) {
 			builderCreated    = cart.getCreationTime();
-			expireableSource = cart::getExpirationTime;
+			expireableSource = cart;
 		} 
 		if( ! expireableSource.isExpireable() ) {
 			builderCreated = System.currentTimeMillis();

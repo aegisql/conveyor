@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutionException;
 
 public class Demo {
 
-	public static void main(String[] args) throws ParseException, InterruptedException, ExecutionException {
+	public static void main(String[] args) throws InterruptedException, ExecutionException {
 
 		ThreadPool pool                   = new ThreadPool();
 		SimpleDateFormat format           = new SimpleDateFormat("yyyy-MM-dd");

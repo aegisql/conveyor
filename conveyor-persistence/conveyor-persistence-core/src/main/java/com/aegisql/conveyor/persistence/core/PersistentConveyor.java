@@ -84,7 +84,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 		this.forward = forward;
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(cleanPersistence);
-		this.ackConveyor = new AcknowledgeBuildingConveyor<>(ackPersistence, forward, cleaner);
+		this.ackConveyor = new AcknowledgeBuildingConveyor<>(ackPersistence, forward);
 		this.ackConveyor.staticPart().value(persistence.getMinCompactSize()).label(ackConveyor.MIN_COMPACT).place();
 
 		String name = forward.getName();

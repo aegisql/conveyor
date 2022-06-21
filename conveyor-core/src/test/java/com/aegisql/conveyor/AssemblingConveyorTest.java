@@ -36,47 +36,42 @@ public class AssemblingConveyorTest {
 	/**
 	 * Sets the up before class.
 	 *
-	 * @throws Exception the exception
 	 */
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 	}
 
 	/**
 	 * Tear down after class.
 	 *
-	 * @throws Exception the exception
 	 */
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	/**
 	 * Sets the up.
 	 *
-	 * @throws Exception the exception
 	 */
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	/**
 	 * Tear down.
 	 *
-	 * @throws Exception the exception
 	 */
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	/**
 	 * Test unconfigured builder supplier.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException   the execution exception
 	 */
 	@Test
-	public void testUnconfiguredBuilderSupplier() throws InterruptedException, ExecutionException {
+	public void testUnconfiguredBuilderSupplier() throws InterruptedException {
 		AtomicBoolean visited = new AtomicBoolean(false);
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -97,11 +92,9 @@ public class AssemblingConveyorTest {
 	/**
 	 * Test offer stopped.
 	 *
-	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException   the execution exception
 	 */
 	@Test
-	public void testOfferStopped() throws InterruptedException, ExecutionException {
+	public void testOfferStopped() {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setName("a");
@@ -118,11 +111,9 @@ public class AssemblingConveyorTest {
 	/**
 	 * Test command stopped.
 	 *
-	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException   the execution exception
 	 */
 	@Test(expected=IllegalStateException.class)
-	public void testCommandStopped() throws InterruptedException, ExecutionException {
+	public void testCommandStopped() {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.setName("a");
@@ -245,10 +236,9 @@ public class AssemblingConveyorTest {
 	 * Test offer expired stopped.
 	 *
 	 * @throws InterruptedException the interrupted exception
-	 * @throws ExecutionException   the execution exception
 	 */
 	@Test()
-	public void testOfferExpiredStopped() throws InterruptedException, ExecutionException {
+	public void testOfferExpiredStopped() throws InterruptedException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
 		conveyor.scrapConsumer((o)->{

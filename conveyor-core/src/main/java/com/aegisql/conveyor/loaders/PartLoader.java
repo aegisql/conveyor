@@ -103,6 +103,7 @@ public final class PartLoader<K,L> {
 	 * @param properties the properties
 	 * @param dumb the dumb
 	 */
+	@SuppressWarnings("SameParameterValue")
 	private PartLoader(
 			Function<PartLoader<K,L>, CompletableFuture<Boolean>> placer, 
 			long creationTime, 

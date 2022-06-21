@@ -7,10 +7,7 @@ import java.util.regex.Pattern;
 public class TemplateEditor {
 
     private final Map<String,String> map = new HashMap<>();
-    private final static Pattern PATTERN = Pattern.compile("\\$\\{.*?\\}");
-
-    static {
-    }
+    private final static Pattern PATTERN = Pattern.compile("\\$\\{.*?}");
 
     private void setEnvVariables() {
         Map<String,String> env = System.getenv();

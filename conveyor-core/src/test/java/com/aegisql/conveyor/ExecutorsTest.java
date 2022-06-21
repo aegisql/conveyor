@@ -27,37 +27,33 @@ public class ExecutorsTest {
 	/**
 	 * Sets the up before class.
 	 *
-	 * @throws Exception the exception
 	 */
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 	}
 
 	/**
 	 * Tear down after class.
 	 *
-	 * @throws Exception the exception
 	 */
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	/**
 	 * Sets the up.
 	 *
-	 * @throws Exception the exception
 	 */
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	/**
 	 * Tear down.
 	 *
-	 * @throws Exception the exception
 	 */
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	/**
@@ -176,10 +172,9 @@ public class ExecutorsTest {
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException the execution exception
-	 * @throws TimeoutException the timeout exception
 	 */
 	@Test()
-	public void testFutureTimeoutStart() throws InterruptedException, ExecutionException, TimeoutException {
+	public void testFutureTimeoutStart() throws InterruptedException, ExecutionException {
 		
 		ExecutorService es = Executors.newFixedThreadPool(4);
 		

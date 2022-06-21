@@ -82,6 +82,7 @@ public final class FutureLoader<K,OUT> {
 	 * @param priority the priority
 	 * @param dumb the dumb
 	 */
+	@SuppressWarnings("SameParameterValue")
 	private FutureLoader(
 			Function<FutureLoader<K,OUT>, CompletableFuture<OUT>> placer,
 			long creationTime, 

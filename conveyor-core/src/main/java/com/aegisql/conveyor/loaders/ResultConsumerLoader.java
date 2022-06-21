@@ -120,6 +120,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @param priority the priority
 	 * @param dumb the dumb
 	 */
+	@SuppressWarnings("SameParameterValue")
 	private ResultConsumerLoader(
 			Function<ResultConsumerLoader<K,OUT>,CompletableFuture<Boolean>> placer, 
 			Consumer<ResultConsumer <K,OUT>> globalPlacer,

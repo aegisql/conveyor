@@ -52,9 +52,8 @@ public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, Smart
 	 * @param <OUT> the generic type
 	 * @param persistence the persistence
 	 * @param forward the forward
-	 * @param cleaner the cleaner
 	 */
-	public <L,OUT> AcknowledgeBuildingConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward, PersistenceCleanupBatchConveyor<K> cleaner) {
+	public <L,OUT> AcknowledgeBuildingConveyor(Persistence<K> persistence, Conveyor<K, L, OUT> forward) {
 		super();
 		this.setName("AcknowledgeBuildingConveyor<"+(forward == null ? "":forward.getName())+">");
 		this.setBuilderSupplier( () -> new AcknowledgeBuilder<>(persistence, forward, this)  );

@@ -23,11 +23,11 @@ public class ConnectionFactoryTest {
     private final JDBCMockObjectFactory factory  = new JDBCMockObjectFactory();
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         factory.restoreDrivers();
     }
 
@@ -58,7 +58,7 @@ public class ConnectionFactoryTest {
     }
 
     @Test
-    public void cachingDataSourceTest() throws SQLException {
+    public void cachingDataSourceTest() {
         ConnectionFactory<MockDataSource> cf = ConnectionFactory.cachingFactoryInstance(f->{
             MockDataSource mockDataSource = factory.createMockDataSource();
             mockDataSource.setupConnection(factory.createMockConnection());
@@ -74,7 +74,7 @@ public class ConnectionFactoryTest {
     }
 
     @Test
-    public void nonCachingDataSourceTest() throws SQLException {
+    public void nonCachingDataSourceTest() {
         ConnectionFactory<MockDataSource> cf = ConnectionFactory.nonCachingFactoryInstance(f->{
             MockDataSource mockDataSource = factory.createMockDataSource();
             mockDataSource.setupConnection(factory.createMockConnection());
@@ -90,7 +90,7 @@ public class ConnectionFactoryTest {
     }
 
     @Test
-    public void cachingExtConnectionTest() throws SQLException {
+    public void cachingExtConnectionTest() {
         ConnectionFactory<WrappedExternalDataSource> cf = ConnectionFactory.cachingExternalConnectionFactoryInstance(()->factory.createMockConnection());
         setupConnectionFactory(cf);
         Connection connection = cf.getConnection();
@@ -102,7 +102,7 @@ public class ConnectionFactoryTest {
     }
 
     @Test
-    public void nonCachingExtConnectionTest() throws SQLException {
+    public void nonCachingExtConnectionTest() {
         ConnectionFactory<WrappedExternalDataSource> cf = ConnectionFactory.nonCachingExternalConnectionFactoryInstance(()->factory.createMockConnection());
         setupConnectionFactory(cf);
         Connection connection = cf.getConnection();

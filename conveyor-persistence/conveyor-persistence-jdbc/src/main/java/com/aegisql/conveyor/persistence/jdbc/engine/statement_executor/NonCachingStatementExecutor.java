@@ -23,7 +23,7 @@ public class NonCachingStatementExecutor extends AbstractStatementExecutor {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         try {
             connection.close();
         } catch (SQLException e) {

@@ -32,37 +32,33 @@ public class SmartConveyorTest {
 	/**
 	 * Sets the up before class.
 	 *
-	 * @throws Exception the exception
 	 */
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 	}
 
 	/**
 	 * Tear down after class.
 	 *
-	 * @throws Exception the exception
 	 */
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	/**
 	 * Sets the up.
 	 *
-	 * @throws Exception the exception
 	 */
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	/**
 	 * Tear down.
 	 *
-	 * @throws Exception the exception
 	 */
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	/**
@@ -508,10 +504,9 @@ public class SmartConveyorTest {
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
-	 * @throws TimeoutException     the timeout exception
 	 */
 	@Test
-	public void testUpperCase() throws InterruptedException, ExecutionException, TimeoutException {
+	public void testUpperCase() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 
 		/** The out queue. */
@@ -547,10 +542,9 @@ public class SmartConveyorTest {
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
-	 * @throws TimeoutException     the timeout exception
 	 */
 	@Test
-	public void testLowerCase() throws InterruptedException, ExecutionException, TimeoutException {
+	public void testLowerCase() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 
 		/** The out queue. */
@@ -587,10 +581,9 @@ public class SmartConveyorTest {
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
-	 * @throws TimeoutException     the timeout exception
 	 */
 	@Test
-	public void testObject() throws InterruptedException, ExecutionException, TimeoutException {
+	public void testObject() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, Object> conveyor = new AssemblingConveyor<>();
 
 		conveyor.resultConsumer().first(LogResult.debug(conveyor)).set();
@@ -624,10 +617,9 @@ public class SmartConveyorTest {
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
-	 * @throws TimeoutException     the timeout exception
 	 */
 	@Test
-	public void testUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException, TimeoutException {
+	public void testUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 
 		/** The out queue. */
@@ -663,10 +655,9 @@ public class SmartConveyorTest {
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
-	 * @throws TimeoutException     the timeout exception
 	 */
 	@Test(expected=CancellationException.class)
-	public void testFailingUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException, TimeoutException {
+	public void testFailingUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 
 		/** The out queue. */

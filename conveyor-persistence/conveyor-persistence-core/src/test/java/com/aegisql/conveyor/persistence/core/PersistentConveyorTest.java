@@ -25,24 +25,24 @@ import com.aegisql.conveyor.persistence.core.harness.TrioPart;
 public class PersistentConveyorTest {
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	@Test
-	public void veryBasicTest() throws InterruptedException {
+	public void veryBasicTest() {
 		Persistence<Integer> p = new PersistTestImpl();
 		TrioConveyor tc = new TrioConveyor();
 		

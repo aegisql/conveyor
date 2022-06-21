@@ -20,7 +20,7 @@ public class CachingStatementExecutor extends AbstractStatementExecutor {
 
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         // just do nothings.
         // close with the connection factory close method
         // if needed

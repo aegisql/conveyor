@@ -14,14 +14,14 @@ import com.aegisql.conveyor.ProductSupplier;
 public final class ImmutableReference<T> implements ProductSupplier<T> {
 
 	/** The reference. */
-	protected final T reference;
+	final T reference;
 	
 	/**
 	 * Instantiates a new immutable reference.
 	 *
 	 * @param ref the ref
 	 */
-	protected ImmutableReference(T ref) {
+	private ImmutableReference(T ref) {
 		this.reference = ref;
 	}
 	

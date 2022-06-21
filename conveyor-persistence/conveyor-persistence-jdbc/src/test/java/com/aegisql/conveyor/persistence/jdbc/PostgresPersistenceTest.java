@@ -33,21 +33,21 @@ public class PostgresPersistenceTest {
 	
 	
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 		Assume.assumeTrue(Tester.hasDriver("org.postgresql.Driver"));
 		Tester.removeLocalPostgresDatabase("conveyor_db_test");
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	@Test

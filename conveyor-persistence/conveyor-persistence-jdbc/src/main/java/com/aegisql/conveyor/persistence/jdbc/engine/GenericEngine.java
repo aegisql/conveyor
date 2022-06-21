@@ -1236,7 +1236,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @see java.io.Closeable#close()
 	 */
 	@Override
-	public void close() throws IOException {
+	public void close() {
 		connectionFactory.closeConnection();
 	}
 

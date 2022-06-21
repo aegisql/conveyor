@@ -115,7 +115,7 @@ public class ProductBuilderTest {
 
 
     @Test
-    public void pocTimeoutTesting() throws InterruptedException {
+    public void pocTimeoutTesting() {
 
         LastResultReference<Integer, String> res = new LastResultReference<>();
         LastScrapReference<Integer> scrap = new LastScrapReference<>();
@@ -147,7 +147,7 @@ public class ProductBuilderTest {
     }
 
     @Test
-    public void pocTimeoutStateTesting() throws InterruptedException {
+    public void pocTimeoutStateTesting() {
 
         LastResultReference<Integer, String> res = new LastResultReference<>();
         LastScrapReference<Integer> scrap = new LastScrapReference<>();
@@ -179,7 +179,7 @@ public class ProductBuilderTest {
     }
 
     @Test
-    public void pocTimeoutTestingRev() throws InterruptedException {
+    public void pocTimeoutTestingRev() {
 
         LastResultReference<Integer, String> res = new LastResultReference<>();
         LastScrapReference<Integer> scrap = new LastScrapReference<>();
@@ -212,7 +212,7 @@ public class ProductBuilderTest {
     }
 
     @Test
-    public void pocTimeoutStateTestingRev() throws InterruptedException {
+    public void pocTimeoutStateTestingRev() {
 
         LastResultReference<Integer, String> res = new LastResultReference<>();
         LastScrapReference<Integer> scrap = new LastScrapReference<>();
@@ -245,7 +245,7 @@ public class ProductBuilderTest {
     }
 
     @Test
-    public void pocTimeoutStateStateTestingRev() throws InterruptedException {
+    public void pocTimeoutStateStateTestingRev() {
 
         LastResultReference<Integer, String> res = new LastResultReference<>();
         LastScrapReference<Integer> scrap = new LastScrapReference<>();
@@ -278,7 +278,7 @@ public class ProductBuilderTest {
     }
 
     @Test
-    public void pocTimeoutSeDefValue() throws InterruptedException {
+    public void pocTimeoutSeDefValue() {
 
         LastResultReference<Integer, String> res = new LastResultReference<>();
         LastScrapReference<Integer> scrap = new LastScrapReference<>();

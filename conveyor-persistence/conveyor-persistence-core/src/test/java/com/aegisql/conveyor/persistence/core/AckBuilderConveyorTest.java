@@ -27,29 +27,29 @@ public class AckBuilderConveyorTest {
 	private final static Logger LOG = LoggerFactory.getLogger(AcknowledgeBuildingConveyor.class);
 	
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		LOG.debug("TEST");
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	@Test
-	public void test() throws InterruptedException {
+	public void test() {
 		
 		Persistence<Integer> p = new PersistTestImpl();
 
-		AcknowledgeBuildingConveyor<Integer> abc = new AcknowledgeBuildingConveyor<>(p, null, null); //no forward, no cleaning
+		AcknowledgeBuildingConveyor<Integer> abc = new AcknowledgeBuildingConveyor<>(p, null); //no forward, no cleaning
 		abc.setIdleHeartBeat(10,TimeUnit.MILLISECONDS);
 		
 		CompletableFuture<Boolean> f = abc.future().id(1).get();

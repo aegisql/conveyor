@@ -93,7 +93,7 @@ public class ConveyorConfigurationTest {
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 		try {
 			File dir = new File("./");
 			
@@ -105,11 +105,11 @@ public class ConveyorConfigurationTest {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	@Test

@@ -17,21 +17,21 @@ import static org.junit.Assert.assertNotNull;
 public class LearnDerbyTest {
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 		Tester.removeDirectory("testDb1");
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		Tester.sleep(1000);
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 		
 	JdbcPersistenceBuilder<String> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", String.class)

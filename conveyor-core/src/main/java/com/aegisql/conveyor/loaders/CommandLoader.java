@@ -68,6 +68,7 @@ public final class CommandLoader<K,OUT> {
 	 * @param key the key
 	 * @param dumb the dumb
 	 */
+	@SuppressWarnings("SameParameterValue")
 	private CommandLoader(Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor, long creation, long ttl, K key, boolean dumb) {
 		this.conveyor = conveyor;
 		this.creationTime = creation;

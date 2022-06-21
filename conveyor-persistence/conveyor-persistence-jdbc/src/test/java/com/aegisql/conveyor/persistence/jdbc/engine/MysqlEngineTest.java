@@ -22,22 +22,22 @@ public class MysqlEngineTest {
 	private static final String SCHEMA = "test_engine";
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
 		Assume.assumeTrue(Tester.testMySqlConnection());
 		Tester.removeLocalMysqlDatabase(SCHEMA);
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	@Test

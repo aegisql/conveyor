@@ -64,10 +64,9 @@ public class ParallelConveyorTest {
 	/**
 	 * Sets the up before class.
 	 *
-	 * @throws Exception the exception
 	 */
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 
 		conveyor.setBuilderSupplier( UserBuilder::new );
 	    conveyor.setDefaultCartConsumer( (label, value, builder) -> {
@@ -127,19 +126,17 @@ public class ParallelConveyorTest {
 	/**
 	 * Sets the up.
 	 *
-	 * @throws Exception the exception
 	 */
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	/**
 	 * Tear down.
 	 *
-	 * @throws Exception the exception
 	 */
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 	
 	/**
@@ -403,10 +400,9 @@ public class ParallelConveyorTest {
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException the execution exception
-	 * @throws TimeoutException the timeout exception
 	 */
 	@Test
-	public void createFutureConveyorTest() throws InterruptedException, ExecutionException, TimeoutException {
+	public void createFutureConveyorTest() throws InterruptedException, ExecutionException {
 		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		LastResultReference<String,User> usr = LastResultReference.of(conveyor);
@@ -432,10 +428,9 @@ public class ParallelConveyorTest {
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException the execution exception
-	 * @throws TimeoutException the timeout exception
 	 */
 	@Test
-	public void createFutureConveyorTest2() throws InterruptedException, ExecutionException, TimeoutException {
+	public void createFutureConveyorTest2() throws InterruptedException, ExecutionException {
 		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);

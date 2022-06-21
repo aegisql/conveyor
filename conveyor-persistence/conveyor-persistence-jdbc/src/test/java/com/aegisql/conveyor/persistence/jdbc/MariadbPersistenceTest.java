@@ -22,22 +22,22 @@ public class MariadbPersistenceTest {
 			.user("tester");
 	
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
 		Assume.assumeTrue(Tester.testMariaDbConnection());
 		Tester.removeLocalMariaDbDatabase("conveyor_maria_db");
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	@Test

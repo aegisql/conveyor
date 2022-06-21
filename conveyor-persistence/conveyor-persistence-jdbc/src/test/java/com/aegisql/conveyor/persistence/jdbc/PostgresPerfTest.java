@@ -30,7 +30,7 @@ public class PostgresPerfTest {
 			.setArchived();
 	
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
 		Assume.assumeTrue(Tester.testPostgresConnection());
 		Tester.removeLocalPostgresDatabase("perfconv");
@@ -38,7 +38,7 @@ public class PostgresPerfTest {
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 		try {
 			File dir = new File("./");
 			
@@ -59,7 +59,7 @@ public class PostgresPerfTest {
 	int sleepNumber;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		pool = new ThreadPool(3);
 		batchSize = testSize / 20;
 		sleepNumber = batchSize;
@@ -67,7 +67,7 @@ public class PostgresPerfTest {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 		pool.shutdown();
 	}
 
@@ -241,7 +241,7 @@ public class PostgresPerfTest {
 	}
 
 	@Test
-	public void testParallelAsorted() throws InterruptedException {
+	public void testParallelAsorted() {
 
 		TrioConveyor tc = new TrioConveyor();
 
@@ -268,7 +268,7 @@ public class PostgresPerfTest {
 	}
 
 	@Test
-	public void testParallelSorted() throws InterruptedException {
+	public void testParallelSorted() {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitence("testParallelSorted");
@@ -296,7 +296,7 @@ public class PostgresPerfTest {
 	}
 
 	@Test
-	public void testParallelUnload() throws InterruptedException {
+	public void testParallelUnload() {
 
 		TrioConveyorExpireable tc = new TrioConveyorExpireable();
 
@@ -365,7 +365,7 @@ public class PostgresPerfTest {
 	}
 
 	@Test
-	public void testParallelParallelAsorted() throws InterruptedException {
+	public void testParallelParallelAsorted() {
 
 		TrioConveyor tc1 = new TrioConveyor();
 		TrioConveyor tc2 = new TrioConveyor();
@@ -453,7 +453,7 @@ public class PostgresPerfTest {
 	}
 	
 	@Test
-	public void testParallelSortedToFile() throws InterruptedException {
+	public void testParallelSortedToFile() {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitenceFile("testParallelSortedFile");
@@ -481,7 +481,7 @@ public class PostgresPerfTest {
 	}
 
 	@Test
-	public void testParallelSortedToPersistence() throws InterruptedException {
+	public void testParallelSortedToPersistence() {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitencePersistence("testParallelSortedPersistence");

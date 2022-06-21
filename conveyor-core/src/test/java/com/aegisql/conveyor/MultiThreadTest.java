@@ -53,10 +53,9 @@ public class MultiThreadTest {
 	/**
 	 * Sets the up before class.
 	 *
-	 * @throws Exception the exception
 	 */
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 
 		conveyor.setBuilderSupplier( UserBuilder::new );
 	    conveyor.setDefaultCartConsumer( (label, value, builder) -> {
@@ -102,19 +101,17 @@ public class MultiThreadTest {
 	/**
 	 * Sets the up.
 	 *
-	 * @throws Exception the exception
 	 */
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	/**
 	 * Tear down.
 	 *
-	 * @throws Exception the exception
 	 */
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 	
 	

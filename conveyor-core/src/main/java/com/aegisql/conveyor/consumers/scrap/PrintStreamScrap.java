@@ -60,7 +60,7 @@ public class PrintStreamScrap<K> implements ScrapConsumer<K,Object>, Closeable {
 	 * @see java.io.Closeable#close()
 	 */
 	@Override
-	public void close() throws IOException {
+	public void close() {
 		os.close();
 	}
 	

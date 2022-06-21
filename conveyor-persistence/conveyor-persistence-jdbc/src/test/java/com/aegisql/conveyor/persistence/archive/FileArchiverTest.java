@@ -29,11 +29,11 @@ import com.aegisql.conveyor.persistence.utils.DataSize;
 public class FileArchiverTest {
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 		try {
 			File dir = new File("./");
 			
@@ -46,11 +46,11 @@ public class FileArchiverTest {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 	}
 
 	@Test
