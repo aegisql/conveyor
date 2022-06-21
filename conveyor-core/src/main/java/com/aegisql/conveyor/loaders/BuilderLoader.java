@@ -238,8 +238,7 @@ public final class BuilderLoader<K,OUT> {
 	 * @return the builder loader
 	 */
 	public BuilderLoader<K,OUT> clearProperty(String k) {
-		Map<String,Object> newMap = new HashMap<>();
-		newMap.putAll(properties);
+		Map<String, Object> newMap = new HashMap<>(properties);
 		newMap.remove(k);
 		return new BuilderLoader<>(placer, futurePlacer, creationTime, expirationTime, ttlMsec, key, value, newMap, priority);
 	}
@@ -252,8 +251,7 @@ public final class BuilderLoader<K,OUT> {
 	 * @return the builder loader
 	 */
 	public BuilderLoader<K,OUT>  addProperty(String k, Object v) {
-		Map<String,Object> newMap = new HashMap<>();
-		newMap.putAll(properties);
+		Map<String, Object> newMap = new HashMap<>(properties);
 		newMap.put(k, v);
 		return new BuilderLoader<>(placer, futurePlacer, creationTime, expirationTime, ttlMsec, key, value, newMap, priority);
 	}

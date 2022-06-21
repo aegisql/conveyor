@@ -466,9 +466,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				Status[] more = null;
 				if (autoAcknowledgeOnStatus.length > 1) {
 					more = new Status[autoAcknowledgeOnStatus.length - 1];
-					for (int i = 1; i < autoAcknowledgeOnStatus.length; i++) {
-						more[i - 1] = autoAcknowledgeOnStatus[i];
-					}
+					System.arraycopy(autoAcknowledgeOnStatus, 1, more, 0, autoAcknowledgeOnStatus.length - 1);
 				}
 				c.autoAcknowledgeOnStatus(first, more);
 			}
@@ -984,7 +982,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void maxQueueSize(ConveyorBuilder b, String s) {
 		LOG.debug("Applying maxQueueSize={}", s);
-		Integer maxSize = Integer.parseInt(s.split("\\s+")[0]);
+		int maxSize = Integer.parseInt(s.split("\\s+")[0]);
 		b.maxQueueSize = maxSize;
 		if(b.maxQueueSize > 0) {
 			b.enablePriorityQueue = false;

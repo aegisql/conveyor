@@ -167,9 +167,7 @@ public class ConveyorProperty {
 		} else {
 			convProperty = parts[parts.length-1];
 			String[] nameParts = new String[parts.length-2];
-			for(int i = 0; i < nameParts.length; i++) {
-				nameParts[i] = parts[i+1];
-			}
+			System.arraycopy(parts, 1, nameParts, 0, nameParts.length);
 			name = String.join(ConveyorConfiguration.PROPERTY_DELIMITER, nameParts);
 		}
 		

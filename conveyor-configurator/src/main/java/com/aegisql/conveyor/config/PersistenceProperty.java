@@ -178,9 +178,7 @@ public class PersistenceProperty {
 			type = parts[1];
 			schema = parts[2];
 			String[] nameParts = new String[parts.length - 4];
-			for (int i = 0; i < nameParts.length; i++) {
-				nameParts[i] = parts[i + 3];
-			}
+			System.arraycopy(parts, 3, nameParts, 0, nameParts.length);
 			name = String.join(ConveyorConfiguration.PROPERTY_DELIMITER, nameParts);
 		}
 

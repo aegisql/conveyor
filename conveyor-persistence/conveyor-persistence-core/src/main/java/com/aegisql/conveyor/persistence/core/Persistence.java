@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -62,7 +63,7 @@ public interface Persistence <K> extends Closeable {
 	 * @return the part
 	 */
 	default <L> Cart<K, ?, L> getPart(long id) {
-		Collection<Cart<K, ?, L>> res = getParts(Arrays.asList(id));
+		Collection<Cart<K, ?, L>> res = getParts(List.of(id));
 		return switch (res.size()) {
 			case 1 -> res.iterator().next();
 			case 0 -> null;

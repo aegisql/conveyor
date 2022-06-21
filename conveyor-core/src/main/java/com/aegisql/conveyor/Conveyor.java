@@ -504,8 +504,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 
 	static Set<String> getKnownConveyorNames() {
 		loadServices();
-		var set = new HashSet<String>();
-		set.addAll(MBEAN.getKnownConveyorNames());
+		var set = new HashSet<String>(MBEAN.getKnownConveyorNames());
 		return Collections.unmodifiableSet(set);
 	}
 
@@ -534,7 +533,7 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 
 	@Override
 	default List<String> getInitiatedConveyorNames() {
-		return Arrays.asList(getName());
+		return List.of(getName());
 	}
 
 	default void registerKeyConverter(String typeName, Function<?,K> converter) {

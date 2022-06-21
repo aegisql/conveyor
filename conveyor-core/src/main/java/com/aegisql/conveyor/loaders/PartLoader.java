@@ -282,8 +282,7 @@ public final class PartLoader<K,L> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L> clearProperty(String k) {
-		Map<String,Object> newMap = new HashMap<>();
-		newMap.putAll(properties);
+		Map<String, Object> newMap = new HashMap<>(properties);
 		newMap.remove(k);
 		return new PartLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, label, partValue, filter, newMap);
 	}
@@ -296,8 +295,7 @@ public final class PartLoader<K,L> {
 	 * @return the part loader
 	 */
 	public PartLoader<K,L> addProperty(String k, Object v) {
-		Map<String,Object> newMap = new HashMap<>();
-		newMap.putAll(properties);
+		Map<String, Object> newMap = new HashMap<>(properties);
 		newMap.put(k, v);
 		return new PartLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, label, partValue, filter, newMap);
 	}

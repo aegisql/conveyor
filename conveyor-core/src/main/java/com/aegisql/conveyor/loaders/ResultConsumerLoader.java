@@ -344,8 +344,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the result consumer loader
 	 */
 	public ResultConsumerLoader<K,OUT> clearProperty(String k) {
-		Map<String,Object> newMap = new HashMap<>();
-		newMap.putAll(properties);
+		Map<String, Object> newMap = new HashMap<>(properties);
 		newMap.remove(k);
 		return new ResultConsumerLoader<>(placer, globalPlacer, creationTime, expirationTime, ttlMsec, key, consumer, filter, newMap, priority);
 	}
@@ -358,8 +357,7 @@ public final class ResultConsumerLoader<K,OUT> {
 	 * @return the result consumer loader
 	 */
 	public ResultConsumerLoader<K,OUT> addProperty(String k, Object v) {
-		Map<String,Object> newMap = new HashMap<>();
-		newMap.putAll(properties);
+		Map<String, Object> newMap = new HashMap<>(properties);
 		newMap.put(k, v);
 		return new ResultConsumerLoader<>(placer, globalPlacer, creationTime, expirationTime, ttlMsec, key, consumer, filter, newMap, priority);
 	}

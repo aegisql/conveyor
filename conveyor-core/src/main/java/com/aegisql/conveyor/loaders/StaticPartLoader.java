@@ -133,8 +133,7 @@ public final class StaticPartLoader<L> {
 	}
 	
 	public StaticPartLoader<L> addProperty(String k, Object v) {
-		Map<String,Object> newMap = new HashMap<>();
-		newMap.putAll(properties);
+		Map<String, Object> newMap = new HashMap<>(properties);
 		newMap.put(k, v);
 		return new StaticPartLoader<>(placer, label, staticPartValue, create, priority, newMap);
 	}

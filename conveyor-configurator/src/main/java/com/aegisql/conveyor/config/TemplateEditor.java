@@ -18,13 +18,13 @@ public class TemplateEditor {
 
     private String extractDefaultValue(String match) {
         String[] split = match.split(":");
-        String defaultVal = split[1];
+        StringBuilder defaultVal = new StringBuilder(split[1]);
         if(split.length > 2) {
             for(int i = 2; i < split.length; i++) {
-                defaultVal = defaultVal+":"+split[i];
+                defaultVal.append(":").append(split[i]);
             }
         }
-        return defaultVal;
+        return defaultVal.toString();
     }
 
     public TemplateEditor() {

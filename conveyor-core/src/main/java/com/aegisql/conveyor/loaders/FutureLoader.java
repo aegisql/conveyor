@@ -206,8 +206,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT> clearProperty(String k) {
-		Map<String,Object> newMap = new HashMap<>();
-		newMap.putAll(properties);
+		Map<String, Object> newMap = new HashMap<>(properties);
 		newMap.remove(k);
 		return new FutureLoader<>(placer, creationTime, expirationTime, ttlMsec, key, newMap, priority);
 	}
@@ -220,8 +219,7 @@ public final class FutureLoader<K,OUT> {
 	 * @return the future loader
 	 */
 	public FutureLoader<K,OUT> addProperty(String k, Object v) {
-		Map<String,Object> newMap = new HashMap<>();
-		newMap.putAll(properties);
+		Map<String, Object> newMap = new HashMap<>(properties);
 		newMap.put(k, v);
 		return new FutureLoader<>(placer, creationTime, expirationTime, ttlMsec, key, newMap, priority);
 	}
