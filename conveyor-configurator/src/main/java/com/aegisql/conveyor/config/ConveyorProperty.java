@@ -157,7 +157,7 @@ public class ConveyorProperty {
 		boolean isConveyorProperty = true;
 		boolean isDefaultProperty  = false;
 		String name                = null;
-		String convProperty        = null;
+		String convProperty;
 		
 		String[] parts = propertyKey.split(Pattern.quote(ConveyorConfiguration.PROPERTY_DELIMITER));
 

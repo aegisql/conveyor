@@ -52,7 +52,7 @@ public class ReflectingValueConsumer<B> implements LabeledValueConsumer<String, 
 			pathAliases.forEach(javaPath::setPathAlias);
 			return javaPath;
 		});
-		if(value != null && value instanceof MultiValue multiValue) {
+		if(value instanceof MultiValue multiValue) {
 			consumerFactory.evalPath(label,builder,multiValue.asArray());
 		} else {
 			consumerFactory.evalPath(label, builder, value);

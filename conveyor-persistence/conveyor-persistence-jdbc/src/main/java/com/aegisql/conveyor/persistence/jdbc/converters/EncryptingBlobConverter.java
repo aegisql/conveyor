@@ -52,8 +52,8 @@ private final SecretKey key;
 	 */
 	@Override
 	public Blob toPersistence(T obj) {
-    	Blob blob       = null;
-    	OutputStream os = null;
+    	Blob blob;
+    	OutputStream os;
 		try {
 			blob = conn.createBlob();
 	    	os = blob.setBinaryStream(1);

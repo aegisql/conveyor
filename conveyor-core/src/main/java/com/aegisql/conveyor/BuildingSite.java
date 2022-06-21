@@ -164,7 +164,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private final Consumer<Supplier<? extends OUT>> timeoutAction;
 
 	/** The save carts. */
-	private boolean saveCarts      = false;
+	private final boolean saveCarts;
 
 	/** The all carts. */
 	private final List<C> allCarts = new ArrayList<>();
@@ -176,7 +176,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private final  C initialCart;
 
 	/** The last cart. */
-	private  C lastCart = null;
+	private  C lastCart;
 
 	/** The accept count. */
 	private int acceptCount = 0;
@@ -468,7 +468,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				if (!getStatus().equals(Status.WAITING_DATA)) {
 					throw new IllegalStateException("Supplier is in a wrong state: " + getStatus());
 				}
-				OUT res = null;
+				OUT res;
 				lock.lock();
 				try {
 					res = builder.get();

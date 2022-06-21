@@ -70,7 +70,6 @@ enum MBeanRegister {
                 knownConveyors.put(type,conveyor);
                 Conveyor.LOG.debug("Registered conveyor {}", type);
             }
-            return;
         } catch( ConveyorRuntimeException cre) {
           throw cre;
         } catch (Exception e) {

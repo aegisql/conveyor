@@ -18,7 +18,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.*;
 
 import static com.aegisql.conveyor.cart.LoadType.STATIC_PART;

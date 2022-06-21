@@ -82,7 +82,6 @@ class OrderedProperties extends LinkedList<Pair<String,String>> {
         boolean precedingBackslash;
 
         while ((limit = lr.readLine()) >= 0) {
-            c = 0;
             keyLen = 0;
             valueStart = limit;
             hasSep = false;
@@ -183,7 +182,7 @@ class OrderedProperties extends LinkedList<Pair<String,String>> {
          */
         int readLine() throws IOException {
             int len = 0;
-            char c = 0;
+            char c;
 
             boolean skipWhiteSpace = true;
             boolean isCommentLine = false;

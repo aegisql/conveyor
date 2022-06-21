@@ -1094,7 +1094,7 @@ public class JdbcPersistenceBuilder<K> {
 	 * @return the key sql type
 	 */
 	private static <K> String getKeySqlType(Class<K> kClass) {
-		String keyType = null;
+		String keyType;
 		if(kClass == Integer.class) {
 			keyType = "INT";
 		} else if(kClass == Long.class) {
@@ -1121,7 +1121,7 @@ public class JdbcPersistenceBuilder<K> {
 	 * @return the engine depo
 	 */
 	private EngineDepo<K> buildPresetSqlEngine(String type, Class<K> kClass) {
-		GenericEngine<K> engine = null;
+		GenericEngine<K> engine;
 		connectionFactory.setDatabase(database);
 		connectionFactory.setSchema(schema);
 		connectionFactory.setUser(user);

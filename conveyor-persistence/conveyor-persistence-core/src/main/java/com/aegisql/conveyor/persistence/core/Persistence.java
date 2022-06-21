@@ -263,7 +263,7 @@ public interface Persistence <K> extends Closeable {
 	 * @return the persistence
 	 */
 	static Persistence byName(String name) {
-		ObjectName objectName = null;
+		ObjectName objectName;
 		try {
 			if(name.startsWith("com.aegisql.conveyor.persistence.")) {
 				objectName = new ObjectName(name);

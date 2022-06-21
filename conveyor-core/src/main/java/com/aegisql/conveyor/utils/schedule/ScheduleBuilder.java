@@ -28,8 +28,8 @@ public class ScheduleBuilder<K> implements Supplier<SchedulableClosure>, Timeout
 	 * Instantiates a new schedule builder.
 	 */
 	
-	private long expTime = 0;
-	private long ttl = 0;
+	private long expTime;
+	private final long ttl;
 	
 	public ScheduleBuilder(long ttl) {
 		this.expTime = ttl+System.currentTimeMillis();

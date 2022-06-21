@@ -185,7 +185,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	public Conveyor get() {
 		try {
 			LOG.debug("{}", this);
-			Conveyor instance = null;
+			Conveyor instance;
 
 			for (String key : persistenceProperties.keySet()) {
 				PersistenceProperties pp = persistenceProperties.get(key);
@@ -990,7 +990,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 	public static void priority(ConveyorBuilder b, String s) {
 		LOG.debug("Applying priority={}", s);
-		Supplier<PriorityBlockingQueue<Cart>> queueSupplier = null;
+		Supplier<PriorityBlockingQueue<Cart>> queueSupplier;
 		switch (s.toUpperCase()) {
 			case "FIFO" -> queueSupplier = Priority.FIFO;
 			case "FILO" -> queueSupplier = Priority.FILO;
@@ -1023,7 +1023,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		String key = pp.buildKey();
 		LOG.debug("Applying{}persistenceProperty={}:{}={}", pp.isDefaultProperty() ? " default " : " ", key,
 				pp.getProperty(), pp.getValue());
-		PersistenceProperties pm = null;
+		PersistenceProperties pm;
 		if (pp.isDefaultProperty()) {
 			pm = b.defaultProperties.get(key);
 			if (pm == null) {

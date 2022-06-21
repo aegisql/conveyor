@@ -43,7 +43,7 @@ public class DelayProvider <K> {
 	 */
 	public List<K> getAllExpiredKeys() {
 		var expired = new LinkedList<K>();
-		DelayBox<K> box = null;
+		DelayBox<K> box;
 		while( (box = queue.poll()) != null ) {
 			expired.addAll(box.getKeys());
 			boxes.remove(box.getExpirationTime());

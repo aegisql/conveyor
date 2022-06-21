@@ -86,7 +86,7 @@ public class BuilderUtils<K, L, OUT, B> {
     }
 
     public BuilderUtils<K, L, OUT, B> tester(BiPredicate<State<K, L>, B> stTester) {
-        BiPredicate<State<K, L>, B> newTester = null;
+        BiPredicate<State<K, L>, B> newTester;
         if (timeoutStateTester != null) {
             newTester = (state, b) -> {
                 boolean expired = state.builderExpiration > 0 && state.builderExpiration - System.currentTimeMillis() <= 0;

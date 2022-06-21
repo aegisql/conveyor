@@ -117,7 +117,7 @@ public class ConveyorConfiguration {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static Conveyor<String, String, Conveyor> getBuildingConveyor() {
 
-		Conveyor<String, String, Conveyor> conveyorConfiguration = null;
+		Conveyor<String, String, Conveyor> conveyorConfiguration;
 		try {
 			conveyorConfiguration = Conveyor.byName("conveyorConfigurationBuilder");
 			if (!conveyorConfiguration.isRunning()) {

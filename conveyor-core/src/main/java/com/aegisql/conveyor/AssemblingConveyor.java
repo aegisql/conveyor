@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.*;
-import java.util.stream.Collectors;
 
 import static com.aegisql.conveyor.cart.LoadType.*;
 import static com.aegisql.conveyor.validation.CommonValidators.*;
@@ -608,7 +607,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * Process management commands.
 	 */
 	private void processManagementCommands() {
-		GeneralCommand<K, ?> cmdCart = null;
+		GeneralCommand<K, ?> cmdCart;
 		while ((cmdCart = mQueue.poll()) != null) {
 			var key = cmdCart.getKey();
 			if(key != null) {
@@ -664,7 +663,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 * Drain queues.
 	 */
 	protected void drainQueues() {
-		Cart<K, ?, L> cart = null;
+		Cart<K, ?, L> cart;
 		while ((cart = inQueue.poll()) != null) {
 			cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(this, cart.getKey(), cart, "Draining inQueue",
 					null, 

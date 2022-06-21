@@ -155,7 +155,7 @@ public class PersistenceProperty {
 		boolean isConveyorProperty = true;
 		boolean isDefaultProperty = false;
 		String name = null;
-		String convProperty = null;
+		String convProperty;
 		String schema = null;
 		String type = null;
 

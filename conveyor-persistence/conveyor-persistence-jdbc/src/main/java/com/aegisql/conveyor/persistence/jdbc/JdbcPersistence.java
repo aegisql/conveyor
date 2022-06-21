@@ -75,7 +75,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	private final EngineDepo<K> engine;
 
 	/** The min compact size. */
-	private int minCompactSize = 0;
+	private final int minCompactSize;
 
 	/** The Constant RESTORE_BUILD_COMMAND. */
 	private final static CommandLabel RESTORE_BUILD_COMMAND = CommandLabel.RESTORE_BUILD;

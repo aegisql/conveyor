@@ -882,7 +882,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @return the key sql type
 	 */
 	protected static <K> String getKeySqlType(Class<K> kClass) {
-		String keyType = null;
+		String keyType;
 		if(kClass == Integer.class) {
 			keyType = "INT";
 		} else if(kClass == Long.class) {
@@ -919,7 +919,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @return the field type
 	 */
 	protected static <K> String getFieldType(Class<K> kClass) {
-		String keyType = null;
+		String keyType;
 		if(kClass == Integer.class) {
 			keyType = "INT NOT NULL";
 		} else if(kClass == Long.class) {

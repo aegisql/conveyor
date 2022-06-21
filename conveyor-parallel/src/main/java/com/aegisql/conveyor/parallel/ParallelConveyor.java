@@ -733,7 +733,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	@Override
 	public ResultConsumerLoader<K, OUT> resultConsumer() {
 		return new ResultConsumerLoader<>(rcl->{
-			Cart<K,?,L> cart = null;
+			Cart<K,?,L> cart;
 			if(rcl.key != null) {
 				cart = new ResultConsumerCart<>(rcl.key, rcl.consumer, rcl.creationTime, rcl.expirationTime, rcl.priority);
 			} else {
