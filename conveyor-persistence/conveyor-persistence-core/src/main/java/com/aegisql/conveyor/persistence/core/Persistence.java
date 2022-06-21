@@ -63,7 +63,7 @@ public interface Persistence <K> extends Closeable {
 	 * @return the part
 	 */
 	default public <L> Cart<K, ?, L> getPart(long id) {
-		Collection<Cart<K, ?, L>> res = getParts(Arrays.asList(new Long(id)));
+		Collection<Cart<K, ?, L>> res = getParts(Arrays.asList(Long.valueOf(id)));
 		switch(res.size()) {
 		case 1:
 			return res.iterator().next();

@@ -172,7 +172,7 @@ public class CartTest {
 		}
 		for(int i = 0; i < 100; i++) {
 			Cart<Integer,?,?> c = q.poll();
-			assertEquals(new Integer(i), c.getKey());
+			assertEquals(Integer.valueOf(i), c.getKey());
 		}
 	}
 

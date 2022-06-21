@@ -33,7 +33,7 @@ public enum UserBuilderEvents4 implements SmartLabel<UserBuilderTestingState> {
 	 * Instantiates a new user builder events2.
 	 *
 	 * @param <T> the generic type
-	 * @param setter the setter
+	 * @param inner the setter
 	 */
 	<T> UserBuilderEvents4(SmartLabel<UserBuilderTestingState> inner) {
 		this.inner = inner;

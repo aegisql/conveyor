@@ -83,7 +83,7 @@ public class DelayLineConveyorTest {
 		CompletableFuture<Integer> last = c.future().ttl(Duration.ofMillis(150)).id(5).get();
 		c.part().id(5).value(5).place();
 		
-		assertEquals(new Integer(5), last.get());
+		assertEquals(Integer.valueOf(5), last.get());
 		
 		assertEquals(1, res.get(0).intValue());
 		assertEquals(2, res.get(1).intValue());

@@ -789,11 +789,11 @@ public class ReflectingValueConsumerTest {
 		sc.setReadinessEvaluator(Conveyor.getTesterFor(sc).accepted("@done"));
 		//init variables using static parts. Note '@' at the end - meaning 'do nothing with created object'
 
-		StaticPartLoader<String> stаticLoader = sc.staticPart();
-		stаticLoader.label("(map phones).computeIfAbsent(PhoneType HOME,key->new set).@").place();
-		stаticLoader.label("(map phones).computeIfAbsent(PhoneType WORK,key->new set).@").place();
-		stаticLoader.label("(map phones).computeIfAbsent(PhoneType CELL,key->new set).@").place();
-		stаticLoader.label("(map reversedPhones).@").place();
+		StaticPartLoader<String> staticPartLoader = sc.staticPart();
+		staticPartLoader.label("(map phones).computeIfAbsent(PhoneType HOME,key->new set).@").place();
+		staticPartLoader.label("(map phones).computeIfAbsent(PhoneType WORK,key->new set).@").place();
+		staticPartLoader.label("(map phones).computeIfAbsent(PhoneType CELL,key->new set).@").place();
+		staticPartLoader.label("(map reversedPhones).@").place();
 
 		PartLoader<Integer, String> loader = sc.part().id(1);
 		//Just set first and last name

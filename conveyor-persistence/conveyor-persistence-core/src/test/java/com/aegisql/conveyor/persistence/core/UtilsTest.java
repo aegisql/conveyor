@@ -48,7 +48,7 @@ public class UtilsTest {
 
 	@Test
 	public void testSaveAndReadCarts() throws IOException, ClassNotFoundException {
-		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(1, "test", "label");
+		Cart<Integer,String,String> c1 = new ShoppingCart<>(1, "test", "label");
 		System.out.println("C1="+c1);
 		String cartFile = "./test.cart";
 		FileUtils.deleteQuietly(new File(cartFile));
@@ -67,9 +67,10 @@ public class UtilsTest {
 	public void testZip() throws Exception {
 		FileUtils.deleteQuietly(new File("testZip"));
 		File test = new File("testZip");
-		test.mkdirs();
-		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(1, "test1", "label1");
-		Cart<Integer,String,String> c2 = new ShoppingCart<Integer, String, String>(2, "test2", "label2");
+		assertTrue(test.mkdirs());
+		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "test1", "label1");
+		Cart<Integer,String,String> c2;
+		c2 = new ShoppingCart<>(2, "test2", "label2");
 		String cartFile1 = "./testZip/test1.cart";
 		PersistUtils.saveCart(cartFile1, c1);
 		String cartFile2 = "./testZip/test2.cart";
@@ -81,13 +82,13 @@ public class UtilsTest {
 	public void testListBalancer() {
 		Collection<Long> col = new ArrayList<>();
 		
-		for(int i = 0; i < 10_000; i++) {
-			col.add(new Long(i));
+		for(long i = 0; i < 10_000; i++) {
+			col.add(i);
 		}
 		
 		Collection<Collection<Long>> b1 = PersistUtils.balanceIdList(col,1000);
 		assertEquals(10, b1.size());
-		col.add(new Long(0));
+		col.add(0L);
 		Collection<Collection<Long>> b2 = PersistUtils.balanceIdList(col,1000);
 		assertEquals(11, b2.size());
 	}

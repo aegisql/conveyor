@@ -628,7 +628,7 @@ public class PersistentConveyorTest {
 		assertEquals(2, parts1.size());//MEMENTO,i==2000
 		pl.label(SummBuilder.SummStep.DONE).place().join();
 		System.out.println(res);
-		assertEquals(new Long(2001000),res.getCurrent());
+		assertEquals(Long.valueOf(2001000),res.getCurrent());
 	}
 	
 }

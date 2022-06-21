@@ -167,6 +167,7 @@ public class MariadbPersistenceTest {
 		
 		assertNotNull(p);
 		Cart<Integer,String,String> cart = new ShoppingCart<Integer, String, String>(100, "test", "label");
+		cart.addProperty("ADDON","TEST");
 		p.savePart(1, cart);
 		Cart restored = p.getPart(1);
 		assertNotNull(restored);

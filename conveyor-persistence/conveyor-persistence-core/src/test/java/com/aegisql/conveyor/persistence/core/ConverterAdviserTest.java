@@ -42,9 +42,9 @@ public class ConverterAdviserTest implements Serializable {
 		ConverterAdviser<String> ca = new ConverterAdviser<>();
 		ObjectConverter<Object, byte[]> oc = ca.getConverter("test", Integer.class);
 		ObjectConverter<Object, byte[]> oc2 = ca.getConverter("test", oc.conversionHint());
-		byte[] res = oc.toPersistence(new Integer(1));
+		byte[] res = oc.toPersistence(Integer.valueOf(1));
 		Integer x = (Integer) oc.fromPersistence(res);
-		assertEquals(new Integer(1), x);
+		assertEquals(Integer.valueOf(1), x);
 		assertEquals(oc.conversionHint(),oc2.conversionHint());
 	}
 

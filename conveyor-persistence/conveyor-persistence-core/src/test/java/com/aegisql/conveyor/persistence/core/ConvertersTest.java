@@ -503,9 +503,9 @@ public class ConvertersTest {
 		assertTrue(m2.containsKey("one"));
 		assertTrue(m2.containsKey("two"));
 		assertTrue(m2.containsKey("three"));
-		assertEquals(new Integer(1), m2.get("one"));
-		assertEquals(new Integer(2), m2.get("two"));
-		assertEquals(new Integer(3), m2.get("three"));
+		assertEquals(Integer.valueOf(1), m2.get("one"));
+		assertEquals(Integer.valueOf(2), m2.get("two"));
+		assertEquals(Integer.valueOf(3), m2.get("three"));
 		
 	}
 

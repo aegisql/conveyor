@@ -156,8 +156,8 @@ public class ConfigUtilsTest {
 		assertFalse(i2==i1);
 		assertEquals("test2", s1.get());
 		assertEquals("test2", s2.get());
-		assertEquals(new Integer(3), i1.get());
-		assertEquals(new Integer(3), i2.get());
+		assertEquals(Integer.valueOf(3), i1.get());
+		assertEquals(Integer.valueOf(3), i2.get());
 	}
 
 	

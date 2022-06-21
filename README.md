@@ -98,6 +98,7 @@ conveyor configurator
 ### 1.6.1-SNAPSHOT
 * Java 17
 * Updated drivers
+* Code cleanup
 
 ### 1.5.3
 * Extended persistence connectivity with data sources and connection pools
