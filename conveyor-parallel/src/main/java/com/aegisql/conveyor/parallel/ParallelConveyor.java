@@ -54,7 +54,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	
 	protected volatile boolean suspended = false;
 	
-	protected CompletableFuture<Boolean> conveyorFuture = null;
+	protected volatile CompletableFuture<Boolean> conveyorFuture = null;
 	
 	private final Object conveyorFutureLock = new Object();
 	

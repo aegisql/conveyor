@@ -170,7 +170,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected final Set<L> acceptedLabels = new HashSet<>();
 
 	/** The conveyor future. */
-	protected CompletableFuture<Boolean> conveyorFuture = null;
+	protected volatile CompletableFuture<Boolean> conveyorFuture = null;
 	
 	/** The conveyor future lock. */
 	private final Object conveyorFutureLock = new Object();
