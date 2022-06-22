@@ -27,7 +27,7 @@ public class BatchConveyor <V> extends AssemblingConveyor<String, SmartLabel<Bat
 	
 	public static final BatchComplete COMPLETE = new BatchComplete();
 	
-	public final SmartLabel<BatchCollectingBuilder<V>> BATCH = SmartLabel.<BatchCollectingBuilder<V>,V>of((b,v)-> BatchCollectingBuilder.add(b, v)).intercept(Iterable.class, (b, v)->{
+	public final SmartLabel<BatchCollectingBuilder<V>> BATCH = SmartLabel.<BatchCollectingBuilder<V>,V>of(BatchCollectingBuilder::add).intercept(Iterable.class, (b, v)->{
 		v.forEach(val-> BatchCollectingBuilder.add(b, (V)val));
 	}).intercept(BatchComplete.class, BatchCollectingBuilder::complete);
 

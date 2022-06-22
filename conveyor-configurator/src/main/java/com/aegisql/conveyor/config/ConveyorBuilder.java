@@ -313,20 +313,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 							case "archiveStrategy":
 								ArchiveStrategy as = ArchiveStrategy.valueOf(p.getValueAsString());
 								switch (as) {
-								case NO_ACTION:
-									dp = dp.noArchiving();
-									break;
-								case DELETE:
-									dp = dp.deleteArchiving();
-									break;
-								case SET_ARCHIVED:
-									dp = dp.setArchived();
-									break;
-								case MOVE_TO_FILE:
-									dp = dp.archiver(bLogConf.build());
-									break;
-									default:
-									break;
+									case NO_ACTION -> dp = dp.noArchiving();
+									case DELETE -> dp = dp.deleteArchiving();
+									case SET_ARCHIVED -> dp = dp.setArchived();
+									case MOVE_TO_FILE -> dp = dp.archiver(bLogConf.build());
+									default -> {
+									}
 								}
 								break;
 							case "archiveStrategy.archiver":
