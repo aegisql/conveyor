@@ -1,6 +1,7 @@
 package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.consumers.result.ObservableResultConsumer;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
 import com.aegisql.conveyor.reflection.ReflectingValueConsumer;
@@ -187,27 +188,39 @@ public class ReflectingValueConsumerTest {
 	@Test
 	public void testA() {
 	ReflectingValueConsumer vc = new ReflectingValueConsumer();
-	A a = new A();
-	vc.accept("setVal", "test", a);
-	assertEquals("test",a.getVal());
+		vc.setEnablePathCaching(true);
+		vc.setPathAlias("setVal","set-val");
+		A a = new A();
+		vc.accept("setVal", "test", a);
+		assertEquals("test",a.getVal());
+		vc.accept("set-val", "TEST", a);
+		assertEquals("TEST",a.getVal());
 	}
 
 	@Test
 	public void testB() {
-	ReflectingValueConsumer vc = new ReflectingValueConsumer();
-	B a = new B();
-	vc.accept("setVal", "test", a);
-	vc.accept("setX", 100, a);
-	assertEquals("test",a.getVal());
-	assertEquals(100,a.getX());
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		B a = new B();
+		vc.accept("setVal", "test", a);
+		vc.accept("setX", 100, a);
+		assertEquals("test",a.getVal());
+		assertEquals(100,a.getX());
 	}
 
 	@Test(expected=RuntimeException.class)
 	public void testAFailure() {
 	ReflectingValueConsumer vc = new ReflectingValueConsumer();
 	A a = new A();
-	vc.accept("setValue", "test", a);
+	vc.accept("setValue", "test", a);//no value setter
 	}
+
+	@Test(expected= ConveyorRuntimeException.class)
+	public void testEmptyLabelFailure() {
+		ReflectingValueConsumer vc = new ReflectingValueConsumer();
+		A a = new A();
+		vc.accept("", "test", a);//no empty setter
+	}
+
 
 	@Test
 	public void testC() {

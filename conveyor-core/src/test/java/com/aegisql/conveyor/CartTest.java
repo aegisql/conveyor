@@ -3,10 +3,6 @@
  */
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -14,6 +10,7 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import com.aegisql.conveyor.validation.CommonValidators;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -23,6 +20,8 @@ import org.junit.Test;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.ShoppingCart;
+
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -172,5 +171,15 @@ public class CartTest {
 		}
 	}
 
-	
+	@Test
+	public void nullValueCastingShouldWorkTest() {
+		Cart<String,String,String> c1 = new ShoppingCart<>("k",null,"l1",0,0,null,LoadType.PART,0);
+		assertNull(c1.getValue(String.class));
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void cartNullValueValidationTests() {
+		Cart c1 = new ShoppingCart<>("k",null,"l1",0,0,null,LoadType.PART,0);
+		CommonValidators.CART_VALUE_NOT_NULL().accept(c1);
+	}
 }

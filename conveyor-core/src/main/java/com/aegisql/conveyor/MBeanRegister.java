@@ -33,8 +33,9 @@ enum MBeanRegister {
      * @return the conveyor
      */
     public Conveyor byName(String name) {
+        var type = getType(name);
         try {
-            var type = getType(name);
+
             if(knownConveyors.containsKey(type)) {
                 return knownConveyors.get(type);
             }
@@ -43,7 +44,7 @@ enum MBeanRegister {
             knownConveyors.put(type,conveyor);
             return conveyor;
         } catch (Exception e) {
-            throw new ConveyorRuntimeException("Conveyor with name '"+name +"' not found",e);
+            throw new ConveyorRuntimeException("Conveyor with name '"+type +"' not found",e);
         }
     }
 
@@ -96,6 +97,10 @@ enum MBeanRegister {
         } catch (Exception e) {
             throw new ConveyorRuntimeException("Unregister conveyor with name '"+name +"' with issues",e);
         }
+    }
+
+    public void resetConveyor(String name) {
+        knownConveyors.remove(getType(name));
     }
 
     public Set<String> getKnownConveyorNames() {

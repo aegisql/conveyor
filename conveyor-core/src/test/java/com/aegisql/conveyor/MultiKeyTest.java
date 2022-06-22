@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.aegisql.conveyor.cart.Load;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -193,6 +194,16 @@ public class MultiKeyTest {
 		assertEquals("LAST",u.getLast());
 		assertEquals(1999,u.getYearOfBirth());
 		assertEquals(1, counter.get());
+	}
+
+	@Test
+	public void multyKeyCartTest() {
+		MultiKeyCart<Integer,String,String> mc = new MultiKeyCart<>(k->true,"val","label",0,0);
+		Load<Integer, String> load = mc.getValue();
+		assertNotNull(load);
+		String value = load.getValue();
+		assertNotNull(value);
+		assertEquals(0,mc.compareTo(null));
 	}
 
 }

@@ -88,6 +88,15 @@ public class ProductSupplierTest {
 		ps = ps.readyAlgorithm(b->false);
 		assertTrue(ps instanceof Testing);
 		assertFalse(((Testing)ps).test());
+		assertNotNull(ps.getSupplier());
+		ps=ps.expires(new Expireable() {
+			@Override
+			public long getExpirationTime() {
+				return 10000;
+			}
+		});
+		long expirationTime = ((ProductSupplier.PET) ps).getExpirationTime();
+		assertEquals(10000,expirationTime);
 	}
 
 	/**

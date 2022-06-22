@@ -5,7 +5,7 @@ Reactive Aggregation and Creation for Enterprise
 
 ### Maven dependencies
 
-## For JAVA11 & OpenJDK
+## For JAVA11, JAVA17 & OpenJDK
 conveyor-core
 ```xml
 <dependency>
@@ -99,6 +99,8 @@ conveyor configurator
 * Java 17
 * Updated drivers
 * Code cleanup
+* Tests
+* Minor bugfixes
 
 ### 1.5.3
 * Extended persistence connectivity with data sources and connection pools

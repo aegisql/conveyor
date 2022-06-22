@@ -19,7 +19,7 @@ public class FutureCartTest {
         FutureCart<Integer,String,String> fc2 = new FutureCart<>(1,f2,1,0,new HashMap<>(),0);
         assertNotNull(fc1.getValue());
         assertNotNull(fc1.get());
-        assertNotNull(fc2.getValue());
+        assertNotNull(fc2.getValue(String.class));
         assertNotNull(fc1.copy());
 
         ScrapConsumer<Integer, Cart<Integer, CompletableFuture<String>, String>> sc1 = fc1.getScrapConsumer();
