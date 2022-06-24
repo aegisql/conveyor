@@ -15,8 +15,8 @@ public enum DataSize {
 	,EB(PB.multiplier.multiply(BigDecimal.valueOf(1024)));
 	
 	private static class SDataSize {
-		private DataSize ds  = B;
-		private String   val = "-1";
+		private DataSize ds;
+		private String   val;
 		
 		private final static String types = "BKMGTPE";
 		

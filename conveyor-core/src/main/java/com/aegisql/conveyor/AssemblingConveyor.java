@@ -236,6 +236,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			rLock.lock();
 			try {
 				if (suspended || q.isEmpty()) {
+					//noinspection ResultOfMethodCallIgnored
 					hasCarts.await(expirationCollectionInterval, expirationCollectionUnit);
 				}
 			} finally {

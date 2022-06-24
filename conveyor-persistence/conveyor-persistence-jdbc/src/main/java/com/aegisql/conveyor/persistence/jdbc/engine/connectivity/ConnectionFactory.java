@@ -73,7 +73,7 @@ public class ConnectionFactory <T extends DataSource> {
     /**
      * The Data source initializer.
      */
-    protected Function<ConnectionFactory<T>,T> dataSourceInitializer = thiz->dataSource;
+    protected Function<ConnectionFactory<T>,T> dataSourceInitializer;
 
     /**
      * The Caching connection supplier.

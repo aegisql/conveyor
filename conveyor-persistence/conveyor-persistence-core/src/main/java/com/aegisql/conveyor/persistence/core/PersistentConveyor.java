@@ -44,8 +44,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private final PersistenceCleanupBatchConveyor<K> cleaner;
 
 	/** The result consumer. */
-	private ResultConsumer<K, OUT> resultConsumer = bin -> {
-	};
+	private ResultConsumer<K, OUT> resultConsumer;
 
 	/** The forward persistence. */
 	private final Persistence<K> forwardPersistence;
@@ -132,7 +131,6 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		} catch (IOException e) {
 			throw new PersistenceException(e.getMessage(), e);
 		}
-		this.ackConveyor.setInitializationMode(false);
 		this.ackConveyor.staticPart().label(ackConveyor.MODE).value(false).place().join();
 	}
 
@@ -235,9 +233,7 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public BuilderLoader<K, OUT> build() {
 		return new BuilderLoader<>(cl -> {
 			BuilderSupplier<OUT> bs = cl.value;
-			if (bs == null) {
-				// bs = builderSupplier;
-			}
+			// bs = builderSupplier;
 			final CreatingCart<K, OUT, L> cart = new CreatingCart<>(cl.key, bs, cl.creationTime,
 					cl.expirationTime, cl.priority);
 			cl.getAllProperties().forEach(cart::addProperty);

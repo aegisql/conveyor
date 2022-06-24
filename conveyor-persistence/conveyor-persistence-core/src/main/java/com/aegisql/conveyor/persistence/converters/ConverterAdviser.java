@@ -64,7 +64,7 @@ public class ConverterAdviser <L> {
 	private final NullConverter nc = new NullConverter();
 	
 	/** The default converter. */
-	private ObjectConverter<Object, byte[]> defaultConverter = (ObjectConverter)new SerializableToBytesConverter<>();
+	private ObjectConverter<Object, byte[]> defaultConverter = new SerializableToBytesConverter();
 	
 	/** The Constant NULL_CONVERTER. */
 	private final static ObjectConverter<Object, byte[]> NULL_CONVERTER = new NullConverter();

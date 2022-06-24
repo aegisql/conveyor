@@ -37,7 +37,6 @@ public class PersistenceProperty {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("PersistenceProperty [");
 		return "PersistenceProperty [isPersistenceProperty=" + isPersistenceProperty + ", isDefaultProperty="
 				+ isDefaultProperty + ", " + (name != null ? "name=" + name + ", " : "")
 				+ (property != null ? "property=" + property : "") + "]";

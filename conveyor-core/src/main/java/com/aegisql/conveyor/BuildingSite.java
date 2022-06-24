@@ -610,9 +610,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				+ (initialCart != null ? "initialCart=" + initialCart + ", " : "") + "acceptCount=" + acceptCount
 				+ ", builderCreated=" + builderCreated + ", builderExpiration=" + expireableSource.getExpirationTime() + ", "
 				+ (status != null ? "status=" + status + ", " : "")
-                + (getDelayMsec() == Long.MAX_VALUE ? "unexpireable":"delay="+getDelayMsec()) + ", "
+				+ (getDelayMsec() == Long.MAX_VALUE ? "unexpireable" : "delay=" + getDelayMsec()) + ", "
 				+ (lastError != null ? "lastError=" + lastError + ", " : "")
-				+ (eventHistory != null ? "eventHistory=" + eventHistory : "") + "]";
+				+ "eventHistory=" + eventHistory + "]";
 	}
 
 	/**

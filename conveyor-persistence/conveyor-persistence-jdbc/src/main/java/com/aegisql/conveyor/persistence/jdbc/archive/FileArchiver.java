@@ -102,6 +102,7 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 							}
 						}
 					}
+					//noinspection ResultOfMethodCallIgnored
 					new File(renameName).delete();
 					LOG.debug("{} file reached limit of {} and were moved to {}",originalName,bLogConf.getMaxSize(),zipName);
 				} else {

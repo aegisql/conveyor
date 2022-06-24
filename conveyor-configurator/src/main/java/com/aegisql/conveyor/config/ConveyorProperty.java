@@ -33,7 +33,6 @@ public class ConveyorProperty {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("ConveyorProperty [");
 		return "ConveyorProperty [isConveyorProperty=" + isConveyorProperty + ", isDefaultProperty=" + isDefaultProperty
 				+ ", " + (name != null ? "name=" + name + ", " : "") + (property != null ? "property=" + property : "")
 				+ "]";

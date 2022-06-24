@@ -41,9 +41,6 @@ public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, Smart
 
 	public final SmartLabel<AcknowledgeBuilder<K>> MIN_COMPACT   = SmartLabel.of("MIN_COMPACT", (b,key)-> AcknowledgeBuilder.minCompactSize(b, (Integer)key));
 
-	/** The initialization mode. */
-	private final AtomicBoolean initializationMode = new AtomicBoolean(true);
-
 	/**
 	 * Instantiates a new acknowledge building conveyor.
 	 *
@@ -59,14 +56,5 @@ public class AcknowledgeBuildingConveyor <K> extends AssemblingConveyor<K, Smart
 		this.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		this.resultConsumer(bin-> LOG.debug("{} {}",bin.key,bin.product ?" COMPLETE":" UNLOADED")).set();
 	}
-	
-	/**
-	 * Sets the initialization mode.
-	 *
-	 * @param mode the new initialization mode
-	 */
-	public void setInitializationMode(boolean mode) {
-		this.initializationMode.set(mode);
-	}
-	
+
 }

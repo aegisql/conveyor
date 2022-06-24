@@ -372,10 +372,8 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 							case "addUniqueFields":
 								String[] fields = p.getValueAsString().split(",");
 								List<String> fl = new ArrayList<>();
-								if(fields != null) {
-									for(String f:fields) {
-										fl.add(f.trim());
-									}
+								for(String f:fields) {
+									fl.add(f.trim());
 								}
 								dp = dp.addUniqueFields(fl);
 								break;
@@ -895,7 +893,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	public static void allFilesReadSuccessfully(ConveyorBuilder b, Boolean readOk) {
 		LOG.debug("Applying allFilesReadSuccessfully={}", readOk);
 		if (readOk) {
-			b.allFilesRead = readOk;
+			b.allFilesRead = true;
 		} else {
 			throw new ConveyorConfigurationException(
 					"Conveyor initialization terminated because of file reading issue");
@@ -1039,7 +1037,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	@Override
 	public String toString() {
-		return "ConveyorBuilder [" + (dependencies != null ? "dependencies=" + dependencies + ", " : "")
+		return "ConveyorBuilder [" + "dependencies=" + dependencies + ", "
 				+ "allFilesRead=" + allFilesRead + ", " + (lParallel != null ? "lParallel=" + lParallel + ", " : "")
 				+ (completed != null ? "completed=" + completed + ", " : "")
 				+ (constructor != null ? "constructor=" + constructor + ", " : "")
@@ -1048,8 +1046,8 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				+ (idleHeartBeat != null ? "idleHeartBeat=" + idleHeartBeat + ", " : "")
 				+ (defaultBuilderTimeout != null ? "defaultBuilderTimeout=" + defaultBuilderTimeout + ", " : "")
 				+ (rejectUnexpireableCartsOlderThan != null
-						? "rejectUnexpireableCartsOlderThan=" + rejectUnexpireableCartsOlderThan + ", "
-						: "")
+				? "rejectUnexpireableCartsOlderThan=" + rejectUnexpireableCartsOlderThan + ", "
+				: "")
 				+ (expirationPostponeTime != null ? "expirationPostponeTime=" + expirationPostponeTime + ", " : "")
 				+ (staticParts != null ? "staticParts=" + staticParts + ", " : "")
 				+ (firstResultConsumer != null ? "firstResultConsumer=" + firstResultConsumer + ", " : "")
@@ -1062,25 +1060,25 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				+ (readinessEvaluatorP != null ? "readinessEvaluatorP=" + readinessEvaluatorP + ", " : "")
 				+ (builderSupplier != null ? "builderSupplier=" + builderSupplier + ", " : "")
 				+ (addCartBeforePlacementValidator != null
-						? "addCartBeforePlacementValidator=" + addCartBeforePlacementValidator + ", "
-						: "")
+				? "addCartBeforePlacementValidator=" + addCartBeforePlacementValidator + ", "
+				: "")
 				+ (addBeforeKeyEvictionAction != null
-						? "addBeforeKeyEvictionAction=" + addBeforeKeyEvictionAction + ", "
-						: "")
+				? "addBeforeKeyEvictionAction=" + addBeforeKeyEvictionAction + ", "
+				: "")
 				+ (addBeforeKeyReschedulingAction != null
-						? "addBeforeKeyReschedulingAction=" + addBeforeKeyReschedulingAction + ", "
-						: "")
+				? "addBeforeKeyReschedulingAction=" + addBeforeKeyReschedulingAction + ", "
+				: "")
 				+ (acceptedLabels != null ? "acceptLabels=" + acceptedLabels + ", " : "")
 				+ (enablePostponeExpiration != null ? "enablePostponeExpiration=" + enablePostponeExpiration + ", "
-						: "")
+				: "")
 				+ (enablePostponeExpirationOnTimeout != null
-						? "enablePostponeExpirationOnTimeout=" + enablePostponeExpirationOnTimeout + ", "
-						: "")
+				? "enablePostponeExpirationOnTimeout=" + enablePostponeExpirationOnTimeout + ", "
+				: "")
 				+ (autoAcknowledge != null ? "autoAcknowledge=" + autoAcknowledge + ", " : "")
 				+ (acknowledgeAction != null ? "acknowledgeAction=" + acknowledgeAction + ", " : "")
 				+ (autoAcknowledgeOnStatus != null
-						? "autoAcknowledgeOnStatus=" + Arrays.toString(autoAcknowledgeOnStatus) + ", "
-						: "")
+				? "autoAcknowledgeOnStatus=" + Arrays.toString(autoAcknowledgeOnStatus) + ", "
+				: "")
 				+ (cartPayloadAccessor != null ? "cartPayloadAccessor=" + cartPayloadAccessor + ", " : "")
 				+ (forward != null ? "forward=" + forward + ", " : "") + "parallelFactor=" + parallelFactor + ", "
 				+ (persistence != null ? "persistence=" + persistence : "") + "]";
