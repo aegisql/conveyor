@@ -227,10 +227,10 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 					Class keyClass = Class.forName(keyProperty.getValueAsString());
 
-					JdbcPersistenceBuilder dp = JdbcPersistenceBuilder.presetInitializer(pp.getType().toLowerCase(),keyClass);
-					dp = dp.autoInit(true);
-					dp = dp.schema(pp.getSchema());
-					dp = dp.partTable(pp.getName());
+					JdbcPersistenceBuilder pb = JdbcPersistenceBuilder.presetInitializer(pp.getType().toLowerCase(),keyClass);
+					pb = pb.autoInit(true);
+					pb = pb.schema(pp.getSchema());
+					pb = pb.partTable(pp.getName());
 
 					BinaryLogConfigurationBuilder bLogConf = BinaryLogConfiguration.builder();
 					bLogConf.partTableName(pp.getName());
@@ -242,108 +242,108 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 							case "keyClass": //already set
 								break;
 							case "database":
-								dp = dp.database(p.getValueAsString());
+								pb = pb.database(p.getValueAsString());
 								break;
 							case "autoInit":
-								dp = dp.autoInit(Boolean.parseBoolean(p.getValueAsString()));
+								pb = pb.autoInit(Boolean.parseBoolean(p.getValueAsString()));
 								break;
 							case "restoreOrder":
-								dp = dp.restoreOrder(RestoreOrder.valueOf(p.getValueAsString()));
+								pb = pb.restoreOrder(RestoreOrder.valueOf(p.getValueAsString()));
 								break;
 							case "username":
-								dp = dp.user(p.getValueAsString());
+								pb = pb.user(p.getValueAsString());
 								break;
 							case "password":
-								dp = dp.password(p.getValueAsString());
+								pb = pb.password(p.getValueAsString());
 								break;
 							case "completedLogTable":
-								dp = dp.completedLogTable(p.getValueAsString());
+								pb = pb.completedLogTable(p.getValueAsString());
 								break;
 							case "host":
-								dp = dp.host(p.getValueAsString());
+								pb = pb.host(p.getValueAsString());
 								break;
 							case "port":
-								dp = dp.port(Integer.parseInt(p.getValueAsString()));
+								pb = pb.port(Integer.parseInt(p.getValueAsString()));
 								break;
 							case "encryptionAlgorithm":
-								dp = dp.encryptionAlgorithm(p.getValueAsString());
+								pb = pb.encryptionAlgorithm(p.getValueAsString());
 								break;
 							case "encryptionTransformation":
-								dp = dp.encryptionTransformation(p.getValueAsString());
+								pb = pb.encryptionTransformation(p.getValueAsString());
 								break;
 							case "encryptionKeyLength":
-								dp = dp.encryptionKeyLength(Integer.parseInt(p.getValueAsString()));
+								pb = pb.encryptionKeyLength(Integer.parseInt(p.getValueAsString()));
 								break;
 							case "encryptionSecret":
-								dp = dp.encryptionSecret(p.getValueAsString());
+								pb = pb.encryptionSecret(p.getValueAsString());
 								break;
 							case "maxBatchSize":
-								dp = dp.maxBatchSize(Integer.parseInt(p.getValueAsString()));
+								pb = pb.maxBatchSize(Integer.parseInt(p.getValueAsString()));
 								break;
 							case "doNotSaveProperties":
 								String[] parts = p.getValueAsString().split(",");
 								for (String part : parts) {
-									dp = dp.doNotSaveCartProperties(part.trim());
+									pb = pb.doNotSaveCartProperties(part.trim());
 								}
 								break;
 							case "maxBatchTime":
 								Long value = (Long) ConfigUtils.timeToMillsConverter.apply(p.getValueAsString());
-								dp = dp.maxBatchTime(Duration.ofMillis(value));
+								pb = pb.maxBatchTime(Duration.ofMillis(value));
 								break;
 							case "archiveStrategy.path":
 								bLogConf.path(p.getValueAsString());
-								dp = dp.archiver(bLogConf.build());
+								pb = pb.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy.moveTo":
 								bLogConf.moveToPath(p.getValueAsString());
-								dp = dp.archiver(bLogConf.build());
+								pb = pb.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy.maxFileSize":
 								bLogConf.maxFileSize(p.getValueAsString());
-								dp = dp.archiver(bLogConf.build());
+								pb = pb.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy.bucketSize":
 								bLogConf.bucketSize(Integer.parseInt(p.getValueAsString()));
-								dp = dp.archiver(bLogConf.build());
+								pb = pb.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy.zip":
 								bLogConf.zipFile(Boolean.parseBoolean(p.getValueAsString()));
-								dp = dp.archiver(bLogConf.build());
+								pb = pb.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy":
 								ArchiveStrategy as = ArchiveStrategy.valueOf(p.getValueAsString());
 								switch (as) {
-									case NO_ACTION -> dp = dp.noArchiving();
-									case DELETE -> dp = dp.deleteArchiving();
-									case SET_ARCHIVED -> dp = dp.setArchived();
-									case MOVE_TO_FILE -> dp = dp.archiver(bLogConf.build());
+									case NO_ACTION -> pb = pb.noArchiving();
+									case DELETE -> pb = pb.deleteArchiving();
+									case SET_ARCHIVED -> pb = pb.setArchived();
+									case MOVE_TO_FILE -> pb = pb.archiver(bLogConf.build());
 									default -> {
 									}
 								}
 								break;
 							case "archiveStrategy.archiver":
 								Archiver ar = ConfigUtils.stringToArchiverConverter.apply(p.getValueAsString());
-								dp = dp.archiver(ar);
+								pb = pb.archiver(ar);
 								LOG.warn("Unimplemented PersistentProperty {}", p);
 								break;
 							case "archiveStrategy.persistence":
 								Persistence per = Persistence.byName(p.getValueAsString());
-								dp = dp.archiver(per);
+								pb = pb.archiver(per);
 								break;
 							case "labelConverter":
 								try {
 									Class clas = Class.forName(p.getValueAsString());
-									dp = dp.labelConverter(clas);
+									pb = pb.labelConverter(clas);
 									LOG.debug("Label converter {}", clas.getName());
 								} catch (Exception e) {
 									ObjectConverter oc = ConfigUtils.stringToObjectConverter
 											.apply(p.getValueAsString());
-									dp = dp.labelConverter(oc);
+									pb = pb.labelConverter(oc);
 									LOG.debug("Label converter {}", oc.conversionHint());
 								}
 								break;
 							case "idSupplier":
-								dp = dp.idSupplier(ConfigUtils.stringToIdSupplier.apply(p.getValueAsString()));
+								pb = pb.idSupplier(ConfigUtils.stringToIdSupplier.apply(p.getValueAsString()));
 								LOG.warn("Unimplemented PersistentProperty {}", p);
 								break;
 							case "addBinaryConverter":
@@ -352,10 +352,10 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								.apply(s[1].trim());
 								try {
 									Class clas = Class.forName(s[0].trim());
-									dp = dp.addBinaryConverter(clas, oc);
+									pb = pb.addBinaryConverter(clas, oc);
 								} catch (Exception e) {
 									Object label = ConfigUtils.stringToRefConverter.apply(s[0]);
-									dp = dp.addBinaryConverter(label, oc);
+									pb = pb.addBinaryConverter(label, oc);
 								}
 								break;
 							case "addField":
@@ -363,10 +363,10 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								Class fieldClass = Class.forName(classFieldName[0].trim());
 								String name = classFieldName[1].trim();
 								if(classFieldName.length == 2) {
-									dp = dp.addField(fieldClass, name);
+									pb = pb.addField(fieldClass, name);
 								} else {
 									Function accessor = (Function)ConfigUtils.stringToFunctionSupplier.apply(classFieldName[2].trim());
-									dp = dp.addField(fieldClass, name, accessor);
+									pb = pb.addField(fieldClass, name, accessor);
 								}
 								break;
 							case "addUniqueFields":
@@ -375,10 +375,10 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								for(String f:fields) {
 									fl.add(f.trim());
 								}
-								dp = dp.addUniqueFields(fl);
+								pb = pb.addUniqueFields(fl);
 								break;
 							case "minCompactSize":
-								dp = dp.minCompactSize(Integer.parseInt(p.getValueAsString()));
+								pb = pb.minCompactSize(Integer.parseInt(p.getValueAsString()));
 								LOG.warn("minCompactSize PersistentProperty {}", p);
 								break;
 							default:
@@ -386,7 +386,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								break;
 							}
 						}
-					dp.build();
+					pb.build();
 					persistence = "com.aegisql.conveyor.persistence."+pp.getType().toLowerCase()+"."+pp.getSchema()+":type="+pp.getName();
 					LOG.debug("Created Persistence {}",persistence);
 				
