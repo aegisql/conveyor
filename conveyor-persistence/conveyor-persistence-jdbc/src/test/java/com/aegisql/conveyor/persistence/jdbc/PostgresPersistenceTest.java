@@ -28,8 +28,8 @@ public class PostgresPersistenceTest {
 			.autoInit(true)
 			.database("conveyor_db_test")
 			.schema("conveyor_db_test")
-			.user("postgres")
-			.password("root");
+			.user(Tester.getPostgresUser())
+			.password(Tester.getPostgresPassword());
 	
 	
 	@BeforeClass
@@ -169,8 +169,8 @@ public class PostgresPersistenceTest {
 		JdbcPersistenceBuilder<Integer> jpb = persistenceBuilder
 				.partTable("PART2")
 				.completedLogTable("COMPLETED_LOG2")
-				.user("postgres")
-				.password("root")
+				.user(Tester.getPostgresUser())
+				.password(Tester.getPostgresPassword())
 				;
 		
 		JdbcPersistence<Integer> p = jpb.build();

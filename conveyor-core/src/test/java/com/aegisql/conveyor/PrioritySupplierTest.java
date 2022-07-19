@@ -3,6 +3,7 @@ package com.aegisql.conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
 import org.junit.Test;
 
@@ -10,6 +11,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class PrioritySupplierTest {
 
@@ -292,5 +294,19 @@ public class PrioritySupplierTest {
         assertEquals("v2-1 v2-2",r2.toString());// 1 completed before 2
     }
 
+    @Test
+    public void valueOfReturnSuppliers() {
+        assertNotNull(Priority.valueOf("fifo"));
+        assertNotNull(Priority.valueOf("filo"));
+        assertNotNull(Priority.valueOf("NEWEST_FIRST"));
+        assertNotNull(Priority.valueOf("OLDEST_FIRST"));
+        assertNotNull(Priority.valueOf("EXPIRE_SOONER_FIRST"));
+        assertNotNull(Priority.valueOf("PRIORITIZED"));
+    }
+
+    @Test(expected = ConveyorRuntimeException.class)
+    public void valueOfFails() {
+        assertNotNull(Priority.valueOf("superimportantfirst"));
+    }
 
 }

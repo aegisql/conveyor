@@ -158,13 +158,13 @@ public class ConnectionFactory <T extends DataSource> {
      */
     public static ConnectionFactory<BasicDataSource> DBCP2FactoryInstance() {
         return nonCachingFactoryInstance(f->{
-            BasicDataSource dataSource1 = new BasicDataSource();
-            dataSource1.setUrl(f.getUrl());
-            dataSource1.setDriverClassName(f.getDriverClassName());
-            dataSource1.setUsername(f.getUser());
-            dataSource1.setPassword(f.getPassword());
-            dataSource1.setInitialSize(3);
-            return dataSource1;
+            BasicDataSource basicDataSource = new BasicDataSource();
+            basicDataSource.setUrl(f.getUrl());
+            basicDataSource.setDriverClassName(f.getDriverClassName());
+            basicDataSource.setUsername(f.getUser());
+            basicDataSource.setPassword(f.getPassword());
+            basicDataSource.setInitialSize(3);
+            return basicDataSource;
         });
     }
 

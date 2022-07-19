@@ -980,24 +980,15 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 	public static void priority(ConveyorBuilder b, String s) {
 		LOG.debug("Applying priority={}", s);
-		Supplier<PriorityBlockingQueue<Cart>> queueSupplier;
-		switch (s.toUpperCase()) {
-			case "FIFO" -> queueSupplier = Priority.FIFO;
-			case "FILO" -> queueSupplier = Priority.FILO;
-			case "NEWEST_FIRST" -> queueSupplier = Priority.NEWEST_FIRST;
-			case "OLDEST_FIRST" -> queueSupplier = Priority.OLDEST_FIRST;
-			case "EXPIRE_SOONER_FIRST" -> queueSupplier = Priority.EXPIRE_SOONER_FIRST;
-			case "PRIORITIZED" -> queueSupplier = Priority.PRIORITIZED;
-			default -> {
-				LOG.warn("Undefined priority {}. Ignored. Supported priorities:  FIFO,FILO,NEWEST_FIRST,OLDEST_FIRST,EXPIRE_SOONER_FIRST,PRIORITIZED", s);
-				b.enablePriorityQueue = false;
-				return;
-			}
+		try {
+			final Supplier<PriorityBlockingQueue<Cart>> queueSupplier=Priority.valueOf(s);
+			b.enablePriorityQueue = true;
+			b.maxQueueSize = 0;
+			b.constructor = () -> new AssemblingConveyor(queueSupplier);
+		} catch (Exception e) {
+			b.enablePriorityQueue = false;
+			LOG.error("Failed Applying priority {}", s, e);
 		}
-		b.enablePriorityQueue  = true;
-		b.maxQueueSize = 0;
-		Supplier<PriorityBlockingQueue<Cart>> finalQueueSupplier = queueSupplier;
-		b.constructor = ()->new AssemblingConveyor(finalQueueSupplier);
 	}
 
 	/**

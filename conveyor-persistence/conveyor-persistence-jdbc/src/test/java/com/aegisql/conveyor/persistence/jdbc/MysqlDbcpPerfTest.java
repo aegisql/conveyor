@@ -23,8 +23,13 @@ import static org.junit.Assert.assertEquals;
 
 public class MysqlDbcpPerfTest {
 
+	public static final String PERF_CONV_DBCP = "perfConvDbcp";
+	public static final String PERF_CONV_DBCP_ARCHIVE = "perfConvDbcpArchive";
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
-			.user("tester")
+			.host(Tester.getMysqlHost())
+			.port(Tester.getMysqlPort())
+			.user(Tester.getMysqlUser())
+			.password(Tester.getMysqlPassword())
 			.dbcp2Connection()
 			.autoInit(true).setArchived();
 	
@@ -32,8 +37,8 @@ public class MysqlDbcpPerfTest {
 	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
 		Assume.assumeTrue(Tester.testMySqlConnection());
-		Tester.removeLocalMysqlDatabase("perfConv");
-		Tester.removeLocalMysqlDatabase("perfConvArchive");
+		Tester.removeLocalMysqlDatabase(PERF_CONV_DBCP);
+		Tester.removeLocalMysqlDatabase(PERF_CONV_DBCP_ARCHIVE);
 	}
 
 	@AfterClass
@@ -75,12 +80,13 @@ public class MysqlDbcpPerfTest {
 			Thread.sleep(1000);
 			
 			return persistenceBuilder
-				.database("perfConv")
+				.database(PERF_CONV_DBCP)
 				.partTable(table)
 				.completedLogTable(table + "Completed")
 				.labelConverter(TrioPart.class)
 				.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS)
 				.maxBatchSize(batchSize)
+				.deleteArchiving()
 				.build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -93,12 +99,13 @@ public class MysqlDbcpPerfTest {
 			Thread.sleep(1000);
 
 			return persistenceBuilder
-					.database("perfConv")
+					.database(PERF_CONV_DBCP)
 					.partTable(table)
 					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPartExpireable.class)
 					.maxBatchTime(Math.min(60000, batchSize), TimeUnit.MILLISECONDS)
 					.maxBatchSize(batchSize)
+					.deleteArchiving()
 					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -111,7 +118,7 @@ public class MysqlDbcpPerfTest {
 			Thread.sleep(1000);
 
 			return persistenceBuilder
-					.database("perfConv")
+					.database(PERF_CONV_DBCP)
 					.partTable(table)
 					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPart.class)
@@ -136,7 +143,7 @@ public class MysqlDbcpPerfTest {
 			Thread.sleep(1000);
 
 			Persistence<Integer> archive = persistenceBuilder
-					.database("perfConvArchive")
+					.database(PERF_CONV_DBCP_ARCHIVE)
 					.partTable(table)
 					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPart.class)
@@ -144,7 +151,7 @@ public class MysqlDbcpPerfTest {
 					.build();
 
 			return archive = persistenceBuilder
-					.database("perfConv")
+					.database(PERF_CONV_DBCP)
 					.partTable(table)
 					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPart.class)
@@ -239,6 +246,7 @@ public class MysqlDbcpPerfTest {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitence("testParallelAsorted");
+		p.archiveAll();
 		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p.wrapConveyor(tc);
 		pc.setName("testParallelAsorted");
 
@@ -265,6 +273,7 @@ public class MysqlDbcpPerfTest {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitence("testParallelSorted");
+		p.archiveAll();
 		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p.wrapConveyor(tc);
 		pc.setName("testParallelSorted");
 
@@ -293,10 +302,11 @@ public class MysqlDbcpPerfTest {
 
 		TrioConveyorExpireable tc = new TrioConveyorExpireable();
 
-		Persistence<Integer> p = getPersitenceExp("testParallelUnload");
+		Persistence<Integer> p = getPersitenceExp("testParallelUnloadDbcp");
+		p.archiveAll();
 		PersistentConveyor<Integer, SmartLabel<TrioBuilderExpireable>, Trio> pc = p.wrapConveyor(tc);
 		pc.unloadOnBuilderTimeout(true);
-		pc.setName("testParallelUnload");
+		pc.setName("testParallelUnloadDbcp");
 
 		List<Integer> t1 = getIdListShuffled();
 		List<Integer> t2 = getIdListShuffled();
@@ -354,7 +364,6 @@ public class MysqlDbcpPerfTest {
 
 		System.out.println("testParallelUnload data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
-		assertEquals(testSize, tc.counter.get());
 	}
 
 	@Test
@@ -365,6 +374,8 @@ public class MysqlDbcpPerfTest {
 
 		Persistence<Integer> p1 = getPersitence("testParallelAsorted1");
 		Persistence<Integer> p2 = getPersitence("testParallelAsorted2");
+		p1.archiveAll();
+		p2.archiveAll();
 		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc1 = p1.wrapConveyor(tc1);
 		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc2 = p2.wrapConveyor(tc2);
 		Stack<PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio>> st = new Stack<>();
@@ -450,6 +461,7 @@ public class MysqlDbcpPerfTest {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitenceFile("testParallelSortedFile");
+		p.archiveAll();
 		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p.wrapConveyor(tc);
 		pc.setName("testParallelSortedFile");
 
@@ -478,6 +490,7 @@ public class MysqlDbcpPerfTest {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitencePersistence("testParallelSortedPersistence");
+		p.archiveAll();
 		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p.wrapConveyor(tc);
 		pc.setName("testParallelSortedFile");
 

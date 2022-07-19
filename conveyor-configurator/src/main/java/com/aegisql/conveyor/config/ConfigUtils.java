@@ -84,12 +84,12 @@ class ConfigUtils {
 	private final static String getResultConsumerJs =
 			"""
 					var getResultConsumer = function() {
-							var ResultConsumer = Java.type('com.aegisql.conveyor.consumers.result.ResultConsumer');
-					     var rc = %s;
-							var SupplierImpl = Java.extend(ResultConsumer, {
-								accept: function(bin) {
-									rc(bin)
-					;			}});
+						var ResultConsumer = Java.type('com.aegisql.conveyor.consumers.result.ResultConsumer');
+					    var rc = %s;
+						var SupplierImpl = Java.extend(ResultConsumer, {
+							accept: function(bin) {
+								rc(bin)
+					;		}});
 					    return new SupplierImpl();
 					};
 					""";
@@ -111,12 +111,12 @@ class ConfigUtils {
 	private final static String getScrapConsumerJs =
 			"""
 					var getScrapConsumer = function() {
-							var ScrapConsumer = Java.type('com.aegisql.conveyor.consumers.scrap.ScrapConsumer');
-					     var sc = %s;
-							var SupplierImpl = Java.extend(ScrapConsumer, {
-								accept: function(bin) {
-									sc(bin)
-					;			}});
+						var ScrapConsumer = Java.type('com.aegisql.conveyor.consumers.scrap.ScrapConsumer');
+					    var sc = %s;
+						var SupplierImpl = Java.extend(ScrapConsumer, {
+							accept: function(bin) {
+								sc(bin)
+					;		}});
 					    return new SupplierImpl();
 					};
 					""";
@@ -137,8 +137,9 @@ class ConfigUtils {
 	private final static String getLabelValuePairJs =
 			"""
 					var getLabelValuePair = function() {
-							var Pair = Java.type('com.aegisql.conveyor.config.Pair');
-					     %s;    return new Pair(label,value);
+						var Pair = Java.type('com.aegisql.conveyor.config.Pair');
+					    %s;
+					    return new Pair(label,value);
 					};
 					""";
 
@@ -150,11 +151,11 @@ class ConfigUtils {
 					%s;
 					var Trio = Java.type('com.aegisql.conveyor.config.Trio');
 					if(typeof keyTransformer === "undefined") {return new Trio(label,name,null);}
-							var Function = Java.type('java.util.function.Function');
-							var FunctionImpl = Java.extend(Function, {
-								apply: function(x) {
-									return keyTransformer(x)
-					;			}});
+						var Function = Java.type('java.util.function.Function');
+						var FunctionImpl = Java.extend(Function, {
+							apply: function(x) {
+								return keyTransformer(x)
+					;		}});
 					    return new Trio(label,name,new FunctionImpl());
 					};
 					""";
@@ -188,11 +189,12 @@ class ConfigUtils {
 	private final static String consumerJs =
 			"""
 					var getConsumer = function() {
-							var Consumer = Java.type('java.util.function.Consumer');
-					     var consumer = %s;		var SupplierImpl = Java.extend(Consumer, {
-								accept: function(builder) {
-									consumer(builder)
-					;			}});
+						var Consumer = Java.type('java.util.function.Consumer');
+					    var consumer = %s;
+					    var SupplierImpl = Java.extend(Consumer, {
+							accept: function(builder) {
+								consumer(builder)
+					;		}});
 					    return new SupplierImpl();
 					};
 					""";
@@ -213,11 +215,12 @@ class ConfigUtils {
 	private final static String getLabeledValueConsumerJs =
 			"""
 					var getLabeledValueConsumer = function() {
-							var LabeledValueConsumer = Java.type('com.aegisql.conveyor.LabeledValueConsumer');
-					     var consumer = %s;		var SupplierImpl = Java.extend(LabeledValueConsumer, {
-								accept: function(l,v,b) {
-									consumer(l,v,b)
-					;			}});
+						var LabeledValueConsumer = Java.type('com.aegisql.conveyor.LabeledValueConsumer');
+					    var consumer = %s;
+					    var SupplierImpl = Java.extend(LabeledValueConsumer, {
+							accept: function(l,v,b) {
+								consumer(l,v,b)
+					;		}});
 					    return new SupplierImpl();
 					};
 					""";
@@ -238,16 +241,16 @@ class ConfigUtils {
 	private final static String getReadinessEvaluatorJs =
 			"""
 					var getReadinessEvaluator = function() {
-							var Predicate = Java.type('java.util.function.Predicate');
-							var BiPredicate = Java.type('java.util.function.BiPredicate');
-					     var re = %s;
-							var REImpl;
+						var Predicate = Java.type('java.util.function.Predicate');
+						var BiPredicate = Java.type('java.util.function.BiPredicate');
+					    var re = %s;
+						var REImpl;
 							if(re.length == 2) {
 								REImpl = Java.extend(BiPredicate, {
 									test: function(a,b) {
 										return re(a,b)
 					;				}});}
-							 else if(re.length == 1) {
+							else if(re.length == 1) {
 								REImpl = Java.extend(Predicate, {
 									test: function(a) {
 										return re(a)
@@ -257,7 +260,7 @@ class ConfigUtils {
 									test: function(a,b) {
 										return re(a,b)
 					;				}});}
-							 else if(Predicate.class.isAssignableFrom(re.getClass())) {
+							else if(Predicate.class.isAssignableFrom(re.getClass())) {
 								REImpl = Java.extend(Predicate, {
 									test: function(a) {
 										return re(a)
@@ -282,11 +285,12 @@ class ConfigUtils {
 	private final static String biConsumerJs =
 			"""
 					var getBiConsumer = function() {
-							var BiConsumer = Java.type('java.util.function.BiConsumer');
-					     var consumer = %s;		var SupplierImpl = Java.extend(BiConsumer, {
-								accept: function(a,b) {
-									consumer(a,b)
-					;			}});
+						var BiConsumer = Java.type('java.util.function.BiConsumer');
+					    var consumer = %s;
+					    var SupplierImpl = Java.extend(BiConsumer, {
+							accept: function(a,b) {
+								consumer(a,b)
+					;		}});
 					    return new SupplierImpl();
 					};
 					""";
@@ -307,10 +311,11 @@ class ConfigUtils {
 	private final static String getLabelArrayConsumerJs =
 			"""
 					var getLabelArrayConsumer = function() {
-							var ObjectArray = Java.type('java.lang.Object[]');
-					     var array = [%s];     var res = new ObjectArray(array.length);
-					     for(i = 0; i < array.length; i++) { res[i] = array[i];};
-					     return res;
+						var ObjectArray = Java.type('java.lang.Object[]');
+					    var array = [%s];
+					    var res = new ObjectArray(array.length);
+					    for(i = 0; i < array.length; i++) { res[i] = array[i];};
+					    return res;
 					};
 					""";
 
@@ -331,11 +336,12 @@ class ConfigUtils {
 	private final static String functionJs =
 			"""
 					var getFunction = function() {
-							var Function = Java.type('java.util.function.Function');
-					     var f = %s;		var FunctionImpl = Java.extend(Function, {
-								apply: function(x) {
-									return f(x);
-								}});
+						var Function = Java.type('java.util.function.Function');
+					    var f = %s;
+					    var FunctionImpl = Java.extend(Function, {
+							apply: function(x) {
+								return f(x);
+							}});
 					    return new FunctionImpl();
 					};
 					""";
@@ -356,11 +362,11 @@ class ConfigUtils {
 	private final static String getSupplierJs =
 			"""
 					var getSupplier = function() {
-							var Supplier = Java.type('java.util.function.Supplier');
-							var SupplierImpl = Java.extend(Supplier, {
-								get: function() {
-									return %s
-					;			}});
+						var Supplier = Java.type('java.util.function.Supplier');
+						var SupplierImpl = Java.extend(Supplier, {
+							get: function() {
+								return %s
+					;		}});
 					    return new SupplierImpl();
 					};
 					""";
@@ -426,11 +432,11 @@ class ConfigUtils {
 	private final static String getLongSupplierJs =
 			"""
 					var getLongSupplier = function() {
-							var LongSupplier = Java.type('java.util.function.LongSupplier');
-							var SupplierImpl = Java.extend(LongSupplier, {
-								getAsLong: function() {
-									return %s;
-								}});
+						var LongSupplier = Java.type('java.util.function.LongSupplier');
+						var SupplierImpl = Java.extend(LongSupplier, {
+							getAsLong: function() {
+								return %s;
+							}});
 					    return new SupplierImpl();
 					};
 					""";

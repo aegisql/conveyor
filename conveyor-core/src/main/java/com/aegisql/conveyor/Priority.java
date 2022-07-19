@@ -1,6 +1,7 @@
 package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -71,4 +72,15 @@ public final class Priority {
         });
     }
 
+    public static Supplier<PriorityBlockingQueue<Cart>> valueOf(String name) {
+        return switch (name.toUpperCase()) {
+            case "FIFO" -> FIFO;
+            case "FILO" -> Priority.FILO;
+            case "NEWEST_FIRST" -> Priority.NEWEST_FIRST;
+            case "OLDEST_FIRST" -> Priority.OLDEST_FIRST;
+            case "EXPIRE_SOONER_FIRST" -> Priority.EXPIRE_SOONER_FIRST;
+            case "PRIORITIZED" -> Priority.PRIORITIZED;
+            default -> throw new ConveyorRuntimeException("Unsupported priority "+name);
+        };
+    }
 }

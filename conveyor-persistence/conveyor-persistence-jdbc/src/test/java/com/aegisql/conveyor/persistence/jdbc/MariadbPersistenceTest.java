@@ -10,16 +10,16 @@ import org.junit.*;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.Assert.*;
 
-@Ignore
+//@Ignore
 public class MariadbPersistenceTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mariadb", Integer.class)
 			.autoInit(true)
-			.user("tester");
+			.database("conveyor_maria_db")
+			.user(Tester.getMariadbUser());
 	
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -42,23 +42,16 @@ public class MariadbPersistenceTest {
 
 	@Test
 	public void testWithDefaultArchivingStrategy() throws Exception {
-		AtomicLong ids = new AtomicLong(0);
-		
 		Persistence<Integer> p = persistenceBuilder
 				.encryptionSecret("dfqejrfljheq")
-				.idSupplier(ids::incrementAndGet).build();//pb.build();
+				.idSupplier(Tester::nextId).build();//pb.build();
 		assertNotNull(p);
 		p.archiveAll();
 		long id = p.nextUniquePartId();
-		System.out.println("ID="+id);
-		assertEquals(1, id);
-		id = p.nextUniquePartId();
-		System.out.println("ID="+id);
-		assertEquals(2, id);
 		Cart<Integer,String,String> c = new ShoppingCart<Integer, String, String>(1, "value", "label");
 		p.savePart(id, c);
 		p.saveCompletedBuildKey(1);
-		Cart<Integer,?,String> c2 = p.getPart(2);
+		Cart<Integer,?,String> c2 = p.getPart(id);
 		System.out.println(c2);
 		assertNotNull(c2);
 		Collection<Long> allIds = p.getAllPartIds(1);
@@ -80,10 +73,8 @@ public class MariadbPersistenceTest {
 
 	@Test
 	public void testWithArchivedArchivingStrategy() throws Exception {
-		AtomicLong ids = new AtomicLong(0);
-		
 		Persistence<Integer> p = persistenceBuilder
-				.idSupplier(ids::incrementAndGet)
+				.idSupplier(Tester::nextId)
 				.setArchived()
 				.build();
 		assertNotNull(p);
@@ -121,24 +112,27 @@ public class MariadbPersistenceTest {
 	
 	@Test
 	public void testDeleteExpired() throws Exception {
-		AtomicLong ids = new AtomicLong(0);
 		Persistence<Integer> p = persistenceBuilder
-				.partTable("exp_test")
-				.completedLogTable("exp_test_complete")
-				.idSupplier(ids::incrementAndGet)
-				.setArchived().build();
+				.partTable("exp_test_del")
+				.completedLogTable("exp_test_complete_del")
+				.idSupplier(Tester::nextId)
+				.setArchived()
+				.build();
 		assertNotNull(p);
-		p.archiveAll();
-		
-		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(1, "value1", "label",System.currentTimeMillis()+1000);
-		Cart<Integer,String,String> c2 = new ShoppingCart<Integer, String, String>(2, "value2", "label",System.currentTimeMillis()+100000);
-		p.savePart(p.nextUniquePartId(), c1);
-		p.savePart(p.nextUniquePartId(), c2);
+		//p.archiveAll();
+
+		long id1 = p.nextUniquePartId();
+		long id2 = p.nextUniquePartId();
+
+		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(11, "value1", "label",System.currentTimeMillis()+1000);
+		Cart<Integer,String,String> c2 = new ShoppingCart<Integer, String, String>(22, "value2", "label",System.currentTimeMillis()+100000);
+		p.savePart(id1, c1);
+		p.savePart(id2, c2);
 
 		p.archiveExpiredParts();
 		
-		Cart<Integer,?,String> rc1 = p.getPart(1);
-		Cart<Integer,?,String> rc2 = p.getPart(2);
+		Cart<Integer,?,String> rc1 = p.getPart(id1);
+		Cart<Integer,?,String> rc2 = p.getPart(id2);
 		System.out.println(rc1);
 		System.out.println(rc2);
 		assertNotNull(rc1);
@@ -147,8 +141,8 @@ public class MariadbPersistenceTest {
 		Thread.sleep(3000);
 		p.archiveExpiredParts();
 
-		Cart<Integer,?,String> rc12 = p.getPart(1);
-		Cart<Integer,?,String> rc22 = p.getPart(2);
+		Cart<Integer,?,String> rc12 = p.getPart(id1);
+		Cart<Integer,?,String> rc22 = p.getPart(id2);
 		assertNull(rc12);
 		assertNotNull(rc22);
 		
@@ -158,18 +152,24 @@ public class MariadbPersistenceTest {
 	public void testSaveAndRead() throws Exception {
 		JdbcPersistenceBuilder<Integer> jpb = JdbcPersistenceBuilder.presetInitializer("mariadb", Integer.class)
 				.autoInit(true)
-				.partTable("PART2")
-				.completedLogTable("COMPLETED_LOG2")
-				.user("tester")
+				.partTable("PART3")
+				.completedLogTable("COMPLETED_LOG3")
+				.deleteArchiving()
+				.user(Tester.getMariadbUser())
 				;
 		
 		JdbcPersistence<Integer> p = jpb.build();
+		p.archiveAll();
 		
 		assertNotNull(p);
 		Cart<Integer,String,String> cart = new ShoppingCart<Integer, String, String>(100, "test", "label");
 		cart.addProperty("ADDON","TEST");
-		p.savePart(1, cart);
-		Cart restored = p.getPart(1);
+		long id1 = p.nextUniquePartId();
+		//long id2 = p.nextUniquePartId();
+		//long id3 = p.nextUniquePartId();
+
+		p.savePart(id1, cart);
+		Cart restored = p.getPart(id1);
 		assertNotNull(restored);
 		System.out.println(restored);
 		assertEquals(100, restored.getKey());

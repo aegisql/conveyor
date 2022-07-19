@@ -48,9 +48,7 @@ public class LearnDerbyTest {
 
 	@Test
 	public void stackTrace() {
-		StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-		StackTraceElement el = elements[1];
-		assertEquals(Tester.getTestMethod(),el.getMethodName());
+		assertEquals(Tester.getTestMethod(),"stackTrace");
 		assertEquals(Tester.getTestClass(),"LearnDerbyTest");
 	}
 

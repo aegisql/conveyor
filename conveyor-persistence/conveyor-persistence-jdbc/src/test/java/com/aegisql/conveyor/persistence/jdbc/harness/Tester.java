@@ -10,12 +10,18 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Tester {
 
+
+	//MYSQL_URL=jdbc:mysql://closet:3306/ MYSQL_HOST=closet MYSQL_USER=tester MYSQL_PASSWORD=root mvn test
+
 	public Tester() {
 	}
-	
+
+	private final static AtomicInteger idGen = new AtomicInteger(0);
+
 	public static void waitUntilArchived(Persistence<Integer> p, int testSize) {
 		long prevParts = 0;
 		long parts;
@@ -35,34 +41,88 @@ public class Tester {
 		System.out.println("\r100%");
 	}
 
-	public static int getPerfTestSize() {
-		String param = "PERF_TEST_SIZE";
-		int size = 10000;
-		
-		String test = System.getenv(param);
-		if(test != null) {
-			try {
-				size = Integer.parseInt(test);
-				return size;
-			}catch (Exception e) {
-			}
+	private static String LOCAL_MYSQL_URL = "jdbc:mysql://localhost:3306/";
+	private static String LOCAL_MARIADB_URL = "jdbc:mariadb://localhost:3306/";
+	private static String LOCAL_POSTGRES_URL = "jdbc:postgresql://localhost:5432/";
+
+	private static String getEnvOrDefaultString(String param, String defValue) {
+		String value = System.getenv(param);
+		if(value != null) {
+			return value;
 		}
-		test = System.getProperty(param);
-		if(test != null) {
-			try {
-				size = Integer.parseInt(test);
-				return size;
-			}catch (Exception e) {
-			}
+		value = System.getProperty(param);
+		if(value != null) {
+			return value;
 		}
-		return size;
+		return defValue;
 	}
 
+	private static int getEnvOrDefaultInteger(String param, int defValue) {
+		String value = System.getenv(param);
+		if(value != null) {
+			return Integer.parseInt(value);
+		}
+		value = System.getProperty(param);
+		if(value != null) {
+			return Integer.parseInt(value);
+		}
+		return defValue;
+	}
 
-	public static String LOCAL_MYSQL_URL = "jdbc:mysql://localhost:3306/";
-	public static String LOCAL_MARIADB_URL = "jdbc:mariadb://localhost:3306/";
-	public static String LOCAL_POSTGRES_URL = "jdbc:postgresql://localhost:5432/";
-	
+	public static int getPerfTestSize() {
+		return getEnvOrDefaultInteger("PERF_TEST_SIZE",10000);
+	}
+
+	public static String getMysqlUrl() {
+		return getEnvOrDefaultString("MYSQL_URL",LOCAL_MYSQL_URL);
+	}
+
+	public static String getMysqlHost() {
+		return getEnvOrDefaultString("MYSQL_HOST","localhost");
+	}
+
+	public static int getMysqlPort() {
+		return getEnvOrDefaultInteger("MYSQL_PORT",3306);
+	}
+	public static String getMysqlUser() {
+		return getEnvOrDefaultString("MYSQL_USER","tester");
+	}
+	public static String getMysqlPassword() {
+		return getEnvOrDefaultString("MYSQL_PASSWORD","");
+	}
+
+	public static String getMariaDBUrl() {
+		return getEnvOrDefaultString("MARIADB_URL",LOCAL_MARIADB_URL);
+	}
+	public static String getMariadbUser() {
+		return getEnvOrDefaultString("MARIADB_USER","tester");
+	}
+	public static String getMariadbPassword() {
+		return getEnvOrDefaultString("MARIADB_PASSWORD","");
+	}
+	public static String getMariadbHost() {
+		return getEnvOrDefaultString("MARIADB_HOST","localhost");
+	}
+	public static int getMariadbPort() {
+		return getEnvOrDefaultInteger("MARIADB_PORT",3306);
+	}
+
+	public static String getPostgresUrl() {
+		return getEnvOrDefaultString("POSTGRES_URL",LOCAL_POSTGRES_URL);
+	}
+	public static String getPostgresUser() {
+		return getEnvOrDefaultString("POSTGRES_USER","postgres");
+	}
+	public static String getPostgresPassword() {
+		return getEnvOrDefaultString("POSTGRES_PASSWORD","root");
+	}
+	public static String getPostgresHost() {
+		return getEnvOrDefaultString("POSTGRES_HOST","localhost");
+	}
+	public static int getPostgresPort() {
+		return getEnvOrDefaultInteger("POSTGRES_PORT",5432);
+	}
+
 	public static Connection getConnection(String url, String user, String password) {
 		try {
 			return DriverManager.getConnection(url, user, password);
@@ -75,7 +135,7 @@ public class Tester {
 	public static Connection getMySqlConnection() {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
-			return getConnection(LOCAL_MYSQL_URL, "tester", "");
+			return getConnection(getMysqlUrl(), getMysqlUser(), getMysqlPassword());
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			return null;
@@ -100,7 +160,7 @@ public class Tester {
 	public static Connection getMariaDbConnection() {
 		try {
 			Class.forName("org.mariadb.jdbc.Driver");
-			return getConnection(LOCAL_MARIADB_URL, "tester", "");
+			return getConnection(getMariaDBUrl(), getMariadbUser(), getMariadbPassword());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -140,7 +200,7 @@ public class Tester {
 	public static Connection getPostgresConnection() {
 		try {
 			Class.forName("org.postgresql.Driver");
-			return getConnection(LOCAL_POSTGRES_URL, "postgres", "root");
+			return getConnection(getPostgresUrl(), getPostgresUser(), getPostgresPassword());
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			return null;
@@ -180,7 +240,7 @@ public class Tester {
 	public static void removeLocalMysqlDatabase(String database) {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
-			Connection connnection=DriverManager.getConnection(LOCAL_MYSQL_URL,"tester","");
+			Connection connnection=DriverManager.getConnection(getMysqlUrl(),getMysqlUser(),getMysqlPassword());
 			Statement st = connnection.createStatement();
 			st.execute("DROP SCHEMA IF EXISTS "+database);
 			st.close();
@@ -194,7 +254,7 @@ public class Tester {
 	public static void removeLocalMariaDbDatabase(String database) {
 		try {
 			Class.forName("org.mariadb.jdbc.Driver");
-			Connection connnection=DriverManager.getConnection(LOCAL_MYSQL_URL,"tester","");
+			Connection connnection=DriverManager.getConnection(getMariaDBUrl(),getMariadbUser(),getMariadbPassword());
 			Statement st = connnection.createStatement();
 			st.execute("DROP SCHEMA IF EXISTS "+database);
 			st.close();
@@ -208,7 +268,7 @@ public class Tester {
 	public static void removeLocalPostgresDatabase(String database) {
 		try {
 			Class.forName("org.postgresql.Driver");
-			Connection connnection=DriverManager.getConnection(LOCAL_POSTGRES_URL,"postgres","root");
+			Connection connnection=DriverManager.getConnection(getPostgresUrl(),getPostgresUser(),getPostgresPassword());
 			Statement st = connnection.createStatement();
 			st.execute("DROP DATABASE IF EXISTS "+database);
 			st.close();
@@ -257,5 +317,9 @@ public class Tester {
 			throw new PersistenceException("Cannot find class for "+className,e);
 		}
 	}
-	
+
+	public static int nextId() {
+		return idGen.incrementAndGet();
+	}
+
 }

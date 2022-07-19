@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
 //@Ignore
 public class MariadbEngineTest {
 
-	private static final String SCHEMA = "test_engine";
+	private static final String SCHEMA = Tester.getTestClass();
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -51,7 +51,7 @@ public class MariadbEngineTest {
 		GenericEngine<Integer> de = new MariaDbEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance());
 		de.setAdditionalFields(Arrays.asList(new Field(String.class,"ADDON")));
 		de.setDatabase(SCHEMA);
-		de.setUser("tester");
+		de.setUser(Tester.getMariadbUser());
 		assertFalse(de.databaseExists(SCHEMA));
 		assertTrue(de.schemaExists(SCHEMA));
 		de.createDatabase(SCHEMA);

@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
 
 public class DerbyEngineTest {
 
-	private static final String SCHEMA = "test_engine";
+	private static final String SCHEMA = Tester.getTestClass();
 	private static final String PARTS = "PART";
 	private static final String LOGS = "COMPLETED_LOG";
 	

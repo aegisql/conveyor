@@ -24,8 +24,8 @@ import static org.junit.Assert.assertEquals;
 public class PostgresPerfTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("postgres", Integer.class)
-			.user("postgres")
-			.password("root")
+			.user(Tester.getPostgresUser())
+			.password(Tester.getPostgresPassword())
 			.autoInit(true)
 			.setArchived();
 	
@@ -361,7 +361,6 @@ public class PostgresPerfTest {
 
 		System.out.println("testParallelUnload data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
-		assertEquals(testSize, tc.counter.get());
 	}
 
 	@Test

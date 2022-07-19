@@ -3,6 +3,7 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerDataSource;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.*;
@@ -19,7 +20,7 @@ import static org.junit.Assert.*;
 
 public class MysqlEngineTest {
 
-	private static final String SCHEMA = "test_engine";
+	private static final String SCHEMA = Tester.getTestClass();
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -46,14 +47,23 @@ public class MysqlEngineTest {
 		LinkedHashMap<String, String> order = new LinkedHashMap<>();
 		order.put("PRIORITY", "DESC");
 		order.put("ID", "ASC");
-
-		GenericEngine<Integer> de = new MysqlEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance());
+		ConnectionFactory<DriverManagerDataSource> cf = ConnectionFactory.driverManagerFactoryInstance();
+		cf.setDatabase(SCHEMA);
+		cf.setSchema(SCHEMA);
+		cf.setUser(Tester.getMysqlUser());
+		cf.setPassword(Tester.getMysqlPassword());
+		cf.setHost(Tester.getMysqlHost());
+		cf.setPort(Tester.getMysqlPort());
+		GenericEngine<Integer> de = new MysqlEngine<>(Integer.class, cf);
 		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
+		de.setHost(Tester.getMysqlHost());
+		de.setPort(Tester.getMysqlPort());
+		de.setUser(Tester.getMysqlUser());
+		de.setPassword(Tester.getMysqlPassword());
 		de.setDatabase(SCHEMA);
-		de.setUser("tester");
+		de.setSchema(SCHEMA);
 		assertFalse(de.databaseExists(SCHEMA));
-		assertTrue(de.schemaExists(SCHEMA));
-		de.createDatabase(SCHEMA);
+		de.createDatabaseIfNotExists(SCHEMA);
 		String PARTS = "PART";
 		de.createPartTable(PARTS);
 		de.createPartTableIndex(PARTS);

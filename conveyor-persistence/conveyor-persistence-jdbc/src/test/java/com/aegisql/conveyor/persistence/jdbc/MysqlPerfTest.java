@@ -24,7 +24,9 @@ import static org.junit.Assert.assertEquals;
 public class MysqlPerfTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
-			.user("tester")
+			.host(Tester.getMysqlHost())
+			.user(Tester.getMysqlUser())
+			.password(Tester.getMysqlPassword())
 			.autoInit(true).setArchived();
 	
 	@BeforeClass
@@ -353,7 +355,6 @@ public class MysqlPerfTest {
 
 		System.out.println("testParallelUnload data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
-		assertEquals(testSize, tc.counter.get());
 	}
 
 	@Test

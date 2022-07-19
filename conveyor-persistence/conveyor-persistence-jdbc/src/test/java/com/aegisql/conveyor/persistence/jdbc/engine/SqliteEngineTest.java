@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
 
 public class SqliteEngineTest {
 
-	private static final String SCHEMA = "test_engine";
+	private static final String SCHEMA = Tester.getTestClass();
 
 	@BeforeClass
 	public static void setUpBeforeClass() {

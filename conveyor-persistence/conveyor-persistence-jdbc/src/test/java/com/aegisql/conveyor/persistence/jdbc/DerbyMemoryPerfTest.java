@@ -350,7 +350,6 @@ public class DerbyMemoryPerfTest {
 
 		System.out.println("testParallelUnload data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
-		assertEquals(testSize, tc.counter.get());
 	}
 
 	@Test

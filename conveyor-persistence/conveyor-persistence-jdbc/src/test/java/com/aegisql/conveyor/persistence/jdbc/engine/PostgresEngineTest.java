@@ -10,16 +10,13 @@ import org.junit.*;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
 public class PostgresEngineTest {
 
-	private static final String SCHEMA = "test_engine";
+	private static final String SCHEMA = Tester.getTestClass().toLowerCase();
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -51,8 +48,8 @@ public class PostgresEngineTest {
 		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
 		de.setDatabase(SCHEMA);
 		de.setSchema(SCHEMA);
-		de.setUser("postgres");
-		de.setPassword("root");
+		de.setUser(Tester.getPostgresUser());
+		de.setPassword(Tester.getPostgresPassword());
 		de.setSortingOrder(order);
 		String PARTS = "PART";
 		de.buildPartTableQueries(PARTS);

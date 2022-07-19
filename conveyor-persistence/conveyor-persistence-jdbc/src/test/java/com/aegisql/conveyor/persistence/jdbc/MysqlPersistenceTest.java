@@ -27,7 +27,10 @@ public class MysqlPersistenceTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mysql", Integer.class)
 			.autoInit(true)
-			.user("tester");
+			.host(Tester.getMysqlHost())
+			.port(Tester.getMysqlPort())
+			.user(Tester.getMysqlUser())
+			.password(Tester.getMysqlPassword());
 	
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -130,15 +133,16 @@ public class MysqlPersistenceTest {
 	public void testDeleteExpired() throws Exception {
 		AtomicLong ids = new AtomicLong(0);
 		Persistence<Integer> p = persistenceBuilder
-				.partTable("exp_test")
-				.completedLogTable("exp_test_complete")
+				.partTable("exp_test_2")
+				.completedLogTable("exp_test_complete_2")
 				.idSupplier(ids::incrementAndGet)
 				.setArchived().build();
 		assertNotNull(p);
 		p.archiveAll();
+
 		
 		Cart<Integer,String,String> c1 = new ShoppingCart<Integer, String, String>(1, "value1", "label",System.currentTimeMillis()+1000);
-		Cart<Integer,String,String> c2 = new ShoppingCart<Integer, String, String>(2, "value2", "label",System.currentTimeMillis()+100000);
+		Cart<Integer,String,String> c2 = new ShoppingCart<Integer, String, String>(2, "value2", "label",System.currentTimeMillis()+1000000);
 		p.savePart(p.nextUniquePartId(), c1);
 		p.savePart(p.nextUniquePartId(), c2);
 
@@ -167,14 +171,15 @@ public class MysqlPersistenceTest {
 				.autoInit(false)
 				.partTable("PART2")
 				.completedLogTable("COMPLETED_LOG2")
-				.user("tester")
+				.user(Tester.getMysqlUser())
 				.addField(String.class, "ADDON")
 				.addUniqueFields("ADDON")
+				.deleteArchiving()
 				;
 		
 		JdbcPersistence<Integer> p = jpb.init().build();
-		
 		assertNotNull(p);
+		p.archiveAll();
 		Cart<Integer,String,String> cartA = new ShoppingCart<Integer, String, String>(100, "test", "label");
 		cartA.addProperty("ADDON", "A");
 		Cart<Integer,String,String> cartB = new ShoppingCart<Integer, String, String>(100, "test", "label");
@@ -182,16 +187,20 @@ public class MysqlPersistenceTest {
 		Cart<Integer,String,String> cartC = new ShoppingCart<Integer, String, String>(100, "test", "label");
 		cartC.addProperty("ADDON", "A");
 
-		p.savePart(1, cartA);
-		p.savePart(2, cartB);
-		Cart restored = p.getPart(1);
+		long id1 = p.nextUniquePartId();
+		long id2 = p.nextUniquePartId();
+		long id3 = p.nextUniquePartId();
+
+		p.savePart(id1, cartA);
+		p.savePart(id2, cartB);
+		Cart restored = p.getPart(id1);
 		assertNotNull(restored);
 		System.out.println(restored);
 		assertEquals(100, restored.getKey());
 		assertEquals("label", restored.getLabel());
 		assertEquals("test", restored.getValue());
 		try {
-			p.savePart(3, cartC);
+			p.savePart(id3, cartC);
 			fail("Must not be saved!");
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -236,13 +245,16 @@ public class MysqlPersistenceTest {
 				.autoInit(false)
 				.partTable("BALANCE")
 				.completedLogTable("BALANCE_LOG")
-				.user("tester")
+				.user(Tester.getMysqlUser())
 				.addField(Long.class, "TRANSACTION_ID")
 				.addUniqueFields("TRANSACTION_ID")
+				.deleteArchiving()
 				;
 		AssemblingConveyor<Integer, BALANCE_OPERATION, Double> balance = new AssemblingConveyor<>();
 
-		PersistentConveyor<Integer, BALANCE_OPERATION, Double> persistentBalance = jpb.init().build().wrapConveyor(balance);
+		JdbcPersistence<Integer> p = jpb.init().build();
+		p.archiveAll();
+		PersistentConveyor<Integer, BALANCE_OPERATION, Double> persistentBalance = p.wrapConveyor(balance);
 
 		persistentBalance.setReadinessEvaluator(Conveyor.getTesterFor(balance).accepted(BALANCE_OPERATION.CLOSE));
 		persistentBalance.setBuilderSupplier(BalanceBuilder::new);

@@ -170,7 +170,6 @@ public class SqlitePersistenceTest {
 				.database("./conveyor_db_sqlite")
 				.partTable("PART2")
 				.completedLogTable("COMPLETED_LOG2")
-				.setProperty("user", "root")
 				;
 		
 		JdbcPersistence<Integer> p = jpb.build();
