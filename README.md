@@ -95,7 +95,9 @@ conveyor configurator
 
 ## Release History
 
-### 1.6.1-SNAPSHOT
+### 1.6.2-SNAPSHOT
+
+### 1.6.1
 * Java 17
 * Updated drivers
 * Code cleanup
