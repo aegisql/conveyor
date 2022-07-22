@@ -180,6 +180,7 @@ public class MysqlPersistenceDataSourceTest {
 				.partTable("PART1")
 				.completedLogTable("COMPLETED_LOG1")
 				.user(Tester.getMysqlUser())
+				.password(Tester.getMysqlPassword())
 				.addField(String.class, "ADDON")
 				.addUniqueFields("ADDON")
 				.deleteArchiving()
@@ -241,7 +242,7 @@ public class MysqlPersistenceDataSourceTest {
 	}
 
 	@Test
-	public void testCOnvWithTransactionField() throws Exception {
+	public void testConvWithTransactionField() throws Exception {
 
 		LastResultReference<Integer,Double> result = new LastResultReference();
 
@@ -250,6 +251,7 @@ public class MysqlPersistenceDataSourceTest {
 				.partTable("BALANCE")
 				.completedLogTable("BALANCE_LOG")
 				.user(Tester.getMysqlUser())
+				.password(Tester.getMysqlPassword())
 				.addField(Long.class, "TRANSACTION_ID")
 				.addUniqueFields("TRANSACTION_ID")
 				;

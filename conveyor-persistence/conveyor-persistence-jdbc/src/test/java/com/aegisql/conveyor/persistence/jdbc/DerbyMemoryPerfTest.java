@@ -57,7 +57,7 @@ public class DerbyMemoryPerfTest {
 		pool = new ThreadPool(3);
 		batchSize = testSize / 20;
 		sleepNumber = batchSize;
-		System.out.println("--- DerbyPerfTest " + new Date());
+		System.out.println("--- Derby Memory Perf Test " + new Date());
 	}
 
 	@After
