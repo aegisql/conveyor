@@ -88,7 +88,7 @@ public class Tester {
 		return getEnvOrDefaultString("MYSQL_USER","tester");
 	}
 	public static String getMysqlPassword() {
-		return getEnvOrDefaultString("MYSQL_PASSWORD","");
+		return getEnvOrDefaultString("MYSQL_PASSWORD",null);
 	}
 
 	public static String getMariaDBUrl() {
@@ -98,7 +98,7 @@ public class Tester {
 		return getEnvOrDefaultString("MARIADB_USER","tester");
 	}
 	public static String getMariadbPassword() {
-		return getEnvOrDefaultString("MARIADB_PASSWORD","");
+		return getEnvOrDefaultString("MARIADB_PASSWORD",null);
 	}
 	public static String getMariadbHost() {
 		return getEnvOrDefaultString("MARIADB_HOST","localhost");

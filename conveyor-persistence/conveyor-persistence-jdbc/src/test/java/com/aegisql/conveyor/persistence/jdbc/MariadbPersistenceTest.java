@@ -19,8 +19,11 @@ public class MariadbPersistenceTest {
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("mariadb", Integer.class)
 			.autoInit(true)
 			.database("conveyor_maria_db")
-			.user(Tester.getMariadbUser());
-	
+			.user(Tester.getMariadbUser())
+			.password(Tester.getMariadbPassword())
+			;
+
+
 	@BeforeClass
 	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
@@ -154,8 +157,9 @@ public class MariadbPersistenceTest {
 				.autoInit(true)
 				.partTable("PART3")
 				.completedLogTable("COMPLETED_LOG3")
-				.deleteArchiving()
 				.user(Tester.getMariadbUser())
+				.password(Tester.getMariadbPassword())
+				.deleteArchiving()
 				;
 		
 		JdbcPersistence<Integer> p = jpb.build();

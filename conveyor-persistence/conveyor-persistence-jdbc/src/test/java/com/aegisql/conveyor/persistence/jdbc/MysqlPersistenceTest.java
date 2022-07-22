@@ -175,6 +175,7 @@ public class MysqlPersistenceTest {
 				.partTable("PART2")
 				.completedLogTable("COMPLETED_LOG2")
 				.user(Tester.getMysqlUser())
+				.password(Tester.getMysqlPassword())
 				.addField(String.class, "ADDON")
 				.addUniqueFields("ADDON")
 				.deleteArchiving()
