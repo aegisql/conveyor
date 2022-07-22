@@ -18,8 +18,8 @@ persistence.derby.test.c7a_persist:
 
 persistence.derby.test.c7_persist.keyClass: java.lang.Integer
 persistence.derby.test.embedded: true
-persistence.derby.test.c7_persist.username: user
-persistence.derby.test.c7_persist.password: pass
+#persistence.derby.test.c7_persist.username: some_user
+#persistence.derby.test.c7_persist.password: pass
 persistence.derby.test.c7_persist.completedLogTable: c7_complete
 #persistence.derby.port: 1527
 persistence.derby.port: 0

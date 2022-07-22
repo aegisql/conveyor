@@ -18,8 +18,6 @@ conveyor.c8_1.readyWhenAccepted: com.aegisql.conveyor.config.harness.NameLabel.E
 conveyor.c8_1.persistence:
   derby.test.c8_persist.keyClass: java.lang.Integer
   derby.test.embedded: true
-  derby.test.c8_persist.username: user
-  derby.test.c8_persist.password: pass
   derby.test.c8_persist.completedLogTable: c8_complete
 #persistence.derby.port: 1527
   derby.port: 0
