@@ -150,14 +150,13 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>[1.7,1.8.0)</version>
-			<scope>provided</scope>
+			<version>1.7.36</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-reload4j</artifactId>
-			<version>[1.7,1.8.0)</version>
+			<version>1.7.36</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -165,7 +164,6 @@
 			<version>2.18.0</version>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
 	<modules>
 		<module>conveyor-core</module>

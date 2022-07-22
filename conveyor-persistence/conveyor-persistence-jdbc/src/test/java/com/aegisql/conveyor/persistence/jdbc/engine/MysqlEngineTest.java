@@ -56,10 +56,6 @@ public class MysqlEngineTest {
 		cf.setPort(Tester.getMysqlPort());
 		GenericEngine<Integer> de = new MysqlEngine<>(Integer.class, cf);
 		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
-		de.setHost(Tester.getMysqlHost());
-		de.setPort(Tester.getMysqlPort());
-		de.setUser(Tester.getMysqlUser());
-		de.setPassword(Tester.getMysqlPassword());
 		de.setDatabase(SCHEMA);
 		de.setSchema(SCHEMA);
 		assertFalse(de.databaseExists(SCHEMA));

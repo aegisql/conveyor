@@ -46,11 +46,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	protected final Class<K> keyClass;
 
 	/**
-	 * The driver.
-	 */
-	protected String driver;
-
-	/**
 	 * The connection url template for init database.
 	 */
 	protected String connectionUrlTemplateForInitDatabase;
@@ -78,31 +73,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * The connection url template.
 	 */
 	protected String connectionUrlTemplate;
-
-	/**
-	 * The host.
-	 */
-	protected String host;
-
-	/**
-	 * The port.
-	 */
-	protected int port;
-
-	/**
-	 * The user.
-	 */
-	protected String user;
-
-	/**
-	 * The password.
-	 */
-	protected String password;
-
-	/**
-	 * The properties.
-	 */
-	protected Properties properties = new Properties();
 
 	/**
 	 * The fields.
@@ -268,7 +238,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	public void setDriver(String driver) {
 		connectionFactory.setDriverClassName(driver);
-		this.driver = driver;
 	}
 
 	/**
@@ -938,26 +907,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		return keyType;
 	}
 
-
-	/**
-	 * Sets the host.
-	 *
-	 * @param host the new host
-	 */
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	/**
-	 * Sets the port.
-	 *
-	 * @param port the new port
-	 */
-	public void setPort(int port) {
-		connectionFactory.setPort(port);
-		this.port = port;
-	}
-
 	/**
 	 * Sets the database.
 	 *
@@ -974,47 +923,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	public void setSchema(String schema) {
 		this.connectionFactory.setSchema(schema);
-	}
-
-	/**
-	 * Sets the user.
-	 *
-	 * @param user the new user
-	 */
-	public void setUser(String user) {
-		this.user = user;
-	}
-
-	/**
-	 * Sets the password.
-	 *
-	 * @param password the new password
-	 */
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	/**
-	 * Sets the properties.
-	 *
-	 * @param properties the new properties
-	 */
-	public void setProperties(Properties properties) {
-		if(properties != null) {
-			connectionFactory.setProperties(properties);
-			this.properties.putAll(properties);
-		}
-	}
-
-	/**
-	 * Sets the property.
-	 *
-	 * @param key   the key
-	 * @param value the value
-	 */
-	public void setProperty(String key, String value) {
-		connectionFactory.getProperties().put(key,value);
-		this.properties.put(key, value);
 	}
 
 	/* (non-Javadoc)
@@ -1266,6 +1174,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 *
 	 * @param additionalFields the new additional fields
 	 */
+	@Override
 	public void setAdditionalFields(List<Field<?>> additionalFields) {
 		this.additionalFields = additionalFields;
 	}
@@ -1276,8 +1185,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder(getClass().getSimpleName());
-		builder.append(" [connection=").append(connectionFactory).append(", properties=")
-				.append(properties).append("]");
+		builder.append(" [connection=").append(connectionFactory).append("]");
 		return builder.toString();
 	}
 

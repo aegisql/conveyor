@@ -47,6 +47,8 @@ import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.id_builder.IdSource;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.mockito.Mockito.*;
 
@@ -412,7 +414,35 @@ public class ConveyorConfigurationTest {
 		assertTrue(lastPart.get());
 		
 	}
+	@Test
+	public void testYampFile12WithDbcp() throws Exception {
+		ConveyorConfiguration.build("CLASSPATH:test12.yml");
+		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c12");
+		Persistence<Integer> p = Persistence.byName("mysql.p12.parts12").copy();
+		assertNotNull(c);
+		assertNotNull(p);
+		assertTrue(c.isRunning());
+		p.archiveAll();
+		CompletableFuture<Boolean> lastPart = null;
+		for(int i = 0; i < 100; i++) {
+			c.part().id(i).label(NameLabel.FIRST).value("f1"+i).place();
+			c.part().id(i).label(NameLabel.FIRST).value("f2"+i).place();
+			c.part().id(i).label(NameLabel.LAST).value("l1_"+i).place();
+			lastPart = c.part().id(i).label(NameLabel.LAST).value("l2_"+i).place();
+		}
 
-	
+		assertTrue(lastPart.join());
+
+		Collection<Cart<Integer, ?, Object>> carts = p.getAllParts();
+
+		assertEquals(400,carts.size());
+		for(int i = 0; i < 100; i++) {
+			lastPart = c.part().id(i).label(NameLabel.END).place();
+		}
+
+		assertTrue(lastPart.get());
+
+	}
+
 	
 }

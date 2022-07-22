@@ -76,32 +76,10 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 		return "EXPIRATION_TIME > '1970-01-01 00:00:01' AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine#setUser(java.lang.String)
-	 */
-	@Override
-	public void setUser(String user) {
-		super.setUser(user);
-		if(notEmpty(user)) {
-			setProperty("user", user);
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine#setPassword(java.lang.String)
-	 */
-	@Override
-	public void setPassword(String password) {
-		super.setPassword(password);
-		if(notEmpty(password)) {
-			setProperty("password", password);
-		}
-	}
-
 	@Override
 	protected void init() {
-		setPort(5432);
-		setHost("localhost");
+		if(connectionFactory.getPort()==0) connectionFactory.setPort(5432);
+		if(connectionFactory.getHost()==null) connectionFactory.setHost("localhost");
 		setField(CART_VALUE, "BYTEA");
 		setField(CREATION_TIME, "TIMESTAMP");
 		setField(EXPIRATION_TIME, "TIMESTAMP");

@@ -22,8 +22,8 @@ public class DerbyClientEngine <K> extends GenericEngine<K> {
 
 	@Override
 	protected void init() {
-		setHost("localhost");
-		setPort(1527);
+		if(connectionFactory.getPort()==0) connectionFactory.setPort(1527);
+		if(connectionFactory.getHost()==null) connectionFactory.setHost("localhost");
 		setField(CART_PROPERTIES, "CLOB");
 		setField(CREATION_TIME, "TIMESTAMP");
 		setField(EXPIRATION_TIME, "TIMESTAMP");

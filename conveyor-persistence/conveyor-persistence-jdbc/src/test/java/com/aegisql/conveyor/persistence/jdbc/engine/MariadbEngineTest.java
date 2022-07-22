@@ -3,6 +3,7 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerDataSource;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.*;
@@ -48,10 +49,13 @@ public class MariadbEngineTest {
 		order.put("PRIORITY", "DESC");
 		order.put("ID", "ASC");
 
-		GenericEngine<Integer> de = new MariaDbEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance());
+		ConnectionFactory<DriverManagerDataSource> cf = ConnectionFactory.driverManagerFactoryInstance();
+		cf.setUser(Tester.getMariadbUser());
+		cf.setPassword(Tester.getMariadbPassword());
+
+		GenericEngine<Integer> de = new MariaDbEngine<>(Integer.class, cf);
 		de.setAdditionalFields(Arrays.asList(new Field(String.class,"ADDON")));
 		de.setDatabase(SCHEMA);
-		de.setUser(Tester.getMariadbUser());
 		assertFalse(de.databaseExists(SCHEMA));
 		assertTrue(de.schemaExists(SCHEMA));
 		de.createDatabase(SCHEMA);

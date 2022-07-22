@@ -2,6 +2,7 @@ package com.aegisql.conveyor.persistence.core.harness;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 
 import java.io.IOException;
@@ -201,6 +202,11 @@ public class PersistTestImpl implements Persistence<Integer>{
 		public long getNumberOfParts() {
 			// TODO Auto-generated method stub
 			return 0;
+		}
+
+		@Override
+		public void setAdditionalFields(List<Field<?>> additionalFields) {
+
 		}
 
 		@Override

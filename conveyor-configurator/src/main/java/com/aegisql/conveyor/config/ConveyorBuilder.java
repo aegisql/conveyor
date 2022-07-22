@@ -16,6 +16,7 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.builders.RestoreOrder;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -244,6 +245,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 							case "database":
 								pb = pb.database(p.getValueAsString());
 								break;
+							case "driverClass":
+								String driver = p.getValueAsString();
+								ConnectionFactory cf = ConnectionFactory.driverManagerFactoryInstance();
+								cf.setDriverClassName(driver);
+								pb = pb.connectionFactory(cf);
+								break;
 							case "autoInit":
 								pb = pb.autoInit(Boolean.parseBoolean(p.getValueAsString()));
 								break;
@@ -380,6 +387,13 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 							case "minCompactSize":
 								pb = pb.minCompactSize(Integer.parseInt(p.getValueAsString()));
 								LOG.warn("minCompactSize PersistentProperty {}", p);
+								break;
+							case "dbcp2":
+								boolean dbcp = p.getValueAsBoolean();
+								if(dbcp) {
+									pb = pb.dbcp2Connection();
+									LOG.info("DBCP2 connection pool");
+								}
 								break;
 							default:
 								LOG.warn("Unsupported PersistentProperty {}", p);

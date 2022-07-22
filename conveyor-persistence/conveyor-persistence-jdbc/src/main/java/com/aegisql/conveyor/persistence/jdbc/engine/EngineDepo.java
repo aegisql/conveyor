@@ -1,5 +1,7 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
+import com.aegisql.conveyor.persistence.jdbc.builders.Field;
+
 import java.io.Closeable;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
@@ -441,4 +443,5 @@ public interface EngineDepo <K> extends Closeable {
 	 */
 	long getNumberOfParts();
 
+	void setAdditionalFields(List<Field<?>> additionalFields);
 }

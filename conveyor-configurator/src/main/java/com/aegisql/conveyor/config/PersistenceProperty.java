@@ -1,5 +1,7 @@
 package com.aegisql.conveyor.config;
 
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
+
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -207,6 +209,17 @@ public class PersistenceProperty {
 		} else {
 			return null;
 		}
+	}
+
+	public boolean getValueAsBoolean() {
+		if(value==null) {
+			return false;
+		} else if (value instanceof Boolean) {
+			return (Boolean) value;
+		} else {
+			throw new ConveyorRuntimeException("Expected boolean type, but found "+value.getClass());
+		}
+
 	}
 
 	/**
