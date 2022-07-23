@@ -207,14 +207,6 @@ public class Tester {
 		}
 	}
 
-	public static boolean hasDriver(String driver) {
-		try {
-			return Class.forName(driver) != null;
-		} catch (ClassNotFoundException e) {
-			return false;
-		}
-	}
-	
 	public static void sleep(long msec) {
 		try {
 			Thread.sleep(msec);

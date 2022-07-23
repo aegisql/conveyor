@@ -34,7 +34,7 @@ public class PostgresPersistenceTest {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() {
-		Assume.assumeTrue(Tester.hasDriver("org.postgresql.Driver"));
+		Assume.assumeTrue(Tester.testPostgresConnection());
 		Tester.removeLocalPostgresDatabase("conveyor_db_test");
 	}
 
