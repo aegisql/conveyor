@@ -189,6 +189,29 @@ public class SqlitePersistenceTest {
 	}
 
 	@Test
+	public void testSaveAndReadInMemory() throws Exception {
+		JdbcPersistenceBuilder<Integer> jpb = JdbcPersistenceBuilder.presetInitializer("sqlite-memory", Integer.class)
+				.autoInit(true)
+				.database("conveyor_db_sqlite_mem")
+				.partTable("PART_MEM")
+				.completedLogTable("COMPLETED_LOG_MEM")
+				;
+
+		JdbcPersistence<Integer> p = jpb.build();
+		assertNotNull(p);
+		p.archiveAll();
+		Cart<Integer,String,String> cart = new ShoppingCart<Integer, String, String>(100, "test", "label");
+		p.savePart(1, cart);
+		Cart restored = p.getPart(1);
+		assertNotNull(restored);
+		System.out.println(restored);
+		assertEquals(100, restored.getKey());
+		assertEquals("label", restored.getLabel());
+		assertEquals("test", restored.getValue());
+	}
+
+
+	@Test
 	public void sqliteConfigTest() {
 		SQLiteConfig config = new SQLiteConfig();
 		config.setJournalMode(SQLiteConfig.JournalMode.TRUNCATE);

@@ -85,6 +85,7 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 	public String defaultDriverClassName() {
 		return "org.postgresql.Driver";
 	}
+	
 	@Override
 	protected void init() {
 		setField(CART_VALUE, "BYTEA");
