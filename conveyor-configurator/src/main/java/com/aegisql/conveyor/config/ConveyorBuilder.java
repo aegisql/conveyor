@@ -395,6 +395,11 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 									LOG.info("DBCP2 connection pool");
 								}
 								break;
+								case "poolConnection":
+									boolean pool = p.getValueAsBoolean();
+									pb = pb.poolConnection(pool);
+									LOG.info("pool connection: {}",pool);
+									break;
 							default:
 								LOG.warn("Unsupported PersistentProperty {}", p);
 								break;

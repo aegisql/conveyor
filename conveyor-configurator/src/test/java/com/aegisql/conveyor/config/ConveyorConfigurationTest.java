@@ -418,7 +418,7 @@ public class ConveyorConfigurationTest {
 	public void testYampFile12WithDbcp() throws Exception {
 		ConveyorConfiguration.build("CLASSPATH:test12.yml");
 		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c12");
-		Persistence<Integer> p = Persistence.byName("mysql.p12.parts12").copy();
+		Persistence<Integer> p = Persistence.byName("sqlite-memory.p12.parts12").copy();
 		assertNotNull(c);
 		assertNotNull(p);
 		assertTrue(c.isRunning());
