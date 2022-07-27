@@ -1,6 +1,8 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
 import com.aegisql.conveyor.persistence.jdbc.builders.Field;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionDefaults;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
 import java.io.Closeable;
 import java.sql.ResultSet;
@@ -18,7 +20,7 @@ import java.util.function.Function;
  *
  * @param <K> the key type
  */
-public interface EngineDepo <K> extends Closeable {
+public interface EngineDepo <K> extends Closeable, ConnectionDefaults {
 
 	/**
 	 * The Constant ID.
@@ -74,6 +76,8 @@ public interface EngineDepo <K> extends Closeable {
 	 * The Constant ARCHIVED.
 	 */
 	String ARCHIVED="ARCHIVED";
+
+	void setConnectionFactory(ConnectionFactory connectionFactory);
 
 	/**
 	 * Database exists.
@@ -444,4 +448,7 @@ public interface EngineDepo <K> extends Closeable {
 	long getNumberOfParts();
 
 	void setAdditionalFields(List<Field<?>> additionalFields);
+
+	ConnectionFactory<?> getConnectionFactory();
+
 }

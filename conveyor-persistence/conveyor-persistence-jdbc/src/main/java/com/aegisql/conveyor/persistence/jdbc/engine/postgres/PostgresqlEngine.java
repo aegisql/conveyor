@@ -1,6 +1,7 @@
-package com.aegisql.conveyor.persistence.jdbc.engine;
+package com.aegisql.conveyor.persistence.jdbc.engine.postgres;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
 import java.sql.SQLException;
@@ -18,8 +19,8 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 	 *
 	 * @param keyClass the key class
 	 */
-	public PostgresqlEngine(Class<K> keyClass, ConnectionFactory connectionFactory) {
-		super(keyClass,connectionFactory);
+	public PostgresqlEngine(Class<K> keyClass, ConnectionFactory connectionFactory, boolean poolConnection) {
+		super(keyClass, connectionFactory, poolConnection);
 	}
 	
 	/* (non-Javadoc)
@@ -75,15 +76,20 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 	protected String getEngineSpecificExpirationTimeRange() {
 		return "EXPIRATION_TIME > '1970-01-01 00:00:01' AND EXPIRATION_TIME < CURRENT_TIMESTAMP";
 	}
-	
+
+	public int defaultPort() {
+		return 5432;
+	}
+
+	@Override
+	public String defaultDriverClassName() {
+		return "org.postgresql.Driver";
+	}
 	@Override
 	protected void init() {
-		if(connectionFactory.getPort()==0) connectionFactory.setPort(5432);
-		if(connectionFactory.getHost()==null) connectionFactory.setHost("localhost");
 		setField(CART_VALUE, "BYTEA");
 		setField(CREATION_TIME, "TIMESTAMP");
 		setField(EXPIRATION_TIME, "TIMESTAMP");
-		setDriver("org.postgresql.Driver");
 		setConnectionUrlTemplateForInitDatabase("jdbc:postgresql://{host}:{port}/");
 		setConnectionUrlTemplateForInitSchema("jdbc:postgresql://{host}:{port}/{database}");
 		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:postgresql://{host}:{port}/{database}?currentSchema={schema}");

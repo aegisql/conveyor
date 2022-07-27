@@ -40,7 +40,7 @@ public class ConnectionFactory <T extends DataSource> {
     /**
      * The Port.
      */
-    protected int port;
+    protected int port = -1;
     /**
      * The User.
      */
@@ -66,6 +66,11 @@ public class ConnectionFactory <T extends DataSource> {
      * The Connection.
      */
     protected Connection connection;
+
+    public T getDataSource() {
+        return dataSource;
+    }
+
     /**
      * The Data source.
      */
@@ -74,6 +79,12 @@ public class ConnectionFactory <T extends DataSource> {
      * The Data source initializer.
      */
     protected Function<ConnectionFactory<T>,T> dataSourceInitializer;
+
+    public boolean isCaching() {
+        return isCaching;
+    }
+
+    protected boolean isCaching;
 
     /**
      * The Caching connection supplier.
@@ -125,6 +136,18 @@ public class ConnectionFactory <T extends DataSource> {
 
     private ConnectionFactory(Function<ConnectionFactory<T>,T> dataSourceInitializer) {
         this.dataSourceInitializer = dataSourceInitializer;
+    }
+
+    public void initFromDefaults(ConnectionDefaults defaults) {
+        if(host == null) {
+            host = defaults.defaultHostname();
+        }
+        if(port == -1) {
+            port = defaults.defaultPort();
+        }
+        if(driverClassName == null) {
+            driverClassName = defaults.defaultDriverClassName();
+        }
     }
 
     /**
@@ -200,8 +223,9 @@ public class ConnectionFactory <T extends DataSource> {
      */
     public static <T extends DataSource> ConnectionFactory<T> cachingFactoryInstance(Function<ConnectionFactory<T>,T> dataSourceInitializer) {
         ConnectionFactory<T> cf = new ConnectionFactory<>(dataSourceInitializer);
-            cf.connectionSupplier = cf.cachingConnectionSupplier;
-            cf.executorSupplier = cf.cachingExecutorSupplier;
+        cf.connectionSupplier = cf.cachingConnectionSupplier;
+        cf.executorSupplier = cf.cachingExecutorSupplier;
+        cf.isCaching = true;
         return cf;
     }
 
@@ -216,6 +240,7 @@ public class ConnectionFactory <T extends DataSource> {
         ConnectionFactory<T> cf = new ConnectionFactory<>(dataSourceInitializer);
         cf.connectionSupplier = cf.nonCachingConnectionSupplier;
         cf.executorSupplier = cf.nonCachingExecutorSupplier;
+        cf.isCaching = false;
         return cf;
     }
 

@@ -4,6 +4,7 @@ import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerDataSource;
+import com.aegisql.conveyor.persistence.jdbc.engine.postgres.PostgresqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.*;
@@ -49,10 +50,10 @@ public class PostgresEngineTest {
 		cf.setUser(Tester.getPostgresUser());
 		cf.setPassword(Tester.getPostgresPassword());
 
-		GenericEngine<Integer> de = new PostgresqlEngine<>(Integer.class, cf);
+		GenericEngine<Integer> de = new PostgresqlEngine<>(Integer.class, cf, false);
 		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
-		de.setDatabase(SCHEMA);
-		de.setSchema(SCHEMA);
+		de.connectionFactory.setDatabase(SCHEMA);
+		de.connectionFactory.setSchema(SCHEMA);
 		de.setSortingOrder(order);
 		String PARTS = "PART";
 		de.buildPartTableQueries(PARTS);

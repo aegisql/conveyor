@@ -3,6 +3,8 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyMemoryEngine;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.junit.*;
 
@@ -43,9 +45,9 @@ public class DerbyEngineTest {
 		order.put("PRIORITY", "DESC");
 		order.put("ID", "ASC");
 		
-		GenericEngine<Integer> de = new DerbyEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance());
+		GenericEngine<Integer> de = new DerbyEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance(), false);
 		de.setAdditionalFields(Arrays.asList(new Field(UUID.class,"ADDON")));
-		de.setSchema(SCHEMA);
+		de.connectionFactory.setSchema(SCHEMA);
 		assertTrue(de.databaseExists(SCHEMA));
 		assertFalse(de.schemaExists(SCHEMA));
 		de.createSchema(SCHEMA);
@@ -180,9 +182,9 @@ public class DerbyEngineTest {
 		order.put("PRIORITY", "DESC");
 		order.put("ID", "ASC");
 		
-		GenericEngine<Integer> de = new DerbyMemoryEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance());
+		GenericEngine<Integer> de = new DerbyMemoryEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance(), false);
 		de.setAdditionalFields(Arrays.asList(new Field(UUID.class,"ADDON")));
-		de.setSchema(SCHEMA);
+		de.connectionFactory.setSchema(SCHEMA);
 		assertTrue(de.databaseExists(SCHEMA));
 		assertFalse(de.schemaExists(SCHEMA));
 		de.createSchema(SCHEMA);

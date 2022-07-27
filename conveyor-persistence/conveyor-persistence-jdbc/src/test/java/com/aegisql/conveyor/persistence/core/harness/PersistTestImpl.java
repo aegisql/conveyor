@@ -4,6 +4,7 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -16,6 +17,11 @@ import java.util.function.Function;
 public class PersistTestImpl implements Persistence<Integer>{
 	
 	public static class Engine implements EngineDepo<Integer> {
+
+		@Override
+		public void setConnectionFactory(ConnectionFactory connectionFactory) {
+
+		}
 
 		@Override
 		public boolean databaseExists(String database) {
@@ -207,6 +213,11 @@ public class PersistTestImpl implements Persistence<Integer>{
 		@Override
 		public void setAdditionalFields(List<Field<?>> additionalFields) {
 
+		}
+
+		@Override
+		public ConnectionFactory<?> getConnectionFactory() {
+			return null;
 		}
 
 		@Override

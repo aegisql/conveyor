@@ -9,11 +9,13 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.*;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +29,9 @@ public class PostgresPerfTest {
 			.user(Tester.getPostgresUser())
 			.password(Tester.getPostgresPassword())
 			.autoInit(true)
+			.poolConnection(false)
+//			.dbcp2Connection()
+//			.connectionFactory(ConnectionFactory.driverManagerFactoryInstance())
 			.setArchived();
 	
 	@BeforeClass
@@ -241,7 +246,7 @@ public class PostgresPerfTest {
 	}
 
 	@Test
-	public void testParallelAsorted() {
+	public void testParallelAsorted() throws IOException {
 
 		TrioConveyor tc = new TrioConveyor();
 
@@ -265,10 +270,11 @@ public class PostgresPerfTest {
 
 		System.out.println("testParallelAsorted data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
+		p.close();
 	}
 
 	@Test
-	public void testParallelSorted() {
+	public void testParallelSorted() throws IOException {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitence("testParallelSorted");
@@ -292,11 +298,12 @@ public class PostgresPerfTest {
 		System.out.println("testParallelSorted data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
 		assertEquals(testSize, tc.counter.get());
-
+		p.close();
+		pc.stop();
 	}
 
 	@Test
-	public void testParallelUnload() {
+	public void testParallelUnload() throws IOException {
 
 		TrioConveyorExpireable tc = new TrioConveyorExpireable();
 
@@ -361,10 +368,12 @@ public class PostgresPerfTest {
 
 		System.out.println("testParallelUnload data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
+		p.close();
+		pc.stop();
 	}
 
 	@Test
-	public void testParallelParallelAsorted() {
+	public void testParallelParallelAsorted() throws IOException {
 
 		TrioConveyor tc1 = new TrioConveyor();
 		TrioConveyor tc2 = new TrioConveyor();
@@ -398,6 +407,10 @@ public class PostgresPerfTest {
 		System.out.println("testParallelParallelAsorted data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc1.results.size() + tc2.results.size());
 		assertEquals(testSize, tc1.counter.get()+tc2.counter.get());
+		p1.close();
+		p2.close();
+		pc1.stop();
+		pc2.stop();
 	}
 	
 	@Test
@@ -448,11 +461,12 @@ public class PostgresPerfTest {
 
 		System.out.println("testInMemoryPersistence data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
-		
+		p.close();
+		pc.stop();
 	}
 	
 	@Test
-	public void testParallelSortedToFile() {
+	public void testParallelSortedToFile() throws IOException {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitenceFile("testParallelSortedFile");
@@ -476,11 +490,12 @@ public class PostgresPerfTest {
 		System.out.println("testParallelSortedFile data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
 		assertEquals(testSize, tc.counter.get());
-
+		p.close();
+		pc.stop();
 	}
 
 	@Test
-	public void testParallelSortedToPersistence() {
+	public void testParallelSortedToPersistence() throws IOException {
 		TrioConveyor tc = new TrioConveyor();
 
 		Persistence<Integer> p = getPersitencePersistence("testParallelSortedPersistence");
@@ -497,14 +512,15 @@ public class PostgresPerfTest {
 		long end = System.currentTimeMillis();
 		System.out.println("testParallelSortedPersistence load complete in " + (end - start) + " msec.");
 
-		Tester.waitUntilArchived(p.copy(),testSize);
+		Tester.waitUntilArchived(p,testSize);
 
 		long toComplete = System.currentTimeMillis();
 
 		System.out.println("testParallelSortedPersistence data loaded and archived in  " + (toComplete - start) + " msec");
 		assertEquals(testSize, tc.results.size());
 		assertEquals(testSize, tc.counter.get());
-
+		p.close();
+		pc.stop();
 	}
 
 

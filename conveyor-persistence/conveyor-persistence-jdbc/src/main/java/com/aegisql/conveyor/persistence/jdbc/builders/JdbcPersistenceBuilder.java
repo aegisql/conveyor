@@ -20,6 +20,13 @@ import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringLabelConverter;
 import com.aegisql.conveyor.persistence.jdbc.engine.*;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyClientEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyMemoryEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.mariadb.MariaDbEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.mysql.MysqlEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.postgres.PostgresqlEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.sqlite.SqliteEngine;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,6 +185,8 @@ public class JdbcPersistenceBuilder<K> {
 	private final ConnectionFactory connectionFactory;
 
 	private final GenericEngine<K> jdbcEngine;
+
+	private final boolean poolConnection;
 	
 	/**
 	 * Instantiates a new jdbc persistence builder.
@@ -187,7 +196,7 @@ public class JdbcPersistenceBuilder<K> {
 	public JdbcPersistenceBuilder(Class<K> keyClass) {
 		this(TimeHostIdGenerator.idGenerator_10x8(System.currentTimeMillis()/1000)::getId, false, keyClass, null, null, 0, null, null, null, null, null, null, new Properties(), new ArrayList<>(),
 				ArchiveStrategy.DELETE,null,null,null,new StringLabelConverter(), new EncryptingConverterBuilder(),
-				0,100,60_000,new HashSet<>(), RestoreOrder.BY_ID, new ArrayList<>(), ConnectionFactory.driverManagerFactoryInstance(),null);
+				0,100,60_000,new HashSet<>(), RestoreOrder.BY_ID, new ArrayList<>(), null,null,false);
 	}	
 	
 	/**
@@ -225,7 +234,7 @@ public class JdbcPersistenceBuilder<K> {
 			ArchiveStrategy archiveStrategy, Archiver<K> customArchiver, Persistence<K> archivingPersistence, BinaryLogConfiguration bLogConf,
 			ObjectConverter<?,String> labelConverter, EncryptingConverterBuilder encryptionBuilder,
 			int minCompactSize, int maxBatchSize, long maxBatchTime, Set<String> nonPersistentProperties
-			,RestoreOrder restoreOrder, List<List<String>> uniqueFields, ConnectionFactory connectionFactory,GenericEngine<K> jdbcEngine
+			,RestoreOrder restoreOrder, List<List<String>> uniqueFields, ConnectionFactory connectionFactory,GenericEngine<K> jdbcEngine,boolean poolConnection
 			) {
 		Objects.requireNonNull(keyClass,"key class must not be null");
 		this.idSupplier = idSupplier;
@@ -258,6 +267,7 @@ public class JdbcPersistenceBuilder<K> {
 		this.uniqueFields = uniqueFields;
 		this.connectionFactory = connectionFactory;
 		this.jdbcEngine = jdbcEngine;
+		this.poolConnection = poolConnection;
 	}
 	
 	
@@ -273,7 +283,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 	
 	/**
@@ -288,7 +298,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -303,7 +313,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -318,7 +328,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -333,7 +343,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -348,7 +358,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -363,7 +373,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -378,7 +388,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -393,7 +403,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -408,7 +418,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -423,7 +433,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -438,7 +448,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -453,7 +463,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(pr), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -471,7 +481,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(p), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -486,7 +496,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(f), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -505,7 +515,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(f), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	public <T> JdbcPersistenceBuilder<K> addField(Class<T> fieldClass, String name, Function<Cart<?,?,?>,T> accessor) {
@@ -516,7 +526,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(f), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -531,7 +541,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				ArchiveStrategy.CUSTOM, archiver, null, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -546,7 +556,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				ArchiveStrategy.MOVE_TO_FILE, null, null, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -561,7 +571,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				ArchiveStrategy.MOVE_TO_PERSISTENCE, null, archivingPersistence, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -575,7 +585,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				ArchiveStrategy.NO_ACTION, null, null, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -589,7 +599,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				ArchiveStrategy.SET_ARCHIVED, null, null, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -603,7 +613,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				ArchiveStrategy.DELETE, null, null, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 	
 	/**
@@ -618,7 +628,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConv,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -634,7 +644,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, new EnumConverter<>(enClass),
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -649,7 +659,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionSecret(encryptionSecret), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -664,7 +674,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.secretKey(secretKey), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -679,7 +689,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionAlgorithm(encryptionAlgorithm), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -694,7 +704,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionTransformation(encryptionTransformation), minCompactSize, maxBatchSize, maxBatchTime, 
-				nonPersistentProperties, restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				nonPersistentProperties, restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -709,7 +719,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionKeyLength(encryptionKeyLength), minCompactSize, maxBatchSize, maxBatchTime, 
-				nonPersistentProperties, restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				nonPersistentProperties, restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -724,7 +734,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, size, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -739,7 +749,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, size, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -755,7 +765,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, TimeUnit.MILLISECONDS.convert(time, unit), 
-				nonPersistentProperties, restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				nonPersistentProperties, restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -770,7 +780,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, duration.toMillis(), nonPersistentProperties,
-				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	/**
@@ -791,7 +801,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, set,
-				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	public JdbcPersistenceBuilder<K> restoreOrder(RestoreOrder order) {
@@ -800,7 +810,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
-				order, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				order, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	public JdbcPersistenceBuilder<K> uniqueFields(List<List<String>> uf) {
@@ -809,7 +819,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
-				restoreOrder, new ArrayList<>(uf),connectionFactory,jdbcEngine);
+				restoreOrder, new ArrayList<>(uf),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	public JdbcPersistenceBuilder<K> connectionFactory(ConnectionFactory<? extends DataSource> connectionFactory) {
@@ -818,7 +828,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields),
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
-				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine, connectionFactory == null ? poolConnection : connectionFactory.isCaching());
 	}
 
 	public JdbcPersistenceBuilder<K> jdbcEngine(GenericEngine<K> jdbcEngine) {
@@ -827,7 +837,7 @@ public class JdbcPersistenceBuilder<K> {
 				new Properties(properties), new ArrayList<>(additionalFields),
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
-				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine);
+				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	public JdbcPersistenceBuilder<K> driverManagerJdbcConnection() {
@@ -860,6 +870,15 @@ public class JdbcPersistenceBuilder<K> {
 
 	public JdbcPersistenceBuilder<K> externalDbcpConnection(Supplier<Connection> connectionSupplier) {
 		return connectionFactory(ConnectionFactory.nonCachingExternalConnectionFactoryInstance(connectionSupplier));
+	}
+
+	public JdbcPersistenceBuilder<K> poolConnection(boolean poolConnection) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
+				database, schema, partTable, completedLogTable, user, password,
+				new Properties(properties), new ArrayList<>(additionalFields),
+				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
+				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
 	}
 
 	public JdbcPersistenceBuilder<K> addUniqueFields(String f1, String...more) {
@@ -909,7 +928,7 @@ public class JdbcPersistenceBuilder<K> {
 	}
 
 	public JdbcPersistenceBuilder<K> init() {
-		try( EngineDepo<K> sqlEngine = getDepoInstance() ) {
+		try( EngineDepo<K> sqlEngine = buildPresetSqlEngine(engineType, keyClass) ) {
 			sqlEngine.createDatabaseIfNotExists(database);
 			sqlEngine.createSchemaIfNotExists(schema);
 			sqlEngine.createPartTableIfNotExists(partTable);
@@ -926,15 +945,11 @@ public class JdbcPersistenceBuilder<K> {
 						new Properties(properties), new ArrayList<>(additionalFields),
 						archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 						encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
-						restoreOrder, new ArrayList<>(uniqueFields), connectionFactory,jdbcEngine);
+						restoreOrder, new ArrayList<>(uniqueFields), connectionFactory,jdbcEngine,poolConnection);
 			}
 		} catch (Exception e) {
 			throw new PersistenceException(e);
 		}
-	}
-
-	private EngineDepo<K> getDepoInstance() {
-		return buildPresetSqlEngine(engineType, keyClass);
 	}
 
 	/**
@@ -946,9 +961,9 @@ public class JdbcPersistenceBuilder<K> {
 	public JdbcPersistence<K> build() throws Exception {
 
 		if(autoInit) {
-			init();
+			init(); //creates its own instance of connection factory
 		}
-		EngineDepo<K> sqlEngine = getDepoInstance();
+		EngineDepo<K> sqlEngine = buildPresetSqlEngine(engineType, keyClass);
 		Archiver<K> archiver = switch (archiveStrategy) {
 			case CUSTOM -> customArchiver;
 			case DELETE -> new DeleteArchiver<>(sqlEngine);
@@ -1107,23 +1122,15 @@ public class JdbcPersistenceBuilder<K> {
 	 * @return the engine depo
 	 */
 	private EngineDepo<K> buildPresetSqlEngine(String type, Class<K> kClass) {
-		EngineDepo<K> engine;
-		Objects.requireNonNull(connectionFactory,"Connection factory required");
-		if(database != null && ! database.isBlank())connectionFactory.setDatabase(database);
-		if(schema != null && ! schema.isBlank())connectionFactory.setSchema(schema);
-		if(user != null && ! user.isBlank())connectionFactory.setUser(user);
-		if(password != null && ! password.isBlank())connectionFactory.setPassword(password);
-		if(host != null && ! host.isBlank())connectionFactory.setHost(host);
-		if(port !=0) connectionFactory.setPort(port);
-		connectionFactory.setProperties(properties);
-		engine = switch (type) {
-			case "derby" -> new DerbyEngine<>(kClass, connectionFactory);
-			case "derby-client" -> new DerbyClientEngine<>(kClass, connectionFactory);
-			case "derby-memory" -> new DerbyMemoryEngine<>(kClass, connectionFactory);
-			case "mysql" -> new MysqlEngine<>(kClass, connectionFactory);
-			case "mariadb" -> new MariaDbEngine<>(kClass, connectionFactory);
-			case "postgres" -> new PostgresqlEngine<>(kClass, connectionFactory);
-			case "sqlite" -> new SqliteEngine<>(kClass, connectionFactory);
+		boolean isCached = ! poolConnection;
+		EngineDepo<K> engine = switch (type) {
+			case "derby" -> new DerbyEngine<>(kClass, connectionFactory,isCached);
+			case "derby-client" -> new DerbyClientEngine<>(kClass, connectionFactory,isCached);
+			case "derby-memory" -> new DerbyMemoryEngine<>(kClass, connectionFactory,isCached);
+			case "mysql" -> new MysqlEngine<>(kClass, connectionFactory,isCached);
+			case "mariadb" -> new MariaDbEngine<>(kClass, connectionFactory,isCached);
+			case "postgres" -> new PostgresqlEngine<>(kClass, connectionFactory,isCached);
+			case "sqlite" -> new SqliteEngine<>(kClass, connectionFactory,isCached);
 			case "jdbc" -> Objects.requireNonNull(jdbcEngine,"Custom JDBC GenericEngin is not defined");
 			default -> throw new PersistenceException("pre-setted sql engine is not available for type " + type + ".");
 		};
@@ -1131,6 +1138,14 @@ public class JdbcPersistenceBuilder<K> {
 		engine.setAdditionalFields(additionalFields);
 		engine.buildPartTableQueries(partTable);
 		engine.buildCompletedLogTableQueries(completedLogTable);
+		ConnectionFactory connectionFactory = engine.getConnectionFactory();
+		if(database != null && ! database.isBlank())connectionFactory.setDatabase(database);
+		if(schema != null && ! schema.isBlank())connectionFactory.setSchema(schema);
+		if(user != null && ! user.isBlank())connectionFactory.setUser(user);
+		if(password != null && ! password.isBlank())connectionFactory.setPassword(password);
+		if(host != null && ! host.isBlank())connectionFactory.setHost(host);
+		if(port > 0) connectionFactory.setPort(port);
+		connectionFactory.setProperties(properties);
 		return engine;
 	}
 	

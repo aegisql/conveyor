@@ -12,7 +12,7 @@ import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
-import com.aegisql.conveyor.persistence.jdbc.engine.MysqlEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.mysql.MysqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerDataSource;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
@@ -258,7 +258,7 @@ public class MysqlPersistenceTest {
 				.deleteArchiving()
 				.database("conveyor_db")
 				.connectionFactory(cf)
-				.jdbcEngine(new MysqlEngine<>(Integer.class, cf))
+				.jdbcEngine(new MysqlEngine<>(Integer.class, cf, false))
 				;
 		AssemblingConveyor<Integer, BALANCE_OPERATION, Double> balance = new AssemblingConveyor<>();
 

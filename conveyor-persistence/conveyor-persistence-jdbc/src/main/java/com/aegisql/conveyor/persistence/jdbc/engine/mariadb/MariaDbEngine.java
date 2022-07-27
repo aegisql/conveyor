@@ -1,7 +1,8 @@
-package com.aegisql.conveyor.persistence.jdbc.engine;
+package com.aegisql.conveyor.persistence.jdbc.engine.mariadb;
 
 // TODO: Auto-generated Javadoc
 
+import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
 /**
@@ -16,16 +17,20 @@ public class MariaDbEngine <K> extends GenericEngine<K> {
 	 *
 	 * @param keyClass the key class
 	 */
-	public MariaDbEngine(Class<K> keyClass, ConnectionFactory connectionFactory) {
-		super(keyClass,connectionFactory);
+	public MariaDbEngine(Class<K> keyClass, ConnectionFactory connectionFactory, boolean poolConnection) {
+		super(keyClass, connectionFactory, poolConnection);
 	}
 
+	public int defaultPort() {
+		return 3306;
+	}
 
 	@Override
+	public String defaultDriverClassName() {
+		return "org.mariadb.jdbc.Driver";
+	}
+	@Override
 	protected void init() {
-		if(connectionFactory.getPort()==0) connectionFactory.setPort(3306);
-		if(connectionFactory.getHost()==null) connectionFactory.setHost("localhost");
-		setDriver("org.mariadb.jdbc.Driver");
 		setConnectionUrlTemplateForInitDatabase("jdbc:mariadb://{host}:{port}/");
 		setConnectionUrlTemplateForInitSchema("");
 		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:mariadb://{host}:{port}/{database}");

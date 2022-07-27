@@ -24,6 +24,7 @@ import static org.junit.Assert.assertEquals;
 public class SqlitePerfTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("sqlite", Integer.class)
+			//.database(":memory:")
 			.autoInit(true).setArchived();
 	
 	@BeforeClass

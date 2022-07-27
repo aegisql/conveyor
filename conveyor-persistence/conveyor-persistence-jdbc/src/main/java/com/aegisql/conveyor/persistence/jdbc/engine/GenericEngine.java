@@ -194,6 +194,16 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	protected List<Field<?>> additionalFields = new ArrayList<>();
 
+	@Override
+	public void setConnectionFactory(ConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
+	}
+
+	@Override
+	public ConnectionFactory<?> getConnectionFactory() {
+		return connectionFactory;
+	}
+
 	/**
 	 * The Connection factory.
 	 */
@@ -205,10 +215,18 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param keyClass          the key class
 	 * @param connectionFactory the connection factory
 	 */
-	protected GenericEngine(Class<K> keyClass, ConnectionFactory connectionFactory) {
+	protected GenericEngine(Class<K> keyClass, ConnectionFactory connectionFactory, boolean isCached) {
 		this.keyClass = keyClass;
 
-		this.connectionFactory = connectionFactory;
+		if(connectionFactory != null) {
+			this.connectionFactory = connectionFactory;
+		} else {
+			if(isCached) {
+				this.connectionFactory = defaultConnectionFactory();
+			} else {
+				this.connectionFactory = defaultConnectionPoolFactory();
+			}
+		}
 
 		this.keySqlType = getKeySqlType(this.keyClass);
 		if(Number.class.isAssignableFrom(keyClass)) {
@@ -228,16 +246,8 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		this.fields.putIfAbsent(CART_PROPERTIES, "TEXT");
 		this.fields.putIfAbsent(ARCHIVED, "SMALLINT NOT NULL DEFAULT 0");
 		sortingOrder.putIfAbsent(ID, "ASC");
+		this.connectionFactory.initFromDefaults(this);
 		init();
-	}
-
-	/**
-	 * Sets driver.
-	 *
-	 * @param driver the driver
-	 */
-	public void setDriver(String driver) {
-		connectionFactory.setDriverClassName(driver);
 	}
 
 	/**
@@ -905,24 +915,6 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 			keyType = "VARCHAR(255) NOT NULL";
 		}
 		return keyType;
-	}
-
-	/**
-	 * Sets the database.
-	 *
-	 * @param database the new database
-	 */
-	public void setDatabase(String database) {
-		connectionFactory.setDatabase(database);
-	}
-
-	/**
-	 * Sets the schema.
-	 *
-	 * @param schema the new schema
-	 */
-	public void setSchema(String schema) {
-		this.connectionFactory.setSchema(schema);
 	}
 
 	/* (non-Javadoc)

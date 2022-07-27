@@ -1,7 +1,8 @@
-package com.aegisql.conveyor.persistence.jdbc.engine;
+package com.aegisql.conveyor.persistence.jdbc.engine.derby;
 
 // TODO: Auto-generated Javadoc
 
+import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
 /**
@@ -16,8 +17,8 @@ public class DerbyMemoryEngine <K> extends GenericEngine<K> {
 	 *
 	 * @param keyClass the key class
 	 */
-	public DerbyMemoryEngine(Class<K> keyClass, ConnectionFactory connectionFactory) {
-		super(keyClass, connectionFactory);
+	public DerbyMemoryEngine(Class<K> keyClass, ConnectionFactory connectionFactory, boolean poolConnection) {
+		super(keyClass, connectionFactory, poolConnection);
 	}
 
 	@Override
@@ -25,7 +26,6 @@ public class DerbyMemoryEngine <K> extends GenericEngine<K> {
 		setField(CART_PROPERTIES, "CLOB");
 		setField(CREATION_TIME, "TIMESTAMP");
 		setField(EXPIRATION_TIME, "TIMESTAMP");
-		setDriver("");
 		setConnectionUrlTemplateForInitDatabase("");
 		setConnectionUrlTemplateForInitSchema("jdbc:derby:memory:{schema};create=true");
 		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:derby:memory:{schema};create=true");

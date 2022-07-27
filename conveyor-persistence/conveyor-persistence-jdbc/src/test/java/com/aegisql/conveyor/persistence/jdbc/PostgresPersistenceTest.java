@@ -86,6 +86,7 @@ public class PostgresPersistenceTest {
 		p.archiveKeys(completed);
 		p.archiveParts(allIds);
 		assertNull(p.getPart(2));
+		p.close();
 	}
 
 	@Test
@@ -126,6 +127,7 @@ public class PostgresPersistenceTest {
 		p.archiveKeys(completed);
 		p.archiveParts(allIds);
 		assertNull(p.getPart(2));
+		p.close();
 	}
 
 	
@@ -161,7 +163,7 @@ public class PostgresPersistenceTest {
 		Cart<Integer,?,String> rc22 = p.getPart(2);
 		assertNull(rc12);
 		assertNotNull(rc22);
-		
+		p.close();
 	}
 	
 	@Test
@@ -184,6 +186,7 @@ public class PostgresPersistenceTest {
 		assertEquals(100, restored.getKey());
 		assertEquals("label", restored.getLabel());
 		assertEquals("test", restored.getValue());
+		p.close();
 	}
 
 

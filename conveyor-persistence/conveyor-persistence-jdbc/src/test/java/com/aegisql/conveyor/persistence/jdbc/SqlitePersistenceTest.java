@@ -8,11 +8,13 @@ import static org.junit.Assume.assumeNoException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -25,6 +27,7 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.JdbcPersistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
+import org.sqlite.SQLiteConfig;
 
 public class SqlitePersistenceTest {
 
@@ -185,6 +188,20 @@ public class SqlitePersistenceTest {
 		assertEquals("test", restored.getValue());
 	}
 
+	@Test
+	public void sqliteConfigTest() {
+		SQLiteConfig config = new SQLiteConfig();
+		config.setJournalMode(SQLiteConfig.JournalMode.TRUNCATE);
+		config.setLockingMode(SQLiteConfig.LockingMode.EXCLUSIVE);
+
+		ConnectionFactory cf = ConnectionFactory.cachingExternalConnectionFactoryInstance(()->{
+			try {
+				return config.createConnection("jdbc:sqlite:pragma_test");
+			} catch (SQLException e) {
+				throw new RuntimeException(e);
+			}
+		});
+	}
 
 	
 }
