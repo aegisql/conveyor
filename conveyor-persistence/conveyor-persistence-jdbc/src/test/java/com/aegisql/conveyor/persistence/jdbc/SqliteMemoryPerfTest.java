@@ -21,9 +21,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
 
-public class SqlitePerfTest {
+public class SqliteMemoryPerfTest {
 
-	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("sqlite", Integer.class)
+	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("sqlite-memory", Integer.class)
 			//.database(":memory:")
 			.autoInit(true).setArchived();
 	
@@ -62,7 +62,7 @@ public class SqlitePerfTest {
 		pool = new ThreadPool(3);
 		batchSize = testSize / 20;
 		sleepNumber = batchSize;
-		System.out.println("--- Sqlite Perf Test " + new Date());
+		System.out.println("--- Sqlite Memory Perf Test " + new Date());
 	}
 
 	@After

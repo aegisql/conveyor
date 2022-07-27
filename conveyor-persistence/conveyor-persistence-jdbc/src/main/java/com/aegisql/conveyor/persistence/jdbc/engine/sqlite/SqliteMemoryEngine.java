@@ -15,14 +15,14 @@ import java.sql.SQLException;
  *
  * @param <K> the key type
  */
-public class SqliteEngine <K> extends GenericEngine<K> {
-	
+public class SqliteMemoryEngine<K> extends GenericEngine<K> {
+
 	/**
 	 * Instantiates a new sqlite engine.
 	 *
 	 * @param keyClass the key class
 	 */
-	public SqliteEngine(Class<K> keyClass, ConnectionFactory connectionFactory, boolean poolConnection) {
+	public SqliteMemoryEngine(Class<K> keyClass, ConnectionFactory connectionFactory, boolean poolConnection) {
 		super(keyClass, connectionFactory, poolConnection);
 	}
 	
@@ -42,8 +42,9 @@ public class SqliteEngine <K> extends GenericEngine<K> {
 	@Override
 	public ConnectionFactory<?> defaultConnectionFactory() {
 		SQLiteConfig config = new SQLiteConfig();
-		config.setJournalMode(SQLiteConfig.JournalMode.PERSIST);
+		config.setJournalMode(SQLiteConfig.JournalMode.MEMORY);
 		config.setLockingMode(SQLiteConfig.LockingMode.NORMAL);
+		config.setSynchronous(SQLiteConfig.SynchronousMode.OFF);
 
 		ConnectionFactory cf = ConnectionFactory.cachingFactoryInstance(f->{
 				return new WrappedExternalDataSource(()-> {
@@ -61,8 +62,8 @@ public class SqliteEngine <K> extends GenericEngine<K> {
 	protected void init() {
 		setConnectionUrlTemplateForInitDatabase("");
 		setConnectionUrlTemplateForInitSchema("");
-		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:sqlite:{database}");
-		setConnectionUrlTemplate("jdbc:sqlite:{database}");
+		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:sqlite:{database}?mode=memory&cache=shared");
+		setConnectionUrlTemplate("jdbc:sqlite:{database}?mode=memory&cache=shared");
 	}
 
 }

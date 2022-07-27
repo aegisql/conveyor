@@ -27,6 +27,7 @@ import com.aegisql.conveyor.persistence.jdbc.engine.mariadb.MariaDbEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.mysql.MysqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.postgres.PostgresqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.sqlite.SqliteEngine;
+import com.aegisql.conveyor.persistence.jdbc.engine.sqlite.SqliteMemoryEngine;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1131,6 +1132,7 @@ public class JdbcPersistenceBuilder<K> {
 			case "mariadb" -> new MariaDbEngine<>(kClass, connectionFactory,isCached);
 			case "postgres" -> new PostgresqlEngine<>(kClass, connectionFactory,isCached);
 			case "sqlite" -> new SqliteEngine<>(kClass, connectionFactory,isCached);
+			case "sqlite-memory" -> new SqliteMemoryEngine<>(kClass, connectionFactory,isCached);
 			case "jdbc" -> Objects.requireNonNull(jdbcEngine,"Custom JDBC GenericEngin is not defined");
 			default -> throw new PersistenceException("pre-setted sql engine is not available for type " + type + ".");
 		};
@@ -1172,7 +1174,7 @@ public class JdbcPersistenceBuilder<K> {
 			case "derby", "derby-client", "derby-memory" -> pi.schema("conveyor_db");
 			case "mysql", "mariadb" -> pi.database("conveyor_db");
 			case "postgres" -> pi.database("conveyor_db").schema("conveyor_db");
-			case "sqlite" -> pi.database("conveyor.db");
+			case "sqlite", "sqlite-memory" -> pi.database("conveyor.db");
 			case "jdbc" -> pi;
 			default -> throw new PersistenceException("pre-setted initializer is not available for type " + type + ".");
 		};
