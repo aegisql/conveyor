@@ -416,7 +416,7 @@ public class ConveyorConfigurationTest {
 	}
 	@Test
 	public void testYampFile12WithDbcp() throws Exception {
-		ConveyorConfiguration.build("CLASSPATH:test12.yml");
+		ConveyorConfiguration.build("CP:test12.yml","JP:com.aegisql.conveyor.config.harness.TestBean");
 		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c12");
 		Persistence<Integer> p = Persistence.byName("sqlite-memory.p12.parts12").copy();
 		assertNotNull(c);

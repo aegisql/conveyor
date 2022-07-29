@@ -185,6 +185,15 @@ public class PersistenceProperty {
 
 		convProperty = convProperty.replaceAll(altDelim, ConveyorConfiguration.PROPERTY_DELIMITER);
 
+		if(value instanceof String && value != null) {
+			String str = value.toString();
+			if(str.toUpperCase().startsWith(ConveyorConfiguration.JAVAPATH_PREFIX)) {
+				// Process JavaPath here
+				String remaining = str.substring(ConveyorConfiguration.JAVAPATH_PREFIX.length());
+				value = ConveyorConfiguration.evalPath(remaining);
+			}
+		}
+
 		return new PersistenceProperty(isConveyorProperty, isDefaultProperty, type, schema, name, convProperty, value);
 
 	}
@@ -216,11 +225,25 @@ public class PersistenceProperty {
 			return false;
 		} else if (value instanceof Boolean) {
 			return (Boolean) value;
+		} else if(value instanceof String) {
+			return Boolean.valueOf((value.toString()));
 		} else {
 			throw new ConveyorRuntimeException("Expected boolean type, but found "+value.getClass());
 		}
-
 	}
+
+	public Integer getValueAsInteger() {
+		if(value == null) {
+			return null;
+		} else if(value instanceof Integer) {
+			return (Integer) value;
+		} else if(value instanceof String) {
+			return Integer.valueOf((value.toString()));
+		} else {
+			throw new ConveyorRuntimeException("Expected integer type, but found "+value.getClass());
+		}
+	}
+
 
 	/**
 	 * Gets the type.

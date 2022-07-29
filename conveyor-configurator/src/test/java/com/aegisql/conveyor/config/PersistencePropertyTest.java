@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.aegisql.conveyor.config.harness.TestBean;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -190,7 +191,6 @@ public class PersistencePropertyTest {
 		assertEquals("ARCHIVE", cp1.getValue());
 	}
 
-
 	@Test
 	public void testMapProperty1Eval() {
 		AtomicReference<PersistenceProperty> acp = new AtomicReference<>();
@@ -251,5 +251,24 @@ public class PersistencePropertyTest {
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());
 	}
-	
+
+	@Test
+	public void testJavaPathResolution() {
+		ConveyorConfiguration.registerBean(new TestBean(),"theBean");
+		AtomicReference<PersistenceProperty> acp = new AtomicReference<>();
+		PersistenceProperty.eval("persistence.derby.schema.name.archiveStrategy","javapath:theBean.type",cp->acp.set(cp));
+		PersistenceProperty cp1 = acp.get();
+		assertNotNull(cp1);
+		assertTrue(cp1.isPersistenceProperty());
+		assertFalse(cp1.isDefaultProperty());
+		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getProperty());
+		assertEquals("derby", cp1.getType());
+		assertEquals("schema", cp1.getSchema());
+		assertEquals("name", cp1.getName());
+		assertEquals("archiveStrategy", cp1.getProperty());
+		assertEquals("value", cp1.getValue());
+	}
+
+
 }

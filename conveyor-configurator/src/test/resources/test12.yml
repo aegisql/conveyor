@@ -1,9 +1,11 @@
 test.testName: persistence end to end 12 with connection pool
 conveyor:
   c12:
+    javaPath: com.aegisql.conveyor.config.harness.TestBean
     builderSupplier:  new com.aegisql.conveyor.config.harness.StringSupplier("c12");
     defaultBuilderTimeout:  10 SECONDS
     firstResultConsumer:  new com.aegisql.conveyor.consumers.result.LogResult()
+#    firstResultConsumer:  javapath:(com.aegisql.conveyor.consumers.result.LogResult logResult).@
     firstScrapConsumer:  new com.aegisql.conveyor.consumers.scrap.LogScrap()
     readyWhenAccepted:
       - 2 com.aegisql.conveyor.config.harness.NameLabel.FIRST

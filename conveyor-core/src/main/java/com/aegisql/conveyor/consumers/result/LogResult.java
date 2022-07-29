@@ -368,4 +368,9 @@ public class LogResult <K,E> implements ResultConsumer<K,E> {
 		return new LogResult<>(Conveyor.LOG,Level.STDERR);
 	}
 
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder("LogResult{}");
+		return sb.toString();
+	}
 }

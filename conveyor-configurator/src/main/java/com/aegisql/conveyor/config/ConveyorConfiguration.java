@@ -5,15 +5,20 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+import com.aegisql.java_path.ClassRegistry;
+import com.aegisql.java_path.JavaPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
+import javax.naming.ConfigurationException;
 import java.io.FileReader;
+import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -41,8 +46,12 @@ public class ConveyorConfiguration {
 	/** The property delimiter. */
 	public static String PROPERTY_DELIMITER = ".";
 
+	public static String JAVAPATH_PREFIX = "JAVAPATH:";
+
 	/** The default timeout msec. */
 	public static long DEFAULT_TIMEOUT_MSEC = 0;
+
+	private final static ConfigurationPaths configurationPaths = new ConfigurationPaths();
 
 	/**
 	 * Instantiates a new conveyor configuration.
@@ -60,10 +69,10 @@ public class ConveyorConfiguration {
 	public static void build(String conf, String... moreConf) throws Exception {
 
 		Objects.requireNonNull(conf, "At least one configuration file must be provided");
-		processConfFile(conf);
+		processConfParameter(conf);
 		if (moreConf != null) {
 			for (String file : moreConf) {
-				processConfFile(file);
+				processConfParameter(file);
 			}
 		}
 		Conveyor<String, String, Conveyor> buildingConveyor  = getBuildingConveyor();
@@ -77,21 +86,18 @@ public class ConveyorConfiguration {
 		Conveyor.unRegister(buildingConveyor.getName());
 	}
 
-	/**
-	 * Process conf file.
-	 *
-	 * @param file the file
-	 */
-
-	private static final TemplateEditor templateEditor = new TemplateEditor();
-
-	private static void processConfFile(String file) {
+	private static void processConfParameter(String file) {
 
 		lock.lock();
 		try {
-			if (file.toLowerCase().startsWith("classpath:")) {
-				String fileSub = file.substring(10);
+			if (file.toLowerCase().startsWith("classpath:") || file.toLowerCase().startsWith("cp:")) {
+				String fileSub = file.substring(file.indexOf(":")+1);
 				file = ConveyorConfiguration.class.getClassLoader().getResource(fileSub).getPath();
+			}
+			if (file.toLowerCase().startsWith("javapath:") || file.toLowerCase().startsWith("jp:")) {
+				String className = file.substring(file.indexOf(":")+1);
+				registerPath(className);
+				return;
 			}
 			ConveyorConfiguration cc;
 			if (file.toLowerCase().endsWith(".properties")) {
@@ -107,6 +113,10 @@ public class ConveyorConfiguration {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	static void registerPath(String className){
+		configurationPaths.register(className);
 	}
 
 	/**
@@ -134,6 +144,7 @@ public class ConveyorConfiguration {
 			LabeledValueConsumer<String, ?, ConveyorBuilder> lvc = (l, v, b) -> LOG.info("Unprocessed value {}={}", l, v);
 
 			conveyorConfiguration.setDefaultCartConsumer(lvc
+					.<String>when("javaPath", ConveyorBuilder::registerPath)
 					.<String>when("supplier", ConveyorBuilder::supplier)
 					.<String>when("defaultBuilderTimeout", ConveyorBuilder::defaultBuilderTimeout)
 					.<String>when("idleHeartBeat", ConveyorBuilder::idleHeartBeat)
@@ -263,6 +274,14 @@ public class ConveyorConfiguration {
 		});
 		
 		PersistenceProperty.eval(key, obj, pp-> buildingConveyor.part().id("__PERSISTENCE__").label("persistenceProperty").value(pp).place());
+	}
+
+	public static void registerBean(Object bean, String... names) {
+		configurationPaths.registerBean(bean,names);
+	}
+
+	public static Object evalPath(String path) {
+		return configurationPaths.evalPath(path);
 	}
 
 	/* (non-Javadoc)

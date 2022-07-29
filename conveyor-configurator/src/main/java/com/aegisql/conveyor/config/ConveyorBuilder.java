@@ -270,7 +270,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								pb = pb.host(p.getValueAsString());
 								break;
 							case "port":
-								pb = pb.port(Integer.parseInt(p.getValueAsString()));
+								pb = pb.port(p.getValueAsInteger());
 								break;
 							case "encryptionAlgorithm":
 								pb = pb.encryptionAlgorithm(p.getValueAsString());
@@ -279,13 +279,13 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								pb = pb.encryptionTransformation(p.getValueAsString());
 								break;
 							case "encryptionKeyLength":
-								pb = pb.encryptionKeyLength(Integer.parseInt(p.getValueAsString()));
+								pb = pb.encryptionKeyLength(p.getValueAsInteger());
 								break;
 							case "encryptionSecret":
 								pb = pb.encryptionSecret(p.getValueAsString());
 								break;
 							case "maxBatchSize":
-								pb = pb.maxBatchSize(Integer.parseInt(p.getValueAsString()));
+								pb = pb.maxBatchSize(p.getValueAsInteger());
 								break;
 							case "doNotSaveProperties":
 								String[] parts = p.getValueAsString().split(",");
@@ -310,11 +310,11 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 								pb = pb.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy.bucketSize":
-								bLogConf.bucketSize(Integer.parseInt(p.getValueAsString()));
+								bLogConf.bucketSize(p.getValueAsInteger());
 								pb = pb.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy.zip":
-								bLogConf.zipFile(Boolean.parseBoolean(p.getValueAsString()));
+								bLogConf.zipFile(p.getValueAsBoolean());
 								pb = pb.archiver(bLogConf.build());
 								break;
 							case "archiveStrategy":
@@ -1010,6 +1010,10 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		}
 	}
 
+	public static void registerPath(ConveyorBuilder b, String s) {
+		LOG.debug("Register JavaPath={}", s);
+		ConveyorConfiguration.registerPath(s);
+	}
 	/**
 	 * Persistence property.
 	 *

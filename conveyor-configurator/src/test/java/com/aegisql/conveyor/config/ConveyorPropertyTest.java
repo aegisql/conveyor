@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.aegisql.conveyor.config.harness.TestBean;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -169,5 +170,51 @@ public class ConveyorPropertyTest {
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());
 	}
-	
+
+	@Test
+	public void testSimpleJavaPath() throws Exception {
+		ConveyorConfiguration.build("jp:com.aegisql.conveyor.config.harness.TestBean testBean");
+		AtomicReference<ConveyorProperty> acp = new AtomicReference<>();
+		ConveyorProperty.eval("conveyor.name.timeout","javapath:testBean.timeout",cp->acp.set(cp));
+		ConveyorProperty cp1 = acp.get();
+		assertNotNull(cp1);
+		assertTrue(cp1.isConveyorProperty());
+		assertFalse(cp1.isDefaultProperty());
+		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getProperty());
+		assertEquals("name", cp1.getName());
+		assertEquals("timeout", cp1.getProperty());
+		assertEquals(1000, cp1.getValue());
+	}
+
+	@Test
+	public void testAutoRegistrationJavaPath() throws Exception {
+		AtomicReference<ConveyorProperty> acp = new AtomicReference<>();
+		ConveyorProperty.eval("conveyor.name.timeout","javapath:(com.aegisql.conveyor.config.harness.TestBean testBean).timeout",cp->acp.set(cp));
+		ConveyorProperty cp1 = acp.get();
+		assertNotNull(cp1);
+		assertTrue(cp1.isConveyorProperty());
+		assertFalse(cp1.isDefaultProperty());
+		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getProperty());
+		assertEquals("name", cp1.getName());
+		assertEquals("timeout", cp1.getProperty());
+		assertEquals(1000, cp1.getValue());
+	}
+
+	@Test
+	public void testJavaPathWithBean() throws Exception {
+		ConveyorConfiguration.registerBean(new TestBean(),"theBean");
+		AtomicReference<ConveyorProperty> acp = new AtomicReference<>();
+		ConveyorProperty.eval("conveyor.name.timeout","javapath:theBean.timeout",cp->acp.set(cp));
+		ConveyorProperty cp1 = acp.get();
+		assertNotNull(cp1);
+		assertTrue(cp1.isConveyorProperty());
+		assertFalse(cp1.isDefaultProperty());
+		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getProperty());
+		assertEquals("name", cp1.getName());
+		assertEquals("timeout", cp1.getProperty());
+		assertEquals(1000, cp1.getValue());
+	}
 }

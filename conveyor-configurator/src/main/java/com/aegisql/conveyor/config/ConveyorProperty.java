@@ -1,5 +1,7 @@
 package com.aegisql.conveyor.config;
 
+import com.aegisql.java_path.JavaPath;
+
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -113,7 +115,13 @@ public class ConveyorProperty {
 			return;
 		}
 		if(processedValue != null && value instanceof String) {
-			value = processedValue;
+			if(processedValue.toUpperCase().startsWith(ConveyorConfiguration.JAVAPATH_PREFIX)) {
+				// Process JavaPath here
+				String remaining = processedValue.substring(ConveyorConfiguration.JAVAPATH_PREFIX.length());
+				value = ConveyorConfiguration.evalPath(remaining);
+			} else {
+				value = processedValue;
+			}
 		}
 		if(value == null) {
 			ConveyorProperty cp = evalProperty(propertyKey, value);
