@@ -50,7 +50,7 @@ import java.util.function.Supplier;
  *
  * @param <K> the key type
  */
-public class JdbcPersistenceBuilder<K> {
+public class JdbcPersistenceBuilder<K> implements Cloneable {
 	
 	/** The Constant LOG. */
 	private static final Logger LOG = LoggerFactory.getLogger(JdbcPersistenceBuilder.class);
@@ -270,7 +270,16 @@ public class JdbcPersistenceBuilder<K> {
 		this.jdbcEngine = jdbcEngine;
 		this.poolConnection = poolConnection;
 	}
-	
+
+	@Override
+	public Object clone() {
+			return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
+					database, schema, partTable, completedLogTable, user, password,
+					new Properties(properties), new ArrayList<>(additionalFields),
+					archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
+					encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
+					,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+	}
 	
 	/**
 	 * Id supplier.
@@ -953,6 +962,10 @@ public class JdbcPersistenceBuilder<K> {
 		}
 	}
 
+	public String getJMXObjName() {
+		return "com.aegisql.conveyor.persistence."+engineType+"."+schema+":type=" + partTable;
+	}
+
 	/**
 	 * Builds the.
 	 *
@@ -999,7 +1012,7 @@ public class JdbcPersistenceBuilder<K> {
 				, additionalFields
 				);
 		
-		String objName = "com.aegisql.conveyor.persistence."+engineType+"."+schema+":type=" + partTable;
+		String objName = getJMXObjName();
 		LOG.debug("JMX name {}",objName);
 		ObjectName objectName = new ObjectName(objName);
 		synchronized (JdbcPersistenceMBean.mBeanServer) {

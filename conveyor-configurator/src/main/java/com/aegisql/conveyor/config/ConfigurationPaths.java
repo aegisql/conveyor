@@ -2,7 +2,9 @@ package com.aegisql.conveyor.config;
 
 import com.aegisql.java_path.ClassRegistry;
 import com.aegisql.java_path.JavaPath;
+import com.aegisql.java_path.StringConverter;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -16,7 +18,14 @@ public class ConfigurationPaths {
     private final ClassRegistry classRegistry = new ClassRegistry();
 
     public ConfigurationPaths() {
-
+        classRegistry.registerStringConverter(Duration.class, new StringConverter<Duration>() {
+            @Override
+            public Duration apply(String s) {
+                return Duration.ofMillis(Long.parseLong(s));
+            }
+        });
+        register(Duration.class.getName());
+        register(Duration.class.getSimpleName());
     }
 
     public JavaPath register(String path) {

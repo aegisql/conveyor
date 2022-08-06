@@ -156,9 +156,10 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	});
 
 	/** The default properties. */
-	private final Map<String, PersistenceProperties> defaultProperties = new TreeMap<>();
+	private final Map<String, PersistenceProperties> defaultPersistenceProperties = new TreeMap<>();
 
 	private Boolean enablePriorityQueue = false;
+
 
 	/**
 	 * Sets the if not null.
@@ -190,224 +191,18 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 			for (String key : persistenceProperties.keySet()) {
 				PersistenceProperties pp = persistenceProperties.get(key);
-				Map<String, LinkedList<PersistenceProperty>> ppMapList = pp.getProperties();
 
-				PersistenceProperties pp0 = defaultProperties.get(pp.getLevel0Key());
-				PersistenceProperties pp1 = defaultProperties.get(pp.getLevel1Key());
-				PersistenceProperties pp2 = defaultProperties.get(pp.getLevel2Key());
+				PersistenceProperties pp0 = defaultPersistenceProperties.get(pp.getLevel0Key());
+				PersistenceProperties pp1 = defaultPersistenceProperties.get(pp.getLevel1Key());
+				PersistenceProperties pp2 = defaultPersistenceProperties.get(pp.getLevel2Key());
 
-				if (pp2 != null) {
-					pp2.getProperties().forEach((k, p) -> {
-						if (!ppMapList.containsKey(k)) {
-							ppMapList.put(k, p);
-						}
-					});
-				}
-				if (pp1 != null) {
-					pp1.getProperties().forEach((k, p) -> {
-						if (!ppMapList.containsKey(k)) {
-							ppMapList.put(k, p);
-						}
-					});
-				}
-				if (pp0 != null) {
-					pp0.getProperties().forEach((k, p) -> {
-						if (!ppMapList.containsKey(k)) {
-							ppMapList.put(k, p);
-						}
-					});
-				}
+				pp.merge(pp2);
+				pp.merge(pp1);
+				pp.merge(pp0);
 
-					PersistenceProperty keyProperty = ppMapList.get("keyClass").getLast();
-					LOG.debug("Persistence found {} {}", key, pp);
 
-					if (keyProperty == null) {
-						throw new ConveyorConfigurationException(
-								"Missing mandatory Persistence property 'keyClass' in " + key);
-					}
-
-					Class keyClass = Class.forName(keyProperty.getValueAsString());
-
-					JdbcPersistenceBuilder pb = JdbcPersistenceBuilder.presetInitializer(pp.getType().toLowerCase(),keyClass);
-					pb = pb.autoInit(true);
-					pb = pb.schema(pp.getSchema());
-					pb = pb.partTable(pp.getName());
-
-					BinaryLogConfigurationBuilder bLogConf = BinaryLogConfiguration.builder();
-					bLogConf.partTableName(pp.getName());
-
-					// optional parts
-					for (LinkedList<PersistenceProperty> ppList : ppMapList.values())
-						for (PersistenceProperty p : ppList) {
-							switch (p.getProperty()) {
-							case "keyClass": //already set
-								break;
-							case "database":
-								pb = pb.database(p.getValueAsString());
-								break;
-							case "driverClass":
-								String driver = p.getValueAsString();
-								ConnectionFactory cf = ConnectionFactory.driverManagerFactoryInstance();
-								cf.setDriverClassName(driver);
-								pb = pb.connectionFactory(cf);
-								break;
-							case "autoInit":
-								pb = pb.autoInit(Boolean.parseBoolean(p.getValueAsString()));
-								break;
-							case "restoreOrder":
-								pb = pb.restoreOrder(RestoreOrder.valueOf(p.getValueAsString()));
-								break;
-							case "username":
-								pb = pb.user(p.getValueAsString());
-								break;
-							case "password":
-								pb = pb.password(p.getValueAsString());
-								break;
-							case "completedLogTable":
-								pb = pb.completedLogTable(p.getValueAsString());
-								break;
-							case "host":
-								pb = pb.host(p.getValueAsString());
-								break;
-							case "port":
-								pb = pb.port(p.getValueAsInteger());
-								break;
-							case "encryptionAlgorithm":
-								pb = pb.encryptionAlgorithm(p.getValueAsString());
-								break;
-							case "encryptionTransformation":
-								pb = pb.encryptionTransformation(p.getValueAsString());
-								break;
-							case "encryptionKeyLength":
-								pb = pb.encryptionKeyLength(p.getValueAsInteger());
-								break;
-							case "encryptionSecret":
-								pb = pb.encryptionSecret(p.getValueAsString());
-								break;
-							case "maxBatchSize":
-								pb = pb.maxBatchSize(p.getValueAsInteger());
-								break;
-							case "doNotSaveProperties":
-								String[] parts = p.getValueAsString().split(",");
-								for (String part : parts) {
-									pb = pb.doNotSaveCartProperties(part.trim());
-								}
-								break;
-							case "maxBatchTime":
-								Long value = (Long) ConfigUtils.timeToMillsConverter.apply(p.getValueAsString());
-								pb = pb.maxBatchTime(Duration.ofMillis(value));
-								break;
-							case "archiveStrategy.path":
-								bLogConf.path(p.getValueAsString());
-								pb = pb.archiver(bLogConf.build());
-								break;
-							case "archiveStrategy.moveTo":
-								bLogConf.moveToPath(p.getValueAsString());
-								pb = pb.archiver(bLogConf.build());
-								break;
-							case "archiveStrategy.maxFileSize":
-								bLogConf.maxFileSize(p.getValueAsString());
-								pb = pb.archiver(bLogConf.build());
-								break;
-							case "archiveStrategy.bucketSize":
-								bLogConf.bucketSize(p.getValueAsInteger());
-								pb = pb.archiver(bLogConf.build());
-								break;
-							case "archiveStrategy.zip":
-								bLogConf.zipFile(p.getValueAsBoolean());
-								pb = pb.archiver(bLogConf.build());
-								break;
-							case "archiveStrategy":
-								ArchiveStrategy as = ArchiveStrategy.valueOf(p.getValueAsString());
-								switch (as) {
-									case NO_ACTION -> pb = pb.noArchiving();
-									case DELETE -> pb = pb.deleteArchiving();
-									case SET_ARCHIVED -> pb = pb.setArchived();
-									case MOVE_TO_FILE -> pb = pb.archiver(bLogConf.build());
-									default -> {
-									}
-								}
-								break;
-							case "archiveStrategy.archiver":
-								Archiver ar = ConfigUtils.stringToArchiverConverter.apply(p.getValueAsString());
-								pb = pb.archiver(ar);
-								LOG.warn("Unimplemented PersistentProperty {}", p);
-								break;
-							case "archiveStrategy.persistence":
-								Persistence per = Persistence.byName(p.getValueAsString());
-								pb = pb.archiver(per);
-								break;
-							case "labelConverter":
-								try {
-									Class clas = Class.forName(p.getValueAsString());
-									pb = pb.labelConverter(clas);
-									LOG.debug("Label converter {}", clas.getName());
-								} catch (Exception e) {
-									ObjectConverter oc = ConfigUtils.stringToObjectConverter
-											.apply(p.getValueAsString());
-									pb = pb.labelConverter(oc);
-									LOG.debug("Label converter {}", oc.conversionHint());
-								}
-								break;
-							case "idSupplier":
-								pb = pb.idSupplier(ConfigUtils.stringToIdSupplier.apply(p.getValueAsString()));
-								LOG.warn("Unimplemented PersistentProperty {}", p);
-								break;
-							case "addBinaryConverter":
-								String[] s = p.getValueAsString().split(",");
-								ObjectConverter oc = ConfigUtils.stringToObjectConverter
-								.apply(s[1].trim());
-								try {
-									Class clas = Class.forName(s[0].trim());
-									pb = pb.addBinaryConverter(clas, oc);
-								} catch (Exception e) {
-									Object label = ConfigUtils.stringToRefConverter.apply(s[0]);
-									pb = pb.addBinaryConverter(label, oc);
-								}
-								break;
-							case "addField":
-								String[] classFieldName = p.getValueAsString().split(",",3);
-								Class fieldClass = Class.forName(classFieldName[0].trim());
-								String name = classFieldName[1].trim();
-								if(classFieldName.length == 2) {
-									pb = pb.addField(fieldClass, name);
-								} else {
-									Function accessor = (Function)ConfigUtils.stringToFunctionSupplier.apply(classFieldName[2].trim());
-									pb = pb.addField(fieldClass, name, accessor);
-								}
-								break;
-							case "addUniqueFields":
-								String[] fields = p.getValueAsString().split(",");
-								List<String> fl = new ArrayList<>();
-								for(String f:fields) {
-									fl.add(f.trim());
-								}
-								pb = pb.addUniqueFields(fl);
-								break;
-							case "minCompactSize":
-								pb = pb.minCompactSize(Integer.parseInt(p.getValueAsString()));
-								LOG.warn("minCompactSize PersistentProperty {}", p);
-								break;
-							case "dbcp2":
-								boolean dbcp = p.getValueAsBoolean();
-								if(dbcp) {
-									pb = pb.dbcp2Connection();
-									LOG.info("DBCP2 connection pool");
-								}
-								break;
-								case "poolConnection":
-									boolean pool = p.getValueAsBoolean();
-									pb = pb.poolConnection(pool);
-									LOG.info("pool connection: {}",pool);
-									break;
-							default:
-								LOG.warn("Unsupported PersistentProperty {}", p);
-								break;
-							}
-						}
-					pb.build();
-					persistence = "com.aegisql.conveyor.persistence."+pp.getType().toLowerCase()+"."+pp.getSchema()+":type="+pp.getName();
-					LOG.debug("Created Persistence {}",persistence);
+				persistence = pp.buildPersistence();
+				LOG.debug("Created Persistence {}",persistence);
 				
 			}
 
@@ -508,13 +303,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void idleHeartBeat(ConveyorBuilder b, String s) {
-		LOG.debug("Applying idleHeartBeat={}", s);
-		Long value = (Long) ConfigUtils.timeToMillsConverter.apply(s);
-		b.idleHeartBeat = Duration.ofMillis(value);
+	public static void idleHeartBeat(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.idleHeartBeat = cp.getValueAsDuration();
 	}
 
 	/**
@@ -522,13 +316,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void defaultBuilderTimeout(ConveyorBuilder b, String s) {
-		LOG.debug("Applying defaultBuilderTimeout={}", s);
-		Long value = (Long) ConfigUtils.timeToMillsConverter.apply(s);
-		b.defaultBuilderTimeout = Duration.ofMillis(value);
+	public static void defaultBuilderTimeout(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.defaultBuilderTimeout = cp.getValueAsDuration();
 	}
 
 	/**
@@ -536,13 +329,11 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
-	 *            the s
+	 * @param cp  the cp
 	 */
-	public static void rejectUnexpireableCartsOlderThan(ConveyorBuilder b, String s) {
-		LOG.debug("Applying rejectUnexpireableCartsOlderThan={}", s);
-		Long value = (Long) ConfigUtils.timeToMillsConverter.apply(s);
-		b.rejectUnexpireableCartsOlderThan = Duration.ofMillis(value);
+	public static void rejectUnexpireableCartsOlderThan(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.rejectUnexpireableCartsOlderThan = cp.getValueAsDuration();
 	}
 
 	/**
@@ -550,13 +341,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void expirationPostponeTime(ConveyorBuilder b, String s) {
-		LOG.debug("Applying expirationPostponeTime={}", s);
-		Long value = (Long) ConfigUtils.timeToMillsConverter.apply(s);
-		b.expirationPostponeTime = Duration.ofMillis(value);
+	public static void expirationPostponeTime(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.expirationPostponeTime = cp.getValueAsDuration();
 	}
 
 	/**
@@ -564,12 +354,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void staticPart(ConveyorBuilder b, String s) {
-		LOG.debug("Applying staticPart={}", s);
-		Pair value = (Pair) ConfigUtils.stringToLabelValuePairSupplier.apply(s);
+	public static void staticPart(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		Pair value = (Pair) ConfigUtils.stringToLabelValuePairSupplier.apply(cp.getValueAsString());
 		b.staticParts.add(value);
 	}
 
@@ -578,12 +368,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void firstResultConsumer(ConveyorBuilder b, String s) {
-		LOG.debug("Applying firstResultConsumer={}", s);
-		b.firstResultConsumer = (ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(s);
+	public static void firstResultConsumer(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.firstResultConsumer = (ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(cp.getValueAsString());
 	}
 
 	/**
@@ -591,12 +381,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void nextResultConsumer(ConveyorBuilder b, String s) {
-		LOG.debug("Applying nextResultConsumer={}", s);
-		ResultConsumer value = (ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(s);
+	public static void nextResultConsumer(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		ResultConsumer value = (ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(cp.getValueAsString());
 		b.nextResultConsumers.add(value);
 	}
 
@@ -605,12 +395,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void firstScrapConsumer(ConveyorBuilder b, String s) {
-		LOG.debug("Applying firstScrapConsumer={}", s);
-		b.firstScrapConsumer = (ScrapConsumer) ConfigUtils.stringToScrapConsumerSupplier.apply(s);
+	public static void firstScrapConsumer(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.firstScrapConsumer = (ScrapConsumer) ConfigUtils.stringToScrapConsumerSupplier.apply(cp.getValueAsString());
 	}
 
 	/**
@@ -618,12 +408,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void nextScrapConsumer(ConveyorBuilder b, String s) {
-		LOG.debug("Applying nextScrapConsumer={}", s);
-		ScrapConsumer value = (ScrapConsumer) ConfigUtils.stringToScrapConsumerSupplier.apply(s);
+	public static void nextScrapConsumer(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		ScrapConsumer value = (ScrapConsumer) ConfigUtils.stringToScrapConsumerSupplier.apply(cp.getValueAsString());
 		b.nextScrapConsumers.add(value);
 	}
 
@@ -632,12 +422,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void timeoutAction(ConveyorBuilder b, String s) {
-		LOG.debug("Applying timeoutAction={}", s);
-		b.timeoutAction = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(s);
+	public static void timeoutAction(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.timeoutAction = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(cp.getValueAsString());
 	}
 
 	/**
@@ -645,12 +435,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void acknowledgeAction(ConveyorBuilder b, String s) {
-		LOG.debug("Applying acknowledgeAction={}", s);
-		b.acknowledgeAction = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(s);
+	public static void acknowledgeAction(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.acknowledgeAction = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(cp.getValueAsString());
 	}
 
 	/**
@@ -658,12 +448,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void addCartBeforePlacementValidator(ConveyorBuilder b, String s) {
-		LOG.debug("Applying addCartBeforePlacementValidator={}", s);
-		Consumer value = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(s);
+	public static void addCartBeforePlacementValidator(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		Consumer value = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(cp.getValueAsString());
 		b.addCartBeforePlacementValidator.add(value);
 	}
 
@@ -672,12 +462,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void addBeforeKeyEvictionAction(ConveyorBuilder b, String s) {
-		LOG.debug("Applying addBeforeKeyEvictionAction={}", s);
-		Consumer value = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(s);
+	public static void addBeforeKeyEvictionAction(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		Consumer value = (Consumer) ConfigUtils.stringToConsumerSupplier.apply(cp.getValueAsString());
 		b.addBeforeKeyEvictionAction.add(value);
 	}
 
@@ -686,12 +476,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void defaultCartConsumer(ConveyorBuilder b, String s) {
-		LOG.debug("Applying defaultCartConsumer={}", s);
-		b.defaultCartConsumer = (LabeledValueConsumer) ConfigUtils.stringToLabeledValueConsumerSupplier.apply(s);
+	public static void defaultCartConsumer(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.defaultCartConsumer = (LabeledValueConsumer) ConfigUtils.stringToLabeledValueConsumerSupplier.apply(cp.getValueAsString());
 	}
 
 	/**
@@ -699,12 +489,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void readinessEvaluator(ConveyorBuilder b, String s) {
-		LOG.debug("Applying readinessEvaluator={}", s);
-		Object obj = ConfigUtils.stringToReadinessEvaluatorSupplier.apply(s);
+	public static void readinessEvaluator(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		Object obj = ConfigUtils.stringToReadinessEvaluatorSupplier.apply(cp.getValueAsString());
 		if (obj instanceof BiPredicate) {
 			b.readinessEvaluatorBiP = (BiPredicate) obj;
 			b.readinessEvaluatorP = null;
@@ -720,11 +510,11 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 * Ready when.
 	 *
 	 * @param b the b
-	 * @param s the s
+	 * @param cp the s
 	 */
-	public static void readyWhen(ConveyorBuilder b, String s) {
-		LOG.debug("Applying readyWhen={}", s);
-		String[] parts = s.trim().split("\\s+");
+	public static void readyWhen(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		String[] parts = cp.getValueAsString().trim().split("\\s+");
 		if (parts.length == 0) {
 			return;
 		}
@@ -757,12 +547,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void builderSupplier(ConveyorBuilder b, String s) {
-		LOG.debug("Applying builderSupplier={}", s);
-		b.builderSupplier = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply(s);
+	public static void builderSupplier(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.builderSupplier = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply(cp.getValueAsString());
 	}
 
 	/**
@@ -770,12 +560,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void addBeforeKeyReschedulingAction(ConveyorBuilder b, String s) {
-		LOG.debug("Applying addBeforeKeyReschedulingAction={}", s);
-		BiConsumer value = (BiConsumer) ConfigUtils.stringToBiConsumerSupplier.apply(s);
+	public static void addBeforeKeyReschedulingAction(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		BiConsumer value = (BiConsumer) ConfigUtils.stringToBiConsumerSupplier.apply(cp.getValueAsString());
 		b.addBeforeKeyReschedulingAction.add(value);
 	}
 
@@ -784,12 +574,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void acceptLabels(ConveyorBuilder b, String s) {
-		LOG.debug("Applying acceptLabels={}", s);
-		Object[] value = (Object[]) ConfigUtils.stringToLabelArraySupplier.apply(s);
+	public static void acceptLabels(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		Object[] value = (Object[]) ConfigUtils.stringToLabelArraySupplier.apply(cp.getValueAsString());
 		b.acceptedLabels.addAll(Arrays.asList(value));
 	}
 
@@ -798,12 +588,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void enablePostponeExpiration(ConveyorBuilder b, String s) {
-		LOG.debug("Applying enablePostponeExpiration={}", s);
-		b.enablePostponeExpiration = Boolean.valueOf(s);
+	public static void enablePostponeExpiration(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.enablePostponeExpiration = cp.getValueAsBoolean();
 	}
 
 	/**
@@ -811,12 +601,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void enablePostponeExpirationOnTimeout(ConveyorBuilder b, String s) {
-		LOG.debug("Applying enablePostponeExpirationOnTimeout={}", s);
-		b.enablePostponeExpirationOnTimeout = Boolean.valueOf(s);
+	public static void enablePostponeExpirationOnTimeout(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.enablePostponeExpirationOnTimeout = cp.getValueAsBoolean();
 	}
 
 	/**
@@ -824,12 +614,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void autoAcknowledge(ConveyorBuilder b, String s) {
-		LOG.debug("Applying autoAcknowledge={}", s);
-		b.autoAcknowledge = Boolean.valueOf(s);
+	public static void autoAcknowledge(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.autoAcknowledge = cp.getValueAsBoolean();
 	}
 
 	/**
@@ -837,12 +627,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void autoAcknowledgeOnStatus(ConveyorBuilder b, String s) {
-		LOG.debug("Applying autoAcknowledgeOnStatus={}", s);
-		b.autoAcknowledgeOnStatus = (Status[]) ConfigUtils.stringToStatusConverter.apply(s);
+	public static void autoAcknowledgeOnStatus(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.autoAcknowledgeOnStatus = (Status[]) ConfigUtils.stringToStatusConverter.apply(cp.getValueAsString());
 	}
 
 	/**
@@ -850,12 +640,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void cartPayloadAccessor(ConveyorBuilder b, String s) {
-		LOG.debug("Applying cartPayloadAccessor={}", s);
-		b.cartPayloadAccessor = (Function) ConfigUtils.stringToFunctionSupplier.apply(s);
+	public static void cartPayloadAccessor(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.cartPayloadAccessor = (Function) ConfigUtils.stringToFunctionSupplier.apply(cp.getValueAsString());
 	}
 
 	/**
@@ -863,12 +653,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void forward(ConveyorBuilder b, String s) {
-		LOG.debug("Applying forward={}", s);
-		Trio value = (Trio) ConfigUtils.stringToForwardTrioSupplier.apply(s);
+	public static void forward(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		Trio value = (Trio) ConfigUtils.stringToForwardTrioSupplier.apply(cp.getValueAsString());
 		b.forward.add(value);
 	}
 
@@ -877,12 +667,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void supplier(ConveyorBuilder b, String s) {
-		LOG.debug("Applying conveyor supplier={}", s);
-		b.constructor = ConfigUtils.stringToConveyorSupplier.apply(s);
+	public static void supplier(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.constructor = ConfigUtils.stringToConveyorSupplier.apply(cp.getValueAsString());
 		b.maxQueueSize = 0;
 		b.enablePriorityQueue = false;
 	}
@@ -892,12 +682,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void persitence(ConveyorBuilder b, String s) {
-		LOG.debug("Applying conveyor persitence={}", s);
-		b.persistence = s;
+	public static void persitence(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.persistence = cp.getValueAsString();
 	}
 
 	/**
@@ -928,7 +718,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *            the s
 	 */
 	public static void dependency(ConveyorBuilder b, String s) {
-		LOG.debug("Applying dependency={}", s);
+		LOG.debug("Setting dependency {}",s);
 		String[] parts = s.split(",");
 		for (String p : parts) {
 			String clean = p.trim();
@@ -947,7 +737,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *            the s
 	 */
 	public static void completed(ConveyorBuilder b, String s) {
-		LOG.debug("Applying completed={}", s);
+		LOG.debug("Completed dependency {}",s);
 		if (b.dependencies.remove(s)) {
 			b.completed.add(s);
 		}
@@ -958,11 +748,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 *
 	 * @param b
 	 *            the b
-	 * @param s
+	 * @param cp
 	 *            the s
 	 */
-	public static void parallel(ConveyorBuilder b, String s) {
-		LOG.debug("Applying parallel={}", s);
+	public static void parallel(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		String s = cp.getValueAsString();
 		try {
 			b.parallelFactor = Integer.parseInt(s.split("\\s+")[0]);
 			b.lParallel.clear();
@@ -985,11 +776,11 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 * Max queue size.
 	 *
 	 * @param b the b
-	 * @param s the s
+	 * @param cp the s
 	 */
-	public static void maxQueueSize(ConveyorBuilder b, String s) {
-		LOG.debug("Applying maxQueueSize={}", s);
-		int maxSize = Integer.parseInt(s.split("\\s+")[0]);
+	public static void maxQueueSize(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		int maxSize = Integer.parseInt(cp.getValueAsString().split("\\s+")[0]);
 		b.maxQueueSize = maxSize;
 		if(b.maxQueueSize > 0) {
 			b.enablePriorityQueue = false;
@@ -997,22 +788,26 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		}
 	}
 
-	public static void priority(ConveyorBuilder b, String s) {
-		LOG.debug("Applying priority={}", s);
+	public static void priority(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
 		try {
-			final Supplier<PriorityBlockingQueue<Cart>> queueSupplier=Priority.valueOf(s);
+			final Supplier<PriorityBlockingQueue<Cart>> queueSupplier=Priority.valueOf(cp.getValueAsString());
 			b.enablePriorityQueue = true;
 			b.maxQueueSize = 0;
 			b.constructor = () -> new AssemblingConveyor(queueSupplier);
 		} catch (Exception e) {
 			b.enablePriorityQueue = false;
-			LOG.error("Failed Applying priority {}", s, e);
+			LOG.error("Failed Applying priority {}", cp, e);
 		}
 	}
 
-	public static void registerPath(ConveyorBuilder b, String s) {
-		LOG.debug("Register JavaPath={}", s);
-		ConveyorConfiguration.registerPath(s);
+	private static void logRegister(ConveyorProperty cp) {
+		LOG.debug("Applying {}",cp);
+	}
+
+	public static void registerPath(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		ConveyorConfiguration.registerPath(cp.getValueAsString());
 	}
 	/**
 	 * Persistence property.
@@ -1029,17 +824,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				pp.getProperty(), pp.getValue());
 		PersistenceProperties pm;
 		if (pp.isDefaultProperty()) {
-			pm = b.defaultProperties.get(key);
-			if (pm == null) {
-				pm = new PersistenceProperties(pp.getType(), pp.getSchema(), pp.getName());
-				b.defaultProperties.put(key, pm);
-			}
+			pm = b.defaultPersistenceProperties.computeIfAbsent(key,k->new PersistenceProperties(pp.getType(), pp.getSchema(), pp.getName()));
 		} else {
-			pm = b.persistenceProperties.get(key);
-			if (pm == null) {
-				pm = new PersistenceProperties(pp.getType(), pp.getSchema(), pp.getName());
-				b.persistenceProperties.put(key, pm);
-			}
+			pm = b.persistenceProperties.computeIfAbsent(key,k->new PersistenceProperties(pp.getType(), pp.getSchema(), pp.getName()));
 		}
 		pm.addProperty(pp);
 	}

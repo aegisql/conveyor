@@ -144,42 +144,42 @@ public class ConveyorConfiguration {
 			LabeledValueConsumer<String, ?, ConveyorBuilder> lvc = (l, v, b) -> LOG.info("Unprocessed value {}={}", l, v);
 
 			conveyorConfiguration.setDefaultCartConsumer(lvc
-					.<String>when("javaPath", ConveyorBuilder::registerPath)
-					.<String>when("supplier", ConveyorBuilder::supplier)
-					.<String>when("defaultBuilderTimeout", ConveyorBuilder::defaultBuilderTimeout)
-					.<String>when("idleHeartBeat", ConveyorBuilder::idleHeartBeat)
-					.<String>when("rejectUnexpireableCartsOlderThan", ConveyorBuilder::rejectUnexpireableCartsOlderThan)
-					.<String>when("expirationPostponeTime", ConveyorBuilder::expirationPostponeTime)
-					.<String>when("staticPart", ConveyorBuilder::staticPart)
-					.<String>when("firstResultConsumer", ConveyorBuilder::firstResultConsumer)
-					.<String>when("nextResultConsumer", ConveyorBuilder::nextResultConsumer)
-					.<String>when("firstScrapConsumer", ConveyorBuilder::firstScrapConsumer)
-					.<String>when("nextScrapConsumer", ConveyorBuilder::nextScrapConsumer)
-					.<String>when("onTimeoutAction", ConveyorBuilder::timeoutAction)
-					.<String>when("defaultCartConsumer", ConveyorBuilder::defaultCartConsumer)
-					.<String>when("readinessEvaluator", ConveyorBuilder::readinessEvaluator)
-					.<String>when("builderSupplier", ConveyorBuilder::builderSupplier)
-					.<String>when("addBeforeKeyEvictionAction", ConveyorBuilder::addBeforeKeyEvictionAction)
-					.<String>when("addCartBeforePlacementValidator", ConveyorBuilder::addCartBeforePlacementValidator)
-					.<String>when("addBeforeKeyReschedulingAction", ConveyorBuilder::addBeforeKeyReschedulingAction)
-					.<String>when("acceptLabels", ConveyorBuilder::acceptLabels)
-					.<String>when("enablePostponeExpiration", ConveyorBuilder::enablePostponeExpiration)
-					.<String>when("enablePostponeExpirationOnTimeout",ConveyorBuilder::enablePostponeExpirationOnTimeout)
-					.<String>when("autoAcknowledge", ConveyorBuilder::autoAcknowledge)
-					.<String>when("acknowledgeAction", ConveyorBuilder::acknowledgeAction)
-					.<String>when("autoAcknowledgeOnStatus", ConveyorBuilder::autoAcknowledgeOnStatus)
-					.<String>when("cartPayloadAccessor", ConveyorBuilder::cartPayloadAccessor)
-					.<String>when("forward", ConveyorBuilder::forward)
+					.<ConveyorProperty>when("javaPath", ConveyorBuilder::registerPath)
+					.<ConveyorProperty>when("supplier", ConveyorBuilder::supplier)
+					.<ConveyorProperty>when("defaultBuilderTimeout", ConveyorBuilder::defaultBuilderTimeout)
+					.<ConveyorProperty>when("idleHeartBeat", ConveyorBuilder::idleHeartBeat)
+					.<ConveyorProperty>when("rejectUnexpireableCartsOlderThan", ConveyorBuilder::rejectUnexpireableCartsOlderThan)
+					.<ConveyorProperty>when("expirationPostponeTime", ConveyorBuilder::expirationPostponeTime)
+					.<ConveyorProperty>when("staticPart", ConveyorBuilder::staticPart)
+					.<ConveyorProperty>when("firstResultConsumer", ConveyorBuilder::firstResultConsumer)
+					.<ConveyorProperty>when("nextResultConsumer", ConveyorBuilder::nextResultConsumer)
+					.<ConveyorProperty>when("firstScrapConsumer", ConveyorBuilder::firstScrapConsumer)
+					.<ConveyorProperty>when("nextScrapConsumer", ConveyorBuilder::nextScrapConsumer)
+					.<ConveyorProperty>when("onTimeoutAction", ConveyorBuilder::timeoutAction)
+					.<ConveyorProperty>when("defaultCartConsumer", ConveyorBuilder::defaultCartConsumer)
+					.<ConveyorProperty>when("readinessEvaluator", ConveyorBuilder::readinessEvaluator)
+					.<ConveyorProperty>when("builderSupplier", ConveyorBuilder::builderSupplier)
+					.<ConveyorProperty>when("addBeforeKeyEvictionAction", ConveyorBuilder::addBeforeKeyEvictionAction)
+					.<ConveyorProperty>when("addCartBeforePlacementValidator", ConveyorBuilder::addCartBeforePlacementValidator)
+					.<ConveyorProperty>when("addBeforeKeyReschedulingAction", ConveyorBuilder::addBeforeKeyReschedulingAction)
+					.<ConveyorProperty>when("acceptLabels", ConveyorBuilder::acceptLabels)
+					.<ConveyorProperty>when("enablePostponeExpiration", ConveyorBuilder::enablePostponeExpiration)
+					.<ConveyorProperty>when("enablePostponeExpirationOnTimeout",ConveyorBuilder::enablePostponeExpirationOnTimeout)
+					.<ConveyorProperty>when("autoAcknowledge", ConveyorBuilder::autoAcknowledge)
+					.<ConveyorProperty>when("acknowledgeAction", ConveyorBuilder::acknowledgeAction)
+					.<ConveyorProperty>when("autoAcknowledgeOnStatus", ConveyorBuilder::autoAcknowledgeOnStatus)
+					.<ConveyorProperty>when("cartPayloadAccessor", ConveyorBuilder::cartPayloadAccessor)
+					.<ConveyorProperty>when("forward", ConveyorBuilder::forward)
 					.<String>when("completed", ConveyorBuilder::completed)
 					.<String>when("dependency", ConveyorBuilder::dependency)
-					.<String>when("parallel", ConveyorBuilder::parallel)
-					.<String>when("maxQueueSize", ConveyorBuilder::maxQueueSize)
-					.<String>when("priority", ConveyorBuilder::priority)
-					.<String>when("persistence", ConveyorBuilder::persitence)
-					.<String>when("readyWhenAccepted", ConveyorBuilder::readyWhen)
+					.<ConveyorProperty>when("parallel", ConveyorBuilder::parallel)
+					.<ConveyorProperty>when("maxQueueSize", ConveyorBuilder::maxQueueSize)
+					.<ConveyorProperty>when("priority", ConveyorBuilder::priority)
+					.<ConveyorProperty>when("persistence", ConveyorBuilder::persitence)
+					.<ConveyorProperty>when("readyWhenAccepted", ConveyorBuilder::readyWhen)
 					.<PersistenceProperty>when("persistenceProperty", ConveyorBuilder::persistenceProperty)
 					.when("complete_configuration", ConveyorBuilder::allFilesReadSuccessfully));
-			conveyorConfiguration.part().id("__PERSISTENCE__").label("builderSupplier").value("null").place();
+			conveyorConfiguration.part().id("__PERSISTENCE__").label("builderSupplier").value(ConveyorProperty.NULL_PROPERTY).place();
 			conveyorConfiguration.staticPart().label("dependency").value("__PERSISTENCE__").place();
 		}
 			
@@ -240,33 +240,33 @@ public class ConveyorConfiguration {
 	 */
 	private static void processPair(Conveyor<String, String, Conveyor> buildingConveyor, String key, Object obj) {
 		ConveyorProperty.eval(key, obj, cp->{
-			String value = cp.getValueAsString();
+			String strValue = cp.getValueAsString();
 
 			if(cp.isConveyorProperty()) {
 				if(cp.isDefaultProperty()) {
 					if ("postInit".equals(cp.getProperty())) {
 						buildingConveyor.resultConsumer().andThen(
-								(ResultConsumer<String, Conveyor>) ConfigUtils.stringToResultConsumerSupplier.apply(value))
+								(ResultConsumer<String, Conveyor>) ConfigUtils.stringToResultConsumerSupplier.apply(strValue))
 								.set();
 					} else if ("postFailure".equals(cp.getProperty())) {
 						buildingConveyor.scrapConsumer().andThen(
-								(ScrapConsumer<String, ?>) ConfigUtils.stringToScrapConsumerSupplier.apply(value))
+								(ScrapConsumer<String, ?>) ConfigUtils.stringToScrapConsumerSupplier.apply(strValue))
 								.set();
 					} else if ("persistenceProperty".equals(cp.getProperty())) {
 						buildingConveyor.part().id("__PERSISTENCE__").label("persistenceProperty").value(cp.getValue()).place();
 					} else {
-						buildingConveyor.staticPart().label(cp.getProperty()).value(value).place();
-						buildingConveyor.part().foreach().label(cp.getProperty()).value(value).place();
+						buildingConveyor.staticPart().label(cp.getProperty()).value(cp).place();
+						buildingConveyor.part().foreach().label(cp.getProperty()).value(cp).place();
 					}
 				} else {
 					if("postInit".equals(cp.getProperty())) {
 						buildingConveyor.resultConsumer()
-								.andThen((ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(value)).id(cp.getName())
+								.andThen((ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(strValue)).id(cp.getName())
 								.set();
 					} else if ("persistenceProperty".equals(cp.getProperty())) {
 						buildingConveyor.part().id(cp.getName()).label(cp.getProperty()).value(cp.getValue()).place();
 					} else {
-						buildingConveyor.part().id(cp.getName()).label(cp.getProperty()).value(value).place();
+						buildingConveyor.part().id(cp.getName()).label(cp.getProperty()).value(cp).place();
 					}
 
 				}

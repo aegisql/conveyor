@@ -148,15 +148,15 @@ class ConfigUtils {
 	private final static String getLabelForwardTrioJs =
 			"""
 					var getLabelValueTrio = function() {
-					%s;
-					var Trio = Java.type('com.aegisql.conveyor.config.Trio');
-					if(typeof keyTransformer === "undefined") {return new Trio(label,name,null);}
+						%s;
+						var Trio = Java.type('com.aegisql.conveyor.config.Trio');
+						if(typeof keyTransformer === "undefined") {return new Trio(label,name,null);}
 						var Function = Java.type('java.util.function.Function');
 						var FunctionImpl = Java.extend(Function, {
 							apply: function(x) {
-								return keyTransformer(x)
-					;		}});
-					    return new Trio(label,name,new FunctionImpl());
+								return keyTransformer(x);
+							}});
+						return new Trio(label,name,new FunctionImpl());
 					};
 					""";
 

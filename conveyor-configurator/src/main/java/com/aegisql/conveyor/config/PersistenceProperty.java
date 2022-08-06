@@ -2,6 +2,7 @@ package com.aegisql.conveyor.config;
 
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -33,6 +34,8 @@ public class PersistenceProperty {
 	
 	/** The value. */
 	private final Object value;
+
+	private final boolean isJavaPath;
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -97,9 +100,15 @@ public class PersistenceProperty {
 		this.isDefaultProperty = isDefaultProperty;
 		this.name = name;
 		this.property = property;
-		this.value = value;
 		this.type = type;
 		this.schema = schema;
+		if(value != null && value.toString().trim().toUpperCase().startsWith(ConveyorConfiguration.JAVAPATH_PREFIX.toUpperCase())) {
+			this.isJavaPath = true;
+			this.value = ConveyorConfiguration.evalPath(value.toString().substring(ConveyorConfiguration.JAVAPATH_PREFIX.length())+".@");
+		} else {
+			this.isJavaPath = false;
+			this.value = value;
+		}
 	}
 
 	/**
@@ -185,15 +194,6 @@ public class PersistenceProperty {
 
 		convProperty = convProperty.replaceAll(altDelim, ConveyorConfiguration.PROPERTY_DELIMITER);
 
-		if(value instanceof String && value != null) {
-			String str = value.toString();
-			if(str.toUpperCase().startsWith(ConveyorConfiguration.JAVAPATH_PREFIX)) {
-				// Process JavaPath here
-				String remaining = str.substring(ConveyorConfiguration.JAVAPATH_PREFIX.length());
-				value = ConveyorConfiguration.evalPath(remaining);
-			}
-		}
-
 		return new PersistenceProperty(isConveyorProperty, isDefaultProperty, type, schema, name, convProperty, value);
 
 	}
@@ -205,6 +205,10 @@ public class PersistenceProperty {
 	 */
 	public Object getValue() {
 		return value;
+	}
+
+	public boolean isJavaPath() {
+		return isJavaPath;
 	}
 
 	/**
@@ -232,6 +236,22 @@ public class PersistenceProperty {
 		}
 	}
 
+	public Class getValueAsClass() {
+		if(value==null) {
+			return null;
+		} else if (value instanceof Class) {
+			return (Class) value;
+		} else if(value instanceof String) {
+			try {
+				return Class.forName(value.toString());
+			} catch (ClassNotFoundException e) {
+				throw new ConveyorConfigurationException(e);
+			}
+		} else {
+			throw new ConveyorRuntimeException("Expected boolean type, but found "+value.getClass());
+		}
+	}
+
 	public Integer getValueAsInteger() {
 		if(value == null) {
 			return null;
@@ -244,6 +264,15 @@ public class PersistenceProperty {
 		}
 	}
 
+	public Duration getValueAsDuration() {
+		if(value instanceof Duration) {
+			return (Duration) value;
+		} else if(value instanceof Number) {
+			return Duration.ofMillis(((Number) value).longValue());
+		} else {
+			return Duration.ofMillis((long) ConfigUtils.timeToMillsConverter.apply(""+value));
+		}
+	}
 
 	/**
 	 * Gets the type.

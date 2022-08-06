@@ -2,6 +2,7 @@ package com.aegisql.conveyor.config;
 
 import static org.junit.Assert.*;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +10,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.aegisql.conveyor.config.harness.TestBean;
+import com.aegisql.java_path.ClassRegistry;
+import com.aegisql.java_path.StringConverter;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -19,6 +22,7 @@ public class ConveyorPropertyTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
+
 	}
 
 	@AfterClass
@@ -216,5 +220,16 @@ public class ConveyorPropertyTest {
 		assertEquals("name", cp1.getName());
 		assertEquals("timeout", cp1.getProperty());
 		assertEquals(1000, cp1.getValue());
+		assertTrue(cp1.isJavaPath());
+	}
+
+	@Test
+	public void durationParsingTest() {
+		ConveyorConfiguration.registerPath("java.time.Duration");
+		AtomicReference<ConveyorProperty> acp = new AtomicReference<>();
+		Duration.ofMillis(1000).plusMillis(0);
+		ConveyorProperty.eval("conveyor.name.timeout","javapath:(Duration millisec(1000))",cp->acp.set(cp));
+		ConveyorProperty cp1 = acp.get();
+		assertNotNull(cp1);
 	}
 }

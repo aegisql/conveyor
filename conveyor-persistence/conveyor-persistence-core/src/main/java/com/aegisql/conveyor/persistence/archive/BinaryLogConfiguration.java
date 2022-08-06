@@ -233,6 +233,10 @@ public class BinaryLogConfiguration {
 		return new BinaryLogConfigurationBuilder();
 	}
 
+	public static BinaryLogConfigurationBuilder builder(String partTable) {
+		return new BinaryLogConfigurationBuilder().partTableName(partTable);
+	}
+
 	/**
 	 * Gets the path.
 	 *

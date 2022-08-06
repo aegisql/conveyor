@@ -1,11 +1,12 @@
 package com.aegisql.conveyor.config;
 
-import com.aegisql.java_path.JavaPath;
-
+import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -27,6 +28,8 @@ public class ConveyorProperty {
 	
 	/** The value. */
 	private final Object value;
+
+	private final boolean isJavaPath;
 
 	private static final TemplateEditor templateEditor = new TemplateEditor();
 
@@ -76,6 +79,12 @@ public class ConveyorProperty {
 		return property;
 	}
 
+	public boolean isJavaPath() {
+		return isJavaPath;
+	}
+
+	static final ConveyorProperty NULL_PROPERTY = new ConveyorProperty(false,false,null,null,null);
+
 	/**
 	 * Instantiates a new conveyor property.
 	 *
@@ -96,7 +105,13 @@ public class ConveyorProperty {
 		this.isDefaultProperty  = isDefaultProperty;
 		this.name               = name;
 		this.property           = property;
-		this.value              = value;
+		if(value != null && value.toString().trim().toUpperCase().startsWith(ConveyorConfiguration.JAVAPATH_PREFIX.toUpperCase())) {
+			this.isJavaPath = true;
+			this.value          = ConveyorConfiguration.evalPath(value.toString().substring(ConveyorConfiguration.JAVAPATH_PREFIX.length())+".@");
+		} else {
+			this.isJavaPath = false;
+			this.value          = value;
+		}
 	}
 	
 	/**
@@ -115,13 +130,7 @@ public class ConveyorProperty {
 			return;
 		}
 		if(processedValue != null && value instanceof String) {
-			if(processedValue.toUpperCase().startsWith(ConveyorConfiguration.JAVAPATH_PREFIX)) {
-				// Process JavaPath here
-				String remaining = processedValue.substring(ConveyorConfiguration.JAVAPATH_PREFIX.length());
-				value = ConveyorConfiguration.evalPath(remaining);
-			} else {
-				value = processedValue;
-			}
+			value = processedValue;
 		}
 		if(value == null) {
 			ConveyorProperty cp = evalProperty(propertyKey, value);
@@ -204,5 +213,23 @@ public class ConveyorProperty {
 			return null;
 		}
 	}
-	
+
+	public Duration getValueAsDuration() {
+		if(value instanceof Duration) {
+			return (Duration) value;
+		} else if(value instanceof Number) {
+			return Duration.ofMillis(((Number) value).longValue());
+		} else {
+			return Duration.ofMillis((long) ConfigUtils.timeToMillsConverter.apply(""+value));
+		}
+	}
+
+	public boolean getValueAsBoolean() {
+		if(value instanceof Boolean) {
+			return ((Boolean) value).booleanValue();
+		} else {
+			return Boolean.parseBoolean(""+value);
+		}
+	}
+
 }

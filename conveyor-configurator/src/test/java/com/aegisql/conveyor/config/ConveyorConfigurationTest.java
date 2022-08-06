@@ -440,7 +440,7 @@ public class ConveyorConfigurationTest {
 			lastPart = c.part().id(i).label(NameLabel.END).place();
 		}
 
-		assertTrue(lastPart.get());
+		assertTrue(lastPart.join());
 
 	}
 

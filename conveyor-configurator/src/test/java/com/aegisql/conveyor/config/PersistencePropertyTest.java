@@ -268,6 +268,7 @@ public class PersistencePropertyTest {
 		assertEquals("name", cp1.getName());
 		assertEquals("archiveStrategy", cp1.getProperty());
 		assertEquals("value", cp1.getValue());
+		assertTrue(cp1.isJavaPath());
 	}
 
 

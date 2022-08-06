@@ -18,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -202,6 +203,10 @@ public class ParallelConveyorTest {
 	@Test
 	public void testParallel() throws InterruptedException {
 
+	AtomicReference<CompletableFuture> f1 = new AtomicReference<>();
+	AtomicReference<CompletableFuture> f2 = new AtomicReference<>();
+	AtomicReference<CompletableFuture> f3 = new AtomicReference<>();
+
 	conveyor.setIdleHeartBeat(1000, TimeUnit.MILLISECONDS);
 	conveyor.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
 	assertFalse(conveyor.isOnTimeoutAction());
@@ -226,7 +231,7 @@ public class ParallelConveyorTest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			conveyor.place(cart);
+			f1.set(conveyor.place(cart));
 		}
 	});	
 
@@ -242,7 +247,7 @@ public class ParallelConveyorTest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			conveyor.place(cart);
+			f2.set(conveyor.place(cart));
 		}
 	});	
 
@@ -258,7 +263,7 @@ public class ParallelConveyorTest {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			conveyor.place(cart);
+			f3.set(conveyor.place(cart));
 		}
 	});	
 	
@@ -269,6 +274,10 @@ public class ParallelConveyorTest {
 	while(	runFirst.isAlive() || runLast.isAlive() || runYear.isAlive() ) {
 		Thread.sleep(1000);
 	}
+
+	f1.get().join();
+	f2.get().join();
+	f3.get().join();
 
 	System.out.println("Good data "+outQueue.size());
 	while(!outQueue.isEmpty()) {
