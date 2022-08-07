@@ -820,7 +820,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	public static void persistenceProperty(ConveyorBuilder b, PersistenceProperty pp) {
 
 		String key = pp.buildKey();
-		LOG.debug("Applying{}persistenceProperty={}:{}={}", pp.isDefaultProperty() ? " default " : " ", key,
+		LOG.debug("Adding {}persistenceProperty {}:{}={}", pp.isDefaultProperty() ? " default " : " ", key,
 				pp.getProperty(), pp.getValue());
 		PersistenceProperties pm;
 		if (pp.isDefaultProperty()) {
