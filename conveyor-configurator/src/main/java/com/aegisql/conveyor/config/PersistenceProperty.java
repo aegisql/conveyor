@@ -124,18 +124,23 @@ public class PersistenceProperty {
 			return;
 		}
 		if (value == null) {
-			PersistenceProperty cp = evalProperty(propertyKey, value);
-			consumer.accept(cp);
+			PersistenceProperty pp = evalProperty(propertyKey, value);
+			consumer.accept(pp);
 		} else if (value instanceof Map) {
 			Map<String, Object> map = (Map<String, Object>) value;
-			map.forEach(
-					(part, val) -> eval(propertyKey + ConveyorConfiguration.PROPERTY_DELIMITER + part, val, consumer));
+			PersistenceProperty pp = evalProperty(propertyKey, value);
+			if( ! pp.isPersistenceProperty || (pp.isPersistenceProperty && pp.isDefaultProperty) || pp.property.toLowerCase().equals("archivestrategy")) {
+				map.forEach(
+						(part, val) -> eval(propertyKey + ConveyorConfiguration.PROPERTY_DELIMITER + part, val, consumer));
+			} else {
+				consumer.accept(pp);
+			}
 		} else if (value instanceof List) {
 			List<Object> list = (List<Object>) value;
 			list.forEach(val -> eval(propertyKey, val, consumer));
 		} else {
-			PersistenceProperty cp = evalProperty(propertyKey, value);
-			consumer.accept(cp);
+			PersistenceProperty pp = evalProperty(propertyKey, value);
+			consumer.accept(pp);
 		}
 	}
 

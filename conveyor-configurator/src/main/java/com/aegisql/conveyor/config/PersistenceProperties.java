@@ -196,6 +196,7 @@ public class PersistenceProperties {
 			pb = applyMinCompactSize(pb);
 			pb = applyDbcp2(pb);
 			pb = applyPoolConnection(pb);
+			pb = applyProperties(pb);
 
 			pb.build();
 
@@ -204,6 +205,16 @@ public class PersistenceProperties {
 			throw new ConveyorConfigurationException("Failed building persistence for "+this,e);
 		}
 	}
+
+	private JdbcPersistenceBuilder applyProperties(final JdbcPersistenceBuilder pb) {
+		return apply("properties",pb,p->{
+			Properties prop = new Properties();
+			Map<String,String> map = (Map<String, String>) p.getValue();
+			map.forEach((k,v)->prop.put(k,v));
+			return pb.properties(prop);
+		});
+	}
+
 
 	private JdbcPersistenceBuilder applyPoolConnection(final JdbcPersistenceBuilder pb) {
 		return apply("poolConnection",pb,p-> pb.poolConnection(p.getValueAsBoolean()));
@@ -430,13 +441,5 @@ public class PersistenceProperties {
 		return pb;
 	}
 
-	private Stream<PersistenceProperty> forKey(String key) {
-		LinkedList<PersistenceProperty> persistenceProperties = properties.get(key);
-		if(persistenceProperties == null || persistenceProperties.size()==0) {
-			return Stream.empty();
-		} else {
-			return persistenceProperties.stream();
-		}
-	}
 
 }

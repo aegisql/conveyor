@@ -17,3 +17,6 @@ conveyor:
         poolConnection: true
         keyClass: java.lang.Integer
         archiveStrategy: DELETE
+        properties:
+          user: tester
+          password: secret
