@@ -3,10 +3,7 @@
  */
 package com.aegisql.conveyor;
 
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 import com.aegisql.conveyor.serial.SerializableSupplier;
 
@@ -137,7 +134,35 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
             }
         };
 	}
-	
+
+	default <B> B unwrap(Class<B> builderClass) {
+		return (B) this;
+	}
+
+	static <B,T> ProductSupplier<T> of(Supplier<B> builderSupplier, Function<B,T> instance) {
+
+		return new ProductSupplier<>() {
+
+			private B builder = builderSupplier.get();
+
+			@Override
+			public T get() {
+				return instance.apply(builder);
+			}
+
+			@Override
+			public Supplier<T> getSupplier() {
+				return this::get;
+			}
+
+			@Override
+			public <B> B unwrap(Class<B> builderClass) {
+				return (B) builder;
+			}
+		};
+	}
+
+
 	/**
 	 * Identity.
 	 *
@@ -189,6 +214,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
                 public void onTimeout() {
                     ((TimeoutAction) ps).onTimeout();
                 }
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
+				}
             };
 		}
 		if(isS && isO) {
@@ -213,7 +242,11 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 				public boolean test(State<K, L> t) {
 					return ((TestingState<K, L>)ps).test(t);
 				}
-			};			
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
+				}
+			};
 		}
 		if(isT) {
 			return new PET<>() {
@@ -236,6 +269,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
                 public boolean test() {
                     return ((Testing) ps).test();
                 }
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
+				}
             };
 		}
 		if(isS) {
@@ -255,6 +292,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 				@Override
 				public boolean test(State<K, L> t) {
 					return ((TestingState<K, L>)ps).test(t);
+				}
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
 				}
 			};
 			
@@ -280,6 +321,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
                 public void onTimeout() {
                     ((TimeoutAction) ps).onTimeout();
                 }
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
+				}
             };
 		}
 		return new PE<>() {
@@ -297,6 +342,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
             public long getExpirationTime() {
                 return other.getExpirationTime();
             }
+			@Override
+			public <B> B unwrap(Class<B> builderClass) {
+				return ps.unwrap(builderClass);
+			}
         };
 	}	
 
@@ -323,7 +372,12 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
                     return ps.get();
                 }
 
-                @Override
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
+				}
+
+				@Override
                 public Supplier<T> getSupplier() {
                     return ps.getSupplier();
                 }
@@ -366,7 +420,11 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 				public boolean test(State<K, L> t) {
 					return ((TestingState<K,L>)ps).test(t);
 				}
-			};			
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
+				}
+			};
 		}
 		if(isT) {
 			return new PTO<>() {
@@ -389,6 +447,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
                 public void onTimeout() {
                     toAction.accept(ps);
                 }
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
+				}
             };
 		}
 		if(isS) {
@@ -408,6 +470,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 				@Override
 				public void onTimeout() {
 					toAction.accept(ps);					
+				}
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
 				}
 			};
 			
@@ -433,6 +499,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
                 public void onTimeout() {
                     toAction.accept(ps);
                 }
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
+				}
             };
 		}
 		return new PO<>() {
@@ -450,6 +520,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
             public void onTimeout() {
                 toAction.accept(ps);
             }
+			@Override
+			public <B> B unwrap(Class<B> builderClass) {
+				return ps.unwrap(builderClass);
+			}
         };
 	}	
 
@@ -494,6 +568,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
                 public void onTimeout() {
                     ((TimeoutAction) ps).onTimeout();
                 }
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
+				}
             };
 		}
 		if(isO) {
@@ -517,6 +595,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
                 public void onTimeout() {
                     ((TimeoutAction) ps).onTimeout();
                 }
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
+				}
             };
 		}
 		if(isE) {
@@ -540,6 +622,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
                 public boolean test() {
                     return tester.test(ps);
                 }
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
+				}
             };
 		}
 		return new PT<>() {
@@ -557,6 +643,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
             public boolean test() {
                 return tester.test(ps);
             }
+			@Override
+			public <B> B unwrap(Class<B> builderClass) {
+				return ps.unwrap(builderClass);
+			}
         };
 	}	
 
@@ -597,6 +687,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 					public void onTimeout() {
 						((TimeoutAction)ps).onTimeout();
 					}
+					@Override
+					public <B> B unwrap(Class<B> builderClass) {
+						return ps.unwrap(builderClass);
+					}
 				};
 			}
 			if(isO) {
@@ -617,7 +711,11 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 					public void onTimeout() {
 						((TimeoutAction)ps).onTimeout();
 					}
-				};			
+					@Override
+					public <B> B unwrap(Class<B> builderClass) {
+						return ps.unwrap(builderClass);
+					}
+				};
 			}
 			if(isE) {
 				return new PES<T,K,L>() {
@@ -637,6 +735,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 					public boolean test(State<K,L> t) {
 						return tester.test(t, ps);
 					}
+					@Override
+					public <B> B unwrap(Class<B> builderClass) {
+						return ps.unwrap(builderClass);
+					}
 				};
 			}
 			return new PS<T,K,L>() {
@@ -651,6 +753,10 @@ public interface ProductSupplier<T> extends SerializableSupplier<T> {
 				@Override
 				public boolean test(State<K,L> t) {
 					return tester.test(t, ps);
+				}
+				@Override
+				public <B> B unwrap(Class<B> builderClass) {
+					return ps.unwrap(builderClass);
 				}
 			};
 		}	
