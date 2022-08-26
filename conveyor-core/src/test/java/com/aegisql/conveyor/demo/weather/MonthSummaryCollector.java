@@ -84,14 +84,16 @@ public class MonthSummaryCollector implements Supplier<MonthSummary>, Testing, T
     }
 
     public void weatherRecord(WeatherRecord weatherRecord) {
-        this.name = weatherRecord.getName();
+        name = weatherRecord.getName();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(weatherRecord.getDate());
-        this.year = calendar.get(Calendar.YEAR);
-        this.month = calendar.get(Calendar.MONTH);
-        this.maxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        year = calendar.get(Calendar.YEAR);
+        month = calendar.get(Calendar.MONTH);
+        maxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
         records.put(weatherRecord.getDate(),weatherRecord);
-        ready = records.size() == this.maxDays;
+
+        // ready when received records for all days in a month
+        ready = records.size() == maxDays;
     }
 
 
