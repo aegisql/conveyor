@@ -88,6 +88,6 @@ public class Demo {
 	@Test
 	public void test() throws Exception {
 		// Count words in the Apache License
-		main(new String[]{"src/test/resources/count.me"});
+		main(new String[]{"src/test/resources/apache_license.txt"});
 	}
 }
