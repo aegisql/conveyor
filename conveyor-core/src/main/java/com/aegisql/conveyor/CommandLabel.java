@@ -29,6 +29,13 @@ public enum CommandLabel implements SmartLabel<AssemblingConveyor> {
 			return (c, o) -> AssemblingConveyor.cancelNow(c, (Cart) o);
 		}
 	}
+	,
+	COMPLETE_BUILD {
+		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
+			return (c, o) -> AssemblingConveyor.cancelNow(c, (Cart) o);
+		}
+	}
+
 
 	/** The timeout build. */
 	,
