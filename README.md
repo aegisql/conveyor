@@ -99,6 +99,7 @@ conveyor configurator
 * Improvements for persistence configuration
 * Tests and bugfixes
 * sqlite-memory persistence
+* property based DuplicateValidator
 
 ### 1.6.1
 * Java 17

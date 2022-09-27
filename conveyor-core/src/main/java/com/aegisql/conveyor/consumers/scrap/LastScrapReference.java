@@ -14,7 +14,7 @@ import com.aegisql.conveyor.ScrapBin;
 public class LastScrapReference<K> implements ScrapConsumer<K,Object> {
 
 	/** The ref. */
-	AtomicReference<Object> ref = new AtomicReference<>();
+	AtomicReference<ScrapBin<K,Object>> ref = new AtomicReference<>();
 	
 	/* (non-Javadoc)
 	 * @see java.util.function.Consumer#accept(java.lang.Object)
@@ -29,7 +29,7 @@ public class LastScrapReference<K> implements ScrapConsumer<K,Object> {
 	 *
 	 * @return the current
 	 */
-	public Object getCurrent() {
+	public ScrapBin<K,Object> getCurrent() {
 		return ref.get();
 	}
 
