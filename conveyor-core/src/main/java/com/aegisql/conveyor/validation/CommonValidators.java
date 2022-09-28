@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 public interface CommonValidators {
 
     static <K,L> Consumer<Cart<K,?,L>> CART_NOT_NULL() { return cart-> Objects.requireNonNull(cart,"Cart is null");}
-    static <K,L> Consumer<Cart<K,?,L>> CART_VALUE_NOT_NULL() { return cart-> Objects.requireNonNull(cart.getValue(),"Cart is null");}
+    static <K,L> Consumer<Cart<K,?,L>> CART_VALUE_NOT_NULL() { return cart-> Objects.requireNonNull(cart.getValue(),"Cart value is null");}
     static <K,L> Consumer<Cart<K,?,L>> CART_EXPIRED() { return cart -> {
         if (cart.expired()) {
             throw new IllegalStateException("Cart has already expired " + cart);
