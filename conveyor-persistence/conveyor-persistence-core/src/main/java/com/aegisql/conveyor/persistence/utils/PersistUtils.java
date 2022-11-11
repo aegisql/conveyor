@@ -1,17 +1,10 @@
 package com.aegisql.conveyor.persistence.utils;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.zip.*;
 
 import org.apache.commons.io.FileUtils;
 
@@ -94,6 +87,35 @@ public class PersistUtils {
 				addFileToZip(path + File.separator + folder.getName(), srcFolder + File.separator + fileName, zipOS);
 			}
 		}
+	}
+
+	public static byte[] compress(byte[] data) throws IOException {
+		Deflater deflater = new Deflater();
+		deflater.setInput(data);
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
+		deflater.finish();
+		byte[] buffer = new byte[1024];
+		while (!deflater.finished()) {
+			int count = deflater.deflate(buffer); // returns the generated code... index
+			outputStream.write(buffer, 0, count);
+		}
+		outputStream.close();
+		byte[] output = outputStream.toByteArray();
+		return output;
+	}
+
+	public static byte[] decompress(byte[] data) throws IOException, DataFormatException {
+		Inflater inflater = new Inflater();
+		inflater.setInput(data);
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
+		byte[] buffer = new byte[1024];
+		while (!inflater.finished()) {
+			int count = inflater.inflate(buffer);
+			outputStream.write(buffer, 0, count);
+		}
+		outputStream.close();
+		byte[] output = outputStream.toByteArray();
+		return output;
 	}
 
 	public static Collection<Collection<Long>> balanceIdList(Collection<Long> col, int partSize) {

@@ -138,8 +138,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The key before reschedule. */
 	private BiConsumer<K, Long> keyBeforeReschedule = (key, newExpirationTime) -> {
-		Objects.requireNonNull(key, "NULL key cannot be rescheduld");
-		Objects.requireNonNull(newExpirationTime, "NULL newExpirationTime cannot be applied to the schedile");
+		Objects.requireNonNull(key, "NULL key cannot be reschedulеd");
+		Objects.requireNonNull(newExpirationTime, "NULL newExpirationTime cannot be applied to the schedule");
 		var buildingSite = collector.get(key);
 		if (buildingSite != null) {
 			long oldExpirationTime = buildingSite.expireableSource.getExpirationTime();
