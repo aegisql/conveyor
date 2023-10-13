@@ -14,12 +14,25 @@ import java.util.function.Supplier;
 import static com.aegisql.conveyor.utils.queue_pump.PumpId.PUMP_ID;
 import static com.aegisql.conveyor.utils.queue_pump.PumpLabel.PUMP;
 
+/**
+ * The type Queue pump.
+ *
+ * @param <OUT> the type parameter
+ */
 public class QueuePump <OUT> extends AssemblingConveyor<PumpId,PumpLabel,OUT> {
 
+    /**
+     * Instantiates a new Queue pump.
+     */
     public QueuePump() {
         this(Priority.DEFAULT);
     }
 
+    /**
+     * Instantiates a new Queue pump.
+     *
+     * @param cartQueueSupplier the cart queue supplier
+     */
     public QueuePump(Supplier<Queue<? extends Cart<PumpId, ?, ?>>> cartQueueSupplier) {
         super(cartQueueSupplier);
         this.setBuilderSupplier(ScalarHolder::new);

@@ -98,9 +98,12 @@ conveyor configurator
 ### 1.6.2-SNAPSHOT
 * Improvements for persistence configuration
 * Tests and bugfixes
+* Driver and libraries updates
 * sqlite-memory persistence
 * property based DuplicateValidator
 * Added BitSet to byte[] persistence converter
+* Utility Queue Pump conveyor
+* Simple product consumer
 
 ### 1.6.1
 * Java 17
