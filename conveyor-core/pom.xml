@@ -14,6 +14,12 @@
 			<groupId>com.aegisql</groupId>
 			<artifactId>java-path</artifactId>
 			<version>0.2.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
     </dependencies>
     <parent>

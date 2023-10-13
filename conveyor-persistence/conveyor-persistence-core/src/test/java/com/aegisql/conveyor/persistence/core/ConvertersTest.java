@@ -9,36 +9,15 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
+import com.aegisql.conveyor.persistence.converters.*;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.aegisql.conveyor.persistence.converters.BigDecimalToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.BigIntegerToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.BooleanToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.ByteToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.CharToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.ClassToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.DateToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.DoubleToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.FloatToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.IntegerToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.LongToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.ObjectToJsonBytesConverter;
-import com.aegisql.conveyor.persistence.converters.ObjectToJsonStringConverter;
-import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.ShortToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.StringToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.UuidToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.ClassesToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntPrimToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntegersToBytesConverter;
@@ -532,6 +511,26 @@ public class ConvertersTest {
 		Map m2 = oc.fromPersistence(s);
 		
 		assertEquals(m, m2);
+
+	}
+
+	@Test
+	public void testBitSet() {
+		BitSet bs1 = new BitSet();
+		BitSetToBytesConverter bsc = new BitSetToBytesConverter();
+
+		bs1.set(100);
+		bs1.set(200);
+		assertEquals(100, bs1.nextSetBit(0));
+		assertEquals(200, bs1.nextSetBit(101));
+
+		byte[] bytes = bsc.toPersistence(bs1);
+		assertNotNull(bytes);
+
+		BitSet bs2 = bsc.fromPersistence(bytes);
+		assertNotNull(bs2);
+		assertEquals(100, bs2.nextSetBit(0));
+		assertEquals(200, bs2.nextSetBit(101));
 
 	}
 }

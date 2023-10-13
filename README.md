@@ -100,6 +100,7 @@ conveyor configurator
 * Tests and bugfixes
 * sqlite-memory persistence
 * property based DuplicateValidator
+* Added BitSet to byte[] persistence converter
 
 ### 1.6.1
 * Java 17

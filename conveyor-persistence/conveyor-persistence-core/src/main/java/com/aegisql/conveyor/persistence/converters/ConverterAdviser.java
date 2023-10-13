@@ -2,6 +2,7 @@ package com.aegisql.conveyor.persistence.converters;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -116,6 +117,7 @@ public class ConverterAdviser <L> {
 		this.addConverter(BigInteger.class, new BigIntegerToBytesConverter());
 		this.addConverter(BigDecimal.class, new BigDecimalToBytesConverter());
 		this.addConverter(Class.class, new ClassToBytesConverter());
+		this.addConverter(BitSet.class, new BitSetToBytesConverter());
 
 		this.addConverter(UUID[].class, new UuidsToBytesConverter());
 		this.addConverter(Short[].class, new ShortsToBytesConverter());
