@@ -33,17 +33,17 @@ public class ScalarConvertingConveyorTest {
 	/**
 	 * The Class StringToUserBuulder.
 	 */
-	public static class StringToUserBuulder extends ScalarConvertingBuilder<String,User> {
+	public static class StringToUserBuilder extends ScalarConvertingBuilder<String,User> {
 		
-		public StringToUserBuulder() {
+		public StringToUserBuilder() {
 			super();
 		}
 
-		public StringToUserBuulder(long t, TimeUnit tu) {
+		public StringToUserBuilder(long t, TimeUnit tu) {
 			super(t,tu);
 		}
 
-		public StringToUserBuulder(long l) {
+		public StringToUserBuilder(long l) {
 			super(l);
 		}
 
@@ -99,7 +99,7 @@ public class ScalarConvertingConveyorTest {
 	@Test
 	public void testScalarConvertingConveyorWithPart() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
-		sc.setBuilderSupplier(StringToUserBuulder::new);
+		sc.setBuilderSupplier(StringToUserBuilder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		sc.resultConsumer(u->{
 			System.out.println("RESULT: "+u);
@@ -157,9 +157,9 @@ public class ScalarConvertingConveyorTest {
 
 	@Test
 	public void testConstructors() {
-		ScalarConvertingBuilder scb1 = new StringToUserBuulder(1L);
-		ScalarConvertingBuilder scb2 = new StringToUserBuulder(1L,TimeUnit.MINUTES);
-		ScalarConvertingBuilder scb3 = new StringToUserBuulder();
+		ScalarConvertingBuilder scb1 = new StringToUserBuilder(1L);
+		ScalarConvertingBuilder scb2 = new StringToUserBuilder(1L,TimeUnit.MINUTES);
+		ScalarConvertingBuilder scb3 = new StringToUserBuilder();
 		assertTrue(scb1.test());
 	}
 }
