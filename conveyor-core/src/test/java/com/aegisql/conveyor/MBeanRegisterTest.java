@@ -16,6 +16,14 @@ public class MBeanRegisterTest {
         Conveyor ac2 = MBEAN.byName("MBeanRegisterTest");
         assertNotNull(ac2);
         assertEquals(ac,ac2);
+
+        AssemblingConveyorMBean mBean = MBEAN.getMBeanInstance("MBeanRegisterTest", AssemblingConveyorMBean.class);
+        assertNotNull(mBean);
+        assertEquals("MBeanRegisterTest",mBean.getName());
+        assertEquals("AssemblingConveyor",mBean.getType());
+        assertEquals(ac,mBean.conveyor());
+        mBean.stop();
+
         MBEAN.unRegister("MBeanRegisterTest");
         try {
             MBEAN.byName("MBeanRegisterTest");
@@ -23,6 +31,7 @@ public class MBeanRegisterTest {
         } catch (Exception e) {
 
         }
+
 
     }
 

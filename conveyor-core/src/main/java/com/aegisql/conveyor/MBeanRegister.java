@@ -2,9 +2,7 @@ package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import javax.management.StandardMBean;
+import javax.management.*;
 import java.lang.management.ManagementFactory;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,6 +43,20 @@ enum MBeanRegister {
             return conveyor;
         } catch (Exception e) {
             throw new ConveyorRuntimeException("Conveyor with name '"+type +"' not found",e);
+        }
+    }
+
+    public <T> T getMBeanInstance(String name, Class<T> tClass) {
+        var type = getType(name);
+        try {
+            var objectName = new ObjectName(type);
+            return MBeanServerInvocationHandler.newProxyInstance(
+                    mBeanServer,
+                    objectName,
+                    tClass,
+                    false
+            );        } catch (MalformedObjectNameException e) {
+            throw new ConveyorRuntimeException("Cannot find MBean instance for "+name,e);
         }
     }
 

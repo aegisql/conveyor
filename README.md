@@ -104,6 +104,7 @@ conveyor configurator
 * Added BitSet to byte[] persistence converter
 * Utility Queue Pump conveyor
 * Simple product consumer
+* getMBeanInstance method in the MBEAN register
 
 ### 1.6.1
 * Java 17
