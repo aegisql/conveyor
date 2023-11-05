@@ -39,14 +39,14 @@
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
-			<version>[10.16,11.00)</version>
+			<version>10.16.1.1</version>
 			<scope>provided</scope>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.derby/derbyclient -->
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derbyclient</artifactId>
-			<version>[10.16,11.00)</version>
+			<version>10.16.1.1</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -59,20 +59,20 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>[42.4,43.0)</version>
+			<version>42.6.0</version>
 			<scope>provided</scope>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
 		<dependency>
 			<groupId>org.xerial</groupId>
 			<artifactId>sqlite-jdbc</artifactId>
-			<version>[3.25,4.0)</version>
+			<version>3.43.2.2</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
-			<version>[3.0.5,4.0.0)</version>
+			<version>3.2.0</version>
 			<scope>provided</scope>
 		</dependency>
 
