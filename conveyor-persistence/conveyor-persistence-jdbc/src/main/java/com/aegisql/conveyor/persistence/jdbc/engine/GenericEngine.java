@@ -461,7 +461,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void createDatabase(String database) {
-		connectAndExecuteUpdate(connectionUrlTemplateForInitDatabase,getCreateDatabaseSql(database));
+		String createDatabaseSQL = getCreateDatabaseSql(database);
+		LOG.debug("CREATE DATABASE SQL: {};",createDatabaseSQL);
+		connectAndExecuteUpdate(connectionUrlTemplateForInitDatabase,createDatabaseSQL);
 		LOG.info("Created database {}",database);
 	}
 
@@ -480,7 +482,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void createSchema(String schema) {
-		connectAndExecuteUpdate(connectionUrlTemplateForInitSchema,getCreateSchemaSql(schema));
+		String createSchemaSQL = getCreateSchemaSql(schema);
+		LOG.debug("CREATE SCHEMA SQL: {};",createSchemaSQL);
+		connectAndExecuteUpdate(connectionUrlTemplateForInitSchema,createSchemaSQL);
 		LOG.info("Created schema {}",schema);
 	}
 
@@ -499,7 +503,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void createPartTable(String partTable) {
-		connectAndExecuteUpdate(connectionUrlTemplateForInitTablesAndIndexes,getCreatePartTableSql(partTable));
+		String createPartTableSQL = getCreatePartTableSql(partTable);
+		LOG.debug("CREATE PART TABLE SQL: {};",createPartTableSQL);
+		connectAndExecuteUpdate(connectionUrlTemplateForInitTablesAndIndexes,createPartTableSQL);
 		LOG.info("Created part table {}",partTable);
 	}
 
@@ -526,7 +532,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void createPartTableIndex(String partTable) {
-		connectAndExecuteUpdate(connectionUrlTemplateForInitTablesAndIndexes,getCreatePartTableIndexSql(partTable));
+		String createPartTableIndexSQL = getCreatePartTableIndexSql(partTable);
+		LOG.debug("CREATE PART TABLE INDEX SQL: {};",createPartTableIndexSQL);
+		connectAndExecuteUpdate(connectionUrlTemplateForInitTablesAndIndexes,createPartTableIndexSQL);
 		LOG.info("Created partTable index {}",partTable);
 	}
 
@@ -545,7 +553,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void createUniqPartTableIndex(String partTable, List<String> fields) {
-		connectAndExecuteUpdate(connectionUrlTemplateForInitTablesAndIndexes,getCreateUniqPartTableIndexSql(partTable,fields));
+		String createUniquePartTableIndexSQL = getCreateUniqPartTableIndexSql(partTable,fields);
+		LOG.debug("CREATE UNIQUE PART TABLE INDEX SQL: {};",createUniquePartTableIndexSQL);
+		connectAndExecuteUpdate(connectionUrlTemplateForInitTablesAndIndexes,createUniquePartTableIndexSQL);
 		LOG.info("Created unique partTable index {} {}",partTable,fields);
 	}
 
@@ -567,7 +577,9 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 */
 	@Override
 	public void createCompletedLogTable(String completedLogTable) {
-		connectAndExecuteUpdate(connectionUrlTemplateForInitTablesAndIndexes,getCompletedLogTableSql(completedLogTable));
+		String createCompletedLogTableSQL = getCompletedLogTableSql(completedLogTable);
+		LOG.debug("CREATE COMPLETED LOG TABLE SQL: {};",createCompletedLogTableSQL);
+		connectAndExecuteUpdate(connectionUrlTemplateForInitTablesAndIndexes,createCompletedLogTableSQL);
 		LOG.info("Created completedLogTable {}",completedLogTable);
 	}
 
