@@ -17,7 +17,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.*;
 
-import static com.aegisql.conveyor.ConvertersRegister.*;
 import static com.aegisql.conveyor.InitiationServiceRegister.SERVICES;
 import static com.aegisql.conveyor.MBeanRegister.MBEAN;
 
@@ -30,7 +29,7 @@ import static com.aegisql.conveyor.MBeanRegister.MBEAN;
  * @author Mikhail Teplitskiy
  * @version 1.1.0
  */
-public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
+public interface Conveyor<K, L, OUT> {
 
 	/**
 	 * The Constant LOG.
@@ -529,59 +528,6 @@ public interface Conveyor<K, L, OUT> extends ConveyorInitiatingService {
 	 */
 	default void register(Object mbeanObject) {
 		register(this,mbeanObject);
-	}
-
-	@Override
-	default List<String> getInitiatedConveyorNames() {
-		return List.of(getName());
-	}
-
-	default void registerKeyConverter(String typeName, Function<?,K> converter) {
-		KEY_CONVERTERS.setConverter(getName(),typeName,converter);
-	}
-
-	default <T> void registerKeyConverter(Class<T> type, Function<T,K> converter) {
-		KEY_CONVERTERS.setConverter(getName(),type,converter);
-	}
-
-	default void registerLabelConverter(String typeName, Function<?,L> converter) {
-		LABEL_CONVERTERS.setConverter(getName(),typeName,converter);
-	}
-
-	default <T> void registerLabelConverter(Class<T> type, Function<T,L> converter) {
-		LABEL_CONVERTERS.setConverter(getName(),type, converter);
-	}
-
-	default void registerValueConverter(String typeName, Function<?,?> converter) {
-		VALUE_CONVERTERS.setConverter(getName(),typeName,converter);
-	}
-
-	default <T> void registerValueConverter(Class<T> type, Function<T,?> converter) {
-		VALUE_CONVERTERS.setConverter(getName(),type,converter);
-	}
-
-	default Function<?,K> getKeyConverter(String typeName) {
-		return KEY_CONVERTERS.getConverter(getName(),typeName);
-	}
-
-	default <T >Function<T,K> getKeyConverter(Class<T> type) {
-		return KEY_CONVERTERS.getConverter(getName(),type);
-	}
-
-	default Function<?,L> getLabelConverter(String typeName) {
-		return LABEL_CONVERTERS.getConverter(getName(),typeName);
-	}
-
-	default <T >Function<T,L> getLabelConverter(Class<T> type) {
-		return LABEL_CONVERTERS.getConverter(getName(),type);
-	}
-
-	default Function<?,?> getValueConverter(String typeName) {
-		return VALUE_CONVERTERS.getConverter(getName(),typeName);
-	}
-
-	default <T >Function<T,?> getValueConverter(Class<T> type) {
-		return VALUE_CONVERTERS.getConverter(getName(),type);
 	}
 
 }

@@ -10,9 +10,9 @@ enum InitiationServiceRegister {
     private final ServiceLoader<ConveyorInitiatingService> serviceLoader = ServiceLoader.load(ConveyorInitiatingService.class);
 
     public Set<String> getLoadedConveyorNames() {
-        var list = new HashSet<String>();
-        serviceLoader.iterator().forEachRemaining(service->list.addAll(service.getInitiatedConveyorNames()));
-        return list;
+        var set = new HashSet<String>();
+        serviceLoader.iterator().forEachRemaining(service->set.add(service.getName()));
+        return set;
     }
 
     public void reload() {
