@@ -1,8 +1,6 @@
 package com.aegisql.conveyor;
 
-import java.util.HashSet;
-import java.util.ServiceLoader;
-import java.util.Set;
+import java.util.*;
 
 enum InitiationServiceRegister {
     SERVICES;
@@ -11,7 +9,15 @@ enum InitiationServiceRegister {
 
     public Set<String> getLoadedConveyorNames() {
         var set = new HashSet<String>();
-        serviceLoader.iterator().forEachRemaining(service->set.add(service.getName()));
+        serviceLoader.iterator().forEachRemaining(service->set.add(service.getConveyor().getName()));
+        return set;
+    }
+
+    public List<ConveyorInitiatingService> getLoadedConveyorServices() {
+        var set = new ArrayList<ConveyorInitiatingService>();
+        serviceLoader.iterator().forEachRemaining(service->{
+            set.add(service);
+        });
         return set;
     }
 

@@ -3,6 +3,11 @@
  */
 package com.aegisql.conveyor.user;
 
+import com.aegisql.conveyor.SmartLabel;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
@@ -13,6 +18,32 @@ import java.util.function.Supplier;
  * @version 1.0.0
  */
 public class UserBuilderSmart implements Supplier<User> {
+
+	public enum UserBuilderSmartLabel implements SmartLabel<UserBuilderSmart> {
+		FIRST((b,v)->{UserBuilderSmart.setFirst(b, (String)v);},String.class)
+		,LAST((b,v)->{UserBuilderSmart.setLast(b, (String)v);},String.class)
+		,YOB((b,v)->{UserBuilderSmart.setYearOfBirth(b, (Integer)v);},Integer.class)
+		;
+
+		final BiConsumer<UserBuilderSmart, Object> consumer;
+		final List<Class<?>> supportedTypes = new ArrayList<>();
+
+		UserBuilderSmartLabel(BiConsumer<UserBuilderSmart, ?> consumer, Class<?> type) {
+			this.consumer = (BiConsumer<UserBuilderSmart, Object>) consumer;
+			this.supportedTypes.add(type);
+		}
+
+		@Override
+		public BiConsumer<UserBuilderSmart, Object> get() {
+			return consumer;
+		}
+
+		@Override
+		public List<Class<?>> getAcceptableTypes() {
+			return supportedTypes;
+		}
+
+	}
 
 	/** The first. */
 	String first;
@@ -61,7 +92,7 @@ public class UserBuilderSmart implements Supplier<User> {
 	 * @param first the first
 	 */
 	public static void setFirst(UserBuilderSmart builder, String first) {
-		builder.first = (String) first;
+		builder.first = first;
 	}
 
 	/**

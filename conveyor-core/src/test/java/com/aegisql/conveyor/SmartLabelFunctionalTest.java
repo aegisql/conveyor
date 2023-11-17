@@ -4,10 +4,12 @@ import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderSmart;
 import org.junit.*;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
+import static com.aegisql.conveyor.user.UserBuilderSmart.UserBuilderSmartLabel.*;
 import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
@@ -158,8 +160,13 @@ public class SmartLabelFunctionalTest {
 	@Test
 	public void testInterceptConsumer() {
 		UserBuilderSmart b = new UserBuilderSmart();
-		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst,String.class);
 		assertNotNull(l1);
+		try {
+			l1.get().accept(b,1);
+			fail("Integer cannot be cast to class java.lang.String");
+		} catch (Exception e) {
+		}
 		l1 = l1.intercept(Integer.class, (value)->{
 			System.out.println("Intercepted Integer "+value);
 			
@@ -176,6 +183,13 @@ public class SmartLabelFunctionalTest {
 		l1.get().accept(b, new Exception("error"));
 		User u = b.get();
 		assertEquals("TEST",u.getFirst());
+
+		List<Class<?>> acceptableTypes = l1.getAcceptableTypes();
+		System.out.println(acceptableTypes);
+		assertEquals(3,acceptableTypes.size());
+		assertTrue(acceptableTypes.contains(Exception.class));
+		assertTrue(acceptableTypes.contains(Integer.class));
+		assertTrue(acceptableTypes.contains(String.class));
 	}
 
 	/**
@@ -184,8 +198,13 @@ public class SmartLabelFunctionalTest {
 	@Test
 	public void testInterceptBiConsumer() {
 		UserBuilderSmart b = new UserBuilderSmart();
-		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst).acceptType(String.class);
 		assertNotNull(l1);
+		try {
+			l1.get().accept(b,1);
+			fail("Integer cannot be cast to class java.lang.String");
+		} catch (Exception e) {
+		}
 		l1 = l1.intercept(Integer.class, (builder,value)->{
 			System.out.println("Intercepted Integer "+value);
 			UserBuilderSmart.setYearOfBirth(builder, value);
@@ -202,6 +221,12 @@ public class SmartLabelFunctionalTest {
 		User u = b.get();
 		assertEquals("TEST",u.getFirst());
 		assertEquals(1, u.getYearOfBirth());
+		List<Class<?>> acceptableTypes = l1.getAcceptableTypes();
+		System.out.println(acceptableTypes);
+		assertEquals(3,acceptableTypes.size());
+		assertTrue(acceptableTypes.contains(Exception.class));
+		assertTrue(acceptableTypes.contains(Integer.class));
+		assertTrue(acceptableTypes.contains(String.class));
 	}
 
 	/**
@@ -226,6 +251,7 @@ public class SmartLabelFunctionalTest {
 		l1.get().accept(b, "TEST");	
 		User u = b.get();
 		assertEquals("TEST",u.getFirst());
+		assertEquals("L1",l1.toString());
 	}
 
 	/**
@@ -234,7 +260,7 @@ public class SmartLabelFunctionalTest {
 	@Test
 	public void testBeforeAfterConsumer() {
 		UserBuilderSmart b = new UserBuilderSmart();
-		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst);
+		SmartLabel<UserBuilderSmart> l1 = SmartLabel.of(UserBuilderSmart::setFirst).labelName("L1").acceptType(String.class);
 		assertNotNull(l1);
 		l1 = l1.before((value)->{
 			System.out.println("Before "+value);
@@ -247,6 +273,8 @@ public class SmartLabelFunctionalTest {
 		l1.get().accept(b, "TEST");	
 		User u = b.get();
 		assertEquals("TEST",u.getFirst());
+		assertEquals("L1",l1.toString());
+		assertEquals(String.class,l1.getAcceptableTypes().get(0));
 	}
 
 	/**
@@ -259,7 +287,7 @@ public class SmartLabelFunctionalTest {
 		assertNotNull(l1);
 		l1 = l1.before(()->{
 			System.out.println("Before");
-		});
+		}).labelName("L1");
 		assertNotNull(l1);
 		l1 = l1.andThen(()->{
 			System.out.println("After");			
@@ -268,6 +296,7 @@ public class SmartLabelFunctionalTest {
 		l1.get().accept(b, "TEST");	
 		User u = b.get();
 		assertEquals("TEST",u.getFirst());
+		assertEquals("L1",l1.toString());
 	}
 
 	
@@ -427,5 +456,28 @@ public class SmartLabelFunctionalTest {
 		assertTrue(f.isCompletedExceptionally());
 	}
 
+	@Test
+	public void implementationTests() {
+		assertEquals("FIRST",FIRST.toString());
+		assertEquals(String.class,FIRST.getAcceptableTypes().get(0));
+		assertEquals("LAST",LAST.toString());
+		assertEquals(String.class,LAST.getAcceptableTypes().get(0));
+		assertEquals("YOB",YOB.toString());
+		assertEquals(Integer.class,YOB.getAcceptableTypes().get(0));
+
+		UserBuilderSmart b = new UserBuilderSmart();
+		FIRST.get().accept(b,"TEST_NAME");
+		User user = b.get();
+		assertEquals("TEST_NAME",user.getFirst());
+
+		SmartLabel<UserBuilderSmart> firstCopy = FIRST.labelName("FIRST_COPY");
+		assertEquals("FIRST_COPY",firstCopy.toString());
+		assertEquals(String.class,firstCopy.getAcceptableTypes().get(0));
+
+		firstCopy.get().accept(b,"TEST_NAME_2");
+		User user2 = b.get();
+		assertEquals("TEST_NAME_2",user2.getFirst());
+
+	}
 
 }

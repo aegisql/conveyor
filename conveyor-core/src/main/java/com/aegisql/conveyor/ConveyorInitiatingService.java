@@ -1,5 +1,9 @@
 package com.aegisql.conveyor;
 
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
@@ -11,14 +15,13 @@ import java.util.List;
  * Use one initializer per conveyor
  */
 public interface ConveyorInitiatingService<K,L,OUT> {
-    default String getName() {
-        return getConveyor().getName();
-    }
     Conveyor<K,L,OUT> getConveyor();
     Class<K> getKeyType();
     Class<L> getLabelType();
+    Class<OUT> getProductType();
     List<Class<?>> getSupportedValueTypes(L label);
-    default BuilderSupplier<OUT> useBuilderSupplier() {
+    List<L> getLabels();
+    default BuilderSupplier<OUT> builderSupplierFactory() {
         return null;
     }
 }

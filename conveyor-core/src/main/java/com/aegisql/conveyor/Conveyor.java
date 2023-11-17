@@ -511,6 +511,10 @@ public interface Conveyor<K, L, OUT> {
 		return Collections.unmodifiableSet(SERVICES.getLoadedConveyorNames());
 	}
 
+	static List<ConveyorInitiatingService> getLoadedConveyorServices() {
+		return Collections.unmodifiableList(SERVICES.getLoadedConveyorServices());
+	}
+
 	/**
 	 * Register.
 	 *
