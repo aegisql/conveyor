@@ -75,6 +75,7 @@ public class AssemblingConveyorTest {
 		AtomicBoolean visited = new AtomicBoolean(false);
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
+		conveyor.setIdleHeartBeat(Duration.ofMillis(1));
 		conveyor.scrapConsumer((o)->{
 			System.out.println(o);
 			assertTrue(o.comment.startsWith("Cart Processor Failed"));
