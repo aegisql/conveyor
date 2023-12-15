@@ -837,4 +837,10 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public Class<?> mBeanInterface() {
 		return ParallelConveyorMBean.class;
 	}
+
+	@Override
+	public ConveyorMetaInfo<K, L, OUT> getMetaInfo() {
+		return conveyors.getFirst().getMetaInfo();
+	}
+
 }

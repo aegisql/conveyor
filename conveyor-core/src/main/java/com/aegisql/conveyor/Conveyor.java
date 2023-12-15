@@ -460,6 +460,13 @@ public interface Conveyor<K, L, OUT> {
 	Class<?> mBeanInterface();
 
 	/**
+	 * Gets meta info.
+	 *
+	 * @return the meta info
+	 */
+	ConveyorMetaInfo<K,L,OUT> getMetaInfo();
+
+	/**
 	 * By name.
 	 *
 	 * @param name the name

@@ -928,5 +928,10 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return PersistentConveyorMBean.class;
 	}
 
+	@Override
+	public ConveyorMetaInfo<K, L, OUT> getMetaInfo() {
+		return forward.getMetaInfo();
+	}
+
 
 }

@@ -1854,4 +1854,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return AssemblingConveyorMBean.class;
 	}
 
+	@Override
+	public ConveyorMetaInfo<K, L, OUT> getMetaInfo() {
+		throw new ConveyorRuntimeException("Meta Info is not available for '"+getName()+"'. getMetaInfo() method must be overridden in a child conveyor class.");
+	}
+
 }
