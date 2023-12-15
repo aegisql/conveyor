@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ConveyorMetaInfo <K,L,OUT> {
-
-    private final Conveyor<K,L,OUT> conveyor;
     private final Class<K> keyType;
     private final Class<L> labelType;
     private final Class<OUT> productType;
@@ -13,8 +11,7 @@ public class ConveyorMetaInfo <K,L,OUT> {
     private final List<L> labels;
     private final BuilderSupplier<OUT> builderSupplier;
 
-    public ConveyorMetaInfo(Conveyor<K, L, OUT> conveyor, Class<K> keyType, Class<L> labelType, Class<OUT> productType, HashMap<L, List<Class<?>>> supportedValueTypes, List<L> labels, BuilderSupplier<OUT> builderSupplier) {
-        this.conveyor = conveyor;
+    public ConveyorMetaInfo(Class<K> keyType, Class<L> labelType, Class<OUT> productType, HashMap<L, List<Class<?>>> supportedValueTypes, List<L> labels, BuilderSupplier<OUT> builderSupplier) {
         this.keyType = keyType;
         this.labelType = labelType;
         this.productType = productType;
@@ -23,9 +20,6 @@ public class ConveyorMetaInfo <K,L,OUT> {
         this.builderSupplier = builderSupplier;
     }
 
-    public Conveyor<K,L,OUT> getConveyor(){
-        return conveyor;
-    }
     public Class<K> getKeyType() {
         return keyType;
     }
@@ -43,5 +37,16 @@ public class ConveyorMetaInfo <K,L,OUT> {
     }
     public BuilderSupplier<OUT> builderSupplierFactory() {
         return builderSupplier;
+    }
+
+    @Override
+    public String toString() {
+        return "ConveyorMetaInfo{" +
+                "keyType=" + keyType +
+                ", labelType=" + labelType +
+                ", productType=" + productType +
+                ", supportedValueTypes=" + supportedValueTypes +
+                ", labels=" + labels +
+                '}';
     }
 }
