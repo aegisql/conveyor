@@ -7,6 +7,7 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.loaders.*;
+import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuilder;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuildingConveyor;
 import com.aegisql.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;

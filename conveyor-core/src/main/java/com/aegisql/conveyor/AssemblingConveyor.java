@@ -14,6 +14,7 @@ import com.aegisql.conveyor.delay.DelayProvider;
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.exception.KeepRunningConveyorException;
 import com.aegisql.conveyor.loaders.*;
+import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

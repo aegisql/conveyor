@@ -8,7 +8,9 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.loaders.*;
+import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import org.junit.*;
@@ -792,6 +794,12 @@ public class AssemblingConveyorTest {
 		
 		Conveyor<Integer,String,User> ac2 = Conveyor.byName("bad_name");
 		
+	}
+
+	@Test(expected = ConveyorRuntimeException.class)
+	public void unimplementedMetadataExceptionTest() {
+		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
+		ConveyorMetaInfo<Integer, String, User> metaInfo = ac1.getMetaInfo();
 	}
 
 }

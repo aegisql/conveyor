@@ -10,6 +10,7 @@ import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.loaders.*;
+import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
