@@ -445,6 +445,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			final var thisConv = this;
 			Conveyor.register(this, new AssemblingConveyorMBean() {
 				@Override
+				public String getGenericName() {
+					return thisConv.getGenericName();
+				}
+
+				@Override
 				public String getName() {
 					return thisConv.name;
 				}

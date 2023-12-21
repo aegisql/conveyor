@@ -17,6 +17,8 @@ public interface ParallelConveyorMBean {
 	 * @return the name
 	 */
 	String getName();
+
+	String getGenericName();
 	
 	/**
 	 * Gets the type.

@@ -7,8 +7,10 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.loaders.*;
 import com.aegisql.conveyor.meta.ConveyorMetaInfo;
+import com.aegisql.conveyor.meta.ConveyorMetaInfoBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -312,6 +314,20 @@ public interface Conveyor<K, L, OUT> {
 	 * @return the name
 	 */
 	String getName();
+
+	default String getGenericName() {
+		StringBuilder sb = new StringBuilder(getName());
+		try {
+			ConveyorMetaInfo metaInfo = getMetaInfo();
+			sb.append("<");
+			sb.append(metaInfo.getKeyType().getSimpleName()).append(",");
+			sb.append(metaInfo.getLabelType().getSimpleName()).append(",");
+			sb.append(metaInfo.getProductType().getSimpleName()).append(">");
+		} catch (ConveyorRuntimeException e) {
+			sb.append("<?,?,?>");
+		}
+		return sb.toString();
+	}
 
 	/**
 	 * Enable postpone expiration.

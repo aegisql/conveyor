@@ -633,6 +633,12 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 				public String getName() {
 					return name;
 				}
+
+				@Override
+				public String getGenericName() {
+					return thisConv.getGenericName();
+				}
+
 				@Override
 				public String getType() {
 					return thisConv.getClass().getSimpleName();

@@ -31,6 +31,7 @@ public class ConveyorMetaInfoBuilderTest {
                         .get();
             }
         };
+        ac.setName("MetaInfoTestConveyor");
         ConveyorMetaInfo<Integer, String, User> metaInfo = ac.getMetaInfo();
         System.out.println(metaInfo);
         assertEquals(Integer.class,metaInfo.getKeyType());
@@ -58,11 +59,17 @@ public class ConveyorMetaInfoBuilderTest {
         assertEquals(2,c.size());
         assertTrue(c.contains(Integer.class));
         assertTrue(c.contains(Long.class));
+
+        System.out.println(ac.getGenericName());
+        assertEquals("MetaInfoTestConveyor<Integer,String,User>",ac.getGenericName());
     }
 
     @Test(expected = ConveyorRuntimeException.class)
     public void exceptionTest() {
         AssemblingConveyor ac = new AssemblingConveyor();
+        ac.setName("MetaInfoTestConveyor");
+        System.out.println(ac.getGenericName());
+        assertEquals("MetaInfoTestConveyor<?,?,?>",ac.getGenericName());
         ac.getMetaInfo();
     }
 

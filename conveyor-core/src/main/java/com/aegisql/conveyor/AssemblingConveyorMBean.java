@@ -22,6 +22,8 @@ public interface AssemblingConveyorMBean {
 	 * @return the name
 	 */
 	String getName();
+
+	String getGenericName();
 	
 	/**
 	 * Gets the type.
