@@ -95,7 +95,9 @@ conveyor configurator
 
 ## Release History
 
-### 1.6.2-SNAPSHOT
+### 1.6.3-SNAPSHOT
+
+### 1.6.2
 * Improvements for persistence configuration
 * Tests and bugfixes
 * Driver and libraries updates
@@ -104,6 +106,7 @@ conveyor configurator
 * Added BitSet to byte[] persistence converter
 * Utility Queue Pump conveyor
 * Simple product consumer
+* Conveyor MetaInfo
 * getMBeanInstance method in the MBEAN register
 
 ### 1.6.1
