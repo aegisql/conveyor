@@ -1669,7 +1669,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public String toString() {
-		return "AssemblingConveyor [name=" + name + ", thread=" + innerThread.getId() + "]";
+		return getGenericName()+" [name=" + name + ", thread=" + innerThread.getId() + "]";
 	}
 
 	/*

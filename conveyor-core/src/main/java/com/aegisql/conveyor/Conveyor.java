@@ -316,7 +316,7 @@ public interface Conveyor<K, L, OUT> {
 	String getName();
 
 	default String getGenericName() {
-		StringBuilder sb = new StringBuilder(getName());
+		StringBuilder sb = new StringBuilder(getClassName(this.getClass()));
 		try {
 			ConveyorMetaInfo metaInfo = getMetaInfo();
 			sb.append("<");
@@ -327,6 +327,15 @@ public interface Conveyor<K, L, OUT> {
 			sb.append("<?,?,?>");
 		}
 		return sb.toString();
+	}
+
+	private static String getClassName(Class c) {
+		String simpleName = c.getSimpleName();
+		if(simpleName.isEmpty()) {
+			return getClassName(c.getSuperclass());
+		} else {
+			return simpleName;
+		}
 	}
 
 	/**

@@ -61,7 +61,7 @@ public class ConveyorMetaInfoBuilderTest {
         assertTrue(c.contains(Long.class));
 
         System.out.println(ac.getGenericName());
-        assertEquals("MetaInfoTestConveyor<Integer,String,User>",ac.getGenericName());
+        assertEquals("AssemblingConveyor<Integer,String,User>",ac.getGenericName());
     }
 
     @Test(expected = ConveyorRuntimeException.class)
@@ -69,7 +69,7 @@ public class ConveyorMetaInfoBuilderTest {
         AssemblingConveyor ac = new AssemblingConveyor();
         ac.setName("MetaInfoTestConveyor");
         System.out.println(ac.getGenericName());
-        assertEquals("MetaInfoTestConveyor<?,?,?>",ac.getGenericName());
+        assertEquals("AssemblingConveyor<?,?,?>",ac.getGenericName());
         ac.getMetaInfo();
     }
 
