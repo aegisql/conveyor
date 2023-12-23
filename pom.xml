@@ -99,7 +99,10 @@
 				<version>3.0.1</version>
 				<configuration>
 					<!--arguments>$(arguments)</arguments-->
+					<mavenExecutorId>forked-path</mavenExecutorId>
+					<useReleaseProfile>false</useReleaseProfile>
 					<arguments>-DskipTests</arguments>
+					<arguments>-Psonatype-oss-release</arguments>
 				</configuration>
 			</plugin>
 		</plugins>
