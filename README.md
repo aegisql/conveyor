@@ -11,7 +11,7 @@ conveyor-core
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-core</artifactId>
-  <version>1.6.2</version>
+  <version>1.6.4</version>
 </dependency>
 ```
 
@@ -20,7 +20,7 @@ conveyor-parallel
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-parallel</artifactId>
-  <version>1.6.2</version>
+  <version>1.6.4</version>
 </dependency>
 ```
 
@@ -29,14 +29,14 @@ conveyor-persistence
 <dependency>
 <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.6.2</version>
+  <version>1.6.4</version>
 </dependency>
 ```
 ```xml
 <dependency>
   <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-jdbc</artifactId>
-  <version>1.6.2</version>
+  <version>1.6.4</version>
 </dependency>
 ```
 
@@ -45,7 +45,7 @@ conveyor configurator
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-configurator</artifactId>
-  <version>1.6.2</version>
+  <version>1.6.4</version>
 </dependency>
 ```
 
@@ -95,7 +95,10 @@ conveyor configurator
 
 ## Release History
 
-### 1.6.3-SNAPSHOT
+### 1.6.5-SNAPSHOT
+
+### 1.6.4
+* Fix Java 17b compatibility issue
 
 ### 1.6.2
 * Improvements for persistence configuration
