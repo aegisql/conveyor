@@ -847,7 +847,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 
 	@Override
 	public ConveyorMetaInfo<K, L, OUT> getMetaInfo() {
-		return conveyors.getFirst().getMetaInfo();
+		return conveyors.get(0).getMetaInfo();
 	}
 
 }
