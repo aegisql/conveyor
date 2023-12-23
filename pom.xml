@@ -11,7 +11,7 @@
 
 	<groupId>com.aegisql</groupId>
 	<artifactId>conveyor</artifactId>
-	<version>1.6.3-SNAPSHOT</version>
+	<version>1.6.3</version>
 	<packaging>pom</packaging>
 
 	<name>conveyor</name>
@@ -43,7 +43,8 @@
 		<url>git@github.com:aegisql/conveyor.git</url>
 		<connection>scm:git:git@github.com:aegisql/conveyor.git</connection>
 		<developerConnection>scm:git:git@github.com:aegisql/conveyor.git</developerConnection>
-	</scm>
+	  <tag>conveyor-1.6.3</tag>
+  </scm>
 
 	<build>
 		<plugins>
