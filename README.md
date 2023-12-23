@@ -98,7 +98,7 @@ conveyor configurator
 ### 1.6.5-SNAPSHOT
 
 ### 1.6.4
-* Fix Java 17b compatibility issue
+* Fix Java 17 compatibility issue
 
 ### 1.6.2
 * Improvements for persistence configuration
