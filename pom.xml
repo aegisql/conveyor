@@ -101,8 +101,8 @@
 					<!--arguments>$(arguments)</arguments-->
 					<mavenExecutorId>forked-path</mavenExecutorId>
 					<useReleaseProfile>false</useReleaseProfile>
-					<arguments>-DskipTests</arguments>
-					<arguments>-Psonatype-oss-release</arguments>
+					<!--arguments>-DskipTests</arguments-->
+					<arguments>-Psonatype-oss-release -DskipTests</arguments>
 				</configuration>
 			</plugin>
 		</plugins>
