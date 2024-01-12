@@ -5,13 +5,13 @@ Reactive Aggregation and Creation for Enterprise
 
 ### Maven dependencies
 
-## For JAVA11, JAVA17 & OpenJDK
+## For JAVA17 & OpenJDK
 conveyor-core
 ```xml
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-core</artifactId>
-  <version>1.6.4</version>
+  <version>1.6.5</version>
 </dependency>
 ```
 
@@ -20,7 +20,7 @@ conveyor-parallel
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-parallel</artifactId>
-  <version>1.6.4</version>
+  <version>1.6.5</version>
 </dependency>
 ```
 
@@ -29,14 +29,14 @@ conveyor-persistence
 <dependency>
 <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.6.4</version>
+  <version>1.6.5</version>
 </dependency>
 ```
 ```xml
 <dependency>
   <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-jdbc</artifactId>
-  <version>1.6.4</version>
+  <version>1.6.5</version>
 </dependency>
 ```
 
@@ -45,53 +45,16 @@ conveyor configurator
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-configurator</artifactId>
-  <version>1.6.4</version>
+  <version>1.6.5</version>
 </dependency>
 ```
 
-## For JAVA8
-conveyor-core
-```xml
-<dependency>
-  <groupId>com.aegisql</groupId>
-  <artifactId>conveyor-core</artifactId>
-  <version>1.4.4</version>
-</dependency>
-```
+## JAVA11
+Last version supporting Java 11 is 1.5.3
 
-conveyor-parallel
-```xml
-<dependency>
-  <groupId>com.aegisql</groupId>
-  <artifactId>conveyor-parallel</artifactId>
-  <version>1.4.4</version>
-</dependency>
-```
+## JAVA8
+Last version supporting Java 8 is 1.4.4
 
-conveyor-persistence
-```xml
-<dependency>
-<groupId>com.aegisql.persistence</groupId>
-  <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.4.4</version>
-</dependency>
-```
-```xml
-<dependency>
-  <groupId>com.aegisql.persistence</groupId>
-  <artifactId>conveyor-persistence-jdbc</artifactId>
-  <version>1.4.4</version>
-</dependency>
-```
-
-conveyor configurator
-```xml
-<dependency>
-  <groupId>com.aegisql</groupId>
-  <artifactId>conveyor-configurator</artifactId>
-  <version>1.4.4</version>
-</dependency>
-```
 
 ## Release History
 
