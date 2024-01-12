@@ -422,13 +422,13 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public void setName(String name) {
 		String oldName = this.name;
 		this.name = name;
-		this.setMbean(name);
 		try {
 			//Forget old name
 			Conveyor.unRegister(oldName);
 		} catch (Exception e) {
 			//Ignore. Might be already unregistered
 		}
+		this.setMbean(name);
 		int i = 0;
 		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.setName(name+" ["+i+"]");

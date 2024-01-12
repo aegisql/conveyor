@@ -95,9 +95,12 @@ conveyor configurator
 
 ## Release History
 
-### 1.6.5-SNAPSHOT
+### 1.6.6-SNAPSHOT
+* Bugfixes and refactoring
+
+### 1.6.5
 * MetaInfo parameters in configuration
-* Bugfixes
+* Bugfixes and refactoring
 
 ### 1.6.4
 * Fix Java 17 compatibility issue
