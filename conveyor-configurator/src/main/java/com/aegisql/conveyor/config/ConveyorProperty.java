@@ -145,12 +145,6 @@ public class ConveyorProperty {
 					ConveyorProperty cpp = new ConveyorProperty(ConveyorPropertyType.CONVEYOR, cNameProperty.isDefaultProperty, cNameProperty.getConveyorName(), "persistenceProperty", pp);
 					consumer.accept(cpp);
 				});
-			} else if(propertyKey.toLowerCase().endsWith(ConveyorConfiguration.PROPERTY_DELIMITER+"metainfo")){
-				ConveyorProperty cNameProperty = ConveyorProperty.evalProperty(propertyKey, "");
-				MetaInfoProperty.eval("metainfo", value, mp->{
-					ConveyorProperty cpp = new ConveyorProperty(ConveyorPropertyType.CONVEYOR, cNameProperty.isDefaultProperty, cNameProperty.getConveyorName(), "metainfo", mp);
-					consumer.accept(cpp);
-				});
 			} else {
 				map.forEach((part,val) -> eval(propertyKey+ConveyorConfiguration.PROPERTY_DELIMITER+part,val,consumer));
 			}
