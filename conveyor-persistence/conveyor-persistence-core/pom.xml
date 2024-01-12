@@ -4,11 +4,11 @@
   <parent>
     <groupId>com.aegisql.persistence</groupId>
     <artifactId>conveyor-persistence</artifactId>
-    <version>1.6.5-SNAPSHOT</version>
+    <version>1.6.5</version>
   </parent>
   <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.6.5-SNAPSHOT</version>
+  <version>1.6.5</version>
   <name>conveyor-persistence-core</name>
   <url>http://maven.apache.org</url>
   <properties>
@@ -18,7 +18,7 @@
     <dependency>
       <groupId>com.aegisql</groupId>
       <artifactId>conveyor-parallel</artifactId>
-      <version>1.6.5-SNAPSHOT</version>
+      <version>1.6.5</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
