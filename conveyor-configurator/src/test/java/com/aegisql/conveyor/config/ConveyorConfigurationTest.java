@@ -10,12 +10,14 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -444,5 +446,21 @@ public class ConveyorConfigurationTest {
 
 	}
 
-	
+	@Test
+	public void metaInfoYamlTest() throws Exception {
+		ConveyorConfiguration.build("CP:test13.yml");
+		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c13");
+		ConveyorMetaInfo<Integer, NameLabel, String> metaInfo = c.getMetaInfo();
+		assertNotNull(metaInfo);
+		System.out.println(metaInfo);
+	}
+	@Test
+	public void metaInfoPropertiesTest() throws Exception {
+		ConveyorConfiguration.build("CP:test14.properties");
+		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c14");
+		Set<String> knownConveyorNames = Conveyor.getKnownConveyorNames();
+		ConveyorMetaInfo<Integer, NameLabel, String> metaInfo = c.getMetaInfo();
+		assertNotNull(metaInfo);
+		System.out.println(metaInfo);
+	}
 }

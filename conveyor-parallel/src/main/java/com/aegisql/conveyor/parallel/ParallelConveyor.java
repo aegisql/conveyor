@@ -420,8 +420,15 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	 * @param name the new name
 	 */
 	public void setName(String name) {
+		String oldName = this.name;
 		this.name = name;
 		this.setMbean(name);
+		try {
+			//Forget old name
+			Conveyor.unRegister(oldName);
+		} catch (Exception e) {
+			//Ignore. Might be already unregistered
+		}
 		int i = 0;
 		for(Conveyor<K,L,OUT> conv: conveyors) {
 			conv.setName(name+" ["+i+"]");

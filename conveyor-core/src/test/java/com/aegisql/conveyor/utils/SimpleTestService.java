@@ -22,33 +22,4 @@ public class SimpleTestService implements ConveyorInitiatingService<Integer,User
         return conveyor;
     }
 
-    @Override
-    public Class<Integer> getKeyType() {
-        return Integer.class;
-    }
-
-    @Override
-    public Class<UserBuilderEvents> getLabelType() {
-        return UserBuilderEvents.class;
-    }
-
-    @Override
-    public Class<User> getProductType() {
-        return User.class;
-    }
-
-    @Override
-    public List<Class<?>> getSupportedValueTypes(UserBuilderEvents label) {
-        return null;
-    }
-
-    @Override
-    public List<UserBuilderEvents> getLabels() {
-        return Arrays.asList(UserBuilderEvents.values());
-    }
-
-    public BuilderSupplier<User> builderSupplierFactory() {
-        return UserBuilder::new;
-    }
-
 }

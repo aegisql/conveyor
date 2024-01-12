@@ -26,12 +26,6 @@ public class ConveyorInitiatingServiceTest {
         assertNotNull(conveyorInitiatingService);
         assertEquals(simpleTestServiceConveyor,conveyorInitiatingService.getConveyor());
 
-        assertEquals(Integer.class,conveyorInitiatingService.getKeyType());
-        assertEquals(UserBuilderEvents.class,conveyorInitiatingService.getLabelType());
-
-        Object o = conveyorInitiatingService.builderSupplierFactory().get();
-        assertNotNull(o);
-        assertEquals(UserBuilder.class,o.getClass());
     }
 
 }

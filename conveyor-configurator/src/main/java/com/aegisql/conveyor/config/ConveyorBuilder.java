@@ -5,6 +5,8 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+import com.aegisql.conveyor.meta.ConveyorMetaInfo;
+import com.aegisql.conveyor.meta.ConveyorMetaInfoBuilder;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
@@ -17,6 +19,7 @@ import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.builders.RestoreOrder;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
+import org.graalvm.shadowed.org.jcodings.util.Hash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +56,13 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	private static final long serialVersionUID = 1L;
 
 	/** The constructor. */
-	private Supplier<Conveyor> constructor = AssemblingConveyor::new;
+	private Function<ConveyorMetaInfo,Conveyor> constructor = mi->{
+		if(mi==null) {
+			return new AssemblingConveyor();
+		} else {
+			return new AssemblingConveyorMI(mi);
+		}
+	};
 
 	/** The idle heart beat. */
 	private Duration idleHeartBeat = null;
@@ -159,7 +168,12 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	private final Map<String, PersistenceProperties> defaultPersistenceProperties = new TreeMap<>();
 
 	private Boolean enablePriorityQueue = false;
-
+	private Class keyType;
+	private Class labelType;
+	private Class productType;
+	private List labels = new ArrayList();
+	private Map<Object,List<Class>> supportedValueTypes = new HashMap<>();
+	private ConveyorMetaInfoBuilder metaInfoBuilder = new ConveyorMetaInfoBuilder();
 
 	/**
 	 * Sets the if not null.
@@ -206,8 +220,25 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				
 			}
 
+			metaInfoBuilder = metaInfoBuilder.keyType(keyType);
+			metaInfoBuilder = metaInfoBuilder.labelType(labelType);
+			metaInfoBuilder = metaInfoBuilder.productType(productType);
+			metaInfoBuilder = metaInfoBuilder.addLabels(supportedValueTypes.keySet());
+			for(var es:supportedValueTypes.entrySet()) {
+				metaInfoBuilder = metaInfoBuilder.supportedTypes(es.getKey(),es.getValue());
+			}
+
+			ConveyorMetaInfo metaInfo = null;
+			try {
+				metaInfo = metaInfoBuilder.get();
+				LOG.info("MetaInfo configuration found: {}",metaInfo);
+			} catch (Exception e) {
+				LOG.info("MetaInfo configuration not found or incomplete. Ignoring");
+			}
+
 			if (parallelFactor > 1) {
-				instance = new KBalancedParallelConveyor(constructor, parallelFactor);
+				ConveyorMetaInfo finalMetaInfo = metaInfo;
+				instance = new KBalancedParallelConveyor(()->constructor.apply(finalMetaInfo), parallelFactor);
 				LOG.info("Instantiate K-Balanced conveyor with parallelizm={}", parallelFactor);
 			} else if (lParallel.size() > 1) {
 				LOG.info("Instantiate L-Balanced conveyor with parallelizm={}", lParallel);
@@ -215,13 +246,17 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				lConveyors = lParallel.toArray(lConveyors);
 				instance = new LBalancedParallelConveyor<>(lConveyors);
 			} else {
-				instance = constructor.get();
+				instance = constructor.apply(metaInfo);
 				LOG.info("Instantiate {}", instance.getClass().getName());
 			}
 
 			if (persistence != null) {
 				Persistence p = Persistence.byName(persistence);
 				instance = new PersistentConveyor(p.copy(), instance);
+			}
+
+			if(metaInfo != null) {
+				//instance = new ConveyorMetaInfoWrapper(instance,metaInfo);
 			}
 
 			final Conveyor c = instance;
@@ -672,7 +707,8 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void supplier(ConveyorBuilder b, ConveyorProperty cp) {
 		logRegister(cp);
-		b.constructor = ConfigUtils.stringToConveyorSupplier.apply(cp.getValueAsString());
+		//If conveyor specified by external source it must provide its own metainfo, when needed
+		b.constructor = mi->ConfigUtils.stringToConveyorSupplier.apply(cp.getValueAsString()).get();
 		b.maxQueueSize = 0;
 		b.enablePriorityQueue = false;
 	}
@@ -784,7 +820,13 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		b.maxQueueSize = maxSize;
 		if(b.maxQueueSize > 0) {
 			b.enablePriorityQueue = false;
-			b.constructor = ()->new AssemblingConveyor( ()->new ArrayBlockingQueue(maxSize) );
+			b.constructor = mi-> {
+				if(mi==null) {
+					return new AssemblingConveyor(() -> new ArrayBlockingQueue(maxSize));
+				} else {
+					return new AssemblingConveyorMI(() -> new ArrayBlockingQueue(maxSize),mi);
+				}
+			};
 		}
 	}
 
@@ -794,7 +836,14 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 			final Supplier<PriorityBlockingQueue<Cart>> queueSupplier=Priority.valueOf(cp.getValueAsString());
 			b.enablePriorityQueue = true;
 			b.maxQueueSize = 0;
-			b.constructor = () -> new AssemblingConveyor(queueSupplier);
+			b.constructor = mi-> {
+				if(mi==null) {
+					return new AssemblingConveyor(queueSupplier);
+				} else {
+					return new AssemblingConveyorMI(queueSupplier,mi);
+				}
+			};
+
 		} catch (Exception e) {
 			b.enablePriorityQueue = false;
 			LOG.error("Failed Applying priority {}", cp, e);
@@ -895,4 +944,31 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		return allFilesRead && dependencies.size() == 0;
 	}
 
+	public static void keyType(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.keyType = cp.getValueAsClass();
+	}
+
+	public static void labelType(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.labelType = cp.getValueAsClass();
+	}
+
+	public static void productType(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.productType = cp.getValueAsClass();
+	}
+
+	public static void supportedValueTypes(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		String[] parts = cp.getValueAsString().trim().split("\\s+|\\,");
+		if (parts.length == 0) {
+			return;
+		}
+		Object label = ((Object[]) ConfigUtils.stringToLabelArraySupplier.apply(parts[0]))[0];
+		List<Class> supportedTypes = b.supportedValueTypes.computeIfAbsent(label, l -> new ArrayList<>());
+		for(int i = 1; i< parts.length; i++) {
+			supportedTypes.add(ConveyorProperty.getValueAsClass(parts[i]));
+		}
+	}
 }

@@ -5,6 +5,8 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.meta.ConveyorMetaInfo;
+import com.aegisql.conveyor.meta.ConveyorMetaInfoBuilder;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.*;
@@ -25,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.Assert.*;
 
 public class PersistentConveyorTest {
+
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", Integer.class)
 			.schema("testConv").autoInit(true).setArchived();
@@ -608,9 +611,9 @@ public class PersistentConveyorTest {
 
 	@Test
 	public void summatorWithAutoCompact() {
+		Conveyor<Integer,SummBuilder.SummStep,Long> ac = new AssemblingConveyor<>();
 		Persistence<Integer> p1 = getPersitence("summatorWithAutoCompact");
 		LastResultReference<Integer, Long> res = new LastResultReference<>();
-		Conveyor<Integer,SummBuilder.SummStep,Long> ac = new AssemblingConveyor<>();
 		ac.setBuilderSupplier(SummBuilder::new);
 		ac.setName("ACC");
 		ac.setReadinessEvaluator(Conveyor.getTesterFor(ac).accepted(SummBuilder.SummStep.DONE));

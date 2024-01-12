@@ -16,12 +16,4 @@ import java.util.List;
  */
 public interface ConveyorInitiatingService<K,L,OUT> {
     Conveyor<K,L,OUT> getConveyor();
-    Class<K> getKeyType();
-    Class<L> getLabelType();
-    Class<OUT> getProductType();
-    List<Class<?>> getSupportedValueTypes(L label);
-    List<L> getLabels();
-    default BuilderSupplier<OUT> builderSupplierFactory() {
-        return null;
-    }
 }

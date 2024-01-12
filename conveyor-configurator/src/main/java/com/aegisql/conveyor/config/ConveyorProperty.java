@@ -1,12 +1,12 @@
 package com.aegisql.conveyor.config;
 
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
+
 import java.time.Duration;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -14,8 +14,10 @@ import java.util.stream.Stream;
  */
 public class ConveyorProperty {
 
+	public enum ConveyorPropertyType {OTHER, CONVEYOR, PERSISTENCE, META_INFO}
+
 	/** The is conveyor property. */
-	private final boolean isConveyorProperty;
+	private final ConveyorPropertyType conveyorPropertyType;
 	
 	/** The is default property. */
 	private final boolean isDefaultProperty;
@@ -38,7 +40,7 @@ public class ConveyorProperty {
 	 */
 	@Override
 	public String toString() {
-		return "ConveyorProperty [isConveyorProperty=" + isConveyorProperty + ", isDefaultProperty=" + isDefaultProperty
+		return "ConveyorProperty [conveyorPropertyType=" + conveyorPropertyType + ", isDefaultProperty=" + isDefaultProperty
 				+ ", " + (name != null ? "name=" + name + ", " : "") + (property != null ? "property=" + property : "")
 				+ "]";
 	}
@@ -48,8 +50,8 @@ public class ConveyorProperty {
 	 *
 	 * @return true, if is conveyor property
 	 */
-	public boolean isConveyorProperty() {
-		return isConveyorProperty;
+	public ConveyorPropertyType getConveyorPropertyType() {
+		return conveyorPropertyType;
 	}
 
 	/**
@@ -66,7 +68,7 @@ public class ConveyorProperty {
 	 *
 	 * @return the name
 	 */
-	public String getName() {
+	public String getConveyorName() {
 		return name;
 	}
 
@@ -83,25 +85,25 @@ public class ConveyorProperty {
 		return isJavaPath;
 	}
 
-	static final ConveyorProperty NULL_PROPERTY = new ConveyorProperty(false,false,null,null,null);
+	static final ConveyorProperty NULL_PROPERTY = new ConveyorProperty(ConveyorPropertyType.OTHER,false,null,null,null);
 
 	/**
 	 * Instantiates a new conveyor property.
 	 *
-	 * @param isConveyorProperty the is conveyor property
+	 * @param conveyorProperty the conveyor property type
 	 * @param isDefaultProperty the is default property
 	 * @param name the name
 	 * @param property the property
 	 * @param value the value
 	 */
 	private ConveyorProperty(
-			boolean isConveyorProperty
+			ConveyorPropertyType conveyorProperty
 			,boolean isDefaultProperty
 			,String name
 			,String property
 			,Object value
 			) {
-		this.isConveyorProperty = isConveyorProperty;
+		this.conveyorPropertyType = conveyorProperty;
 		this.isDefaultProperty  = isDefaultProperty;
 		this.name               = name;
 		this.property           = property;
@@ -140,7 +142,13 @@ public class ConveyorProperty {
 			if(propertyKey.toLowerCase().endsWith(ConveyorConfiguration.PROPERTY_DELIMITER+"persistence")) {
 				ConveyorProperty cNameProperty = ConveyorProperty.evalProperty(propertyKey, "");
 				PersistenceProperty.eval("persistence", value, pp->{
-					ConveyorProperty cpp = new ConveyorProperty(true, cNameProperty.isDefaultProperty, cNameProperty.getName(), "persistenceProperty", pp);
+					ConveyorProperty cpp = new ConveyorProperty(ConveyorPropertyType.CONVEYOR, cNameProperty.isDefaultProperty, cNameProperty.getConveyorName(), "persistenceProperty", pp);
+					consumer.accept(cpp);
+				});
+			} else if(propertyKey.toLowerCase().endsWith(ConveyorConfiguration.PROPERTY_DELIMITER+"metainfo")){
+				ConveyorProperty cNameProperty = ConveyorProperty.evalProperty(propertyKey, "");
+				MetaInfoProperty.eval("metainfo", value, mp->{
+					ConveyorProperty cpp = new ConveyorProperty(ConveyorPropertyType.CONVEYOR, cNameProperty.isDefaultProperty, cNameProperty.getConveyorName(), "metainfo", mp);
 					consumer.accept(cpp);
 				});
 			} else {
@@ -168,9 +176,9 @@ public class ConveyorProperty {
 		String prefix = ConveyorConfiguration.PROPERTY_PREFIX + ConveyorConfiguration.PROPERTY_DELIMITER;
 		
 		if(propertyKey == null || ! propertyKey.toUpperCase().startsWith(prefix)) {
-			return new ConveyorProperty(false, false, null, null, null);
+			return NULL_PROPERTY;
 		}
-		boolean isConveyorProperty = true;
+		ConveyorPropertyType conveyorProperty = ConveyorPropertyType.CONVEYOR;
 		boolean isDefaultProperty  = false;
 		String name                = null;
 		String convProperty;
@@ -188,7 +196,7 @@ public class ConveyorProperty {
 		}
 		
 		
-		return new ConveyorProperty(isConveyorProperty,isDefaultProperty,name,convProperty,value);
+		return new ConveyorProperty(conveyorProperty,isDefaultProperty,name,convProperty,value);
 		
 	}
 
@@ -209,6 +217,22 @@ public class ConveyorProperty {
 	public String getValueAsString() {
 		if(value != null) {
 			return value.toString();
+		} else {
+			return null;
+		}
+	}
+
+	public Class getValueAsClass() {
+		return getValueAsClass(this.value);
+	}
+
+	public static Class getValueAsClass(Object value) {
+		if(value != null) {
+			try {
+				return Class.forName(value.toString());
+			} catch (ClassNotFoundException e) {
+				throw new ConveyorRuntimeException("Failed convert '"+value+"' to a Class",e);
+			}
 		} else {
 			return null;
 		}

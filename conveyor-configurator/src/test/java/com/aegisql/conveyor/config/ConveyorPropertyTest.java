@@ -1,5 +1,7 @@
 package com.aegisql.conveyor.config;
 
+import static com.aegisql.conveyor.config.ConveyorProperty.ConveyorPropertyType.CONVEYOR;
+import static com.aegisql.conveyor.config.ConveyorProperty.ConveyorPropertyType.OTHER;
 import static org.junit.Assert.*;
 
 import java.time.Duration;
@@ -10,8 +12,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.aegisql.conveyor.config.harness.TestBean;
-import com.aegisql.java_path.ClassRegistry;
-import com.aegisql.java_path.StringConverter;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -41,37 +41,36 @@ public class ConveyorPropertyTest {
 	public void testVoidProperty() {
 		ConveyorProperty cp1 = ConveyorProperty.evalProperty(null,null);
 		assertNotNull(cp1);
-		assertFalse(cp1.isConveyorProperty());
+		assertEquals(OTHER,cp1.getConveyorPropertyType());
 		assertFalse(cp1.isDefaultProperty());
-		assertNull(cp1.getName());
+		assertNull(cp1.getConveyorName());
 		assertNull(cp1.getProperty());
 		assertNull(cp1.getValue());
 		
 		ConveyorProperty cp2 = ConveyorProperty.evalProperty("","");
 		assertNotNull(cp2);
-		assertFalse(cp2.isConveyorProperty());
+		assertEquals(OTHER,cp2.getConveyorPropertyType());
 		assertFalse(cp2.isDefaultProperty());
-		assertNull(cp2.getName());
+		assertNull(cp2.getConveyorName());
 		assertNull(cp2.getProperty());
 		assertNull(cp2.getValue());
 
 		ConveyorProperty cp3 = ConveyorProperty.evalProperty("some.other.property","val");
 		assertNotNull(cp3);
-		assertFalse(cp3.isConveyorProperty());
+		assertEquals(OTHER,cp3.getConveyorPropertyType());
 		assertFalse(cp3.isDefaultProperty());
-		assertNull(cp3.getName());
+		assertNull(cp3.getConveyorName());
 		assertNull(cp3.getProperty());
 		assertNull(cp3.getValue());
-
 	}
 
 	@Test
 	public void testDefaultProperty() {
 		ConveyorProperty cp1 = ConveyorProperty.evalProperty("conveyor.property",1);
 		assertNotNull(cp1);
-		assertTrue(cp1.isConveyorProperty());
+		assertEquals(CONVEYOR,cp1.getConveyorPropertyType());
 		assertTrue(cp1.isDefaultProperty());
-		assertNull(cp1.getName());
+		assertNull(cp1.getConveyorName());
 		assertNotNull(cp1.getProperty());
 		
 		assertEquals("property", cp1.getProperty());
@@ -83,11 +82,11 @@ public class ConveyorPropertyTest {
 	public void testCommonProperty() {
 		ConveyorProperty cp1 = ConveyorProperty.evalProperty("conveyor.name.property",1);
 		assertNotNull(cp1);
-		assertTrue(cp1.isConveyorProperty());
+		assertEquals(CONVEYOR,cp1.getConveyorPropertyType());
 		assertFalse(cp1.isDefaultProperty());
-		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getConveyorName());
 		assertNotNull(cp1.getProperty());
-		assertEquals("name", cp1.getName());
+		assertEquals("name", cp1.getConveyorName());
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());
 	}
@@ -96,11 +95,11 @@ public class ConveyorPropertyTest {
 	public void testLongNameProperty() {
 		ConveyorProperty cp1 = ConveyorProperty.evalProperty("conveyor.long.name.property",1);
 		assertNotNull(cp1);
-		assertTrue(cp1.isConveyorProperty());
+		assertEquals(CONVEYOR,cp1.getConveyorPropertyType());
 		assertFalse(cp1.isDefaultProperty());
-		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getConveyorName());
 		assertNotNull(cp1.getProperty());
-		assertEquals("long.name", cp1.getName());
+		assertEquals("long.name", cp1.getConveyorName());
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());
 	}
@@ -111,11 +110,11 @@ public class ConveyorPropertyTest {
 		ConveyorProperty.eval("conveyor.name.property",1,cp->acp.set(cp));
 		ConveyorProperty cp1 = acp.get();
 		assertNotNull(cp1);
-		assertTrue(cp1.isConveyorProperty());
+		assertEquals(CONVEYOR,cp1.getConveyorPropertyType());
 		assertFalse(cp1.isDefaultProperty());
-		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getConveyorName());
 		assertNotNull(cp1.getProperty());
-		assertEquals("name", cp1.getName());
+		assertEquals("name", cp1.getConveyorName());
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());
 	}
@@ -128,11 +127,11 @@ public class ConveyorPropertyTest {
 		ConveyorProperty.eval("conveyor.name",m,cp->acp.set(cp));
 		ConveyorProperty cp1 = acp.get();
 		assertNotNull(cp1);
-		assertTrue(cp1.isConveyorProperty());
+		assertEquals(CONVEYOR,cp1.getConveyorPropertyType());
 		assertFalse(cp1.isDefaultProperty());
-		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getConveyorName());
 		assertNotNull(cp1.getProperty());
-		assertEquals("name", cp1.getName());
+		assertEquals("name", cp1.getConveyorName());
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());
 	}
@@ -147,11 +146,11 @@ public class ConveyorPropertyTest {
 		ConveyorProperty.eval("conveyor.name",m,cp->acp.set(cp));
 		ConveyorProperty cp1 = acp.get();
 		assertNotNull(cp1);
-		assertTrue(cp1.isConveyorProperty());
+		assertEquals(CONVEYOR,cp1.getConveyorPropertyType());
 		assertFalse(cp1.isDefaultProperty());
-		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getConveyorName());
 		assertNotNull(cp1.getProperty());
-		assertEquals("name", cp1.getName());
+		assertEquals("name", cp1.getConveyorName());
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());
 	}
@@ -166,11 +165,11 @@ public class ConveyorPropertyTest {
 		ConveyorProperty.eval("conveyor",m2,cp->acp.set(cp));
 		ConveyorProperty cp1 = acp.get();
 		assertNotNull(cp1);
-		assertTrue(cp1.isConveyorProperty());
+		assertEquals(CONVEYOR,cp1.getConveyorPropertyType());
 		assertFalse(cp1.isDefaultProperty());
-		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getConveyorName());
 		assertNotNull(cp1.getProperty());
-		assertEquals("name", cp1.getName());
+		assertEquals("name", cp1.getConveyorName());
 		assertEquals("property", cp1.getProperty());
 		assertEquals(1, cp1.getValue());
 	}
@@ -182,11 +181,11 @@ public class ConveyorPropertyTest {
 		ConveyorProperty.eval("conveyor.name.timeout","javapath:testBean.timeout",cp->acp.set(cp));
 		ConveyorProperty cp1 = acp.get();
 		assertNotNull(cp1);
-		assertTrue(cp1.isConveyorProperty());
+		assertEquals(CONVEYOR,cp1.getConveyorPropertyType());
 		assertFalse(cp1.isDefaultProperty());
-		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getConveyorName());
 		assertNotNull(cp1.getProperty());
-		assertEquals("name", cp1.getName());
+		assertEquals("name", cp1.getConveyorName());
 		assertEquals("timeout", cp1.getProperty());
 		assertEquals(1000, cp1.getValue());
 	}
@@ -197,11 +196,11 @@ public class ConveyorPropertyTest {
 		ConveyorProperty.eval("conveyor.name.timeout","javapath:(com.aegisql.conveyor.config.harness.TestBean testBean).timeout",cp->acp.set(cp));
 		ConveyorProperty cp1 = acp.get();
 		assertNotNull(cp1);
-		assertTrue(cp1.isConveyorProperty());
+		assertEquals(CONVEYOR,cp1.getConveyorPropertyType());
 		assertFalse(cp1.isDefaultProperty());
-		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getConveyorName());
 		assertNotNull(cp1.getProperty());
-		assertEquals("name", cp1.getName());
+		assertEquals("name", cp1.getConveyorName());
 		assertEquals("timeout", cp1.getProperty());
 		assertEquals(1000, cp1.getValue());
 	}
@@ -213,11 +212,11 @@ public class ConveyorPropertyTest {
 		ConveyorProperty.eval("conveyor.name.timeout","javapath:theBean.timeout",cp->acp.set(cp));
 		ConveyorProperty cp1 = acp.get();
 		assertNotNull(cp1);
-		assertTrue(cp1.isConveyorProperty());
+		assertEquals(CONVEYOR,cp1.getConveyorPropertyType());
 		assertFalse(cp1.isDefaultProperty());
-		assertNotNull(cp1.getName());
+		assertNotNull(cp1.getConveyorName());
 		assertNotNull(cp1.getProperty());
-		assertEquals("name", cp1.getName());
+		assertEquals("name", cp1.getConveyorName());
 		assertEquals("timeout", cp1.getProperty());
 		assertEquals(1000, cp1.getValue());
 		assertTrue(cp1.isJavaPath());

@@ -16,6 +16,10 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
     private final Set<L> labels = new HashSet<>();
     private final BuilderSupplier<OUT> builderSupplier;
 
+    public ConveyorMetaInfoBuilder() {
+        this(null,null,null,null,new HashMap<>(),new HashSet<>());
+    }
+
     private ConveyorMetaInfoBuilder(Class<K> keyType, Class<L> labelType, Class<OUT> productType, BuilderSupplier<OUT> builderSupplier, HashMap<L, Set<Class<?>>> supportedValueTypes, Collection<L> labels) {
         this.keyType = keyType;
         this.labelType = labelType;
@@ -34,7 +38,13 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> labelType(Class<L> l) {
-        return new ConveyorMetaInfoBuilder<>(keyType,l,productType,builderSupplier,supportedValueTypes,labels);
+        ConveyorMetaInfoBuilder<K,L,OUT> res = new ConveyorMetaInfoBuilder<>(keyType, l, productType, builderSupplier, supportedValueTypes, labels);
+        if(l != null && l.isEnum()) {
+            for(var element: EnumSet.allOf((Class)l)){
+                res = res.addLabel((L) element);
+            }
+        }
+        return res;
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> productType(Class<OUT> p) {
@@ -54,6 +64,19 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
         return new ConveyorMetaInfoBuilder<>(keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
     }
 
+    public ConveyorMetaInfoBuilder<K,L,OUT> addLabel(L l) {
+        Set<L> labels = new HashSet<>(this.labels);
+        labels.add(l);
+        return new ConveyorMetaInfoBuilder<>(keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
+    }
+
+    public ConveyorMetaInfoBuilder<K,L,OUT> addLabels(Collection<L> l) {
+        Set<L> labels = new HashSet<>(this.labels);
+        labels.addAll(l);
+        return new ConveyorMetaInfoBuilder<>(keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
+    }
+
+
     public ConveyorMetaInfoBuilder<K,L,OUT> supportedTypes(L l, Class<?> cl, Class<?>... more) {
         HashMap<L, Set<Class<?>>> supportedValueTypes = new HashMap<>(this.supportedValueTypes);
         Set<Class<?>> classes = supportedValueTypes.computeIfAbsent(l, lbl -> new HashSet<>());
@@ -64,14 +87,21 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
         return new ConveyorMetaInfoBuilder<>(keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
     }
 
+    public ConveyorMetaInfoBuilder<K,L,OUT> supportedTypes(L l, Collection<Class<?>> c) {
+        HashMap<L, Set<Class<?>>> supportedValueTypes = new HashMap<>(this.supportedValueTypes);
+        Set<Class<?>> classes = supportedValueTypes.computeIfAbsent(l, lbl -> new HashSet<>());
+        classes.addAll(c);
+        return new ConveyorMetaInfoBuilder<>(keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
+    }
+
     @Override
     public ConveyorMetaInfo<K, L, OUT> get() {
-        Objects.requireNonNull(keyType,"Define the surrogate key type");
-        Objects.requireNonNull(labelType,"Define the label type");
-        Objects.requireNonNull(productType,"Define the product type");
+        Objects.requireNonNull(keyType,"ConveyorMetaInfo key type is NULL");
+        Objects.requireNonNull(labelType,"ConveyorMetaInfo label type is NULL");
+        Objects.requireNonNull(productType,"ConveyorMetaInfo product type is NULL");
         Set<L> lSet = supportedValueTypes.keySet();
         if( ! labels.containsAll(lSet) || ! lSet.containsAll(labels)) {
-            throw new ConveyorRuntimeException("Set of labels do not match. labels:"+labels+"; supported types:"+supportedValueTypes);
+            throw new ConveyorRuntimeException("ConveyorMetaInfo sets of labels do not match. labels:"+labels+"; supported types:"+supportedValueTypes);
         };
         return new ConveyorMetaInfo<>(keyType,labelType,productType,supportedValueTypes,labels,builderSupplier);
     }

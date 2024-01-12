@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.persistence.jdbc.builders;
 
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
@@ -1193,6 +1194,21 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 		};
 		
 	}
-	
 
+	/**
+	 * Preset initializer jdbc persistence builder.
+	 *
+	 * @param <K>      the type parameter
+	 * @param type     the type
+	 * @param metaInfo the meta info
+	 * @return the jdbc persistence builder
+	 */
+	public static <K> JdbcPersistenceBuilder<K> presetInitializer(String type, ConveyorMetaInfo<K,?,?> metaInfo) {
+		JdbcPersistenceBuilder<K> jdbcPersistenceBuilder = presetInitializer(type, metaInfo.getKeyType());
+		Class labelType = metaInfo.getLabelType();
+		if(labelType.isEnum()) {
+			jdbcPersistenceBuilder = jdbcPersistenceBuilder.labelConverter(labelType);
+		}
+		return jdbcPersistenceBuilder;
+	}
 }

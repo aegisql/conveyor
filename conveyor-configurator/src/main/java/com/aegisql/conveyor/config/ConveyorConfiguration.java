@@ -5,22 +5,19 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
-import com.aegisql.java_path.ClassRegistry;
-import com.aegisql.java_path.JavaPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
-import javax.naming.ConfigurationException;
 import java.io.FileReader;
-import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static com.aegisql.conveyor.config.ConveyorProperty.ConveyorPropertyType.CONVEYOR;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -33,15 +30,15 @@ public class ConveyorConfiguration {
 
 	/** The Constant lock. */
 	private final static Lock lock = new ReentrantLock();
-
-	/** The script engine. */
-	public static String SCRIPT_ENGINE = "nashorn";
+	public static String DEFAULT_PERSISTENCE_NAME = "__PERSISTENCE__";
 
 	/** The property prefix. */
 	public static String PROPERTY_PREFIX = "CONVEYOR";
 	
 	/** The persistence prefix. */
 	public static String PERSISTENCE_PREFIX = "PERSISTENCE";
+
+	public static String METAINFO_PREFIX = "METAINFO";
 
 	/** The property delimiter. */
 	public static String PROPERTY_DELIMITER = ".";
@@ -177,10 +174,14 @@ public class ConveyorConfiguration {
 					.<ConveyorProperty>when("priority", ConveyorBuilder::priority)
 					.<ConveyorProperty>when("persistence", ConveyorBuilder::persitence)
 					.<ConveyorProperty>when("readyWhenAccepted", ConveyorBuilder::readyWhen)
+					.<ConveyorProperty>when("keyType", ConveyorBuilder::keyType)
+					.<ConveyorProperty>when("labelType", ConveyorBuilder::labelType)
+					.<ConveyorProperty>when("productType", ConveyorBuilder::productType)
+					.<ConveyorProperty>when("supportedValueTypes", ConveyorBuilder::supportedValueTypes)
 					.<PersistenceProperty>when("persistenceProperty", ConveyorBuilder::persistenceProperty)
 					.when("complete_configuration", ConveyorBuilder::allFilesReadSuccessfully));
-			conveyorConfiguration.part().id("__PERSISTENCE__").label("builderSupplier").value(ConveyorProperty.NULL_PROPERTY).place();
-			conveyorConfiguration.staticPart().label("dependency").value("__PERSISTENCE__").place();
+			conveyorConfiguration.part().id(DEFAULT_PERSISTENCE_NAME).label("builderSupplier").value(ConveyorProperty.NULL_PROPERTY).place();
+			conveyorConfiguration.staticPart().label("dependency").value(DEFAULT_PERSISTENCE_NAME).place();
 		}
 			
 		
@@ -239,10 +240,11 @@ public class ConveyorConfiguration {
 	 * @param obj the obj
 	 */
 	private static void processPair(Conveyor<String, String, Conveyor> buildingConveyor, String key, Object obj) {
+
+		//Every property evaluated as ConveyorProperty
 		ConveyorProperty.eval(key, obj, cp->{
 			String strValue = cp.getValueAsString();
-
-			if(cp.isConveyorProperty()) {
+			if(CONVEYOR == cp.getConveyorPropertyType()) {
 				if(cp.isDefaultProperty()) {
 					if ("postInit".equals(cp.getProperty())) {
 						buildingConveyor.resultConsumer().andThen(
@@ -253,7 +255,7 @@ public class ConveyorConfiguration {
 								(ScrapConsumer<String, ?>) ConfigUtils.stringToScrapConsumerSupplier.apply(strValue))
 								.set();
 					} else if ("persistenceProperty".equals(cp.getProperty())) {
-						buildingConveyor.part().id("__PERSISTENCE__").label("persistenceProperty").value(cp.getValue()).place();
+						buildingConveyor.part().id(DEFAULT_PERSISTENCE_NAME).label("persistenceProperty").value(cp.getValue()).place();
 					} else {
 						buildingConveyor.staticPart().label(cp.getProperty()).value(cp).place();
 						buildingConveyor.part().foreach().label(cp.getProperty()).value(cp).place();
@@ -261,19 +263,19 @@ public class ConveyorConfiguration {
 				} else {
 					if("postInit".equals(cp.getProperty())) {
 						buildingConveyor.resultConsumer()
-								.andThen((ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(strValue)).id(cp.getName())
+								.andThen((ResultConsumer) ConfigUtils.stringToResultConsumerSupplier.apply(strValue)).id(cp.getConveyorName())
 								.set();
 					} else if ("persistenceProperty".equals(cp.getProperty())) {
-						buildingConveyor.part().id(cp.getName()).label(cp.getProperty()).value(cp.getValue()).place();
+						buildingConveyor.part().id(cp.getConveyorName()).label(cp.getProperty()).value(cp.getValue()).place();
 					} else {
-						buildingConveyor.part().id(cp.getName()).label(cp.getProperty()).value(cp).place();
+						buildingConveyor.part().id(cp.getConveyorName()).label(cp.getProperty()).value(cp).place();
 					}
 
 				}
 			}
 		});
-		
-		PersistenceProperty.eval(key, obj, pp-> buildingConveyor.part().id("__PERSISTENCE__").label("persistenceProperty").value(pp).place());
+		//Every property evaluated as a default PersistenceProperty
+		PersistenceProperty.eval(key, obj, pp-> buildingConveyor.part().id(DEFAULT_PERSISTENCE_NAME).label("persistenceProperty").value(pp).place());
 	}
 
 	public static void registerBean(Object bean, String... names) {

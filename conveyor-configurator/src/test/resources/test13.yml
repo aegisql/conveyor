@@ -1,0 +1,11 @@
+test.testName: persistence end to end 12 with connection pool
+conveyor:
+  c13:
+    keyType: java.lang.Integer
+    labelType: com.aegisql.conveyor.config.harness.NameLabel
+    productType: java.lang.String
+    supportedValueTypes:
+      - com.aegisql.conveyor.config.harness.NameLabel.FIRST java.lang.String,java.lang.String
+      - com.aegisql.conveyor.config.harness.NameLabel.LAST java.lang.String,java.lang.String
+      - com.aegisql.conveyor.config.harness.NameLabel.END java.lang.String,java.lang.Integer,java.lang.String,java.lang.String
+builderSupplier:  new com.aegisql.conveyor.config.harness.StringSupplier("c13");

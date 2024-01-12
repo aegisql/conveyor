@@ -1322,9 +1322,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 *            the new name
 	 */
 	public void setName(String name) {
+		String oldName = this.name;
 		this.name = name;
 		this.innerThread.setName(name);
 		this.setMbean(this.name);
+		try {
+			//unregister old name
+			Conveyor.unRegister(oldName);
+		} catch (Exception e) {
+			//Ignore. Might be already unregistered
+		}
 	}
 
 	/*

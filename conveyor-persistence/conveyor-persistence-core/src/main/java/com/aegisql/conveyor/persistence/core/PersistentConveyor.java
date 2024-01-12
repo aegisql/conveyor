@@ -554,9 +554,17 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public void setName(String string) {
+		String oldName = this.name;
 		this.name = string;
 		forward.setName("Persistent<"+string+">");
 		this.setMbean(string);
+		try {
+			//Forget old name
+			Conveyor.unRegister(oldName);
+		} catch (Exception e) {
+			//Ignore. Might be already unregistered
+		}
+
 		ackConveyor.setName("AcknowledgeBuildingConveyor<" + string + ">");
 		cleaner.setName("PersistenceCleanupBatchConveyor<" + string + ">");
 	}

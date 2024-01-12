@@ -253,7 +253,7 @@ public class PersistenceProperty {
 				throw new ConveyorConfigurationException(e);
 			}
 		} else {
-			throw new ConveyorRuntimeException("Expected boolean type, but found "+value.getClass());
+			throw new ConveyorRuntimeException("Unexpected type for "+value+": "+value.getClass());
 		}
 	}
 

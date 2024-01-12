@@ -157,7 +157,7 @@ public class PersistenceProperties {
 			throw new ConveyorConfigurationException("Missing mandatory Persistence property 'keyClass' in " + this);
 		}
 		try {
-			Class keyClass = Class.forName(keyProperty.getValueAsString());
+			Class keyClass = keyProperty.getValueAsClass();
 			BinaryLogConfigurationBuilder bLogConf = BinaryLogConfiguration.builder(getName());
 
 			JdbcPersistenceBuilder pb = JdbcPersistenceBuilder.presetInitializer(getType().toLowerCase(),keyClass)
