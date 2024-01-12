@@ -233,7 +233,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				metaInfo = metaInfoBuilder.get();
 				LOG.info("MetaInfo configuration found: {}",metaInfo);
 			} catch (Exception e) {
-				LOG.info("MetaInfo configuration not found or incomplete. Ignoring");
+				LOG.warn("MetaInfo configuration not found or incomplete. Ignoring");
 			}
 
 			if (parallelFactor > 1) {

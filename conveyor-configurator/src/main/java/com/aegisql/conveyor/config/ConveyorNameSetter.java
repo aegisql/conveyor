@@ -39,7 +39,16 @@ public class ConveyorNameSetter implements ResultConsumer<String, Conveyor> {
 	 */
 	@Override
 	public void accept(ProductBin<String, Conveyor> bin) {
-		if(bin.product != null && bin.key != null) {
+		if(ConveyorConfiguration.DEFAULT_PERSISTENCE_NAME.equals(bin.key)) {
+			if(bin.product != null) {
+				bin.product.stop();
+				try {
+					Conveyor.unRegister(bin.product.getName());
+				} catch (Exception e){
+
+				}
+			}
+		} else if(bin.product != null && bin.key != null) {
 			bin.product.setName(bin.key);
 			LOG.info("Complete setup for {}",bin.product);
 		}
