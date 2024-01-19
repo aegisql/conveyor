@@ -58,7 +58,11 @@ Last version supporting Java 8 is 1.4.4
 
 ## Release History
 
-### 1.6.6-SNAPSHOT
+### 1.6.7-SNAPSHOT
+* Dependencies updates
+* Bugfixes and refactoring
+
+### 1.6.6
 * Filters for persistent parts
 * Dependencies updates
 * Bugfixes and refactoring
