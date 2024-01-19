@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.function.LongSupplier;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 // TODO: Auto-generated Javadoc
@@ -82,34 +83,37 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	
 	/** The additional fields. */
 	private final List<Field<?>> additionalFields;
+	private final Predicate<Cart<K, ?, ?>> persistentPartFilter;
 
 
 	/**
 	 * Instantiates a new derby persistence.
 	 *
-	 * @param engine the engine
-	 * @param idSupplier            the id supplier
-	 * @param archiver            the archiver
-	 * @param labelConverter            the label converter
-	 * @param converterAdviser the converter adviser
+	 * @param engine                  the engine
+	 * @param idSupplier              the id supplier
+	 * @param archiver                the archiver
+	 * @param labelConverter          the label converter
+	 * @param converterAdviser        the converter adviser
 	 * @param maxBatchSize            the max batch size
 	 * @param maxBatchTime            the max batch time
-	 * @param info the info
+	 * @param info                    the info
 	 * @param nonPersistentProperties the non persistent properties
-	 * @param minCompactSize the min compact size
-	 * @param additionalFields the additional fields
+	 * @param minCompactSize          the min compact size
+	 * @param additionalFields        the additional fields
+	 * @param persistentPartFilter    the filter for parts that should or should not be persisted
 	 */
 	public JdbcPersistence(EngineDepo<K> engine, LongSupplier idSupplier,
-			Archiver<K> archiver,
-			ObjectConverter<?, String> labelConverter, ConverterAdviser<?> converterAdviser, int maxBatchSize,
-			long maxBatchTime, String info, Set<String> nonPersistentProperties, int minCompactSize, List<Field<?>> additionalFields) {
+                           Archiver<K> archiver,
+                           ObjectConverter<?, String> labelConverter, ConverterAdviser<?> converterAdviser, int maxBatchSize,
+                           long maxBatchTime, String info, Set<String> nonPersistentProperties, int minCompactSize, List<Field<?>> additionalFields, Predicate<Cart<K, ?, ?>> persistentPartFilter) {
 		this.idSupplier = idSupplier;
 		this.converterAdviser = converterAdviser;
 		this.archiver = archiver;
 		this.labelConverter = labelConverter;
 		this.maxBatchSize = maxBatchSize;
 		this.maxBatchTime = maxBatchTime;
-		this.mapConverter = new MapToJsonConverter();
+        this.persistentPartFilter = persistentPartFilter;
+        this.mapConverter = new MapToJsonConverter();
 		this.info = info;
 		this.nonPersistentProperties = nonPersistentProperties;
 		this.minCompactSize = minCompactSize;
@@ -126,7 +130,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	@Override
 	public Persistence<K> copy() {
 		return new JdbcPersistence<>(engine, idSupplier, archiver, labelConverter,
-				converterAdviser, maxBatchSize, maxBatchTime, info, nonPersistentProperties, minCompactSize, new ArrayList<>(additionalFields));
+				converterAdviser, maxBatchSize, maxBatchTime, info, nonPersistentProperties, minCompactSize, new ArrayList<>(additionalFields), persistentPartFilter);
 	}
 
 	/*
@@ -147,6 +151,10 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public <L> void savePart(long id, Cart<K, ?, L> cart) {
+		if ( ! isPartPersistent(cart)) {
+			LOG.debug("IGNORING: {}", cart);
+			return;
+		}
 		LOG.debug("SAVING: {}", cart);
 		String hint;
 		ObjectConverter<Object, byte[]> byteConverter;
@@ -181,6 +189,11 @@ public class JdbcPersistence<K> implements Persistence<K> {
 				mapConverter.toPersistence(properties), hint, cart.getPriority()
 				,fields
 				);
+	}
+
+	@Override
+	public <L> boolean isPartPersistent(Cart<K, ?, L> cart) {
+		return persistentPartFilter.test(cart);
 	}
 
 	/*

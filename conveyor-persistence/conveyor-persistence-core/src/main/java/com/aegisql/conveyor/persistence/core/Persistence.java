@@ -38,6 +38,8 @@ public interface Persistence <K> extends Closeable {
 	 * @param cart the cart
 	 */
 	<L> void savePart(long id,Cart<K,?,L> cart);
+
+	<L> boolean isPartPersistent(Cart<K,?,L> cart);
 	
 	/**
 	 * Save part id.

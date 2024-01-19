@@ -1010,8 +1010,10 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				, infoBuilder.toString()
 				, nonPersistentProperties
 				, minCompactSize
-				, additionalFields
-				);
+				, additionalFields,
+				cart->{
+					  return true;
+				});
 		
 		String objName = getJMXObjName();
 		LOG.debug("JMX name {}",objName);

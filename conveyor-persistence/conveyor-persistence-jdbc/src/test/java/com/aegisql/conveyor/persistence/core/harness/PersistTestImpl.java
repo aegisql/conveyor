@@ -296,6 +296,11 @@ public class PersistTestImpl implements Persistence<Integer>{
 	}
 
 	@Override
+	public <L> boolean isPartPersistent(Cart<Integer, ?, L> cart) {
+		return true;
+	}
+
+	@Override
 	public void savePartId(Integer key, long cartId) {
 		getAllPartIds(key).add(cartId);
 	}
