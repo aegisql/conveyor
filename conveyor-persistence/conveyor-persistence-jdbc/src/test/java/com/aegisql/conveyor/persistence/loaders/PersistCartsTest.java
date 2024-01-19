@@ -38,7 +38,7 @@ public class PersistCartsTest {
 			.database("carts_db").schema("carts_schema").autoInit(true).setArchived();
 
 	
-	public Persistence<Integer> getPersistence(String table) {
+	public JdbcPersistenceBuilder<Integer> getPersistence(String table) {
 		try {
 			Thread.sleep(1000);
 
@@ -55,8 +55,7 @@ public class PersistCartsTest {
 						public String conversionHint() {
 							return "L:String";
 						}
-					})
-					.build();
+					});
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -64,8 +63,8 @@ public class PersistCartsTest {
 	}
 
 	@Test
-	public void testShoppingCarts() {
-		Persistence<Integer> p = getPersistence("testShoppingCarts");
+	public void testShoppingCarts() throws Exception {
+		Persistence<Integer> p = getPersistence("testShoppingCarts").build();
 		p.archiveAll();
 
 		ShoppingCart<Integer, String, String> sc1 = new ShoppingCart<Integer, String, String>(1, "sc1", "CART",0,0,10); 
@@ -90,8 +89,103 @@ public class PersistCartsTest {
 	}
 
 	@Test
-	public void testMultyKeyCarts() {
-		Persistence<Integer> p = getPersistence("testMultyKeyCarts");
+	public void testShoppingCartFilters() throws Exception {
+		Persistence<Integer> p = getPersistence("testShoppingCartFilters").addCartPersistenceFilter(c->{
+			int id = c.getKey();
+			return id > 10;
+		}).build();
+		p.archiveAll();
+
+		ShoppingCart<Integer, String, String> sc1 = new ShoppingCart<Integer, String, String>(1, "sc1", "CART",0,0,10);
+		ShoppingCart<Integer, String, String> sc2 = new ShoppingCart<Integer, String, String>(100, "sc1", "CART",0,0,10);
+		sc1.addProperty("PROPERTY","test");
+		sc2.addProperty("PROPERTY","test2");
+		p.savePart(p.nextUniquePartId(), sc1);
+		p.savePart(p.nextUniquePartId(), sc2);
+
+		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
+
+		assertEquals(1,allCarts.size());
+
+		Cart<Integer, ?, String> scRestored = allCarts.iterator().next();
+
+		assertEquals(sc2.getKey(), scRestored.getKey());
+		assertEquals(sc2.getValue(), scRestored.getValue());
+		assertEquals(sc2.getLabel(), scRestored.getLabel());
+		assertEquals(sc2.getCreationTime(), scRestored.getCreationTime());
+		assertEquals(sc2.getExpirationTime(), scRestored.getExpirationTime());
+		assertEquals(sc2.getPriority(), scRestored.getPriority());
+		assertEquals(10, scRestored.getPriority());
+		assertEquals(sc2.getLoadType(), scRestored.getLoadType());
+		assertEquals(sc2.getProperty("PROPERTY", String.class), scRestored.getProperty("PROPERTY", String.class));
+	}
+
+	@Test
+	public void testLabelFilters() throws Exception {
+		Persistence<Integer> p = getPersistence("testLabelFilters").<String>addLabelPersistenceFilter(l->{
+			return l.equalsIgnoreCase("BART");
+		}).build();
+		p.archiveAll();
+
+		ShoppingCart<Integer, String, String> sc1 = new ShoppingCart<Integer, String, String>(1, "sc1", "CART",0,0,10);
+		ShoppingCart<Integer, String, String> sc2 = new ShoppingCart<Integer, String, String>(100, "sc1", "BART",0,0,10);
+		sc1.addProperty("PROPERTY","test");
+		sc2.addProperty("PROPERTY","test2");
+		p.savePart(p.nextUniquePartId(), sc1);
+		p.savePart(p.nextUniquePartId(), sc2);
+
+		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
+
+		assertEquals(1,allCarts.size());
+
+		Cart<Integer, ?, String> scRestored = allCarts.iterator().next();
+
+		assertEquals(sc2.getKey(), scRestored.getKey());
+		assertEquals(sc2.getValue(), scRestored.getValue());
+		assertEquals(sc2.getLabel(), scRestored.getLabel());
+		assertEquals(sc2.getCreationTime(), scRestored.getCreationTime());
+		assertEquals(sc2.getExpirationTime(), scRestored.getExpirationTime());
+		assertEquals(sc2.getPriority(), scRestored.getPriority());
+		assertEquals(10, scRestored.getPriority());
+		assertEquals(sc2.getLoadType(), scRestored.getLoadType());
+		assertEquals(sc2.getProperty("PROPERTY", String.class), scRestored.getProperty("PROPERTY", String.class));
+	}
+
+	@Test
+	public void testLabelValueFilters() throws Exception {
+		Persistence<Integer> p = getPersistence("testLabelValueFilters").<String,String>addLabelValuePersistenceFilter((l,v)->{
+			return l.equalsIgnoreCase("BART") && v.equalsIgnoreCase("SC1");
+		}).build();
+		p.archiveAll();
+
+		ShoppingCart<Integer, String, String> sc1 = new ShoppingCart<Integer, String, String>(1, "sc1", "CART",0,0,10);
+		ShoppingCart<Integer, String, String> sc2 = new ShoppingCart<Integer, String, String>(100, "sc1", "BART",0,0,10);
+		sc1.addProperty("PROPERTY","test");
+		sc2.addProperty("PROPERTY","test2");
+		p.savePart(p.nextUniquePartId(), sc1);
+		p.savePart(p.nextUniquePartId(), sc2);
+
+		Collection<Cart<Integer,?,String>> allCarts = p.getAllParts();
+
+		assertEquals(1,allCarts.size());
+
+		Cart<Integer, ?, String> scRestored = allCarts.iterator().next();
+
+		assertEquals(sc2.getKey(), scRestored.getKey());
+		assertEquals(sc2.getValue(), scRestored.getValue());
+		assertEquals(sc2.getLabel(), scRestored.getLabel());
+		assertEquals(sc2.getCreationTime(), scRestored.getCreationTime());
+		assertEquals(sc2.getExpirationTime(), scRestored.getExpirationTime());
+		assertEquals(sc2.getPriority(), scRestored.getPriority());
+		assertEquals(10, scRestored.getPriority());
+		assertEquals(sc2.getLoadType(), scRestored.getLoadType());
+		assertEquals(sc2.getProperty("PROPERTY", String.class), scRestored.getProperty("PROPERTY", String.class));
+	}
+
+
+	@Test
+	public void testMultyKeyCarts() throws Exception {
+		Persistence<Integer> p = getPersistence("testMultyKeyCarts").build();
 		p.archiveAll();
 
 		MultiKeyCart<Integer, String, String> sc1 = new MultiKeyCart<Integer, String, String>((SerializablePredicate<Integer>)key->true, "sc1", "CART", 0, 0); 
@@ -117,8 +211,8 @@ public class PersistCartsTest {
 	}
 
 	@Test
-	public void testResultConsumerCarts() {
-		Persistence<Integer> p = getPersistence("testResultConsumerCarts");
+	public void testResultConsumerCarts() throws Exception {
+		Persistence<Integer> p = getPersistence("testResultConsumerCarts").build();
 		p.archiveAll();
 
 		ResultConsumerCart<Integer, String, String> sc1 = new ResultConsumerCart<Integer, String, String>(1, bin->{
@@ -144,8 +238,8 @@ public class PersistCartsTest {
 	}
 
 	@Test
-	public void testCreatingCarts() {
-		Persistence<Integer> p = getPersistence("testCreatingCarts");
+	public void testCreatingCarts() throws Exception {
+		Persistence<Integer> p = getPersistence("testCreatingCarts").build();
 		p.archiveAll();
 
 		CreatingCart<Integer, Trio, String> sc1 = new CreatingCart<>(1, TrioBuilder::new,1, 2, 0); 

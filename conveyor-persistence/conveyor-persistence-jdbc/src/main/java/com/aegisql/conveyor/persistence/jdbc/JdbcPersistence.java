@@ -27,15 +27,17 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class JdbcPersistence.
  *
- * @param <K>
- *            the key type
+ * @param <K> the key type
  */
 public class JdbcPersistence<K> implements Persistence<K> {
 
-	/** The Constant LOG. */
+	/**
+	 * The Constant LOG.
+	 */
 	final static Logger LOG = LoggerFactory.getLogger(JdbcPersistence.class);
 
 	/** The id supplier. */

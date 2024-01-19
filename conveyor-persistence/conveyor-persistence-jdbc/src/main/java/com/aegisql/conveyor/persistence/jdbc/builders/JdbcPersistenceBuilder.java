@@ -41,11 +41,10 @@ import java.sql.Connection;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.LongSupplier;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class JdbcPersistenceBuilder.
  *
@@ -189,7 +188,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	private final GenericEngine<K> jdbcEngine;
 
 	private final boolean poolConnection;
-	
+	private final Predicate<Cart<K,?,?>> persistentPartFilter;
+
 	/**
 	 * Instantiates a new jdbc persistence builder.
 	 *
@@ -198,7 +198,7 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	public JdbcPersistenceBuilder(Class<K> keyClass) {
 		this(TimeHostIdGenerator.idGenerator_10x8(System.currentTimeMillis()/1000)::getId, false, keyClass, null, null, 0, null, null, null, null, null, null, new Properties(), new ArrayList<>(),
 				ArchiveStrategy.DELETE,null,null,null,new StringLabelConverter(), new EncryptingConverterBuilder(),
-				0,100,60_000,new HashSet<>(), RestoreOrder.BY_ID, new ArrayList<>(), null,null,false);
+				0,100,60_000,new HashSet<>(), RestoreOrder.BY_ID, new ArrayList<>(), null,null,false, cart -> true);
 	}	
 	
 	/**
@@ -229,6 +229,7 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	 * @param maxBatchTime the max batch time
 	 * @param nonPersistentProperties the non persistent properties
 	 * @param connectionFactory the connection factory
+	 * @param persistentPartFilter
 	 */
 	private JdbcPersistenceBuilder(LongSupplier idSupplier, boolean autoInit, Class<K> keyClass, String type, String host, int port,
 			String database, String schema, String partTable, String completedLogTable, String user, String password,
@@ -237,7 +238,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 			ObjectConverter<?,String> labelConverter, EncryptingConverterBuilder encryptionBuilder,
 			int minCompactSize, int maxBatchSize, long maxBatchTime, Set<String> nonPersistentProperties
 			,RestoreOrder restoreOrder, List<List<String>> uniqueFields, ConnectionFactory connectionFactory,GenericEngine<K> jdbcEngine,boolean poolConnection
-			) {
+			,Predicate<Cart<K,?,?>> persistentPartFilter
+	) {
 		Objects.requireNonNull(keyClass,"key class must not be null");
 		this.idSupplier = idSupplier;
 		this.autoInit = autoInit;
@@ -270,6 +272,7 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 		this.connectionFactory = connectionFactory;
 		this.jdbcEngine = jdbcEngine;
 		this.poolConnection = poolConnection;
+		this.persistentPartFilter = persistentPartFilter;
 	}
 
 	@Override
@@ -279,9 +282,10 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 					new Properties(properties), new ArrayList<>(additionalFields),
 					archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 					encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-					,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+					,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+			);
 	}
-	
+
 	/**
 	 * Id supplier.
 	 *
@@ -294,9 +298,10 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
-	
+
 	/**
 	 * Auto init.
 	 *
@@ -309,7 +314,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -324,7 +330,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -339,7 +346,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -354,7 +362,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -369,7 +378,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -384,7 +394,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -399,7 +410,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -414,7 +426,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -429,7 +442,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -444,7 +458,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -459,7 +474,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -474,13 +490,14 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(pr), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
 	 * Sets the property.
 	 *
-	 * @param key the key
+	 * @param key   the key
 	 * @param value the value
 	 * @return the jdbc persistence builder
 	 */
@@ -492,7 +509,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(p), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -507,15 +525,16 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(f), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
 	 * Sets the field.
 	 *
-	 * @param <T> the generic type
+	 * @param <T>        the generic type
 	 * @param fieldClass the field class
-	 * @param name the name
+	 * @param name       the name
 	 * @return the jdbc persistence builder
 	 */
 	public <T> JdbcPersistenceBuilder<K> addField(Class<T> fieldClass, String name) {
@@ -526,9 +545,19 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(f), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
+	/**
+	 * Add field jdbc persistence builder.
+	 *
+	 * @param <T>        the type parameter
+	 * @param fieldClass the field class
+	 * @param name       the name
+	 * @param accessor   the accessor
+	 * @return the jdbc persistence builder
+	 */
 	public <T> JdbcPersistenceBuilder<K> addField(Class<T> fieldClass, String name, Function<Cart<?,?,?>,T> accessor) {
 		ArrayList<Field<?>> f = new ArrayList<>(additionalFields);
 		f.add( new Field<>(fieldClass,name,accessor));
@@ -537,7 +566,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(f), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -552,7 +582,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				ArchiveStrategy.CUSTOM, archiver, null, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -567,7 +598,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				ArchiveStrategy.MOVE_TO_FILE, null, null, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -582,7 +614,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				ArchiveStrategy.MOVE_TO_PERSISTENCE, null, archivingPersistence, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -596,7 +629,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				ArchiveStrategy.NO_ACTION, null, null, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -610,7 +644,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				ArchiveStrategy.SET_ARCHIVED, null, null, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -624,9 +659,10 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				ArchiveStrategy.DELETE, null, null, null, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
-	
+
 	/**
 	 * Label converter.
 	 *
@@ -639,13 +675,14 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConv,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
 	 * Label converter.
 	 *
-	 * @param <L> the generic type
+	 * @param <L>     the generic type
 	 * @param enClass the en class
 	 * @return the jdbc persistence builder
 	 */
@@ -655,7 +692,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, new EnumConverter<>(enClass),
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -670,7 +708,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionSecret(encryptionSecret), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -685,7 +724,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.secretKey(secretKey), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -700,7 +740,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionAlgorithm(encryptionAlgorithm), minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -715,7 +756,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionTransformation(encryptionTransformation), minCompactSize, maxBatchSize, maxBatchTime, 
-				nonPersistentProperties, restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				nonPersistentProperties, restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -730,7 +772,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder.encryptionKeyLength(encryptionKeyLength), minCompactSize, maxBatchSize, maxBatchTime, 
-				nonPersistentProperties, restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				nonPersistentProperties, restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -745,7 +788,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, size, maxBatchSize, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -760,7 +804,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, size, maxBatchTime, nonPersistentProperties
-				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				,restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -776,7 +821,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, TimeUnit.MILLISECONDS.convert(time, unit), 
-				nonPersistentProperties, restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				nonPersistentProperties, restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
@@ -791,14 +837,15 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, duration.toMillis(), nonPersistentProperties,
-				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
 	/**
 	 * Do not save cart properties.
 	 *
 	 * @param property the property
-	 * @param more the more
+	 * @param more     the more
 	 * @return the jdbc persistence builder
 	 */
 	public JdbcPersistenceBuilder<K> doNotSaveCartProperties(String property,String... more) {
@@ -812,86 +859,222 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, set,
-				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
+	/**
+	 * Restore order jdbc persistence builder.
+	 *
+	 * @param order the order
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> restoreOrder(RestoreOrder order) {
 		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
-				order, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				order, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
+	/**
+	 * Unique fields jdbc persistence builder.
+	 *
+	 * @param uf the uf
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> uniqueFields(List<List<String>> uf) {
 		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new ArrayList<>(additionalFields), 
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
-				restoreOrder, new ArrayList<>(uf),connectionFactory,jdbcEngine,poolConnection);
+				restoreOrder, new ArrayList<>(uf),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
+	/**
+	 * Add cart persistence filter jdbc persistence builder.
+	 *
+	 * @param partFilter the part filter
+	 * @return the jdbc persistence builder
+	 */
+	public JdbcPersistenceBuilder<K> addCartPersistenceFilter(Predicate<Cart<K, ?, ?>> partFilter) {
+		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
+				database, schema, partTable, completedLogTable, user, password,
+				new Properties(properties), new ArrayList<>(additionalFields),
+				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
+				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
+				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,partFilter.and(persistentPartFilter)
+		);
+	}
+
+	/**
+	 * Add label persistence filter jdbc persistence builder.
+	 *
+	 * @param <L>         the type parameter
+	 * @param labelFilter the label filter
+	 * @return the jdbc persistence builder
+	 */
+	public <L> JdbcPersistenceBuilder<K> addLabelPersistenceFilter(final Predicate<L> labelFilter) {
+		return addCartPersistenceFilter(cart->{
+			L label = (L) cart.getLabel();
+			return labelFilter.test(label);
+		});
+	}
+
+	/**
+	 * Add label value persistence filter jdbc persistence builder.
+	 *
+	 * @param <L>              the type parameter
+	 * @param <V>              the type parameter
+	 * @param labelValueFilter the label value filter
+	 * @return the jdbc persistence builder
+	 */
+	public <L,V> JdbcPersistenceBuilder<K> addLabelValuePersistenceFilter(final BiPredicate<L,V> labelValueFilter) {
+		return addCartPersistenceFilter(cart->{
+			L label = (L) cart.getLabel();
+			V value = (V) cart.getValue();
+			return labelValueFilter.test(label,value);
+		});
+	}
+
+	/**
+	 * Connection factory jdbc persistence builder.
+	 *
+	 * @param connectionFactory the connection factory
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> connectionFactory(ConnectionFactory<? extends DataSource> connectionFactory) {
 		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new ArrayList<>(additionalFields),
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
-				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine, connectionFactory == null ? poolConnection : connectionFactory.isCaching());
+				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine, connectionFactory == null ? poolConnection : connectionFactory.isCaching()
+				,persistentPartFilter
+		);
 	}
 
+	/**
+	 * Jdbc engine jdbc persistence builder.
+	 *
+	 * @param jdbcEngine the jdbc engine
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> jdbcEngine(GenericEngine<K> jdbcEngine) {
 		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new ArrayList<>(additionalFields),
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
-				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
+	/**
+	 * Driver manager jdbc connection jdbc persistence builder.
+	 *
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> driverManagerJdbcConnection() {
 		return connectionFactory( ConnectionFactory.driverManagerFactoryInstance());
 	}
 
+	/**
+	 * Jdbc connection jdbc persistence builder.
+	 *
+	 * @param dataSource the data source
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> jdbcConnection(DataSource dataSource) {
 		return connectionFactory( ConnectionFactory.cachingFactoryInstance(cf->dataSource));
 	}
 
+	/**
+	 * Jdbc connection jdbc persistence builder.
+	 *
+	 * @param initializer the initializer
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> jdbcConnection(Function<ConnectionFactory<? extends DataSource>,? extends DataSource> initializer) {
 		return connectionFactory( ConnectionFactory.cachingFactoryInstance((Function)initializer));
 	}
 
+	/**
+	 * Dbcp connection jdbc persistence builder.
+	 *
+	 * @param dataSource the data source
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> dbcpConnection(DataSource dataSource) {
 		return connectionFactory( ConnectionFactory.nonCachingFactoryInstance(cf->dataSource));
 	}
 
+	/**
+	 * Dbcp connection jdbc persistence builder.
+	 *
+	 * @param initializer the initializer
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> dbcpConnection(Function<ConnectionFactory<? extends DataSource>,? extends DataSource> initializer) {
 		return connectionFactory( ConnectionFactory.nonCachingFactoryInstance((Function)initializer));
 	}
 
+	/**
+	 * Dbcp 2 connection jdbc persistence builder.
+	 *
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> dbcp2Connection() {
 		return connectionFactory( ConnectionFactory.DBCP2FactoryInstance());
 	}
 
+	/**
+	 * External jdbc connection jdbc persistence builder.
+	 *
+	 * @param connectionSupplier the connection supplier
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> externalJdbcConnection(Supplier<Connection> connectionSupplier) {
 		return connectionFactory( ConnectionFactory.cachingExternalConnectionFactoryInstance(connectionSupplier));
 	}
 
+	/**
+	 * External dbcp connection jdbc persistence builder.
+	 *
+	 * @param connectionSupplier the connection supplier
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> externalDbcpConnection(Supplier<Connection> connectionSupplier) {
 		return connectionFactory(ConnectionFactory.nonCachingExternalConnectionFactoryInstance(connectionSupplier));
 	}
 
+	/**
+	 * Pool connection jdbc persistence builder.
+	 *
+	 * @param poolConnection the pool connection
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> poolConnection(boolean poolConnection) {
 		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new ArrayList<>(additionalFields),
 				archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 				encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
-				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection);
+				restoreOrder, new ArrayList<>(uniqueFields),connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+		);
 	}
 
+	/**
+	 * Add unique fields jdbc persistence builder.
+	 *
+	 * @param f1   the f 1
+	 * @param more the more
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> addUniqueFields(String f1, String...more) {
 		JdbcPersistenceBuilder<K> newBuilder =  uniqueFields(uniqueFields);
 		ArrayList<String> fields = new ArrayList<>();
@@ -903,16 +1086,22 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 		return newBuilder;
 	}
 
+	/**
+	 * Add unique fields jdbc persistence builder.
+	 *
+	 * @param fields the fields
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> addUniqueFields(List<String> fields) {
 		JdbcPersistenceBuilder<K> newBuilder =  uniqueFields(uniqueFields);
 		newBuilder.uniqueFields.add(fields);
 		return newBuilder;
 	}
-	
+
 	/**
 	 * Adds the binary converter.
 	 *
-	 * @param <T> the generic type
+	 * @param <T>  the generic type
 	 * @param clas the clas
 	 * @param conv the conv
 	 * @return the jdbc persistence builder
@@ -926,10 +1115,10 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	/**
 	 * Adds the binary converter.
 	 *
-	 * @param <L> the generic type
-	 * @param <T> the generic type
+	 * @param <L>   the generic type
+	 * @param <T>   the generic type
 	 * @param label the label
-	 * @param conv the conv
+	 * @param conv  the conv
 	 * @return the jdbc persistence builder
 	 */
 	@SuppressWarnings("unchecked")
@@ -938,6 +1127,11 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 		return this;
 	}
 
+	/**
+	 * Init jdbc persistence builder.
+	 *
+	 * @return the jdbc persistence builder
+	 */
 	public JdbcPersistenceBuilder<K> init() {
 		try( EngineDepo<K> sqlEngine = buildPresetSqlEngine(engineType, keyClass) ) {
 			sqlEngine.createDatabaseIfNotExists(database);
@@ -956,13 +1150,19 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 						new Properties(properties), new ArrayList<>(additionalFields),
 						archiveStrategy, customArchiver, archivingPersistence, bLogConf, labelConverter,
 						encryptionBuilder, minCompactSize, maxBatchSize, maxBatchTime, nonPersistentProperties,
-						restoreOrder, new ArrayList<>(uniqueFields), connectionFactory,jdbcEngine,poolConnection);
+						restoreOrder, new ArrayList<>(uniqueFields), connectionFactory,jdbcEngine,poolConnection,persistentPartFilter
+				);
 			}
 		} catch (Exception e) {
 			throw new PersistenceException(e);
 		}
 	}
 
+	/**
+	 * Gets jmx obj name.
+	 *
+	 * @return the jmx obj name
+	 */
 	public String getJMXObjName() {
 		return "com.aegisql.conveyor.persistence."+engineType+"."+schema+":type=" + partTable;
 	}
@@ -1010,10 +1210,9 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 				, infoBuilder.toString()
 				, nonPersistentProperties
 				, minCompactSize
-				, additionalFields,
-				cart->{
-					  return true;
-				});
+				, additionalFields
+				, persistentPartFilter
+				);
 		
 		String objName = getJMXObjName();
 		LOG.debug("JMX name {}",objName);
@@ -1166,12 +1365,12 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 		connectionFactory.setProperties(properties);
 		return engine;
 	}
-	
+
 	/**
 	 * Preset initializer.
 	 *
-	 * @param <K> the key type
-	 * @param type the type
+	 * @param <K>    the key type
+	 * @param type   the type
 	 * @param kClass the k class
 	 * @return the jdbc persistence builder
 	 */

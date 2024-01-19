@@ -15,6 +15,7 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Interface Persistence.
  *
@@ -27,40 +28,47 @@ public interface Persistence <K> extends Closeable {
 	 *
 	 * @return the long
 	 */
-	//SETTERS
+//SETTERS
 	long nextUniquePartId();
-	
+
 	/**
 	 * Save part.
 	 *
-	 * @param <L> the generic type
-	 * @param id the id
+	 * @param <L>  the generic type
+	 * @param id   the id
 	 * @param cart the cart
 	 */
 	<L> void savePart(long id,Cart<K,?,L> cart);
 
+	/**
+	 * Is part persistent boolean.
+	 *
+	 * @param <L>  the type parameter
+	 * @param cart the cart
+	 * @return the boolean
+	 */
 	<L> boolean isPartPersistent(Cart<K,?,L> cart);
-	
+
 	/**
 	 * Save part id.
 	 *
-	 * @param key the key
+	 * @param key    the key
 	 * @param partId the part id
 	 */
 	void savePartId(K key, long partId);
-	
+
 	/**
 	 * Save completed build key.
 	 *
 	 * @param key the key
 	 */
 	void saveCompletedBuildKey(K key);
-	
+
 	/**
 	 * Gets the part.
 	 *
 	 * @param <L> the generic type
-	 * @param id the id
+	 * @param id  the id
 	 * @return the part
 	 */
 	default <L> Cart<K, ?, L> getPart(long id) {
@@ -76,12 +84,12 @@ public interface Persistence <K> extends Closeable {
 	 * Gets the parts.
 	 *
 	 * @param <L> the generic type
-	 * @param id the id
+	 * @param id  the id
 	 * @return the parts
 	 */
 	<L> Collection<Cart<K,?,L>> getParts(Collection<Long> id);
-	
-	
+
+
 	/**
 	 * Gets the all part ids.
 	 *
@@ -89,7 +97,7 @@ public interface Persistence <K> extends Closeable {
 	 * @return the all part ids
 	 */
 	Collection<Long> getAllPartIds(K key);
-	
+
 	/**
 	 * Gets the all parts.
 	 *
@@ -113,69 +121,74 @@ public interface Persistence <K> extends Closeable {
 	 * @return the all static parts
 	 */
 	<L> Collection<Cart<K,?,L>> getAllStaticParts();
-	
+
 	/**
 	 * Gets the completed keys.
 	 *
 	 * @return the completed keys
 	 */
 	Set<K> getCompletedKeys();
-	
+
 	/**
 	 * Archive parts.
 	 *
 	 * @param ids the ids
 	 */
-	//ARCHIVE OPERATIONS
+//ARCHIVE OPERATIONS
 	void archiveParts(Collection<Long> ids);
-	
+
 	/**
 	 * Archive keys.
 	 *
 	 * @param keys the keys
 	 */
 	void archiveKeys(Collection<K> keys);
-	
+
 	/**
 	 * Archive complete keys.
 	 *
 	 * @param keys the keys
 	 */
 	void archiveCompleteKeys(Collection<K> keys);
-	
+
 	/**
 	 * Archive expired parts.
 	 */
 	void archiveExpiredParts();
-	
+
 	/**
 	 * Archive all.
 	 */
 	void archiveAll();
-	
+
 	/**
 	 * Gets the max archive batch size.
 	 *
 	 * @return the max archive batch size
 	 */
-	//BATCH 
+//BATCH
 	int getMaxArchiveBatchSize();
-	
+
 	/**
 	 * Gets the max archive batch time.
 	 *
 	 * @return the max archive batch time
 	 */
 	long getMaxArchiveBatchTime();
-	
+
 	/**
 	 * Gets the number of parts.
 	 *
 	 * @return the number of parts
 	 */
-	//HELP
+//HELP
 	long getNumberOfParts();
 
+	/**
+	 * Gets min compact size.
+	 *
+	 * @return the min compact size
+	 */
 	int getMinCompactSize();
 
 	/**
@@ -204,14 +217,14 @@ public interface Persistence <K> extends Closeable {
 			}
 		});
 	}
-	
+
 	/**
 	 * Copy.
 	 *
 	 * @return the persistence
 	 */
 	Persistence<K> copy();
-	
+
 	/**
 	 * Non persistent properties.
 	 *
@@ -219,12 +232,12 @@ public interface Persistence <K> extends Closeable {
 	 * @return true, if is persistent property
 	 */
 	boolean isPersistentProperty(String property);
-	
+
 	/**
 	 * Wrap conveyor.
 	 *
-	 * @param <L> the generic type
-	 * @param <OUT> the generic type
+	 * @param <L>      the generic type
+	 * @param <OUT>    the generic type
 	 * @param conveyor the conveyor
 	 * @return the persistent conveyor
 	 */
@@ -235,7 +248,7 @@ public interface Persistence <K> extends Closeable {
 	/**
 	 * Gets the assembling conveyor.
 	 *
-	 * @param <L> the generic type
+	 * @param <L>   the generic type
 	 * @param <OUT> the generic type
 	 * @return the assembling conveyor
 	 */
@@ -246,8 +259,8 @@ public interface Persistence <K> extends Closeable {
 	/**
 	 * Gets the conveyor.
 	 *
-	 * @param <L> the generic type
-	 * @param <OUT> the generic type
+	 * @param <L>      the generic type
+	 * @param <OUT>    the generic type
 	 * @param conveyor the conveyor
 	 * @return the conveyor
 	 */
@@ -255,9 +268,11 @@ public interface Persistence <K> extends Closeable {
 		return new PersistentConveyor<>(this,conveyor.get());
 	}
 
-	/** The Constant mBeanServer. */
+	/**
+	 * The Constant mBeanServer.
+	 */
 	MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-	
+
 	/**
 	 * By name.
 	 *
@@ -282,7 +297,7 @@ public interface Persistence <K> extends Closeable {
 			throw new RuntimeException("Persistence with name '"+name +"' not found",e);
 		}
 	}
-	
+
 	/**
 	 * Lazy supplier.
 	 *
