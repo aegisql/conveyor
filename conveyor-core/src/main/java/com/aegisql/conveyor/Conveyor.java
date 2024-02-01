@@ -10,12 +10,14 @@ import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.loaders.*;
 import com.aegisql.conveyor.meta.ConveyorMetaInfo;
-import com.aegisql.conveyor.meta.ConveyorMetaInfoBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.*;

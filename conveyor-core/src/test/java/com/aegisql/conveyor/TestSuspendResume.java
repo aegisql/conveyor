@@ -10,8 +10,7 @@ import org.junit.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.aegisql.conveyor.user.UserBuilderEvents.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class TestSuspendResume {
 
@@ -42,7 +41,9 @@ public class TestSuspendResume {
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(SET_FIRST,SET_LAST,SET_YEAR));
 		conveyor.setName("SuspendableConveyor");
+		assertFalse(conveyor.isSuspended());
 		conveyor.suspend();
+		assertTrue(conveyor.isSuspended());
 		conveyor.part().id(1).label(UserBuilderEvents.SET_FIRST).value("A").place();
 		conveyor.part().id(1).label(UserBuilderEvents.SET_LAST).value("B").place();
 		conveyor.part().id(1).label(UserBuilderEvents.SET_YEAR).value(2000).place();

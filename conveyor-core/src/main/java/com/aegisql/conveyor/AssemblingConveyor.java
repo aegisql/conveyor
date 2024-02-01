@@ -515,7 +515,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 				@Override
 				public String getAcceptedLabels() {
-					if (acceptedLabels.size() == 0 || acceptedLabels.contains(null)) {
+					if (acceptedLabels.isEmpty() || acceptedLabels.contains(null)) {
 						return "accepts all labels";
 					} else {
 						return acceptedLabels.toString();
