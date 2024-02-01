@@ -17,7 +17,7 @@ public class MBeanRegisterTest {
         assertNotNull(ac2);
         assertEquals(ac,ac2);
 
-        AssemblingConveyorMBean mBean = MBEAN.getMBeanInstance("MBeanRegisterTest", AssemblingConveyorMBean.class);
+        AssemblingConveyorMBean mBean = (AssemblingConveyorMBean) ac2.getMBeanInstance("MBeanRegisterTest");
         assertNotNull(mBean);
         assertEquals("MBeanRegisterTest",mBean.getName());
         assertEquals("AssemblingConveyor",mBean.getType());

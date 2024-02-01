@@ -4,6 +4,8 @@ import com.aegisql.conveyor.Expireable;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -98,7 +100,24 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 * @param property the property
 	 */
 	<X> void addProperty(String name, X property);
-	
+
+	/**
+	 * Append property.
+	 *
+	 * @param <X>      the type parameter
+	 * @param name     the name
+	 * @param property the property
+	 */
+	default <X> void appendProperty(String name, X property) {
+		List<X> list = getProperty(name, List.class);
+		if(list==null) {
+			List<X> newList = new ArrayList<>();
+			addProperty(name,newList);
+			list = newList;
+		}
+		list.add(property);
+	}
+
 	/**
 	 * Gets the property.
 	 *

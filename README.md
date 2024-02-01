@@ -59,6 +59,8 @@ Last version supporting Java 8 is 1.4.4
 ## Release History
 
 ### 1.6.7-SNAPSHOT
+* getMBeanInstance method in the Conveyor interface
+* Append cart property to a list
 * Dependencies updates
 * Bugfixes and refactoring
 

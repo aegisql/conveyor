@@ -133,7 +133,24 @@ public class CartTest {
 		assertEquals(Integer.valueOf(1), n.getProperty("A", Integer.class));
 
 	}
-	
+
+	@Test
+	public void testAppendProperties() {
+		Cart<String,String,String> c = new ShoppingCart<>("k","v1","l");
+		c.appendProperty("A", 1);
+		c.appendProperty("A", 2);
+		c.appendProperty("A", 3);
+		assertTrue(c.getAllProperties().size() > 0);
+		Cart<String,String,String> n = c.copy();
+
+		assertTrue(n.getAllProperties().size() > 0);
+		List<Integer> list = n.getProperty("A", List.class);
+		assertEquals(3,list.size());
+		assertEquals(Integer.valueOf(1),list.get(0));
+		assertEquals(Integer.valueOf(2),list.get(1));
+		assertEquals(Integer.valueOf(3),list.get(2));
+	}
+
 	@Test
 	public void testCartExplicitPriority() {
 		Cart<String,String,String> c1 = new ShoppingCart<>("k","v1","l1",0,0,null,LoadType.PART,0);

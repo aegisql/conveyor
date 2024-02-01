@@ -502,6 +502,10 @@ public interface Conveyor<K, L, OUT> {
 		return MBEAN.byName(name);
 	}
 
+	default Object getMBeanInstance(String name) {
+		return MBEAN.getMBeanInstance(name, mBeanInterface());
+	}
+
 	/**
 	 * Lazy supplier.
 	 *
