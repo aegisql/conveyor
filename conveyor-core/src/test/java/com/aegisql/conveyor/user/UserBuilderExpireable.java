@@ -3,9 +3,9 @@
  */
 package com.aegisql.conveyor.user;
 
-import java.util.function.Supplier;
-
 import com.aegisql.conveyor.Expireable;
+
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**

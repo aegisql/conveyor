@@ -3,8 +3,6 @@ package com.aegisql.conveyor.utils.queue_pump;
 import com.aegisql.conveyor.consumers.result.ProductConsumer;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 public class QueuePumpTest {
 
     @Test

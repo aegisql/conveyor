@@ -1,12 +1,12 @@
 package com.aegisql.conveyor.persistence.converters.arrays;
 
+import com.aegisql.conveyor.persistence.converters.BigIntegerToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.collections.CollectionToByteArrayConverter;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-
-import com.aegisql.conveyor.persistence.converters.BigIntegerToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.collections.CollectionToByteArrayConverter;
 
 // TODO: Auto-generated Javadoc
 /**

@@ -1,14 +1,13 @@
 package com.aegisql.conveyor.persistence.utils;
 
+import com.aegisql.conveyor.cart.Cart;
+import org.apache.commons.io.FileUtils;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.zip.*;
-
-import org.apache.commons.io.FileUtils;
-
-import com.aegisql.conveyor.cart.Cart;
 
 public class PersistUtils {
 

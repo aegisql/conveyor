@@ -1,12 +1,12 @@
 package com.aegisql.conveyor.cart;
 
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+
 import java.io.Serial;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 
 // TODO: Auto-generated Javadoc
 /**

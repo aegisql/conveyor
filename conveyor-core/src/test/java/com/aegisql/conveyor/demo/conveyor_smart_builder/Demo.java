@@ -3,19 +3,17 @@
  */
 package com.aegisql.conveyor.demo.conveyor_smart_builder;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import org.junit.Test;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.consumers.result.IgnoreResult;
 import com.aegisql.conveyor.demo.ThreadPool;
+import org.junit.Test;
+
+import java.text.SimpleDateFormat;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 public class Demo {
 	

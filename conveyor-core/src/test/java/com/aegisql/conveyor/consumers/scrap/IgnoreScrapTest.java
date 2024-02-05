@@ -3,8 +3,6 @@ package com.aegisql.conveyor.consumers.scrap;
 import com.aegisql.conveyor.AssemblingConveyor;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 public class IgnoreScrapTest {
 
     @Test

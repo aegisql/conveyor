@@ -1,9 +1,9 @@
 package com.aegisql.conveyor.persistence.converters.arrays.sql;
 
+import com.aegisql.conveyor.persistence.converters.arrays.ObjectArrayToByteArrayConverter;
+
 import java.nio.ByteBuffer;
 import java.sql.Date;
-
-import com.aegisql.conveyor.persistence.converters.arrays.ObjectArrayToByteArrayConverter;
 
 public class SqlDatesToBytesConverter implements ObjectArrayToByteArrayConverter<Date> {
 

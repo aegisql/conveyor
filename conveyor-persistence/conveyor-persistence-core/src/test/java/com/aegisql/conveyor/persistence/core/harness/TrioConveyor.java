@@ -6,9 +6,6 @@ import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.result.ResultMap;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
-import com.aegisql.conveyor.persistence.core.harness.Trio;
-import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
-import com.aegisql.conveyor.persistence.core.harness.TrioPart;
 
 
 

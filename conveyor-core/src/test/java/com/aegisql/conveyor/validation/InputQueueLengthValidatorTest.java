@@ -3,7 +3,6 @@ package com.aegisql.conveyor.validation;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.Testing;
-import com.aegisql.conveyor.consumers.result.IgnoreResult;
 import com.aegisql.conveyor.consumers.result.ResultCounter;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import org.junit.Test;

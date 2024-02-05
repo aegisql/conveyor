@@ -4,7 +4,10 @@ import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 
 import javax.management.*;
 import java.lang.management.ManagementFactory;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**

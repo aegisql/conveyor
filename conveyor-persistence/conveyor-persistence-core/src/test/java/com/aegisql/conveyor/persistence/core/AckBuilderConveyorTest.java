@@ -1,26 +1,17 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.*;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.log4j.BasicConfigurator;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuildingConveyor;
-import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
+import org.apache.log4j.BasicConfigurator;
+import org.junit.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class AckBuilderConveyorTest {
 

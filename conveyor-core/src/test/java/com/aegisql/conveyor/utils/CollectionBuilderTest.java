@@ -1,21 +1,14 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.utils.collection.CollectionBuilder;
+import com.aegisql.conveyor.utils.collection.CollectionConveyor;
+import org.junit.*;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.utils.collection.CollectionBuilder;
-import com.aegisql.conveyor.utils.collection.CollectionConveyor;
+import static org.junit.Assert.assertEquals;
 
 // TODO: Auto-generated Javadoc
 /**

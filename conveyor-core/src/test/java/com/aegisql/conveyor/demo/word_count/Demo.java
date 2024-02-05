@@ -3,26 +3,21 @@
  */
 package com.aegisql.conveyor.demo.word_count;
 
-import com.aegisql.conveyor.*;
-import com.aegisql.conveyor.consumers.result.LastResultReference;
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
-import com.aegisql.conveyor.demo.ThreadPool;
-import com.aegisql.conveyor.demo.smart_conveyor_labels.Person;
-import com.aegisql.conveyor.demo.smart_conveyor_labels.PersonBuilder;
-import com.aegisql.conveyor.demo.smart_conveyor_labels.PersonBuilderLabel;
 import com.aegisql.conveyor.loaders.PartLoader;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
-
-import static com.aegisql.conveyor.demo.smart_conveyor_labels.PersonBuilderLabel.*;
 
 public class Demo {
 

@@ -1,40 +1,6 @@
 package com.aegisql.conveyor.persistence.converters;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.aegisql.conveyor.persistence.converters.arrays.BigDecimalsToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.BigIntegersToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.BoolPrimToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.BooleansToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.BytesPrimToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.BytesToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.CharPrimToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.CharactersToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.ClassesToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.DatesToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.DoublePrimToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.DoublesToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.FloatPrimToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.FloatsToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.IntPrimToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.IntegersToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.LongPrimToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.LongsToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.ShortPrimToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.ShortsToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.StringsToBytesConverter;
-import com.aegisql.conveyor.persistence.converters.arrays.UuidsToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.arrays.*;
 import com.aegisql.conveyor.persistence.converters.arrays.sql.SqlDatesToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.sql.SqlTimesToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.sql.SqlTimestampsToBytesConverter;
@@ -43,6 +9,17 @@ import com.aegisql.conveyor.persistence.converters.sql.SqlTimeToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimestampToBytesConverter;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 // TODO: Auto-generated Javadoc
 /**

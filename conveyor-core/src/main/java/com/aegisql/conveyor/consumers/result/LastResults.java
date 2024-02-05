@@ -1,11 +1,11 @@
 package com.aegisql.conveyor.consumers.result;
 
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ProductBin;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ProductBin;
 
 // TODO: Auto-generated Javadoc
 /**

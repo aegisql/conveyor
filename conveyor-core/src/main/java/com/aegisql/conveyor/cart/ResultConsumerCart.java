@@ -1,9 +1,9 @@
 package com.aegisql.conveyor.cart;
 
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
+
 import java.io.Serial;
 import java.util.Objects;
-
-import com.aegisql.conveyor.consumers.result.ResultConsumer;
 
 // TODO: Auto-generated Javadoc
 /**

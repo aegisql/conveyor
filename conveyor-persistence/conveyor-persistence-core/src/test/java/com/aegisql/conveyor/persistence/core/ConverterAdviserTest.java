@@ -1,21 +1,15 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.*;
-
-import java.io.Serializable;
-import java.util.Arrays;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.converters.EnumToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ObjectToJsonBytesConverter;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
+import org.junit.*;
+
+import java.io.Serializable;
+
+import static org.junit.Assert.*;
 
 public class ConverterAdviserTest implements Serializable {
 

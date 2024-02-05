@@ -1,13 +1,13 @@
 package com.aegisql.conveyor.persistence.cleanup;
 
-import java.util.Collection;
-import java.util.concurrent.TimeUnit;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.loaders.FutureLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.persistence.core.Persistence;
+
+import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 
 // TODO: Auto-generated Javadoc

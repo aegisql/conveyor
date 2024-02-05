@@ -3,9 +3,9 @@
  */
 package com.aegisql.conveyor;
 
-import java.util.function.*;
-
 import com.aegisql.conveyor.serial.SerializableSupplier;
+
+import java.util.function.*;
 
 
 // TODO: Auto-generated Javadoc

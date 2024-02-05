@@ -1,13 +1,13 @@
 package com.aegisql.conveyor.persistence.jdbc.converters;
 
+import com.aegisql.conveyor.persistence.converters.ObjectToJsonStringConverter;
+import com.aegisql.conveyor.persistence.core.ObjectConverter;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
-
-import com.aegisql.conveyor.persistence.converters.ObjectToJsonStringConverter;
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
-import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 // TODO: Auto-generated Javadoc
 /**

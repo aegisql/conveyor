@@ -1,26 +1,19 @@
 package com.aegisql.conveyor.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuilder;
 import com.aegisql.conveyor.utils.batch.BatchCollectingBuilder;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
+import org.junit.*;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
 /**

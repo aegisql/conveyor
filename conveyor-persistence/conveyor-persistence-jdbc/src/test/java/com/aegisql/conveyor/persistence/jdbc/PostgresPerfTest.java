@@ -9,7 +9,6 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.*;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
-import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.*;

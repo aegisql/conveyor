@@ -3,9 +3,9 @@
  */
 package com.aegisql.conveyor.demo.smart_conveyor_labels;
 
-import java.util.function.BiConsumer;
-
 import com.aegisql.conveyor.SmartLabel;
+
+import java.util.function.BiConsumer;
 
 public enum PersonBuilderLabel implements SmartLabel<PersonBuilder> {
 	

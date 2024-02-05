@@ -1,22 +1,15 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.persistence.core.Persistence;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import com.aegisql.conveyor.BuildingSite.Memento;
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.persistence.core.Persistence;
 
 public class PersistTestImpl implements Persistence<Integer> {
 

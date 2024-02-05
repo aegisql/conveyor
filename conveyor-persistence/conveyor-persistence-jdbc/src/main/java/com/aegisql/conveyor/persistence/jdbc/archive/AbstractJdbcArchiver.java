@@ -1,11 +1,10 @@
 package com.aegisql.conveyor.persistence.jdbc.archive;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // TODO: Auto-generated Javadoc
 /**

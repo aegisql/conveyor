@@ -1,11 +1,11 @@
 package com.aegisql.conveyor.utils.collection;
 
-import java.util.Collection;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.loaders.PartLoader;
+
+import java.util.Collection;
 
 // TODO: Auto-generated Javadoc
 /**

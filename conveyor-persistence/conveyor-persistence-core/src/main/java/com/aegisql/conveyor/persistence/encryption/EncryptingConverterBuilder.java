@@ -1,16 +1,15 @@
 package com.aegisql.conveyor.persistence.encryption;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.Arrays;
-import java.util.function.Supplier;
+import com.aegisql.conveyor.persistence.converters.EncryptingConverter;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-
-import com.aegisql.conveyor.persistence.converters.EncryptingConverter;
-import com.aegisql.conveyor.persistence.core.PersistenceException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Arrays;
+import java.util.function.Supplier;
 
 public class EncryptingConverterBuilder implements Supplier<EncryptingConverter> {
 	

@@ -3,9 +3,6 @@ package com.aegisql.conveyor.persistence.core.harness;
 import java.io.Serializable;
 import java.util.function.Supplier;
 
-import com.aegisql.conveyor.persistence.core.harness.Trio;
-import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
-
 public class TrioBuilder implements Supplier<Trio>, Serializable{
 
 	

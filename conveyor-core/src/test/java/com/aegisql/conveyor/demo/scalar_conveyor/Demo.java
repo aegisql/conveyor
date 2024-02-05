@@ -3,18 +3,16 @@
  */
 package com.aegisql.conveyor.demo.scalar_conveyor;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import org.junit.Test;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.consumers.result.IgnoreResult;
 import com.aegisql.conveyor.demo.ThreadPool;
+import org.junit.Test;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class Demo {
 	

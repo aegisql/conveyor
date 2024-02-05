@@ -1,6 +1,9 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.consumers.scrap.LogScrap;
+import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.user.UserBuilder;
+import org.junit.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -10,15 +13,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.consumers.scrap.LogScrap;
-import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.user.UserBuilder;
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
 /**

@@ -1,9 +1,8 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
-import java.util.function.BiConsumer;
-
 import com.aegisql.conveyor.SmartLabel;
-import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
+
+import java.util.function.BiConsumer;
 
 public enum TrioPart implements SmartLabel<TrioBuilder> {
 	TEXT1(SmartLabel.of(TrioBuilder::setText1)),

@@ -1,9 +1,9 @@
 package com.aegisql.conveyor.consumers.scrap;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 // TODO: Auto-generated Javadoc
 /**

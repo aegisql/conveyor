@@ -1,13 +1,13 @@
 package com.aegisql.conveyor.consumers.result;
 
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ProductBin;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ProductBin;
 
 // TODO: Auto-generated Javadoc
 /**

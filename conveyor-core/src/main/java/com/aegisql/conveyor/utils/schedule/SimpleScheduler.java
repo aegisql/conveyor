@@ -1,15 +1,15 @@
 package com.aegisql.conveyor.utils.schedule;
 
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.loaders.PartLoader;
+
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 // TODO: Auto-generated Javadoc
 /**

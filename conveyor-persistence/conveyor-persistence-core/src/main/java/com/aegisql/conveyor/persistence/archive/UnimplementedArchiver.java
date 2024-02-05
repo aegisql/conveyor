@@ -1,9 +1,9 @@
 package com.aegisql.conveyor.persistence.archive;
 
-import java.util.Collection;
-
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+
+import java.util.Collection;
 
 // TODO: Auto-generated Javadoc
 /**

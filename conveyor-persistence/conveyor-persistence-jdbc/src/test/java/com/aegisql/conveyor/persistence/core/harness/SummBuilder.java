@@ -1,10 +1,10 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
+import com.aegisql.conveyor.SmartLabel;
+
 import java.io.Serializable;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.SmartLabel;
 
 public class SummBuilder implements Supplier<Long>,Serializable {
 

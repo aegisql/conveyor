@@ -1,8 +1,8 @@
 package com.aegisql.conveyor.persistence.jdbc.builders;
 
-import java.util.function.Function;
-
 import com.aegisql.conveyor.cart.Cart;
+
+import java.util.function.Function;
 
 // TODO: Auto-generated Javadoc
 /**

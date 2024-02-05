@@ -3,9 +3,9 @@
  */
 package com.aegisql.conveyor.user;
 
-import java.util.function.BiConsumer;
-
 import com.aegisql.conveyor.SmartLabel;
+
+import java.util.function.BiConsumer;
 
 // TODO: Auto-generated Javadoc
 /**

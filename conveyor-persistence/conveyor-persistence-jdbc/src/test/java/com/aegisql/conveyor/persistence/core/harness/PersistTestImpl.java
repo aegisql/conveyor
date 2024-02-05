@@ -6,7 +6,6 @@ import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.*;

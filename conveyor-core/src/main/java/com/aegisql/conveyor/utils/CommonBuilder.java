@@ -1,12 +1,12 @@
 package com.aegisql.conveyor.utils;
 
+import com.aegisql.conveyor.Expireable;
+import com.aegisql.conveyor.Testing;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.Expireable;
-import com.aegisql.conveyor.Testing;
 
 // TODO: Auto-generated Javadoc
 /**

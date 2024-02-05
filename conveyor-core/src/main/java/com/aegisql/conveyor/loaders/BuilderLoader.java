@@ -1,5 +1,8 @@
 package com.aegisql.conveyor.loaders;
 
+import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.Conveyor;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -9,9 +12,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.Conveyor;
 
 // TODO: Auto-generated Javadoc
 /**

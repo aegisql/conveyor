@@ -1,33 +1,5 @@
 package com.aegisql.conveyor.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.io.IOException;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-
-import com.aegisql.conveyor.meta.ConveyorMetaInfo;
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
@@ -40,6 +12,7 @@ import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.loaders.ResultConsumerLoader;
 import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
+import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.archive.Archiver;
@@ -49,9 +22,23 @@ import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.id_builder.IdSource;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.io.FileUtils;
+import org.junit.*;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
+
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ConveyorConfigurationTest {

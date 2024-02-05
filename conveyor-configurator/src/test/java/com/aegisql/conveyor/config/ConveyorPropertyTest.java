@@ -1,8 +1,7 @@
 package com.aegisql.conveyor.config;
 
-import static com.aegisql.conveyor.config.ConveyorProperty.ConveyorPropertyType.CONVEYOR;
-import static com.aegisql.conveyor.config.ConveyorProperty.ConveyorPropertyType.OTHER;
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.config.harness.TestBean;
+import org.junit.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -11,12 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.aegisql.conveyor.config.harness.TestBean;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static com.aegisql.conveyor.config.ConveyorProperty.ConveyorPropertyType.CONVEYOR;
+import static com.aegisql.conveyor.config.ConveyorProperty.ConveyorPropertyType.OTHER;
+import static org.junit.Assert.*;
 
 public class ConveyorPropertyTest {
 

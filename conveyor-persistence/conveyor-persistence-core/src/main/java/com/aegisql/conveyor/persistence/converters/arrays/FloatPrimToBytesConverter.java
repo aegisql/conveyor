@@ -1,8 +1,8 @@
 package com.aegisql.conveyor.persistence.converters.arrays;
 
-import java.nio.ByteBuffer;
-
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
+
+import java.nio.ByteBuffer;
 
 // TODO: Auto-generated Javadoc
 /**

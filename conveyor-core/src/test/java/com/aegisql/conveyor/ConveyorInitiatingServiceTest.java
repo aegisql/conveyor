@@ -1,8 +1,5 @@
 package com.aegisql.conveyor;
 
-import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.user.UserBuilder;
-import com.aegisql.conveyor.user.UserBuilderEvents;
 import org.junit.Test;
 
 import java.util.List;

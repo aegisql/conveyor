@@ -1,26 +1,17 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.apache.log4j.BasicConfigurator;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.Acknowledge;
-import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
+import org.apache.log4j.BasicConfigurator;
+import org.junit.*;
+
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.Assert.*;
 
 public class PersistentConveyorTest {
 

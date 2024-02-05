@@ -1,16 +1,12 @@
 package com.aegisql.conveyor.consumers.scrap;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ScrapBin;
+
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ScrapBin;
 
 // TODO: Auto-generated Javadoc
 /**

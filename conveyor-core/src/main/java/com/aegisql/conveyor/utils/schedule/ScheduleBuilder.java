@@ -1,11 +1,11 @@
 package com.aegisql.conveyor.utils.schedule;
 
-import java.util.function.Supplier;
-
 import com.aegisql.conveyor.Expireable;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.TestingState;
 import com.aegisql.conveyor.TimeoutAction;
+
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**

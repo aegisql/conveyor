@@ -9,7 +9,6 @@ import com.aegisql.conveyor.demo.ThreadPool;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
 import org.junit.Test;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;

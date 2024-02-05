@@ -1,11 +1,11 @@
 package com.aegisql.conveyor.cart.command;
 
-import java.io.Serial;
-import java.util.function.Supplier;
-
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.cart.Cart;
+
+import java.io.Serial;
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**

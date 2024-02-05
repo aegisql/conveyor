@@ -6,8 +6,6 @@ import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 import static com.aegisql.conveyor.meta.ConveyorMetaInfoBuilderTest.Label.*;

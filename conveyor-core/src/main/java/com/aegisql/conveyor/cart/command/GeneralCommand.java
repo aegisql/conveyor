@@ -1,14 +1,14 @@
 package com.aegisql.conveyor.cart.command;
 
-import static com.aegisql.conveyor.cart.LoadType.COMMAND;
+import com.aegisql.conveyor.CommandLabel;
+import com.aegisql.conveyor.cart.AbstractCart;
+import com.aegisql.conveyor.cart.Cart;
 
 import java.io.Serial;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import com.aegisql.conveyor.CommandLabel;
-import com.aegisql.conveyor.cart.AbstractCart;
-import com.aegisql.conveyor.cart.Cart;
+import static com.aegisql.conveyor.cart.LoadType.COMMAND;
 
 // TODO: Auto-generated Javadoc
 /**

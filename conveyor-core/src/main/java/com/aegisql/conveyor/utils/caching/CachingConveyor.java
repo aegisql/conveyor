@@ -1,14 +1,13 @@
 package com.aegisql.conveyor.utils.caching;
 
-import java.util.function.Supplier;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuildingSite;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**

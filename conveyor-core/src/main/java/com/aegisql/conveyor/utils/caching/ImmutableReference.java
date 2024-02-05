@@ -1,9 +1,9 @@
 package com.aegisql.conveyor.utils.caching;
 
-import java.util.function.Supplier;
-
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.ProductSupplier;
+
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**

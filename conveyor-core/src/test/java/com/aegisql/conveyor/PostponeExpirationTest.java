@@ -1,31 +1,23 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
-
-import java.time.Duration;
-import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
-import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderExpireable;
 import com.aegisql.conveyor.user.UserBuilderSmart;
+import org.junit.*;
+
+import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
 /**

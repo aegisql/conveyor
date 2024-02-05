@@ -1,9 +1,9 @@
 package com.aegisql.conveyor.persistence.converters.sql;
 
+import com.aegisql.conveyor.persistence.converters.ObjectToByteArrayConverter;
+
 import java.nio.ByteBuffer;
 import java.sql.Time;
-
-import com.aegisql.conveyor.persistence.converters.ObjectToByteArrayConverter;
 
 // TODO: Auto-generated Javadoc
 /**

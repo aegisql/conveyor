@@ -1,10 +1,10 @@
 package com.aegisql.conveyor.consumers.scrap;
 
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Predicate;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
+
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 
 // TODO: Auto-generated Javadoc
 /**

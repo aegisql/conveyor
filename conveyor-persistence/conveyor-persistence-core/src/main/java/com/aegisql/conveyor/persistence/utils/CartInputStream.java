@@ -1,12 +1,12 @@
 package com.aegisql.conveyor.persistence.utils;
 
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
+
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 
 public class CartInputStream <K,L> extends FilterInputStream {
 

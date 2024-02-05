@@ -12,9 +12,9 @@ import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
-import com.aegisql.conveyor.persistence.jdbc.engine.mysql.MysqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerDataSource;
+import com.aegisql.conveyor.persistence.jdbc.engine.mysql.MysqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.junit.*;
 

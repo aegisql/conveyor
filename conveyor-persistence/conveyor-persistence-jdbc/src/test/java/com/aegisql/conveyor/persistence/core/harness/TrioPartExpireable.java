@@ -1,8 +1,8 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
-import java.util.function.BiConsumer;
-
 import com.aegisql.conveyor.SmartLabel;
+
+import java.util.function.BiConsumer;
 
 public enum TrioPartExpireable implements SmartLabel<TrioBuilderExpireable>{
 	TEXT1(SmartLabel.of(TrioBuilderExpireable::setText1)),

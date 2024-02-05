@@ -1,22 +1,17 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.persistence.utils.PersistUtils;
+import org.apache.commons.io.FileUtils;
+import org.junit.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.persistence.utils.PersistUtils;
+import static org.junit.Assert.*;
 
 public class UtilsTest {
 

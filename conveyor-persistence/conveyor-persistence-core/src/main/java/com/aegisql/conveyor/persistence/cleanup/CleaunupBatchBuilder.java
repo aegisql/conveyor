@@ -1,17 +1,16 @@
 package com.aegisql.conveyor.persistence.cleanup;
 
-import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.function.Supplier;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.aegisql.conveyor.Expireable;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.TimeoutAction;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**

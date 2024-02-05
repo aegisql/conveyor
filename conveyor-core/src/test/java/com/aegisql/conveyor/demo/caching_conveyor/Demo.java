@@ -3,18 +3,15 @@
  */
 package com.aegisql.conveyor.demo.caching_conveyor;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-
-import org.junit.Test;
-
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.consumers.result.IgnoreResult;
 import com.aegisql.conveyor.demo.ThreadPool;
 import com.aegisql.conveyor.utils.caching.CachingConveyor;
+import org.junit.Test;
+
+import java.text.SimpleDateFormat;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 public class Demo {
 	

@@ -3,12 +3,12 @@
  */
 package com.aegisql.conveyor;
 
+import com.aegisql.conveyor.cart.Cart;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
-import com.aegisql.conveyor.cart.Cart;
 
 // TODO: Auto-generated Javadoc
 /**

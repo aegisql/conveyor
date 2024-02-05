@@ -1,17 +1,9 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.*;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.persistence.utils.DataSize;
+import org.junit.*;
+
+import static org.junit.Assert.assertEquals;
 
 public class DataSizeTest {
 

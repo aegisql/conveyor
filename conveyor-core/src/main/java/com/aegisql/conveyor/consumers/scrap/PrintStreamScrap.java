@@ -1,15 +1,10 @@
 package com.aegisql.conveyor.consumers.scrap;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.function.Function;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ScrapBin;
+
+import java.io.*;
+import java.util.function.Function;
 
 // TODO: Auto-generated Javadoc
 /**

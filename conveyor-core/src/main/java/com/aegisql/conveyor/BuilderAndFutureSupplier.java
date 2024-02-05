@@ -3,11 +3,11 @@
  */
 package com.aegisql.conveyor;
 
+import com.aegisql.conveyor.BuilderSupplier.BuilderFutureSupplier;
+
 import java.io.Serial;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.BuilderSupplier.BuilderFutureSupplier;
 
 // TODO: Auto-generated Javadoc
 /**

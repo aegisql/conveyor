@@ -1,7 +1,6 @@
 package com.aegisql.conveyor.persistence.jdbc.engine.connectivity;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.CachingStatementExecutor;
 import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.NonCachingStatementExecutor;
 import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.StatementExecutor;
@@ -10,7 +9,8 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Objects;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.function.Supplier;
 

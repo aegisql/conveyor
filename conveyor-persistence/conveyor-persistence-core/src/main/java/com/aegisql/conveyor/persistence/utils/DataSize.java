@@ -1,9 +1,9 @@
 package com.aegisql.conveyor.persistence.utils;
 
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+
 import java.math.BigDecimal;
 import java.util.Objects;
-
-import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 public enum DataSize {
 	 B(1)

@@ -1,20 +1,15 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
+import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
+import org.apache.log4j.BasicConfigurator;
+import org.junit.*;
 
 import java.util.concurrent.CompletableFuture;
 
-import org.apache.log4j.BasicConfigurator;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
-import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class CleanupBatchConveyorTest {
 

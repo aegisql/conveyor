@@ -3,10 +3,10 @@
  */
 package com.aegisql.conveyor.demo.conveyor_timeout_action;
 
+import com.aegisql.conveyor.Testing;
+
 import java.util.Date;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.Testing;
 
 public class PersonBuilder implements Supplier<Person>, Testing {
 	

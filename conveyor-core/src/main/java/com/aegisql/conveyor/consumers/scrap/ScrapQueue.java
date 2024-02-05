@@ -1,13 +1,13 @@
 package com.aegisql.conveyor.consumers.scrap;
 
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ScrapBin;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ScrapBin;
 
 // TODO: Auto-generated Javadoc
 /**

@@ -1,19 +1,14 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.persistence.cleanup.CleaunupBatchBuilder;
+import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
+import org.junit.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.persistence.cleanup.CleaunupBatchBuilder;
-import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class CleanupBatchBuilderTest {
 

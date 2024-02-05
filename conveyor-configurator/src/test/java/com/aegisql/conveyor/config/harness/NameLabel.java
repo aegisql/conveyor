@@ -1,8 +1,8 @@
 package com.aegisql.conveyor.config.harness;
 
-import java.util.function.BiConsumer;
-
 import com.aegisql.conveyor.SmartLabel;
+
+import java.util.function.BiConsumer;
 
 public enum NameLabel implements SmartLabel<StringSupplier>{
 	

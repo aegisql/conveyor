@@ -1,10 +1,10 @@
 package com.aegisql.conveyor.persistence.converters;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 
 // TODO: Auto-generated Javadoc
 /**

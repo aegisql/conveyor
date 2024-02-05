@@ -1,10 +1,8 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
-import java.util.function.Supplier;
-
 import com.aegisql.conveyor.Expireable;
-import com.aegisql.conveyor.persistence.core.harness.Trio;
-import com.aegisql.conveyor.persistence.core.harness.TrioBuilderExpireable;
+
+import java.util.function.Supplier;
 
 public class TrioBuilderExpireable implements Supplier<Trio>, Expireable{
 

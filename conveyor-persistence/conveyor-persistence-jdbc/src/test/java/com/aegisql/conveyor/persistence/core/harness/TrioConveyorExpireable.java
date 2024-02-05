@@ -1,7 +1,5 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
-import java.util.concurrent.TimeUnit;
-
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
@@ -9,6 +7,8 @@ import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.result.ResultCounter;
 import com.aegisql.conveyor.consumers.result.ResultMap;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
+
+import java.util.concurrent.TimeUnit;
 
 
 

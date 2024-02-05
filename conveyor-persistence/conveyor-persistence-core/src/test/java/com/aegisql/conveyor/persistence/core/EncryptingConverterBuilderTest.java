@@ -1,15 +1,10 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.*;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.persistence.converters.EncryptingConverter;
 import com.aegisql.conveyor.persistence.encryption.EncryptingConverterBuilder;
+import org.junit.*;
+
+import static org.junit.Assert.*;
 
 public class EncryptingConverterBuilderTest {
 

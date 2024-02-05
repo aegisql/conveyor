@@ -1,14 +1,7 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.*;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
+import org.junit.*;
 
 public class BinaryLogConfigTest {
 

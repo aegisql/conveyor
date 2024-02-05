@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.persistence.utils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;

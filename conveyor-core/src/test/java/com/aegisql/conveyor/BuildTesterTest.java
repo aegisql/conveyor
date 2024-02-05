@@ -1,27 +1,14 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.user.*;
+import org.junit.*;
 
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.ShoppingCart;
-import com.aegisql.conveyor.loaders.PartLoader;
-import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.user.UserBuilderEvents;
-import com.aegisql.conveyor.user.UserBuilderEvents2;
-import com.aegisql.conveyor.user.UserBuilderEvents3;
-import com.aegisql.conveyor.user.UserBuilderSmart;
-import com.aegisql.conveyor.user.UserBuilderTesting;
-import com.aegisql.conveyor.user.UserBuilderTestingState;
+import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
 /**

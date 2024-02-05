@@ -1,9 +1,8 @@
 package com.aegisql.conveyor.utils.caching;
 
+import com.aegisql.conveyor.LabeledValueConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.aegisql.conveyor.LabeledValueConsumer;
 
 import java.io.Serial;
 

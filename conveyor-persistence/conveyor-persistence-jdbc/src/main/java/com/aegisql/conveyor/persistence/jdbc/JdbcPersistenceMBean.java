@@ -1,11 +1,10 @@
 package com.aegisql.conveyor.persistence.jdbc;
 
-import java.lang.management.ManagementFactory;
-import java.util.function.Supplier;
+import com.aegisql.conveyor.persistence.core.Persistence;
 
 import javax.management.MBeanServer;
-
-import com.aegisql.conveyor.persistence.core.Persistence;
+import java.lang.management.ManagementFactory;
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**

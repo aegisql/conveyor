@@ -1,16 +1,10 @@
 package com.aegisql.conveyor.delay;
 
-import static org.junit.Assert.*;
+import org.junit.*;
 
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 // TODO: Auto-generated Javadoc
 /**

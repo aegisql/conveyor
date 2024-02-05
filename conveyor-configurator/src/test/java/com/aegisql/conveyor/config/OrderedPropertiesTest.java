@@ -1,14 +1,8 @@
 package com.aegisql.conveyor.config;
 
-import static org.junit.Assert.*;
+import org.junit.*;
 
 import java.io.IOException;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class OrderedPropertiesTest {
 

@@ -1,9 +1,9 @@
 package com.aegisql.conveyor.persistence.jdbc.converters;
 
+import com.aegisql.conveyor.persistence.core.ObjectConverter;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
 // TODO: Auto-generated Javadoc
 /**

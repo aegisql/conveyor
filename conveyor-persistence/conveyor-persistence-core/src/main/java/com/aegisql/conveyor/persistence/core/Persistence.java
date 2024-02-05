@@ -1,18 +1,17 @@
 package com.aegisql.conveyor.persistence.core;
 
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.cart.Cart;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import java.io.Closeable;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-
-import com.aegisql.conveyor.AssemblingConveyor;
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.cart.Cart;
 
 // TODO: Auto-generated Javadoc
 

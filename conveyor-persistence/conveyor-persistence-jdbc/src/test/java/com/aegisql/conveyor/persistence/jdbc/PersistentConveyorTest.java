@@ -5,8 +5,6 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.loaders.PartLoader;
-import com.aegisql.conveyor.meta.ConveyorMetaInfo;
-import com.aegisql.conveyor.meta.ConveyorMetaInfoBuilder;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.core.harness.*;

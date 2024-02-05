@@ -1,11 +1,11 @@
 package com.aegisql.conveyor.consumers.scrap;
 
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ScrapBin;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.ScrapBin;
 
 // TODO: Auto-generated Javadoc
 /**

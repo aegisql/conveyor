@@ -1,10 +1,10 @@
 package com.aegisql.conveyor.utils.map;
 
+import com.aegisql.conveyor.utils.CommonBuilder;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import com.aegisql.conveyor.utils.CommonBuilder;
 
 // TODO: Auto-generated Javadoc
 /**

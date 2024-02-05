@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.config;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.config.harness.TestBean;
+import org.junit.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,12 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.aegisql.conveyor.config.harness.TestBean;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class PersistencePropertyTest {
 

@@ -1,23 +1,6 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
-
 import com.aegisql.conveyor.persistence.converters.*;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.persistence.converters.arrays.ClassesToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntPrimToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntegersToBytesConverter;
@@ -28,6 +11,15 @@ import com.aegisql.conveyor.persistence.converters.sql.SqlDateToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimeToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimestampToBytesConverter;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
+import org.junit.*;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 public class ConvertersTest {
 

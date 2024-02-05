@@ -3,23 +3,18 @@
  */
 package com.aegisql.conveyor;
 
+import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.LoadType;
+import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.validation.CommonValidators;
+import org.junit.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-import com.aegisql.conveyor.validation.CommonValidators;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.LoadType;
-import com.aegisql.conveyor.cart.ShoppingCart;
 
 import static org.junit.Assert.*;
 

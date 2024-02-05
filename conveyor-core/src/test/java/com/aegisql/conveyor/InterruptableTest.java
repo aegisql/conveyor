@@ -1,18 +1,12 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.consumers.result.LastResultReference;
+import org.junit.*;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.consumers.result.LastResultReference;
+import static org.junit.Assert.assertTrue;
 
 public class InterruptableTest {
 

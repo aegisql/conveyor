@@ -1,12 +1,12 @@
 package com.aegisql.conveyor.persistence.jdbc.converters;
 
+import com.aegisql.conveyor.persistence.core.ObjectConverter;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
-import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 // TODO: Auto-generated Javadoc
 /**

@@ -1,12 +1,12 @@
 package com.aegisql.conveyor.persistence.converters.collections;
 
+import com.aegisql.conveyor.persistence.core.ObjectConverter;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.persistence.core.ObjectConverter;
 
 // TODO: Auto-generated Javadoc
 /**

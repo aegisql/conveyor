@@ -1,6 +1,5 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
-import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 

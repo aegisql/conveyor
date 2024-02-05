@@ -7,7 +7,6 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
-import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
 import org.junit.Test;
 

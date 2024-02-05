@@ -1,11 +1,11 @@
 package com.aegisql.conveyor.utils.batch;
 
+import com.aegisql.conveyor.TimeoutAction;
+import com.aegisql.conveyor.utils.CommonBuilder;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import com.aegisql.conveyor.TimeoutAction;
-import com.aegisql.conveyor.utils.CommonBuilder;
 
 // TODO: Auto-generated Javadoc
 /**

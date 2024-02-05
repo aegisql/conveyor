@@ -3,12 +3,12 @@
  */
 package com.aegisql.conveyor.demo.conveyor_smart_builder;
 
-import java.util.Date;
-import java.util.function.Supplier;
-
 import com.aegisql.conveyor.Expireable;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.TimeoutAction;
+
+import java.util.Date;
+import java.util.function.Supplier;
 
 public class PersonBuilder implements Supplier<Person>, Testing, Expireable, TimeoutAction {
 	

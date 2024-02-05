@@ -1,5 +1,12 @@
 package com.aegisql.conveyor.persistence.jdbc.converters;
 
+import com.aegisql.conveyor.persistence.core.PersistenceException;
+import org.apache.commons.io.IOUtils;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -8,15 +15,6 @@ import java.security.InvalidKeyException;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.SQLException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.SecretKey;
-
-import org.apache.commons.io.IOUtils;
-
-import com.aegisql.conveyor.persistence.core.PersistenceException;
 
 // TODO: Auto-generated Javadoc
 /**

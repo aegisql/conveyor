@@ -3,14 +3,14 @@
  */
 package com.aegisql.conveyor.loaders;
 
+import com.aegisql.conveyor.Conveyor;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import com.aegisql.conveyor.Conveyor;
 
 // TODO: Auto-generated Javadoc
 /**

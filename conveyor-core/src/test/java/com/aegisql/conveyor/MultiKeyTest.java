@@ -1,22 +1,18 @@
 package com.aegisql.conveyor;
 
-import static org.junit.Assert.*;
+import com.aegisql.conveyor.cart.Load;
+import com.aegisql.conveyor.cart.MultiKeyCart;
+import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.user.User;
+import com.aegisql.conveyor.user.UserBuilderSmart;
+import org.junit.*;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.aegisql.conveyor.cart.Load;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.cart.MultiKeyCart;
-import com.aegisql.conveyor.loaders.PartLoader;
-import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.user.UserBuilderSmart;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class MultiKeyTest {
 

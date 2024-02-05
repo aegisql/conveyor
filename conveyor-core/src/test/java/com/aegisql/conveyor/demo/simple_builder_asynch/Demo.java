@@ -3,14 +3,12 @@
  */
 package com.aegisql.conveyor.demo.simple_builder_asynch;
 
-import java.text.ParseException;
+import com.aegisql.conveyor.demo.ThreadPool;
+import org.junit.Test;
+
 import java.text.SimpleDateFormat;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import org.junit.Test;
-
-import com.aegisql.conveyor.demo.ThreadPool;
 
 public class Demo {
 	

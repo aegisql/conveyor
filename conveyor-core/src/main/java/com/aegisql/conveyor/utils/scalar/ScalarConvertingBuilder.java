@@ -1,8 +1,8 @@
 package com.aegisql.conveyor.utils.scalar;
 
-import java.util.concurrent.TimeUnit;
-
 import com.aegisql.conveyor.utils.CommonBuilder;
+
+import java.util.concurrent.TimeUnit;
 
 // TODO: Auto-generated Javadoc
 /**

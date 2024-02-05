@@ -1,20 +1,5 @@
 package com.aegisql.conveyor.persistence.core;
 
-import static org.junit.Assert.*;
-
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.MultiKeyCart;
@@ -24,6 +9,12 @@ import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.converters.EnumToBytesConverter;
 import com.aegisql.conveyor.persistence.utils.CartInputStream;
 import com.aegisql.conveyor.persistence.utils.CartOutputStream;
+import org.junit.*;
+
+import java.io.*;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
 
 public class CartCOnverterTest {
 

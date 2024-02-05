@@ -1,12 +1,12 @@
 package com.aegisql.conveyor.persistence.archive;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.utils.DataSize;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 // TODO: Auto-generated Javadoc
 /**

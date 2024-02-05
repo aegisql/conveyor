@@ -1,10 +1,10 @@
 package com.aegisql.conveyor.consumers.result;
 
-import java.io.Serial;
-import java.util.concurrent.atomic.AtomicReference;
-
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.ProductBin;
+
+import java.io.Serial;
+import java.util.concurrent.atomic.AtomicReference;
 
 // TODO: Auto-generated Javadoc
 /**
