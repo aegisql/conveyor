@@ -1,18 +1,18 @@
 package com.aegisql.conveyor.consumers.scrap;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ScrapMapTest {
 
     ScrapMap<Integer> sm;
-    @Before
+    @BeforeEach
     public void init() {
         sm = new ScrapMap<>();
     }
@@ -38,44 +38,44 @@ public class ScrapMapTest {
         assertNotNull(ScrapMap.of(null,()->new ConcurrentHashMap()));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failPutTest() {
-        sm.put(1, Arrays.asList("X"));
+        assertThrows(RuntimeException.class,()->sm.put(1, Arrays.asList("X")));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failPutAllTest() {
-        sm.putAll(new HashMap<>());
+        assertThrows(RuntimeException.class,()->sm.putAll(new HashMap<>()));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failRemoveTest() {
-        sm.remove(1);
+        assertThrows(RuntimeException.class,()->sm.remove(1));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failClearTest() {
-        sm.clear();
+        assertThrows(RuntimeException.class,()->sm.clear());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failPutAbsentrTest() {
-        sm.putIfAbsent(null,null);
+        assertThrows(RuntimeException.class,()->sm.putIfAbsent(null,null));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failRemove2Test() {
-        sm.remove(1,1);
+        assertThrows(RuntimeException.class,()->sm.remove(1,1));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failReplaceTest() {
-        sm.replace(1,null);
+        assertThrows(RuntimeException.class,()->sm.replace(1,null));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failReplace2Test() {
-        sm.replace(1,null,null);
+        assertThrows(RuntimeException.class,()->sm.replace(1,null,null));
     }
 
 

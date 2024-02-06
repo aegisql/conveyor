@@ -6,12 +6,12 @@ import com.aegisql.conveyor.cart.FutureCart;
 import com.aegisql.conveyor.consumers.scrap.IgnoreScrap;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.consumers.scrap.ScrapMap;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ScrapConsumerLoaderTest {
 

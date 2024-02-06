@@ -3,11 +3,11 @@ package com.aegisql.conveyor;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
 import com.aegisql.conveyor.exception.KeepRunningConveyorException;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.function.Supplier;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class KeepRunningExceptionTest {
 	
@@ -45,19 +45,19 @@ public class KeepRunningExceptionTest {
 
 	SmartLabel<ObjectBuilder> SET = SmartLabel.of("SET", ObjectBuilder::action);
 	
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

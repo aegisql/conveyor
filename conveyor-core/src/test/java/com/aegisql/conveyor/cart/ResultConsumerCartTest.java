@@ -1,9 +1,9 @@
 package com.aegisql.conveyor.cart;
 
 import com.aegisql.conveyor.consumers.result.IgnoreResult;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ResultConsumerCartTest {
 

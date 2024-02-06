@@ -4,13 +4,13 @@ import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
 import com.aegisql.conveyor.utils.BuilderUtils;
 import com.aegisql.conveyor.utils.Wrapped;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ProductBuilderTest {
 

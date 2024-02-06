@@ -2,9 +2,9 @@ package com.aegisql.conveyor.consumers.result;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.ProductBin;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ForwardResultTest {
 

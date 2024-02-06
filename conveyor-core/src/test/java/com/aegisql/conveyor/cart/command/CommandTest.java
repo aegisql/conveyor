@@ -4,13 +4,13 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 // TODO: Auto-generated Javadoc
 
@@ -50,7 +50,7 @@ public class CommandTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -58,7 +58,7 @@ public class CommandTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -66,7 +66,7 @@ public class CommandTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -74,7 +74,7 @@ public class CommandTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

@@ -2,7 +2,7 @@ package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.reflection.SimpleConveyor;
 import com.aegisql.java_path.PathElement;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,8 +11,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class LoaderPriorityTest {
 
@@ -50,19 +50,19 @@ public class LoaderPriorityTest {
 		}
 	}
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

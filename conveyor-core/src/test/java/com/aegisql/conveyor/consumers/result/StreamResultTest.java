@@ -1,14 +1,16 @@
 package com.aegisql.conveyor.consumers.result;
 
 import com.aegisql.conveyor.harness.Tester;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 
 public class StreamResultTest {
 
@@ -21,11 +23,11 @@ public class StreamResultTest {
         sr.close();
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failTest() throws IOException {
         OutputStream os = new ByteArrayOutputStream();
         StreamResult<Integer,StreamResultTest> sr = new StreamResult<>(os);
-        sr.accept(ResultConsumerTest.getProductBin(1,this));
+        assertThrows(RuntimeException.class,()->sr.accept(ResultConsumerTest.getProductBin(1,this)));
     }
 
     @Test

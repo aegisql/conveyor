@@ -1,10 +1,10 @@
 package com.aegisql.conveyor.consumers.result;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ResultMapTest {
 
@@ -36,24 +36,24 @@ public class ResultMapTest {
         assertNotNull(rm3);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void putTest() {
         ResultMap<Integer,String> rm1 = new ResultMap<>();
-        rm1.put(1,"test");
+        assertThrows(RuntimeException.class,()->rm1.put(1,"test"));
     }
-    @Test(expected = RuntimeException.class)
+    @Test
     public void putAllTest() {
         ResultMap<Integer,String> rm1 = new ResultMap<>();
-        rm1.putAll(new HashMap<>());
+        assertThrows(RuntimeException.class,()->rm1.putAll(new HashMap<>()));
     }
-    @Test(expected = RuntimeException.class)
+    @Test
     public void removeTest() {
         ResultMap<Integer,String> rm1 = new ResultMap<>();
-        rm1.remove(1);
+        assertThrows(RuntimeException.class,()->rm1.remove(1));
     }
-    @Test(expected = RuntimeException.class)
+    @Test
     public void clearTest() {
         ResultMap<Integer,String> rm1 = new ResultMap<>();
-        rm1.clear();
+        assertThrows(RuntimeException.class,()->rm1.clear());
     }
 }

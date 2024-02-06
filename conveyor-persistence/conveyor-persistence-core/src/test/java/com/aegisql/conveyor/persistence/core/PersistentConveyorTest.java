@@ -7,28 +7,28 @@ import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
 import org.apache.log4j.BasicConfigurator;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PersistentConveyorTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

@@ -11,7 +11,7 @@ import com.aegisql.conveyor.persistence.core.harness.*;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.apache.log4j.BasicConfigurator;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.io.File;
 import java.util.*;
@@ -19,7 +19,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class MysqlDbcpPerfTest {
 
@@ -33,15 +34,15 @@ public class MysqlDbcpPerfTest {
 			.dbcp2Connection()
 			.autoInit(true).setArchived();
 	
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
-		Assume.assumeTrue(Tester.testMySqlConnection());
+		assumeTrue(Tester.testMySqlConnection());
 		Tester.removeLocalMysqlDatabase(PERF_CONV_DBCP);
 		Tester.removeLocalMysqlDatabase(PERF_CONV_DBCP_ARCHIVE);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 		try {
 			File dir = new File("./");
@@ -62,7 +63,7 @@ public class MysqlDbcpPerfTest {
 	double sleepTime = 0.01;
 	int sleepNumber;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		pool = new ThreadPool(3);
 		batchSize = testSize / 20;
@@ -70,7 +71,7 @@ public class MysqlDbcpPerfTest {
 		System.out.println("--- Mysql DBCP2 Perf Test " + new Date());
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		pool.shutdown();
 	}

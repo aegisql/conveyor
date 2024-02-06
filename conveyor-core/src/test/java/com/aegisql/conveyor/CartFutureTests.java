@@ -6,7 +6,7 @@ import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderSmart;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -27,7 +27,7 @@ public class CartFutureTests {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -35,7 +35,7 @@ public class CartFutureTests {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -43,7 +43,7 @@ public class CartFutureTests {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -51,7 +51,7 @@ public class CartFutureTests {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -61,7 +61,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsSmart() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -96,8 +96,8 @@ public class CartFutureTests {
 		assertTrue(cf4.isDone());
 
 		CompletableFuture<User> uf3 = conveyor.future().id(2).get();
-		
-		User u3 = uf3.get();
+
+		assertThrows(CancellationException.class,()->uf3.get());
 		
 		conveyor.stop();
 	}
@@ -108,7 +108,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test
 	public void testExpiredSmart() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -125,7 +125,7 @@ public class CartFutureTests {
 		
 		assertTrue(cf1.isDone());
 
-		assertFalse(cf1.get());
+		assertThrows(ExecutionException.class,()->assertFalse(cf1.get()));
 		conveyor.stop();
 	}
 	
@@ -135,7 +135,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test
 	public void testExpiredSmart2() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -149,7 +149,8 @@ public class CartFutureTests {
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST,10,TimeUnit.MILLISECONDS);
 		Thread.sleep(20);
 		CompletableFuture<Boolean> cf1 = conveyor.place(c1);
-		cf1.get();
+		assertThrows(ExecutionException.class,()->cf1.get());
+
 	}
 
 	/**
@@ -158,7 +159,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsbuildSmart() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -185,7 +186,7 @@ public class CartFutureTests {
 		conveyor.place(c4);
 
 		User u1 = cf1.get();
-		cf2.get();
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 
@@ -195,8 +196,8 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
-	public void testBasicsFutureSmart1() throws InterruptedException, Exception {
+	@Test
+	public void testBasicsFutureSmart1() {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -222,9 +223,11 @@ public class CartFutureTests {
 		assertFalse(cf2.isDone());
 
 
-		User u1 = cf1.get();
-		assertNotNull(u1);
-		cf2.get();
+		assertThrows(CancellationException.class,()->{
+			var user = cf1.join();
+			assertNotNull(user);
+		});
+		assertThrows(CancellationException.class,()->cf2.join());
 		conveyor.stop();
 	}
 
@@ -235,7 +238,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsFutureSmart2() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -261,9 +264,12 @@ public class CartFutureTests {
 		assertFalse(cf2.isDone());
 
 
-		User u1 = cf1.get();
-		assertNotNull(u1);
-		cf2.get();
+		assertThrows(CancellationException.class,()->{
+			var user = cf1.join();
+			assertNotNull(user);
+		});
+		assertThrows(CancellationException.class,()->cf2.join());
+
 		conveyor.stop();
 	}
 	
@@ -273,7 +279,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsFutureSmart3() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -302,7 +308,7 @@ public class CartFutureTests {
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
-		cf2.get();
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 	
@@ -312,7 +318,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsFutureSmart4() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -345,7 +351,7 @@ public class CartFutureTests {
 		assertFalse(cf2.isDone());
 
 		assertNotNull(u1);
-		cf2.get();
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 	
@@ -355,7 +361,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsFutureSmart5() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -388,7 +394,7 @@ public class CartFutureTests {
 		assertFalse(cf2.isDone());
 
 		assertNotNull(u1);
-		cf2.get();
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 	
@@ -398,7 +404,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsbuildSmart2() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -424,7 +430,7 @@ public class CartFutureTests {
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
-		cf2.get();
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 
@@ -434,7 +440,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsbuildSmart3() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -459,7 +465,7 @@ public class CartFutureTests {
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
-		cf2.get();
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 
@@ -469,7 +475,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsbuildSmart4() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -494,8 +500,7 @@ public class CartFutureTests {
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
-		cf2.get();
-		Thread.sleep(100);
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 	
@@ -505,7 +510,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsbuildSmart5() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -530,8 +535,7 @@ public class CartFutureTests {
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
-		cf2.get();
-		Thread.sleep(100);
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 
@@ -541,7 +545,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsbuildSmart6() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -566,7 +570,7 @@ public class CartFutureTests {
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
-		cf2.get();
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 
@@ -576,7 +580,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsbuildSmart7() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -600,7 +604,7 @@ public class CartFutureTests {
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
-		cf2.get();
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 	
@@ -610,7 +614,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsbuildSmart8() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -634,7 +638,7 @@ public class CartFutureTests {
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
-		cf2.get();
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 
@@ -644,7 +648,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsbuildSmart9() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -668,7 +672,7 @@ public class CartFutureTests {
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
-		cf2.get();
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 
@@ -678,7 +682,7 @@ public class CartFutureTests {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws Exception the exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testBasicsbuildSmart10() throws InterruptedException, Exception {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -702,7 +706,7 @@ public class CartFutureTests {
 
 		User u1 = cf1.get();
 		assertNotNull(u1);
-		cf2.get();
+		assertThrows(CancellationException.class,()->cf2.get());
 		conveyor.stop();
 	}
 	

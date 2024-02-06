@@ -1,9 +1,9 @@
 package com.aegisql.conveyor.consumers.scrap;
 
 import com.aegisql.conveyor.AssemblingConveyor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ScrapCounterTest {
 

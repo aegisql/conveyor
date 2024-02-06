@@ -2,13 +2,13 @@ package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.user.*;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -20,7 +20,7 @@ public class BuildTesterTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -28,7 +28,7 @@ public class BuildTesterTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -36,7 +36,7 @@ public class BuildTesterTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -44,7 +44,7 @@ public class BuildTesterTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

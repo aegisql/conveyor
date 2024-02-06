@@ -3,13 +3,6 @@
  */
 package com.aegisql.conveyor.parallel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,14 +12,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
@@ -38,6 +23,9 @@ import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
+import org.junit.jupiter.api.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -66,7 +54,7 @@ public class ParallelConveyorTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 
 		conveyor.setBuilderSupplier( UserBuilder::new );
@@ -112,7 +100,7 @@ public class ParallelConveyorTest {
 	 *
 	 * @throws Exception the exception
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() throws Exception {
 		conveyor.stop();
 		Thread.sleep(100);
@@ -128,7 +116,7 @@ public class ParallelConveyorTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -136,7 +124,7 @@ public class ParallelConveyorTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 	
@@ -161,9 +149,9 @@ public class ParallelConveyorTest {
 	/**
 	 * Test exception.
 	 */
-	@Test(expected=NullPointerException.class)
+	@Test
 	public void testException() {
-		conveyor.place(null);
+		assertThrows(NullPointerException.class,()->conveyor.place(null));
 	}
 
 	/**
@@ -376,7 +364,7 @@ public class ParallelConveyorTest {
 	 * @throws ExecutionException the execution exception
 	 * @throws TimeoutException the timeout exception
 	 */
-	@Test(expected=TimeoutException.class)
+	@Test
 	public void futureConveyorTest() throws InterruptedException, ExecutionException, TimeoutException {
 		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
@@ -400,7 +388,7 @@ public class ParallelConveyorTest {
 		assertNotNull(usr.getCurrent());
 		assertNotNull(uf1.get());
 		assertNotNull(uf2.get());
-		assertNotNull(uf3.get(1,TimeUnit.SECONDS));
+		assertThrows(TimeoutException.class,()->uf3.get(1,TimeUnit.SECONDS));
 
 	}
 

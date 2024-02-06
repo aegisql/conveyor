@@ -2,12 +2,12 @@ package com.aegisql.conveyor.cart;
 
 import com.aegisql.conveyor.harness.Tester;
 import com.aegisql.conveyor.serial.SerializablePredicate;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class MultiKeyCartTest {
 

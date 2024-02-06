@@ -1,7 +1,7 @@
 package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ConveyorRuntimeExceptionTest {
 

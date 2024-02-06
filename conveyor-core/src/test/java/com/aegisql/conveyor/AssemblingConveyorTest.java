@@ -13,7 +13,7 @@ import com.aegisql.conveyor.loaders.*;
 import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 // TODO: Auto-generated Javadoc
 
@@ -39,7 +39,7 @@ public class AssemblingConveyorTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -47,7 +47,7 @@ public class AssemblingConveyorTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -55,7 +55,7 @@ public class AssemblingConveyorTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -63,7 +63,7 @@ public class AssemblingConveyorTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -115,7 +115,7 @@ public class AssemblingConveyorTest {
 	 * Test command stopped.
 	 *
 	 */
-	@Test(expected=IllegalStateException.class)
+	@Test
 	public void testCommandStopped() {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -127,7 +127,7 @@ public class AssemblingConveyorTest {
 		}).set();
 		GeneralCommand<Integer,String> c1 = new GeneralCommand<>(1, "", CommandLabel.TIMEOUT_BUILD,0L);
 		conveyor.stop();
-		conveyor.command(c1);
+		assertThrows(IllegalStateException.class,()->conveyor.command(c1));
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class AssemblingConveyorTest {
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 */
-	@Test(expected=IllegalStateException.class)
+	@Test
 	public void testCommandExpired() throws InterruptedException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -146,7 +146,7 @@ public class AssemblingConveyorTest {
 		}).set();
 		CommandLoader<Integer, User> cl = conveyor.command().id(1).ttl(1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
-		cl.timeout();
+		assertThrows(IllegalStateException.class,()->cl.timeout());
 	}
 
 	/**
@@ -154,7 +154,7 @@ public class AssemblingConveyorTest {
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 */
-	@Test(expected=IllegalStateException.class)
+	@Test
 	public void testCommandTooOld() throws InterruptedException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -167,7 +167,7 @@ public class AssemblingConveyorTest {
 		
 		GeneralCommand<Integer,?> c1 = new GeneralCommand<>(1,"",CommandLabel.TIMEOUT_BUILD,System.currentTimeMillis()+100);
 		Thread.sleep(20);
-		conveyor.command(c1);
+		assertThrows(IllegalStateException.class,()->conveyor.command(c1));
 	}
 
 	/**
@@ -176,7 +176,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test
 	public void testAddStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -188,7 +188,7 @@ public class AssemblingConveyorTest {
 		}).set();
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		conveyor.stop();
-		conveyor.place(c1).get();
+		assertThrows(ExecutionException.class,()->conveyor.place(c1).get());
 	}
 
 	/**
@@ -197,7 +197,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test
 	public void testNullCartContentStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -212,7 +212,7 @@ public class AssemblingConveyorTest {
 			}
 		});
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, null, "setFirst");
-		conveyor.place(c1).get();
+		assertThrows(ExecutionException.class,()->conveyor.place(c1).get());
 	}
 
 	/**
@@ -221,7 +221,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test
 	public void testAddExpiredStopped() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>();
@@ -232,7 +232,7 @@ public class AssemblingConveyorTest {
 		}).set();
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst",1,TimeUnit.MILLISECONDS);
 		Thread.sleep(10);
-		conveyor.place(c1).get();
+		assertThrows(ExecutionException.class,()->conveyor.place(c1).get());
 	}
 
 	/**
@@ -536,7 +536,7 @@ public class AssemblingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test
 	public void testSimpleConveyorBlocking() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> 
 		conveyor = new AssemblingConveyor<>( ()->new ArrayBlockingQueue(3) );
@@ -586,8 +586,7 @@ public class AssemblingConveyorTest {
 		conveyor.place(c3);
 		conveyor.place(c4);
 		CompletableFuture<Boolean> f4 = conveyor.place(c4);
-		Boolean res = f4.get();
-		System.out.println("Unexpected: "+res);
+		assertThrows(ExecutionException.class,()->f4.get());
 	}
 
 
@@ -760,7 +759,7 @@ public class AssemblingConveyorTest {
 	/**
 	 * Test unregister access by name.
 	 */
-	@Test(expected=RuntimeException.class)
+	@Test
 	public void testUnregisterAccessByName() {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
 
@@ -778,28 +777,27 @@ public class AssemblingConveyorTest {
 		
 		assertNotNull(acs.get());
 		
-		ac2 = Conveyor.byName("test_name_2");
-		
+		assertThrows(RuntimeException.class,()->Conveyor.byName("test_name_2"));
 	}
 
 
 	/**
 	 * Test access by wrong name.
 	 */
-	@Test(expected=RuntimeException.class)
+	@Test
 	public void testAccessByWrongName() {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
 		
 		ac1.setName("test_name");
 		
-		Conveyor<Integer,String,User> ac2 = Conveyor.byName("bad_name");
-		
+		assertThrows(RuntimeException.class,()->Conveyor.byName("bad_name"));
+
 	}
 
-	@Test(expected = ConveyorRuntimeException.class)
+	@Test
 	public void unimplementedMetadataExceptionTest() {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
-		ConveyorMetaInfo<Integer, String, User> metaInfo = ac1.getMetaInfo();
+		assertThrows(ConveyorRuntimeException.class,()->ac1.getMetaInfo());
 	}
 
 }

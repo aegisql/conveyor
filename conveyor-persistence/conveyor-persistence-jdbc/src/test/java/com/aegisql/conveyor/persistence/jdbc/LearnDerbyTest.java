@@ -6,31 +6,31 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringConverter;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.sql.*;
 import java.util.Collection;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class LearnDerbyTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 		Tester.removeDirectory("testDb1");
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		Tester.sleep(1000);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 		

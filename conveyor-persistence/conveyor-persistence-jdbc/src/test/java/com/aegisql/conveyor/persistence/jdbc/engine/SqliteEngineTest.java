@@ -5,7 +5,7 @@ import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.engine.sqlite.SqliteEngine;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -15,26 +15,26 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SqliteEngineTest {
 
 	private static final String SCHEMA = Tester.getTestClass();
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 		Tester.removeFile(SCHEMA+".db");
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

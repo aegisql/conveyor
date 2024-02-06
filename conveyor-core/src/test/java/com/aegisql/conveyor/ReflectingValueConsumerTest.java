@@ -9,7 +9,7 @@ import com.aegisql.conveyor.reflection.SimpleConveyor;
 import com.aegisql.conveyor.utils.BuilderUtils;
 import com.aegisql.conveyor.utils.MultiValue;
 import com.aegisql.java_path.*;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -19,23 +19,23 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static com.aegisql.conveyor.ReflectingValueConsumerTest.PhoneType.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ReflectingValueConsumerTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -207,18 +207,18 @@ public class ReflectingValueConsumerTest {
 		assertEquals(100,a.getX());
 	}
 
-	@Test(expected=RuntimeException.class)
+	@Test
 	public void testAFailure() {
 	ReflectingValueConsumer vc = new ReflectingValueConsumer();
 	A a = new A();
-	vc.accept("setValue", "test", a);//no value setter
+	assertThrows(RuntimeException.class,()->vc.accept("setValue", "test", a));//no value setter
 	}
 
-	@Test(expected= ConveyorRuntimeException.class)
+	@Test
 	public void testEmptyLabelFailure() {
 		ReflectingValueConsumer vc = new ReflectingValueConsumer();
 		A a = new A();
-		vc.accept("", "test", a);//no empty setter
+		assertThrows(ConveyorRuntimeException.class,()->vc.accept("", "test", a));//no empty setter
 	}
 
 
@@ -348,15 +348,15 @@ public class ReflectingValueConsumerTest {
 	assertEquals(100,a.getX());
 	}
 
-	@Test(expected= JavaPathRuntimeException.class)
+	@Test
 	public void testBEWithDuplicatedAnnotation() {
 	ReflectingValueConsumer vc = new ReflectingValueConsumer();
 	BE a = new BE();
-	vc.accept("value", "test", a);
+	assertThrows(JavaPathRuntimeException.class,()->vc.accept("value", "test", a));
 	}
 
 
-	@Test(expected=RuntimeException.class)
+	@Test
 	public void testDup1WithNull() {
 	ReflectingValueConsumer vc = new ReflectingValueConsumer();
 	DUP1 a = new DUP1();
@@ -364,7 +364,7 @@ public class ReflectingValueConsumerTest {
 	a.setVal(100);
 	assertNotNull(a.getSVal());
 	assertNotNull(a.getIVal());
-	vc.accept("setVal", null, a);
+	assertThrows(RuntimeException.class,()->vc.accept("setVal", null, a));
 	}
 
 	@Test

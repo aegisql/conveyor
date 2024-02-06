@@ -7,7 +7,7 @@ import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.consumers.result.IgnoreResult;
 import com.aegisql.conveyor.demo.ThreadPool;
 import com.aegisql.conveyor.utils.caching.CachingConveyor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.text.SimpleDateFormat;
 import java.util.concurrent.TimeUnit;

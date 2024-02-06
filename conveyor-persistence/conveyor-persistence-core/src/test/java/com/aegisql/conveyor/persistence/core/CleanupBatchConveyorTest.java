@@ -4,29 +4,29 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.cleanup.PersistenceCleanupBatchConveyor;
 import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 import org.apache.log4j.BasicConfigurator;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class CleanupBatchConveyorTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

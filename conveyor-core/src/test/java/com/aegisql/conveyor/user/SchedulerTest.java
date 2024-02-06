@@ -3,15 +3,14 @@ package com.aegisql.conveyor.user;
 import com.aegisql.conveyor.utils.schedule.SchedulableClosure;
 import com.aegisql.conveyor.utils.schedule.Schedule;
 import com.aegisql.conveyor.utils.schedule.SimpleScheduler;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-
-// TODO: Auto-generated Javadoc
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * The Class SchedulerTest.
@@ -27,7 +26,7 @@ public class SchedulerTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -35,7 +34,7 @@ public class SchedulerTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -43,7 +42,7 @@ public class SchedulerTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -51,7 +50,7 @@ public class SchedulerTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 		
 	}
@@ -148,9 +147,11 @@ public class SchedulerTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test
 	public void testExecuteOnceError() throws InterruptedException, ExecutionException {
-		s.part().id("test1").label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place().get();
+		assertThrows(ExecutionException.class,
+				()->s.part().id("test1").label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place().get()
+		);
 	}
 
 	/**
@@ -159,9 +160,11 @@ public class SchedulerTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test
 	public void testExecuteOnceError2() throws InterruptedException, ExecutionException {
-		s.part().id("test1").value("value").label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place().get();
+		assertThrows(ExecutionException.class,
+				()->s.part().id("test1").value("value").label(Schedule.EXECUTE_ONCE).ttl(1, TimeUnit.SECONDS).place().get()
+		);
 	}
 
 	/**

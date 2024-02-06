@@ -2,25 +2,25 @@ package com.aegisql.conveyor.persistence.core;
 
 import com.aegisql.conveyor.persistence.converters.EncryptingConverter;
 import com.aegisql.conveyor.persistence.encryption.EncryptingConverterBuilder;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class EncryptingConverterBuilderTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

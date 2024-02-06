@@ -8,13 +8,15 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.demo.ThreadPool;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.text.SimpleDateFormat;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class Demo {
 	
@@ -71,8 +73,8 @@ public class Demo {
 		pool.shutdown();
 	}
 
-	@Test(expected=RuntimeException.class)
+	@Test
 	public void test() throws Exception {
-		main(null);
+		assertThrows(RuntimeException.class,()->Demo.main(null));
 	}
 }

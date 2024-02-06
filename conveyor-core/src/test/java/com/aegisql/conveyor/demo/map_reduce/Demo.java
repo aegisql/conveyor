@@ -10,7 +10,7 @@ import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.demo.ThreadPool;
 import com.aegisql.conveyor.loaders.PartLoader;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.Arrays;

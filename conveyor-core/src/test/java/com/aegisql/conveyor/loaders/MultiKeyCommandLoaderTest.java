@@ -1,6 +1,6 @@
 package com.aegisql.conveyor.loaders;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;

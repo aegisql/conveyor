@@ -7,13 +7,12 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class BuildingSiteTest.
  * 
@@ -26,7 +25,7 @@ public class BuildingSiteTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -34,7 +33,7 @@ public class BuildingSiteTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -42,7 +41,7 @@ public class BuildingSiteTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -50,14 +49,14 @@ public class BuildingSiteTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
 	/**
 	 * Test not ready.
 	 */
-	@Test(expected=IllegalStateException.class)
+	@Test
 	public void testNotReady() {
 		Cart<Integer,String,String> c = new ShoppingCart<>(1,"v1","l",100,TimeUnit.MILLISECONDS);
 
@@ -84,7 +83,7 @@ public class BuildingSiteTest {
 		assertTrue(BuildingSite.NON_LOCKING_LOCK.tryLock());
 		BuildingSite.NON_LOCKING_LOCK.newCondition();
 
-		User u = bs.build();
+		assertThrows(IllegalStateException.class,()->bs.build());
 	}
 
 	/**

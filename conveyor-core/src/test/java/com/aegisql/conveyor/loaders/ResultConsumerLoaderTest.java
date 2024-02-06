@@ -3,7 +3,7 @@ package com.aegisql.conveyor.loaders;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.consumers.result.IgnoreResult;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -12,23 +12,23 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ResultConsumerLoaderTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

@@ -1,11 +1,11 @@
 package com.aegisql.conveyor;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConveyorInitiatingServiceTest {
 
@@ -22,7 +22,6 @@ public class ConveyorInitiatingServiceTest {
         ConveyorInitiatingService conveyorInitiatingService = loadedConveyorServices.get(0);
         assertNotNull(conveyorInitiatingService);
         assertEquals(simpleTestServiceConveyor,conveyorInitiatingService.getConveyor());
-
     }
 
 }

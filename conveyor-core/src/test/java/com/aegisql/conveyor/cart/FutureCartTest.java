@@ -2,12 +2,12 @@ package com.aegisql.conveyor.cart;
 
 import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class FutureCartTest {
 

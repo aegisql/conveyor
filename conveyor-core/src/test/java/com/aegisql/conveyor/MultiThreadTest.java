@@ -8,7 +8,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -45,7 +45,7 @@ public class MultiThreadTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 
 		conveyor.setBuilderSupplier( UserBuilder::new );
@@ -83,7 +83,7 @@ public class MultiThreadTest {
 	 *
 	 * @throws Exception the exception
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() throws Exception {
 		conveyor.stop();
 		Thread.sleep(100);
@@ -93,7 +93,7 @@ public class MultiThreadTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -101,7 +101,7 @@ public class MultiThreadTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 	
@@ -128,9 +128,9 @@ public class MultiThreadTest {
 	/**
 	 * Test exception.
 	 */
-	@Test(expected=NullPointerException.class)
+	@Test
 	public void testException() {
-		conveyor.place(null);
+		assertThrows(NullPointerException.class,()->conveyor.place(null));
 	}
 	
 	/**

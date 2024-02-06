@@ -5,28 +5,27 @@ import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderEvents;
 import com.aegisql.conveyor.user.UserBuilderSmart;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.concurrent.TimeUnit;
-
 import static com.aegisql.conveyor.user.UserBuilderEvents.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TestSuspendResume {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -63,8 +62,8 @@ public class TestSuspendResume {
 		assertEquals(2, outQueue.size());
 	}
 
-	@Test(expected = AbstractMethodError.class)
+	@Test
 	public void suspendEnumTest() {
-		CommandLabel.SUSPEND.get();
+		assertThrows(AbstractMethodError.class,()->CommandLabel.SUSPEND.get());
 	}
 }

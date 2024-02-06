@@ -5,29 +5,29 @@ import com.aegisql.conveyor.persistence.converters.EnumToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ObjectToJsonBytesConverter;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.io.Serializable;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConverterAdviserTest implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

@@ -10,15 +10,14 @@ import com.aegisql.conveyor.consumers.result.ResultMap;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.user.*;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-// TODO: Auto-generated Javadoc
 
 /**
  * The Class SmartConveyorTest.
@@ -33,7 +32,7 @@ public class SmartConveyorTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -41,7 +40,7 @@ public class SmartConveyorTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -49,7 +48,7 @@ public class SmartConveyorTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -57,7 +56,7 @@ public class SmartConveyorTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -76,7 +75,7 @@ public class SmartConveyorTest {
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR).set();
-		conveyor.setName("User Assembler");
+		conveyor.setName("testBasicsSmart");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
@@ -125,7 +124,7 @@ public class SmartConveyorTest {
 			System.out.println(state);
 			return state.previouslyAccepted == 3;
 		});
-		conveyor.setName("User Assembler");
+		conveyor.setName("testRescheduleSmart");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST,
 				1, TimeUnit.SECONDS);
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
@@ -159,7 +158,7 @@ public class SmartConveyorTest {
 		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
-		conveyor.setName("Testing User Assembler");
+		conveyor.setName("testBasicsTesting");
 		ShoppingCart<Integer, String, UserBuilderEvents2> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents2.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents2> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents2.SET_LAST);
@@ -198,7 +197,7 @@ public class SmartConveyorTest {
 		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
-		conveyor.setName("Testing User Assembler");
+		conveyor.setName("testBasicsTestingWithInternalOfferInterfaces");
 		conveyor.part().id(1).value("John").label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
 		assertNull(u0);
@@ -233,7 +232,7 @@ public class SmartConveyorTest {
 		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
-		conveyor.setName("Testing User Assembler");
+		conveyor.setName("testBasicsTestingWithInternalAddInterfaces");
 		conveyor.part().value("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
 		assertNull(u0);
@@ -298,7 +297,7 @@ public class SmartConveyorTest {
 		conveyor.command().id(4).create();
 		conveyor.command().id(5).create(sup2);
 	
-		conveyor.setName("Testing User Assembler");
+		conveyor.setName("testBasicsTestingCreatingInterface");
 		conveyor.part().value("John").id(1).label(UserBuilderEvents2.SET_FIRST).place();
 		User u0 = outQueue.poll();
 		assertNull(u0);
@@ -333,7 +332,7 @@ public class SmartConveyorTest {
 		ResultQueue<Integer,User> outQueue = new ResultQueue<>();
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
-		conveyor.setName("TestingState User Assembler");
+		conveyor.setName("testBasicsTestingState");
 		ShoppingCart<Integer, String, UserBuilderEvents3> c1 = new ShoppingCart<>(1, "John",
 				UserBuilderEvents3.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents3> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents3.SET_LAST);
@@ -391,7 +390,7 @@ public class SmartConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected = ExecutionException.class) // ???? Failed
+	@Test
 	public void testRejectedStartAdd() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -409,7 +408,7 @@ public class SmartConveyorTest {
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		assertTrue(conveyor.place(c1).get());
 		Thread.sleep(1100);
-		conveyor.place(c2).get();
+		assertThrows(ExecutionException.class,()->conveyor.place(c2).get());
 		conveyor.stop();
 	}
 
@@ -435,7 +434,7 @@ public class SmartConveyorTest {
 	 * @throws ExecutionException   the execution exception
 	 * @throws TimeoutException     the timeout exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testFutureSmart() throws InterruptedException, ExecutionException, TimeoutException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -447,7 +446,7 @@ public class SmartConveyorTest {
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
-		conveyor.setName("User Assembler");
+		conveyor.setName("testFutureSmart");
 		conveyor.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
 		conveyor.setDefaultBuilderTimeout(100, TimeUnit.MILLISECONDS);
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John",
@@ -494,8 +493,7 @@ public class SmartConveyorTest {
 		assertFalse(f1.isCompletedExceptionally());
 		assertTrue(f1.isDone());
 
-		User user2 = f2.get(200,TimeUnit.MILLISECONDS);
-
+		assertThrows(CancellationException.class,()->f2.get(200,TimeUnit.MILLISECONDS));
 		conveyor.stop();
 	}
 
@@ -656,7 +654,7 @@ public class SmartConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testFailingUpperCaseWithAddedExpirationAndTesting() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, AbstractBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 
@@ -683,10 +681,7 @@ public class SmartConveyorTest {
 		conveyor.part().id(1).value("Doe").label(AbstractBuilderEvents.SET_LAST).place();
 		conveyor.part().id(1).value(1999).label(AbstractBuilderEvents.SET_YEAR).place();
 
-		User user1 = f1.get();
-		assertNotNull(user1);
-		System.out.println(user1);
-		assertEquals(user1,new UpperUser("JOHN","DOE",1999));
+		assertThrows(CancellationException.class,()->f1.get());
 		conveyor.stop();
 	}
 
@@ -746,7 +741,7 @@ public class SmartConveyorTest {
 		assertNotNull(u4);
 		assertEquals("Lady", u4.getFirst());
 		System.out.println(u4);
-		
+		c.completeAndStop().get();
 	}
 
 	/**
@@ -764,7 +759,7 @@ public class SmartConveyorTest {
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
-		conveyor.setName("User Assembler");
+		conveyor.setName("testCompleteAndStop");
 		
 		for(int i = 0; i<100;i++) {
 			PartLoader pl = conveyor.part().id(i);
@@ -776,6 +771,7 @@ public class SmartConveyorTest {
 		Future<?> f = conveyor.completeAndStop();
 		f.get();
 		assertEquals(100, outQueue.size());
+		conveyor.completeAndStop().get();
 	}
 
 	/**
@@ -794,7 +790,7 @@ public class SmartConveyorTest {
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
-		conveyor.setName("User Assembler");
+		conveyor.setName("testCompleteAndStopWithExpiration");
 		
 		for(int i = 0; i<100;i++) {
 			PartLoader pl = conveyor.part().id(i);
@@ -808,6 +804,7 @@ public class SmartConveyorTest {
 		Future<?> f = conveyor.completeAndStop();
 		f.get();
 		assertEquals(50, outQueue.size());
+		conveyor.completeAndStop().get();
 	}
 
 
@@ -817,7 +814,7 @@ public class SmartConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test
 	public void testCompleteAndStopRejectMessages() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -826,7 +823,7 @@ public class SmartConveyorTest {
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
-		conveyor.setName("User Assembler");
+		conveyor.setName("testCompleteAndStopRejectMessages");
 		
 		for(int i = 0; i<1000;i++) {
 			PartLoader pl = conveyor.part().id(i);
@@ -840,7 +837,8 @@ public class SmartConveyorTest {
 		Future<Boolean> cf = pl.label(UserBuilderEvents.SET_FIRST).value("First_"+101).place();
 		System.err.println(cf);
 		assertTrue(cf.isDone());
-		cf.get();
+		assertThrows(ExecutionException.class,()->cf.get());
+		conveyor.completeAndStop().get();
 	}
 
 
@@ -850,7 +848,7 @@ public class SmartConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=IllegalStateException.class)
+	@Test
 	public void testCompleteAndStopRejectCommand() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilderSmart::new);
@@ -859,7 +857,7 @@ public class SmartConveyorTest {
 
 		conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
 		conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(UserBuilderEvents.SET_FIRST,UserBuilderEvents.SET_LAST,UserBuilderEvents.SET_YEAR));
-		conveyor.setName("User Assembler");
+		conveyor.setName("testCompleteAndStopRejectCommand");
 		
 		for(int i = 0; i<1000;i++) {
 			PartLoader pl = conveyor.part().id(i);
@@ -869,8 +867,9 @@ public class SmartConveyorTest {
 		}
 		
 		Future<?> f = conveyor.completeAndStop();
-		Future<Boolean> cf = conveyor.command().id(102).create();
+		assertThrows(IllegalStateException.class,()->conveyor.command().id(102).create());
 		f.get();
+		conveyor.completeAndStop().get();
 	}
 
 }

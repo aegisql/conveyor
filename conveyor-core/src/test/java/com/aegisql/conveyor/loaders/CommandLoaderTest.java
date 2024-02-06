@@ -6,7 +6,7 @@ import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.user.UserBuilderEvents;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -15,27 +15,27 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CommandLoaderTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
-	@Test(expected = CompletionException.class)
+	@Test
 	public void testFailMementoKey() {
 
 		CommandLoader cl0 = new CommandLoader<>(c -> {
@@ -44,9 +44,9 @@ public class CommandLoaderTest {
 			f.complete(false);
 			return f;
 		});
-		cl0.id(1).memento().join();
+		assertThrows(CompletionException.class,()->cl0.id(1).memento().join());
 	}
-		@Test
+	@Test
 	public void testSingleKey() {
 		long current = System.currentTimeMillis();
 

@@ -1,7 +1,7 @@
 package com.aegisql.conveyor.utils;
 
 import com.aegisql.conveyor.utils.delay_line.DelayLineConveyor;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 // TODO: Auto-generated Javadoc
 
@@ -23,7 +23,7 @@ public class DelayLineConveyorTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -31,7 +31,7 @@ public class DelayLineConveyorTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -39,7 +39,7 @@ public class DelayLineConveyorTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -47,7 +47,7 @@ public class DelayLineConveyorTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -80,7 +80,6 @@ public class DelayLineConveyorTest {
 		c.part().id(5).value(5).place();
 		
 		assertEquals(Integer.valueOf(5), last.get());
-		
 		assertEquals(1, res.get(0).intValue());
 		assertEquals(2, res.get(1).intValue());
 		assertEquals(3, res.get(2).intValue());

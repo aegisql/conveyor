@@ -3,11 +3,12 @@
  */
 package com.aegisql.conveyor;
 
-import org.junit.*;
-
-import static org.junit.Assert.assertEquals;
-
 // TODO: Auto-generated Javadoc
+
+import org.junit.jupiter.api.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 /**
  * The Class ValueConsumerTest.
  * 
@@ -20,7 +21,7 @@ public class ValueConsumerTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -28,7 +29,7 @@ public class ValueConsumerTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -36,7 +37,7 @@ public class ValueConsumerTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -44,7 +45,7 @@ public class ValueConsumerTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

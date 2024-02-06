@@ -1,9 +1,8 @@
 package com.aegisql.conveyor;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConveyorTest {
 
@@ -23,8 +22,8 @@ public class ConveyorTest {
         } catch (Exception e) { }
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void unRegister() {
-        Conveyor.unRegister("something wrong :");
+        assertThrows(RuntimeException.class,()->Conveyor.unRegister("something wrong :"));
     }
 }

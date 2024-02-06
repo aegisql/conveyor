@@ -5,14 +5,14 @@ import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.consumers.result.ResultCounter;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class InputQueueLengthValidatorTest {
 
@@ -100,7 +100,7 @@ public class InputQueueLengthValidatorTest {
         assertEquals(500,rc1.get());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void backPressureWithShortMaxTimeTest() throws InterruptedException {
         AssemblingConveyor<Integer,SmartLabel<ABuilder>,A> ac = new AssemblingConveyor<>();
         ac.setName("BackPressureTester2");
@@ -112,12 +112,14 @@ public class InputQueueLengthValidatorTest {
         ac.addCartBeforePlacementValidator(cartBeforePlacementValidator);
 
         CompletableFuture<Boolean> f;
+        boolean completedExceptionally = false;
         for(int i = 1; i <= 1000; i++) {
             f = ac.part().id(i).label(VAL).value("VAL "+i).place();
             if(f.isCompletedExceptionally()) {
-                throw new RuntimeException("Cart was rejected with key="+i);
+                completedExceptionally = true;
             }
         }
+        assertTrue(completedExceptionally);
     }
 
 }

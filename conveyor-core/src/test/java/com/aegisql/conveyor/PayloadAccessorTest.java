@@ -4,13 +4,13 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.Load;
 import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class PayloadAccessorTest {
 	
@@ -42,19 +42,19 @@ public class PayloadAccessorTest {
 		}
 	};
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

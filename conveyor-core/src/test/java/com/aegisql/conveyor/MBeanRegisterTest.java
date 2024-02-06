@@ -1,10 +1,10 @@
 package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.aegisql.conveyor.MBeanRegister.MBEAN;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MBeanRegisterTest {
 
@@ -54,22 +54,22 @@ public class MBeanRegisterTest {
         }
     }
 
-    @Test(expected = ConveyorRuntimeException.class)
+    @Test
     public void mbeanRegistryConvExceptionTest() {
-        AssemblingConveyor<Integer,String,String> ac = new AssemblingConveyor<>(){
+        assertThrows(ConveyorRuntimeException.class,()->new AssemblingConveyor<>(){
             public Class<?> mBeanInterface() {
                 throw new ConveyorRuntimeException("test me");
             }
-        };
+        });
     }
 
-    @Test(expected = ConveyorRuntimeException.class)
+    @Test
     public void mbeanRegistryNPExceptionTest() {
-        AssemblingConveyor<Integer,String,String> ac = new AssemblingConveyor<>(){
+        assertThrows(ConveyorRuntimeException.class,()->new AssemblingConveyor<>(){
             public Class<?> mBeanInterface() {
                 throw new NullPointerException("test me with null");
             }
-        };
+        });
     }
 
 }

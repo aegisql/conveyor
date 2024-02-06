@@ -16,7 +16,7 @@ import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFacto
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerDataSource;
 import com.aegisql.conveyor.persistence.jdbc.engine.mysql.MysqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.Collection;
 import java.util.Set;
@@ -24,7 +24,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class MysqlPersistenceTest {
 
@@ -35,21 +36,21 @@ public class MysqlPersistenceTest {
 			.user(Tester.getMysqlUser())
 			.password(Tester.getMysqlPassword());
 	
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
-		Assume.assumeTrue(Tester.testMySqlConnection());
+		assumeTrue(Tester.testMySqlConnection());
 		Tester.removeLocalMysqlDatabase("conveyor_db");
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

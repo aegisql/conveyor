@@ -9,28 +9,28 @@ import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.converters.StringConverter;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import com.aegisql.conveyor.serial.SerializablePredicate;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.Collection;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PersistCartsTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 		Tester.removeDirectory("carts_db");
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 	

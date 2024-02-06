@@ -5,13 +5,12 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PrioritySupplierTest {
 
@@ -304,9 +303,9 @@ public class PrioritySupplierTest {
         assertNotNull(Priority.valueOf("PRIORITIZED"));
     }
 
-    @Test(expected = ConveyorRuntimeException.class)
+    @Test
     public void valueOfFails() {
-        assertNotNull(Priority.valueOf("superimportantfirst"));
+        assertThrows(ConveyorRuntimeException.class,()->Priority.valueOf("superimportantfirst"));
     }
 
 }

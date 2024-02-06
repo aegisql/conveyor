@@ -14,7 +14,7 @@ import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import com.mysql.cj.jdbc.MysqlDataSource;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.Collection;
 import java.util.Set;
@@ -22,7 +22,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class MysqlPersistenceDataSourceTest {
 
@@ -40,22 +41,22 @@ public class MysqlPersistenceDataSourceTest {
 				return dataSource;
 			});
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
-		Assume.assumeTrue(Tester.testMySqlConnection());
+		assumeTrue(Tester.testMySqlConnection());
 		Tester.removeLocalMysqlDatabase("conveyor_db");
 
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

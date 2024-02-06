@@ -2,15 +2,14 @@ package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilderSmart;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
-
 import static com.aegisql.conveyor.user.UserBuilderSmart.UserBuilderSmartLabel.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -22,7 +21,7 @@ public class SmartLabelFunctionalTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -30,7 +29,7 @@ public class SmartLabelFunctionalTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -38,7 +37,7 @@ public class SmartLabelFunctionalTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -46,7 +45,7 @@ public class SmartLabelFunctionalTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

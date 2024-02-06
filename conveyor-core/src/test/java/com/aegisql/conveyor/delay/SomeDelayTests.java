@@ -1,6 +1,6 @@
 package com.aegisql.conveyor.delay;
 
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
@@ -81,7 +81,7 @@ public class SomeDelayTests {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -89,7 +89,7 @@ public class SomeDelayTests {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -97,7 +97,7 @@ public class SomeDelayTests {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -105,7 +105,7 @@ public class SomeDelayTests {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

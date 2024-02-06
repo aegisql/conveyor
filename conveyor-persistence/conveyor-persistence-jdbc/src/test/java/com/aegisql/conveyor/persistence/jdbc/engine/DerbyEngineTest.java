@@ -6,14 +6,14 @@ import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFacto
 import com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyMemoryEngine;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DerbyEngineTest {
 
@@ -21,20 +21,20 @@ public class DerbyEngineTest {
 	private static final String PARTS = "PART";
 	private static final String LOGS = "COMPLETED_LOG";
 	
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 		Tester.removeDirectory(SCHEMA);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

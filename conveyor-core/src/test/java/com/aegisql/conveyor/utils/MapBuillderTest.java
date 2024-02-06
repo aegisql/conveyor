@@ -4,15 +4,15 @@ import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.utils.map.MapBuilder;
 import com.aegisql.conveyor.utils.map.MapConveyor;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 // TODO: Auto-generated Javadoc
 
@@ -25,7 +25,7 @@ public class MapBuillderTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -33,7 +33,7 @@ public class MapBuillderTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -41,7 +41,7 @@ public class MapBuillderTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -49,7 +49,7 @@ public class MapBuillderTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

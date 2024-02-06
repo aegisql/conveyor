@@ -1,11 +1,11 @@
 package com.aegisql.conveyor.delay;
 
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -17,7 +17,7 @@ public class DelayProviderTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -25,7 +25,7 @@ public class DelayProviderTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -33,7 +33,7 @@ public class DelayProviderTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -41,7 +41,7 @@ public class DelayProviderTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

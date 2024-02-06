@@ -3,7 +3,7 @@ package com.aegisql.conveyor.multichannel;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.user.User;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.concurrent.TimeUnit;
 
@@ -17,7 +17,7 @@ public class MultichannelConceptTest {
 	 * Sets the up before class.
 	 *
      */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -25,7 +25,7 @@ public class MultichannelConceptTest {
 	 * Tear down after class.
 	 *
      */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -33,7 +33,7 @@ public class MultichannelConceptTest {
 	 * Sets the up.
 	 *
      */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -41,7 +41,7 @@ public class MultichannelConceptTest {
 	 * Tear down.
 	 *
      */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

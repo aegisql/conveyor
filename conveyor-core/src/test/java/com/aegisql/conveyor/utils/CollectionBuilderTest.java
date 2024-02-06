@@ -3,12 +3,12 @@ package com.aegisql.conveyor.utils;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.utils.collection.CollectionBuilder;
 import com.aegisql.conveyor.utils.collection.CollectionConveyor;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -20,7 +20,7 @@ public class CollectionBuilderTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -28,7 +28,7 @@ public class CollectionBuilderTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -36,7 +36,7 @@ public class CollectionBuilderTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -44,7 +44,7 @@ public class CollectionBuilderTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

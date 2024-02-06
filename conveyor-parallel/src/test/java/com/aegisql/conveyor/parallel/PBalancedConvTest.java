@@ -6,15 +6,14 @@ import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PBalancedConvTest {
 
@@ -38,19 +37,19 @@ public class PBalancedConvTest {
 		}
 	}
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -168,7 +167,7 @@ public class PBalancedConvTest {
 
 	}
 
-	@Test(expected = ConveyorRuntimeException.class)
+	@Test
 	public void testFailNotSamePropTest() {
 		// place results here
 		ResultMap<Integer, String> results = new ResultMap<>();
@@ -189,10 +188,10 @@ public class PBalancedConvTest {
 		ConveyorAcceptor<Integer, String, String> t4 = new ConveyorAcceptor<>(c4);
 		t4.expectsValue("version", 2).expectsValue("abtest", "B");
 		// wrap conveyors with PBalancedParallelConveyor
-		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(Arrays.asList(t1, t2, t3, t4));
+		assertThrows(ConveyorRuntimeException.class,()->new PBalancedParallelConveyor<>(Arrays.asList(t1, t2, t3, t4)));
 	}
 
-	@Test(expected = ConveyorRuntimeException.class)
+	@Test
 	public void testFailNotSetPropTest() {
 		// place results here
 		ResultMap<Integer, String> results = new ResultMap<>();
@@ -210,17 +209,17 @@ public class PBalancedConvTest {
 		ConveyorAcceptor<Integer, String, String> t3 = new ConveyorAcceptor<>(c3);
 		ConveyorAcceptor<Integer, String, String> t4 = new ConveyorAcceptor<>(c4);
 		// not set, should fail
-		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(Arrays.asList(t1, t2, t3, t4));
+		assertThrows(ConveyorRuntimeException.class,()->new PBalancedParallelConveyor<>(Arrays.asList(t1, t2, t3, t4)));
 	}
 
-	@Test(expected = ConveyorRuntimeException.class)
+	@Test
 	public void testFailEmptyPropTest() {
-		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(new ArrayList<>());
+		assertThrows(ConveyorRuntimeException.class,()->new PBalancedParallelConveyor<>(new ArrayList<>()));
 	}
 
-	@Test(expected = NullPointerException.class)
+	@Test
 	public void testFailNullPropTest() {
-		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>((List<ConveyorAcceptor<Integer, String, String>>) null);
+		assertThrows(NullPointerException.class,()->new PBalancedParallelConveyor<>((List<ConveyorAcceptor<Integer, String, String>>) null));
 	}
 
 	@Test

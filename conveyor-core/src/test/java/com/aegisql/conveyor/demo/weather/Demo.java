@@ -9,7 +9,6 @@ import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.loaders.PartLoader;
 import org.apache.commons.io.FileUtils;
-import org.junit.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -127,7 +126,6 @@ public class Demo {
 		System.out.println();
 	}
 
-	@Test
 	public void test() throws Exception {
 		// Load weather stations data provided by the National Centers for Environmental Information
 		main(new String[]{"src/test/resources/weather.csv"});

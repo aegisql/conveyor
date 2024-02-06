@@ -8,13 +8,13 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DuplicateValidatorTest {
 
@@ -28,13 +28,13 @@ public class DuplicateValidatorTest {
         dv.accept(cart);
     }
 
-    @Test(expected = DuplicateValueException.class)
+    @Test
     public void duplicateValidatorFailureTest() {
         DuplicateValidator<String,String,Integer> dv = new DuplicateValidator<>();
         Cart<String,String,String> cart = new ShoppingCart<>("key","value","label");
         cart.addProperty("VALUE_ID",1);
         dv.accept(cart);
-        dv.accept(cart);
+        assertThrows(DuplicateValueException.class,()->dv.accept(cart));
     }
 
     @Test

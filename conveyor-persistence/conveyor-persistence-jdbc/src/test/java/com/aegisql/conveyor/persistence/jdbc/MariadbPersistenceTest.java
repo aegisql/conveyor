@@ -6,12 +6,13 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.apache.log4j.BasicConfigurator;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.Collection;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 //@Ignore
 public class MariadbPersistenceTest {
@@ -24,22 +25,22 @@ public class MariadbPersistenceTest {
 			;
 
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
-		Assume.assumeTrue(Tester.testMariaDbConnection());
+		assumeTrue(Tester.testMariaDbConnection());
 		Tester.removeLocalMariaDbDatabase("conveyor_maria_db");
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

@@ -8,7 +8,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -17,7 +17,8 @@ import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 // TODO: Auto-generated Javadoc
 /**
@@ -29,7 +30,7 @@ public class ResultQueueTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -37,7 +38,7 @@ public class ResultQueueTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -45,7 +46,7 @@ public class ResultQueueTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -53,7 +54,7 @@ public class ResultQueueTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -114,16 +115,16 @@ public class ResultQueueTest {
 
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void addTest() {
 		ResultQueue<String,User> q = new ResultQueue<>();
-		q.add(new User("","",0));
+		assertThrows(RuntimeException.class,()->q.add(new User("","",0)));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void offerTest() {
 		ResultQueue<String,User> q = new ResultQueue<>();
-		q.offer(new User("","",0));
+		assertThrows(RuntimeException.class,()->q.offer(new User("","",0)));
 	}
 
 	/**

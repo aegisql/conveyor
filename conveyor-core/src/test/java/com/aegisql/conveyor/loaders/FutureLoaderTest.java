@@ -5,7 +5,7 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -14,23 +14,23 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class FutureLoaderTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -85,11 +85,11 @@ public class FutureLoaderTest {
 		assertEquals("val",fl.getProperty("test",String.class));
 	}
 	
-	@Test(expected=ExecutionException.class)
+	@Test
 	public void testFailingFuture() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> c = new AssemblingConveyor<>();
 		CompletableFuture<User> f = c.future().id(1).get();
-		f.get();
+		assertThrows(ExecutionException.class,()->f.get());
 	}
 
 	@Test

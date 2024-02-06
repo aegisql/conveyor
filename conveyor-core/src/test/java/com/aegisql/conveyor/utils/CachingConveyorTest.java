@@ -6,7 +6,7 @@ import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.utils.caching.*;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.Map;
 import java.util.Random;
@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 // TODO: Auto-generated Javadoc
 
@@ -29,7 +29,7 @@ public class CachingConveyorTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -37,7 +37,7 @@ public class CachingConveyorTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -45,7 +45,7 @@ public class CachingConveyorTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -53,7 +53,7 @@ public class CachingConveyorTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -90,11 +90,11 @@ public class CachingConveyorTest {
 			conveyor.part().id(i).value("TestLast"+i).label("setLast").place();
 			lastFuture = conveyor.part().id(i).value(1900+i%100).label("setYearOfBirth").place();
 		}
-		assertTrue("Expected that all messages successfully delivered",lastFuture.get());
+		assertTrue(lastFuture.get());
 		long tAfter = System.nanoTime();
 		System.out.println("Loaded 3x1,000,000 in: "+(tAfter-tBefore)/1E9);
 
-		assertEquals("Expected that all keys expire at the same time",1, conveyor.getDelayedQueueSize());
+		assertEquals(1, conveyor.getDelayedQueueSize());
 		long ac1 = 0;
 		Random r = new Random();
 		User last = null;
@@ -207,7 +207,7 @@ public class CachingConveyorTest {
 	 *
 	 * @throws InterruptedException the interrupted exception
 	 */
-	@Test(expected=IllegalStateException.class)
+	@Test
 	public void testTimingOutCache() throws InterruptedException {
 		CachingConveyor<Integer, String, User> conveyor = new CachingConveyor<>();
 		conveyor.setBuilderSupplier(UserBuilder::new);
@@ -256,8 +256,9 @@ public class CachingConveyorTest {
 		System.out.println(u);
 		assertEquals(2001,u.getYearOfBirth());
 		Thread.sleep(500);
-		
-		u = supplier.get();
+
+		Supplier<? extends User> finalSupplier = supplier;
+		assertThrows(IllegalStateException.class,()-> finalSupplier.get());
 		
 	}
 
@@ -330,7 +331,7 @@ public class CachingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=IllegalStateException.class)
+	@Test
 	public void testImmutableScalarCache() throws InterruptedException, ExecutionException {
 		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
 		conveyor.setDefaultCartConsumer(new ImmutableValueConsumer());
@@ -345,7 +346,7 @@ public class CachingConveyorTest {
 		conveyor.build().id(1).supplier(ImmutableReference.newInstance("TEST")).create();
 		
 		Thread.sleep(1200);
-		s.get();
+		assertThrows(IllegalStateException.class,()->s.get());
 	}
 
 	/**
@@ -354,7 +355,7 @@ public class CachingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=IllegalStateException.class)
+	@Test
 	public void testImmutableScalarExpireableCache() throws InterruptedException, ExecutionException {
 		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
 		conveyor.setDefaultCartConsumer(new ImmutableValueConsumer());
@@ -368,7 +369,7 @@ public class CachingConveyorTest {
 		conveyor.build().id(1).supplier(ImmutableReference.newInstance("TEST")).create();
 		
 		Thread.sleep(1200);
-		s.get();
+		assertThrows(IllegalStateException.class,()->s.get());
 	}
 
 
@@ -378,7 +379,7 @@ public class CachingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=IllegalStateException.class)
+	@Test
 	public void testMutableScalarCache() throws InterruptedException, ExecutionException {
 		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
 		conveyor.setDefaultCartConsumer(new MutableValueConsumer());
@@ -399,7 +400,8 @@ public class CachingConveyorTest {
 
 		
 		Thread.sleep(1200);
-		s.get();
+		Supplier<? extends String> finalS = s;
+		assertThrows(IllegalStateException.class,()-> finalS.get());
 		
 	}
 
@@ -409,7 +411,7 @@ public class CachingConveyorTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException   the execution exception
 	 */
-	@Test(expected=IllegalStateException.class)
+	@Test
 	public void testMutableExpireableScalarCache() throws InterruptedException, ExecutionException {
 		CachingConveyor<Integer, String, String> conveyor = new CachingConveyor<>();
 		conveyor.setDefaultCartConsumer(new MutableValueConsumer());
@@ -429,7 +431,8 @@ public class CachingConveyorTest {
 
 		
 		Thread.sleep(1200);
-		s.get();
+		Supplier<? extends String> finalS = s;
+		assertThrows(IllegalStateException.class,()-> finalS.get());
 		
 	}
 

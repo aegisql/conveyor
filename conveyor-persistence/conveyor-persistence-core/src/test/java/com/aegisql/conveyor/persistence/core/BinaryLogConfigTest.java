@@ -1,23 +1,23 @@
 package com.aegisql.conveyor.persistence.core;
 
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 public class BinaryLogConfigTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

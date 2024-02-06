@@ -7,7 +7,7 @@ import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerDa
 import com.aegisql.conveyor.persistence.jdbc.engine.mysql.MysqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.apache.log4j.BasicConfigurator;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -17,28 +17,29 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class MysqlEngineTest {
 
 	private static final String SCHEMA = Tester.getTestClass();
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
-		Assume.assumeTrue(Tester.testMySqlConnection());
+		assumeTrue(Tester.testMySqlConnection());
 		Tester.removeLocalMysqlDatabase(SCHEMA);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

@@ -1,11 +1,11 @@
 package com.aegisql.conveyor.consumers.scrap;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ScrapQueueTest {
 
@@ -33,22 +33,22 @@ public class ScrapQueueTest {
 
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failingAddAllTest() {
         ScrapQueue sq = new ScrapQueue();
-        sq.addAll(null);
+        assertThrows(RuntimeException.class,()->sq.addAll(null));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failingAddTest() {
         ScrapQueue sq = new ScrapQueue();
-        sq.add(null);
+        assertThrows(RuntimeException.class,()->sq.add(null));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failingOfferTest() {
         ScrapQueue sq = new ScrapQueue();
-        sq.offer(null);
+        assertThrows(RuntimeException.class,()->sq.offer(null));
     }
 
     @Test

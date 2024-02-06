@@ -4,12 +4,12 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
 import static com.aegisql.conveyor.meta.ConveyorMetaInfoBuilderTest.Label.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConveyorMetaInfoBuilderTest {
 
@@ -63,16 +63,16 @@ public class ConveyorMetaInfoBuilderTest {
         assertEquals("AssemblingConveyor<Integer,String,User>",ac.getGenericName());
     }
 
-    @Test(expected = ConveyorRuntimeException.class)
+    @Test
     public void exceptionTest() {
         AssemblingConveyor ac = new AssemblingConveyor();
         ac.setName("MetaInfoTestConveyor");
         System.out.println(ac.getGenericName());
         assertEquals("AssemblingConveyor<?,?,?>",ac.getGenericName());
-        ac.getMetaInfo();
+        assertThrows(ConveyorRuntimeException.class,ac::getMetaInfo);
     }
 
-    @Test(expected = ConveyorRuntimeException.class)
+    @Test
     public void labelsMismatchExceptionTest() {
         AssemblingConveyor<Integer,String, User> ac = new AssemblingConveyor<>(){
             @Override
@@ -90,7 +90,7 @@ public class ConveyorMetaInfoBuilderTest {
                         .get();
             }
         };
-        ConveyorMetaInfo<Integer, String, User> metaInfo = ac.getMetaInfo();
+        assertThrows(ConveyorRuntimeException.class,ac::getMetaInfo);
     }
 
     enum Label{A,B,C}

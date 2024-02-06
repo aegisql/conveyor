@@ -7,7 +7,7 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.validation.CommonValidators;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -34,7 +34,7 @@ public class CartTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -42,7 +42,7 @@ public class CartTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -50,7 +50,7 @@ public class CartTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -58,7 +58,7 @@ public class CartTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -189,9 +189,9 @@ public class CartTest {
 		assertNull(c1.getValue(String.class));
 	}
 
-	@Test(expected = NullPointerException.class)
+	@Test
 	public void cartNullValueValidationTests() {
 		Cart c1 = new ShoppingCart<>("k",null,"l1",0,0,null,LoadType.PART,0);
-		CommonValidators.CART_VALUE_NOT_NULL().accept(c1);
+		assertThrows(NullPointerException.class,()->CommonValidators.CART_VALUE_NOT_NULL().accept(c1));
 	}
 }

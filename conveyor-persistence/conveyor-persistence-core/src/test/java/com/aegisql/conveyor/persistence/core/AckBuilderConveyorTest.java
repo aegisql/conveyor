@@ -6,7 +6,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.ack.AcknowledgeBuildingConveyor;
 import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 import org.apache.log4j.BasicConfigurator;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,21 +17,21 @@ public class AckBuilderConveyorTest {
 
 	private final static Logger LOG = LoggerFactory.getLogger(AcknowledgeBuildingConveyor.class);
 	
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		LOG.debug("TEST");
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 

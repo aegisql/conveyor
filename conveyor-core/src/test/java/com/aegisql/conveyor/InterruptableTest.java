@@ -1,28 +1,30 @@
 package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.consumers.result.LastResultReference;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class InterruptableTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -102,11 +104,8 @@ public class InterruptableTest {
 	SmartLabel<CountBuilder> ADD = SmartLabel.of(CountBuilder::add);
 	SmartLabel<CountBuilderSmart> ADD_SMART = SmartLabel.of(CountBuilderSmart::add);
 	
-	@Test(expected=RuntimeException.class)
+	@Test
 	public void testSimpleInterruption() throws InterruptedException {
-		
-		
-		
 		AssemblingConveyor<Integer, SmartLabel<CountBuilder> , Count> ac = new AssemblingConveyor<>();
 		ac.setName("testInterrupt1");
 		ac.setBuilderSupplier(CountBuilder::new);
@@ -119,10 +118,8 @@ public class InterruptableTest {
 		CompletableFuture<Boolean> f = ac.part().id(1).label(ADD).value(10).place();
 		Thread.sleep(1000);
 		ac.interrupt(ac.getName());
-		f.join();
-		Count cnt = last.getCurrent();
-		System.out.println(cnt);
-		
+		assertThrows(RuntimeException.class,()->f.join());
+		last.getCurrent();
 	}
 
 	@Test

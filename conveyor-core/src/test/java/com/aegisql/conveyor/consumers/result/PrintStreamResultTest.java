@@ -1,13 +1,13 @@
 package com.aegisql.conveyor.consumers.result;
 
 import com.aegisql.conveyor.harness.Tester;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class PrintStreamResultTest {
 

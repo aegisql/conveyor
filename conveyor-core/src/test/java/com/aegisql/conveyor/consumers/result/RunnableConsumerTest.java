@@ -2,7 +2,7 @@ package com.aegisql.conveyor.consumers.result;
 
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.Status;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class RunnableConsumerTest {
 

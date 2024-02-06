@@ -1,12 +1,12 @@
 package com.aegisql.conveyor;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ReadinessTesterTest {
 
@@ -46,10 +46,10 @@ public class ReadinessTesterTest {
         assertTrue(rt.test(null,new BT()));
     }
 
-    @Test(expected = ClassCastException.class)
+    @Test
     public void fromBuilderTestFail() {
         ReadinessTester rt = new ReadinessTester();
-        rt.usingBuilderTest(B.class);
+        assertThrows(ClassCastException.class,()->rt.usingBuilderTest(B.class));
     }
 
 }

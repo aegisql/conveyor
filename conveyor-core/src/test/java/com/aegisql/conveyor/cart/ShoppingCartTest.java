@@ -1,6 +1,6 @@
 package com.aegisql.conveyor.cart;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 

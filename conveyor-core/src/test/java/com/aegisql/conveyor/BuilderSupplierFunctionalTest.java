@@ -3,7 +3,7 @@ package com.aegisql.conveyor;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -25,7 +25,7 @@ public class BuilderSupplierFunctionalTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -33,7 +33,7 @@ public class BuilderSupplierFunctionalTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -41,7 +41,7 @@ public class BuilderSupplierFunctionalTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -49,7 +49,7 @@ public class BuilderSupplierFunctionalTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -175,7 +175,7 @@ public class BuilderSupplierFunctionalTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException the execution exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testConvWithExpire() throws InterruptedException, ExecutionException {
 		AssemblingConveyor<Integer, String, User> c = new AssemblingConveyor<>();
 		c.setIdleHeartBeat(100, TimeUnit.MILLISECONDS);
@@ -193,8 +193,7 @@ public class BuilderSupplierFunctionalTest {
 		
 		CompletableFuture<User> f = c.build().id(1).supplier(bs).createFuture();
 		c.part().id(1).value("VALUE").label("LABEL").place();
-		f.get();
-		
+		assertThrows(CancellationException.class,()->f.get());
 	}
 
 	/**

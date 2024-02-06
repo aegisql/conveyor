@@ -12,7 +12,7 @@ import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.apache.log4j.BasicConfigurator;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PersistentConveyorTest {
 
@@ -30,21 +30,21 @@ public class PersistentConveyorTest {
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", Integer.class)
 			.schema("testConv").autoInit(true).setArchived();
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
 		Tester.removeDirectory("testConv");
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 	
@@ -130,7 +130,7 @@ public class PersistentConveyorTest {
 		assertEquals(1, tc.results.size());
 	}
 
-	@Test(expected=CompletionException.class)
+	@Test
 	public void veryBasicFailingTestWithAdditionalUniqField() {
 		Persistence<Integer> p = getPersitenceWithField("withAdditionalNonUniqField");
 		TrioConveyor tc = new TrioConveyor();
@@ -138,7 +138,7 @@ public class PersistentConveyorTest {
 		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = p.wrapConveyor(tc);
 	
 		pc.part().id(1).label(TrioPart.TEXT1).value("txt1").addProperty("ADDON", "A").place();
-		pc.part().id(1).label(TrioPart.TEXT2).value("txt2").addProperty("ADDON", "A").place().join();
+		assertThrows(CompletionException.class,()->pc.part().id(1).label(TrioPart.TEXT2).value("txt2").addProperty("ADDON", "A").place().join());
 	}
 
 	
@@ -233,7 +233,7 @@ public class PersistentConveyorTest {
 		//assertTrue(p2.isEmpty());
 	}
 
-	@Test(expected=RuntimeException.class)
+	@Test
 	public void failingEncryptionReplayTest() throws Exception {
 		Persistence<Integer> p1 = persistenceBuilder
 				.partTable("failingEncryptionReplayTest")
@@ -267,7 +267,7 @@ public class PersistentConveyorTest {
 		pc2.setName("TC2");
 
 		System.out.println("------------");
-		pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join();
+		assertThrows(RuntimeException.class,()->pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join());
 		System.out.println(tc2);
 		assertEquals(0, tc1.results.size());
 		assertEquals(1, tc2.results.size());

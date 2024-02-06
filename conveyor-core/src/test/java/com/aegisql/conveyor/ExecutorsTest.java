@@ -1,12 +1,11 @@
 package com.aegisql.conveyor;
 
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
 import java.util.concurrent.*;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -18,7 +17,7 @@ public class ExecutorsTest {
 	 * Sets the up before class.
 	 *
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 	}
 
@@ -26,7 +25,7 @@ public class ExecutorsTest {
 	 * Tear down after class.
 	 *
 	 */
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
@@ -34,7 +33,7 @@ public class ExecutorsTest {
 	 * Sets the up.
 	 *
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
@@ -42,7 +41,7 @@ public class ExecutorsTest {
 	 * Tear down.
 	 *
 	 */
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -108,13 +107,13 @@ public class ExecutorsTest {
 	 * @throws ExecutionException the execution exception
 	 * @throws TimeoutException the timeout exception
 	 */
-	@Test(expected=TimeoutException.class)
+	@Test
 	public void testFutureTimeout() throws InterruptedException, ExecutionException, TimeoutException {
 		CompletableFuture<Boolean> cf = new CompletableFuture<>();
 		assertFalse(cf.isDone());
 		assertFalse(cf.isCancelled());
 		assertFalse(cf.isCompletedExceptionally());
-		assertTrue(cf.get(10,TimeUnit.MILLISECONDS));
+		assertThrows(TimeoutException.class,()->cf.get(10,TimeUnit.MILLISECONDS));
 	}
 
 	
@@ -124,7 +123,7 @@ public class ExecutorsTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException the execution exception
 	 */
-	@Test(expected=CancellationException.class)
+	@Test
 	public void testFutureCancel() throws InterruptedException, ExecutionException {
 		CompletableFuture<Boolean> cf = new CompletableFuture<>();
 		assertFalse(cf.isDone());
@@ -134,7 +133,7 @@ public class ExecutorsTest {
 		assertTrue(cf.isDone());
 		assertTrue(cf.isCancelled());
 		assertTrue(cf.isCompletedExceptionally());
-		assertTrue(cf.get());
+		assertThrows(CancellationException.class,()->cf.get());
 	}
 
 	/**
@@ -143,7 +142,7 @@ public class ExecutorsTest {
 	 * @throws InterruptedException the interrupted exception
 	 * @throws ExecutionException the execution exception
 	 */
-	@Test(expected=ExecutionException.class)
+	@Test
 	public void testFutureFailed() throws InterruptedException, ExecutionException {
 		CompletableFuture<Boolean> cf = new CompletableFuture<>();
 		assertFalse(cf.isDone());
@@ -153,7 +152,7 @@ public class ExecutorsTest {
 		assertTrue(cf.isDone());
 		assertFalse(cf.isCancelled());
 		assertTrue(cf.isCompletedExceptionally());
-		assertTrue(cf.get());
+		assertThrows(ExecutionException.class,()->cf.get());
 	}
 
 	
