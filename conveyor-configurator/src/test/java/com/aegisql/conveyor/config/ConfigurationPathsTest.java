@@ -1,9 +1,9 @@
 package com.aegisql.conveyor.config;
 
 import com.aegisql.conveyor.config.harness.TestBean;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConfigurationPathsTest {
 
@@ -20,10 +20,10 @@ public class ConfigurationPathsTest {
         assertFalse(cp.containsObject("testBean"));
     }
 
-    @Test(expected = ConveyorConfigurationException.class)
+    @Test
     public void testFailWithWrongClassName() {
         ConfigurationPaths cp = new ConfigurationPaths();
-        cp.register("com.aegisql.conveyor.config.harness.TestBeam");
+        assertThrows(ConveyorConfigurationException.class,()->cp.register("com.aegisql.conveyor.config.harness.TestBeam"));
     }
 
     @Test

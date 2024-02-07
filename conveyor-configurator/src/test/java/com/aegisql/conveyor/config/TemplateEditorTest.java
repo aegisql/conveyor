@@ -1,21 +1,17 @@
 package com.aegisql.conveyor.config;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+//import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RestoreEnvironmentVariables;
+import org.junitpioneer.jupiter.RestoreSystemProperties;
+import org.junitpioneer.jupiter.SetEnvironmentVariable;
+import org.junitpioneer.jupiter.SetSystemProperty;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
+@RestoreSystemProperties
+@RestoreEnvironmentVariables
 public class TemplateEditorTest {
-
-    @Rule
-    public final ProvideSystemProperty myPropertyHasMyValue = new ProvideSystemProperty("keyP", "value");
-
-    @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
 
     @Test
     public void setVariableShouldWorkForKnownKey() {
@@ -47,8 +43,9 @@ public class TemplateEditorTest {
     }
 
     @Test
+    @SetEnvironmentVariable(key = "key1",value = "value")
     public void setVariableShouldWorkForKnownEnvVariable() {
-        environmentVariables.set("key1","value");
+        //environmentVariables.set("key1","value");
         TemplateEditor te = new TemplateEditor();
         te.setVariables("key1","blah"); //env has higher priority
         String kv3 = te.setVariables("key2","${key1}");
@@ -57,6 +54,7 @@ public class TemplateEditorTest {
     }
 
     @Test
+    @SetSystemProperty(key = "keyP",value = "value")
     public void setVariableShouldWorkForKnownSysPropertyVariable() {
         TemplateEditor te = new TemplateEditor();
         String kv3 = te.setVariables("key2","${keyP}");
@@ -64,16 +62,16 @@ public class TemplateEditorTest {
         assertEquals("value",kv3);
     }
 
-    @Test(expected = ConveyorConfigurationException.class)
+    @Test
     public void missingPropertyShouldCauseAnException() {
         TemplateEditor te = new TemplateEditor();
-        String kv3 = te.setVariables("key1","${keyNone}");
+        assertThrows(ConveyorConfigurationException.class,()->te.setVariables("key1","${keyNone}"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void missingValueShouldCauseAnException() {
         TemplateEditor te = new TemplateEditor();
-        te.setVariables("keyNone",null);
+        assertThrows(NullPointerException.class,()->te.setVariables("keyNone",null));
     }
 
     @Test

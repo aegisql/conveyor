@@ -23,9 +23,11 @@ import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.id_builder.IdSource;
 import com.aegisql.id_builder.impl.TimeHostIdGenerator;
 import org.apache.commons.io.FileUtils;
-import org.junit.*;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+import org.junit.jupiter.api.*;
+import org.junitpioneer.jupiter.RestoreEnvironmentVariables;
+import org.junitpioneer.jupiter.RestoreSystemProperties;
+import org.junitpioneer.jupiter.SetEnvironmentVariable;
+import org.junitpioneer.jupiter.SetSystemProperty;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,19 +40,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@RestoreSystemProperties
+@RestoreEnvironmentVariables
 public class ConveyorConfigurationTest {
 	
-	//http://stefanbirkner.github.io/system-rules/
-	@Rule
-	public final ProvideSystemProperty myPropertyHasMyValue = new ProvideSystemProperty("conveyor.prop.init", "");
-
-	@Rule
-	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		tearDownAfterClass();
 
@@ -83,7 +80,7 @@ public class ConveyorConfigurationTest {
 				.completedLogTable("persistentCompleted").setArchived().maxBatchSize(3).build();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 		try {
 			File dir = new File("./");
@@ -95,11 +92,11 @@ public class ConveyorConfigurationTest {
 		}
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
@@ -111,8 +108,9 @@ public class ConveyorConfigurationTest {
 	}
 
 	@Test
+	@SetSystemProperty(key = "conveyor.env.init", value = "test")
+	@SetEnvironmentVariable(key = "conveyor.prop.init", value = "test")
 	public void testSimpleYamlFileByClassPathAndExtYML() throws Exception {
-	    environmentVariables.set("conveyor.env.init", "");
 		ConveyorConfiguration.build("classpath:test1.yml");
 		Conveyor<Integer, String, String> c = Conveyor.byName("test1");
 		assertNotNull(c);
@@ -264,10 +262,10 @@ public class ConveyorConfigurationTest {
 		when(mockConveyor.scrapConsumer()).thenReturn(new ScrapConsumerLoader(p->{}, r->{}));
 		when(mockConveyor.staticPart()).thenReturn(new StaticPartLoader<>(p->new CompletableFuture<>()));
 	}
-	
+
 	@Test
+	@SetEnvironmentVariable(key = "conveyor.c10_1.supplier", value = "com.aegisql.conveyor.config.ConveyorConfigurationTest.mockConveyor")
 	public void testPersistenceConveyorYamlSettersCall() throws Exception {
-	    environmentVariables.set("conveyor.c10_1.supplier", this.getClass().getName()+".mockConveyor");
 		ConveyorConfiguration.build("classpath:test10.yml");
 		verify(mockConveyor,times(1)).setName("c10_1");
 		verify(mockConveyor,times(1)).setIdleHeartBeat(Duration.ofMillis(1500));

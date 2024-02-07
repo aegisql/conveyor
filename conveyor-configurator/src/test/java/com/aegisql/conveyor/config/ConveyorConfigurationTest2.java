@@ -3,9 +3,9 @@ package com.aegisql.conveyor.config;
 import com.aegisql.conveyor.config.harness.StringSupplier;
 import com.aegisql.java_path.ClassRegistry;
 import com.aegisql.java_path.JavaPath;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.util.function.Supplier;
 
@@ -51,7 +51,7 @@ public class ConveyorConfigurationTest2 {
 
 
     @Test
-    @Ignore
+    @Disabled
     public void evalBuilderUsingPath() {
         ConveyorBuilder cb = new ConveyorBuilder();
 
@@ -79,7 +79,7 @@ public class ConveyorConfigurationTest2 {
     static JavaPath javaPath;
     static ClassRegistry classRegistry = new ClassRegistry();
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         classRegistry.registerClass(StringSupplier.class,StringSupplier.class.getSimpleName());
         javaPath = new JavaPath(ConveyorConfigurationTest2.class,classRegistry);

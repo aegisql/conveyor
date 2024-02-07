@@ -1,7 +1,7 @@
 package com.aegisql.conveyor.config;
 
 import com.aegisql.conveyor.config.harness.TestBean;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -12,24 +12,24 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.aegisql.conveyor.config.ConveyorProperty.ConveyorPropertyType.CONVEYOR;
 import static com.aegisql.conveyor.config.ConveyorProperty.ConveyorPropertyType.OTHER;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConveyorPropertyTest {
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
 
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDownAfterClass() {
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 	}
 
