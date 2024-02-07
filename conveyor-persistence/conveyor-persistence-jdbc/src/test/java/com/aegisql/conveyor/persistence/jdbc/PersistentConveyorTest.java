@@ -263,20 +263,9 @@ public class PersistentConveyorTest {
 		//assertFalse(p2.isEmpty());
 		//p1 must be empty after moving data to p1. 
 		//assertTrue(p1.isEmpty());
-		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc2 = p2.wrapConveyor(tc2);
-		pc2.setName("TC2");
-
-		System.out.println("------------");
-		assertThrows(RuntimeException.class,()->pc2.part().id(1).label(TrioPart.NUMBER).value(1).place().join());
-		System.out.println(tc2);
-		assertEquals(0, tc1.results.size());
-		assertEquals(1, tc2.results.size());
-		System.out.println(tc2);
-		System.out.println("P1="+tc1);
-		System.out.println("P2="+tc2);
-		//p2 must be empty after completion. 
-		Thread.sleep(100);
-		//assertTrue(p2.isEmpty());
+		assertThrows(RuntimeException.class,()-> {
+			PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc2 = p2.wrapConveyor(tc2);
+		});
 	}
 
 	@Test

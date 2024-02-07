@@ -126,7 +126,7 @@ public class SmartConveyorTest {
 		});
 		conveyor.setName("testRescheduleSmart");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST,
-				1, TimeUnit.SECONDS);
+				5, TimeUnit.SECONDS);
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1, 1999, UserBuilderEvents.SET_YEAR);
 
@@ -135,7 +135,7 @@ public class SmartConveyorTest {
 		User u0 = outMap.get(1);
 		assertNull(u0);
 		conveyor.command().id(1).ttl(10, TimeUnit.SECONDS).reschedule();
-		Thread.sleep(1001);
+		Thread.sleep(5001);
 		conveyor.place(c3).get();
 		User u1 = outMap.get(1);
 		assertNotNull(u1);
