@@ -1,8 +1,8 @@
 package com.aegisql.conveyor.multichannel;
 
-import java.util.function.Supplier;
-
 import com.aegisql.conveyor.user.User;
+
+import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
 /**

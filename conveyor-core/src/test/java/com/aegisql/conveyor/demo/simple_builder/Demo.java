@@ -3,9 +3,10 @@
  */
 package com.aegisql.conveyor.demo.simple_builder;
 
+import org.junit.jupiter.api.Test;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import org.junit.jupiter.api.Test;
 
 public class Demo {
 	

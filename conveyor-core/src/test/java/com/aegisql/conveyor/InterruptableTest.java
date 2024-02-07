@@ -4,7 +4,6 @@ import com.aegisql.conveyor.consumers.result.LastResultReference;
 import org.junit.jupiter.api.*;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;

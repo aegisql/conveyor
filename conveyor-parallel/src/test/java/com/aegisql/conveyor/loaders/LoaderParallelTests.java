@@ -1,8 +1,5 @@
 package com.aegisql.conveyor.loaders;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
@@ -15,6 +12,10 @@ import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.ParallelConveyor;
 import com.aegisql.conveyor.user.User;
 import org.junit.jupiter.api.*;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 

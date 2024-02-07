@@ -10,7 +10,6 @@ import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 

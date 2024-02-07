@@ -8,6 +8,7 @@ import com.aegisql.conveyor.user.UserBuilderSmart;
 import org.junit.jupiter.api.*;
 
 import java.util.concurrent.TimeUnit;
+
 import static com.aegisql.conveyor.user.UserBuilderEvents.*;
 import static org.junit.jupiter.api.Assertions.*;
 

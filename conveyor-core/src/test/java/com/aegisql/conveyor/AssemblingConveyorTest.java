@@ -10,7 +10,6 @@ import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.loaders.*;
-import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import org.junit.jupiter.api.*;

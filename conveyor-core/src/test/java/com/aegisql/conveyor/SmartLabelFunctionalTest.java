@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
+
 import static com.aegisql.conveyor.user.UserBuilderSmart.UserBuilderSmartLabel.*;
 import static org.junit.jupiter.api.Assertions.*;
 
