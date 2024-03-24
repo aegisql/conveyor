@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "name": "User",
+  "namespace": "com.aegisql.conveyor.persistence.avro.example",
+  "fields": [
+    {"name": "name", "type": "string"},
+    {"name": "age", "type": "int"},
+    {"name": "email", "type": "string"}
+  ]
+}

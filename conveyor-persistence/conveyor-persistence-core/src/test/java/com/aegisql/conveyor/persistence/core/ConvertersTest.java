@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.persistence.core;
 
+import com.aegisql.conveyor.persistence.avro.example.User;
 import com.aegisql.conveyor.persistence.converters.*;
 import com.aegisql.conveyor.persistence.converters.arrays.ClassesToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.arrays.IntPrimToBytesConverter;
@@ -11,6 +12,7 @@ import com.aegisql.conveyor.persistence.converters.sql.SqlDateToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimeToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.sql.SqlTimestampToBytesConverter;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
+import com.aegisql.conveyor.persistence.protobuf.example.UserOuterClass;
 import org.junit.jupiter.api.*;
 
 import java.lang.reflect.ParameterizedType;
@@ -525,5 +527,38 @@ public class ConvertersTest {
 		assertEquals(100, bs2.nextSetBit(0));
 		assertEquals(200, bs2.nextSetBit(101));
 
+	}
+
+	@Test
+	public void protobufConverterTest() {
+		var c = new ProtobufToBytesConverter(UserOuterClass.User.class);
+		var john = UserOuterClass.User.newBuilder().setAge(20).setEmail("protobuf@test.com").setName("John").build();
+		System.out.println(c.conversionHint());
+		assertEquals("Protobuf<com.aegisql.conveyor.persistence.protobuf.example.UserOuterClass.User>:byte[]",c.conversionHint());
+		byte[] persistence = c.toPersistence(john);
+		assertNotNull(persistence);
+		System.out.println(john);
+		var user = c.fromPersistence(persistence);
+		System.out.println(user);
+		assertNotNull(user);
+		assertEquals(john,user);
+	}
+
+	@Test
+	public void avroConverterTest() {
+		var c = new AvroToBytesConverter(User.class);
+		var john = new User();
+		john.setAge(20);
+		john.setEmail("avro@test.com");
+		john.setName("John");
+		System.out.println(c.conversionHint());
+		assertEquals("Avro<com.aegisql.conveyor.persistence.avro.example.User>:byte[]",c.conversionHint());
+		byte[] persistence = c.toPersistence(john);
+		assertNotNull(persistence);
+		System.out.println(john);
+		var user = c.fromPersistence(persistence);
+		System.out.println(user);
+		assertNotNull(user);
+		assertEquals(john,user);
 	}
 }
