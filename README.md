@@ -58,7 +58,9 @@ Last version supporting Java 8 is 1.4.4
 
 ## Release History
 
-### 1.6.7-SNAPSHOT
+### 1.6.8-SNAPSHOT
+
+### 1.6.7
 * added module names in METAINF.MF - will convert to modules in a later release
 * getMBeanInstance method in the Conveyor interface
 * Append cart property to a list
