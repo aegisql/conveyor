@@ -7,9 +7,9 @@ import java.util.Date;
 
 public class Person {
 	
-	final String firstName;
-	final String lastName;
-	final Date dateOfBirth;
+	public final String firstName;
+	public final String lastName;
+	public final Date dateOfBirth;
 	
 	public Person(String firstName, String lastName, Date dateOfBirth) {
 		this.firstName   = firstName;

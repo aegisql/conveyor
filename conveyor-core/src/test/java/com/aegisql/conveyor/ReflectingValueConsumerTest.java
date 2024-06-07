@@ -590,7 +590,7 @@ public class ReflectingValueConsumerTest {
 
 	}
 
-	enum PhoneType{HOME,CELL,WORK}
+	public enum PhoneType{HOME,CELL,WORK}
 
 	static class GS {
 		ArrayList<A> list;
@@ -769,11 +769,11 @@ public class ReflectingValueConsumerTest {
 		}
 	}
 
-	static class PhonesBuilder implements Supplier<Phones>{
-		String firstName;
-		String lastName;
-		Map<PhoneType, Set<String>> phones;
-		Map<String, PhoneType> reversedPhones;
+	public static class PhonesBuilder implements Supplier<Phones>{
+		public String firstName;
+		public String lastName;
+		public Map<PhoneType, Set<String>> phones;
+		public Map<String, PhoneType> reversedPhones;
 
 		@Override
 		public Phones get() {

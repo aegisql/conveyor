@@ -29,7 +29,7 @@ public class ConveyorConfiguration {
 	private final static Logger LOG = LoggerFactory.getLogger(ConveyorConfiguration.class);
 
 	/** The Constant lock. */
-	private final static Lock lock = new ReentrantLock();
+	private final static Lock lock = new ReentrantLock(true);
 	public static String DEFAULT_PERSISTENCE_NAME = "__PERSISTENCE__";
 
 	/** The property prefix. */

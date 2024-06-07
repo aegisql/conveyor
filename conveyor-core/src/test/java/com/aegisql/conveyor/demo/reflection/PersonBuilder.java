@@ -8,9 +8,9 @@ import java.util.function.Supplier;
 
 public class PersonBuilder implements Supplier<Person> {
 	
-	private String firstName;
-	private String lastName;
-	private Date dateOfBirth;
+	public String firstName;
+	public String lastName;
+	public Date dateOfBirth;
 
 	@Override
 	public Person get() {

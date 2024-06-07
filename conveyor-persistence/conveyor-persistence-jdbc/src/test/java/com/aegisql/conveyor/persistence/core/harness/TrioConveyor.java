@@ -17,7 +17,7 @@ public class TrioConveyor extends AssemblingConveyor<Integer, SmartLabel<TrioBui
 
 	public TrioConveyor() {
 		super();
-		this.setName("TrioConveyor_"+Thread.currentThread().getId());
+		this.setName("TrioConveyor_"+Thread.currentThread().threadId());
 		this.setBuilderSupplier(TrioBuilder::new);
 		this.resultConsumer(LogResult.debug(this)).andThen(counter).andThen(results).set();
 		this.scrapConsumer(LogScrap.error(this)).set();

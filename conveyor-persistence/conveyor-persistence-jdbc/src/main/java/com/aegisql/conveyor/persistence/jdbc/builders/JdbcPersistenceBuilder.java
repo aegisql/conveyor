@@ -30,7 +30,7 @@ import com.aegisql.conveyor.persistence.jdbc.engine.mysql.MysqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.postgres.PostgresqlEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.sqlite.SqliteEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.sqlite.SqliteMemoryEngine;
-import com.aegisql.id_builder.impl.TimeHostIdGenerator;
+import com.aegisql.id_builder.impl.BinaryIdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -197,7 +197,7 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	 * @param keyClass the key class
 	 */
 	public JdbcPersistenceBuilder(Class<K> keyClass) {
-		this(TimeHostIdGenerator.idGenerator_10x8(System.currentTimeMillis()/1000)::getId, false, keyClass, null, null, 0, null, null, null, null, null, null, new Properties(), new ArrayList<>(),
+		this(new BinaryIdGenerator(System.currentTimeMillis()/1000, (short) 1,1,1)::getId, false, keyClass, null, null, 0, null, null, null, null, null, null, new Properties(), new ArrayList<>(),
 				ArchiveStrategy.DELETE,null,null,null,new StringLabelConverter(), new EncryptingConverterBuilder(),
 				0,100,60_000,new HashSet<>(), RestoreOrder.BY_ID, new ArrayList<>(), null,null,false, cart -> true);
 	}	

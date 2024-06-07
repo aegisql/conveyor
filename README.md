@@ -59,7 +59,9 @@ Last version supporting Java 8 is 1.4.4
 ## Release History
 
 ### 1.7.1-SNAPSHOT
-* Java 21
+* Switch to Java 21
+* Some multithreading improvements
+* dependencies updates
 
 ***
 

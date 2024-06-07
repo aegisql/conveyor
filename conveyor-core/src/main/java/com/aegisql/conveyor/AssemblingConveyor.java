@@ -182,7 +182,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private static final class Lock {
 
 		/** The r lock. */
-		private final ReentrantLock rLock = new ReentrantLock();
+		private final ReentrantLock rLock = new ReentrantLock(true);
 
 		/** The has carts. */
 		private final Condition hasCarts = rLock.newCondition();
@@ -234,15 +234,15 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		 *             the interrupted exception
 		 */
 		public void waitData(boolean suspended, Queue<?> q) throws InterruptedException {
-			rLock.lock();
-			try {
 				if (suspended || q.isEmpty()) {
 					//noinspection ResultOfMethodCallIgnored
-					hasCarts.await(expirationCollectionInterval, expirationCollectionUnit);
+					rLock.lockInterruptibly();
+					try {
+						hasCarts.await(expirationCollectionInterval, expirationCollectionUnit);
+					} finally {
+						rLock.unlock();
+					}
 				}
-			} finally {
-				rLock.unlock();
-			}
 		}
 
 	}
@@ -348,7 +348,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 		});
 		innerThread.setDaemon(false);
-		this.name = "AssemblingConveyor " + innerThread.getId();
+		this.name = "AssemblingConveyor " + innerThread.threadId();
 		innerThread.setName(this.name);
 		this.setMbean(this.name);
 		innerThread.start();
@@ -456,7 +456,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 				@Override
 				public long getThreadId() {
-					return thisConv.innerThread.getId();
+					return thisConv.innerThread.threadId();
 				}
 
 				@Override
@@ -1676,7 +1676,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public String toString() {
-		return getGenericName()+" [name=" + name + ", thread=" + innerThread.getId() + "]";
+		return getGenericName()+" [name=" + name + ", thread=" + innerThread.threadId() + "]";
 	}
 
 	/*

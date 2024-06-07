@@ -70,7 +70,7 @@ public class ResultConsumerTest {
 		CompletableFuture<Object> f = new CompletableFuture<Object>();
 		sc.resultConsumer().first(LogResult.info(sc,"UnitTestLogger").andThen(b->{
 			usr.set(b.product);
-			threadId.set(Thread.currentThread().getId());
+			threadId.set(Thread.currentThread().threadId());
 			f.complete(null);
 		}).async()).set();
 		sc.scrapConsumer(LogScrap.error(sc,"UnitTestLogger")).set();
@@ -80,8 +80,8 @@ public class ResultConsumerTest {
 		cf.get();
 		f.get();
 		assertNotNull(usr.get());
-		assertFalse(Thread.currentThread().getId() == threadId.get() );
-		System.out.println("Current: "+Thread.currentThread().getId()+" consumer's: "+threadId);
+		assertFalse(Thread.currentThread().threadId() == threadId.get() );
+		System.out.println("Current: "+Thread.currentThread().threadId()+" consumer's: "+threadId);
 	}
 
 	@Test
@@ -95,7 +95,7 @@ public class ResultConsumerTest {
 			usr.set(b.product);
 		})).set();
 		sc.scrapConsumer(LogScrap.error(sc,"UnitTestLogger").andThen(s->{
-			threadId.set(Thread.currentThread().getId());
+			threadId.set(Thread.currentThread().threadId());
 			f.complete(null);
 		}).async()).set();
 		String csv = "John,Dow,1990";
@@ -104,8 +104,8 @@ public class ResultConsumerTest {
 		cf.get();
 		f.get();
 		assertNotNull(usr.get());
-		assertFalse(Thread.currentThread().getId() == threadId.get() );
-		System.out.println("Current: "+Thread.currentThread().getId()+" consumer's: "+threadId);
+		assertFalse(Thread.currentThread().threadId() == threadId.get() );
+		System.out.println("Current: "+Thread.currentThread().threadId()+" consumer's: "+threadId);
 	}
 
 	

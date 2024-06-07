@@ -42,7 +42,7 @@ public class Demo {
 			//configuration easier
 			AssemblingConveyor<String, SmartLabel<WordCounter>, WordCount> source = collectingConveyor.detach();
 			//Giving conveyor a distinctive name is a good practice 
-			source.setName("COUNTER_"+Thread.currentThread().getId());
+			source.setName("COUNTER_"+Thread.currentThread().threadId());
 			//Results will be forwrded to collectingConveyor with the MERGE label
 			ForwardResult.from(source).to(collectingConveyor).label(MERGE).bind();
 			//Ready when "DONE" command is received

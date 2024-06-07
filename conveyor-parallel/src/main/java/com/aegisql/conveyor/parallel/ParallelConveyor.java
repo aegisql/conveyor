@@ -73,7 +73,7 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	protected Function<Cart<K,?,L>, List<? extends Conveyor<K, L, OUT>>> balancingCart;
 
 	/** The name. */
-	protected String name = "ParallelConveyor"+Thread.currentThread().getId();
+	protected String name = "ParallelConveyor"+Thread.currentThread().threadId();
 
 	/** The l balanced. */
 	protected boolean lBalanced = false;
