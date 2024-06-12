@@ -242,7 +242,7 @@ Last version supporting Java 8 is 1.4.4
 ### 1.3.4
 * Persistence core module
 * Persistence JDBC module
-* Uses TimeHostIdGenerator by default
+* Uses DecimalIdGenerator by default
 * Apache Derby implementation for the Persistence
 * Serializable functional interfaces
 * Changes in the Conveyor API to support persistence

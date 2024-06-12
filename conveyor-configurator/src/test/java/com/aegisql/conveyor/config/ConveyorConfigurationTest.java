@@ -21,7 +21,7 @@ import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.id_builder.IdSource;
-import com.aegisql.id_builder.impl.TimeHostIdGenerator;
+import com.aegisql.id_builder.impl.DecimalIdGenerator;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.*;
 import org.junitpioneer.jupiter.RestoreEnvironmentVariables;
@@ -234,7 +234,7 @@ public class ConveyorConfigurationTest {
 
 	public Archiver archiver = null;
 	
-	public IdSource idSource = TimeHostIdGenerator.idGenerator_10x4x5(1000);
+	public IdSource idSource = DecimalIdGenerator.idGenerator_10x4x5(1000);
 	
 	@Test
 	public void testPersistenceProperties() throws Exception {
