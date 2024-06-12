@@ -42,18 +42,17 @@ public class SqliteEngine <K> extends GenericEngine<K> {
 	@Override
 	public ConnectionFactory<?> defaultConnectionFactory() {
 		SQLiteConfig config = new SQLiteConfig();
-		config.setJournalMode(SQLiteConfig.JournalMode.PERSIST);
+		//config.setJournalMode(SQLiteConfig.JournalMode.PERSIST);
+		config.setJournalMode(SQLiteConfig.JournalMode.WAL);
 		config.setLockingMode(SQLiteConfig.LockingMode.NORMAL);
 
-		ConnectionFactory cf = ConnectionFactory.cachingFactoryInstance(f->{
-				return new WrappedExternalDataSource(()-> {
-					try {
-						return config.createConnection(f.getUrl());
-					} catch (SQLException e) {
-						throw new PersistenceException(e);
-					}
-				});
-		});
+		ConnectionFactory cf = ConnectionFactory.cachingFactoryInstance(f-> new WrappedExternalDataSource(()-> {
+            try {
+                return config.createConnection(f.getUrl());
+            } catch (SQLException e) {
+                throw new PersistenceException(e);
+            }
+        }));
 		return cf;
 	}
 
