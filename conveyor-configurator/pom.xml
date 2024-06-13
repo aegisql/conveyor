@@ -85,7 +85,7 @@
 		<dependency>
 			<groupId>com.aegisql.id_builder</groupId>
 			<artifactId>id_builder</artifactId>
-			<version>1.1.1</version>
+			<version>1.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.graalvm.js</groupId>
