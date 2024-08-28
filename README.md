@@ -11,7 +11,7 @@ conveyor-core
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-core</artifactId>
-  <version>1.6.6</version>
+  <version>1.6.7</version>
 </dependency>
 ```
 
@@ -20,7 +20,7 @@ conveyor-parallel
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-parallel</artifactId>
-  <version>1.6.6</version>
+  <version>1.6.7</version>
 </dependency>
 ```
 
@@ -29,14 +29,14 @@ conveyor-persistence
 <dependency>
 <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.6.6</version>
+  <version>1.6.7</version>
 </dependency>
 ```
 ```xml
 <dependency>
   <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-jdbc</artifactId>
-  <version>1.6.6</version>
+  <version>1.6.7</version>
 </dependency>
 ```
 
@@ -45,7 +45,7 @@ conveyor configurator
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-configurator</artifactId>
-  <version>1.6.6</version>
+  <version>1.6.7</version>
 </dependency>
 ```
 
