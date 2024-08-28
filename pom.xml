@@ -94,7 +94,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.4.0</version>
+				<version>3.5.0</version>
 				<configuration>
 					<argLine>-ea --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang=java.path --add-opens java.base/java.util=ALL-UNNAMED</argLine>
 				</configuration>
