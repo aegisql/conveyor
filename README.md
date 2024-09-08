@@ -62,6 +62,7 @@ Last version supporting Java 8 is 1.4.4
 * Switch to Java 21
 * Some multithreading improvements
 * dependencies updates
+* added accessors for current ID, Label and properties
 
 ***
 

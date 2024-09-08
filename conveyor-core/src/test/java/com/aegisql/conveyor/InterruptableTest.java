@@ -34,9 +34,7 @@ public class InterruptableTest {
 		public String toString() {
 			return "Count [" + count + "]";
 		}
-		public int getCount() {
-			return count;
-		}
+
 		public void setCount(int count) {
 			this.count = count;
 		}
@@ -54,14 +52,15 @@ public class InterruptableTest {
 		}
 	
 		public static void add(CountBuilder b, int x) {
-			for(int i = 0; i < x; i++) {
-				b.count++;
 				try {
-					Thread.sleep(1000);
+					for(int i = 0; i < x; i++) {
+						b.count++;
+						Thread.sleep(1000);
+					}
 				} catch (InterruptedException e) {
+					System.out.println("Interrupted from exception "+e);
 					throw new RuntimeException(e);
 				}
-			}
 		}
 		
 	}
@@ -81,11 +80,11 @@ public class InterruptableTest {
 		public static void add(CountBuilderSmart b, int x) {
 			for(int i = 0; i < x; i++) {
 				b.count++;
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-				}
-				if( ! b.continueLoop ) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                }
+                if( ! b.continueLoop ) {
 					break;
 				}
 			}
@@ -94,7 +93,8 @@ public class InterruptableTest {
 		@Override
 		public void interrupt(Thread conveyorThread) {
 			continueLoop = false;
-			conveyorThread.interrupt(); //this has zero effect on the running thread. Not in the wait or sleep state
+			System.out.println("Interrupted from API");
+			//conveyorThread.interrupt(); //this has zero effect on the running thread. Not in the wait or sleep state
 		}
 		
 	}
@@ -117,7 +117,7 @@ public class InterruptableTest {
 		CompletableFuture<Boolean> f = ac.part().id(1).label(ADD).value(10).place();
 		Thread.sleep(1000);
 		ac.interrupt(ac.getName());
-		assertThrows(RuntimeException.class,()->f.join());
+		assertThrows(RuntimeException.class, f::join);
 		last.getCurrent();
 	}
 

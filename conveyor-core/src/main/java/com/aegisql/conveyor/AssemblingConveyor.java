@@ -277,6 +277,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The current site. */
 	private volatile BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT>  currentSite;
 
+	public final Supplier<K> current_id = () -> currentSite.getKey();
+
+	public final Supplier<L> current_label = () -> currentSite.getLastCart().getLabel();
+
+	public final Supplier<Map<String,Object>> current_properties = () -> currentSite.getProperties();
+
+	public final Function<String,Object> current_property = name->currentSite.getProperties().get(name);
+
 	/** The status line. */
 	protected String statusLine = "Accepting Parts";
 
@@ -397,7 +405,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					buildingSite = new BuildingSite<>(cart, bs, cartConsumer, readiness,
 							timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder, saveCarts,
 							postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues,resultConsumer,
-							ackAction,null);
+							ackAction,this);
 					if (cart.getValue() instanceof FutureSupplier futureSupplier) {
 						buildingSite.addFuture(futureSupplier.getFuture());
 					}
@@ -412,7 +420,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				buildingSite = new BuildingSite<>(cart, builderSupplier, cartConsumer,
 						readiness, timeoutAction, builderTimeout, TimeUnit.MILLISECONDS, synchronizeBuilder, saveCarts,
 						postponeExpirationEnabled, postponeExpirationMills, postponeExpirationOnTimeoutEnabled,staticValues,resultConsumer,
-						ackAction,null);
+						ackAction,this);
 			} else {
 				cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(this, cart.getKey(), cart,
 						"Ignore cart. Neither builder nor builder supplier available",
