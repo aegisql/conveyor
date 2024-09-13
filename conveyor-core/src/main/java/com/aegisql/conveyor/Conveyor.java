@@ -457,6 +457,14 @@ public interface Conveyor<K, L, OUT> {
 	void interrupt(String conveyorName);
 
 	/**
+	 * Interrupt.
+	 *
+	 * @param conveyorName the conveyor name
+	 * @param key          the key
+	 */
+	void interrupt(String conveyorName, K key);
+
+	/**
 	 * Sets the cart payload accessor.
 	 *
 	 * @param payloadFunction the payload function

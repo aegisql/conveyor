@@ -820,6 +820,11 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	}
 
 	@Override
+	public void interrupt(String conveyorName, K key) {
+		forward.interrupt(conveyorName, key);
+	}
+
+	@Override
 	public void setCartPayloadAccessor(Function<Cart<K, ?, L>, Object> payloadFunction) {
 		forward.setCartPayloadAccessor(payloadFunction);
 	}

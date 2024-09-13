@@ -819,8 +819,13 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	@Override
 	public void interrupt(final String conveyorName) {
 		conveyors.forEach(c->c.interrupt(conveyorName));
-		
 	}
+
+	@Override
+	public void interrupt(String conveyorName, K key) {
+		conveyors.forEach(c->c.interrupt(conveyorName,key));
+	}
+
 
 	@Override
 	public void setCartPayloadAccessor(Function<Cart<K, ?, L>, Object> payloadFunction) {

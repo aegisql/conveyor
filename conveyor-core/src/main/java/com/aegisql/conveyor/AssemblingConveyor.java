@@ -171,10 +171,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected volatile CompletableFuture<Boolean> conveyorFuture = null;
 	
 	/** The conveyor future lock. */
-	private final Object conveyorFutureLock = new Object();
+	protected final Object conveyorFutureLock = new Object();
 	
 	/** The inner thread. */
-	private final Thread innerThread;
+	protected final Thread innerThread;
 
 	/**
 	 * The Class Lock.
@@ -284,6 +284,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public final Supplier<Map<String,Object>> current_properties = () -> currentSite.getProperties();
 
 	public final Function<String,Object> current_property = name->currentSite.getProperties().get(name);
+
+	public final Supplier<Long> current_creation_time = () -> currentSite.getCreatingCart().getCreationTime();
+
+	public final Supplier<Long> current_expiration_time = () -> currentSite.getExpirationTime();
+
+	public final Supplier<LoadType> current_load_type = () -> currentSite.getLastCart().getLoadType();
 
 	/** The status line. */
 	protected String statusLine = "Accepting Parts";
@@ -1068,6 +1074,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 				return;
 			}
+			currentSite.siteRunning(true);
 			currentSite.addProperties(cart.getAllProperties());
 			if (resultFuture != null) {
 				currentSite.addFuture(resultFuture);
@@ -1128,6 +1135,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							e2.getMessage());
 					collector.remove(key);
 				}
+			}
+		} finally {
+			if(currentSite != null) {
+				currentSite.siteRunning(false);
 			}
 		}
 	}
@@ -1824,14 +1835,28 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			BuildingSite bs = currentSite;
 			if(bs != null) {
 				bs.interrupt(innerThread);
-				LOG.info("interrupted "+conveyorName);
+                LOG.info("interrupted {}", conveyorName);
 			} else {
-				LOG.warn("No active build found for "+conveyorName);				
+                LOG.warn("No active build found for {}", conveyorName);
 			}
 		} else {
-			LOG.warn(name + " ignored interruption for "+conveyorName);
+            LOG.warn("{} ignored interruption for {}", name, conveyorName);
 		}
-		
+	}
+
+	@Override
+	public void interrupt(String conveyorName, K key) {
+		if(name.equals(conveyorName)) {
+			BuildingSite bs = currentSite; // not thread safe
+			if(bs != null) {
+				bs.interrupt(innerThread,key);
+                LOG.info("interrupted {} for {}", conveyorName, key);
+			} else {
+                LOG.warn("No active build found for {}", conveyorName);
+			}
+		} else {
+            LOG.warn("{} ignored interruption for {}", name, conveyorName);
+		}
 	}
 	
 	/**

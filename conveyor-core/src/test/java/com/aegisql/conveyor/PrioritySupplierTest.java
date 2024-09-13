@@ -156,7 +156,7 @@ public class PrioritySupplierTest {
 
     @Test
     public void prioritizedOrderTest() {
-        PriorityBlockingQueue<Cart> queue = Priority.PRIORITIZED.get();
+        var queue = Priority.PRIORITIZED.get();
 
         Cart<Integer,String,String> c1 = new ShoppingCart<>(1,"v1","l1",System.currentTimeMillis(),0,1);
         Cart<Integer,String,String> c2 = new ShoppingCart<>(2,"v2","l2",System.currentTimeMillis(),0,2);

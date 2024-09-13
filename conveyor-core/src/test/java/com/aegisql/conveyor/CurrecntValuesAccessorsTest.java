@@ -3,6 +3,7 @@ package com.aegisql.conveyor;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.function.Supplier;
 
 public class CurrecntValuesAccessorsTest {
@@ -21,6 +22,9 @@ public class CurrecntValuesAccessorsTest {
             System.out.println("Current label: "+conveyor.current_label.get());
             System.out.println("Current properties: "+conveyor.current_properties.get());
             System.out.println("Current property: "+conveyor.current_property.apply("SOME_PROPERTY"));
+            System.out.println("Current creation time: "+conveyor.current_creation_time.get());
+            System.out.println("Current expiration time: "+conveyor.current_expiration_time.get());
+            System.out.println("Current load type: "+conveyor.current_load_type.get());
             conveyor.current_properties.get().put("ENRICHED",value);
         }
 
@@ -43,7 +47,7 @@ public class CurrecntValuesAccessorsTest {
         conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted("SOME_LABEL"));
 
         conveyor.part().id(100).label("SOME_LABEL").addProperty("SOME_PROPERTY","VAL").value("VALUE1").place();
-        conveyor.part().id(200).label("SOME_LABEL").addProperty("SOME_OTHER_PROPERTY","OTHER_VAL").value("VALUE2").place().join();
+        conveyor.part().ttl(Duration.ofSeconds(10)).id(200).label("SOME_LABEL").addProperty("SOME_OTHER_PROPERTY","OTHER_VAL").value("VALUE2").place().join();
 
 
     }

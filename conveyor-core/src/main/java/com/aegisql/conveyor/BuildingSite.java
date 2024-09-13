@@ -23,23 +23,24 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class BuildingSite.
  *
+ * @param <K>   the key type
+ * @param <L>   the generic type
+ * @param <C>   the generic type
+ * @param <OUT> the generic type
  * @author Mikhail Teplitskiy
  * @version 1.0.0
- * @param <K> the key type
- * @param <L> the generic type
- * @param <C> the generic type
- * @param <OUT> the generic type
  */
 public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expireable, Interruptable {
-	
+
 	/**
 	 * The Class Memento.
 	 *
-	 * @param <K> the key type
-	 * @param <L> the generic type
+	 * @param <K>   the key type
+	 * @param <L>   the generic type
 	 * @param <OUT> the generic type
 	 */
 	public static class Memento<K,L,OUT> implements Serializable {
@@ -47,24 +48,32 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		/** The Constant serialVersionUID. */
 		@Serial
         private static final long serialVersionUID = 1L;
-		
-		/** The timestamp. */
+
+		/**
+		 * The timestamp.
+		 */
 		final long timestamp;
-		
-		/** The state. */
+
+		/**
+		 * The state.
+		 */
 		final State<K,L> state;
-		
-		/** The builder. */
+
+		/**
+		 * The builder.
+		 */
 		final Supplier<? extends OUT> builder;
-		
-		/** The properties. */
+
+		/**
+		 * The properties.
+		 */
 		final Map<String,Object> properties = new HashMap<>();
-		
+
 		/**
 		 * Instantiates a new memento.
 		 *
-		 * @param state the state
-		 * @param builder the builder
+		 * @param state      the state
+		 * @param builder    the builder
 		 * @param properties the properties
 		 */
 		Memento(
@@ -77,7 +86,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			this.builder = builder;
 			this.properties.putAll(properties);
 		}
-		
+
 		/**
 		 * Gets the timestamp.
 		 *
@@ -95,7 +104,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		public K getId() {
 			return state.key;
 		}
-		
+
 		/**
 		 * Gets the expiration time.
 		 *
@@ -131,8 +140,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(BuildingSite.class);
-	
-	/** The Constant NON_LOCKING_LOCK. */
+
+	/**
+	 * The Constant NON_LOCKING_LOCK.
+	 */
 	public final static Lock NON_LOCKING_LOCK = new Lock() {
 		public void lock() {}
 		public void lockInterruptibly() {}
@@ -183,9 +194,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	
 	/** The builder created. */
 	private long builderCreated;
-	
-	/** The builder expiration. */
-	
+
+	/**
+	 * The builder expiration.
+	 */
 	Expireable expireableSource = () -> 0;
 	
 	/** The status. */
@@ -228,30 +240,36 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private final Acknowledge acknowledge;
 
 	private final Conveyor<K,Object,OUT> conveyor;
-	
+
+	/** The siteRunning variable is set by the inner thread, read by the interrup method, called by some other thread*/
+	private volatile Boolean siteRunning = false;
+
+	private final Object syncLock = new Object();
+
 	/**
 	 * Instantiates a new building site.
 	 *
-	 * @param cart the cart
-	 * @param builderSupplier the builder supplier
-	 * @param cartConsumer the cart consumer
-	 * @param readiness the ready
-	 * @param timeoutAction the timeoutAction
-	 * @param ttl the ttl
-	 * @param unit the unit
-	 * @param synchronizeBuilder the synchronizeBuilder
-	 * @param saveCarts the save carts
-	 * @param postponeExpirationEnabled the postpone expiration enabled
-	 * @param addExpirationTimeMsec the add expiration time msec
+	 * @param cart                               the cart
+	 * @param builderSupplier                    the builder supplier
+	 * @param cartConsumer                       the cart consumer
+	 * @param readiness                          the ready
+	 * @param timeoutAction                      the timeoutAction
+	 * @param ttl                                the ttl
+	 * @param unit                               the unit
+	 * @param synchronizeBuilder                 the synchronizeBuilder
+	 * @param saveCarts                          the save carts
+	 * @param postponeExpirationEnabled          the postpone expiration enabled
+	 * @param addExpirationTimeMsec              the add expiration time msec
 	 * @param postponeExpirationOnTimeoutEnabled the postpone expiration on timeout enabled
-	 * @param staticValues map of static values
-	 * @param resultConsumer product consumer
-	 * @param ackAction the ack action
+	 * @param staticValues                       map of static values
+	 * @param resultConsumer                     product consumer
+	 * @param ackAction                          the ack action
+	 * @param conveyor                           the conveyor
 	 */
 	@SuppressWarnings("unchecked")
 	public BuildingSite( 
 			C cart, 
-			Supplier<Supplier<? extends OUT>> builderSupplier, 
+			Supplier<Supplier<? extends OUT>> builderSupplier,
 			LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer, 
 			BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness, 
 			Consumer<Supplier<? extends OUT>> timeoutAction,
@@ -455,7 +473,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 	/** The product supplier. */
 	private Supplier<? extends OUT> productSupplier = null;
-	
+
 	/**
 	 * Gets the product supplier.
 	 *
@@ -501,7 +519,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				Collections.unmodifiableList(allCarts)
 				);
 	}
-	
+
 	/**
 	 * Ready.
 	 *
@@ -581,7 +599,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	public K getKey() {
 		return initialCart.getKey();
 	}
-	
+
 	/**
 	 * Gets the last error.
 	 *
@@ -650,18 +668,18 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	public void setLastCart(C lastCart) {
 		this.lastCart = lastCart;
 	}
-	
+
 	/**
 	 * Complete futures with value.
 	 *
-	 * @param value the value
+	 * @param value  the value
 	 * @param status the status
 	 */
 	void completeWithValue(OUT value, Status status) {
 		var ack = getAcknowledge();
 		resultConsumer.andThen(completeResultConsumer).accept(new ProductBin<>(conveyor, getKey(), value, getExpirationTime(), status, getProperties(), ack) );
 	}
-	
+
 	/**
 	 * Sets the result consumer.
 	 *
@@ -687,7 +705,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		exceptionalResultConsumer.accept(error);
 	}
 
-	
+
 	/**
 	 * Adds the future.
 	 *
@@ -708,7 +726,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	public Supplier<? extends OUT> getBuilder() {
 		return builder;
 	}
-	
+
 	/**
 	 * Gets the lock.
 	 *
@@ -809,17 +827,51 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.eventHistory.clear(); 
 		memento.state.eventHistory.forEach((l,i)-> this.eventHistory.put((L) l, new AtomicInteger((int) i)));
 	}
-	
+
+	/**
+	 * Site running.
+	 * Called only by the iner conveyor thread
+	 *
+	 * @param siteRunning the site running
+	 */
+	void siteRunning(boolean siteRunning) {
+		synchronized (this.syncLock) {
+			this.siteRunning = siteRunning;
+		}
+	}
+
+	private void _interrupt(Thread conveyorThread) {
+		if (builder instanceof Interruptable) {
+			((Interruptable) builder).interrupt(conveyorThread);
+		} else {
+			conveyorThread.interrupt();
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.Interruptable#interrupt(java.lang.Thread)
 	 */
 	@Override
 	public void interrupt(Thread conveyorThread) {
-		if(builder instanceof Interruptable) {
-			((Interruptable)builder).interrupt(conveyorThread);
-		} else {
-			conveyorThread.interrupt();
+		synchronized (this.syncLock) {
+			if (siteRunning) {
+				_interrupt(conveyorThread);
+			}
 		}
 	}
-		
+
+	/**
+	 * Interrupt.
+	 *
+	 * @param conveyorThread the conveyor thread
+	 * @param key            the key
+	 */
+	public void interrupt(Thread conveyorThread, K key) {
+		synchronized (this.syncLock) {
+			if (siteRunning && getKey().equals(key)) {
+				_interrupt(conveyorThread);
+			}
+		}
+	}
+
 }
