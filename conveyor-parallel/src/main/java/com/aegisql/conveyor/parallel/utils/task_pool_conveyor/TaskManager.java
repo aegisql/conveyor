@@ -25,14 +25,10 @@ public class TaskManager <K,T> implements Supplier<T>, Testing, TimeoutAction {
     private boolean ready = false;
     private long startTime;
 
-    @Override
-    public void onTimeout() {
-        pool[conveyorID].command().id(key).cancel();
-        pool[conveyorID].interrupt(pool[conveyorID].getName(),key);
-    }
 
     public enum Label implements TaskManagerLabel{
-        EXECUTE((b,s)->b.execute(s));
+        EXECUTE((b,s)->b.execute(s))
+        ;
 
         private final BiConsumer<TaskManager,Supplier> consumer;
 
@@ -44,6 +40,12 @@ public class TaskManager <K,T> implements Supplier<T>, Testing, TimeoutAction {
         public BiConsumer<TaskManager,Supplier> get() {
             return consumer;
         }
+    }
+
+    private void cancel(T r) {
+        result = r;
+        pool[conveyorID].command().id(key).cancel();
+        pool[conveyorID].interrupt(pool[conveyorID].getName(),key);
     }
 
     enum ProtectedLabel implements TaskManagerLabel{
@@ -97,6 +99,9 @@ public class TaskManager <K,T> implements Supplier<T>, Testing, TimeoutAction {
 
     void result(T result) {
         this.result = result;
+        if(this.future == null) {
+            throw new RuntimeException("Task "+keySupplier.get()+" has been canceled or timed out");
+        }
         this.ready = true;
     }
 
@@ -120,5 +125,11 @@ public class TaskManager <K,T> implements Supplier<T>, Testing, TimeoutAction {
     public boolean test() {
         return ready;
     }
+
+    @Override
+    public void onTimeout() {
+        cancel(null);
+    }
+
 
 }

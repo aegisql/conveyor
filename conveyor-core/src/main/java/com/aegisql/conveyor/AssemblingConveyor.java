@@ -291,6 +291,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	public final Supplier<LoadType> current_load_type = () -> currentSite.getLastCart().getLoadType();
 
+	public final Supplier<Status> current_status = () -> currentSite.getStatus();
+
 	/** The status line. */
 	protected String statusLine = "Accepting Parts";
 
@@ -1387,6 +1389,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		conveyor.keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.CANCELED, properties));
 		if(bs != null) {
 			bs.cancelFutures();
+			bs.setStatus(Status.CANCELED);
 		}
 		cart.getFuture().complete(true);
 	}

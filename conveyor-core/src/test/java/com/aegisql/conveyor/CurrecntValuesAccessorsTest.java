@@ -25,6 +25,7 @@ public class CurrecntValuesAccessorsTest {
             System.out.println("Current creation time: "+conveyor.current_creation_time.get());
             System.out.println("Current expiration time: "+conveyor.current_expiration_time.get());
             System.out.println("Current load type: "+conveyor.current_load_type.get());
+            System.out.println("Current status: "+conveyor.current_status.get());
             conveyor.current_properties.get().put("ENRICHED",value);
         }
 
