@@ -622,7 +622,7 @@ public class CartFutureTests {
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
-		conveyor.setName("User Assembler");
+		conveyor.setName("testBasicsbuildSmart8");
 		ShoppingCart<Integer, String, UserBuilderEvents> c1 = new ShoppingCart<>(1, "John", UserBuilderEvents.SET_FIRST);
 		Cart<Integer, String, UserBuilderEvents> c2 = new ShoppingCart<>(1,"Doe", UserBuilderEvents.SET_LAST);
 		Cart<Integer, Integer, UserBuilderEvents> c3 = new ShoppingCart<>(1,1999, UserBuilderEvents.SET_YEAR);

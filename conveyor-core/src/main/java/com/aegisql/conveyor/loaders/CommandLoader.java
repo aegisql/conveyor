@@ -186,6 +186,10 @@ public final class CommandLoader<K,OUT> {
 		return conveyor.apply(new GeneralCommand<>(key, "CANCEL", CommandLabel.CANCEL_BUILD, creationTime, expirationTime));
 	}
 
+	public CompletableFuture<Boolean> cancel(Throwable error) {
+		return conveyor.apply(new GeneralCommand<>(key, error, CommandLabel.CANCEL_BUILD, creationTime, expirationTime));
+	}
+
 	/**
 	 * Timeout.
 	 *

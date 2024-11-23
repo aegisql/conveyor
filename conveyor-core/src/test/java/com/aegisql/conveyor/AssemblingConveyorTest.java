@@ -6,6 +6,7 @@ package com.aegisql.conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
@@ -334,7 +335,7 @@ public class AssemblingConveyorTest {
 			return new UserBuilder();});
 		Thread.sleep(100);
 		conveyor.command().id(6).cancel();
-		conveyor.command().id(7).cancel();
+		conveyor.command().id(7).cancel(new RuntimeException("CANCELED EXCEPTION"));
 
 		conveyor.place(c5);
 		Thread.sleep(2000);
@@ -797,6 +798,29 @@ public class AssemblingConveyorTest {
 	public void unimplementedMetadataExceptionTest() {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
 		assertThrows(ConveyorRuntimeException.class,()->ac1.getMetaInfo());
+	}
+
+	@Test
+	public void autoShutdownTest() throws InterruptedException {
+		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
+		ac1.setAutoShutDownTime(Duration.ofSeconds(3));
+		Thread.sleep(4000);
+		assertThrows(CompletionException.class,()->ac1.part().id(1).label("label").value("value").place().join());
+	}
+
+	@Test
+	public void noAutoShutdownTest() throws InterruptedException {
+		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
+		ac1.setBuilderSupplier(UserBuilder::new);
+		ac1.setDefaultCartConsumer((a,b,c)->{});
+		ac1.setReadinessEvaluator(Conveyor.getTesterFor(ac1).accepted("done"));
+		ac1.resultConsumer(LogResult.debug(ac1)).set();
+		ac1.setAutoShutDownTime(Duration.ofSeconds(3));
+		ac1.part().id(1).label("label").value("value").place();
+		Thread.sleep(4000);
+		assertDoesNotThrow(()->ac1.part().id(1).label("done").value("value").place().join());
+		Thread.sleep(4000);
+		assertThrows(CompletionException.class,()->ac1.part().id(1).label("label").value("value").place().join());
 	}
 
 }

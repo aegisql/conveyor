@@ -60,6 +60,9 @@ GENERAL_FAILURE
 
 /** The keep running exception. */
 KEEP_RUNNING_EXCEPTION
+		,
+/** External failure failure type. */
+EXTERNAL_FAILURE
 	}
 	
 	/** The comment. */

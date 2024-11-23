@@ -25,5 +25,8 @@ public enum LoadType {
 	BUILDER,
 	
 	/** The command. */
-	COMMAND
+	COMMAND,
+
+	/** The postponed task*/
+	TASK
 }

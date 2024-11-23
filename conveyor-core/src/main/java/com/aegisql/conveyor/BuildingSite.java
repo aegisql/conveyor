@@ -405,14 +405,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 
 			getValueConsumer(label).accept(label, cart, builder);
 			acceptCount++;
-			if (eventHistory.containsKey(label)) {
-				eventHistory.get(label).incrementAndGet();
-			} else {
-				eventHistory.put(label, new AtomicInteger(1));
-			}
+			eventHistory.computeIfAbsent(label,(l)->new AtomicInteger()).incrementAndGet();
 			// this itself does not affect expiration time
 			// it should be enabled
-			// enabling may affect performance
+			//  may affect performance
 			if(acceptCount > 1) {
 				postponeAlg.accept(this, cart);
 			}

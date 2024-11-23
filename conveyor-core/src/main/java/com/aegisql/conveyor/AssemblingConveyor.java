@@ -73,6 +73,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The start time reject. */
 	protected long startTimeReject = System.currentTimeMillis();
 
+	protected long lastProcessingTime = System.currentTimeMillis();
+
+	protected long autoShotDownTime = Long.MAX_VALUE;
+
 	/** The timeout action. */
 	protected Consumer<Supplier<? extends OUT>> timeoutAction;
 
@@ -139,7 +143,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The key before reschedule. */
 	private BiConsumer<K, Long> keyBeforeReschedule = (key, newExpirationTime) -> {
-		Objects.requireNonNull(key, "NULL key cannot be reschedulеd");
+		Objects.requireNonNull(key, "NULL key cannot be rescheduled");
 		Objects.requireNonNull(newExpirationTime, "NULL newExpirationTime cannot be applied to the schedule");
 		var buildingSite = collector.get(key);
 		if (buildingSite != null) {
@@ -335,8 +339,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		this.innerThread = new Thread(() -> {
 			try {
 				while (running || ! inQueue.isEmpty() || ! mQueue.isEmpty()) {
-					if (!waitData())
+					if (!waitData()) {
 						break; //When interrupted, which is exceptional behavior, should return right away
+					}
 					processManagementCommands();
 					if(suspended) {
 						continue;
@@ -354,6 +359,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						LOG.info("No pending messages or commands. Ready to leave {}", Thread.currentThread().getName());
 					}
 					currentSite = null;
+					if((System.currentTimeMillis() - this.lastProcessingTime) > this.autoShotDownTime && this.collector.size() == 0) {
+						LOG.info("Auto Shut Down time reached");
+						this.shutDownOnIdleTimeout();
+					}
 				}
 				LOG.info("Leaving {}", Thread.currentThread().getName());
 				drainQueues();
@@ -417,6 +426,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					if (cart.getValue() instanceof FutureSupplier futureSupplier) {
 						buildingSite.addFuture(futureSupplier.getFuture());
 					}
+					buildingSite.addProperties(cart.getAllProperties());
 				} else {
 					cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(new ScrapBin(this, cart.getKey(), cart,
 							"Ignore cart. Neither creating cart nor default builder supplier available",
@@ -662,6 +672,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				});
 				cmdFuture.complete(true);
 			}
+			this.lastProcessingTime = System.currentTimeMillis();
 		}
 	}
 
@@ -944,7 +955,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		statusLine = "Stopped";
 		LOG.info("Conveyor {} has stopped!",name);
 	}
-	
+
+	protected void shutDownOnIdleTimeout() {
+		stop();
+	}
+
 	/**
 	 * Complete tasks and stop.
 	 *
@@ -1107,24 +1122,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			cart.getFuture().complete(Boolean.TRUE);
 		} catch (KeepRunningConveyorException e) {
 			if (currentSite != null) {
-				currentSite.setLastError(e);
-				currentSite.setLastCart(cart);
-				cart.getScrapConsumer().accept(new ScrapBin(this, cart.getKey(), cart,
-						"Cart Processor failed. Keep running", e, FailureType.KEEP_RUNNING_EXCEPTION,cart.getAllProperties(), null));
-				scrapConsumer.accept(new ScrapBin(this, cart.getKey(), cart,
-						"Site Processor failed. Keep running", e, FailureType.KEEP_RUNNING_EXCEPTION,cart.getAllProperties(), currentSite.getAcknowledge()));
-				currentSite.completeFuturesExceptionaly(e);
+				handleErrorAndContinue(cart, e);
 			}
 		} catch (Exception e) {
 			if (currentSite != null) {
-				currentSite.setStatus(Status.INVALID);
-				currentSite.setLastError(e);
-				currentSite.setLastCart(cart);
-				cart.getScrapConsumer().accept(new ScrapBin(this, cart.getKey(), cart,
-						"Cart Processor failed", e, failureType,cart.getAllProperties(), null));
-				scrapConsumer.accept(new ScrapBin(this, cart.getKey(), currentSite,
-						"Site Processor failed", e, failureType,cart.getAllProperties(), currentSite.getAcknowledge()));
-				currentSite.completeFuturesExceptionaly(e);
+				handleError(currentSite, cart, e, failureType);
 			} else {
 				cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(
 						new ScrapBin(this, cart.getKey(), cart, "Cart Processor Failed", e, failureType,cart.getAllProperties(), null));
@@ -1142,7 +1144,33 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(currentSite != null) {
 				currentSite.siteRunning(false);
 			}
+			this.lastProcessingTime = System.currentTimeMillis();
 		}
+	}
+
+	private void handleError( BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> currentSite, Cart<K, ?, L> cart, Exception e, FailureType failureType) {
+		Map<String,Object> properties = cart.getAllProperties();
+		properties.putAll(currentSite.getProperties());
+		currentSite.setStatus(Status.INVALID);
+		currentSite.setLastError(e);
+		currentSite.setLastCart(cart);
+		cart.getScrapConsumer().accept(new ScrapBin(this, cart.getKey(), cart,
+				"Cart Processor failed", e, failureType, properties, null));
+		scrapConsumer.accept(new ScrapBin(this, cart.getKey(), currentSite,
+				"Site Processor failed", e, failureType, properties, currentSite.getAcknowledge()));
+		currentSite.completeFuturesExceptionaly(e);
+	}
+
+	private void handleErrorAndContinue(Cart<K, ?, L> cart, KeepRunningConveyorException e) {
+		Map<String,Object> properties = cart.getAllProperties();
+		properties.putAll(currentSite.getProperties());
+		currentSite.setLastError(e);
+		currentSite.setLastCart(cart);
+		cart.getScrapConsumer().accept(new ScrapBin(this, cart.getKey(), cart,
+				"Cart Processor failed. Keep running", e, FailureType.KEEP_RUNNING_EXCEPTION, properties, null));
+		scrapConsumer.accept(new ScrapBin(this, cart.getKey(), cart,
+				"Site Processor failed. Keep running", e, FailureType.KEEP_RUNNING_EXCEPTION, properties, currentSite.getAcknowledge()));
+		currentSite.completeFuturesExceptionaly(e);
 	}
 
 	/**
@@ -1215,6 +1243,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			}
 			keyBeforeEviction.accept(new AcknowledgeStatus<>(key, statusForEviction, buildingSite.getProperties()));
 			cnt++;
+			this.lastProcessingTime = System.currentTimeMillis();
 		}
 		if (cnt > 0) {
 			LOG.trace("Timeout collected: {}",cnt);
@@ -1384,12 +1413,17 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static <K> void cancelNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
 		var key = cart.getKey();
+		Object error = cart.getValue();
 		var bs = (BuildingSite) conveyor.collector.get(key);
 		var properties = bs == null ? new HashMap<String,Object>():bs.getProperties();
 		conveyor.keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.CANCELED, properties));
 		if(bs != null) {
-			bs.cancelFutures();
-			bs.setStatus(Status.CANCELED);
+			if(error != null && error instanceof Throwable) {
+				conveyor.handleError(bs, (Cart) cart, (Exception) error,FailureType.EXTERNAL_FAILURE);
+			} else {
+				bs.cancelFutures();
+				bs.setStatus(Status.CANCELED);
+			}
 		}
 		cart.getFuture().complete(true);
 	}
@@ -1906,6 +1940,14 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public ConveyorMetaInfo<K, L, OUT> getMetaInfo() {
 		throw new ConveyorRuntimeException("Meta Info is not available for '"+getName()+"'. getMetaInfo() method must be overridden in a child conveyor class.");
+	}
+
+	public void setAutoShutDownTime(long autoShotDownTime, TimeUnit unit) {
+		this.autoShotDownTime = unit.toMillis(autoShotDownTime);
+	}
+
+	public void setAutoShutDownTime(Duration autoShotDownTime) {
+		this.autoShotDownTime = autoShotDownTime.toMillis();
 	}
 
 }
