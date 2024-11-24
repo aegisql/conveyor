@@ -56,7 +56,6 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
             loadersPool[i] = tec.part().label(1);
             conveyors[i] = tec;
         }
-        taskManager.setBuilderSupplier(TaskManager::new);
         taskManager.resultConsumer(bin->{
             L label = (L) bin.properties.get("LABEL");
             K id = bin.key.key();
@@ -71,7 +70,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
                 LOG.error("The task for id={} is about to be canceled. Reason: {}{}", id, bin.failureType, bin.error == null ? "" : " Error: "+bin.error.getMessage());
                 ac.command().id(bin.key).cancel();
                 ac.interrupt(ac.getName(), bin.key);
-                innerConveyor.command().id(id).cancel(bin.error != null ? bin.error:new TimeoutException("Task Timed Out"));
+                innerConveyor.command().id(id).completeExceptionally(bin.error != null ? bin.error:new TimeoutException("Task Timed Out"));
             }
         }).set();
         taskManager.setDefaultCartConsumer(Conveyor.getConsumerFor(taskManager)
@@ -96,6 +95,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
             TaskId<K> id = new TaskId<>(tl.key, counter.incrementAndGet());
             int next = rr.next();
             var taskManagerFuture = taskManager.build()
+                    .supplier(TaskManager::new)
                     .id(id)
                     .expirationTime(tl.expirationTime)
                     .addProperty("LABEL", tl.label)

@@ -130,15 +130,19 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	/** The key before eviction. */
 	private Consumer<AcknowledgeStatus<K>> keyBeforeEviction = status -> {
-		LOG.trace("Key is ready to be evicted {} status:{}", status.getKey(), status.getStatus());
-		collector.remove(status.getKey());
-		if(autoAck) {
-			if(ackStatusSet.contains(status.getStatus())) {
-				ackAction.accept(status);
-			} else {
-				LOG.debug("Auto Acknowledge for key {} not applicable for status {} of {}",status.getKey(),status.getStatus(),ackStatusSet);
+		BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> removed = collector.remove(status.getKey());
+		if(removed != null) {
+			LOG.trace("Key {} has been removed. status:{}", status.getKey(), status.getStatus());
+			if (autoAck) {
+				if (ackStatusSet.contains(status.getStatus())) {
+					ackAction.accept(status);
+				} else {
+					LOG.debug("Auto Acknowledge for key {} not applicable for status {} of {}", status.getKey(), status.getStatus(), ackStatusSet);
+				}
 			}
-	}
+		} else {
+			LOG.trace("Key {} was not found. Eviction action ignored", status.getKey());
+		}
 	};
 
 	/** The key before reschedule. */
@@ -1122,7 +1126,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			cart.getFuture().complete(Boolean.TRUE);
 		} catch (KeepRunningConveyorException e) {
 			if (currentSite != null) {
-				handleErrorAndContinue(cart, e);
+				handleErrorAndContinue(currentSite, cart, e);
 			}
 		} catch (Exception e) {
 			if (currentSite != null) {
@@ -1161,7 +1165,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		currentSite.completeFuturesExceptionaly(e);
 	}
 
-	private void handleErrorAndContinue(Cart<K, ?, L> cart, KeepRunningConveyorException e) {
+	private void handleErrorAndContinue(BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT> currentSite, Cart<K, ?, L> cart, KeepRunningConveyorException e) {
 		Map<String,Object> properties = cart.getAllProperties();
 		properties.putAll(currentSite.getProperties());
 		currentSite.setLastError(e);
@@ -1413,20 +1417,47 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static <K> void cancelNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
 		var key = cart.getKey();
-		Object error = cart.getValue();
 		var bs = (BuildingSite) conveyor.collector.get(key);
 		var properties = bs == null ? new HashMap<String,Object>():bs.getProperties();
 		conveyor.keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.CANCELED, properties));
 		if(bs != null) {
-			if(error != null && error instanceof Throwable) {
-				conveyor.handleError(bs, (Cart) cart, (Exception) error,FailureType.EXTERNAL_FAILURE);
-			} else {
-				bs.cancelFutures();
-				bs.setStatus(Status.CANCELED);
-			}
+			bs.cancelFutures();
+			bs.setStatus(Status.CANCELED);
 		}
 		cart.getFuture().complete(true);
 	}
+
+	static <K,OUT> void complete(AssemblingConveyor conveyor, Cart<K, OUT, ?> cart) {
+		var key = cart.getKey();
+		var result = cart.getValue();
+		var bs = (BuildingSite) conveyor.collector.get(key);
+		var properties = bs == null ? new HashMap<String,Object>():bs.getProperties();
+		if(bs != null) {
+			conveyor.keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.READY, properties));
+			conveyor.completeSuccessfully(bs,result,Status.READY);
+		}
+		cart.getFuture().complete(true);
+	}
+
+	static <K> void completeExceptionally(AssemblingConveyor conveyor, Cart<K, Throwable, ?> cart) {
+		var key = cart.getKey();
+		Throwable error = cart.getValue();
+		if(error != null) {
+			var bs = (BuildingSite) conveyor.collector.get(key);
+			var properties = bs == null ? new HashMap<String, Object>() : bs.getProperties();
+			if (bs != null) {
+				if (error instanceof KeepRunningConveyorException) {
+					conveyor.handleErrorAndContinue(bs, cart, (KeepRunningConveyorException) error);
+				} else
+					conveyor.keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.CANCELED, properties));
+					conveyor.handleError(bs, cart, (Exception) error, FailureType.EXTERNAL_FAILURE);
+				}
+		} else {
+			LOG.debug("Expected exception. Command ignored for key {}.",key);
+		}
+		cart.getFuture().complete(true);
+	}
+
 
 	/**
 	 * Cancel now.

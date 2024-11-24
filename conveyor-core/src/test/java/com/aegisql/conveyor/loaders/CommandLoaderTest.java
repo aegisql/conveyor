@@ -52,7 +52,7 @@ public class CommandLoaderTest {
 
 		CommandLoader cl0 = new CommandLoader<>(c->{
 			System.out.println("Final: "+c);
-			return new CompletableFuture();
+			return new CompletableFuture<>();
 		});
 		
 		System.out.println(cl0);

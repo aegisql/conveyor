@@ -64,8 +64,9 @@ Last version supporting Java 8 is 1.4.4
 * dependencies updates
 * added accessors for current ID, Label and properties
 * ConveyorAdapter class
-* Command cancel with Throwable parameter allows to cancel build with corresponding error processing
+* Commands extended to complete and completeExceptionally, allows to terminate the build with default value provided or with corresponding error processing
 * Bugfixes
+* TaskPool parallel conveyor
 
 ***
 

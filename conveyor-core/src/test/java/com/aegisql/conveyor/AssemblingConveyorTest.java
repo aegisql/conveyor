@@ -9,7 +9,9 @@ import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.consumers.scrap.LogScrap;
+import com.aegisql.conveyor.consumers.scrap.ScrapQueue;
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
+import com.aegisql.conveyor.exception.KeepRunningConveyorException;
 import com.aegisql.conveyor.loaders.*;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
@@ -293,9 +295,11 @@ public class AssemblingConveyorTest {
 				throw new RuntimeException("Unknown label " + label);
 			}
 		});
+		var scrap = ScrapQueue.of(conveyor);
 		/* The out queue. */
 		ResultQueue<Integer,User> outQueue = ResultQueue.of(conveyor);
 		conveyor.resultConsumer().first(outQueue).set();
+		conveyor.scrapConsumer().andThen(scrap).set();
 		conveyor.setReadinessEvaluator((state, builder) -> {
 			return state.previouslyAccepted == 3;
 		});
@@ -333,9 +337,13 @@ public class AssemblingConveyorTest {
 		conveyor.command().id(9).ttl(1,TimeUnit.SECONDS).create(()->{
 			System.out.println("Command builder supplier called.");
 			return new UserBuilder();});
+		conveyor.command().id(10).ttl(100,TimeUnit.SECONDS).create();
+		conveyor.command().id(11).create();
 		Thread.sleep(100);
 		conveyor.command().id(6).cancel();
-		conveyor.command().id(7).cancel(new RuntimeException("CANCELED EXCEPTION"));
+		conveyor.command().id(7).completeExceptionally(new RuntimeException("CANCELED EXCEPTION"));
+		conveyor.command().id(10).completeExceptionally(new KeepRunningConveyorException("KEEP RUNNING EXCEPTION"));
+		conveyor.command().id(11).complete(new User("Unknown","Person",0));
 
 		conveyor.place(c5);
 		Thread.sleep(2000);
@@ -346,6 +354,16 @@ public class AssemblingConveyorTest {
 		Thread.sleep(1000);
 		assertTrue(evictedKeys.size() > 0);
 		System.out.println("Evicted :"+evictedKeys);
+		assertTrue(evictedKeys.contains(6));
+		assertTrue(evictedKeys.contains(7));
+		assertFalse(evictedKeys.contains(10));
+
+		System.out.println("Scrap :"+scrap);
+		User u11 = outQueue.poll();
+		System.out.println("User11 :"+u11);
+		assertEquals("Unknown",u11.getFirst());
+
+
 	}
 
 	/**

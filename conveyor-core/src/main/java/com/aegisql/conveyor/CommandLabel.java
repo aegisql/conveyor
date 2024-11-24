@@ -30,12 +30,18 @@ public enum CommandLabel implements SmartLabel<AssemblingConveyor> {
 		}
 	}
 	,
-	COMPLETE_BUILD {
+	COMPLETE_BUILD_EXEPTIONALLY {
 		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
-			return (c, o) -> AssemblingConveyor.cancelNow(c, (Cart) o);
+			return (c, o) -> AssemblingConveyor.completeExceptionally(c, (Cart) o);
 		}
 	}
 
+	,
+	COMPLETE_BUILD {
+		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
+			return (c, o) -> AssemblingConveyor.complete(c, (Cart) o);
+		}
+	}
 
 	/** The timeout build. */
 	,
