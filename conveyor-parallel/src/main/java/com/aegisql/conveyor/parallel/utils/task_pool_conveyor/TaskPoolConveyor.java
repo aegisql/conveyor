@@ -1,12 +1,16 @@
 package com.aegisql.conveyor.parallel.utils.task_pool_conveyor;
 
 import com.aegisql.conveyor.*;
+import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.loaders.PartLoader;
+import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
 import com.aegisql.conveyor.utils.ConveyorAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
@@ -29,6 +33,16 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
     private final AtomicLong counter = new AtomicLong();
     private final RoundRobinLoop rr;
 
+    public final ScrapConsumer<K,?> DEFAULT_TASK_SCRAP_CONSUMER = bin->{
+        bin.conveyor.command().id(bin.key).completeExceptionally(bin.error != null ? bin.error:new TimeoutException("Task Timed Out"));
+    };
+
+    private ScrapConsumer<K,?> taskScrapConsumer = DEFAULT_TASK_SCRAP_CONSUMER;
+
+    private ScrapConsumer<K,?> getTaskScrapConsumer() {
+        return taskScrapConsumer;
+    }
+
     public TaskPoolConveyor(int poolSize) {
         this(new AssemblingConveyor<>(), poolSize);
     }
@@ -45,7 +59,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
                 b.task(v);
             });
             tec.resultConsumer(bin->{
-                LOG.debug("The task {} has been completed.", bin.key);
+                LOG.debug("The task {} has been completed. Product:{}", bin.key,bin.product);
                 taskManager.part().id(bin.key).label("done").value(bin.product).place();
             }).set();
             tec.scrapConsumer(bin->{
@@ -60,19 +74,22 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
             L label = (L) bin.properties.get("LABEL");
             K id = bin.key.key();
             OUT product = bin.product;
-            LOG.debug("The task for id={} label{} is ready.", id, label);
-            innerConveyor.part().id(id).label(label).value(product).place();
-        }).set();
+            LOG.debug("The task for id={} label={} is ready. Product: {}", id, label,product);
+            this.part().id(id).label(label).value(product).place();
+        })
+                .set();
         taskManager.scrapConsumer(bin->{
             K id = bin.key.key();
-            AssemblingConveyor ac = (AssemblingConveyor) bin.properties.get("TASK_CONVEYOR");
-            if(ac != null) {
+            AssemblingConveyor tc = (AssemblingConveyor) bin.properties.get("TASK_CONVEYOR");
+            if(tc != null) {
                 LOG.error("The task for id={} is about to be canceled. Reason: {}{}", id, bin.failureType, bin.error == null ? "" : " Error: "+bin.error.getMessage());
-                ac.command().id(bin.key).cancel();
-                ac.interrupt(ac.getName(), bin.key);
-                innerConveyor.command().id(id).completeExceptionally(bin.error != null ? bin.error:new TimeoutException("Task Timed Out"));
+                tc.command().id(bin.key).cancel();
+                tc.interrupt(tc.getName(), bin.key);
             }
-        }).set();
+        })
+                .andThen(bin->{
+                    this.getTaskScrapConsumer().accept(mapScrapBin(bin));
+                }).set();
         taskManager.setDefaultCartConsumer(Conveyor.getConsumerFor(taskManager)
                 .when("error",(b,v)->{
                     var tm = (TaskManager) b;
@@ -102,7 +119,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
                     .addProperty("TASK_CONVEYOR", conveyors[next])
                     .create();
             var taskFuture = loadersPool[next].id(id).value(tl.valueSupplier).place();
-            LOG.debug("The task for id={} label={} has been scheduled.", tl.key, tl.label);
+            LOG.debug("The task for id={} label={} has been scheduled in executor {}.", id, tl.label,next);
             return CompletableFuture.allOf(taskManagerFuture, taskFuture).thenApply(v-> taskManagerFuture.join() && taskFuture.join());
         });
     }
@@ -130,6 +147,13 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
     }
 
     @Override
+    public void stop() {
+        super.stop();
+        taskManager.stop();
+        Arrays.stream(conveyors).forEach(Conveyor::stop);
+    }
+
+    @Override
     public void setName(String string) {
         super.setName(string);
         taskManager.setName("task_manager_"+string);
@@ -137,5 +161,20 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
             conveyors[i].setName("task_processor["+i+"]_"+string);
         }
     }
+
+    private ScrapBin mapScrapBin(ScrapBin<TaskId<K>,?> bin) {
+        return new ScrapBin((Conveyor<K, Object, Object>) innerConveyor,bin.key.key(),bin.scrap,bin.comment,bin.error,bin.failureType,bin.properties,bin.acknowledge.get());
+    }
+
+    public ScrapConsumerLoader<K> taskScrapConsumer() {
+        return new ScrapConsumerLoader<>(sc -> {
+            this.taskScrapConsumer = sc;
+        }, this.taskScrapConsumer);
+    }
+
+    public ScrapConsumerLoader<K> taskScrapConsumer(ScrapConsumer<K,?> scrapConsumer) {
+        return taskScrapConsumer().first(scrapConsumer);
+    }
+
 
 }

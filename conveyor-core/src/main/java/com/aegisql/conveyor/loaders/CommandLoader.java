@@ -11,6 +11,7 @@ import com.aegisql.conveyor.serial.SerializablePredicate;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -192,6 +193,18 @@ public final class CommandLoader<K,OUT> {
 
 	public CompletableFuture<Boolean> completeExceptionally(Throwable error) {
 		return conveyor.apply(new GeneralCommand<>(key, error, CommandLabel.COMPLETE_BUILD_EXEPTIONALLY, creationTime, expirationTime));
+	}
+
+	public CompletableFuture<Boolean> addProperty(String property, Object value) {
+		GeneralCommand<K, Object> command = new GeneralCommand<>(key, null, CommandLabel.PROPERTIES, creationTime, expirationTime);
+		command.addProperty(property, value);
+		return conveyor.apply(command);
+	}
+
+	public CompletableFuture<Boolean> addProperties(Map<String,Object> properties) {
+		GeneralCommand<K, Object> command = new GeneralCommand<>(key, null, CommandLabel.PROPERTIES, creationTime, expirationTime);
+		properties.forEach(command::addProperty);
+		return conveyor.apply(command);
 	}
 
 	/**

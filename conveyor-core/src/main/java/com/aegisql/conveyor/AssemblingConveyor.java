@@ -1435,8 +1435,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		if(bs != null) {
 			conveyor.keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.READY, properties));
 			conveyor.completeSuccessfully(bs,result,Status.READY);
+			cart.getFuture().complete(true);
+		} else {
+			cart.getFuture().complete(false);
 		}
-		cart.getFuture().complete(true);
 	}
 
 	static <K> void completeExceptionally(AssemblingConveyor conveyor, Cart<K, Throwable, ?> cart) {
@@ -1448,14 +1450,27 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if (bs != null) {
 				if (error instanceof KeepRunningConveyorException) {
 					conveyor.handleErrorAndContinue(bs, cart, (KeepRunningConveyorException) error);
-				} else
+				} else {
 					conveyor.keyBeforeEviction.accept(new AcknowledgeStatus<K>(key, Status.CANCELED, properties));
 					conveyor.handleError(bs, cart, (Exception) error, FailureType.EXTERNAL_FAILURE);
 				}
+			}
+			cart.getFuture().complete(true);
 		} else {
 			LOG.debug("Expected exception. Command ignored for key {}.",key);
+			cart.getFuture().complete(false);
 		}
-		cart.getFuture().complete(true);
+	}
+
+	static <K> void addProperties(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
+		var key = cart.getKey();
+		var bs = (BuildingSite) conveyor.collector.get(key);
+		if(bs != null) {
+			bs.addProperties(cart.getAllProperties());
+			cart.getFuture().complete(true);
+		} else {
+			cart.getFuture().complete(false);
+		}
 	}
 
 

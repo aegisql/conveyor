@@ -2,19 +2,30 @@ package com.aegisql.conveyor.parallel.utils.task_pool_conveyor;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.consumers.result.LogResult;
+import com.aegisql.conveyor.consumers.result.ResultCounter;
+import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
+import com.aegisql.conveyor.consumers.scrap.ScrapCounter;
+import com.aegisql.conveyor.consumers.scrap.ScrapQueue;
+import com.aegisql.conveyor.exception.KeepRunningConveyorException;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class TaskPoolConveyor1Test {
+
+    public static final String FIRST = "first";
+    public static final String LAST = "last";
 
     class Summ implements Supplier<Integer> {
 
@@ -35,7 +46,7 @@ class TaskPoolConveyor1Test {
     }
     
     public int slowMethod(int n) {
-        int sum = 0;
+        int sum = 1;
         for (int i = 0; i < Math.abs(n); i++) {
             sum += i;
             try {
@@ -60,23 +71,14 @@ class TaskPoolConveyor1Test {
         LastResultReference<Integer, Integer> reference = LastResultReference.of(conveyor);
         conveyor.setBuilderSupplier(Summ::new);
         conveyor.resultConsumer(LogResult.debug(conveyor)).andThen(reference).set();
-        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted("first","last"));
-        conveyor.setDefaultCartConsumer((l,v,b)->{
-            Summ summ = (Summ) b;
-            switch (l) {
-                case "first": summ.first((Integer) v);
-                    break;
-                case "last": summ.last((Integer) v);
-                    break;
-                default: throw new IllegalStateException("Unexpected value: "+l);
-            }
-        });
+        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(FIRST, LAST));
+        conveyor.setDefaultCartConsumer(consumer());
 
         var taskPoolConveyor = new TaskPoolConveyor<Integer,String,Integer>(conveyor,1);
         taskPoolConveyor.setName("pool");
 
-        taskPoolConveyor.part().id(1).label("first").value(10).place();
-        taskPoolConveyor.part().id(1).label("last").value(10).place().join();
+        taskPoolConveyor.part().id(1).label(FIRST).value(10).place();
+        taskPoolConveyor.part().id(1).label(LAST).value(10).place().join();
 
         taskPoolConveyor.completeAndStop().join();
 
@@ -87,31 +89,21 @@ class TaskPoolConveyor1Test {
 
     @Test
     public void basicTaskTest() throws InterruptedException {
-        var conveyor = new AssemblingConveyor<Integer,String,Integer>();
-        LastResultReference<Integer, Integer> reference = LastResultReference.of(conveyor);
-        conveyor.setBuilderSupplier(Summ::new);
-        conveyor.resultConsumer(LogResult.debug(conveyor)).andThen(reference).set();
-        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted("first","last"));
-        conveyor.setDefaultCartConsumer((l,v,b)->{
-            Summ summ = (Summ) b;
-            switch (l) {
-                case "first": summ.first((Integer) v);
-                break;
-                case "last": summ.last((Integer) v);
-                break;
-                default: throw new IllegalStateException("Unexpected value: "+l);
-            }
-        });
+        var taskPoolConveyor = new TaskPoolConveyor<Integer,String,Integer>(1);
+        LastResultReference<Integer, Integer> reference = LastResultReference.of(taskPoolConveyor);
+        taskPoolConveyor.setBuilderSupplier(Summ::new);
+        taskPoolConveyor.resultConsumer(LogResult.debug(taskPoolConveyor)).andThen(reference).set();
+        taskPoolConveyor.setReadinessEvaluator(Conveyor.getTesterFor(taskPoolConveyor).accepted(FIRST, LAST));
+        taskPoolConveyor.setDefaultCartConsumer(consumer());
 
-        var taskPoolConveyor = new TaskPoolConveyor<Integer,String,Integer>(conveyor,1);
         taskPoolConveyor.setName("pool");
 
-        taskPoolConveyor.part().id(2).label("first").value(10).place();
-        taskPoolConveyor.task().id(2).label("last").valueSupplier(()->slowMethod(1)).ttl(Duration.ofSeconds(3)).placeAsynchronous();
+        taskPoolConveyor.part().id(2).label(FIRST).value(10).place();
+        taskPoolConveyor.task().id(2).label(LAST).valueSupplier(()->slowMethod(1)).ttl(Duration.ofSeconds(3)).placeAsynchronous();
 
         taskPoolConveyor.completeAndStop().join();
 
-        assertEquals(10,reference.getCurrent());
+        assertEquals(11,reference.getCurrent());
 
     }
 
@@ -121,17 +113,8 @@ class TaskPoolConveyor1Test {
         LastResultReference<Integer, Integer> reference = LastResultReference.of(conveyor);
         conveyor.setBuilderSupplier(Summ::new);
         conveyor.resultConsumer(LogResult.debug(conveyor)).andThen(reference).set();
-        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted("first","last"));
-        conveyor.setDefaultCartConsumer((l,v,b)->{
-            Summ summ = (Summ) b;
-            switch (l) {
-                case "first": summ.first((Integer) v);
-                    break;
-                case "last": summ.last((Integer) v);
-                    break;
-                default: throw new IllegalStateException("Unexpected value: "+l);
-            }
-        });
+        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(FIRST, LAST));
+        conveyor.setDefaultCartConsumer(consumer());
 
         LastScrapReference<Integer> scrapReference = LastScrapReference.of(conveyor);
 
@@ -139,19 +122,114 @@ class TaskPoolConveyor1Test {
         taskPoolConveyor.setName("pool");
         taskPoolConveyor.scrapConsumer().andThen(scrapReference).set();
 
-        taskPoolConveyor.part().id(1).label("first").value(10).place();
+        taskPoolConveyor.part().id(1).label(FIRST).value(10).place();
 
-        taskPoolConveyor.part().id(2).label("first").value(10).place().join();
-        taskPoolConveyor.task().id(2).label("last").valueSupplier(()->slowMethod(-1)).placeAsynchronous();
+        taskPoolConveyor.part().id(2).label(FIRST).value(10).place().join();
+        taskPoolConveyor.task().id(2).label(LAST).valueSupplier(()->slowMethod(-1)).placeAsynchronous();
 
 
         CompletableFuture<Boolean> stop = taskPoolConveyor.completeAndStop();
-        taskPoolConveyor.part().id(1).label("last").value(10).place();
+        taskPoolConveyor.part().id(1).label(LAST).value(10).place();
 
         stop.join();
         System.out.println(scrapReference.getCurrent());
         assertNotNull(scrapReference.getCurrent());
 
+    }
+
+    @Test
+    public void customTaskFailureTest() throws InterruptedException {
+        var taskPoolConveyor = new TaskPoolConveyor<Integer,String,Integer>(1);
+        LastResultReference<Integer, Integer> reference = LastResultReference.of(taskPoolConveyor);
+        taskPoolConveyor.setBuilderSupplier(Summ::new);
+        taskPoolConveyor.resultConsumer(LogResult.debug(taskPoolConveyor)).andThen(reference).set();
+        taskPoolConveyor.setReadinessEvaluator(Conveyor.getTesterFor(taskPoolConveyor).accepted(FIRST, LAST));
+        taskPoolConveyor.setDefaultCartConsumer(consumer());
+
+        taskPoolConveyor.taskScrapConsumer(bin->{
+            bin.conveyor.command().id(bin.key).completeExceptionally(new KeepRunningConveyorException("Just Keep Running",bin.error));
+        }).set();
+
+        LastScrapReference<Integer> scrapReference = LastScrapReference.of(taskPoolConveyor);
+
+        taskPoolConveyor.setName("pool");
+        taskPoolConveyor.scrapConsumer().andThen(scrapReference).set();
+
+        taskPoolConveyor.part().id(1).label(FIRST).value(10).place();
+
+        assertTrue(taskPoolConveyor.part().id(2).label(FIRST).value(10).place().join());
+        taskPoolConveyor.task().id(2).label(LAST).valueSupplier(()->slowMethod(-1)).placeAsynchronous();
+
+        Thread.sleep(2000);
+        taskPoolConveyor.part().id(1).label(LAST).value(10).place().join();
+        taskPoolConveyor.part().id(2).label(LAST).value(100).place().join();
+
+
+        CompletableFuture<Boolean> stop = taskPoolConveyor.completeAndStop();
+        stop.join();
+        System.out.println(scrapReference.getCurrent());
+        assertNotNull(scrapReference.getCurrent());
+
+    }
+
+
+    private LabeledValueConsumer<String, Object, Supplier<? extends Integer>> consumer() {
+        return (l, v, b) -> {
+            Summ summ = (Summ) b;
+            switch (l) {
+                case FIRST:
+                    summ.first((Integer) v);
+                    break;
+                case LAST:
+                    summ.last((Integer) v);
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + l);
+            }
+        };
+    }
+
+    @Test
+    public void testBigTasks() throws InterruptedException {
+        TaskPoolConveyor<Integer,String,Integer> conveyor = new TaskPoolConveyor<>(20);
+        ResultQueue<Integer,Integer> results = ResultQueue.of(conveyor);
+        ResultCounter<Integer,Integer> resultCounter = ResultCounter.of(conveyor);
+        LogResult<Integer,Integer> log = LogResult.debug(conveyor);
+        ScrapQueue<Integer> errors = ScrapQueue.of(conveyor);
+        ScrapCounter<Integer> errorCounter = ScrapCounter.of(conveyor);
+        conveyor.resultConsumer(resultCounter).andThen(results).andThen(log).set();
+        conveyor.scrapConsumer(errorCounter).andThen(errors).set();
+        conveyor.setBuilderSupplier(Summ::new);
+        conveyor.setDefaultCartConsumer(consumer());
+        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(FIRST, LAST));
+        conveyor.setName("testBigTasks");
+
+        int N = 100;
+
+
+        for (int i = 1; i <= N; i++) {
+            conveyor.command().id(i).create();
+        }
+        var shuffledList = getDoubleShuffledeList(N);
+        assertEquals(2*N,shuffledList.size());
+
+        shuffledList.forEach(next->conveyor.task().id((int) next.id()).label(next.key()).valueSupplier(getSupplier(1)).placeAsynchronous());
+
+        conveyor.completeAndStop().join();
+
+        assertEquals(0,errorCounter.get());
+        assertEquals(100,resultCounter.get());
+
+    }
+
+    public List<TaskId<String>> getDoubleShuffledeList(int size) {
+        List<TaskId<String>> list = new ArrayList<>(2*size);
+        for (int i = 1; i <= size; i++) {
+            list.add(new TaskId<>(FIRST, i));
+            list.add(new TaskId<>(LAST, i));
+        }
+        Collections.shuffle(list);
+        return list;
     }
 
 

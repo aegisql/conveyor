@@ -85,7 +85,15 @@ public enum CommandLabel implements SmartLabel<AssemblingConveyor> {
 		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
 			return (c, o) -> AssemblingConveyor.restoreBuild(c, (Cart) o);
 		}
-	},
+	}
+	,
+	/** Add properties to the build. */
+	PROPERTIES {
+		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
+			return (c, o) -> AssemblingConveyor.addProperties(c, (Cart) o);
+		}
+	}
+	,
 	
 	SUSPEND;//does not call any methods
 

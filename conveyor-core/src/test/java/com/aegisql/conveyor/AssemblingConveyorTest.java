@@ -20,6 +20,7 @@ import org.junit.jupiter.api.*;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -306,7 +307,7 @@ public class AssemblingConveyorTest {
 		
 		List<Integer> evictedKeys = new ArrayList<>();
 		conveyor.addBeforeKeyEvictionAction(status->{evictedKeys.add(status.getKey());});
-		conveyor.addBeforeKeyEvictionAction(status->{System.out.println("REMOVING! "+status.getKey());});
+		conveyor.addBeforeKeyEvictionAction(status->{System.out.println("REMOVING! "+status.getKey()+" "+status.getProperties());});
 		
 		ShoppingCart<Integer, String, String> c1 = new ShoppingCart<>(1, "John", "setFirst");
 		Cart<Integer, String, String> c2 = new ShoppingCart<>(1,"Doe", "setLast");
@@ -338,7 +339,9 @@ public class AssemblingConveyorTest {
 			System.out.println("Command builder supplier called.");
 			return new UserBuilder();});
 		conveyor.command().id(10).ttl(100,TimeUnit.SECONDS).create();
+		conveyor.command().id(10).addProperty("p1","v1");
 		conveyor.command().id(11).create();
+		conveyor.command().id(11).addProperties(Map.of("p1","v1","p2","v2"));
 		Thread.sleep(100);
 		conveyor.command().id(6).cancel();
 		conveyor.command().id(7).completeExceptionally(new RuntimeException("CANCELED EXCEPTION"));
