@@ -45,6 +45,9 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
         LOG.error("Task failed: {} {}. Error ignored.", bin.failureType, bin.comment);
     };
 
+    public final ScrapConsumer<K,?> ON_FAILURE_PLACE_DEFAULT(L label, Object value) {
+        return bin->bin.conveyor.part().id(bin.key).label(label).value(value).place();
+    };
 
     private ScrapConsumer<K,?> taskScrapConsumer = ON_FAILURE_COMPLETE_EXCEPTIONALLY;
 
