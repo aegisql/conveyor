@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -206,7 +207,6 @@ class TaskPoolConveyor1Test {
 
         int N = 100;
 
-
         for (int i = 1; i <= N; i++) {
             conveyor.command().id(i).create();
         }
@@ -219,6 +219,40 @@ class TaskPoolConveyor1Test {
 
         assertEquals(0,errorCounter.get());
         assertEquals(100,resultCounter.get());
+
+    }
+
+    @Test
+    public void testBigTasksWithExpiration() throws InterruptedException {
+        TaskPoolConveyor<Integer,String,Integer> conveyor = new TaskPoolConveyor<>(20);
+        ResultQueue<Integer,Integer> results = ResultQueue.of(conveyor);
+        ResultCounter<Integer,Integer> resultCounter = ResultCounter.of(conveyor);
+        LogResult<Integer,Integer> log = LogResult.debug(conveyor);
+        ScrapQueue<Integer> errors = ScrapQueue.of(conveyor);
+        ScrapCounter<Integer> errorCounter = ScrapCounter.of(conveyor);
+        conveyor.resultConsumer(resultCounter).andThen(results).andThen(log).set();
+        conveyor.scrapConsumer(errorCounter).andThen(errors).set();
+        conveyor.setBuilderSupplier(Summ::new);
+        conveyor.setDefaultCartConsumer(consumer());
+        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(FIRST, LAST));
+        conveyor.setName("testBigTasksWithExpiration");
+
+        int N = 100;
+        AtomicReference<CompletableFuture<Boolean>> f = new AtomicReference<>();
+        for (int i = 1; i <= N; i++) {
+            f.set(conveyor.command().id(i).create());
+        }
+        f.get().join();
+        var shuffledList = getDoubleShuffledeList(N);
+        assertEquals(2*N,shuffledList.size());
+
+        shuffledList.forEach(next-> f.set(conveyor.task().id((int) next.id()).label(next.key()).valueSupplier(getSupplier(1)).ttl(Duration.ofSeconds(7)).placeAsynchronous()));
+
+        conveyor.completeAndStop().join();
+
+        assertTrue(resultCounter.get()<100);
+        assertTrue(errorCounter.get()>0);
+
 
     }
 

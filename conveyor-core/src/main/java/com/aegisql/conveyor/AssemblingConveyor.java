@@ -983,8 +983,17 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					});
 					this.commandBeforePlacementValidator = commandBeforePlacementValidator.andThen(cmd -> {
 						var key = cmd.getKey();
-						if(key != null && ! this.collector.containsKey(key)) {
-							throw new IllegalStateException("Conveyor preparing to shut down. No new commands can be accepted");
+						CommandLabel cmdLabel = cmd.getLabel();
+						switch(cmdLabel) {
+							case CANCEL_BUILD:
+							case COMPLETE_BUILD:
+							case COMPLETE_BUILD_EXEPTIONALLY:
+							case TIMEOUT_BUILD:
+								break;
+							default:
+								if(key != null && ! this.collector.containsKey(key)) {
+									throw new IllegalStateException("Conveyor preparing to shut down. No new commands can be accepted. Rejected command "+cmd.getLabel()+" for key "+cmd.getKey());
+								}
 						}
 					});
 					this.conveyorFuture = new CompletableFuture<>();

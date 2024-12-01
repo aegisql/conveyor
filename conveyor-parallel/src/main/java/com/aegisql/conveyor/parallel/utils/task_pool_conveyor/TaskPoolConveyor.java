@@ -2,15 +2,15 @@ package com.aegisql.conveyor.parallel.utils.task_pool_conveyor;
 
 import com.aegisql.conveyor.*;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
+import com.aegisql.conveyor.exception.KeepRunningConveyorException;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.loaders.ScrapConsumerLoader;
 import com.aegisql.conveyor.utils.ConveyorAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
@@ -33,11 +33,20 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
     private final AtomicLong counter = new AtomicLong();
     private final RoundRobinLoop rr;
 
-    public final ScrapConsumer<K,?> DEFAULT_TASK_SCRAP_CONSUMER = bin->{
-        bin.conveyor.command().id(bin.key).completeExceptionally(bin.error != null ? bin.error:new TimeoutException("Task Timed Out"));
+    public final ScrapConsumer<K,?> ON_FAILURE_COMPLETE_EXCEPTIONALLY = bin->{
+        bin.conveyor.command().id(bin.key).completeExceptionally(bin.error != null ? bin.error:new ConveyorRuntimeException("Task failed: "+bin.failureType+" "+bin.comment,bin.error));
     };
 
-    private ScrapConsumer<K,?> taskScrapConsumer = DEFAULT_TASK_SCRAP_CONSUMER;
+    public final ScrapConsumer<K,?> ON_FAILURE_KEEP_RUNNING = bin->{
+        bin.conveyor.command().id(bin.key).completeExceptionally(new KeepRunningConveyorException("Task failed: "+bin.failureType+" "+bin.comment+". Keep running.",bin.error));
+    };
+
+    public final ScrapConsumer<K,?> ON_FAILURE_IGNORE = bin->{
+        LOG.error("Task failed: {} {}. Error ignored.", bin.failureType, bin.comment);
+    };
+
+
+    private ScrapConsumer<K,?> taskScrapConsumer = ON_FAILURE_COMPLETE_EXCEPTIONALLY;
 
     private ScrapConsumer<K,?> getTaskScrapConsumer() {
         return taskScrapConsumer;
@@ -163,7 +172,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
     }
 
     private ScrapBin mapScrapBin(ScrapBin<TaskId<K>,?> bin) {
-        return new ScrapBin((Conveyor<K, Object, Object>) innerConveyor,bin.key.key(),bin.scrap,bin.comment,bin.error,bin.failureType,bin.properties,bin.acknowledge.get());
+        return new ScrapBin((Conveyor<K, Object, Object>) innerConveyor,bin.key.key(),bin.scrap,bin.comment,bin.error,bin.failureType,bin.properties,bin.acknowledge.orElse(null));
     }
 
     public ScrapConsumerLoader<K> taskScrapConsumer() {
