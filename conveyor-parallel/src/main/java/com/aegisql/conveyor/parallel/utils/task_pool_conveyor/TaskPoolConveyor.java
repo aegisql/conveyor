@@ -26,6 +26,8 @@ import java.util.function.Supplier;
 public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
 
     protected final static Logger LOG = LoggerFactory.getLogger(TaskPoolConveyor.class);
+    public static final String LABEL = "__LABEL__";
+    public static final String TASK_CONVEYOR = "__TASK_CONVEYOR__";
 
     private final Conveyor<TaskId<K>,String,OUT> taskManager = new AssemblingConveyor<>();
     private final PartLoader<TaskId<K>, Integer>[] loadersPool;
@@ -46,10 +48,10 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
     };
 
     public final ScrapConsumer<K,?> ON_FAILURE_PLACE_DEFAULT(L label, Object value) {
-        return bin->bin.conveyor.part().id(bin.key).label(label).value(value).place();
+        return bin->bin.conveyor.part().id(bin.key).label(label).value(value).addProperties(bin.properties).place();
     };
 
-    private ScrapConsumer<K,?> taskScrapConsumer = ON_FAILURE_COMPLETE_EXCEPTIONALLY;
+    public ScrapConsumer<K,?> taskScrapConsumer = ON_FAILURE_COMPLETE_EXCEPTIONALLY;
 
     private ScrapConsumer<K,?> getTaskScrapConsumer() {
         return taskScrapConsumer;
@@ -83,18 +85,19 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
             conveyors[i] = tec;
         }
         taskManager.resultConsumer(bin->{
-            L label = (L) bin.properties.get("LABEL");
+            L label = (L) bin.properties.remove(LABEL);
+            bin.properties.remove(TASK_CONVEYOR);
             K id = bin.key.key();
             OUT product = bin.product;
             LOG.debug("The task for id={} label={} is ready. Product: {}", id, label,product);
-            this.part().id(id).label(label).value(product).place();
+            this.part().id(id).label(label).value(product).addProperties(bin.properties).place();
         })
                 .set();
         taskManager.scrapConsumer(bin->{
             K id = bin.key.key();
-            AssemblingConveyor tc = (AssemblingConveyor) bin.properties.get("TASK_CONVEYOR");
+            AssemblingConveyor tc = (AssemblingConveyor) bin.properties.get(TASK_CONVEYOR);
             if(tc != null) {
-                LOG.error("The task for id={} is about to be canceled. Reason: {}{}", id, bin.failureType, bin.error == null ? "" : " Error: "+bin.error.getMessage());
+                LOG.error("The task for id={} is about to be canceled. Reason: {}{} properties: {}", id, bin.failureType, bin.error == null ? "" : " Error: "+bin.error.getMessage(), bin.properties);
                 tc.command().id(bin.key).cancel();
                 tc.interrupt(tc.getName(), bin.key);
             }
@@ -127,8 +130,9 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
                     .supplier(TaskManager::new)
                     .id(id)
                     .expirationTime(tl.expirationTime)
-                    .addProperty("LABEL", tl.label)
-                    .addProperty("TASK_CONVEYOR", conveyors[next])
+                    .addProperty(LABEL, tl.label)
+                    .addProperty(TASK_CONVEYOR, conveyors[next])
+                    .addProperties(tl.getAllProperties())
                     .create();
             var taskFuture = loadersPool[next].id(id).value(tl.valueSupplier).place();
             LOG.debug("The task for id={} label={} has been scheduled in executor {}.", id, tl.label,next);

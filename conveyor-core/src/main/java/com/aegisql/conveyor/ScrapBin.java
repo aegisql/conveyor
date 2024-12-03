@@ -111,7 +111,8 @@ EXTERNAL_FAILURE
 	@Override
 	public String toString() {
 		return "ScrapBin ["+failureType+" conveyor="+(conveyor==null?"N/A":conveyor.getName())+" key=" + key + ": " + comment + "; " + scrap
-				+ (error == null ? "": " error="+error.getMessage() ) 
+				+ (error == null ? "": " error="+error.getMessage() )
+				+ "; properties=" + properties
 				+"]";
 	}
 	

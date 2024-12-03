@@ -100,7 +100,7 @@ class TaskPoolConveyor1Test {
         taskPoolConveyor.setName("pool");
 
         taskPoolConveyor.part().id(2).label(FIRST).value(10).place();
-        taskPoolConveyor.task().id(2).label(LAST).valueSupplier(()->slowMethod(1)).ttl(Duration.ofSeconds(3)).placeAsynchronous();
+        taskPoolConveyor.task().id(2).label(LAST).valueSupplier(()->slowMethod(1)).ttl(Duration.ofSeconds(3)).addProperty("test","basicTaskTest").placeAsynchronous();
 
         taskPoolConveyor.completeAndStop().join();
 
@@ -126,7 +126,7 @@ class TaskPoolConveyor1Test {
         taskPoolConveyor.part().id(1).label(FIRST).value(10).place();
 
         taskPoolConveyor.part().id(2).label(FIRST).value(10).place().join();
-        taskPoolConveyor.task().id(2).label(LAST).valueSupplier(()->slowMethod(-1)).placeAsynchronous();
+        taskPoolConveyor.task().id(2).label(LAST).valueSupplier(()->slowMethod(-1)).addProperty("test","basicTaskFailureTest").placeAsynchronous();
 
 
         CompletableFuture<Boolean> stop = taskPoolConveyor.completeAndStop();
@@ -256,10 +256,54 @@ class TaskPoolConveyor1Test {
 
     }
 
+    @Test
+    public void testBigTasksWithDefaultOnExpiration() throws InterruptedException {
+        TaskPoolConveyor<Integer,String,Integer> conveyor = new TaskPoolConveyor<>(20);
+        ResultQueue<Integer,Integer> results = ResultQueue.of(conveyor);
+        ResultCounter<Integer,Integer> resultCounter = ResultCounter.of(conveyor);
+        LogResult<Integer,Integer> log = LogResult.debug(conveyor);
+        ScrapQueue<Integer> errors = ScrapQueue.of(conveyor);
+        ScrapCounter<Integer> errorCounter = ScrapCounter.of(conveyor);
+        conveyor.resultConsumer(resultCounter).andThen(results).andThen(log).set();
+        conveyor.scrapConsumer(errorCounter).andThen(errors).set();
+        conveyor.setBuilderSupplier(Summ::new);
+        conveyor.setDefaultCartConsumer(consumer());
+        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(FIRST, LAST));
+        conveyor.setName("testBigTasksWithExpiration");
+        conveyor.taskScrapConsumer(conveyor.ON_FAILURE_PLACE_DEFAULT("last",0)).set();
+
+        int N = 100;
+        AtomicReference<CompletableFuture<Boolean>> f = new AtomicReference<>();
+        for (int i = 1; i <= N; i++) {
+            f.set(conveyor.part().id(i).label("first").value(10).place());
+        }
+        f.get().join();
+        var shuffledList = getShuffledeList(N);
+        assertEquals(N,shuffledList.size());
+
+        shuffledList.forEach(next-> f.set(conveyor.task().id((int) next.id()).label(next.key()).valueSupplier(getSupplier(1)).ttl(Duration.ofSeconds(7)).addProperty("test","testBigTasksWithDefaultOnExpiration").placeAsynchronous()));
+
+        conveyor.completeAndStop().join();
+
+        assertTrue(resultCounter.get()==100);
+        assertTrue(errorCounter.get()==0);
+
+    }
+
+
     public List<TaskId<String>> getDoubleShuffledeList(int size) {
         List<TaskId<String>> list = new ArrayList<>(2*size);
         for (int i = 1; i <= size; i++) {
             list.add(new TaskId<>(FIRST, i));
+            list.add(new TaskId<>(LAST, i));
+        }
+        Collections.shuffle(list);
+        return list;
+    }
+
+    public List<TaskId<String>> getShuffledeList(int size) {
+        List<TaskId<String>> list = new ArrayList<>(size);
+        for (int i = 1; i <= size; i++) {
             list.add(new TaskId<>(LAST, i));
         }
         Collections.shuffle(list);
