@@ -53,6 +53,8 @@ public final class TaskLoader<K,L> {
 	/** The properties. */
 	private final Map<String,Object> properties = new HashMap<>();
 
+	public final int attempts;
+
 	/**
 	 * Instantiates a new part loader.
 	 *
@@ -66,6 +68,7 @@ public final class TaskLoader<K,L> {
 	 * @param value the value
 	 * @param filter the filter
 	 * @param properties the properties
+	 * @param attempts the attempts
 	 */
 	private TaskLoader(
 			Function<TaskLoader<K,L>, CompletableFuture<Boolean>> placer,
@@ -77,7 +80,8 @@ public final class TaskLoader<K,L> {
 			L label,
 			Supplier<?> value,
 			SerializablePredicate<K> filter,
-			Map<String,Object> properties) {
+			Map<String,Object> properties,
+			int attempts) {
 		this.placer         = placer;
 		this.creationTime   = creationTime;
 		this.expirationTime = expirationTime;
@@ -88,6 +92,7 @@ public final class TaskLoader<K,L> {
 		this.filter         = filter;
 		this.priority       = priority;
 		this.properties.putAll(properties);
+		this.attempts = attempts;
 	}
 
 	/**
@@ -115,6 +120,7 @@ public final class TaskLoader<K,L> {
 			Supplier<?> value,
 			SerializablePredicate<K> filter,
 			Map<String,Object> properties,
+			int attempts,
 			boolean dumb) {
 		this(placer,
 				creationTime,
@@ -125,7 +131,8 @@ public final class TaskLoader<K,L> {
 				label,
 				value,
 				filter,
-				properties);
+				properties,
+				attempts);
 	}
 
 	/**
@@ -134,7 +141,7 @@ public final class TaskLoader<K,L> {
 	 * @param placer the placer
 	 */
 	public TaskLoader(Function<TaskLoader<K,L>, CompletableFuture<Boolean>> placer) {
-		this(placer,System.currentTimeMillis(),0,0,0,null,null,null,null,Collections.EMPTY_MAP);
+		this(placer,System.currentTimeMillis(),0,0,0,null,null,null,null,Collections.EMPTY_MAP,1);
 	}
 	
 	/**
@@ -144,7 +151,7 @@ public final class TaskLoader<K,L> {
 	 * @return the part loader
 	 */
 	public TaskLoader<K,L> id(K k) {
-		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, k, label, valueSupplier, null/*either id or filter*/, properties);
+		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, k, label, valueSupplier, null/*either id or filter*/, properties, attempts);
 	}
 
 	/**
@@ -163,7 +170,7 @@ public final class TaskLoader<K,L> {
 	 * @return the part loader
 	 */
 	public TaskLoader<K,L> foreach(SerializablePredicate<K> f) {
-		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, null/*either id or filter*/, label, valueSupplier, f, properties);
+		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, null/*either id or filter*/, label, valueSupplier, f, properties, attempts);
 	}
 	
 	/**
@@ -173,7 +180,7 @@ public final class TaskLoader<K,L> {
 	 * @return the part loader
 	 */
 	public TaskLoader<K,L> label(L l) {
-		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, l, valueSupplier, filter, properties);
+		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, l, valueSupplier, filter, properties, attempts);
 	}
 
 	/**
@@ -183,7 +190,7 @@ public final class TaskLoader<K,L> {
 	 * @return the task loader
 	 */
 	public TaskLoader<K,L> valueSupplier(Supplier<?> v) {
-		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, label, v, filter, properties);
+		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, label, v, filter, properties, attempts);
 	}
 
 	/**
@@ -206,7 +213,7 @@ public final class TaskLoader<K,L> {
 	 * @return the part loader
 	 */
 	public TaskLoader<K,L> expirationTime(long et) {
-		return new TaskLoader<>(placer, creationTime, et, 0, priority, key, label, valueSupplier, filter, properties);
+		return new TaskLoader<>(placer, creationTime, et, 0, priority, key, label, valueSupplier, filter, properties, attempts);
 	}
 
 	/**
@@ -216,7 +223,7 @@ public final class TaskLoader<K,L> {
 	 * @return the part loader
 	 */
 	public TaskLoader<K,L> creationTime(long ct) {
-		return new TaskLoader<>(placer, ct, expirationTime, 0, priority, key, label, valueSupplier, filter, properties);
+		return new TaskLoader<>(placer, ct, expirationTime, 0, priority, key, label, valueSupplier, filter, properties, attempts);
 	}
 
 	/**
@@ -226,7 +233,7 @@ public final class TaskLoader<K,L> {
 	 * @return the part loader
 	 */
 	public TaskLoader<K,L> expirationTime(Instant instant) {
-		return new TaskLoader<>(placer, creationTime, instant.toEpochMilli(), 0, priority, key, label, valueSupplier, filter, properties);
+		return new TaskLoader<>(placer, creationTime, instant.toEpochMilli(), 0, priority, key, label, valueSupplier, filter, properties, attempts);
 	}
 
 	/**
@@ -236,7 +243,7 @@ public final class TaskLoader<K,L> {
 	 * @return the part loader
 	 */
 	public TaskLoader<K,L> creationTime(Instant instant) {
-		return new TaskLoader<>(placer, instant.toEpochMilli(), expirationTime, 0, priority, key, label, valueSupplier, filter, properties);
+		return new TaskLoader<>(placer, instant.toEpochMilli(), expirationTime, 0, priority, key, label, valueSupplier, filter, properties, attempts);
 	}
 
 	/**
@@ -247,7 +254,7 @@ public final class TaskLoader<K,L> {
 	 * @return the part loader
 	 */
 	public TaskLoader<K,L> ttl(long time, TimeUnit unit) {
-		return new TaskLoader<>(placer, creationTime, TimeUnit.MILLISECONDS.convert(time, unit), priority, key, label, valueSupplier, filter, properties, true);
+		return new TaskLoader<>(placer, creationTime, TimeUnit.MILLISECONDS.convert(time, unit), priority, key, label, valueSupplier, filter, properties, attempts, true);
 	}
 	
 	/**
@@ -257,7 +264,7 @@ public final class TaskLoader<K,L> {
 	 * @return the part loader
 	 */
 	public TaskLoader<K,L> ttl(Duration duration) {
-		return new TaskLoader<>(placer, creationTime, duration.toMillis(), priority, key, label, valueSupplier, filter, properties, true);
+		return new TaskLoader<>(placer, creationTime, duration.toMillis(), priority, key, label, valueSupplier, filter, properties, attempts, true);
 	}
 
 	/**
@@ -267,7 +274,11 @@ public final class TaskLoader<K,L> {
 	 * @return the part loader
 	 */
 	public TaskLoader<K,L> priority(long p) {
-		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, p, key, label, valueSupplier, filter, properties);
+		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, p, key, label, valueSupplier, filter, properties, attempts);
+	}
+
+	public TaskLoader<K,L> attempts(int attempts) {
+		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, label, valueSupplier, filter, properties, attempts);
 	}
 
 	/**
@@ -276,7 +287,7 @@ public final class TaskLoader<K,L> {
 	 * @return the part loader
 	 */
 	public TaskLoader<K,L> increasePriority() {
-		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority + 1, key, label, valueSupplier, filter, properties);
+		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority + 1, key, label, valueSupplier, filter, properties, attempts);
 	}
 
 
@@ -286,7 +297,7 @@ public final class TaskLoader<K,L> {
 	 * @return the part loader
 	 */
 	public TaskLoader<K,L> clearProperties() {
-		return new TaskLoader<K,L>(placer,creationTime,expirationTime,ttlMsec,priority,key,label, valueSupplier,filter,Collections.EMPTY_MAP);
+		return new TaskLoader<K,L>(placer,creationTime,expirationTime,ttlMsec,priority,key,label, valueSupplier,filter,Collections.EMPTY_MAP, attempts);
 	}
 
 	/**
@@ -298,7 +309,7 @@ public final class TaskLoader<K,L> {
 	public TaskLoader<K,L> clearProperty(String k) {
 		Map<String, Object> newMap = new HashMap<>(properties);
 		newMap.remove(k);
-		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, label, valueSupplier, filter, newMap);
+		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, label, valueSupplier, filter, newMap, attempts);
 	}
 
 	/**
@@ -311,7 +322,7 @@ public final class TaskLoader<K,L> {
 	public TaskLoader<K,L> addProperty(String k, Object v) {
 		Map<String, Object> newMap = new HashMap<>(properties);
 		newMap.put(k, v);
-		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, label, valueSupplier, filter, newMap);
+		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, label, valueSupplier, filter, newMap, attempts);
 	}
 
 	/**
@@ -324,7 +335,7 @@ public final class TaskLoader<K,L> {
 		Map<String,Object> newMap = new HashMap<>();
 		newMap.putAll(properties);
 		newMap.putAll(moreProperties);
-		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, label, valueSupplier, filter, newMap);
+		return new TaskLoader<>(placer, creationTime, expirationTime, ttlMsec, priority, key, label, valueSupplier, filter, newMap, attempts);
 	}
 	
 	/**
@@ -363,7 +374,7 @@ public final class TaskLoader<K,L> {
 	@Override
 	public String toString() {
 		return "PartLoader [creationTime=" + creationTime + ", expirationTime="
-				+ expirationTime + ", ttlMsec=" + ttlMsec + ", priority=" + priority + ", key=" + key + ", label=" + label + ", partValue=" + valueSupplier + ", properties=" + properties + "]";
+				+ expirationTime + ", ttlMsec=" + ttlMsec + ", priority=" + priority + ", key=" + key + ", label=" + label + ", attempts=" + attempts + ", properties=" + properties + "]";
 	}
 	
 	/**

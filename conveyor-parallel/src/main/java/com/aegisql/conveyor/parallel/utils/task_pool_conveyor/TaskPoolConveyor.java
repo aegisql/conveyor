@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
@@ -28,6 +28,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
     protected final static Logger LOG = LoggerFactory.getLogger(TaskPoolConveyor.class);
     public static final String LABEL = "__LABEL__";
     public static final String TASK_CONVEYOR = "__TASK_CONVEYOR__";
+    public static final String NEXT_ATTEMPT = "__NEXT_ATTEMPT__";
 
     private final Conveyor<TaskId<K>,String,OUT> taskManager = new AssemblingConveyor<>();
     private final PartLoader<TaskId<K>, Integer>[] loadersPool;
@@ -67,7 +68,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
         conveyors = new Conveyor[poolSize];
         rr = new RoundRobinLoop(poolSize);
         for (int i = 0; i < poolSize; i++) {
-            var tec = new AssemblingConveyor<TaskId<K>,Integer,OUT>();
+            var tec = new AssemblingConveyor<TaskId<K>,Integer,OUT>(PriorityBlockingQueue::new);
             tec.setBuilderSupplier(TaskExecutor::new);
             tec.setDefaultCartConsumer((Integer l,Supplier<OUT> v,TaskExecutor<OUT> b)->{
                 b.task(v);
@@ -87,6 +88,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
         taskManager.resultConsumer(bin->{
             L label = (L) bin.properties.remove(LABEL);
             bin.properties.remove(TASK_CONVEYOR);
+            bin.properties.remove(NEXT_ATTEMPT);
             K id = bin.key.key();
             OUT product = bin.product;
             LOG.debug("The task for id={} label={} is ready. Product: {}", id, label,product);
@@ -103,7 +105,13 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
             }
         })
                 .andThen(bin->{
-                    this.getTaskScrapConsumer().accept(mapScrapBin(bin));
+                    TaskLoader<K,?> attempt = (TaskLoader<K,?>) bin.properties.get(NEXT_ATTEMPT);
+                    if(attempt != null) {
+                        LOG.debug("Attempt found for task "+bin.key);
+                        attempt.placeAsynchronous();
+                    } else {
+                        this.getTaskScrapConsumer().accept(mapScrapBin(bin));
+                    }
                 }).set();
         taskManager.setDefaultCartConsumer(Conveyor.getConsumerFor(taskManager)
                 .when("error",(b,v)->{
@@ -132,6 +140,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
                     .expirationTime(tl.expirationTime)
                     .addProperty(LABEL, tl.label)
                     .addProperty(TASK_CONVEYOR, conveyors[next])
+                    .addProperty(NEXT_ATTEMPT, tl.attempts > 1 ? tl.attempts(tl.attempts-1) : null)
                     .addProperties(tl.getAllProperties())
                     .create();
             var taskFuture = loadersPool[next].id(id).value(tl.valueSupplier).place();

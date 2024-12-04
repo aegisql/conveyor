@@ -14,9 +14,7 @@ import com.aegisql.conveyor.exception.KeepRunningConveyorException;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -223,6 +221,48 @@ class TaskPoolConveyor1Test {
     }
 
     @Test
+    public void testBigTaskWithRandomPriority() throws InterruptedException {
+        TaskPoolConveyor<Integer,String,Integer> conveyor = new TaskPoolConveyor<>(20);
+        ResultQueue<Integer,Integer> results = ResultQueue.of(conveyor);
+        ResultCounter<Integer,Integer> resultCounter = ResultCounter.of(conveyor);
+        LogResult<Integer,Integer> log = LogResult.debug(conveyor);
+        ScrapQueue<Integer> errors = ScrapQueue.of(conveyor);
+        ScrapCounter<Integer> errorCounter = ScrapCounter.of(conveyor);
+        conveyor.resultConsumer(resultCounter).andThen(results).andThen(log).set();
+        conveyor.scrapConsumer(errorCounter).andThen(errors).set();
+        conveyor.setBuilderSupplier(Summ::new);
+        conveyor.setDefaultCartConsumer(consumer());
+        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(FIRST, LAST));
+        conveyor.setName("testBigTaskWithRandomPriority");
+
+        int N = 100;
+
+        for (int i = 1; i <= N; i++) {
+            conveyor.command().id(i).create();
+        }
+
+        List<Integer> priorities = new ArrayList<>(2*N);
+        List<TaskId<String>>  list = new ArrayList<>(2*N);
+        for (int i = 1; i <= N; i++) {
+            priorities.add(i);
+            priorities.add(i);
+            list.add(new TaskId<>(FIRST, i));
+            list.add(new TaskId<>(LAST, i));
+        }
+        Collections.shuffle(priorities);
+
+        Iterator<Integer> priority = priorities.iterator();
+
+        list.forEach(next->conveyor.task().id((int) next.id()).label(next.key()).valueSupplier(getSupplier(1)).priority(priority.next()).placeAsynchronous());
+
+        conveyor.completeAndStop().join();
+
+        assertEquals(0,errorCounter.get());
+        assertEquals(100,resultCounter.get());
+
+    }
+
+    @Test
     public void testBigTasksWithExpiration() throws InterruptedException {
         TaskPoolConveyor<Integer,String,Integer> conveyor = new TaskPoolConveyor<>(20);
         ResultQueue<Integer,Integer> results = ResultQueue.of(conveyor);
@@ -252,6 +292,43 @@ class TaskPoolConveyor1Test {
 
         assertTrue(resultCounter.get()<100);
         assertTrue(errorCounter.get()>0);
+
+
+    }
+
+    @Test
+    public void testBigTasksWithAttempts() throws InterruptedException {
+        TaskPoolConveyor<Integer,String,Integer> conveyor = new TaskPoolConveyor<>(20);
+        ResultQueue<Integer,Integer> results = ResultQueue.of(conveyor);
+        ResultCounter<Integer,Integer> resultCounter = ResultCounter.of(conveyor);
+        LogResult<Integer,Integer> log = LogResult.debug(conveyor);
+        ScrapQueue<Integer> errors = ScrapQueue.of(conveyor);
+        ScrapCounter<Integer> errorCounter = ScrapCounter.of(conveyor);
+        conveyor.resultConsumer(resultCounter).andThen(results).andThen(log).set();
+        conveyor.scrapConsumer(errorCounter).andThen(errors).set();
+        conveyor.setBuilderSupplier(Summ::new);
+        conveyor.setDefaultCartConsumer(consumer());
+        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(FIRST, LAST));
+        conveyor.setName("testBigTasksWithAttempts");
+
+        int N = 100;
+        AtomicReference<CompletableFuture<Boolean>> f = new AtomicReference<>();
+        for (int i = 1; i <= N; i++) {
+            f.set(conveyor.command().id(i).create());
+        }
+        f.get().join();
+        var shuffledList = getDoubleShuffledeList(N);
+        assertEquals(2*N,shuffledList.size());
+
+        shuffledList.forEach(next-> f.set(conveyor.task().id((int) next.id()).label(next.key()).valueSupplier(()->{
+            exceptionWithProbability(0.1); // 10% failure probability for each attempt
+            return getSupplier(1).get();
+        }).attempts(5).placeAsynchronous())); // 5 attempts
+
+        conveyor.completeAndStop().join();
+
+        assertTrue(resultCounter.get()==100); //with 5 attempts there is a very low provability of failure, yet it can happen
+        assertTrue(errorCounter.get()==0);
 
 
     }
@@ -311,4 +388,28 @@ class TaskPoolConveyor1Test {
     }
 
 
+    private static final Random random = new Random();
+
+    public static boolean trueWithProbability(double probability) {
+        if (probability < 0.0 || probability > 1.0) {
+            throw new IllegalArgumentException("Probability must be between 0 and 1 inclusive.");
+        }
+        return random.nextDouble() < probability;
+    }
+
+    public static void exceptionWithProbability(double probability) {
+        if (trueWithProbability(probability)) {
+            throw new RuntimeException("Probability check failed.");
+        }
+    }
+
+    @Test
+    public void testExceptionWithProbability() throws InterruptedException {
+
+        assertThrows(RuntimeException.class, ()->{for(;;){
+            System.out.print(".");
+            exceptionWithProbability(0.1);
+        }});
+        System.out.println();
+    }
 }
