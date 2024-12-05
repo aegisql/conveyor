@@ -373,7 +373,7 @@ public final class TaskLoader<K,L> {
 	 */
 	@Override
 	public String toString() {
-		return "PartLoader [creationTime=" + creationTime + ", expirationTime="
+		return "TaskLoader [creationTime=" + creationTime + ", expirationTime="
 				+ expirationTime + ", ttlMsec=" + ttlMsec + ", priority=" + priority + ", key=" + key + ", label=" + label + ", attempts=" + attempts + ", properties=" + properties + "]";
 	}
 	

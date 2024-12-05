@@ -107,7 +107,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
                 .andThen(bin->{
                     TaskLoader<K,?> attempt = (TaskLoader<K,?>) bin.properties.get(NEXT_ATTEMPT);
                     if(attempt != null) {
-                        LOG.debug("Attempt found for task "+bin.key);
+                        LOG.debug("Next attempt found for task {}. Will try again. ",bin.key);
                         attempt.placeAsynchronous();
                     } else {
                         this.getTaskScrapConsumer().accept(mapScrapBin(bin));
