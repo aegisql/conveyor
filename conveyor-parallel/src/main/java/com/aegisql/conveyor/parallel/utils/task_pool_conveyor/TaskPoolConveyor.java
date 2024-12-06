@@ -36,6 +36,8 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
     private final AtomicLong counter = new AtomicLong();
     private final RoundRobinLoop rr;
 
+    private String name;
+
     public final ScrapConsumer<K,?> ON_FAILURE_COMPLETE_EXCEPTIONALLY = bin->{
         bin.conveyor.command().id(bin.key).completeExceptionally(bin.error != null ? bin.error:new ConveyorRuntimeException("Task failed: "+bin.failureType+" "+bin.comment,bin.error));
     };
@@ -123,6 +125,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
                 })
         );
         taskManager.setName(conv.getName()+"_task_manager");
+        this.setName(conv.getName());
     }
 
     @Override
@@ -179,12 +182,26 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
     }
 
     @Override
-    public void setName(String string) {
-        super.setName(string);
-        taskManager.setName("task_manager_"+string);
+    public void setName(String name) {
+        String oldName = this.name;
+        innerConveyor.setName(name);
+        this.name = "task_pool_"+name;
+        taskManager.setName("task_manager_"+name);
         for(int i = 0; i < conveyors.length; i++) {
-            conveyors[i].setName("task_processor["+i+"]_"+string);
+            conveyors[i].setName("task_processor["+i+"]_"+name);
         }
+        try {
+            //unregister old name
+            Conveyor.unRegister(oldName);
+        } catch (Exception e) {
+            //Ignore. Might be already unregistered
+        }
+        this.setMbean(this.name);
+    }
+
+    @Override
+    public String getName() {
+        return this.name;
     }
 
     private ScrapBin mapScrapBin(ScrapBin<TaskId<K>,?> bin) {
@@ -201,5 +218,29 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
         return taskScrapConsumer().first(scrapConsumer);
     }
 
+    @Override
+    public Class<?> mBeanInterface() {
+        return TaskPoolConveyorMBean.class;
+    }
+
+    protected void setMbean(String name) {
+        final var thisConv = this;
+        Conveyor.register(this, new TaskPoolConveyorMBean() {
+            @Override
+            public String getName() {
+                return thisConv.name;
+            }
+
+            @Override
+            public String getEnclosedConveyorName() {
+                return thisConv.innerConveyor.getName();
+            }
+
+            @Override
+            public <K, L, OUT> Conveyor<K, L, OUT> conveyor() {
+                return (Conveyor<K, L, OUT>) thisConv;
+            }
+        });
+    }
 
 }

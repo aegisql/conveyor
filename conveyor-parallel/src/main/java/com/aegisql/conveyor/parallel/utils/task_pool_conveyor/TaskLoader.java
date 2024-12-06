@@ -399,17 +399,17 @@ public final class TaskLoader<K,L> {
 	 */
 	public static <K,L> Supplier<TaskLoader<K,L>> lazySupplier(String name) {
 		return new Supplier<>() {
-            TaskLoader<K, L> pl;
+            TaskLoader<K, L> tl;
 
             @Override
             public TaskLoader<K, L> get() {
-                if (pl == null) {
-                    Conveyor<K, L, ?> c = Conveyor.byName(name);
+                if (tl == null) {
+                    TaskPoolConveyor<K, L, ?> c = (TaskPoolConveyor<K, L, ?>) Conveyor.byName(name.startsWith("task_pool_")?name:"task_pool_"+name);
                     if (c != null) {
-                        //pl = c.part();
+                        tl = c.task();
                     }
                 }
-                return pl;
+                return tl;
             }
         };
 	}
