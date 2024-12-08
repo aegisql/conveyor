@@ -102,11 +102,9 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
             AssemblingConveyor tc = (AssemblingConveyor) bin.properties.get(TASK_CONVEYOR);
             if(tc != null) {
                 LOG.error("The task for id={} is about to be canceled. Reason: {}{} properties: {}", id, bin.failureType, bin.error == null ? "" : " Error: "+bin.error.getMessage(), bin.properties);
-                tc.command().id(bin.key).cancel();
-                tc.interrupt(tc.getName(), bin.key);
+                tc.kill(bin.key);
             }
-        })
-                .andThen(bin->{
+        }).andThen(bin->{
                     TaskLoader<K,?> attempt = (TaskLoader<K,?>) bin.properties.get(NEXT_ATTEMPT);
                     if(attempt != null) {
                         LOG.debug("Next attempt found for task {}. Will try again. ",bin.key);
@@ -135,20 +133,38 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
 
     public TaskLoader<K,L> task() {
         return new TaskLoader<>(tl->{
-            TaskId<K> id = new TaskId<>(tl.key, counter.incrementAndGet());
-            int next = rr.next();
-            var taskManagerFuture = taskManager.build()
-                    .supplier(TaskManager::new)
-                    .id(id)
-                    .expirationTime(tl.expirationTime)
-                    .addProperty(LABEL, tl.label)
-                    .addProperty(TASK_CONVEYOR, conveyors[next])
-                    .addProperty(NEXT_ATTEMPT, tl.attempts > 1 ? tl.attempts(tl.attempts-1) : null)
-                    .addProperties(tl.getAllProperties())
-                    .create();
-            var taskFuture = loadersPool[next].id(id).value(tl.valueSupplier).place();
-            LOG.debug("The task for id={} label={} has been scheduled in executor {}.", id, tl.label,next);
-            return CompletableFuture.allOf(taskManagerFuture, taskFuture).thenApply(v-> taskManagerFuture.join() && taskFuture.join());
+            if(tl.filter != null) {
+                return innerConveyor.command().foreach(tl.filter).peekId(k->{
+                    TaskId<K> id = new TaskId<>(k, counter.incrementAndGet());
+                    int next = rr.next();
+                    taskManager.build()
+                            .supplier(TaskManager::new)
+                            .id(id)
+                            .expirationTime(tl.expirationTime)
+                            .addProperty(LABEL, tl.label)
+                            .addProperty(TASK_CONVEYOR, conveyors[next])
+                            .addProperty(NEXT_ATTEMPT, tl.attempts > 1 ? tl.attempts(tl.attempts - 1) : null)
+                            .addProperties(tl.getAllProperties())
+                            .create();
+                    loadersPool[next].id(id).value(tl.valueSupplier).place();
+                    LOG.debug("The task for id={} label={} has been scheduled in executor {}.", id, tl.label, next);
+                });
+            } else {
+                TaskId<K> id = new TaskId<>(tl.key, counter.incrementAndGet());
+                int next = rr.next();
+                var taskManagerFuture = taskManager.build()
+                        .supplier(TaskManager::new)
+                        .id(id)
+                        .expirationTime(tl.expirationTime)
+                        .addProperty(LABEL, tl.label)
+                        .addProperty(TASK_CONVEYOR, conveyors[next])
+                        .addProperty(NEXT_ATTEMPT, tl.attempts > 1 ? tl.attempts(tl.attempts - 1) : null)
+                        .addProperties(tl.getAllProperties())
+                        .create();
+                var taskFuture = loadersPool[next].id(id).value(tl.valueSupplier).place();
+                LOG.debug("The task for id={} label={} has been scheduled in executor {}.", id, tl.label, next);
+                return CompletableFuture.allOf(taskManagerFuture, taskFuture).thenApply(v -> taskManagerFuture.join() && taskFuture.join());
+            }
         });
     }
 

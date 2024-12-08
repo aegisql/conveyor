@@ -232,6 +232,11 @@ public final class MultiKeyCommandLoader<K,OUT> {
 		return conveyor.apply(command);
 	}
 
+	public CompletableFuture<Boolean> peekId(Consumer<K> consumer) {
+		GeneralCommand<K, Consumer<K>> command = new GeneralCommand<>(filter,consumer,CommandLabel.PEEK_KEY,creationTime,expirationTime);
+		return conveyor.apply(command);
+	}
+
 	/**
 	 * Memento.
 	 *
@@ -282,5 +287,5 @@ public final class MultiKeyCommandLoader<K,OUT> {
 		return "MultiKeyCommandLoader [creationTime=" + creationTime + ", expirationTime="
 				+ expirationTime + ", ttlMsec=" + ttlMsec + "]";
 	}
-	
+
 }

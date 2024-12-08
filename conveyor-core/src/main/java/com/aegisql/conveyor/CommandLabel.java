@@ -66,7 +66,13 @@ public enum CommandLabel implements SmartLabel<AssemblingConveyor> {
 			return (c, o) -> AssemblingConveyor.checkBuild(c, (Cart) o);
 		}
 	}
-
+	,
+	/** The peek build. */
+	PEEK_KEY {
+		public SerializableBiConsumer<AssemblingConveyor, Object> get() {
+			return (c, o) -> AssemblingConveyor.peekKey(c, (Cart) o);
+		}
+	}
 	,
 	/** The peek build. */
 	PEEK_BUILD {

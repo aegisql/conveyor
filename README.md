@@ -61,10 +61,11 @@ Last version supporting Java 8 is 1.4.4
 ### 1.7.1-SNAPSHOT
 * Switch to Java 21
 * Some multithreading improvements
-* dependencies updates
-* added accessors for current ID, Label and properties
-* ConveyorAdapter class
+* Dependencies updates
+* Added accessors for current ID, Label and properties
+* Added ConveyorAdapter class
 * Commands extended to complete and completeExceptionally, allows to terminate the build with default value provided or with corresponding error processing
+* Command peekId allows to iterate through existing set of correlation IDs.  
 * Allows cancellation commands on shutting down a conveyor
 * Bugfixes
 * TaskPool parallel conveyor
@@ -72,7 +73,7 @@ Last version supporting Java 8 is 1.4.4
 ***
 
 ### 1.6.7
-* added module names in METAINF.MF - will convert to modules in a later release
+* Added module names in METAINF.MF - will convert to modules in a later release
 * getMBeanInstance method in the Conveyor interface
 * Append cart property to a list
 * Dependencies updates

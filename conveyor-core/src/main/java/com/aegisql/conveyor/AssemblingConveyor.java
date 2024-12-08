@@ -989,6 +989,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							case COMPLETE_BUILD:
 							case COMPLETE_BUILD_EXEPTIONALLY:
 							case TIMEOUT_BUILD:
+							case PEEK_BUILD:
+							case PEEK_KEY:
 								break;
 							default:
 								if(key != null && ! this.collector.containsKey(key)) {
@@ -1560,6 +1562,21 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			LOG.debug("Key '{}' does not exist. Ignoring peek command.", key);
 			var bin = new ProductBin(conveyor, key, null, 0, Status.NOT_FOUND, null, null);
 			cart.getValue().accept(bin);
+			cart.getFuture().complete(false);
+		}
+	}
+
+	static <K,OUT> void peekKey(AssemblingConveyor<K,?,OUT> conveyor, Cart<K, Consumer<K>, ?> cart) {
+		var key = cart.getKey();
+		if (conveyor.collector.containsKey(key)) {
+			try {
+				cart.getValue().accept(key);
+				cart.getFuture().complete(true);
+			} catch (Exception e) {
+				cart.getFuture().completeExceptionally(e);
+			}
+		} else {
+			LOG.debug("Key '{}' does not exist. Ignoring peek key command.", key);
 			cart.getFuture().complete(false);
 		}
 	}

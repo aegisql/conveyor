@@ -281,6 +281,11 @@ public final class CommandLoader<K,OUT> {
 		return conveyor.apply(command);
 	}
 
+	public CompletableFuture<Boolean> peekId(Consumer<K> consumer) {
+		GeneralCommand<K, Consumer<K>> command = new GeneralCommand<>(key,consumer,CommandLabel.PEEK_KEY,creationTime,expirationTime);
+		return conveyor.apply(command);
+	}
+
 	/**
 	 * Memento.
 	 *

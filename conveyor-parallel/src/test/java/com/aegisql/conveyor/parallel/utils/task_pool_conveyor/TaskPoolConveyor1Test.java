@@ -108,6 +108,27 @@ class TaskPoolConveyor1Test {
     }
 
     @Test
+    public void foreachTaskTest() throws InterruptedException {
+        var taskPoolConveyor = new TaskPoolConveyor<Integer,String,Integer>(1);
+        ResultQueue<Integer, Integer> reference = ResultQueue.of(taskPoolConveyor);
+        taskPoolConveyor.setBuilderSupplier(Summ::new);
+        taskPoolConveyor.resultConsumer(LogResult.debug(taskPoolConveyor)).andThen(reference).set();
+        taskPoolConveyor.setReadinessEvaluator(Conveyor.getTesterFor(taskPoolConveyor).accepted(FIRST, LAST));
+        taskPoolConveyor.setDefaultCartConsumer(consumer());
+
+        taskPoolConveyor.setName("pool");
+
+        taskPoolConveyor.part().id(1).label(FIRST).value(10).place();
+        taskPoolConveyor.part().id(2).label(FIRST).value(10).place().join();
+        taskPoolConveyor.task().foreach().label(LAST).valueSupplier(()->slowMethod(1)).placeAsynchronous();
+
+        taskPoolConveyor.completeAndStop().join();
+        assertEquals(11,reference.poll());
+        assertEquals(11,reference.poll());
+
+    }
+
+    @Test
     public void basicTaskFailureTest() throws InterruptedException {
         var conveyor = new AssemblingConveyor<Integer,String,Integer>();
         LastResultReference<Integer, Integer> reference = LastResultReference.of(conveyor);

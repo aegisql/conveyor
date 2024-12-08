@@ -465,6 +465,20 @@ public interface Conveyor<K, L, OUT> {
 	void interrupt(String conveyorName, K key);
 
 	/**
+	 * Kill the build.
+	 * Send cancel command then interrupt for the same id
+	 *
+	 * @param id the id
+	 * @return the completable future
+	 */
+	default CompletableFuture<Boolean> kill(K id) {
+		LOG.debug("Build for id={} is about to be killed.",id);
+		CompletableFuture<Boolean> cancel = this.command().id(id).cancel();
+		this.interrupt(this.getName(),id);
+		return cancel;
+	}
+
+	/**
 	 * Sets the cart payload accessor.
 	 *
 	 * @param payloadFunction the payload function

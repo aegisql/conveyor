@@ -328,5 +328,37 @@ public class PeekTest {
 		c.part().id(3).label("B").value("BBB").place().join();
 	}
 
+	@Test
+	public void testPeekId() {
+		Conveyor<Integer,String,TestProd> c = new AssemblingConveyor<>();
+		c.setName("testPeekId");
+		c.setBuilderSupplier(TestProdBuilder::new);
+		c.setDefaultBuilderTimeout(1, TimeUnit.SECONDS);
+		LabeledValueConsumer<String, Object, TestProdBuilder> lvc = new LabeledValueConsumer<String, Object, TestProdBuilder>() {
+			@Override
+			public void accept(String label, Object value, TestProdBuilder builder) {
+				System.out.println("Unsupported "+label+" = "+value);
+			}
+
+		};
+		c.setReadinessEvaluator(Conveyor.getTesterFor(c).accepted("A", "B"));
+		c.setDefaultCartConsumer(lvc
+				.<String>when("A", TestProdBuilder::setA)
+				.<String>when("B", TestProdBuilder::setB)
+		);
+		c.resultConsumer(bin->{
+			System.out.println("READY "+bin);
+			assertEquals("A", bin.product.getA());
+			assertEquals("B", bin.product.getB());
+		}).set();
+
+		c.part().id(1).label("A").value("A").place().join();
+
+		assertTrue(c.command().id(1).peekId(k->System.out.println("Key found:"+k)).join());
+		assertTrue(c.command().foreach().peekId(k->System.out.println("Key found:"+k)).join());
+
+		assertFalse(c.command().id(2).peekId(k->System.out.println("Key found:"+k)).join());
+
+	}
 	
 }
