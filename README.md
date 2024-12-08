@@ -49,6 +49,11 @@ conveyor configurator
 </dependency>
 ```
 
+## JAVA21
+
+## JAVA17
+Last version supporting Java 17 is 1.6.7
+
 ## JAVA11
 Last version supporting Java 11 is 1.5.3
 
