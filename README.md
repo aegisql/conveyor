@@ -5,13 +5,13 @@ Reactive Aggregation and Creation for Enterprise
 
 ### Maven dependencies
 
-## For JAVA17 & OpenJDK
+## For JAVA21 & OpenJDK
 conveyor-core
 ```xml
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-core</artifactId>
-  <version>1.6.7</version>
+  <version>1.7.1</version>
 </dependency>
 ```
 
@@ -20,7 +20,7 @@ conveyor-parallel
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-parallel</artifactId>
-  <version>1.6.7</version>
+  <version>1.7.1</version>
 </dependency>
 ```
 
@@ -29,14 +29,14 @@ conveyor-persistence
 <dependency>
 <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
-  <version>1.6.7</version>
+  <version>1.7.1</version>
 </dependency>
 ```
 ```xml
 <dependency>
   <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-jdbc</artifactId>
-  <version>1.6.7</version>
+  <version>1.7.1</version>
 </dependency>
 ```
 
@@ -45,7 +45,7 @@ conveyor configurator
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-configurator</artifactId>
-  <version>1.6.7</version>
+  <version>1.7.1</version>
 </dependency>
 ```
 
@@ -63,7 +63,9 @@ Last version supporting Java 8 is 1.4.4
 
 ## Release History
 
-### 1.7.1-SNAPSHOT
+### 1.7.2-SNAPSHOT
+
+### 1.7.1
 * Switch to Java 21
 * Some multithreading improvements
 * Dependencies updates
