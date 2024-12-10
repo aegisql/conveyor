@@ -824,8 +824,9 @@ public class AssemblingConveyorTest {
 	@Test
 	public void autoShutdownTest() throws InterruptedException {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
-		ac1.setAutoShutDownTime(Duration.ofSeconds(3));
+		ac1.setLongInactivityAction(ac1::stop, Duration.ofSeconds(3));
 		Thread.sleep(4000);
+		assertFalse(ac1.isRunning());
 		assertThrows(CompletionException.class,()->ac1.part().id(1).label("label").value("value").place().join());
 	}
 
@@ -836,7 +837,7 @@ public class AssemblingConveyorTest {
 		ac1.setDefaultCartConsumer((a,b,c)->{});
 		ac1.setReadinessEvaluator(Conveyor.getTesterFor(ac1).accepted("done"));
 		ac1.resultConsumer(LogResult.debug(ac1)).set();
-		ac1.setAutoShutDownTime(Duration.ofSeconds(3));
+		ac1.setLongInactivityAction(ac1::stop, Duration.ofSeconds(3));
 		ac1.part().id(1).label("label").value("value").place();
 		Thread.sleep(4000);
 		assertDoesNotThrow(()->ac1.part().id(1).label("done").value("value").place().join());

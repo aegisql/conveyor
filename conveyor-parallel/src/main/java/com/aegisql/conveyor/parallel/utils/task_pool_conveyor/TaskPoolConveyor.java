@@ -253,10 +253,19 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
             }
 
             @Override
+            public int getPoolSize() {
+                return thisConv.getPoolSize();
+            }
+
+            @Override
             public <K, L, OUT> Conveyor<K, L, OUT> conveyor() {
                 return (Conveyor<K, L, OUT>) thisConv;
             }
         });
+    }
+
+    public int getPoolSize() {
+        return conveyors.length;
     }
 
 }

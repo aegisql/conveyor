@@ -75,7 +75,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 	protected long lastProcessingTime = System.currentTimeMillis();
 
-	protected long autoShotDownTime = Long.MAX_VALUE;
+	protected long longInactivityTime = Long.MAX_VALUE;
 
 	/** The timeout action. */
 	protected Consumer<Supplier<? extends OUT>> timeoutAction;
@@ -183,6 +183,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	
 	/** The inner thread. */
 	protected final Thread innerThread;
+
+	private Runnable longInactivityAction = ()->{};
 
 	/**
 	 * The Class Lock.
@@ -363,9 +365,10 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 						LOG.info("No pending messages or commands. Ready to leave {}", Thread.currentThread().getName());
 					}
 					currentSite = null;
-					if((System.currentTimeMillis() - this.lastProcessingTime) > this.autoShotDownTime && this.collector.size() == 0) {
-						LOG.info("Auto Shut Down time reached");
-						this.shutDownOnIdleTimeout();
+					if((System.currentTimeMillis() - this.lastProcessingTime) > this.longInactivityTime && this.collector.isEmpty()) {
+						LOG.info("Long inactivity time reached");
+						this.longInactivityAction.run();
+						this.lastProcessingTime = System.currentTimeMillis();
 					}
 				}
 				LOG.info("Leaving {}", Thread.currentThread().getName());
@@ -2014,12 +2017,13 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		throw new ConveyorRuntimeException("Meta Info is not available for '"+getName()+"'. getMetaInfo() method must be overridden in a child conveyor class.");
 	}
 
-	public void setAutoShutDownTime(long autoShotDownTime, TimeUnit unit) {
-		this.autoShotDownTime = unit.toMillis(autoShotDownTime);
+	public void setLongInactivityAction(Runnable action, long inactivityTime, TimeUnit unit) {
+		setLongInactivityAction(action,Duration.ofMillis(unit.toMillis(inactivityTime)));
 	}
 
-	public void setAutoShutDownTime(Duration autoShotDownTime) {
-		this.autoShotDownTime = autoShotDownTime.toMillis();
+	public void setLongInactivityAction(Runnable action, Duration inactivityTime) {
+		this.longInactivityAction = action;
+		this.longInactivityTime = inactivityTime.toMillis();
 	}
 
 }

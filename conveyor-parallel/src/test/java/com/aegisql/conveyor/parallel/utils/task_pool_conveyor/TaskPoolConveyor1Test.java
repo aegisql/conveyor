@@ -98,6 +98,8 @@ class TaskPoolConveyor1Test {
 
         taskPoolConveyor.setName("pool");
 
+        assertEquals(1,taskPoolConveyor.getPoolSize());
+
         taskPoolConveyor.part().id(2).label(FIRST).value(10).place();
         taskPoolConveyor.task().id(2).label(LAST).valueSupplier(()->slowMethod(1)).ttl(Duration.ofSeconds(3)).addProperty("test","basicTaskTest").placeAsynchronous();
 

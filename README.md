@@ -67,11 +67,12 @@ Last version supporting Java 8 is 1.4.4
 * Switch to Java 21
 * Some multithreading improvements
 * Dependencies updates
-* Added accessors for current ID, Label and properties
+* Added functional accessors for current ID, Label and properties
 * Added ConveyorAdapter class
 * Commands extended to complete and completeExceptionally, allows to terminate the build with default value provided or with corresponding error processing
 * Command peekId allows to iterate through existing set of correlation IDs.  
 * Allows cancellation commands on shutting down a conveyor
+* AssemblingConveyor method setLongInactivityAction allows to perform some actions on a defined period of inactivity
 * Bugfixes
 * TaskPool parallel conveyor
 

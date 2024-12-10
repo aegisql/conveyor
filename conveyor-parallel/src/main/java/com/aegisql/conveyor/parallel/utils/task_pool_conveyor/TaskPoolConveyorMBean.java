@@ -25,6 +25,13 @@ public interface TaskPoolConveyorMBean {
 	String getEnclosedConveyorName();
 
 	/**
+	 * Pool size int.
+	 *
+	 * @return the int
+	 */
+	int getPoolSize();
+
+	/**
 	 * Conveyor conveyor.
 	 *
 	 * @param <K>   the type parameter
