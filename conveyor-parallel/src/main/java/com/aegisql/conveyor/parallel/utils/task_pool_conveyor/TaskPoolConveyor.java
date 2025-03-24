@@ -25,45 +25,70 @@ import java.util.function.Supplier;
  */
 public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
 
+    // Logger for this class
     protected final static Logger LOG = LoggerFactory.getLogger(TaskPoolConveyor.class);
+    // Constants for labels and task conveyor
     public static final String LABEL = "__LABEL__";
     public static final String TASK_CONVEYOR = "__TASK_CONVEYOR__";
     public static final String NEXT_ATTEMPT = "__NEXT_ATTEMPT__";
 
+    // Inner conveyor for managing tasks
     private final Conveyor<TaskId<K>,String,OUT> taskManager = new AssemblingConveyor<>();
+    // Pool of part loaders
     private final PartLoader<TaskId<K>, Integer>[] loadersPool;
+    // Array of conveyors
     private final Conveyor[] conveyors;
+    // Counter for task IDs
     private final AtomicLong counter = new AtomicLong();
+    // Round-robin loop for distributing tasks
     private final RoundRobinLoop rr;
 
+    // Name of the conveyor
     private String name;
 
+    // Scrap consumer for handling task failures by completing exceptionally
     public final ScrapConsumer<K,?> ON_FAILURE_COMPLETE_EXCEPTIONALLY = bin->{
         bin.conveyor.command().id(bin.key).completeExceptionally(bin.error != null ? bin.error:new ConveyorRuntimeException("Task failed: "+bin.failureType+" "+bin.comment,bin.error));
     };
 
+    // Scrap consumer for handling task failures by keeping the conveyor running
     public final ScrapConsumer<K,?> ON_FAILURE_KEEP_RUNNING = bin->{
         bin.conveyor.command().id(bin.key).completeExceptionally(new KeepRunningConveyorException("Task failed: "+bin.failureType+" "+bin.comment+". Keep running.",bin.error));
     };
 
+    // Scrap consumer for handling task failures by ignoring the error
     public final ScrapConsumer<K,?> ON_FAILURE_IGNORE = bin->{
         LOG.error("Task failed: {} {}. Error ignored.", bin.failureType, bin.comment);
     };
 
+    // Scrap consumer for handling task failures by placing a default value
     public final ScrapConsumer<K,?> ON_FAILURE_PLACE_DEFAULT(L label, Object value) {
         return bin->bin.conveyor.part().id(bin.key).label(label).value(value).addProperties(bin.properties).place();
     };
 
+    // Default scrap consumer for tasks
     public ScrapConsumer<K,?> taskScrapConsumer = ON_FAILURE_COMPLETE_EXCEPTIONALLY;
 
+    // Getter for the task scrap consumer
     private ScrapConsumer<K,?> getTaskScrapConsumer() {
         return taskScrapConsumer;
     }
 
+    /**
+     * Constructor with pool size.
+     *
+     * @param poolSize the size of the pool
+     */
     public TaskPoolConveyor(int poolSize) {
         this(new AssemblingConveyor<>(), poolSize);
     }
 
+    /**
+     * Constructor with conveyor and pool size.
+     *
+     * @param conv the conveyor
+     * @param poolSize the size of the pool
+     */
     public TaskPoolConveyor(Conveyor<K,L,OUT> conv, int poolSize) {
         super(conv);
         loadersPool = new PartLoader[poolSize];
@@ -131,6 +156,11 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
         return getName();
     }
 
+    /**
+     * Creates a new TaskLoader.
+     *
+     * @return a new TaskLoader
+     */
     public TaskLoader<K,L> task() {
         return new TaskLoader<>(tl->{
             if(tl.filter != null) {
@@ -220,16 +250,33 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
         return this.name;
     }
 
+    /**
+     * Maps a ScrapBin to a new ScrapBin with the inner conveyor.
+     *
+     * @param bin the original ScrapBin
+     * @return the mapped ScrapBin
+     */
     private ScrapBin mapScrapBin(ScrapBin<TaskId<K>,?> bin) {
         return new ScrapBin((Conveyor<K, Object, Object>) innerConveyor,bin.key.key(),bin.scrap,bin.comment,bin.error,bin.failureType,bin.properties,bin.acknowledge.orElse(null));
     }
 
+    /**
+     * Creates a new ScrapConsumerLoader for task scrap consumers.
+     *
+     * @return a new ScrapConsumerLoader
+     */
     public ScrapConsumerLoader<K> taskScrapConsumer() {
         return new ScrapConsumerLoader<>(sc -> {
             this.taskScrapConsumer = sc;
         }, this.taskScrapConsumer);
     }
 
+    /**
+     * Sets the task scrap consumer.
+     *
+     * @param scrapConsumer the scrap consumer
+     * @return a ScrapConsumerLoader
+     */
     public ScrapConsumerLoader<K> taskScrapConsumer(ScrapConsumer<K,?> scrapConsumer) {
         return taskScrapConsumer().first(scrapConsumer);
     }
@@ -239,6 +286,11 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
         return TaskPoolConveyorMBean.class;
     }
 
+    /**
+     * Registers the MBean for this conveyor.
+     *
+     * @param name the name of the MBean
+     */
     protected void setMbean(String name) {
         final var thisConv = this;
         Conveyor.register(this, new TaskPoolConveyorMBean() {
@@ -264,6 +316,11 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
         });
     }
 
+    /**
+     * Gets the size of the pool.
+     *
+     * @return the pool size
+     */
     public int getPoolSize() {
         return conveyors.length;
     }

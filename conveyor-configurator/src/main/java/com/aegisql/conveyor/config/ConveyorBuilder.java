@@ -28,6 +28,10 @@ import java.util.function.*;
 @SuppressWarnings("rawtypes")
 public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
+	enum ParallelType{
+		K_BALANCED,P_BALANCED,TASK_POOL,L_BALANCED,NONE
+	}
+
 	/** The all files read. */
 	// readiness
 	private boolean allFilesRead = false;
@@ -138,7 +142,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 	/** The parallel factor. */
 	private int parallelFactor = 1;
-	
+
+	private ParallelType parallelType = ParallelType.NONE;
+
 	/** The max queue size. */
 	private int maxQueueSize = 0;
 

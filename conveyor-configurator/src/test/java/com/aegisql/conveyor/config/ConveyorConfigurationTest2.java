@@ -11,44 +11,6 @@ import java.util.function.Supplier;
 
 public class ConveyorConfigurationTest2 {
 
-            /*
-        * 					.<String>when("javaPath", ConveyorBuilder::registerPath)
-					.<String>when("supplier", ConveyorBuilder::supplier)
-					.<String>when("defaultBuilderTimeout", ConveyorBuilder::defaultBuilderTimeout)
-					.<String>when("idleHeartBeat", ConveyorBuilder::idleHeartBeat)
-					.<String>when("rejectUnexpireableCartsOlderThan", ConveyorBuilder::rejectUnexpireableCartsOlderThan)
-					.<String>when("expirationPostponeTime", ConveyorBuilder::expirationPostponeTime)
-					.<String>when("staticPart", ConveyorBuilder::staticPart)
-					.<String>when("firstResultConsumer", ConveyorBuilder::firstResultConsumer)
-					.<String>when("nextResultConsumer", ConveyorBuilder::nextResultConsumer)
-					.<String>when("firstScrapConsumer", ConveyorBuilder::firstScrapConsumer)
-					.<String>when("nextScrapConsumer", ConveyorBuilder::nextScrapConsumer)
-					.<String>when("onTimeoutAction", ConveyorBuilder::timeoutAction)
-					.<String>when("defaultCartConsumer", ConveyorBuilder::defaultCartConsumer)
-					.<String>when("readinessEvaluator", ConveyorBuilder::readinessEvaluator)
-					.<String>when("builderSupplier", ConveyorBuilder::builderSupplier)
-					.<String>when("addBeforeKeyEvictionAction", ConveyorBuilder::addBeforeKeyEvictionAction)
-					.<String>when("addCartBeforePlacementValidator", ConveyorBuilder::addCartBeforePlacementValidator)
-					.<String>when("addBeforeKeyReschedulingAction", ConveyorBuilder::addBeforeKeyReschedulingAction)
-					.<String>when("acceptLabels", ConveyorBuilder::acceptLabels)
-					.<String>when("enablePostponeExpiration", ConveyorBuilder::enablePostponeExpiration)
-					.<String>when("enablePostponeExpirationOnTimeout",ConveyorBuilder::enablePostponeExpirationOnTimeout)
-					.<String>when("autoAcknowledge", ConveyorBuilder::autoAcknowledge)
-					.<String>when("acknowledgeAction", ConveyorBuilder::acknowledgeAction)
-					.<String>when("autoAcknowledgeOnStatus", ConveyorBuilder::autoAcknowledgeOnStatus)
-					.<String>when("cartPayloadAccessor", ConveyorBuilder::cartPayloadAccessor)
-					.<String>when("forward", ConveyorBuilder::forward)
-					.<String>when("completed", ConveyorBuilder::completed)
-					.<String>when("dependency", ConveyorBuilder::dependency)
-					.<String>when("parallel", ConveyorBuilder::parallel)
-					.<String>when("maxQueueSize", ConveyorBuilder::maxQueueSize)
-					.<String>when("priority", ConveyorBuilder::priority)
-					.<String>when("persistence", ConveyorBuilder::persitence)
-					.<String>when("readyWhenAccepted", ConveyorBuilder::readyWhen)
-					.<PersistenceProperty>when("persistenceProperty", ConveyorBuilder::persistenceProperty)
-					.when("complete_configuration", ConveyorBuilder::allFilesReadSuccessfully));
-        * */
-
 
     @Test
     @Disabled
