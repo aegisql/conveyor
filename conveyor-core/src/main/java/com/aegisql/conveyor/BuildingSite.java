@@ -207,7 +207,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	private Throwable lastError;
 	
 	/** The event history. */
-	private final Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>();
+	private final Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>(16, 0.75f, true);
 	
 	/** The properties. */
 	private Map<String,Object> properties = new HashMap<>();

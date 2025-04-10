@@ -64,6 +64,7 @@ Last version supporting Java 8 is 1.4.4
 ## Release History
 
 ### 1.7.2-SNAPSHOT
+* TaskPoolProcessor - a new implementation of the TaskPoolProcessor that uses a thread pool to process tasks in parallel.
 * Dependencies updates
 * Bugfixes
 

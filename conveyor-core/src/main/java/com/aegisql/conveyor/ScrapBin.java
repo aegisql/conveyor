@@ -62,7 +62,9 @@ GENERAL_FAILURE
 KEEP_RUNNING_EXCEPTION
 		,
 /** External failure failure type. */
-EXTERNAL_FAILURE
+EXTERNAL_FAILURE,
+
+		COLLECTOR_MAX_SIZE_REACHED
 	}
 	
 	/** The comment. */

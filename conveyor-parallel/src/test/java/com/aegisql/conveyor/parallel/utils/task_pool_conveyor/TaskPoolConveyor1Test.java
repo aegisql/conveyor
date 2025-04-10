@@ -214,7 +214,7 @@ class TaskPoolConveyor1Test {
 
     @Test
     public void testBigTasks() throws InterruptedException {
-        TaskPoolConveyor<Integer,String,Integer> conveyor = new TaskPoolConveyor<>(20);
+        TaskPoolConveyor<Integer,String,Integer> conveyor = new TaskPoolConveyor<>();
         ResultQueue<Integer,Integer> results = ResultQueue.of(conveyor);
         ResultCounter<Integer,Integer> resultCounter = ResultCounter.of(conveyor);
         LogResult<Integer,Integer> log = LogResult.debug(conveyor);

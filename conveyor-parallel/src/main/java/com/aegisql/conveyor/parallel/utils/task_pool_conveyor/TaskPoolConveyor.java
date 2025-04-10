@@ -75,6 +75,13 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
     }
 
     /**
+     * Instantiates a new Task pool conveyor with pool number equal number of available CPUs.
+     */
+    public TaskPoolConveyor() {
+        this(new AssemblingConveyor<>(), Runtime.getRuntime().availableProcessors());
+    }
+
+    /**
      * Constructor with pool size.
      *
      * @param poolSize the size of the pool
@@ -91,6 +98,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
      */
     public TaskPoolConveyor(Conveyor<K,L,OUT> conv, int poolSize) {
         super(conv);
+        LOG.debug("Creating TaskPoolConveyor with pool size: {}", poolSize);
         loadersPool = new PartLoader[poolSize];
         conveyors = new Conveyor[poolSize];
         rr = new RoundRobinLoop(poolSize);
