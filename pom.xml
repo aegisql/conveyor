@@ -48,6 +48,18 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>0.8.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>central</publishingServerId>
+					<!-- OPTIONAL: enable fully automatic release from CI -->
+					<!-- <autoPublish>true</autoPublish> -->
+					<!-- <waitUntil>published</waitUntil> -->
+				</configuration>
+			</plugin>
 			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-enforcer-plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
