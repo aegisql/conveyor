@@ -11,7 +11,7 @@
 
 	<groupId>com.aegisql</groupId>
 	<artifactId>conveyor</artifactId>
-	<version>1.7.2</version>
+	<version>1.7.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>conveyor</name>
@@ -183,7 +183,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.version>1.7.2</project.version>
+		<project.version>1.7.3-SNAPSHOT</project.version>
 		<maven.compiler.release>21</maven.compiler.release>
 	</properties>
 
