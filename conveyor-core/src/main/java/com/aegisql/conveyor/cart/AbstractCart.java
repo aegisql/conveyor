@@ -184,7 +184,7 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	 * @return true, if successful
 	 */
 	public boolean expired() {
-		return expirationTime > 0 && expirationTime < System.currentTimeMillis();
+		return expirationTime > 0 && expirationTime <= System.currentTimeMillis();
 	}
 
 	
