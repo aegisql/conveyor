@@ -55,6 +55,9 @@
 				<extensions>true</extensions>
 				<configuration>
 					<publishingServerId>central</publishingServerId>
+					<centralSnapshotsUrl>
+						https://central.sonatype.com/repository/maven-snapshots/
+					</centralSnapshotsUrl>
 					<!-- OPTIONAL: enable fully automatic release from CI -->
 					<!-- <autoPublish>true</autoPublish> -->
 					<!-- <waitUntil>published</waitUntil> -->
@@ -255,4 +258,10 @@
 			</snapshots>
 		</repository>
 	</repositories>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>central</id>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>
