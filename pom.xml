@@ -105,6 +105,26 @@
 				<configuration>
 					<source>21</source>
 				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<!-- keep Java level consistent with your build -->
+							<source>${maven.compiler.release}</source>
+							<!-- avoid failing on doclint issues during migration -->
+							<failOnError>false</failOnError>
+							<additionalJOptions>
+								<additionalJOption>-Xdoclint:none</additionalJOption>
+							</additionalJOptions>
+							<!-- exclude aggregator/non-jar modules automatically -->
+							<detectJavaApiLink>false</detectJavaApiLink>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
