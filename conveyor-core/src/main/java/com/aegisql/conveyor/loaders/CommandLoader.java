@@ -27,7 +27,24 @@ import java.util.function.Supplier;
  * @param <OUT> the generic type
  */
 public final class CommandLoader<K,OUT> {
-	
+
+	public final static class EvictionCommand<K> {
+		public final CommandLoader<K,?> commandLoader;
+
+        public EvictionCommand(K key, CommandLoader<K, ?> commandLoader) {
+            this.commandLoader = commandLoader.id(key);
+        }
+
+		public void timeout() {
+			commandLoader.timeout();
+		}
+
+		public void cancel() {
+			commandLoader.cancel();
+		}
+
+    }
+
 	/** The conveyor. */
 	private final Function<GeneralCommand<K,?>, CompletableFuture<Boolean>> conveyor;
 	

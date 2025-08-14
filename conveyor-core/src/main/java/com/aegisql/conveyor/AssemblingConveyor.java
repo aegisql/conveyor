@@ -56,7 +56,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private final DelayProvider<K> delayProvider = new DelayProvider<>();
 
 	/** The collector. */
-	protected final Map<K, BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT>> collector = new HashMap<>();
+	protected final Map<K, BuildingSite<K, L, Cart<K, ?, L>, ? extends OUT>> collector = new LinkedHashMap<>(1024, 0.75f, true);
 
 	/**  Keeps static values. */
 	protected final Map<L,Cart<K,?,L>> staticValues = new HashMap<>();
@@ -158,6 +158,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if (newExpirationTime > 0) {
 				delayProvider.getBox(newExpirationTime).add(key);
 			}
+			if(buildingSite.expired()) {
+				buildingSite.cancelFutures();
+				buildingSite.setStatus(Status.TIMED_OUT);
+
+			}
 		} else {
 			LOG.trace("Build is not found for the key {}", key);
 		}
@@ -185,6 +190,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	protected final Thread innerThread;
 
 	private Runnable longInactivityAction = ()->{};
+	private int maxCollectorSize = Integer.MAX_VALUE;
+	private Consumer<CommandLoader.EvictionCommand<K>> maxFootageEvictionAction = null;
 
 	/**
 	 * The Class Lock.
@@ -1127,6 +1134,12 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			} else if (accept) {
 				failureType = FailureType.DATA_REJECTED;
 				currentSite.accept(cart);
+				if(evictionEnabled()) {
+					if(this.collector.size() > this.maxCollectorSize) {
+						var first = collector.entrySet().stream().findFirst();
+						maxFootageEvictionAction.accept(new CommandLoader.EvictionCommand<>(first.get().getKey(),this.command()));
+					}
+				}
 			}
 			failureType = FailureType.READY_FAILED;
 			if (currentSite.ready()) {
@@ -1441,6 +1454,21 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		cart.getFuture().complete(true);
 	}
 
+	/**
+	 * Timeout now.
+	 *
+	 * @param <K> the key type
+	 * @param conveyor            the conveyor
+	 * @param cart            the cart
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	static <K> void timeoutNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
+		var key = cart.getKey();
+		var bs = (BuildingSite) conveyor.collector.get(key);
+		conveyor.keyBeforeReschedule.accept(key, System.currentTimeMillis());
+		cart.getFuture().complete(true);
+	}
+
 	static <K,OUT> void complete(AssemblingConveyor conveyor, Cart<K, OUT, ?> cart) {
 		var key = cart.getKey();
 		var result = cart.getValue();
@@ -1500,21 +1528,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		var key = cart.getKey();
 		var newExpirationTime = cart.getExpirationTime();
 		conveyor.keyBeforeReschedule.accept(key, newExpirationTime);
-		cart.getFuture().complete(true);
-	}
-
-	/**
-	 * Timeout now.
-	 *
-	 * @param <K> the key type
-	 * @param conveyor            the conveyor
-	 * @param cart            the cart
-	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	static <K> void timeoutNow(AssemblingConveyor conveyor, Cart<K, ?, ?> cart) {
-		var key = cart.getKey();
-		conveyor.collector.get(key);
-		conveyor.keyBeforeReschedule.accept(key, System.currentTimeMillis());
 		cart.getFuture().complete(true);
 	}
 
@@ -1798,6 +1811,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public void setInactiveEvictionAction(int maxCollectorSize, Consumer<CommandLoader.EvictionCommand<K>> action) {
+		this.maxCollectorSize = maxCollectorSize;
+		this.maxFootageEvictionAction = action;
+	}
+
+	protected boolean evictionEnabled() {
+		return maxFootageEvictionAction != null;
 	}
 
 	/*

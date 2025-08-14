@@ -862,4 +862,9 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		return conveyors.get(0).getMetaInfo();
 	}
 
+	@Override
+	public void setInactiveEvictionAction(int maxCollectorSize, Consumer<CommandLoader.EvictionCommand<K>> action) {
+		conveyors.forEach(c->c.setInactiveEvictionAction(maxCollectorSize, action));
+	}
+
 }

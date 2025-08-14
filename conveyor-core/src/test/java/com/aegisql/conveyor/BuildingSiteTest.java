@@ -141,7 +141,8 @@ public class BuildingSiteTest {
 		assertTrue(bs.getProperties().size() == 2);
 		assertTrue(bs.getProperties().containsKey("A"));
 		assertTrue(bs.getProperties().containsKey("B"));
-		
+		bs.accept(c);
 	}
+
 
 }

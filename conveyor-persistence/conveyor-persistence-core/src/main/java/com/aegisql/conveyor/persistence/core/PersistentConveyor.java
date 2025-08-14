@@ -953,5 +953,8 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return forward.getMetaInfo();
 	}
 
-
+	@Override
+	public void setInactiveEvictionAction(int maxCollectorSize, Consumer<CommandLoader.EvictionCommand<K>> action) {
+		forward.setInactiveEvictionAction(maxCollectorSize,action);
+	}
 }

@@ -801,6 +801,81 @@ public class AssemblingConveyorTest {
 		assertThrows(RuntimeException.class,()->Conveyor.byName("test_name_2"));
 	}
 
+	@Test
+	public void testEvictionOfInactiveWithTimeout()  {
+		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
+		ac1.setBuilderSupplier(UserBuilder::new);
+		ac1.setDefaultCartConsumer((label, value, builder) -> {
+			UserBuilder userBuilder = (UserBuilder) builder;
+			switch (label) {
+				case "setFirst":
+					userBuilder.setFirst((String) value);
+					break;
+				case "setLast":
+					userBuilder.setLast((String) value);
+					break;
+				case "setYearOfBirth":
+					userBuilder.setYearOfBirth((Integer) value);
+					break;
+				default:
+					throw new RuntimeException("Unknown label " + label);
+			}
+		});
+		ac1.setReadinessEvaluator(Conveyor.getTesterFor(ac1).accepted("setFirst","setLast","setYearOfBirth"));
+		ac1.resultConsumer(LogResult.trace(ac1)).set();
+		ac1.setInactiveEvictionAction(500, CommandLoader.EvictionCommand::timeout);
+
+		for(int i = 1; i <= 500; i++) {
+			ac1.part().id(i).label("setFirst").value("First"+i).place();
+		}
+		var f = ac1.future().id(1).get();
+
+		for(int i = 2; i <= 500; i++) {
+			ac1.part().id(i).label("setLast").value("Last"+i).place();
+		}
+
+		ac1.part().id(1000).label("setFirst").value("First"+1000).place();
+		assertThrows(CancellationException.class,()->f.join());
+
+	}
+
+	@Test
+	public void testEvictionOfInactiveWithCancel()  {
+		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
+		ac1.setBuilderSupplier(UserBuilder::new);
+		ac1.setDefaultCartConsumer((label, value, builder) -> {
+			UserBuilder userBuilder = (UserBuilder) builder;
+			switch (label) {
+				case "setFirst":
+					userBuilder.setFirst((String) value);
+					break;
+				case "setLast":
+					userBuilder.setLast((String) value);
+					break;
+				case "setYearOfBirth":
+					userBuilder.setYearOfBirth((Integer) value);
+					break;
+				default:
+					throw new RuntimeException("Unknown label " + label);
+			}
+		});
+		ac1.setReadinessEvaluator(Conveyor.getTesterFor(ac1).accepted("setFirst","setLast","setYearOfBirth"));
+		ac1.resultConsumer(LogResult.trace(ac1)).set();
+		ac1.setInactiveEvictionAction(500, CommandLoader.EvictionCommand::cancel);
+
+		for(int i = 1; i <= 500; i++) {
+			ac1.part().id(i).label("setFirst").value("First"+i).place();
+		}
+		var f = ac1.future().id(1).get();
+
+		for(int i = 2; i <= 500; i++) {
+			ac1.part().id(i).label("setLast").value("Last"+i).place();
+		}
+
+		ac1.part().id(1000).label("setFirst").value("First"+1000).place();
+		assertThrows(CancellationException.class,()->f.join());
+
+	}
 
 	/**
 	 * Test access by wrong name.

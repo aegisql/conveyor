@@ -316,4 +316,10 @@ public abstract class ConveyorAdapter<K, L, OUT> implements Conveyor<K, L, OUT> 
     public void unRegister() {
         innerConveyor.unRegister();
     }
+
+    @Override
+    public void setInactiveEvictionAction(int maxCollectorSize, Consumer<CommandLoader.EvictionCommand<K>> action) {
+        innerConveyor.setInactiveEvictionAction(maxCollectorSize,action);
+    }
+
 }

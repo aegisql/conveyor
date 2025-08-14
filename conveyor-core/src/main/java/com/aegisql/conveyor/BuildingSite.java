@@ -5,6 +5,8 @@ package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import org.openjdk.jol.info.GraphLayout;
+import org.openjdk.jol.info.GraphWalker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,11 +45,13 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param <L>   the generic type
 	 * @param <OUT> the generic type
 	 */
-	public static class Memento<K,L,OUT> implements Serializable {
-		
-		/** The Constant serialVersionUID. */
+	public static class Memento<K, L, OUT> implements Serializable {
+
+		/**
+		 * The Constant serialVersionUID.
+		 */
 		@Serial
-        private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 
 		/**
 		 * The timestamp.
@@ -57,7 +61,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		/**
 		 * The state.
 		 */
-		final State<K,L> state;
+		final State<K, L> state;
 
 		/**
 		 * The builder.
@@ -67,7 +71,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		/**
 		 * The properties.
 		 */
-		final Map<String,Object> properties = new HashMap<>();
+		final Map<String, Object> properties = new HashMap<>();
 
 		/**
 		 * Instantiates a new memento.
@@ -77,10 +81,10 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		 * @param properties the properties
 		 */
 		Memento(
-				State<K,L> state,
+				State<K, L> state,
 				Supplier<? extends OUT> builder,
-				Map<String,Object> properties
-				) {
+				Map<String, Object> properties
+		) {
 			this.state = state;
 			this.timestamp = System.currentTimeMillis();
 			this.builder = builder;
@@ -130,118 +134,190 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		public String toString() {
 			StringBuilder builder2 = new StringBuilder();
 			builder2.append("Memento [timestamp=").append(timestamp)
-			.append(", build created=").append(state.builderCreated)
-			.append(", build expires=").append(state.builderExpiration)
-			.append(", builder=").append(builder)
-			.append(", properties=").append(properties).append("]");
+					.append(", build created=").append(state.builderCreated)
+					.append(", build expires=").append(state.builderExpiration)
+					.append(", builder=").append(builder)
+					.append(", properties=").append(properties).append("]");
 			return builder2.toString();
 		}
 	}
 
-	/** The Constant LOG. */
+	/**
+	 * The Constant LOG.
+	 */
 	private final static Logger LOG = LoggerFactory.getLogger(BuildingSite.class);
 
 	/**
 	 * The Constant NON_LOCKING_LOCK.
 	 */
 	public final static Lock NON_LOCKING_LOCK = new Lock() {
-		public void lock() {}
-		public void lockInterruptibly() {}
+		public void lock() {
+		}
+
+		public void lockInterruptibly() {
+		}
+
 		public boolean tryLock() {
 			return true;
 		}
+
 		public boolean tryLock(long time, TimeUnit unit) {
 			return true;
 		}
-		public void unlock() {}
+
+		public void unlock() {
+		}
+
 		public Condition newCondition() {
 			return null;
 		}
 	};
-	
-	/** The builder. */
+
+	private long baseFootage = 0;
+
+	private long prevFootage = 0;
+
+	/**
+	 * The builder.
+	 */
 	private Supplier<? extends OUT> builder;
-	
-	/** The value consumer. */
-	private final LabeledValueConsumer<L, Cart<K,?,L>, Supplier<? extends OUT>> defaultValueConsumer;
 
-	/** The value consumer. */
-	private LabeledValueConsumer<L, Cart<K,?,L>, Supplier<? extends OUT>> valueConsumer = null;
+	/**
+	 * The value consumer.
+	 */
+	private final LabeledValueConsumer<L, Cart<K, ?, L>, Supplier<? extends OUT>> defaultValueConsumer;
 
-	/** The readiness. */
-	private final BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness;
+	/**
+	 * The value consumer.
+	 */
+	private LabeledValueConsumer<L, Cart<K, ?, L>, Supplier<? extends OUT>> valueConsumer = null;
 
-	/** The timeout action. */
+	/**
+	 * The readiness.
+	 */
+	private final BiPredicate<State<K, L>, Supplier<? extends OUT>> readiness;
+
+	/**
+	 * The timeout action.
+	 */
 	private final Consumer<Supplier<? extends OUT>> timeoutAction;
 
-	/** The save carts. */
+	/**
+	 * The save carts.
+	 */
 	private final boolean saveCarts;
 
-	/** The all carts. */
+	/**
+	 * The all carts.
+	 */
 	private final List<C> allCarts = new ArrayList<>();
-	
-	/** The futures. */
+
+	/**
+	 * The futures.
+	 */
 	private final List<CompletableFuture<? extends OUT>> futures = new ArrayList<>();
-	
-	/** The initial cart. */
-	private final  C initialCart;
 
-	/** The last cart. */
-	private  C lastCart;
+	/**
+	 * The initial cart.
+	 */
+	private final C initialCart;
 
-	/** The accept count. */
+	private long initialCartFootage = 0;
+
+	/**
+	 * The last cart.
+	 */
+	private C lastCart;
+
+	/**
+	 * The accept count.
+	 */
 	private int acceptCount = 0;
-	
-	/** The builder created. */
+
+	/**
+	 * The builder created.
+	 */
 	private long builderCreated;
 
 	/**
 	 * The builder expiration.
 	 */
 	Expireable expireableSource = () -> 0;
-	
-	/** The status. */
+
+	/**
+	 * The status.
+	 */
 	private Status status = Status.WAITING_DATA;
-	
-	/** The last error. */
+
+	/**
+	 * The last error.
+	 */
 	private Throwable lastError;
-	
-	/** The event history. */
-	private final Map<L,AtomicInteger> eventHistory = new LinkedHashMap<>(16, 0.75f, true);
-	
-	/** The properties. */
-	private Map<String,Object> properties = new HashMap<>();
-	
-	/** The lock. */
+
+	/**
+	 * The event history.
+	 */
+	private final Map<L, AtomicInteger> eventHistory = new LinkedHashMap<>(16, 0.75f, true);
+
+	/**
+	 * The properties.
+	 */
+	private Map<String, Object> properties = new HashMap<>();
+
+
+	/**
+	 * The lock.
+	 */
 	private final Lock lock;
-	
-	/** The postpone expiration on timeout enabled. */
+
+	/**
+	 * The postpone expiration on timeout enabled.
+	 */
 	private final boolean postponeExpirationOnTimeoutEnabled;
 
-	/** The add expiration time msec. */
+	/**
+	 * The add expiration time msec.
+	 */
 	private final long addExpirationTimeMsec;
-	
-	/** The postpone alg. */
-	private BiConsumer<BuildingSite <K, L, C, OUT>,C> postponeAlg = (bs,cart)->{/*do nothing*/};
-	
-	/** The result consumer. */
-	private ResultConsumer<K,OUT> resultConsumer;
 
-	/** The complete result consumer. */
-	private ResultConsumer<K,OUT> completeResultConsumer = b->{};	
-	
-	/** The cancel result consumer. */
-	private Consumer<Boolean> cancelResultConsumer = b->{};
+	/**
+	 * The postpone alg.
+	 */
+	private BiConsumer<BuildingSite<K, L, C, OUT>, C> postponeAlg = (bs, cart) -> {/*do nothing*/};
 
-	/** The exceptional result consumer. */
-	private Consumer<Throwable> exceptionalResultConsumer = t->{};
+	/**
+	 * The result consumer.
+	 */
+	private ResultConsumer<K, OUT> resultConsumer;
 
-	/** The acknowledge. */
+	/**
+	 * The complete result consumer.
+	 */
+	private ResultConsumer<K, OUT> completeResultConsumer = b -> {
+	};
+
+	/**
+	 * The cancel result consumer.
+	 */
+	private Consumer<Boolean> cancelResultConsumer = b -> {
+	};
+
+	/**
+	 * The exceptional result consumer.
+	 */
+	private Consumer<Throwable> exceptionalResultConsumer = t -> {
+	};
+
+	/**
+	 * The acknowledge.
+	 */
 	private final Acknowledge acknowledge;
 
-	private final Conveyor<K,Object,OUT> conveyor;
+	private final Conveyor<K, Object, OUT> conveyor;
 
-	/** The siteRunning variable is set by the inner thread, read by the interrup method, called by some other thread*/
+	/**
+	 * The siteRunning variable is set by the inner thread, read by the interrup method, called by some other thread
+	 */
 	private volatile Boolean siteRunning = false;
 
 	private final Object syncLock = new Object();
@@ -267,63 +343,64 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param conveyor                           the conveyor
 	 */
 	@SuppressWarnings("unchecked")
-	public BuildingSite( 
-			C cart, 
+	public BuildingSite(
+			C cart,
 			Supplier<Supplier<? extends OUT>> builderSupplier,
-			LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer, 
-			BiPredicate<State<K,L>, Supplier<? extends OUT>> readiness, 
+			LabeledValueConsumer<L, ?, Supplier<? extends OUT>> cartConsumer,
+			BiPredicate<State<K, L>, Supplier<? extends OUT>> readiness,
 			Consumer<Supplier<? extends OUT>> timeoutAction,
 			long ttl,
 			TimeUnit unit,
-			boolean synchronizeBuilder, 
-			boolean saveCarts, 
-			boolean postponeExpirationEnabled, 
-			long addExpirationTimeMsec, 
+			boolean synchronizeBuilder,
+			boolean saveCarts,
+			boolean postponeExpirationEnabled,
+			long addExpirationTimeMsec,
 			boolean postponeExpirationOnTimeoutEnabled,
-			Map<L,C> staticValues,
-			ResultConsumer<K,OUT> resultConsumer,
+			Map<L, C> staticValues,
+			ResultConsumer<K, OUT> resultConsumer,
 			Consumer<AcknowledgeStatus<K>> ackAction,
-			Conveyor<K,L,OUT> conveyor
-			) {
-		this.initialCart               = cart;
-		this.lastCart                  = cart;
+			Conveyor<K, L, OUT> conveyor
+	) {
+		this.initialCart = cart;
+		this.lastCart = cart;
 		/* The default timeout action. */
-		this.saveCarts                 = saveCarts;
+		this.saveCarts = saveCarts;
 		this.postponeExpirationOnTimeoutEnabled = postponeExpirationOnTimeoutEnabled;
-		this.addExpirationTimeMsec     = addExpirationTimeMsec;
-		this.defaultValueConsumer      = (LabeledValueConsumer<L, Cart<K,?,L>, Supplier<? extends OUT>>) cartConsumer;
-		this.acknowledge               = new Acknowledge() {
-			
+		this.addExpirationTimeMsec = addExpirationTimeMsec;
+		this.defaultValueConsumer = (LabeledValueConsumer<L, Cart<K, ?, L>, Supplier<? extends OUT>>) cartConsumer;
+		this.acknowledge = new Acknowledge() {
+
 			private volatile boolean acknowledged = false;
+
 			@Override
 			public boolean isAcknowledged() {
 				return acknowledged;
 			}
-			
+
 			@Override
 			public synchronized void ack() {
-				if(! acknowledged) {
-					ackAction.accept(new AcknowledgeStatus<>(getKey(),status,properties));
+				if (!acknowledged) {
+					ackAction.accept(new AcknowledgeStatus<>(getKey(), status, properties));
 					acknowledged = true;
 				}
 			}
 		};
 		this.conveyor = (Conveyor<K, Object, OUT>) conveyor;
 		this.resultConsumer = Objects.requireNonNullElseGet(resultConsumer, () -> bin -> LOG.error("LOST RESULT {} {}", bin.key, bin.product));
-		
+
 		var productSupplier = builderSupplier.get();
-		
-		if(cart.getValue() != null && cart.getValue() instanceof Memento memento) {
+
+		if (cart.getValue() != null && cart.getValue() instanceof Memento memento) {
 			this.restore(memento);
 		} else {
-			if( productSupplier instanceof ProductSupplier && ((ProductSupplier)productSupplier).getSupplier() != null) {
-				this.builder = ((ProductSupplier)productSupplier).getSupplier();
+			if (productSupplier instanceof ProductSupplier && ((ProductSupplier) productSupplier).getSupplier() != null) {
+				this.builder = ((ProductSupplier) productSupplier).getSupplier();
 			} else {
 				this.builder = productSupplier;
 			}
 		}
-		
-		if(synchronizeBuilder) {
+
+		if (synchronizeBuilder) {
 			this.lock = new ReentrantLock();
 		} else {
 			this.lock = BuildingSite.NON_LOCKING_LOCK;
@@ -332,59 +409,59 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 			this.timeoutAction = b -> ((TimeoutAction) productSupplier).onTimeout();
 		} else this.timeoutAction = timeoutAction;
 
-		if(readiness != null) {
-			this.readiness = readiness;			
+		if (readiness != null) {
+			this.readiness = readiness;
 		} else {
-			if(productSupplier instanceof TestingState) {
-				this.readiness = (state,b) -> {
+			if (productSupplier instanceof TestingState) {
+				this.readiness = (state, b) -> {
 					lock.lock();
 					try {
-						return ((TestingState<K,L>)productSupplier).test(state);
+						return ((TestingState<K, L>) productSupplier).test(state);
 					} finally {
 						lock.unlock();
 					}
 				};
-			}else if(productSupplier instanceof Testing) {
-				this.readiness = (state,b) -> {
+			} else if (productSupplier instanceof Testing) {
+				this.readiness = (state, b) -> {
 					lock.lock();
 					try {
-						return ((Testing)productSupplier).test();
+						return ((Testing) productSupplier).test();
 					} finally {
 						lock.unlock();
 					}
 				};
 			} else {
-				this.readiness = (l,b) -> {
+				this.readiness = (l, b) -> {
 					throw new IllegalStateException("Readiness Evaluator is not set");
 				};
-			}			
-		}
-		this.eventHistory.put(cart.getLabel(), new AtomicInteger(0));
-		if(productSupplier instanceof Expireable expireable) {
-			builderCreated    = System.currentTimeMillis();
-			expireableSource  = expireable;
-		} else {
-			if(postponeExpirationEnabled) {
-				postponeAlg = (bs,c) -> {
-					if( c != null && c.isExpireable() ) {
-						bs.expireableSource = c;
-					} else if( expireableSource.isExpireable() ) {
-						bs.expireableSource = ()->System.currentTimeMillis() + bs.addExpirationTimeMsec; //just add some time, if expireable, lowest priority
-					}
-				};			
 			}
 		}
-		if( cart.isExpireable() && ! expireableSource.isExpireable() ) {
-			builderCreated    = cart.getCreationTime();
-			expireableSource = cart;
-		} 
-		if( ! expireableSource.isExpireable() ) {
+		this.eventHistory.put(cart.getLabel(), new AtomicInteger(0));
+		if (productSupplier instanceof Expireable expireable) {
 			builderCreated = System.currentTimeMillis();
-			if(ttl > 0) {
+			expireableSource = expireable;
+		} else {
+			if (postponeExpirationEnabled) {
+				postponeAlg = (bs, c) -> {
+					if (c != null && c.isExpireable()) {
+						bs.expireableSource = c;
+					} else if (expireableSource.isExpireable()) {
+						bs.expireableSource = () -> System.currentTimeMillis() + bs.addExpirationTimeMsec; //just add some time, if expireable, lowest priority
+					}
+				};
+			}
+		}
+		if (cart.isExpireable() && !expireableSource.isExpireable()) {
+			builderCreated = cart.getCreationTime();
+			expireableSource = cart;
+		}
+		if (!expireableSource.isExpireable()) {
+			builderCreated = System.currentTimeMillis();
+			if (ttl > 0) {
 				expireableSource = () -> builderCreated + TimeUnit.MILLISECONDS.convert(ttl, unit);
 			}
 		}
-		if(staticValues != null && staticValues.size() > 0) {
+		if (staticValues != null && staticValues.size() > 0) {
 			staticValues.values().forEach(this::accept);
 		}
 	}
@@ -397,19 +474,19 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	public void accept(C cart) {
 		lock.lock();
 		try {
-			this.lastCart     = cart;
-			if( saveCarts) {
+			this.lastCart = cart;
+			if (saveCarts) {
 				allCarts.add(cart);
 			}
-			L label      = cart.getLabel();
+			L label = cart.getLabel();
 
 			getValueConsumer(label).accept(label, cart, builder);
 			acceptCount++;
-			eventHistory.computeIfAbsent(label,(l)->new AtomicInteger()).incrementAndGet();
+			eventHistory.computeIfAbsent(label, (l) -> new AtomicInteger()).incrementAndGet();
 			// this itself does not affect expiration time
 			// it should be enabled
 			//  may affect performance
-			if(acceptCount > 1) {
+			if (acceptCount > 1) {
 				postponeAlg.accept(this, cart);
 			}
 		} finally {
@@ -426,12 +503,12 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		lock.lock();
 		try {
 			this.lastCart = cart;
-			if(postponeExpirationOnTimeoutEnabled) {
+			if (postponeExpirationOnTimeoutEnabled) {
 				timeoutAction.accept(builder);
 				postponeAlg.accept(this, cart);
 			} else {
 				var expTimestamp = this.expireableSource.getExpirationTime();
-				this.expireableSource = () -> expTimestamp;				
+				this.expireableSource = () -> expTimestamp;
 				timeoutAction.accept(builder);
 			}
 		} finally {
@@ -445,7 +522,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @return the out
 	 */
 	public OUT build() {
-		if( ! ready() ) {
+		if (!ready()) {
 			throw new IllegalStateException("Builder is not ready!");
 		}
 		return unsafeBuild();
@@ -467,7 +544,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		}
 	}
 
-	/** The product supplier. */
+	/**
+	 * The product supplier.
+	 */
 	private Supplier<? extends OUT> productSupplier = null;
 
 	/**
@@ -476,7 +555,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @return the product supplier
 	 */
 	public Supplier<? extends OUT> getProductSupplier() {
-		if(productSupplier == null ) {
+		if (productSupplier == null) {
 			final var bs = this;
 			productSupplier = (Supplier<OUT>) () -> {
 				if (!getStatus().equals(Status.WAITING_DATA)) {
@@ -501,9 +580,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 *
 	 * @return the state
 	 */
-	public State<K,L> getState() {
-		final var history = new LinkedHashMap<L,Integer>();
-		eventHistory.forEach((k,v)->history.put(k, v.get()));
+	public State<K, L> getState() {
+		final var history = new LinkedHashMap<L, Integer>();
+		eventHistory.forEach((k, v) -> history.put(k, v.get()));
 		return new State<>(
 				initialCart.getKey(),
 				builderCreated,
@@ -511,9 +590,9 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 				initialCart.getCreationTime(),
 				initialCart.getExpirationTime(),
 				acceptCount,
-				Collections.unmodifiableMap( history ),
+				Collections.unmodifiableMap(history),
 				Collections.unmodifiableList(allCarts)
-				);
+		);
 	}
 
 	/**
@@ -530,7 +609,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		} finally {
 			lock.unlock();
 		}
-		if( res ) {
+		if (res) {
 			status = Status.READY;
 		}
 		return res;
@@ -551,8 +630,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @return the delay msec
 	 */
 	public long getDelayMsec() {
-		var expirationTime = expireableSource.getExpirationTime() ;
-		if(expirationTime == 0 ) {
+		var expirationTime = expireableSource.getExpirationTime();
+		if (expirationTime == 0) {
 			return Long.MAX_VALUE;
 		} else {
 			return expireableSource.getExpirationTime() - System.currentTimeMillis();
@@ -584,7 +663,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @return the accepted carts
 	 */
 	public List<C> getAcceptedCarts() {
-		return Collections.unmodifiableList( allCarts );
+		return Collections.unmodifiableList(allCarts);
 	}
 
 	/**
@@ -673,7 +752,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 */
 	void completeWithValue(OUT value, Status status) {
 		var ack = getAcknowledge();
-		resultConsumer.andThen(completeResultConsumer).accept(new ProductBin<>(conveyor, getKey(), value, getExpirationTime(), status, getProperties(), ack) );
+		resultConsumer.andThen(completeResultConsumer).accept(new ProductBin<>(conveyor, getKey(), value, getExpirationTime(), status, getProperties(), ack));
 	}
 
 	/**
@@ -681,7 +760,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 *
 	 * @param resultConsumer the result consumer
 	 */
-	void setResultConsumer(ResultConsumer<K,OUT> resultConsumer) {
+	void setResultConsumer(ResultConsumer<K, OUT> resultConsumer) {
 		this.resultConsumer = resultConsumer;
 	}
 
@@ -708,7 +787,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param resultFuture the result future
 	 */
 	public void addFuture(final CompletableFuture<OUT> resultFuture) {
-		this.completeResultConsumer = this.completeResultConsumer.andThen(bin-> resultFuture.complete(bin.product));
+		this.completeResultConsumer = this.completeResultConsumer.andThen(bin -> resultFuture.complete(bin.product));
 		this.cancelResultConsumer = this.cancelResultConsumer.andThen(resultFuture::cancel);
 		this.exceptionalResultConsumer = this.exceptionalResultConsumer.andThen(resultFuture::completeExceptionally);
 		futures.add(resultFuture);
@@ -747,14 +826,14 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 * @param label the label
 	 * @return the value consumer
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private LabeledValueConsumer<L, Cart<K,?,L>, Supplier<? extends OUT>> getValueConsumer(L label) {
-		if(label == null) {
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private LabeledValueConsumer<L, Cart<K, ?, L>, Supplier<? extends OUT>> getValueConsumer(L label) {
+		if (label == null) {
 			return defaultValueConsumer;
-		} else if(valueConsumer == null) {
-			if( label instanceof SmartLabel ) {
-				valueConsumer = (l,v,b) -> {
-					SmartLabel sl = (SmartLabel)l;
+		} else if (valueConsumer == null) {
+			if (label instanceof SmartLabel) {
+				valueConsumer = (l, v, b) -> {
+					SmartLabel sl = (SmartLabel) l;
 					sl.get().accept(b, sl.getPayload(v));
 				};
 			} else {
@@ -778,7 +857,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 *
 	 * @return the properties
 	 */
-	public Map<String,Object> getProperties() {
+	public Map<String, Object> getProperties() {
 		return properties;
 	}
 
@@ -787,7 +866,7 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 	 *
 	 * @param properties the properties
 	 */
-	public void addProperties(Map<String,Object> properties) {
+	public void addProperties(Map<String, Object> properties) {
 		this.properties.putAll(properties);
 	}
 
@@ -820,8 +899,8 @@ public class BuildingSite <K, L, C extends Cart<K, ?, L>, OUT> implements Expire
 		this.acceptCount = memento.state.previouslyAccepted;
 		this.allCarts.clear();
 		this.allCarts.addAll((Collection<? extends C>) memento.state.carts);
-		this.eventHistory.clear(); 
-		memento.state.eventHistory.forEach((l,i)-> this.eventHistory.put((L) l, new AtomicInteger((int) i)));
+		this.eventHistory.clear();
+		memento.state.eventHistory.forEach((l, i) -> this.eventHistory.put((L) l, new AtomicInteger((int) i)));
 	}
 
 	/**

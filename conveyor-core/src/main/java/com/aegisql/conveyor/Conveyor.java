@@ -317,6 +317,8 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	String getName();
 
+	void setInactiveEvictionAction(int maxCollectorSize, Consumer<CommandLoader.EvictionCommand<K>> action);
+
 	default String getGenericName() {
 		StringBuilder sb = new StringBuilder(getClassName(this.getClass()));
 		try {
