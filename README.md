@@ -63,7 +63,7 @@ Last version supporting Java 8 is 1.4.4
 
 ## Release History
 
-### 1.7.2-SNAPSHOT
+### 1.7.2
 * Switch deployment plugins to Maven Central
 * TaskPoolProcessor - a new implementation of the TaskPoolProcessor that uses a thread pool to process tasks in parallel.
 * Inactive Eviction Action added to AssemblingConveyor - allows to perform cancellation and timeout actions on a defined period of inactivity.
