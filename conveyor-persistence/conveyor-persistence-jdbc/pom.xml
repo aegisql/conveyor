@@ -12,7 +12,7 @@
 	</parent>
 	<groupId>com.aegisql.conveyor-persistence-jdbc</groupId>
 	<artifactId>conveyor-persistence-jdbc</artifactId>
-	<version>1.7.3-SNAPSHOT</version>
+	<version>${project.version}</version>
 	<name>conveyor-persistence-jdbc</name>
 	<url>http://maven.apache.org</url>
 	<properties>
@@ -22,12 +22,12 @@
 		<dependency>
 			<groupId>com.aegisql.persistence</groupId>
 			<artifactId>conveyor-persistence-core</artifactId>
-			<version>1.7.3-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.aegisql</groupId>
 			<artifactId>conveyor-parallel</artifactId>
-			<version>1.7.3-SNAPSHOT</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 

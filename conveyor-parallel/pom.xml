@@ -8,7 +8,7 @@
   </parent>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-parallel</artifactId>
-  <version>1.7.3-SNAPSHOT</version>
+  <version>${project.version}</version>
   <name>conveyor-parallel</name>
   <url>http://maven.apache.org</url>
   <properties>
