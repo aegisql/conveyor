@@ -145,6 +145,8 @@ Last version supporting Java 8 is 1.4.4
 * JavaScript Engine switched to GRAAL.JS
 * DerbyDB client switched to 10.15
 
+***
+
 ### 1.4.4
 * Last release on ORACLE JDK 8
 * Added support for config properties
