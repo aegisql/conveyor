@@ -93,6 +93,25 @@ public interface LabeledValueConsumer<L,V,B> extends Serializable {
 	}
 
 	/**
+	 * Filter labeled value consumer.
+	 *
+	 * @param <T>      the type parameter
+	 * @param label    the label
+	 * @param consumer the consumer
+	 * @return the labeled value consumer
+	 */
+	default <T> LabeledValueConsumer<L,V,B> filter(Predicate<L> label, LabeledValueConsumer<L,T,B> consumer) {
+		LabeledValueConsumer<L,V,B> lvc = this;
+		return (l,v,b)->{
+			if( label.test(l) ) {
+				consumer.accept(l,(T)v,b);
+			} else {
+				lvc.accept(l, v, b);
+			}
+		};
+	}
+
+	/**
 	 * Filter.
 	 *
 	 * @param <T> the generic type
@@ -145,6 +164,22 @@ public interface LabeledValueConsumer<L,V,B> extends Serializable {
 				lvc.accept(l, v, b);
 			}
 		};
+	}
+
+	/**
+	 * Match labeled value consumer.
+	 *
+	 * @param <T>      the type parameter
+	 * @param pattern  the pattern
+	 * @param consumer the consumer
+	 * @return the labeled value consumer
+	 */
+	default <T> LabeledValueConsumer<L,V,B> match(String pattern, LabeledValueConsumer<L,T,B> consumer) {
+		final Pattern p = Pattern.compile(pattern);
+		return filter(l->{
+			Matcher m = p.matcher(l.toString());
+			return m.matches();
+		},consumer);
 	}
 
 	/**
@@ -218,5 +253,8 @@ public interface LabeledValueConsumer<L,V,B> extends Serializable {
 			}
 		};
 	}
-	
+
+	default LabeledValueConsumer<L,V,B> identity() {
+		return this;
+	}
 }
