@@ -64,6 +64,10 @@ Last version supporting Java 8 is 1.4.4
 ## Release History
 
 ### 1.7.3-SNAPSHOT
+* Counters Aggregator utility conveyor
+* Extensions to the LabeledValueConsumer interface
+* Updated dependencies
+* Bugfixes
 
 ### 1.7.2
 * Switch deployment plugins to Maven Central
