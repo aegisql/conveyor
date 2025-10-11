@@ -24,15 +24,15 @@ class CounterAggregatorConveyorTest {
         c.scrapConsumer(LogScrap.error(c)).andThen(scrapRef).set();
 
         c.staticPart().label("_TASK_NAMES_").value(List.of("task1","task2")).place();
-
-        c.part().id(1).label("task1_EXPECTED_VALUE").value(6).place();
-        c.part().id(1).label("task2_EXPECTED_VALUE").value(3).place();
-        c.part().id(1).label("task1_EXPECTED_VALUE").value(100).place();
-        c.part().id(1).label("task1").value(3).place();
-        c.part().id(1).label("task1").value(3).place();
-        c.part().id(1).label("task2").value(1).place();
-        c.part().id(1).label("task2").value(1).place();
-        c.part().id(1).label("task2").value(1).place();
+        var pl = c.part().id(1);
+        pl.label("task1_EXPECTED_VALUE").value(6).place();
+        pl.label("task2_EXPECTED_VALUE").value(3).place();
+        pl.label("task1_EXPECTED_VALUE").value(100).place();
+        pl.label("task1").value(3).place();
+        pl.label("task1").value(3).place();
+        pl.label("task2").value(1).place();
+        pl.label("task2").value(1).place();
+        pl.label("task2").value(1).place();
         c.completeAndStop().join();
         Map<String, Map<String, Integer>> map = resultRef.getCurrent();
         assertNotNull(map);

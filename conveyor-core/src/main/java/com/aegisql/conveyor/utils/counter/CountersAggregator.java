@@ -35,7 +35,7 @@ public class CountersAggregator implements Supplier<Map<String,Map<String,Intege
 
     @Override
     public boolean test() {
-        return names.size() > 0 && counters.values().stream().allMatch(Counter::test);
+        return !names.isEmpty() && counters.values().stream().allMatch(Counter::test);
     }
 
     @Override
@@ -44,11 +44,8 @@ public class CountersAggregator implements Supplier<Map<String,Map<String,Intege
         allNames.addAll(counters.keySet());
         Map<String, Map<String, Integer>> result = new HashMap<>();
 
-        allNames.stream().forEach(name->{
-            Map<String, Integer> map = new HashMap<>();
-            map.put("expected", counter(name).getExpected());
-            map.put("actual", counter(name).getCount());
-            result.put(name, Collections.unmodifiableMap(map));
+        allNames.forEach(name->{
+            result.put(name, Map.of("expected", counter(name).getExpected(), "actual", counter(name).getCount()));
         });
         return Collections.unmodifiableMap(result);
     }

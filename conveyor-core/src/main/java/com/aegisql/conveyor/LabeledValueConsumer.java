@@ -104,7 +104,8 @@ public interface LabeledValueConsumer<L,V,B> extends Serializable {
 		LabeledValueConsumer<L,V,B> lvc = this;
 		return (l,v,b)->{
 			if( label.test(l) ) {
-				consumer.accept(l,(T)v,b);
+                //noinspection unchecked
+                consumer.accept(l,(T)v,b);
 			} else {
 				lvc.accept(l, v, b);
 			}
@@ -123,7 +124,8 @@ public interface LabeledValueConsumer<L,V,B> extends Serializable {
 		LabeledValueConsumer<L,V,B> lvc = this;
 		return (l,v,b)->{
 			if( label.test(l) ) {
-				consumer.accept(b, (T)v);
+                //noinspection unchecked
+                consumer.accept(b, (T)v);
 			} else {
 				lvc.accept(l, v, b);
 			}

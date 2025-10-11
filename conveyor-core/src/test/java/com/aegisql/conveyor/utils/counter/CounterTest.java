@@ -1,5 +1,6 @@
 package com.aegisql.conveyor.utils.counter;
 
+import com.aegisql.conveyor.exception.KeepRunningConveyorException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,11 +24,7 @@ class CounterTest {
         assertEquals(8, counter.getCount());
         assertThrows(IllegalStateException.class,counter::test);
 
-        counter.setExpected(8);
-        assertTrue(counter.test());
-
-        counter.setExpected(10);
-        assertFalse(counter.test());
+        assertThrows(KeepRunningConveyorException.class,()->counter.setExpected(8));
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             counter.add(-1);

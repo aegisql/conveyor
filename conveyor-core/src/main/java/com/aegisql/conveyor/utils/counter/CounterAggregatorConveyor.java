@@ -2,15 +2,11 @@ package com.aegisql.conveyor.utils.counter;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
-import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.cart.Cart;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class CounterAggregatorConveyor<K> extends AssemblingConveyor<K,String, Map<String, Map<String, Integer>>> {
