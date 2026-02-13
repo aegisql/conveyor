@@ -15,7 +15,7 @@
     <description>Spring Boot service exposing conveyor REST API and dashboard</description>
 
     <properties>
-        <spring-boot.version>3.3.4</spring-boot.version>
+        <spring-boot.version>4.0.2</spring-boot.version>
     </properties>
 
     <dependencyManagement>
@@ -67,7 +67,7 @@
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>prismjs</artifactId>
-            <version>1.29.0</version>
+            <version>1.30.0</version>
         </dependency>
         <dependency>
             <groupId>com.aegisql</groupId>
@@ -98,6 +98,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

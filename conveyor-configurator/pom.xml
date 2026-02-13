@@ -91,12 +91,13 @@
 		<dependency>
 			<groupId>org.graalvm.js</groupId>
 			<artifactId>js</artifactId>
-			<version>23.0.11</version>
+			<version>25.0.2</version>
+			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>org.graalvm.js</groupId>
 			<artifactId>js-scriptengine</artifactId>
-			<version>23.0.11</version>
+			<version>25.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>

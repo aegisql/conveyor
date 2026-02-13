@@ -9,12 +9,11 @@ import com.aegisql.conveyor.service.error.UnsupportedMappingException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
@@ -22,6 +21,7 @@ import java.util.Map;
 
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -34,11 +34,10 @@ class StaticPartControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private StaticPartService staticPartService;
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void placeStaticPartReturnsCompletedResult() throws Exception {
         var response = PlacementResult.<Boolean>builder()
                 .status(PlacementStatus.COMPLETED)
@@ -56,6 +55,7 @@ class StaticPartControllerTest {
         ).thenReturn(response);
 
         mockMvc.perform(post("/static-part/{conveyor}/{label}", "collector", "CONFIG")
+                        .with(user("rest").roles("REST_USER"))
                         .contentType(MediaType.TEXT_PLAIN)
                         .content("sample-value"))
                 .andExpect(status().isOk())
@@ -65,7 +65,6 @@ class StaticPartControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void deleteStaticPartDoesNotRequireBody() throws Exception {
         var response = PlacementResult.<Boolean>builder()
                 .status(PlacementStatus.COMPLETED)
@@ -83,6 +82,7 @@ class StaticPartControllerTest {
         ).thenReturn(response);
 
         mockMvc.perform(post("/static-part/{conveyor}/{label}", "collector", "CONFIG")
+                        .with(user("rest").roles("REST_USER"))
                         .queryParam("delete", "true")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -90,7 +90,6 @@ class StaticPartControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void unknownConveyorReturns404() throws Exception {
         when(staticPartService.placeStaticPart(
                 ArgumentMatchers.any(),
@@ -101,6 +100,7 @@ class StaticPartControllerTest {
         ).thenThrow(new ConveyorNotFoundException("missing-conveyor"));
 
         mockMvc.perform(post("/static-part/{conveyor}/{label}", "missing-conveyor", "CONFIG")
+                        .with(user("rest").roles("REST_USER"))
                         .contentType(MediaType.TEXT_PLAIN)
                         .content("value"))
                 .andExpect(status().isNotFound())
@@ -109,7 +109,6 @@ class StaticPartControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void unsupportedMappingReturns415() throws Exception {
         when(staticPartService.placeStaticPart(
                 ArgumentMatchers.any(),
@@ -120,6 +119,7 @@ class StaticPartControllerTest {
         ).thenThrow(new UnsupportedMappingException("Unsupported mapping"));
 
         mockMvc.perform(post("/static-part/{conveyor}/{label}", "collector", "CONFIG")
+                        .with(user("rest").roles("REST_USER"))
                         .contentType(MediaType.TEXT_PLAIN)
                         .content("value"))
                 .andExpect(status().isUnsupportedMediaType())
@@ -128,9 +128,9 @@ class StaticPartControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "viewer", roles = {"DASHBOARD_VIEWER"})
     void staticPartEndpointRequiresRestUserRole() throws Exception {
         mockMvc.perform(post("/static-part/{conveyor}/{label}", "collector", "CONFIG")
+                        .with(user("viewer").roles("DASHBOARD_VIEWER"))
                         .contentType(MediaType.TEXT_PLAIN)
                         .content("value"))
                 .andExpect(status().isForbidden());

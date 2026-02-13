@@ -9,11 +9,10 @@ import com.aegisql.conveyor.service.error.UnsupportedMappingException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -23,6 +22,7 @@ import java.util.Map;
 
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -35,11 +35,10 @@ class PartControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private PlacementService placementService;
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void placePartWithJsonReturnsCompletedResult() throws Exception {
         var response = PlacementResult.<Boolean>builder()
                 .status(PlacementStatus.COMPLETED)
@@ -63,6 +62,7 @@ class PartControllerTest {
         ).thenReturn(response);
 
         mockMvc.perform(post("/part/{conveyor}/{id}/{label}", "collector", "2", "USER")
+                        .with(user("rest").roles("REST_USER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Ann\",\"age\":42}"))
                 .andExpect(status().isOk())
@@ -74,7 +74,6 @@ class PartControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void placePartForeachWithLabelOnlyReturnsCompletedResult() throws Exception {
         var response = PlacementResult.<Boolean>builder()
                 .status(PlacementStatus.COMPLETED)
@@ -96,6 +95,7 @@ class PartControllerTest {
         ).thenReturn(response);
 
         mockMvc.perform(post("/part/{conveyor}/{label}", "collector", "USER")
+                        .with(user("rest").roles("REST_USER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Ann\",\"age\":42}"))
                 .andExpect(status().isOk())
@@ -106,7 +106,6 @@ class PartControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void unknownConveyorReturns404() throws Exception {
         when(placementService.placePart(
                 ArgumentMatchers.anyString(),
@@ -118,6 +117,7 @@ class PartControllerTest {
         ).thenThrow(new ConveyorNotFoundException("missing-conveyor"));
 
         mockMvc.perform(post("/part/{conveyor}/{id}/{label}", "missing-conveyor", "1", "USER")
+                        .with(user("rest").roles("REST_USER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Ann\",\"age\":42}"))
                 .andExpect(status().isNotFound())
@@ -126,7 +126,6 @@ class PartControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void unsupportedMappingReturns415() throws Exception {
         when(placementService.placePart(
                 ArgumentMatchers.anyString(),
@@ -138,6 +137,7 @@ class PartControllerTest {
         ).thenThrow(new UnsupportedMappingException("Unsupported mapping"));
 
         mockMvc.perform(post("/part/{conveyor}/{id}/{label}", "collector", "3", "USER")
+                        .with(user("rest").roles("REST_USER"))
                         .contentType(MediaType.TEXT_PLAIN)
                         .content("plain-text-value"))
                 .andExpect(status().isUnsupportedMediaType())
@@ -146,7 +146,6 @@ class PartControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void invalidRequestDurationReturns400() throws Exception {
         when(placementService.placePart(
                 ArgumentMatchers.anyString(),
@@ -158,6 +157,7 @@ class PartControllerTest {
         ).thenThrow(new IllegalArgumentException("Invalid duration format: not-a-duration"));
 
         mockMvc.perform(post("/part/{conveyor}/{id}/{label}", "collector", "4", "USER")
+                        .with(user("rest").roles("REST_USER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("ttl", "not-a-duration")
                         .content("{\"name\":\"Ann\",\"age\":42}"))
@@ -167,9 +167,9 @@ class PartControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "viewer", roles = {"DASHBOARD_VIEWER"})
     void restEndpointRequiresRestUserRole() throws Exception {
         mockMvc.perform(post("/part/{conveyor}/{id}/{label}", "collector", "5", "USER")
+                        .with(user("viewer").roles("DASHBOARD_VIEWER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Ann\",\"age\":42}"))
                 .andExpect(status().isForbidden());

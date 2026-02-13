@@ -8,12 +8,11 @@ import com.aegisql.conveyor.service.error.ConveyorNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
@@ -21,6 +20,7 @@ import java.util.Map;
 
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,11 +33,10 @@ class CommandControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private CommandService commandService;
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void commandByIdReturnsCompletedResult() throws Exception {
         var response = PlacementResult.<Object>builder()
                 .status(PlacementStatus.COMPLETED)
@@ -56,6 +55,7 @@ class CommandControllerTest {
         ).thenReturn(response);
 
         mockMvc.perform(post("/command/{conveyor}/{id}/{command}", "collector", "2", "cancel")
+                        .with(user("rest").roles("REST_USER"))
                         .contentType(MediaType.TEXT_PLAIN)
                         .content("ignored"))
                 .andExpect(status().isOk())
@@ -66,7 +66,6 @@ class CommandControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void commandForeachReturnsKeyedMapResult() throws Exception {
         var response = PlacementResult.<Object>builder()
                 .status(PlacementStatus.COMPLETED)
@@ -83,6 +82,7 @@ class CommandControllerTest {
         ).thenReturn(response);
 
         mockMvc.perform(post("/command/{conveyor}/{command}", "collector", "peek")
+                        .with(user("rest").roles("REST_USER"))
                         .contentType(MediaType.TEXT_PLAIN)
                 .content(""))
                 .andExpect(status().isOk())
@@ -93,7 +93,6 @@ class CommandControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void unknownConveyorReturns404() throws Exception {
         when(commandService.executeById(
                 ArgumentMatchers.eq("missing-conveyor"),
@@ -104,6 +103,7 @@ class CommandControllerTest {
         ).thenThrow(new ConveyorNotFoundException("missing-conveyor"));
 
         mockMvc.perform(post("/command/{conveyor}/{id}/{command}", "missing-conveyor", "2", "cancel")
+                        .with(user("rest").roles("REST_USER"))
                         .contentType(MediaType.TEXT_PLAIN)
                         .content(""))
                 .andExpect(status().isNotFound())
@@ -112,7 +112,6 @@ class CommandControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "rest", roles = {"REST_USER"})
     void invalidCommandRequestReturns400() throws Exception {
         when(commandService.executeById(
                 ArgumentMatchers.anyString(),
@@ -123,6 +122,7 @@ class CommandControllerTest {
         ).thenThrow(new IllegalArgumentException("peek requires requestTTL"));
 
         mockMvc.perform(post("/command/{conveyor}/{id}/{command}", "collector", "2", "peek")
+                        .with(user("rest").roles("REST_USER"))
                         .contentType(MediaType.TEXT_PLAIN)
                         .content(""))
                 .andExpect(status().isBadRequest())
@@ -131,9 +131,9 @@ class CommandControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "viewer", roles = {"DASHBOARD_VIEWER"})
     void commandEndpointRequiresRestUserRole() throws Exception {
         mockMvc.perform(post("/command/{conveyor}/{id}/{command}", "collector", "2", "cancel")
+                        .with(user("viewer").roles("DASHBOARD_VIEWER"))
                         .contentType(MediaType.TEXT_PLAIN)
                         .content(""))
                 .andExpect(status().isForbidden());
