@@ -9,7 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice(assignableTypes = {PartController.class, DashboardController.class})
+@RestControllerAdvice(assignableTypes = {
+        PartController.class,
+        DashboardController.class,
+        CommandController.class,
+        StaticPartController.class
+})
 public class RestExceptionHandler {
 
     @ExceptionHandler(ConveyorNotFoundException.class)

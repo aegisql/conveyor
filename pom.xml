@@ -138,7 +138,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.5.4</version>
 				<configuration>
-					<argLine>-ea -Djol.magicFieldOffset=true --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang=java.path --add-opens java.base/java.util=ALL-UNNAMED</argLine>
+					<argLine>-ea -Djol.magicFieldOffset=true --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED</argLine>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -192,13 +192,13 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>6.0.2</version>
+			<version>5.10.3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>6.0.2</version>
+			<version>5.10.3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -211,14 +211,14 @@
 		<dependency>
 			<groupId>org.junit.platform</groupId>
 			<artifactId>junit-platform-suite-api</artifactId>
-			<version>6.0.2</version>
+			<version>1.10.3</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.junit.platform</groupId>
 			<artifactId>junit-platform-launcher</artifactId>
-			<version>6.0.2</version>   <!-- align with JUnit 5.11.4 -->
+			<version>1.10.3</version>
 			<scope>test</scope>
 		</dependency>
 

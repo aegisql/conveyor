@@ -78,7 +78,7 @@ class StaticPartControllerTest {
                 ArgumentMatchers.any(),
                 ArgumentMatchers.eq("collector"),
                 ArgumentMatchers.eq("CONFIG"),
-                ArgumentMatchers.any(byte[].class),
+                ArgumentMatchers.nullable(byte[].class),
                 ArgumentMatchers.anyMap())
         ).thenReturn(response);
 
