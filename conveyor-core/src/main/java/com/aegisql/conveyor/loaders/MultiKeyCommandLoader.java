@@ -8,8 +8,10 @@ import com.aegisql.conveyor.serial.SerializablePredicate;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -232,12 +234,25 @@ public final class MultiKeyCommandLoader<K,OUT> {
 		return conveyor.apply(command);
 	}
 
-	public CompletableFuture<Boolean> peekId(Consumer<K> consumer) {
-		GeneralCommand<K, Consumer<K>> command = new GeneralCommand<>(filter,consumer,CommandLabel.PEEK_KEY,creationTime,expirationTime);
-		return conveyor.apply(command);
+	public CompletableFuture<List<K>> peekId() {
+		GeneralCommand<K, Consumer<K>> command = new GeneralCommand<>(filter,k->{/*to be implemented*/},CommandLabel.PEEK_KEY,creationTime,expirationTime);
+        CompletableFuture<List<K>> f = new CompletableFuture<>();
+		return conveyor.apply(command).thenCompose( res->{
+            if(res) {
+                f.complete(Collections.emptyList());
+            } else {
+                f.cancel(true);
+            }
+            return f;
+        });
 	}
 
-	/**
+    public CompletableFuture<Boolean> peekId(Consumer<K> consumer) {
+        GeneralCommand<K, Consumer<K>> command = new GeneralCommand<>(filter,consumer,CommandLabel.PEEK_KEY,creationTime,expirationTime);
+        return conveyor.apply(command);
+    }
+
+    /**
 	 * Memento.
 	 *
 	 * @return the completable future
@@ -278,8 +293,21 @@ public final class MultiKeyCommandLoader<K,OUT> {
 		return conveyor.apply(command);
 	}
 
-	
-	/* (non-Javadoc)
+    public CompletableFuture<Boolean> addProperty(String property, Object value) {
+        GeneralCommand<K, Object> command = new GeneralCommand<>(filter, null, CommandLabel.PROPERTIES, creationTime, expirationTime);
+        command.addProperty(property, value);
+        return conveyor.apply(command);
+    }
+
+    public CompletableFuture<Boolean> addProperties(Map<String,Object> properties) {
+        GeneralCommand<K, Object> command = new GeneralCommand<>(filter, null, CommandLabel.PROPERTIES, creationTime, expirationTime);
+        if (properties != null) {
+            properties.forEach(command::addProperty);
+        }
+        return conveyor.apply(command);
+    }
+
+    /* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

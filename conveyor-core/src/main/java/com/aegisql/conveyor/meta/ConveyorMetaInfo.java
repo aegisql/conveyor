@@ -54,4 +54,13 @@ public class ConveyorMetaInfo <K,L,OUT> {
                 ", labels=" + labels +
                 '}';
     }
+    public String generic() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<");
+        sb.append(this.getKeyType().getSimpleName()).append(",");
+        sb.append(this.getLabelType().getSimpleName()).append(",");
+        sb.append(this.getProductType().getSimpleName()).append(">");
+        return sb.toString();
+    }
+
 }

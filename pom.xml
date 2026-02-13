@@ -87,6 +87,7 @@
 				<configuration>
 					<source>21</source>
 					<target>21</target>
+					<parameters>true</parameters>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -251,6 +252,7 @@
 		<module>conveyor-parallel</module>
 		<module>conveyor-persistence</module>
 		<module>conveyor-configurator</module>
+		<module>conveyor-service</module>
 	</modules>
 
 	<pluginRepositories>

@@ -4,6 +4,7 @@ import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 
 import javax.management.*;
 import java.lang.management.ManagementFactory;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -128,6 +129,20 @@ enum MBeanRegister {
                     return parts[1];
                 })
                 .collect(Collectors.toUnmodifiableSet());
+    }
+
+    public List<String> getRegisteredConveyorNames() {
+        try {
+            var queryName = new ObjectName("com.aegisql.conveyor:type=*");
+            return mBeanServer.queryNames(queryName, null)
+                    .stream()
+                    .map(objectName -> objectName.getKeyProperty("type"))
+                    .filter(Objects::nonNull)
+                    .sorted()
+                    .toList();
+        } catch (MalformedObjectNameException e) {
+            throw new ConveyorRuntimeException("Failed to query conveyor MBeans", e);
+        }
     }
 
 }

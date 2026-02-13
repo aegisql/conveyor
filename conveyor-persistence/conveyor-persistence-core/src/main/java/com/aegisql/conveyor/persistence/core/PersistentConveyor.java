@@ -60,8 +60,9 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private String name;
 
 	private volatile boolean suspended = false;
-	
-	public void setSkipPersistencePropertyKey(String doNotPersist) {
+    private Conveyor<?, ?, ?> enclosingConveyor = null;
+
+    public void setSkipPersistencePropertyKey(String doNotPersist) {
 		this.doNotPersist = doNotPersist;
 	}
 
@@ -82,10 +83,12 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		Persistence<K> cleanPersistence = persistence.copy();
 
 		this.forward = forward;
+        this.forward.setEnclosingConveyor(this);
 		this.cleaner = new PersistenceCleanupBatchConveyor<>(cleanPersistence);
+        this.cleaner.setEnclosingConveyor(this);
 		this.ackConveyor = new AcknowledgeBuildingConveyor<>(ackPersistence, forward);
 		this.ackConveyor.staticPart().value(persistence.getMinCompactSize()).label(ackConveyor.MIN_COMPACT).place();
-
+        this.ackConveyor.setEnclosingConveyor(this);
 		String name = forward.getName();
 		setName(name);
 		onStatus.put(Status.READY, this::complete);
@@ -953,7 +956,17 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		return forward.getMetaInfo();
 	}
 
-	@Override
+    @Override
+    public Conveyor<?, ?, ?> getEnclosingConveyor() {
+        return enclosingConveyor;
+    }
+
+    @Override
+    public void setEnclosingConveyor(Conveyor<?, ?, ?> conveyor) {
+        this.enclosingConveyor = conveyor;
+    }
+
+    @Override
 	public void setInactiveEvictionAction(int maxCollectorSize, Consumer<CommandLoader.EvictionCommand<K>> action) {
 		forward.setInactiveEvictionAction(maxCollectorSize,action);
 	}

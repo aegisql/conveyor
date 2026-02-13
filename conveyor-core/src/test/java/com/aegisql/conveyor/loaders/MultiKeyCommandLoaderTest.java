@@ -3,6 +3,7 @@ package com.aegisql.conveyor.loaders;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -85,4 +86,15 @@ public class MultiKeyCommandLoaderTest {
         }
 
     }
+
+    @Test
+    public void testAddProperties() {
+        MultiKeyCommandLoader cl = new MultiKeyCommandLoader(cmd->{
+            System.out.println(cmd);
+            return new CompletableFuture<Boolean>();
+        });
+        cl.addProperty("a","A");
+        cl.addProperties(Map.of("a","A","b","B"));
+    }
+
 }

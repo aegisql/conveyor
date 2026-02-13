@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: conveyor-service
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost/issuer
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+conveyor:
+  service:
+    upload-dir: ./upload
+
+logging:
+  level:
+    com.aegisql.conveyor: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: demo
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          enabled: false
+
+logging:
+  level:
+    com.aegisql.conveyor: DEBUG

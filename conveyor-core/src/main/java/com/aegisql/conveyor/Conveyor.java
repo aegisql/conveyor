@@ -14,9 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -320,20 +324,15 @@ public interface Conveyor<K, L, OUT> {
 	void setInactiveEvictionAction(int maxCollectorSize, Consumer<CommandLoader.EvictionCommand<K>> action);
 
 	default String getGenericName() {
-		StringBuilder sb = new StringBuilder(getClassName(this.getClass()));
 		try {
-			ConveyorMetaInfo metaInfo = getMetaInfo();
-			sb.append("<");
-			sb.append(metaInfo.getKeyType().getSimpleName()).append(",");
-			sb.append(metaInfo.getLabelType().getSimpleName()).append(",");
-			sb.append(metaInfo.getProductType().getSimpleName()).append(">");
+			var metaInfo = getMetaInfo();
+            return getClassName(this.getClass())+metaInfo.generic();
 		} catch (ConveyorRuntimeException e) {
-			sb.append("<?,?,?>");
+			return getClassName(this.getClass())+"<?,?,?>";
 		}
-		return sb.toString();
 	}
 
-	private static String getClassName(Class c) {
+	static String getClassName(Class c) {
 		String simpleName = c.getSimpleName();
 		if(simpleName.isEmpty()) {
 			return getClassName(c.getSuperclass());
@@ -518,6 +517,10 @@ public interface Conveyor<K, L, OUT> {
 	 */
 	ConveyorMetaInfo<K,L,OUT> getMetaInfo();
 
+    Conveyor<?,?,?> getEnclosingConveyor();
+
+    void setEnclosingConveyor(Conveyor<?,?,?> conveyor);
+
 	/**
 	 * By name.
 	 *
@@ -564,10 +567,72 @@ public interface Conveyor<K, L, OUT> {
 		SERVICES.getLoadedConveyorNames();
 	}
 
-	static Set<String> getKnownConveyorNames() {
+    static Set<String> getKnownConveyorNames() {
 		loadServices();
 		var set = new HashSet<>(MBEAN.getKnownConveyorNames());
+		set.addAll(MBEAN.getRegisteredConveyorNames());
 		return Collections.unmodifiableSet(set);
+	}
+
+	static Set<String> getRegisteredConveyorNames() {
+		return Collections.unmodifiableSet(new HashSet<>(MBEAN.getRegisteredConveyorNames()));
+	}
+
+	static Map<String, Map<String, ?>> getKnownConveyorNameTree() {
+		var knownNames = getKnownConveyorNames();
+		var parentByChild = new HashMap<String, String>();
+		for (String name : knownNames) {
+			try {
+				var conveyor = byName(name);
+				var enclosingConveyor = conveyor.getEnclosingConveyor();
+				if (enclosingConveyor != null) {
+					var parentName = enclosingConveyor.getName();
+					if (parentName != null && knownNames.contains(parentName) && !parentName.equals(name)) {
+						parentByChild.put(name, parentName);
+					}
+				}
+			} catch (Exception ignored) {
+				// Skip names that cannot be resolved to a conveyor instance.
+			}
+		}
+		var childrenByParent = new HashMap<String, List<String>>();
+		for (Map.Entry<String, String> entry : parentByChild.entrySet()) {
+			childrenByParent.computeIfAbsent(entry.getValue(), k -> new ArrayList<>()).add(entry.getKey());
+		}
+		childrenByParent.values().forEach(Collections::sort);
+		var sortedNames = new ArrayList<>(knownNames);
+		Collections.sort(sortedNames);
+		var roots = sortedNames.stream()
+				.filter(name -> !parentByChild.containsKey(name))
+				.toList();
+		var visited = new HashSet<String>();
+		var tree = new LinkedHashMap<String, Map<String, ?>>();
+		for (String root : roots) {
+			tree.put(root, toSubTree(root, childrenByParent, new HashSet<>(), visited));
+		}
+		for (String name : sortedNames) {
+			if (!visited.contains(name)) {
+				tree.put(name, toSubTree(name, childrenByParent, new HashSet<>(), visited));
+			}
+		}
+		return Collections.unmodifiableMap(tree);
+	}
+
+	private static Map<String, ?> toSubTree(
+			String name,
+			Map<String, List<String>> childrenByParent,
+			Set<String> recursionPath,
+			Set<String> visited
+	) {
+		if (!recursionPath.add(name)) {
+			return Map.of();
+		}
+		visited.add(name);
+		var childrenTree = new LinkedHashMap<String, Map<String, ?>>();
+		for (String childName : childrenByParent.getOrDefault(name, List.of())) {
+			childrenTree.put(childName, toSubTree(childName, childrenByParent, new HashSet<>(recursionPath), visited));
+		}
+		return Collections.unmodifiableMap(childrenTree);
 	}
 
 	static Set<String> getLoadedConveyorNames() {

@@ -1,0 +1,123 @@
+# conveyor-service
+
+Spring Boot service for working with Conveyor instances over HTTP:
+
+- REST APIs for `part`, `static-part`, and `command` loaders.
+- Web dashboard for monitoring, configuration, admin operations, and interactive loader testing.
+- Pluggable auth model:
+  - `demo` profile: local in-memory users.
+  - `prod` profile: OAuth2/OIDC.
+
+## Screenshot Placeholders
+
+Replace these with real screenshots when ready.
+
+![Dashboard Overview](./docs/images/dashboard-overview.png)
+![Part Loader Tester](./docs/images/dashboard-part-tester.png)
+![Command Tester](./docs/images/dashboard-command-tester.png)
+
+## Configuration
+
+Default config file: `src/main/resources/application.yml`
+
+Key properties:
+
+- `spring.profiles.active`
+  - `demo` for local usage.
+  - `prod` for OAuth2/OIDC.
+- `conveyor.service.upload-dir`
+  - Directory where uploaded extension JARs are stored.
+  - Default: `./upload`
+- `spring.security.oauth2.resourceserver.jwt.issuer-uri`
+  - Used in `prod` profile for JWT validation.
+- `logging.level.com.aegisql.conveyor`
+  - Conveyor logging level (`DEBUG` in `demo`, `INFO` by default).
+
+You can override properties with environment variables, for example:
+
+- `SPRING_PROFILES_ACTIVE=demo`
+- `CONVEYOR_SERVICE_UPLOAD_DIR=./upload`
+- `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://your-issuer`
+
+## Build And Run
+
+From repository root:
+
+```bash
+mvn -pl conveyor-core,conveyor-parallel,conveyor-configurator -am -DskipTests install
+mvn -pl conveyor-service -Dspring-boot.run.profiles=demo spring-boot:run
+```
+
+The service starts on `http://localhost:8080` by default.
+
+## Access
+
+- Dashboard: `http://localhost:8080/dashboard`
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+Demo credentials (`demo` profile):
+
+- `admin` / `admin` (`REST_USER`, `DASHBOARD_VIEWER`, `DASHBOARD_ADMIN`)
+- `viewer` / `viewer` (`DASHBOARD_VIEWER`)
+- `rest` / `rest` (`REST_USER`)
+
+## Main REST Endpoints
+
+- `POST /part/{conveyor}/{id}/{label}`
+- `POST /part/{conveyor}/{label}` (foreach mode)
+- `POST /static-part/{conveyor}/{label}`
+- `POST /command/{conveyor}/{id}/{command}`
+- `POST /command/{conveyor}/{command}` (foreach mode)
+
+All responses use the `PlacementResult<T>` envelope.
+
+## Time Field Examples
+
+Time-related query parameters:
+
+- Duration fields: `ttl`, `requestTTL`
+- Date/time fields: `creationTime`, `expirationTime`
+
+### Duration fields (`ttl`, `requestTTL`)
+
+Use either milliseconds as a number, or `number + time unit`.
+
+Examples:
+
+- `ttl=2500`
+- `requestTTL=5 SECONDS`
+- `ttl=2 minutes`
+- `requestTTL=1 HOURS`
+
+Example request:
+
+```bash
+curl -X POST "http://localhost:8080/part/collector/42/USER?ttl=5%20SECONDS&requestTTL=2%20SECONDS" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Ann","age":42}'
+```
+
+### Date/time fields (`creationTime`, `expirationTime`)
+
+Accepted formats include:
+
+- Epoch milliseconds: `1770840600000`
+- ISO with UTC offset:
+  - `2026-02-11T12:30:00Z`
+  - `2026-02-11T12:30:00+05`
+  - `2026-02-11T12:30:00+0530`
+  - `2026-02-11T12:30:00+05:30`
+- ISO without timezone (uses server default timezone):
+  - `2026-02-11T12:30:00`
+  - `2026-02-11`
+
+Note: in query strings, encode `+` as `%2B`.
+
+Example request:
+
+```bash
+curl -X POST "http://localhost:8080/command/collector/42/reschedule?creationTime=2026-02-11T12:30:00%2B05&expirationTime=2026-02-11T13:00:00%2B05" \
+  -H "Content-Type: text/plain" \
+  -d ""
+```

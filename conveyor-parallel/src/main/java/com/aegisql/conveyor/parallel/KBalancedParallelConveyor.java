@@ -32,8 +32,8 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 
 	/** The Constant LOG. */
 	private final static Logger LOG = LoggerFactory.getLogger(KBalancedParallelConveyor.class);
-	
-	/**
+
+    /**
 	 * Instantiates a new k-balanced parallel conveyor with AssemblingConveyors inside.
 	 *
 	 * @param pf the pf
@@ -55,7 +55,9 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		}
 		this.pf = pf;
 		for(int i = 0; i < pf; i++) {
-			this.conveyors.add(cs.get());
+            Conveyor<K, L, OUT> conveyor = cs.get();
+            conveyor.setEnclosingConveyor(this);
+            this.conveyors.add(conveyor);
 		}
 
 		this.balancingCart = cart -> { 
@@ -172,5 +174,6 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			conv.setAcknowledgeAction(ackAction);
 		}
 	}
+
 
 }

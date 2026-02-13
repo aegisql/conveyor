@@ -2,6 +2,7 @@ package com.aegisql.conveyor.loaders;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -63,7 +65,9 @@ public class CommandLoaderTest {
 
 		CommandLoader cl1 = cl0.id(1);
 		System.out.println(cl1);
-		
+        var cl1prop = cl1.addProperties(Map.of("a","A","b","B"));
+        System.out.println(cl1prop);
+
 		assertEquals(1,cl1.key);
 		assertEquals(cl0.creationTime,cl1.creationTime);
 
@@ -237,6 +241,52 @@ public class CommandLoaderTest {
 		assertTrue(f2.isDone());
 		assertTrue(f3.isDone());
 		
+	}
+
+	@Test
+	public void testMultiKeyTimeoutFailureDoesNotStopConveyor() throws Exception {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
+		c.setName("testMultiKeyTimeoutFailureDoesNotStopConveyor");
+		c.setBuilderSupplier(UserBuilder::new);
+		c.setDefaultBuilderTimeout(Duration.ofSeconds(5));
+		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+
+		assertTrue(c.build().id(1).create().get());
+		assertTrue(c.build().id(2).create().get());
+		assertEquals(2, c.getCollectorSize());
+
+		c.addBeforeKeyReschedulingAction((key, expirationTime) -> {
+			if (Integer.valueOf(2).equals(key)) {
+				throw new RuntimeException("boom");
+			}
+		});
+
+		CompletableFuture<Boolean> timeoutAll = c.command().foreach().timeout();
+		assertThrows(ExecutionException.class, timeoutAll::get);
+		assertTrue(c.isRunning(), "Conveyor must stay running after foreach command failure");
+
+		assertTrue(c.build().id(99).create().get());
+	}
+
+	@Test
+	public void testMultiKeyAddPropertiesCommandCopiesPropertiesToEachKey() throws Exception {
+		AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
+		c.setName("testMultiKeyAddPropertiesCommandCopiesPropertiesToEachKey");
+		c.setBuilderSupplier(UserBuilder::new);
+		c.setDefaultBuilderTimeout(Duration.ofSeconds(5));
+		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+
+		assertTrue(c.build().id(1).create().get());
+		assertTrue(c.build().id(2).create().get());
+		assertTrue(c.command().foreach().addProperties(Map.of("a", "A", "b", "B")).get());
+
+		ProductBin<Integer, User> bin1 = c.command().id(1).peek().get();
+		ProductBin<Integer, User> bin2 = c.command().id(2).peek().get();
+
+		assertEquals("A", bin1.properties.get("a"));
+		assertEquals("B", bin1.properties.get("b"));
+		assertEquals("A", bin2.properties.get("a"));
+		assertEquals("B", bin2.properties.get("b"));
 	}
 
 	

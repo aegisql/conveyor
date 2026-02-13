@@ -167,7 +167,7 @@ public interface AssemblingConveyorMBean {
 	 *
 	 * @param msec the msec
 	 */
-	void rejectUnexpireableCartsOlderThanMsec(long msec);
+	void setRejectUnexpireableCartsOlderThanMsec(long msec);
 	
 	/**
 	 * Sets the expiration postpone time msec.

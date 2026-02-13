@@ -96,8 +96,9 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	protected ResultConsumer <K,OUT> resultConsumer = null;
 
 	private ScrapConsumer<K,?> scrapConsumer = null;
-	
-	/**
+    private Conveyor<?,?,?> enclosingConveyor;
+
+    /**
 	 * Instantiates a new parallel conveyor.
 	 */
 	protected ParallelConveyor() {
@@ -108,10 +109,15 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	@Override
 	public PartLoader<K, L> part() {
 		return new PartLoader<>(cl -> {
-            ShoppingCart<K, Object, L> cart = new ShoppingCart<>(cl.key, cl.partValue, cl.label, cl.creationTime, cl.expirationTime, cl.priority);
-            cl.getAllProperties().forEach(cart::addProperty);
-            return place(cart);
-        });
+	            Cart<K, ?, L> cart;
+	            if (cl.filter != null) {
+	                cart = new MultiKeyCart<>(cl.filter, cl.partValue, cl.label, cl.creationTime, cl.expirationTime, cl.priority);
+	            } else {
+	                cart = new ShoppingCart<>(cl.key, cl.partValue, cl.label, cl.creationTime, cl.expirationTime, cl.priority);
+	            }
+	            cl.getAllProperties().forEach(cart::addProperty);
+	            return place(cart);
+	        });
 	}
 	
 	@Override
@@ -671,28 +677,28 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 					thisConv.completeAndStop();
 				}
 				@Override
-				public void idleHeartBeatMsec(long msec) {
+				public void setIdleHeartBeatMsec(long msec) {
 					if(msec > 0) {
 						thisConv.setIdleHeartBeat(msec, TimeUnit.MILLISECONDS);
 					}					
 				}
 
 				@Override
-				public void defaultBuilderTimeoutMsec(long msec) {
+				public void setDefaultBuilderTimeoutMsec(long msec) {
 					if(msec > 0) {
 						thisConv.setDefaultBuilderTimeout(msec, TimeUnit.MILLISECONDS);
 					}
 				}
 
 				@Override
-				public void rejectUnexpireableCartsOlderThanMsec(long msec) {
+				public void setRejectUnexpireableCartsOlderThanMsec(long msec) {
 					if(msec > 0) {
 						thisConv.rejectUnexpireableCartsOlderThan(msec, TimeUnit.MILLISECONDS);
 					}
 				}
 
 				@Override
-				public void expirationPostponeTimeMsec(long msec) {
+				public void setExpirationPostponeTimeMsec(long msec) {
 					if(msec > 0) {
 						thisConv.setExpirationPostponeTime(msec, TimeUnit.MILLISECONDS);
 					}					
@@ -866,5 +872,15 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	public void setInactiveEvictionAction(int maxCollectorSize, Consumer<CommandLoader.EvictionCommand<K>> action) {
 		conveyors.forEach(c->c.setInactiveEvictionAction(maxCollectorSize, action));
 	}
+
+    @Override
+    public Conveyor<?, ?, ?> getEnclosingConveyor() {
+        return enclosingConveyor;
+    }
+
+    @Override
+    public void setEnclosingConveyor(Conveyor<?, ?, ?> conveyor) {
+        this.enclosingConveyor = enclosingConveyor;
+    }
 
 }

@@ -72,4 +72,13 @@ public class MBeanRegisterTest {
         });
     }
 
+    @Test
+    public void registeredConveyorNamesTest() {
+        AssemblingConveyor<Integer,String,String> ac = new AssemblingConveyor<>();
+        ac.setName("MBeanRegisterNamesTest");
+        assertTrue(MBEAN.getRegisteredConveyorNames().contains("MBeanRegisterNamesTest"));
+        MBEAN.unRegister("MBeanRegisterNamesTest");
+        assertFalse(MBEAN.getRegisteredConveyorNames().contains("MBeanRegisterNamesTest"));
+    }
+
 }

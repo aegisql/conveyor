@@ -10,7 +10,11 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -87,19 +91,20 @@ public class ConveyorConfiguration {
 
 		lock.lock();
 		try {
-			if (file.toLowerCase().startsWith("classpath:") || file.toLowerCase().startsWith("cp:")) {
-				String fileSub = file.substring(file.indexOf(":")+1);
-				file = ConveyorConfiguration.class.getClassLoader().getResource(fileSub).getPath();
-			}
-			if (file.toLowerCase().startsWith("javapath:") || file.toLowerCase().startsWith("jp:")) {
+			ConfigUtils.setPreferredClassLoader(Thread.currentThread().getContextClassLoader());
+			String normalized = file.toLowerCase(Locale.ROOT);
+			if (normalized.startsWith("javapath:") || normalized.startsWith("jp:")) {
 				String className = file.substring(file.indexOf(":")+1);
 				registerPath(className);
 				return;
 			}
 			ConveyorConfiguration cc;
-			if (file.toLowerCase().endsWith(".properties")) {
+			if (normalized.startsWith("classpath:") || normalized.startsWith("cp:")) {
+				String resource = file.substring(file.indexOf(":") + 1);
+				cc = processClasspathResource(resource);
+			} else if (normalized.endsWith(".properties")) {
 				cc = processProperties(file);
-			} else if (file.toLowerCase().endsWith(".yaml") || file.toLowerCase().endsWith(".yml")) {
+			} else if (normalized.endsWith(".yaml") || normalized.endsWith(".yml")) {
 				cc = processYaml(file);
 			} else {
 				throw new ConveyorConfigurationException("Unsupported file type " + file);
@@ -110,6 +115,35 @@ public class ConveyorConfiguration {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	private static ConveyorConfiguration processClasspathResource(String resource) throws Exception {
+		String normalizedResource = resource.startsWith("/") ? resource.substring(1) : resource;
+		String normalizedName = normalizedResource.toLowerCase(Locale.ROOT);
+		try (InputStream inputStream = openClasspathResource(normalizedResource)) {
+			if (inputStream == null) {
+				throw new ConveyorConfigurationException("Classpath resource not found " + normalizedResource);
+			}
+			if (normalizedName.endsWith(".properties")) {
+				return processProperties(inputStream);
+			}
+			if (normalizedName.endsWith(".yaml") || normalizedName.endsWith(".yml")) {
+				return processYaml(inputStream);
+			}
+			throw new ConveyorConfigurationException("Unsupported file type classpath:" + normalizedResource);
+		}
+	}
+
+	private static InputStream openClasspathResource(String resource) {
+		ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+		if (contextClassLoader != null) {
+			InputStream stream = contextClassLoader.getResourceAsStream(resource);
+			if (stream != null) {
+				return stream;
+			}
+		}
+		ClassLoader classClassLoader = ConveyorConfiguration.class.getClassLoader();
+		return classClassLoader.getResourceAsStream(resource);
 	}
 
 	static void registerPath(String className){
@@ -196,9 +230,23 @@ public class ConveyorConfiguration {
 	 * @throws Exception the exception
 	 */
 	private static ConveyorConfiguration processYaml(String file) throws Exception {
+		try (FileReader reader = new FileReader(file)) {
+			return processYaml(reader);
+		}
+	}
+
+	private static ConveyorConfiguration processYaml(InputStream inputStream) {
+		try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+			return processYaml(reader);
+		} catch (Exception e) {
+			throw new ConveyorConfigurationException("Error while reading YAML classpath resource", e);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static ConveyorConfiguration processYaml(InputStreamReader reader) {
 		ConveyorConfiguration cc = new ConveyorConfiguration();
 		Yaml yaml = new Yaml();
-		FileReader reader = new FileReader(file);
 		Conveyor<String, String, Conveyor> buildingConveyor = getBuildingConveyor();
 		Iterable iter = yaml.loadAll(reader);
 		for (Object o : iter) {
@@ -220,9 +268,15 @@ public class ConveyorConfiguration {
 	 * @throws Exception the exception
 	 */
 	private static ConveyorConfiguration processProperties(String file) throws Exception {
+		try (InputStream inputStream = new java.io.FileInputStream(file)) {
+			return processProperties(inputStream);
+		}
+	}
+
+	private static ConveyorConfiguration processProperties(InputStream inputStream) throws Exception {
 		ConveyorConfiguration cc = new ConveyorConfiguration();
 		OrderedProperties p = new OrderedProperties();
-		p.load(file);
+		p.load(inputStream);
 		Conveyor<String, String, Conveyor> buildingConveyor = getBuildingConveyor();
 		for (Pair<String, String> o : p) {
 			String key = o.label;

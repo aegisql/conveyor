@@ -885,6 +885,7 @@ public class AssemblingConveyorTest {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
 		
 		ac1.setName("test_name");
+        assertNull(ac1.getEnclosingConveyor());
 		
 		assertThrows(RuntimeException.class,()->Conveyor.byName("bad_name"));
 

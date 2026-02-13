@@ -49,13 +49,13 @@ public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	public PBalancedParallelConveyor(List<ConveyorAcceptor<K, L, OUT>> testers) {
 		super();
 		Objects.requireNonNull(testers,"ConveyorAcceptors must not be null");
-		if(testers.size() == 0) {
+		if(testers.isEmpty()) {
 			throw new ConveyorRuntimeException("ConveyorAcceptors size must be > 0");
 		}
-		ConveyorAcceptor<K,L,OUT> first = testers.get(0);
+		ConveyorAcceptor<K,L,OUT> first = testers.getFirst();
 		Objects.requireNonNull(first,"ConveyorAcceptor must not be null");
-		if(first.getPropertyNames().size() == 0) {
-			throw new ConveyorRuntimeException("ConveyorAcceptor must have set of property predicates");
+		if(first.getPropertyNames().isEmpty()) {
+			throw new ConveyorRuntimeException("ConveyorAcceptor must have a set of property predicates");
 		}
 		for(ConveyorAcceptor<K,L,OUT> pt:testers) {
 			if( ! first.getPropertyNames().equals(pt.getPropertyNames())) {
@@ -65,7 +65,10 @@ public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 			}
 		}
 		this.testers.addAll(testers.stream().map(t -> new ConveyorAcceptor<>(t.conveyor, t.testers)).toList());
-		this.conveyors.addAll(this.testers.stream().map(ConveyorAcceptor::getConveyor).toList());
+		this.conveyors.addAll(this.testers.stream()
+                .map(ConveyorAcceptor::getConveyor)
+                .peek(c->{c.setEnclosingConveyor(this);})
+                .toList());
 	}
 	
 	@Override

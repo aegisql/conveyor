@@ -9,6 +9,7 @@ import com.aegisql.conveyor.loaders.*;
 import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -18,7 +19,10 @@ public abstract class ConveyorAdapter<K, L, OUT> implements Conveyor<K, L, OUT> 
 
     protected final Conveyor<K, L, OUT> innerConveyor;
 
+    private String generic = null;
+
     public ConveyorAdapter(Conveyor<K, L, OUT> innerConveyor) {
+        Objects.requireNonNull(innerConveyor,"conveyor instance is required");
         this.innerConveyor = innerConveyor;
     }
 
@@ -303,6 +307,11 @@ public abstract class ConveyorAdapter<K, L, OUT> implements Conveyor<K, L, OUT> 
     }
 
     @Override
+    public void setEnclosingConveyor(Conveyor<?,?,?> conveyor) {
+        innerConveyor.setEnclosingConveyor(conveyor);
+    }
+
+    @Override
     public Object getMBeanInstance(String name) {
         return innerConveyor.getMBeanInstance(name);
     }
@@ -320,6 +329,27 @@ public abstract class ConveyorAdapter<K, L, OUT> implements Conveyor<K, L, OUT> 
     @Override
     public void setInactiveEvictionAction(int maxCollectorSize, Consumer<CommandLoader.EvictionCommand<K>> action) {
         innerConveyor.setInactiveEvictionAction(maxCollectorSize,action);
+    }
+
+    @Override
+    public Conveyor<?,?,?> getEnclosingConveyor() {
+        return innerConveyor.getEnclosingConveyor();
+    }
+
+    @Override
+    public String toString() {
+        if(generic == null) {
+            try {
+                generic = getMetaInfo().generic();
+            } catch (Exception e) {
+                generic = "<?,?,?>";
+            }
+        }
+        return innerConveyor.toString().replaceFirst("<\\?,\\?,\\?>",generic);
+    }
+
+    public Conveyor<K,L,OUT> unwrap() {
+        return innerConveyor;
     }
 
 }

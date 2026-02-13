@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Conveyor Dashboard</title>
+    <link rel="stylesheet"
+          th:href="@{/webjars/prismjs/1.29.0/themes/prism.min.css}"
+          href="/webjars/prismjs/1.29.0/themes/prism.min.css"/>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260211b')}" href="/css/dashboard.css?v=20260211b"/>
+</head>
+<body>
+<div class="scene-bg"></div>
+<div class="container">
+    <header class="topbar">
+        <div>
+            <h1>Conveyor Service Dashboard</h1>
+            <p class="subtitle">Live hierarchy, runtime parameters, and controlled admin actions.</p>
+        </div>
+        <div class="badge-wrap">
+            <span class="badge" th:text="${username}">user</span>
+            <span class="badge" th:text="${isAdmin} ? 'ADMIN' : 'VIEWER'">VIEWER</span>
+            <form class="logout-form" th:action="@{/logout}" method="post">
+                <button type="submit" class="secondary-button small-button">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <section class="alerts">
+        <div class="alert ok" th:if="${message}" th:text="${message}"></div>
+        <div class="alert err" th:if="${error}" th:text="${error}"></div>
+        <div class="alert err" th:if="${systemErrors != null and !#lists.isEmpty(systemErrors)}">
+            <strong>Extension Loader Errors</strong>
+            <div th:each="se : ${systemErrors}" th:text="${se}">error</div>
+        </div>
+    </section>
+
+    <main class="grid">
+        <aside class="card tree-card">
+            <div class="card-title-row">
+                <h2>Conveyor Tree</h2>
+                <a class="link" th:href="@{/dashboard(name=${selectedName},tab=${activeTab})}">Refresh</a>
+            </div>
+            <div id="tree" class="tree"></div>
+        </aside>
+
+        <section class="card workspace-card">
+            <div class="card-title-row">
+                <h2>Conveyor Workspace</h2>
+                <span class="meta" th:text="${selectedName} ?: 'No conveyor selected'">No conveyor selected</span>
+            </div>
+
+            <nav class="tabs" role="tablist" aria-label="Conveyor workspace tabs">
+                <a class="tab-button" role="tab"
+                   th:classappend="${activeTab == 'tab-details'} ? ' active'"
+                   th:attr="aria-selected=${activeTab == 'tab-details'} ? 'true' : 'false'"
+                   th:href="@{/dashboard(name=${selectedName},tab='tab-details')}">Conveyor Details</a>
+                <a class="tab-button" role="tab"
+                   th:classappend="${activeTab == 'tab-operations'} ? ' active'"
+                   th:attr="aria-selected=${activeTab == 'tab-operations'} ? 'true' : 'false'"
+                   th:href="@{/dashboard(name=${selectedName},tab='tab-operations')}">Operations</a>
+                <a class="tab-button" role="tab"
+                   th:classappend="${activeTab == 'tab-tester'} ? ' active'"
+                   th:attr="aria-selected=${activeTab == 'tab-tester'} ? 'true' : 'false'"
+                   th:href="@{/dashboard(name=${selectedName},tab='tab-tester')}">Part Loader Tester</a>
+                <a class="tab-button" role="tab"
+                   th:classappend="${activeTab == 'tab-static'} ? ' active'"
+                   th:attr="aria-selected=${activeTab == 'tab-static'} ? 'true' : 'false'"
+                   th:href="@{/dashboard(name=${selectedName},tab='tab-static')}">Static Parts</a>
+                <a class="tab-button" role="tab"
+                   th:classappend="${activeTab == 'tab-commands'} ? ' active'"
+                   th:attr="aria-selected=${activeTab == 'tab-commands'} ? 'true' : 'false'"
+                   th:href="@{/dashboard(name=${selectedName},tab='tab-commands')}">Commands</a>
+                <a class="tab-button" role="tab"
+                   th:classappend="${activeTab == 'tab-admin'} ? ' active'"
+                   th:attr="aria-selected=${activeTab == 'tab-admin'} ? 'true' : 'false'"
+                   th:href="@{/dashboard(name=${selectedName},tab='tab-admin')}">Admin Actions</a>
+            </nav>
+
+            <section id="tab-details" class="tab-panel" role="tabpanel"
+                     th:classappend="${activeTab == 'tab-details'} ? ' active'"
+                     th:attr="hidden=${activeTab == 'tab-details'} ? null : 'hidden'">
+                <div class="kv">
+                    <div><strong>Name</strong><span th:text="${selected['name']}">-</span></div>
+                    <div><strong>Running</strong><span th:text="${selected['running']}">-</span></div>
+                    <div><strong>MBean</strong><span th:text="${selected['mbeanInterface']}">-</span></div>
+                    <div><strong>MetaInfo</strong><span th:text="${selected['metaInfoAvailable']}">-</span></div>
+                    <div><strong>Snapshot Time</strong><span th:text="${selected['generatedAt']}">-</span></div>
+                    <div><strong>Upload Dir</strong><span th:text="${selected['uploadDirectory']}">-</span></div>
+                </div>
+
+                <h3>Meta Info</h3>
+                <div class="meta-panel" th:if="${selected['metaInfoAvailable']}" th:with="meta=${selected['metaInfo']}">
+                    <div class="meta-core">
+                        <article class="meta-tile">
+                            <span class="meta-label">Key Type</span>
+                            <code th:text="${meta['keyType']} ?: '-'">-</code>
+                        </article>
+                        <article class="meta-tile">
+                            <span class="meta-label">Label Type</span>
+                            <code th:text="${meta['labelType']} ?: '-'">-</code>
+                        </article>
+                        <article class="meta-tile">
+                            <span class="meta-label">Product Type</span>
+                            <code th:text="${meta['productType']} ?: '-'">-</code>
+                        </article>
+                    </div>
+
+                    <section class="meta-section">
+                        <h4>Labels</h4>
+                        <div class="chip-row" th:if="${meta['labels'] != null and !meta['labels'].isEmpty()}">
+                            <span class="chip" th:each="labelName : ${meta['labels']}" th:text="${labelName}">label</span>
+                        </div>
+                        <p class="meta" th:unless="${meta['labels'] != null and !meta['labels'].isEmpty()}">No labels declared.</p>
+                    </section>
+
+                    <section class="meta-section">
+                        <h4>Supported Value Types</h4>
+                        <table class="meta-table" th:if="${meta['supportedValueTypes'] != null and !meta['supportedValueTypes'].isEmpty()}">
+                            <thead>
+                            <tr>
+                                <th>Label</th>
+                                <th>Supported Types</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="entry : ${meta['supportedValueTypes']}">
+                                <td th:text="${entry.key}">label</td>
+                                <td>
+                                    <div class="chip-row" th:if="${entry.value != null and !entry.value.isEmpty()}">
+                                        <span class="chip type-chip" th:each="typeName : ${entry.value}" th:text="${typeName}">type</span>
+                                    </div>
+                                    <span class="meta" th:unless="${entry.value != null and !entry.value.isEmpty()}">No value types declared.</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <p class="meta" th:unless="${meta['supportedValueTypes'] != null and !meta['supportedValueTypes'].isEmpty()}">
+                            Supported value types are not available.
+                        </p>
+                    </section>
+                </div>
+                <p class="meta" th:unless="${selected['metaInfoAvailable']}"
+                   th:text="${selected['metaInfoError']} ?: 'Meta info is not available'">Meta info is not available</p>
+
+                <h3>Parameters</h3>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Value</th>
+                        <th>Type</th>
+                        <th>Access</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(selected['attributes'])}">
+                        <td colspan="4">No parameters available.</td>
+                    </tr>
+                    <tr th:each="attr : ${selected['attributes']}">
+                        <td th:text="${attr['name']}">name</td>
+                        <td th:text="${attr['value']}">value</td>
+                        <td th:text="${attr['type']}">type</td>
+                        <td th:text="${attr['writable']} ? 'Writable' : 'Read-only'">access</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="tab-operations" class="tab-panel" role="tabpanel"
+                     th:classappend="${activeTab == 'tab-operations'} ? ' active'"
+                     th:attr="hidden=${activeTab == 'tab-operations'} ? null : 'hidden'">
+                <h3>Invoke Actions</h3>
+                <p class="meta">Writable parameters and MBean operations are invoked from this single list.</p>
+
+                <div class="action-list">
+                    <article class="action-row" th:if="${#lists.isEmpty(selected['writableParameters']) and #lists.isEmpty(selected['operations'])}">
+                        <p class="meta">No actions available for this conveyor.</p>
+                    </article>
+
+                    <article class="action-row" th:each="p : ${selected['writableParameters']}">
+                        <div class="action-head">
+                            <strong class="action-name" th:text="${p['name']}">parameter</strong>
+                            <span class="chip action-kind">Parameter</span>
+                        </div>
+                        <p class="meta" th:text="${p['value'] != null ? 'current value: ' + p['value'] : 'current value: n/a'}">current value: n/a</p>
+                        <form th:if="${isAdmin}" th:action="@{/dashboard/admin/parameter}" method="post" class="inline-form tab-preserve-form action-form">
+                            <input type="hidden" name="name" th:value="${selectedName}"/>
+                            <input type="hidden" name="tab" value="tab-operations"/>
+                            <input type="hidden" name="parameter" th:value="${p['name']}"/>
+                            <input type="text" name="value" placeholder="value" required/>
+                            <span class="meta" th:text="${'expected type: ' + p['type']}">expected type: long</span>
+                            <button type="submit">Invoke</button>
+                        </form>
+                        <p class="meta" th:unless="${isAdmin}" th:text="${'expected type: ' + p['type']}">expected type: long</p>
+                    </article>
+
+                    <article class="action-row" th:each="op : ${selected['operations']}">
+                        <div class="action-head">
+                            <strong class="action-name" th:text="${op['name']}">operation</strong>
+                            <span class="chip action-kind">Operation</span>
+                        </div>
+                        <form th:if="${isAdmin}" th:action="@{/dashboard/admin/mbean}" method="post" class="inline-form tab-preserve-form action-form"
+                              th:attr="data-stop-operation=${op['stopOperation']} ? 'true' : null">
+                            <input type="hidden" name="name" th:value="${selectedName}"/>
+                            <input type="hidden" name="tab" value="tab-operations"/>
+                            <input type="hidden" name="method" th:value="${op['name']}"/>
+                            <input th:if="${op['argCount'] > 0}" type="text" name="arg" placeholder="argument value" required/>
+                            <span class="meta" th:if="${op['argCount'] > 0}" th:text="${'expected type: ' + op['argType']}">expected type: long</span>
+                            <span class="meta" th:unless="${op['argCount'] > 0}">no arguments</span>
+                            <button type="submit">Invoke</button>
+                        </form>
+                        <p class="meta" th:if="${op['stopOperation']}">Warning: this operation is irreversible and may cause data loss.</p>
+                        <p class="meta" th:if="${!isAdmin and op['argCount'] > 0}" th:text="${'expected type: ' + op['argType']}">expected type: long</p>
+                        <p class="meta" th:if="${!isAdmin and op['argCount'] == 0}">no arguments</p>
+                    </article>
+                </div>
+
+                <p class="meta" th:unless="${isAdmin}">
+                    Admin role is required to invoke actions.
+                </p>
+            </section>
+
+            <section id="tab-tester" class="tab-panel" role="tabpanel"
+                     th:classappend="${activeTab == 'tab-tester'} ? ' active'"
+                     th:attr="hidden=${activeTab == 'tab-tester'} ? null : 'hidden'">
+                <div th:if="${selectedName}">
+                    <h3>Part Loader Tester</h3>
+                    <p class="meta" th:if="${selected['topLevel']}">
+                        For tests, provide at least <code>ttl</code> or <code>expirationTime</code>.
+                    </p>
+                    <p class="meta" th:unless="${selected['topLevel']}">
+                        Tester is available only for top-level conveyors (without enclosing conveyor).
+                    </p>
+
+                    <form th:if="${selected['topLevel']}" th:action="@{/dashboard/test/place}" method="post" class="stack-form tester-form tab-preserve-form">
+                        <input type="hidden" name="name" th:value="${selectedName}"/>
+                        <input type="hidden" name="tab" value="tab-tester"/>
+                        <div class="tester-grid">
+                            <div class="field-group">
+                                <label for="test-id">ID</label>
+                                <input id="test-id" type="text" name="id" placeholder="e.g. user-42"
+                                       th:attr="disabled=${testRequest != null and testRequest['foreach'] == true} ? 'disabled' : null, required=${testRequest == null or testRequest['foreach'] != true} ? 'required' : null"
+                                       th:value="${testRequest != null ? testRequest['id'] : ''}"/>
+                            </div>
+                            <div class="field-group">
+                                <label for="test-foreach">Foreach</label>
+                                <label class="meta">
+                                    <input id="test-foreach" type="checkbox" name="foreach" value="true"
+                                           th:checked="${testRequest != null and testRequest['foreach'] == true}"/>
+                                    Foreach
+                                </label>
+                            </div>
+                            <div class="field-group">
+                                <label for="test-label">Label</label>
+                                <input id="test-label" type="text" name="label" placeholder="e.g. FIRST_NAME" required
+                                       th:value="${testRequest != null ? testRequest['label'] : ''}"/>
+                            </div>
+                            <div class="field-group">
+                                <label for="test-content-type">Content Type</label>
+                                <select id="test-content-type" name="contentType" required>
+                                    <option value="application/json"
+                                            th:selected="${testRequest == null or testRequest['contentType'] == 'application/json'}">
+                                        application/json
+                                    </option>
+                                    <option value="text/plain"
+                                            th:selected="${testRequest != null and testRequest['contentType'] == 'text/plain'}">
+                                        text/plain
+                                    </option>
+                                    <option value="application/octet-stream"
+                                            th:selected="${testRequest != null and testRequest['contentType'] == 'application/octet-stream'}">
+                                        application/octet-stream
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="field-group full-width">
+                            <label for="test-body">Body</label>
+                            <textarea id="test-body" name="body" rows="8" placeholder="Request body"
+                                      th:text="${testRequest != null ? testRequest['body'] : ''}"></textarea>
+                            <p class="meta">Live preview (syntax highlighted for JSON content type).</p>
+                            <pre class="json-result"><code id="request-body-preview" class="language-json"></code></pre>
+                        </div>
+
+                        <div class="tester-grid">
+                            <div class="field-group">
+                                <label for="test-ttl">TTL</label>
+                                <input id="test-ttl" type="text" name="ttl" placeholder="2500 or 1 SECONDS"
+                                       th:value="${testRequest != null ? testRequest['ttl'] : ''}"/>
+                            </div>
+                            <div class="field-group">
+                                <label for="test-expiration">Expiration Time</label>
+                                <input id="test-expiration" type="text" name="expirationTime" placeholder="epoch ms or ISO datetime"
+                                       th:value="${testRequest != null ? testRequest['expirationTime'] : ''}"/>
+                            </div>
+                            <div class="field-group">
+                                <label for="test-creation">Creation Time</label>
+                                <input id="test-creation" type="text" name="creationTime" placeholder="epoch ms or ISO datetime"
+                                       th:value="${testRequest != null ? testRequest['creationTime'] : ''}"/>
+                            </div>
+                            <div class="field-group">
+                                <label for="test-priority">Priority</label>
+                                <input id="test-priority" type="text" name="priority" placeholder="numeric value"
+                                       th:value="${testRequest != null ? testRequest['priority'] : ''}"/>
+                            </div>
+                            <div class="field-group">
+                                <label for="test-request-ttl">Request TTL</label>
+                                <input id="test-request-ttl" type="text" name="requestTTL" placeholder="wait time, e.g. 3 SECONDS"
+                                       th:value="${testRequest != null ? testRequest['requestTTL'] : ''}"/>
+                            </div>
+                        </div>
+
+                        <section class="property-editor">
+                            <div class="property-editor-header">
+                                <label>Additional Properties</label>
+                                <button type="button" id="add-extra-param" class="secondary-button small-button">+ Add property</button>
+                            </div>
+                            <p class="meta">Optional parameters forwarded as request properties.</p>
+                            <div id="extra-param-list" class="property-list"
+                                 th:with="extraProps=${testRequest != null and testRequest['extraProperties'] != null ? testRequest['extraProperties'] : T(java.util.Collections).emptyList()}">
+                                <div class="property-row" th:each="prop : ${extraProps}">
+                                    <input type="text" name="extraParamKey" placeholder="Property key"
+                                           th:value="${prop['key']}"/>
+                                    <input type="text" name="extraParamValue" placeholder="Property value"
+                                           th:value="${prop['value']}"/>
+                                    <button type="button" class="property-remove" title="Remove property">X</button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <button type="submit">Submit Part Test</button>
+                    </form>
+
+                    <div th:if="${testResultJson}">
+                        <h3>Placement Result</h3>
+                        <pre class="json-result"><code class="language-json" th:text="${testResultJson}"></code></pre>
+                    </div>
+                </div>
+                <p class="meta" th:unless="${selectedName}">
+                    Select a conveyor from the tree to test part placement.
+                </p>
+            </section>
+
+            <section id="tab-static" class="tab-panel" role="tabpanel"
+                     th:classappend="${activeTab == 'tab-static'} ? ' active'"
+                     th:attr="hidden=${activeTab == 'tab-static'} ? null : 'hidden'">
+                <div th:if="${selectedName}">
+                    <h3>Static Part Tester</h3>
+                    <p class="meta">
+                        Label is mandatory. Static parts support priority and custom properties. Use delete mode to remove a static part.
+                    </p>
+
+                    <form th:action="@{/dashboard/test/static-part}" method="post" class="stack-form tester-form tab-preserve-form">
+                        <input type="hidden" name="name" th:value="${selectedName}"/>
+                        <input type="hidden" name="tab" value="tab-static"/>
+                        <div class="tester-grid">
+                            <div class="field-group">
+                                <label for="static-label">Label</label>
+                                <input id="static-label" type="text" name="label" placeholder="e.g. CONFIG" required
+                                       th:value="${staticTestRequest != null ? staticTestRequest['label'] : ''}"/>
+                            </div>
+                            <div class="field-group">
+                                <label for="static-content-type">Content Type</label>
+                                <select id="static-content-type" name="contentType" required>
+                                    <option value="application/json"
+                                            th:selected="${staticTestRequest == null or staticTestRequest['contentType'] == 'application/json'}">
+                                        application/json
+                                    </option>
+                                    <option value="text/plain"
+                                            th:selected="${staticTestRequest != null and staticTestRequest['contentType'] == 'text/plain'}">
+                                        text/plain
+                                    </option>
+                                    <option value="application/octet-stream"
+                                            th:selected="${staticTestRequest != null and staticTestRequest['contentType'] == 'application/octet-stream'}">
+                                        application/octet-stream
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label for="static-delete">Delete Mode</label>
+                                <label class="meta">
+                                    <input id="static-delete" type="checkbox" name="delete" value="true"
+                                           th:checked="${staticTestRequest != null and staticTestRequest['delete']}"/>
+                                    Delete static part (value is not required)
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="field-group full-width">
+                            <label for="static-body">Body</label>
+                            <textarea id="static-body" name="body" rows="8" placeholder="Static part value"
+                                      th:text="${staticTestRequest != null ? staticTestRequest['body'] : ''}"></textarea>
+                            <p class="meta">Live preview (syntax highlighted for JSON content type).</p>
+                            <pre class="json-result"><code id="static-request-body-preview" class="language-json"></code></pre>
+                        </div>
+
+                        <div class="tester-grid">
+                            <div class="field-group">
+                                <label for="static-priority">Priority</label>
+                                <input id="static-priority" type="text" name="priority" placeholder="numeric value"
+                                       th:value="${staticTestRequest != null ? staticTestRequest['priority'] : ''}"/>
+                            </div>
+                            <div class="field-group">
+                                <label for="static-request-ttl">Request TTL</label>
+                                <input id="static-request-ttl" type="text" name="requestTTL" placeholder="wait time, e.g. 3 SECONDS"
+                                       th:value="${staticTestRequest != null ? staticTestRequest['requestTTL'] : ''}"/>
+                            </div>
+                        </div>
+
+                        <section class="property-editor">
+                            <div class="property-editor-header">
+                                <label>Additional Properties</label>
+                                <button type="button" id="add-static-extra-param" class="secondary-button small-button">+ Add property</button>
+                            </div>
+                            <p class="meta">Optional static part properties.</p>
+                            <div id="static-extra-param-list" class="property-list"
+                                 th:with="extraProps=${staticTestRequest != null and staticTestRequest['extraProperties'] != null ? staticTestRequest['extraProperties'] : T(java.util.Collections).emptyList()}">
+                                <div class="property-row" th:each="prop : ${extraProps}">
+                                    <input type="text" name="staticExtraParamKey" placeholder="Property key"
+                                           th:value="${prop['key']}"/>
+                                    <input type="text" name="staticExtraParamValue" placeholder="Property value"
+                                           th:value="${prop['value']}"/>
+                                    <button type="button" class="property-remove" title="Remove property">X</button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <button type="submit">Submit Static Part Test</button>
+                    </form>
+
+                    <div th:if="${staticTestResultJson}">
+                        <h3>Static Placement Result</h3>
+                        <pre class="json-result"><code class="language-json" th:text="${staticTestResultJson}"></code></pre>
+                    </div>
+                </div>
+                <p class="meta" th:unless="${selectedName}">
+                    Select a conveyor from the tree to test static part placement.
+                </p>
+            </section>
+
+            <section id="tab-commands" class="tab-panel" role="tabpanel"
+                     th:classappend="${activeTab == 'tab-commands'} ? ' active'"
+                     th:attr="hidden=${activeTab == 'tab-commands'} ? null : 'hidden'">
+                <div th:if="${selectedName}">
+                    <h3>Command Loader Tester</h3>
+                    <p class="meta">
+                        For command execution, provide an <code>ID</code> or enable <code>Foreach</code>.
+                        <code>peek</code> and <code>peekId</code> require <code>requestTTL</code>.
+                        <code>reschedule</code> requires <code>ttl</code> or <code>expirationTime</code>.
+                    </p>
+
+                    <form th:action="@{/dashboard/test/command}" method="post" class="stack-form tester-form tab-preserve-form">
+                        <input type="hidden" name="name" th:value="${selectedName}"/>
+                        <input type="hidden" name="tab" value="tab-commands"/>
+                        <div class="tester-grid">
+                            <div class="field-group">
+                                <label for="command-id">ID</label>
+                                <input id="command-id" type="text" name="id" placeholder="e.g. user-42"
+                                       th:attr="disabled=${commandTestRequest != null and commandTestRequest['foreach'] == true} ? 'disabled' : null, required=${commandTestRequest == null or commandTestRequest['foreach'] != true} ? 'required' : null"
+                                       th:value="${commandTestRequest != null ? commandTestRequest['id'] : ''}"/>
+                            </div>
+                            <div class="field-group">
+                                <label for="command-foreach">Foreach</label>
+                                <label class="meta">
+                                    <input id="command-foreach" type="checkbox" name="foreach" value="true"
+                                           th:checked="${commandTestRequest != null and commandTestRequest['foreach'] == true}"/>
+                                    Foreach
+                                </label>
+                            </div>
+                            <div class="field-group">
+                                <label for="command-request-ttl">Request TTL</label>
+                                <input id="command-request-ttl" type="text" name="requestTTL" placeholder="wait time, e.g. 3 SECONDS"
+                                       th:value="${commandTestRequest != null ? commandTestRequest['requestTTL'] : ''}"/>
+                            </div>
+                        </div>
+
+                        <div class="field-group full-width">
+                            <label for="command-body">Command Body</label>
+                            <textarea id="command-body" name="body" rows="5"
+                                      placeholder="Used by completeExceptionally (message text)"
+                                      th:text="${commandTestRequest != null ? commandTestRequest['body'] : ''}"></textarea>
+                            <p class="meta">Body is used only for <code>completeExceptionally</code>.</p>
+                        </div>
+
+                        <div class="tester-grid">
+                            <div class="field-group">
+                                <label for="command-ttl">TTL</label>
+                                <input id="command-ttl" type="text" name="ttl" placeholder="2500 or 1 SECONDS"
+                                       th:value="${commandTestRequest != null ? commandTestRequest['ttl'] : ''}"/>
+                            </div>
+                            <div class="field-group">
+                                <label for="command-expiration">Expiration Time</label>
+                                <input id="command-expiration" type="text" name="expirationTime" placeholder="epoch ms or ISO datetime"
+                                       th:value="${commandTestRequest != null ? commandTestRequest['expirationTime'] : ''}"/>
+                            </div>
+                            <div class="field-group">
+                                <label for="command-creation">Creation Time</label>
+                                <input id="command-creation" type="text" name="creationTime" placeholder="epoch ms or ISO datetime"
+                                       th:value="${commandTestRequest != null ? commandTestRequest['creationTime'] : ''}"/>
+                            </div>
+                        </div>
+
+                        <section class="property-editor">
+                            <div class="property-editor-header">
+                                <label>Additional Properties</label>
+                                <button type="button" id="add-command-extra-param" class="secondary-button small-button">+ Add property</button>
+                            </div>
+                            <p class="meta">Used by <code>addProperties</code> only.</p>
+                            <div id="command-extra-param-list" class="property-list">
+                                <div class="property-row" th:each="prop : ${commandTestRequest != null ? commandTestRequest['extraProperties'] : null}">
+                                    <input type="text" name="commandExtraParamKey" placeholder="Property key"
+                                           th:value="${prop['key']}"/>
+                                    <input type="text" name="commandExtraParamValue" placeholder="Property value"
+                                           th:value="${prop['value']}"/>
+                                    <button type="button" class="property-remove" title="Remove property">X</button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="command-groups">
+                            <section class="command-group command-group-safe" aria-label="Safe command operations">
+                                <div class="command-actions">
+                                    <button type="submit" name="operation" value="create" class="command-op-button" data-op="create"
+                                            th:attr="disabled=${commandTestRequest != null and commandTestRequest['foreach'] == true} ? 'disabled' : null">
+                                        CREATE
+                                    </button>
+                                    <button type="submit" name="operation" value="addProperties" class="command-op-button" data-op="addProperties"
+                                            th:attr="disabled=${(commandTestRequest == null) or #lists.isEmpty(commandTestRequest['extraProperties'])} ? 'disabled' : null">
+                                        ADD PROPERTIES
+                                    </button>
+                                    <button type="submit" name="operation" value="reschedule" class="command-op-button" data-op="reschedule">
+                                        RESCHEDULE
+                                    </button>
+                                    <button type="submit" name="operation" value="peek" class="command-op-button" data-op="peek">
+                                        PEEK
+                                    </button>
+                                    <button type="submit" name="operation" value="peekId" class="command-op-button" data-op="peekId">
+                                        PEEK ID
+                                    </button>
+                                </div>
+                            </section>
+
+                            <section class="command-group command-group-kill" aria-label="Kill command operations">
+                                <div class="command-actions">
+                                    <button type="submit" name="operation" value="cancel" class="command-op-button" data-op="cancel">
+                                        CANCEL
+                                    </button>
+                                    <button type="submit" name="operation" value="timeout" class="command-op-button" data-op="timeout">
+                                        TIMEOUT
+                                    </button>
+                                    <button type="submit" name="operation" value="completeExceptionally" class="command-op-button" data-op="completeExceptionally"
+                                            th:attr="disabled=${commandTestRequest != null and commandTestRequest['foreach'] == true} ? 'disabled' : null">
+                                        COMPLETE EXCEPTIONALLY
+                                    </button>
+                                </div>
+                            </section>
+                        </div>
+                    </form>
+
+                    <div th:if="${commandTestResultJson}">
+                        <h3>Command Result</h3>
+                        <pre class="json-result"><code class="language-json" th:text="${commandTestResultJson}"></code></pre>
+                    </div>
+                </div>
+                <p class="meta" th:unless="${selectedName}">
+                    Select a conveyor from the tree to execute commands.
+                </p>
+            </section>
+
+            <section id="tab-admin" class="tab-panel" role="tabpanel"
+                     th:classappend="${activeTab == 'tab-admin'} ? ' active'"
+                     th:attr="hidden=${activeTab == 'tab-admin'} ? null : 'hidden'">
+                <div th:if="${isAdmin}">
+                    <h3>Upload Conveyor JAR</h3>
+                    <form th:action="@{/dashboard/admin/upload}" method="post" enctype="multipart/form-data" class="stack-form tab-preserve-form">
+                        <input type="hidden" name="tab" value="tab-admin"/>
+                        <input type="file" name="file" accept=".jar" required/>
+                        <button type="submit">Upload / Replace</button>
+                    </form>
+
+                    <h3>Controlled Reload</h3>
+                    <form th:action="@{/dashboard/admin/reload}" method="post" class="inline-form tab-preserve-form">
+                        <input type="text" name="name" th:value="${selectedName}" placeholder="conveyor name" required/>
+                        <input type="hidden" name="tab" value="tab-admin"/>
+                        <button type="submit">completeAndStop + reload</button>
+                    </form>
+
+                    <h3>Controlled Delete</h3>
+                    <form th:action="@{/dashboard/admin/delete}" method="post" class="inline-form tab-preserve-form"
+                          onsubmit="return confirm('Delete selected conveyor?');">
+                        <input type="text" name="name" th:value="${selectedName}" placeholder="conveyor name" required/>
+                        <input type="hidden" name="tab" value="tab-admin"/>
+                        <button class="danger" type="submit">completeAndStop + delete</button>
+                    </form>
+                </div>
+                <p class="meta" th:unless="${isAdmin}">
+                    Admin role is required to use upload, reload, and delete actions.
+                </p>
+            </section>
+        </section>
+    </main>
+</div>
+
+<script id="tree-data" type="application/json" th:utext="${treeJson}">{}</script>
+<script th:src="@{/webjars/prismjs/1.29.0/components/prism-core.min.js}" src="/webjars/prismjs/1.29.0/components/prism-core.min.js"></script>
+<script th:src="@{/webjars/prismjs/1.29.0/components/prism-json.min.js}" src="/webjars/prismjs/1.29.0/components/prism-json.min.js"></script>
+<script th:src="@{/js/dashboard.js(v='20260211b')}" src="/js/dashboard.js?v=20260211b"></script>
+</body>
+</html>

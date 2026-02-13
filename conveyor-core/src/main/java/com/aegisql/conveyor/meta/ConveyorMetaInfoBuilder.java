@@ -3,12 +3,14 @@ package com.aegisql.conveyor.meta;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
+import com.aegisql.conveyor.utils.ConveyorAdapter;
 
 import java.util.*;
 import java.util.function.Supplier;
 
 public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaInfo<K,L,OUT>> {
 
+    private final Conveyor<K,L,OUT> conveyor;
     private final Class<K> keyType;
     private final Class<L> labelType;
     private final Class<OUT> productType;
@@ -17,10 +19,11 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
     private final BuilderSupplier<OUT> builderSupplier;
 
     public ConveyorMetaInfoBuilder() {
-        this(null,null,null,null,new HashMap<>(),new HashSet<>());
+        this(null,null,null,null,null,new HashMap<>(),new HashSet<>());
     }
 
-    private ConveyorMetaInfoBuilder(Class<K> keyType, Class<L> labelType, Class<OUT> productType, BuilderSupplier<OUT> builderSupplier, HashMap<L, Set<Class<?>>> supportedValueTypes, Collection<L> labels) {
+    private ConveyorMetaInfoBuilder(Conveyor<K,L,OUT> conveyor,Class<K> keyType, Class<L> labelType, Class<OUT> productType, BuilderSupplier<OUT> builderSupplier, HashMap<L, Set<Class<?>>> supportedValueTypes, Collection<L> labels) {
+        this.conveyor = conveyor;
         this.keyType = keyType;
         this.labelType = labelType;
         this.productType = productType;
@@ -30,15 +33,15 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
     }
 
     public static <K,L,OUT> ConveyorMetaInfoBuilder<K,L,OUT> of(Conveyor<K,L,OUT> c) {
-        return new ConveyorMetaInfoBuilder<>(null,null,null,null,new HashMap<>(),new HashSet<>());
+        return new ConveyorMetaInfoBuilder<>(c,null,null,null,null,new HashMap<>(),new HashSet<>());
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> keyType(Class<K> k) {
-        return new ConveyorMetaInfoBuilder<>(k,labelType,productType,builderSupplier,supportedValueTypes,labels);
+        return new ConveyorMetaInfoBuilder<>(conveyor,k,labelType,productType,builderSupplier,supportedValueTypes,labels);
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> labelType(Class<L> l) {
-        ConveyorMetaInfoBuilder<K,L,OUT> res = new ConveyorMetaInfoBuilder<>(keyType, l, productType, builderSupplier, supportedValueTypes, labels);
+        ConveyorMetaInfoBuilder<K,L,OUT> res = new ConveyorMetaInfoBuilder<>(conveyor,keyType, l, productType, builderSupplier, supportedValueTypes, labels);
         if(l != null && l.isEnum()) {
             for(var element: EnumSet.allOf((Class)l)){
                 res = res.addLabel((L) element);
@@ -48,11 +51,11 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> productType(Class<OUT> p) {
-        return new ConveyorMetaInfoBuilder<>(keyType,labelType,p,builderSupplier,supportedValueTypes,labels);
+        return new ConveyorMetaInfoBuilder<>(conveyor,keyType,labelType,p,builderSupplier,supportedValueTypes,labels);
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> builderSupplier(BuilderSupplier<OUT> s) {
-        return new ConveyorMetaInfoBuilder<>(keyType,labelType,productType,s,supportedValueTypes,labels);
+        return new ConveyorMetaInfoBuilder<>(conveyor,keyType,labelType,productType,s,supportedValueTypes,labels);
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> labels(L l, L... more) {
@@ -61,19 +64,19 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
         if(more != null) {
             labels.addAll(Arrays.asList(more));
         }
-        return new ConveyorMetaInfoBuilder<>(keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
+        return new ConveyorMetaInfoBuilder<>(conveyor,keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> addLabel(L l) {
         Set<L> labels = new HashSet<>(this.labels);
         labels.add(l);
-        return new ConveyorMetaInfoBuilder<>(keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
+        return new ConveyorMetaInfoBuilder<>(conveyor,keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> addLabels(Collection<L> l) {
         Set<L> labels = new HashSet<>(this.labels);
         labels.addAll(l);
-        return new ConveyorMetaInfoBuilder<>(keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
+        return new ConveyorMetaInfoBuilder<>(conveyor,keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
     }
 
 
@@ -84,14 +87,14 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
         if(more != null) {
             classes.addAll(Arrays.asList(more));
         }
-        return new ConveyorMetaInfoBuilder<>(keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
+        return new ConveyorMetaInfoBuilder<>(conveyor,keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> supportedTypes(L l, Collection<Class<?>> c) {
         HashMap<L, Set<Class<?>>> supportedValueTypes = new HashMap<>(this.supportedValueTypes);
         Set<Class<?>> classes = supportedValueTypes.computeIfAbsent(l, lbl -> new HashSet<>());
         classes.addAll(c);
-        return new ConveyorMetaInfoBuilder<>(keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
+        return new ConveyorMetaInfoBuilder<>(conveyor,keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
     }
 
     @Override
@@ -104,5 +107,20 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
             throw new ConveyorRuntimeException("ConveyorMetaInfo sets of labels do not match. labels:"+labels+"; supported types:"+supportedValueTypes);
         };
         return new ConveyorMetaInfo<>(keyType,labelType,productType,supportedValueTypes,labels,builderSupplier);
+    }
+
+    public Conveyor<K,L,OUT> wrap() {
+        Objects.requireNonNull(conveyor,"conveyor is missing. Wrap with the conveyor instance");
+        return wrap(conveyor);
+    }
+
+    public Conveyor<K,L,OUT> wrap(Conveyor<K,L,OUT> conveyor) {
+        final ConveyorMetaInfo<K, L, OUT> metaInfo = this.get();
+        return new ConveyorAdapter<K, L, OUT>(conveyor) {
+            @Override
+            public ConveyorMetaInfo<K, L, OUT> getMetaInfo() {
+                return metaInfo;
+            }
+        };
     }
 }

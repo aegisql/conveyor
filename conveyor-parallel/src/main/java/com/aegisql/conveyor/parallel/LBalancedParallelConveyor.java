@@ -81,6 +81,7 @@ public class LBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		Map<L,List<Conveyor<K, L, OUT>>> map = new HashMap<>(); 
 		for(Conveyor<K, L, OUT> c:conveyors) {
 			this.conveyors.add(c);
+            c.setEnclosingConveyor(this);
 			if(c.isLBalanced()) {
 				lBalanced++;
 				Set<L> labels = c.getAcceptedLabels();

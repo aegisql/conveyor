@@ -16,10 +16,7 @@ import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 import org.junit.jupiter.api.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -93,8 +90,7 @@ public class ParallelConveyorTest {
 		assertTrue(conveyor.isRunning(3));
 		assertFalse(conveyor.isRunning(-1));
 		assertFalse(conveyor.isRunning(4));
-		
-	}
+    }
 
 	/**
 	 * Tear down after class.
@@ -327,6 +323,7 @@ public class ParallelConveyorTest {
 	public void otherConveyorTest() throws InterruptedException {
 		KBalancedParallelConveyor<String, String, User>
 		conveyor = new KBalancedParallelConveyor<>(ScalarConvertingConveyor::new,4);
+        conveyor.setName("otherConveyorTest");
 		conveyor.setBuilderSupplier(StringToUserBuulder::new);
 		LastResultReference<String,User> usr = LastResultReference.of(conveyor);
 		conveyor.resultConsumer().first(usr).andThen(LogResult.stdOut(conveyor)).set();
@@ -335,10 +332,13 @@ public class ParallelConveyorTest {
 		conveyor.part().id("2").value("John,Dow1,1991").place();
 		conveyor.part().id("2").value("John,Dow1,1992").place();
 		conveyor.part().id("2").value("John,Dow1,1993").place();
-		Thread.sleep(20);
+		conveyor.completeAndStop().join();
 		assertNotNull(usr.getCurrent());
-
-	}
+        Map<String, ?> tree = Conveyor.getKnownConveyorNameTree();
+        assertTrue(tree.containsKey(conveyor.getName()));
+        assertEquals(4,((Map)tree.get(conveyor.getName())).size());
+        System.out.println(tree);
+    }
 
 	@Test
 	public void waitUntilCompleteConveyorTest() throws InterruptedException, ExecutionException {

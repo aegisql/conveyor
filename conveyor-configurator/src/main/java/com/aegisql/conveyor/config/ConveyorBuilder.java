@@ -584,7 +584,17 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	 */
 	public static void builderSupplier(ConveyorBuilder b, ConveyorProperty cp) {
 		logRegister(cp);
-		b.builderSupplier = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply(cp.getValueAsString());
+		String value = cp.getValueAsString();
+		if (value == null || value.isBlank() || "null".equalsIgnoreCase(value.trim())) {
+			b.builderSupplier = null;
+			return;
+		}
+		String className = extractBuilderClassName(value);
+		if (className != null) {
+			b.builderSupplier = ConfigUtils.classNameBuilderSupplier(className);
+			return;
+		}
+		b.builderSupplier = (BuilderSupplier) ConfigUtils.stringToBuilderSupplier.apply(value);
 	}
 
 	/**
@@ -962,10 +972,61 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		if (parts.length == 0) {
 			return;
 		}
-		Object label = ((Object[]) ConfigUtils.stringToLabelArraySupplier.apply(parts[0]))[0];
+		Object label = parseSupportedValueTypeLabel(parts[0]);
 		List<Class> supportedTypes = b.supportedValueTypes.computeIfAbsent(label, l -> new ArrayList<>());
 		for(int i = 1; i< parts.length; i++) {
 			supportedTypes.add(ConveyorProperty.getValueAsClass(parts[i]));
 		}
+	}
+
+	private static Object parseSupportedValueTypeLabel(String raw) {
+		String token = raw.trim();
+		if (token.startsWith("[")) {
+			token = token.substring(1).trim();
+		}
+		if (token.endsWith("]")) {
+			token = token.substring(0, token.length() - 1).trim();
+		}
+		if (token.endsWith(",")) {
+			token = token.substring(0, token.length() - 1).trim();
+		}
+		if ((token.startsWith("'") && token.endsWith("'")) || (token.startsWith("\"") && token.endsWith("\""))) {
+			return token.substring(1, token.length() - 1);
+		}
+		try {
+			Object resolved = ConfigUtils.stringToRefConverter.apply(token);
+			if (resolved != null) {
+				return resolved;
+			}
+		} catch (Exception ignore) {
+			// Keep raw token when reference cannot be resolved in the current environment.
+		}
+		return token;
+	}
+
+	private static String extractBuilderClassName(String raw) {
+		if (raw == null) {
+			return null;
+		}
+		String token = raw.trim();
+		int newPos = token.indexOf("new ");
+		if (newPos < 0) {
+			return null;
+		}
+		int start = newPos + 4;
+		int open = token.indexOf('(', start);
+		if (open < 0) {
+			return null;
+		}
+		int close = token.indexOf(')', open + 1);
+		if (close < 0) {
+			return null;
+		}
+		String args = token.substring(open + 1, close).trim();
+		if (!args.isEmpty()) {
+			return null;
+		}
+		String className = token.substring(start, open).trim();
+		return className.isEmpty() ? null : className;
 	}
 }

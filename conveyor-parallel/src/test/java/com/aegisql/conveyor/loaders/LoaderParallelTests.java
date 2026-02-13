@@ -2,6 +2,7 @@ package com.aegisql.conveyor.loaders;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.LogResult;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -85,6 +87,42 @@ public class LoaderParallelTests {
 //			assertEquals(0,c.getCollectorSize(1));
 		}
 
+	}
+
+	@Test
+	public void testMultiKeyAddPropertiesKParallelCommandCopiesProperties() throws Exception {
+		ParallelConveyor<Integer, UserBuilderEvents, User> c = new KBalancedParallelConveyor<>(2);
+		c.setBuilderSupplier(UserBuilder::new);
+		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+		c.setName("testMultiKeyAddPropertiesKParallelCommandCopiesProperties");
+
+		assertTrue(c.build().id(1).create().get());
+		assertTrue(c.build().id(2).create().get());
+		assertTrue(c.command().foreach().addProperties(Map.of("a", "A", "b", "B")).get());
+
+		ProductBin<Integer, User> bin1 = c.command().id(1).peek().get();
+		ProductBin<Integer, User> bin2 = c.command().id(2).peek().get();
+
+		assertEquals("A", bin1.properties.get("a"));
+		assertEquals("B", bin1.properties.get("b"));
+		assertEquals("A", bin2.properties.get("a"));
+		assertEquals("B", bin2.properties.get("b"));
+	}
+
+	@Test
+	public void testMultiKeyTimeoutKParallelCommandDoesNotStopInnerConveyors() throws Exception {
+		ParallelConveyor<Integer, UserBuilderEvents, User> c = new KBalancedParallelConveyor<>(2);
+		c.setBuilderSupplier(UserBuilder::new);
+		c.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);
+		c.setName("testMultiKeyTimeoutKParallelCommandDoesNotStopInnerConveyors");
+
+		assertTrue(c.build().id(1).create().get());
+		assertTrue(c.build().id(2).create().get());
+		assertTrue(c.command().foreach().timeout().get());
+
+		assertTrue(c.isRunning(0), "Inner conveyor[0] must stay running after foreach timeout");
+		assertTrue(c.isRunning(1), "Inner conveyor[1] must stay running after foreach timeout");
+		assertTrue(c.build().id(99).create().get());
 	}
 
 	@Test

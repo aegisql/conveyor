@@ -135,7 +135,11 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			LOG.trace("Key {} has been removed. status:{}", status.getKey(), status.getStatus());
 			if (autoAck) {
 				if (ackStatusSet.contains(status.getStatus())) {
-					ackAction.accept(status);
+					try {
+						ackAction.accept(status);
+					} catch (Throwable t) {
+						LOG.error("Acknowledge action failed for key {} on conveyor {}", status.getKey(), getName(), t);
+					}
 				} else {
 					LOG.debug("Auto Acknowledge for key {} not applicable for status {} of {}", status.getKey(), status.getStatus(), ackStatusSet);
 				}
@@ -192,8 +196,9 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	private Runnable longInactivityAction = ()->{};
 	private int maxCollectorSize = Integer.MAX_VALUE;
 	private Consumer<CommandLoader.EvictionCommand<K>> maxFootageEvictionAction = null;
+    private Conveyor<?,?,?> enclosingConveyor;
 
-	/**
+    /**
 	 * The Class Lock.
 	 */
 	private static final class Lock {
@@ -613,7 +618,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 				}
 
 				@Override
-				public void rejectUnexpireableCartsOlderThanMsec(long msec) {
+				public void setRejectUnexpireableCartsOlderThanMsec(long msec) {
 					if(msec > 0) {
 						thisConv.rejectUnexpireableCartsOlderThan(msec, TimeUnit.MILLISECONDS);
 						LOG.info("Conveyor {} changed rejectUnexpireableCartsOlderThan to {}msec",name,msec);
@@ -660,31 +665,38 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			if(key != null) {
 				processManagementCommand(cmdCart);
 			} else {
-				final var label = cmdCart.getLabel();
-				final var value = cmdCart.getValue();
-				final var expTime = cmdCart.getExpirationTime();
-				final var cmdFuture = cmdCart.getFuture();
-				if(label == CommandLabel.SUSPEND) {
-					suspend();
-					cmdFuture.complete(true);
-					return;
+					final var label = cmdCart.getLabel();
+					final var value = cmdCart.getValue();
+					final var expTime = cmdCart.getExpirationTime();
+					final var creationTime = cmdCart.getCreationTime();
+					final var commandProperties = cmdCart.getAllProperties();
+					final var cmdFuture = cmdCart.getFuture();
+					if(label == CommandLabel.SUSPEND) {
+						suspend();
+						cmdFuture.complete(true);
+						return;
 				}
-				List<GeneralCommand> commands = collector
-						.keySet()
-						.stream()
-						.filter(cmdCart.getFilter())
-						.map(k -> new GeneralCommand(k, value, label, expTime)).toList();
-				
-				commands.forEach(nextCommandCart->{
-					try {
-						processManagementCommand(nextCommandCart);
-					} catch(Exception e) {
-						RuntimeException ex = new ConveyorRuntimeException("Failed milti-key command "+label+"("+nextCommandCart.getKey()+")",e);
-						cmdFuture.completeExceptionally(ex);
-						throw ex;
+					List<GeneralCommand<K, Object>> commands = collector
+							.keySet()
+							.stream()
+								.filter(Objects::nonNull)
+								.filter(cmdCart.getFilter())
+								.map(k -> {
+									GeneralCommand<K, Object> next = new GeneralCommand<>(k, value, label, creationTime, expTime);
+									next.putAllProperties(commandProperties);
+									return next;
+								}).toList();
+
+				boolean allProcessed = true;
+					for (GeneralCommand<K, Object> nextCommandCart : commands) {
+						allProcessed = processManagementCommand(nextCommandCart) && allProcessed;
 					}
-				});
-				cmdFuture.complete(true);
+
+				if (allProcessed) {
+					cmdFuture.complete(true);
+				} else {
+					cmdFuture.completeExceptionally(new ConveyorRuntimeException("Failed multi-key command " + label));
+				}
 			}
 			this.lastProcessingTime = System.currentTimeMillis();
 		}
@@ -695,15 +707,17 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 *
 	 * @param cmdCart the cmd cart
 	 */
-	private void processManagementCommand(GeneralCommand<K, ?> cmdCart) {
+	private boolean processManagementCommand(GeneralCommand<K, ?> cmdCart) {
 		commandCounter++;
 		LOG.debug("processing command {}", cmdCart);
 		var l = cmdCart.getLabel();
 		try {
 			l.get().accept(this, cmdCart);
-		} catch (Exception e) {
-			cmdCart.getFuture().completeExceptionally(e);
-			throw e;
+			return true;
+		} catch (Throwable t) {
+			cmdCart.getFuture().completeExceptionally(t);
+			LOG.error("Failed command processing {} on conveyor {}", cmdCart, name, t);
+			return false;
 		}
 	}
 
@@ -970,10 +984,6 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		LOG.info("Conveyor {} has stopped!",name);
 	}
 
-	protected void shutDownOnIdleTimeout() {
-		stop();
-	}
-
 	/**
 	 * Complete tasks and stop.
 	 *
@@ -1228,8 +1238,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	private void removeExpired() {
 		int cnt = 0;
-		var statusForEviction = Status.TIMED_OUT;
 		for (K key : delayProvider.getAllExpiredKeys()) {
+			Status statusForEviction = Status.TIMED_OUT;
 			var buildingSite = collector.get(key);
 			if (buildingSite == null) {
 				continue;
@@ -1251,16 +1261,24 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 							continue;
 						}
 						LOG.trace("Expired and not finished {}",key);
-						scrapConsumer.accept(new ScrapBin(this, key,
-								buildingSite, "Site expired", null, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
+						try {
+							scrapConsumer.accept(new ScrapBin(this, key,
+									buildingSite, "Site expired", null, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
+						} catch (Throwable t) {
+							LOG.error("Scrap consumer failed for expired key {} on conveyor {}", key, name, t);
+						}
 						buildingSite.cancelFutures();
 					}
 				} catch (Exception e) {
 					buildingSite.setStatus(Status.INVALID);
 					buildingSite.setLastError(e);
 					statusForEviction = Status.INVALID;
-					scrapConsumer.accept(new ScrapBin(this, key,
-							buildingSite, "Timeout processor failed ", e, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
+					try {
+						scrapConsumer.accept(new ScrapBin(this, key,
+								buildingSite, "Timeout processor failed ", e, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
+					} catch (Throwable t) {
+						LOG.error("Scrap consumer failed for timeout processor error on key {} conveyor {}", key, name, t);
+					}
 					buildingSite.completeFuturesExceptionaly(e);
 				}
 			} else {
@@ -1268,11 +1286,19 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 					continue;
 				}
 				LOG.trace("Expired and removed {}",key);
-				scrapConsumer.accept(new ScrapBin(this, key,
-						buildingSite, "Site expired. No timeout action", null, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
+				try {
+					scrapConsumer.accept(new ScrapBin(this, key,
+							buildingSite, "Site expired. No timeout action", null, FailureType.BUILD_EXPIRED,buildingSite.getProperties(), buildingSite.getAcknowledge()));
+				} catch (Throwable t) {
+					LOG.error("Scrap consumer failed for expired key {} on conveyor {}", key, name, t);
+				}
 				buildingSite.cancelFutures();
 			}
-			keyBeforeEviction.accept(new AcknowledgeStatus<>(key, statusForEviction, buildingSite.getProperties()));
+			try {
+				keyBeforeEviction.accept(new AcknowledgeStatus<>(key, statusForEviction, buildingSite.getProperties()));
+			} catch (Throwable t) {
+				LOG.error("Before-eviction action failed for key {} on conveyor {}", key, name, t);
+			}
 			cnt++;
 			this.lastProcessingTime = System.currentTimeMillis();
 		}
@@ -2039,6 +2065,16 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	public ConveyorMetaInfo<K, L, OUT> getMetaInfo() {
 		throw new ConveyorRuntimeException("Meta Info is not available for '"+getName()+"'. getMetaInfo() method must be overridden in a child conveyor class.");
 	}
+
+    @Override
+    public Conveyor<?,?,?> getEnclosingConveyor() {
+        return enclosingConveyor;
+    }
+
+    @Override
+    public void setEnclosingConveyor(Conveyor<?,?,?> conveyor) {
+        this.enclosingConveyor = conveyor;
+    }
 
 	public void setLongInactivityAction(Runnable action, long inactivityTime, TimeUnit unit) {
 		setLongInactivityAction(action,Duration.ofMillis(unit.toMillis(inactivityTime)));

@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.meta;
 
 import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
@@ -144,6 +145,26 @@ public class ConveyorMetaInfoBuilderTest {
         System.out.println(ac.getGenericName());
         assertEquals("AssemblingConveyor<Integer,Label,User>",ac.getGenericName());
 
+    }
+
+    @Test
+    public void testWrappedConveyor() {
+        AssemblingConveyor<Integer,Label, User> ac = new AssemblingConveyor<>();
+        Conveyor<Integer, Label, User> wrap = ConveyorMetaInfoBuilder.of(ac)
+                .keyType(Integer.class)
+                .labelType(Label.class)
+                .productType(User.class)
+                .builderSupplier(UserBuilder::new)
+                .supportedTypes(A, String.class)
+                .supportedTypes(B, String.class)
+                .supportedTypes(C, Long.class, Integer.class)
+                .wrap();
+
+        assertThrows(Exception.class,()->ac.getMetaInfo(),"Original Conveyor must throw an exception");
+        ConveyorMetaInfo<Integer, Label, User> metaInfo = wrap.getMetaInfo();
+        System.out.println(metaInfo);
+        System.out.println(wrap);
+        assertNotNull(metaInfo);
     }
 
 }
