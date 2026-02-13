@@ -12,7 +12,6 @@
 	</parent>
 	<groupId>com.aegisql.conveyor-persistence-jdbc</groupId>
 	<artifactId>conveyor-persistence-jdbc</artifactId>
-	<version>${project.version}</version>
 	<name>conveyor-persistence-jdbc</name>
 	<url>http://maven.apache.org</url>
 	<properties>

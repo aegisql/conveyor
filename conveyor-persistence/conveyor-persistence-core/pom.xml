@@ -8,7 +8,6 @@
   </parent>
   <groupId>com.aegisql.persistence</groupId>
   <artifactId>conveyor-persistence-core</artifactId>
-  <version>${project.version}</version>
   <name>conveyor-persistence-core</name>
   <url>http://maven.apache.org</url>
   <properties>
