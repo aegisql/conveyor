@@ -15,7 +15,7 @@
     <description>Spring Boot service exposing conveyor REST API and dashboard</description>
 
     <properties>
-        <spring-boot.version>3.3.4</spring-boot.version>
+        <spring-boot.version>4.0.2</spring-boot.version>
     </properties>
 
     <dependencyManagement>
