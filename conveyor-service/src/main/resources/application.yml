@@ -8,6 +8,10 @@ spring:
         jwt:
           issuer-uri: http://localhost/issuer
 
+server:
+  tomcat:
+    max-part-count: 200
+
 management:
   endpoints:
     web:

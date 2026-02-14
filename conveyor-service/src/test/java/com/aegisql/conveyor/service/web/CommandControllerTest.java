@@ -4,6 +4,7 @@ import com.aegisql.conveyor.service.api.PlacementResult;
 import com.aegisql.conveyor.service.api.PlacementStatus;
 import com.aegisql.conveyor.service.config.SecurityConfig;
 import com.aegisql.conveyor.service.core.CommandService;
+import com.aegisql.conveyor.service.core.ConveyorWatchService;
 import com.aegisql.conveyor.service.error.ConveyorNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -18,6 +19,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -35,6 +39,9 @@ class CommandControllerTest {
 
     @MockitoBean
     private CommandService commandService;
+
+    @MockitoBean
+    private ConveyorWatchService conveyorWatchService;
 
     @Test
     void commandByIdReturnsCompletedResult() throws Exception {
@@ -138,5 +145,41 @@ class CommandControllerTest {
                         .content(""))
                 .andExpect(status().isForbidden());
         verifyNoInteractions(commandService);
+    }
+
+    @Test
+    void foreachWatchRegistersAndWatchParamsAreStripped() throws Exception {
+        var response = PlacementResult.<Object>builder()
+                .status(PlacementStatus.IN_PROGRESS)
+                .timestamp(Instant.parse("2026-02-11T10:02:00Z"))
+                .label("timeout")
+                .build();
+        when(commandService.executeForEach(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(byte[].class),
+                ArgumentMatchers.anyMap())
+        ).thenReturn(response);
+
+        mockMvc.perform(post("/command/{conveyor}/{command}", "collector", "timeout")
+                        .with(user("rest").roles("REST_USER"))
+                        .param("watchResults", "true")
+                        .param("watchLimit", "120")
+                        .param("ttl", "2 SECONDS")
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content(""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+
+        verify(conveyorWatchService).registerWatch("rest", "collector", null, true, 120);
+        verify(commandService).executeForEach(
+                eq("collector"),
+                eq("timeout"),
+                ArgumentMatchers.any(byte[].class),
+                argThat(params -> !params.containsKey("watchResults")
+                        && !params.containsKey("watch")
+                        && !params.containsKey("watchLimit")
+                        && "2 SECONDS".equals(params.get("ttl")))
+        );
     }
 }

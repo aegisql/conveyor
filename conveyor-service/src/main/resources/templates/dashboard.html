@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Conveyor Dashboard</title>
     <link rel="stylesheet"
-          th:href="@{/webjars/prismjs/1.29.0/themes/prism.min.css}"
-          href="/webjars/prismjs/1.29.0/themes/prism.min.css"/>
-    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260211b')}" href="/css/dashboard.css?v=20260211b"/>
+          th:href="@{/webjars/prismjs/1.30.0/themes/prism.min.css}"
+          href="/webjars/prismjs/1.30.0/themes/prism.min.css"/>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260214d')}" href="/css/dashboard.css?v=20260214d"/>
 </head>
 <body>
 <div class="scene-bg"></div>
@@ -19,7 +19,6 @@
         </div>
         <div class="badge-wrap">
             <span class="badge" th:text="${username}">user</span>
-            <span class="badge" th:text="${isAdmin} ? 'ADMIN' : 'VIEWER'">VIEWER</span>
             <form class="logout-form" th:action="@{/logout}" method="post">
                 <button type="submit" class="secondary-button small-button">Logout</button>
             </form>
@@ -39,9 +38,30 @@
         <aside class="card tree-card">
             <div class="card-title-row">
                 <h2>Conveyor Tree</h2>
-                <a class="link" th:href="@{/dashboard(name=${selectedName},tab=${activeTab})}">Refresh</a>
+                <a class="action-link-button secondary-button small-button"
+                   th:href="@{/dashboard(name=${selectedName},tab=${activeTab})}">Refresh</a>
             </div>
             <div id="tree" class="tree"></div>
+
+            <section class="watch-panel" aria-label="Result watchers">
+                <div class="card-title-row">
+                    <h3>Watchers</h3>
+                    <button id="watch-refresh" type="button" class="secondary-button small-button">Refresh</button>
+                </div>
+                <p class="meta">Tags are gray while waiting and turn green when a result or scrap arrives.</p>
+                <div id="watch-tags" class="watch-tags">
+                    <p class="meta">No active watches.</p>
+                </div>
+
+                <div id="watch-details" class="watch-details" hidden>
+                    <div class="watch-details-header">
+                        <h4 id="watch-details-title">Watch details</h4>
+                        <button id="watch-cancel" type="button" class="danger small-button">Cancel Watch</button>
+                    </div>
+                    <p id="watch-details-status" class="meta">Waiting for events.</p>
+                    <pre class="json-result"><code id="watch-details-json" class="language-json"></code></pre>
+                </div>
+            </section>
         </aside>
 
         <section class="card workspace-card">
@@ -62,7 +82,7 @@
                 <a class="tab-button" role="tab"
                    th:classappend="${activeTab == 'tab-tester'} ? ' active'"
                    th:attr="aria-selected=${activeTab == 'tab-tester'} ? 'true' : 'false'"
-                   th:href="@{/dashboard(name=${selectedName},tab='tab-tester')}">Part Loader Tester</a>
+                   th:href="@{/dashboard(name=${selectedName},tab='tab-tester')}">Parts</a>
                 <a class="tab-button" role="tab"
                    th:classappend="${activeTab == 'tab-static'} ? ' active'"
                    th:attr="aria-selected=${activeTab == 'tab-static'} ? 'true' : 'false'"
@@ -225,7 +245,7 @@
                      th:classappend="${activeTab == 'tab-tester'} ? ' active'"
                      th:attr="hidden=${activeTab == 'tab-tester'} ? null : 'hidden'">
                 <div th:if="${selectedName}">
-                    <h3>Part Loader Tester</h3>
+                    <h3>Parts</h3>
                     <p class="meta" th:if="${selected['topLevel']}">
                         For tests, provide at least <code>ttl</code> or <code>expirationTime</code>.
                     </p>
@@ -233,7 +253,7 @@
                         Tester is available only for top-level conveyors (without enclosing conveyor).
                     </p>
 
-                    <form th:if="${selected['topLevel']}" th:action="@{/dashboard/test/place}" method="post" class="stack-form tester-form tab-preserve-form">
+                    <form th:if="${selected['topLevel']}" th:action="@{/dashboard/test/place}" method="post" enctype="multipart/form-data" class="stack-form tester-form tab-preserve-form">
                         <input type="hidden" name="name" th:value="${selectedName}"/>
                         <input type="hidden" name="tab" value="tab-tester"/>
                         <div class="tester-grid">
@@ -250,6 +270,19 @@
                                            th:checked="${testRequest != null and testRequest['foreach'] == true}"/>
                                     Foreach
                                 </label>
+                            </div>
+                            <div class="field-group">
+                                <label for="test-watch-results">Watch Results</label>
+                                <label class="meta">
+                                    <input id="test-watch-results" type="checkbox" name="watchResults" value="true"
+                                           th:checked="${testRequest != null and testRequest['watchResults'] == true}"/>
+                                    Watch results
+                                </label>
+                            </div>
+                            <div class="field-group">
+                                <label for="test-watch-limit">Watch Limit (foreach)</label>
+                                <input id="test-watch-limit" type="number" min="1" max="500" name="watchLimit" placeholder="100"
+                                       th:value="${testRequest != null ? testRequest['watchLimit'] : '100'}"/>
                             </div>
                             <div class="field-group">
                                 <label for="test-label">Label</label>
@@ -281,6 +314,11 @@
                                       th:text="${testRequest != null ? testRequest['body'] : ''}"></textarea>
                             <p class="meta">Live preview (syntax highlighted for JSON content type).</p>
                             <pre class="json-result"><code id="request-body-preview" class="language-json"></code></pre>
+                        </div>
+                        <div class="field-group full-width">
+                            <label for="test-body-file">Body File</label>
+                            <input id="test-body-file" type="file" name="bodyFile"/>
+                            <p class="meta">Optional. If provided, file content is used instead of textarea body.</p>
                         </div>
 
                         <div class="tester-grid">
@@ -318,7 +356,7 @@
                             </div>
                             <p class="meta">Optional parameters forwarded as request properties.</p>
                             <div id="extra-param-list" class="property-list"
-                                 th:with="extraProps=${testRequest != null and testRequest['extraProperties'] != null ? testRequest['extraProperties'] : T(java.util.Collections).emptyList()}">
+                                 th:with="extraProps=${testRequest['extraProperties']}">
                                 <div class="property-row" th:each="prop : ${extraProps}">
                                     <input type="text" name="extraParamKey" placeholder="Property key"
                                            th:value="${prop['key']}"/>
@@ -329,12 +367,12 @@
                             </div>
                         </section>
 
-                        <button type="submit">Submit Part Test</button>
+                        <button type="submit">Submit</button>
                     </form>
 
-                    <div th:if="${testResultJson}">
+                    <div th:if="${testResultSummaryLine}">
                         <h3>Placement Result</h3>
-                        <pre class="json-result"><code class="language-json" th:text="${testResultJson}"></code></pre>
+                        <p class="result-summary" th:text="${testResultSummaryLine}"></p>
                     </div>
                 </div>
                 <p class="meta" th:unless="${selectedName}">
@@ -346,12 +384,15 @@
                      th:classappend="${activeTab == 'tab-static'} ? ' active'"
                      th:attr="hidden=${activeTab == 'tab-static'} ? null : 'hidden'">
                 <div th:if="${selectedName}">
-                    <h3>Static Part Tester</h3>
-                    <p class="meta">
+                    <h3>Static Parts</h3>
+                    <p class="meta" th:if="${selected['topLevel']}">
                         Label is mandatory. Static parts support priority and custom properties. Use delete mode to remove a static part.
                     </p>
+                    <p class="meta" th:unless="${selected['topLevel']}">
+                        Tester is available only for top-level conveyors (without enclosing conveyor).
+                    </p>
 
-                    <form th:action="@{/dashboard/test/static-part}" method="post" class="stack-form tester-form tab-preserve-form">
+                    <form th:if="${selected['topLevel']}" th:action="@{/dashboard/test/static-part}" method="post" enctype="multipart/form-data" class="stack-form tester-form tab-preserve-form">
                         <input type="hidden" name="name" th:value="${selectedName}"/>
                         <input type="hidden" name="tab" value="tab-static"/>
                         <div class="tester-grid">
@@ -394,6 +435,11 @@
                             <p class="meta">Live preview (syntax highlighted for JSON content type).</p>
                             <pre class="json-result"><code id="static-request-body-preview" class="language-json"></code></pre>
                         </div>
+                        <div class="field-group full-width">
+                            <label for="static-body-file">Body File</label>
+                            <input id="static-body-file" type="file" name="bodyFile"/>
+                            <p class="meta">Optional. If provided, file content is used instead of textarea body.</p>
+                        </div>
 
                         <div class="tester-grid">
                             <div class="field-group">
@@ -415,7 +461,7 @@
                             </div>
                             <p class="meta">Optional static part properties.</p>
                             <div id="static-extra-param-list" class="property-list"
-                                 th:with="extraProps=${staticTestRequest != null and staticTestRequest['extraProperties'] != null ? staticTestRequest['extraProperties'] : T(java.util.Collections).emptyList()}">
+                                 th:with="extraProps=${staticTestRequest['extraProperties']}">
                                 <div class="property-row" th:each="prop : ${extraProps}">
                                     <input type="text" name="staticExtraParamKey" placeholder="Property key"
                                            th:value="${prop['key']}"/>
@@ -426,12 +472,12 @@
                             </div>
                         </section>
 
-                        <button type="submit">Submit Static Part Test</button>
+                        <button type="submit">Submit</button>
                     </form>
 
-                    <div th:if="${staticTestResultJson}">
+                    <div th:if="${staticTestResultSummaryLine}">
                         <h3>Static Placement Result</h3>
-                        <pre class="json-result"><code class="language-json" th:text="${staticTestResultJson}"></code></pre>
+                        <p class="result-summary" th:text="${staticTestResultSummaryLine}"></p>
                     </div>
                 </div>
                 <p class="meta" th:unless="${selectedName}">
@@ -467,6 +513,19 @@
                                            th:checked="${commandTestRequest != null and commandTestRequest['foreach'] == true}"/>
                                     Foreach
                                 </label>
+                            </div>
+                            <div class="field-group">
+                                <label for="command-watch-results">Watch Results</label>
+                                <label class="meta">
+                                    <input id="command-watch-results" type="checkbox" name="watchResults" value="true"
+                                           th:checked="${commandTestRequest != null and commandTestRequest['watchResults'] == true}"/>
+                                    Watch results
+                                </label>
+                            </div>
+                            <div class="field-group">
+                                <label for="command-watch-limit">Watch Limit (foreach)</label>
+                                <input id="command-watch-limit" type="number" min="1" max="500" name="watchLimit" placeholder="100"
+                                       th:value="${commandTestRequest != null ? commandTestRequest['watchLimit'] : '100'}"/>
                             </div>
                             <div class="field-group">
                                 <label for="command-request-ttl">Request TTL</label>
@@ -603,8 +662,8 @@
 </div>
 
 <script id="tree-data" type="application/json" th:utext="${treeJson}">{}</script>
-<script th:src="@{/webjars/prismjs/1.29.0/components/prism-core.min.js}" src="/webjars/prismjs/1.29.0/components/prism-core.min.js"></script>
-<script th:src="@{/webjars/prismjs/1.29.0/components/prism-json.min.js}" src="/webjars/prismjs/1.29.0/components/prism-json.min.js"></script>
-<script th:src="@{/js/dashboard.js(v='20260211b')}" src="/js/dashboard.js?v=20260211b"></script>
+<script th:src="@{/webjars/prismjs/1.30.0/components/prism-core.min.js}" src="/webjars/prismjs/1.30.0/components/prism-core.min.js"></script>
+<script th:src="@{/webjars/prismjs/1.30.0/components/prism-json.min.js}" src="/webjars/prismjs/1.30.0/components/prism-json.min.js"></script>
+<script th:src="@{/js/dashboard.js(v='20260214c')}" src="/js/dashboard.js?v=20260214c"></script>
 </body>
 </html>

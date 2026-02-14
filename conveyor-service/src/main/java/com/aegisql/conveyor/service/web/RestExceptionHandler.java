@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
         PartController.class,
         DashboardController.class,
         CommandController.class,
-        StaticPartController.class
+        StaticPartController.class,
+        WatchController.class
 })
 public class RestExceptionHandler {
 

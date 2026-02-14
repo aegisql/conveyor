@@ -40,6 +40,7 @@ public class SecurityConfig {
 
     private static final String[] DASHBOARD_PATHS = {"/dashboard/**", "/api/dashboard/**"};
     private static final String[] DASHBOARD_ADMIN_PATHS = {"/dashboard/admin/**", "/api/dashboard/admin/**"};
+    private static final String[] DASHBOARD_WS_PATHS = {"/ws/**"};
     private static final String[] SWAGGER_PATHS = {"/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml"};
     private static final int DEMO_REMEMBER_ME_SECONDS = 30 * 24 * 60 * 60;
     private static final String DEMO_REMEMBER_ME_COOKIE = "CONVEYOR_DEMO_REMEMBER_ME";
@@ -59,6 +60,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SWAGGER_PATHS).permitAll()
                         .requestMatchers(HttpMethod.POST, "/part/**", "/static-part/**", "/command/**").hasRole("REST_USER")
+                        .requestMatchers(DASHBOARD_WS_PATHS).hasAnyRole("DASHBOARD_VIEWER", "DASHBOARD_ADMIN")
                         .requestMatchers(DASHBOARD_ADMIN_PATHS).hasRole("DASHBOARD_ADMIN")
                         .requestMatchers(DASHBOARD_PATHS).hasAnyRole("DASHBOARD_VIEWER", "DASHBOARD_ADMIN")
                         .anyRequest().authenticated()
@@ -77,6 +79,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SWAGGER_PATHS).permitAll()
                         .requestMatchers(HttpMethod.POST, "/part/**", "/static-part/**", "/command/**").hasRole("REST_USER")
+                        .requestMatchers(DASHBOARD_WS_PATHS).hasAnyRole("DASHBOARD_VIEWER", "DASHBOARD_ADMIN")
                         .requestMatchers(DASHBOARD_ADMIN_PATHS).hasRole("DASHBOARD_ADMIN")
                         .requestMatchers(DASHBOARD_PATHS).hasAnyRole("DASHBOARD_VIEWER", "DASHBOARD_ADMIN")
                         .anyRequest().authenticated()

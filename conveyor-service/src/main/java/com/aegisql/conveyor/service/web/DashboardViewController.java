@@ -2,15 +2,19 @@ package com.aegisql.conveyor.service.web;
 
 import com.aegisql.conveyor.service.api.PlacementResult;
 import com.aegisql.conveyor.service.core.CommandService;
+import com.aegisql.conveyor.service.core.ConveyorWatchService;
 import com.aegisql.conveyor.service.core.DashboardService;
 import com.aegisql.conveyor.service.core.PlacementService;
 import com.aegisql.conveyor.service.core.StaticPartService;
+import com.aegisql.conveyor.service.error.ConveyorNotFoundException;
+import com.aegisql.conveyor.service.error.UnsupportedMappingException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +46,7 @@ public class DashboardViewController {
     private final PlacementService placementService;
     private final StaticPartService staticPartService;
     private final CommandService commandService;
+    private final ConveyorWatchService conveyorWatchService;
     private final ObjectMapper objectMapper;
 
     public DashboardViewController(
@@ -48,12 +54,14 @@ public class DashboardViewController {
             PlacementService placementService,
             StaticPartService staticPartService,
             CommandService commandService,
+            ConveyorWatchService conveyorWatchService,
             ObjectMapper objectMapper
     ) {
         this.dashboardService = dashboardService;
         this.placementService = placementService;
         this.staticPartService = staticPartService;
         this.commandService = commandService;
+        this.conveyorWatchService = conveyorWatchService;
         this.objectMapper = objectMapper;
     }
 
@@ -88,13 +96,24 @@ public class DashboardViewController {
         model.addAttribute("username", authentication == null ? "" : authentication.getName());
         model.addAttribute("isAdmin", hasRole(authentication, "ROLE_DASHBOARD_ADMIN"));
         if (!model.containsAttribute("testRequest")) {
-            model.addAttribute("testRequest", Map.of("foreach", false, "extraProperties", List.of()));
+            model.addAttribute("testRequest", Map.of(
+                    "foreach", false,
+                    "watchResults", false,
+                    "watchLimit", "100",
+                    "extraProperties", List.of()
+            ));
         }
         if (!model.containsAttribute("staticTestRequest")) {
             model.addAttribute("staticTestRequest", Map.of("delete", false, "extraProperties", List.of()));
         }
         if (!model.containsAttribute("commandTestRequest")) {
-            model.addAttribute("commandTestRequest", Map.of("foreach", false, "operation", "cancel", "extraProperties", List.of()));
+            model.addAttribute("commandTestRequest", Map.of(
+                    "foreach", false,
+                    "operation", "cancel",
+                    "watchResults", false,
+                    "watchLimit", "100",
+                    "extraProperties", List.of()
+            ));
         }
         return "dashboard";
     }
@@ -204,9 +223,12 @@ public class DashboardViewController {
             @RequestParam("name") String name,
             @RequestParam(name = "id", required = false) String id,
             @RequestParam(name = "foreach", required = false) String foreach,
+            @RequestParam(name = "watchResults", required = false) String watchResults,
+            @RequestParam(name = "watchLimit", required = false) String watchLimit,
             @RequestParam("label") String label,
             @RequestParam("contentType") String contentType,
             @RequestParam("body") String body,
+            @RequestParam(name = "bodyFile", required = false) MultipartFile bodyFile,
             @RequestParam(name = "ttl", required = false) String ttl,
             @RequestParam(name = "expirationTime", required = false) String expirationTime,
             @RequestParam(name = "creationTime", required = false) String creationTime,
@@ -215,10 +237,16 @@ public class DashboardViewController {
             @RequestParam(name = "extraParamKey", required = false) List<String> extraParamKeys,
             @RequestParam(name = "extraParamValue", required = false) List<String> extraParamValues,
             @RequestParam(name = "tab", required = false) String tab,
+            Authentication authentication,
             RedirectAttributes redirectAttributes
     ) {
         List<ExtraPropertyRow> extraRows = collectExtraPropertyRows(extraParamKeys, extraParamValues);
         boolean forEach = parseDeleteFlag(foreach);
+        boolean watchEnabled = parseDeleteFlag(watchResults);
+        Integer watchLimitValue = parseOptionalPositiveInt("watchLimit", watchLimit);
+        String username = null;
+        boolean watchRegistered = false;
+        long startedNanos = System.nanoTime();
         try {
             if (!dashboardService.isTopLevelConveyor(name)) {
                 throw new IllegalArgumentException("Part loader tester is only available for top-level conveyors");
@@ -237,13 +265,19 @@ public class DashboardViewController {
             putIfText(requestParams, "requestTTL", requestTtl);
             requestParams.putAll(parseExtraParams(extraRows));
 
+            if (watchEnabled) {
+                username = authenticatedUsername(authentication);
+                conveyorWatchService.registerWatch(username, name, id, forEach, watchLimitValue);
+                watchRegistered = true;
+            }
+
             PlacementResult<Boolean> result;
             if (forEach) {
                 result = placementService.placePartForEach(
                         contentType,
                         name,
                         label,
-                        body.getBytes(StandardCharsets.UTF_8),
+                        resolveBodyBytes(body, bodyFile),
                         requestParams
                 );
             } else {
@@ -252,23 +286,56 @@ public class DashboardViewController {
                         name,
                         id,
                         label,
-                        body.getBytes(StandardCharsets.UTF_8),
+                        resolveBodyBytes(body, bodyFile),
                         requestParams
                 );
             }
-            redirectAttributes.addFlashAttribute("testResultJson",
-                    objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
+            redirectAttributes.addFlashAttribute("testResultSummaryLine",
+                    buildResultSummaryLine(HttpStatus.OK.value(), result, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("message", "Part test submitted");
             redirectAttributes.addFlashAttribute("testRequest",
-                    buildTestRequest(id, forEach, label, contentType, body, ttl, expirationTime, creationTime, priority, requestTtl, extraRows));
+                    buildTestRequest(
+                            id,
+                            forEach,
+                            watchEnabled,
+                            watchLimit,
+                            label,
+                            contentType,
+                            body,
+                            ttl,
+                            expirationTime,
+                            creationTime,
+                            priority,
+                            requestTtl,
+                            extraRows
+                    ));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
             return "redirect:/dashboard";
         } catch (Throwable t) {
+            if (watchRegistered) {
+                conveyorWatchService.cancelWatch(username, name, id, forEach);
+            }
             LOG.error("Part loader dashboard test failed for conveyor={} label={} foreach={}", name, label, forEach, t);
+            redirectAttributes.addFlashAttribute("testResultSummaryLine",
+                    buildErrorSummaryLine(t, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("error", safeError(t));
             redirectAttributes.addFlashAttribute("testRequest",
-                    buildTestRequest(id, forEach, label, contentType, body, ttl, expirationTime, creationTime, priority, requestTtl, extraRows));
+                    buildTestRequest(
+                            id,
+                            forEach,
+                            watchEnabled,
+                            watchLimit,
+                            label,
+                            contentType,
+                            body,
+                            ttl,
+                            expirationTime,
+                            creationTime,
+                            priority,
+                            requestTtl,
+                            extraRows
+                    ));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
             return "redirect:/dashboard";
@@ -282,6 +349,7 @@ public class DashboardViewController {
             @RequestParam("contentType") String contentType,
             @RequestParam(name = "delete", required = false) String delete,
             @RequestParam(name = "body", required = false) String body,
+            @RequestParam(name = "bodyFile", required = false) MultipartFile bodyFile,
             @RequestParam(name = "priority", required = false) String priority,
             @RequestParam(name = "requestTTL", required = false) String requestTtl,
             @RequestParam(name = "staticExtraParamKey", required = false) List<String> extraParamKeys,
@@ -292,6 +360,7 @@ public class DashboardViewController {
         List<ExtraPropertyRow> extraRows = collectExtraPropertyRows(extraParamKeys, extraParamValues);
         boolean deleteMode = parseDeleteFlag(delete);
         String requestBody = safeString(body);
+        long startedNanos = System.nanoTime();
         try {
             Map<String, String> requestParams = new HashMap<>();
             putIfText(requestParams, "priority", priority);
@@ -305,11 +374,11 @@ public class DashboardViewController {
                     contentType,
                     name,
                     label,
-                    requestBody.getBytes(StandardCharsets.UTF_8),
+                    resolveBodyBytes(requestBody, bodyFile),
                     requestParams
             );
-            redirectAttributes.addFlashAttribute("staticTestResultJson",
-                    objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
+            redirectAttributes.addFlashAttribute("staticTestResultSummaryLine",
+                    buildResultSummaryLine(HttpStatus.OK.value(), result, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("message", "Static part test submitted");
             redirectAttributes.addFlashAttribute("staticTestRequest",
                     buildStaticTestRequest(label, contentType, deleteMode, requestBody, priority, requestTtl, extraRows));
@@ -318,6 +387,8 @@ public class DashboardViewController {
             return "redirect:/dashboard";
         } catch (Throwable t) {
             LOG.error("Static part dashboard test failed for conveyor={} label={} delete={}", name, label, deleteMode, t);
+            redirectAttributes.addFlashAttribute("staticTestResultSummaryLine",
+                    buildErrorSummaryLine(t, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("error", safeError(t));
             redirectAttributes.addFlashAttribute("staticTestRequest",
                     buildStaticTestRequest(label, contentType, deleteMode, requestBody, priority, requestTtl, extraRows));
@@ -332,6 +403,8 @@ public class DashboardViewController {
             @RequestParam("name") String name,
             @RequestParam(name = "id", required = false) String id,
             @RequestParam(name = "foreach", required = false) String foreach,
+            @RequestParam(name = "watchResults", required = false) String watchResults,
+            @RequestParam(name = "watchLimit", required = false) String watchLimit,
             @RequestParam("operation") String operation,
             @RequestParam(name = "body", required = false) String body,
             @RequestParam(name = "ttl", required = false) String ttl,
@@ -341,11 +414,16 @@ public class DashboardViewController {
             @RequestParam(name = "commandExtraParamKey", required = false) List<String> extraParamKeys,
             @RequestParam(name = "commandExtraParamValue", required = false) List<String> extraParamValues,
             @RequestParam(name = "tab", required = false) String tab,
+            Authentication authentication,
             RedirectAttributes redirectAttributes
     ) {
         List<ExtraPropertyRow> extraRows = collectExtraPropertyRows(extraParamKeys, extraParamValues);
         boolean forEach = parseDeleteFlag(foreach);
+        boolean watchEnabled = parseDeleteFlag(watchResults);
+        Integer watchLimitValue = parseOptionalPositiveInt("watchLimit", watchLimit);
         String requestBody = safeString(body);
+        String username = null;
+        boolean watchRegistered = false;
         try {
             Map<String, String> requestParams = new HashMap<>();
             putIfText(requestParams, "ttl", ttl);
@@ -353,6 +431,12 @@ public class DashboardViewController {
             putIfText(requestParams, "creationTime", creationTime);
             putIfText(requestParams, "requestTTL", requestTtl);
             requestParams.putAll(parseExtraParams(extraRows));
+
+            if (watchEnabled) {
+                username = authenticatedUsername(authentication);
+                conveyorWatchService.registerWatch(username, name, id, forEach, watchLimitValue);
+                watchRegistered = true;
+            }
 
             PlacementResult<Object> result;
             if (forEach) {
@@ -376,15 +460,42 @@ public class DashboardViewController {
                     objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
             redirectAttributes.addFlashAttribute("message", "Command submitted");
             redirectAttributes.addFlashAttribute("commandTestRequest",
-                    buildCommandTestRequest(id, forEach, operation, requestBody, ttl, expirationTime, creationTime, requestTtl, extraRows));
+                    buildCommandTestRequest(
+                            id,
+                            forEach,
+                            watchEnabled,
+                            watchLimit,
+                            operation,
+                            requestBody,
+                            ttl,
+                            expirationTime,
+                            creationTime,
+                            requestTtl,
+                            extraRows
+                    ));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
             return "redirect:/dashboard";
         } catch (Throwable t) {
+            if (watchRegistered) {
+                conveyorWatchService.cancelWatch(username, name, id, forEach);
+            }
             LOG.error("Command dashboard test failed for conveyor={} id={} command={} foreach={}", name, id, operation, forEach, t);
             redirectAttributes.addFlashAttribute("error", safeError(t));
             redirectAttributes.addFlashAttribute("commandTestRequest",
-                    buildCommandTestRequest(id, forEach, operation, requestBody, ttl, expirationTime, creationTime, requestTtl, extraRows));
+                    buildCommandTestRequest(
+                            id,
+                            forEach,
+                            watchEnabled,
+                            watchLimit,
+                            operation,
+                            requestBody,
+                            ttl,
+                            expirationTime,
+                            creationTime,
+                            requestTtl,
+                            extraRows
+                    ));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
             return "redirect:/dashboard";
@@ -397,9 +508,26 @@ public class DashboardViewController {
         }
     }
 
+    private Integer parseOptionalPositiveInt(String key, String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        try {
+            int parsed = Integer.parseInt(value.trim());
+            if (parsed <= 0) {
+                throw new IllegalArgumentException(key + " must be a positive integer");
+            }
+            return parsed;
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(key + " must be a positive integer", ex);
+        }
+    }
+
     private Map<String, Object> buildTestRequest(
             String id,
             boolean forEach,
+            boolean watchResults,
+            String watchLimit,
             String label,
             String contentType,
             String body,
@@ -413,6 +541,8 @@ public class DashboardViewController {
         Map<String, Object> request = new HashMap<>();
         request.put("id", safeString(id));
         request.put("foreach", forEach);
+        request.put("watchResults", watchResults);
+        request.put("watchLimit", StringUtils.hasText(watchLimit) ? watchLimit.trim() : "100");
         request.put("label", safeString(label));
         request.put("contentType", safeString(contentType));
         request.put("body", safeString(body));
@@ -448,6 +578,8 @@ public class DashboardViewController {
     private Map<String, Object> buildCommandTestRequest(
             String id,
             boolean forEach,
+            boolean watchResults,
+            String watchLimit,
             String operation,
             String body,
             String ttl,
@@ -459,6 +591,8 @@ public class DashboardViewController {
         Map<String, Object> request = new HashMap<>();
         request.put("id", safeString(id));
         request.put("foreach", forEach);
+        request.put("watchResults", watchResults);
+        request.put("watchLimit", StringUtils.hasText(watchLimit) ? watchLimit.trim() : "100");
         request.put("operation", safeString(operation));
         request.put("body", safeString(body));
         request.put("ttl", safeString(ttl));
@@ -523,6 +657,120 @@ public class DashboardViewController {
         return value == null ? "" : value;
     }
 
+    private byte[] resolveBodyBytes(String inlineBody, MultipartFile bodyFile) {
+        if (bodyFile != null && !bodyFile.isEmpty()) {
+            try {
+                return bodyFile.getBytes();
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Failed to read body file", e);
+            }
+        }
+        return safeString(inlineBody).getBytes(StandardCharsets.UTF_8);
+    }
+
+    private long elapsedMillis(long startedNanos) {
+        return Math.max(0L, (System.nanoTime() - startedNanos) / 1_000_000L);
+    }
+
+    private String buildResultSummaryLine(int httpStatus, PlacementResult<?> result, long responseMillis) {
+        Object resultValue = result == null ? null : result.getResult();
+        String status = result == null || result.getStatus() == null ? "UNKNOWN" : result.getStatus().name();
+        String errorCode = result == null ? null : result.getErrorCode();
+        String errorMessage = result == null ? null : result.getErrorMessage();
+        boolean failed = result == null || !result.isSuccess() || Boolean.FALSE.equals(resultValue);
+        return buildSummaryLine(
+                httpStatus,
+                resultValue,
+                status,
+                failed ? errorCode : null,
+                failed ? errorMessage : null,
+                responseMillis
+        );
+    }
+
+    private String buildErrorSummaryLine(Throwable throwable, long responseMillis) {
+        Throwable cause = rootCause(throwable);
+        HttpStatus httpStatus = mapHttpStatus(cause);
+        String placementStatus = httpStatus.is4xxClientError() ? "REJECTED" : "FAILED";
+        return buildSummaryLine(
+                httpStatus.value(),
+                Boolean.FALSE,
+                placementStatus,
+                mapErrorCode(cause),
+                safeError(cause),
+                responseMillis
+        );
+    }
+
+    private String buildSummaryLine(
+            int httpStatus,
+            Object result,
+            String status,
+            String errorCode,
+            String errorMessage,
+            long responseMillis
+    ) {
+        StringBuilder line = new StringBuilder();
+        line.append("HTTP ").append(httpStatus);
+        line.append(" | result=").append(result == null ? "null" : result);
+        line.append(" | status=").append(StringUtils.hasText(status) ? status : "UNKNOWN");
+        if (StringUtils.hasText(errorCode)) {
+            line.append(" | errorCode=").append(errorCode);
+        }
+        if (StringUtils.hasText(errorMessage)) {
+            line.append(" | errorMessage=").append(errorMessage);
+        }
+        line.append(" | response=").append(formatDuration(responseMillis));
+        return line.toString();
+    }
+
+    private String formatDuration(long millis) {
+        if (millis < 1_000) {
+            return millis + " ms";
+        }
+        long seconds = millis / 1_000;
+        long remainderMillis = millis % 1_000;
+        if (seconds < 60) {
+            return seconds + "." + String.format("%03d", remainderMillis) + " s";
+        }
+        long minutes = seconds / 60;
+        long remainderSeconds = seconds % 60;
+        return minutes + "m " + remainderSeconds + "." + String.format("%03d", remainderMillis) + "s";
+    }
+
+    private HttpStatus mapHttpStatus(Throwable throwable) {
+        if (throwable instanceof ConveyorNotFoundException) {
+            return HttpStatus.NOT_FOUND;
+        }
+        if (throwable instanceof UnsupportedMappingException) {
+            return HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+        }
+        if (throwable instanceof IllegalArgumentException) {
+            return HttpStatus.BAD_REQUEST;
+        }
+        return HttpStatus.INTERNAL_SERVER_ERROR;
+    }
+
+    private String mapErrorCode(Throwable throwable) {
+        if (throwable instanceof ConveyorNotFoundException) {
+            return "NOT_FOUND";
+        }
+        if (throwable instanceof UnsupportedMappingException) {
+            return "UNSUPPORTED_MEDIA_TYPE";
+        }
+        if (throwable instanceof IllegalArgumentException) {
+            return "BAD_REQUEST";
+        }
+        return "INTERNAL_ERROR";
+    }
+
+    private String authenticatedUsername(Authentication authentication) {
+        if (authentication == null || !StringUtils.hasText(authentication.getName())) {
+            throw new IllegalArgumentException("Authenticated user is required");
+        }
+        return authentication.getName();
+    }
+
     private boolean hasRole(Authentication authentication, String role) {
         if (authentication == null) {
             return false;
@@ -531,17 +779,22 @@ public class DashboardViewController {
     }
 
     private String safeError(Throwable t) {
-        Throwable cursor = t;
-        int depth = 0;
-        while (cursor.getCause() != null && cursor.getCause() != cursor && depth < 8) {
-            cursor = cursor.getCause();
-            depth++;
-        }
+        Throwable cursor = rootCause(t);
         String message = cursor.getMessage();
         if (!StringUtils.hasText(message)) {
             message = cursor.getClass().getSimpleName();
         }
         return message;
+    }
+
+    private Throwable rootCause(Throwable throwable) {
+        Throwable cursor = throwable;
+        int depth = 0;
+        while (cursor.getCause() != null && cursor.getCause() != cursor && depth < 8) {
+            cursor = cursor.getCause();
+            depth++;
+        }
+        return cursor;
     }
 
     private String normalizeTab(String tab) {

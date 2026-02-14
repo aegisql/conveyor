@@ -42,13 +42,19 @@ public class DashboardService {
 
     private static final Logger LOG = LoggerFactory.getLogger(DashboardService.class);
     private final ObjectMapper objectMapper;
+    private final ConveyorWatchService conveyorWatchService;
     private final Path uploadDir;
     private final List<String> loaderErrors = new ArrayList<>();
     private final Set<String> uploadedConveyorNames = Collections.synchronizedSet(new LinkedHashSet<>());
     private URLClassLoader uploadsClassLoader;
 
-    public DashboardService(ObjectMapper objectMapper, ConveyorServiceProperties properties) {
+    public DashboardService(
+            ObjectMapper objectMapper,
+            ConveyorServiceProperties properties,
+            ConveyorWatchService conveyorWatchService
+    ) {
         this.objectMapper = objectMapper;
+        this.conveyorWatchService = conveyorWatchService;
         this.uploadDir = properties.getUploadDir().toAbsolutePath().normalize();
         try {
             Files.createDirectories(this.uploadDir);
@@ -58,6 +64,7 @@ public class DashboardService {
             } catch (RuntimeException e) {
                 // loadUploadedConveyors already records detailed loader errors.
             }
+            this.conveyorWatchService.ensureKnownConveyorsHooked();
         } catch (IOException e) {
             throw new IllegalStateException("Cannot initialize upload directory: " + this.uploadDir, e);
         }
@@ -227,6 +234,7 @@ public class DashboardService {
         Conveyor.loadServices();
         clearLoaderErrors();
         loadUploadedConveyors();
+        conveyorWatchService.ensureKnownConveyorsHooked();
     }
 
     public void delete(String name) {
@@ -258,6 +266,7 @@ public class DashboardService {
         refreshUploadsClassLoader();
         clearLoaderErrors();
         loadUploadedConveyors();
+        conveyorWatchService.ensureKnownConveyorsHooked();
     }
 
     public void updateParameter(String name, String parameter, String value) {
@@ -428,6 +437,7 @@ public class DashboardService {
                         }
                     } catch (Exception ignored) { }
                     ensureConveyorVisible(conveyor);
+                    conveyorWatchService.ensureConveyorHooked(conveyor);
                     if (isConveyorVisible(name)) {
                         visibleNames.add(name);
                     }
@@ -497,10 +507,32 @@ public class DashboardService {
         }
         visited.add(node);
         LinkedHashMap<String, Map<String, ?>> map = new LinkedHashMap<>();
+        map.put("__meta__", treeNodeMeta(node));
         for (String child : childrenByParent.getOrDefault(node, List.of())) {
             map.put(child, buildTree(child, childrenByParent, visited, new HashSet<>(path)));
         }
         return Collections.unmodifiableMap(map);
+    }
+
+    private Map<String, ?> treeNodeMeta(String nodeName) {
+        LinkedHashMap<String, Object> meta = new LinkedHashMap<>();
+        boolean running = false;
+        boolean suspended = false;
+        String state = "STOPPED";
+        try {
+            Conveyor<?, ?, ?> conveyor = Conveyor.byName(nodeName);
+            running = conveyor.isRunning();
+            suspended = running && conveyor.isSuspended();
+            if (running) {
+                state = suspended ? "SUSPENDED" : "RUNNING";
+            }
+        } catch (Exception ignored) {
+            // Keep default STOPPED state when conveyor cannot be resolved.
+        }
+        meta.put("running", running);
+        meta.put("suspended", suspended);
+        meta.put("state", state);
+        return Collections.unmodifiableMap(meta);
     }
 
     private Object tryInvoke(Object proxy, Method getter) {

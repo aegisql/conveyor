@@ -3,6 +3,7 @@ package com.aegisql.conveyor.service.web;
 import com.aegisql.conveyor.service.api.PlacementResult;
 import com.aegisql.conveyor.service.api.PlacementStatus;
 import com.aegisql.conveyor.service.config.SecurityConfig;
+import com.aegisql.conveyor.service.core.ConveyorWatchService;
 import com.aegisql.conveyor.service.core.PlacementService;
 import com.aegisql.conveyor.service.error.ConveyorNotFoundException;
 import com.aegisql.conveyor.service.error.UnsupportedMappingException;
@@ -20,6 +21,9 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -37,6 +41,9 @@ class PartControllerTest {
 
     @MockitoBean
     private PlacementService placementService;
+
+    @MockitoBean
+    private ConveyorWatchService conveyorWatchService;
 
     @Test
     void placePartWithJsonReturnsCompletedResult() throws Exception {
@@ -174,5 +181,44 @@ class PartControllerTest {
                         .content("{\"name\":\"Ann\",\"age\":42}"))
                 .andExpect(status().isForbidden());
         verifyNoInteractions(placementService);
+    }
+
+    @Test
+    void watchParamsRegisterWatchAndAreNotForwardedToPlacementService() throws Exception {
+        var response = PlacementResult.<Boolean>builder()
+                .status(PlacementStatus.IN_PROGRESS)
+                .timestamp(Instant.parse("2026-02-11T10:00:00Z"))
+                .build();
+        when(placementService.placePart(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(byte[].class),
+                ArgumentMatchers.anyMap())
+        ).thenReturn(response);
+
+        mockMvc.perform(post("/part/{conveyor}/{id}/{label}", "collector", "6", "USER")
+                        .with(user("rest").roles("REST_USER"))
+                        .param("watchResults", "true")
+                        .param("watchLimit", "77")
+                        .param("ttl", "3 SECONDS")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Ann\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+
+        verify(conveyorWatchService).registerWatch("rest", "collector", "6", false, 77);
+        verify(placementService).placePart(
+                ArgumentMatchers.startsWith(MediaType.APPLICATION_JSON_VALUE),
+                eq("collector"),
+                eq("6"),
+                eq("USER"),
+                ArgumentMatchers.any(byte[].class),
+                argThat(params -> !params.containsKey("watchResults")
+                        && !params.containsKey("watch")
+                        && !params.containsKey("watchLimit")
+                        && "3 SECONDS".equals(params.get("ttl")))
+        );
     }
 }
