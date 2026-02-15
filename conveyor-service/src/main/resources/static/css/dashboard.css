@@ -227,6 +227,18 @@ h1, h2, h3 {
   filter: brightness(1.05);
 }
 
+.tree-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree-watch-form {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
 .tree {
   min-height: 380px;
   overflow: auto;
@@ -807,6 +819,12 @@ th {
   width: 100%;
 }
 
+.tester-submit-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .tester-grid {
   width: 100%;
   display: grid;
@@ -817,6 +835,14 @@ th {
 .tester-grid-primary {
   grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr);
   align-items: end;
+}
+
+.command-primary-grid {
+  grid-template-columns: minmax(220px, 1fr) auto;
+}
+
+.command-slot-foreach-inline {
+  align-self: end;
 }
 
 .field-group {
@@ -949,6 +975,11 @@ th {
 
 .secondary-button {
   background: linear-gradient(140deg, #5f7068, #465f53);
+}
+
+.refresh-button {
+  background: linear-gradient(140deg, var(--brand), #1f6f47) !important;
+  color: #fff;
 }
 
 .property-remove {

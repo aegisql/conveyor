@@ -17,7 +17,7 @@ The module is a Spring Boot application that provides:
 
 - Module name: `conveyor-service`
 - Parent: `com.aegisql:conveyor:1.7.3-SNAPSHOT`
-- Spring Boot: `3.3.4`
+- Spring Boot: `4.0.2`
 - Java version: inherited from parent (`maven.compiler.release=21`)
 - Packaging: `jar`
 
@@ -30,8 +30,9 @@ Required dependencies:
 - `spring-boot-starter-thymeleaf`
 - `spring-boot-starter-actuator`
 - `spring-boot-starter-validation`
+- `spring-boot-starter-websocket`
 - `org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0`
-- `org.webjars.npm:prismjs:1.29.0`
+- `org.webjars.npm:prismjs:1.30.0`
 - Conveyor modules:
   - `com.aegisql:conveyor-core`
   - `com.aegisql:conveyor-parallel`
@@ -40,6 +41,7 @@ Required dependencies:
   - `com.aegisql.conveyor-persistence-jdbc:conveyor-persistence-jdbc`
 - Test:
   - `spring-boot-starter-test`
+  - `spring-boot-webmvc-test`
   - `spring-security-test`
 
 
@@ -49,9 +51,12 @@ Required dependencies:
 
 - `spring.application.name=conveyor-service`
 - `conveyor.service.upload-dir` (default used by app: `./upload`)
+- `conveyor.service.dashboard.default-watch-history-limit` (default `100`)
+- `conveyor.service.dashboard.default-conveyor-history-limit` (default `100`)
+- `server.tomcat.max-part-count=200`
 - Management endpoints exposure: `health,info`
 - Logging:
-  - default: `com.aegisql.conveyor=INFO`
+  - default: `com.aegisql.conveyor=DEBUG`
   - `demo` profile: `com.aegisql.conveyor=DEBUG`
 
 `ConveyorServiceProperties`:
@@ -76,6 +81,7 @@ Required dependencies:
 - HTTP Basic enabled
 - Authorization:
   - `POST /part/**`, `POST /static-part/**`, `POST /command/**` => `REST_USER`
+  - `/ws/**` => `DASHBOARD_VIEWER` or `DASHBOARD_ADMIN`
   - `/dashboard/admin/**`, `/api/dashboard/admin/**` => `DASHBOARD_ADMIN`
   - `/dashboard/**`, `/api/dashboard/**` => `DASHBOARD_VIEWER` or `DASHBOARD_ADMIN`
   - Swagger endpoints permitted
@@ -90,6 +96,7 @@ Required dependencies:
 - Remember-me enabled (`remember-me` parameter, 30 days)
 - Additional signed auth cookie (`CONVEYOR_DEMO_AUTH`) for persistent re-auth in demo
 - Logout clears demo auth cookie and redirects to `/login?logout`
+- Dashboard websocket endpoint `/ws/watch` requires dashboard role access.
 
 Static resources and webjars must be accessible.
 
@@ -142,6 +149,10 @@ Status enum:
 - `Content-Type` header is required for value conversion
 - Query params are forwarded/mapped as request properties
 - Response: `PlacementResult<Boolean>`
+- Optional watch controls on both part endpoints:
+  - `watchResults=true|false` (alias: `watch`)
+  - `watchLimit=<positive integer>`
+  - when enabled, watcher is registered before placement and auto-canceled on placement error
 
 ### 7.2 Conveyor selection
 
@@ -171,6 +182,7 @@ Reserved keys:
 - `creationTime` => `loader.creationTime(...)`
 - `priority` => `loader.priority(...)`
 - `requestTTL` => service wait timeout (not loader TTL)
+- `watchResults` / `watch` and `watchLimit` are consumed by the controller for watch registration and are not forwarded to loader properties.
 
 All other params go into `loader.addProperties(...)`.
 
@@ -185,7 +197,12 @@ Durations (`ttl`, `requestTTL`):
 Date-time (`expirationTime`, `creationTime`):
 
 - Digits only => epoch milliseconds
-- ISO-8601 instant => converted to epoch milliseconds
+- Supports broad valid datetime formats including:
+  - ISO instant / offset / zoned values
+  - offsets like `+HH:MM`, `+HHMM`, and `+HH`
+  - RFC-1123
+  - local date-time and local date
+- If timezone is missing (local date-time/date), interpret in server default timezone.
 - Invalid => HTTP `400`
 
 ### 7.6 Content type + label conversion
@@ -258,6 +275,10 @@ Endpoints:
 - `POST /command/{conveyor}/{command}` (foreach mode)
 - Request body: raw `byte[]` (used by `completeExceptionally` message)
 - Response: `PlacementResult<Object>`
+- Optional watch controls on both command endpoints:
+  - `watchResults=true|false` (alias: `watch`)
+  - `watchLimit=<positive integer>`
+  - when enabled, watcher is registered before command execution and auto-canceled on execution error
 
 Common parameter behavior (same parsing rules as part/static):
 
@@ -292,20 +313,22 @@ Supported commands in ID mode:
 Supported commands in foreach mode:
 
 - `cancel()`
+- `completeExceptionally(Throwable)`:
+  - message comes from request body
+  - implemented as foreach fan-out over active IDs
+- `addProperties(Map<String,Object>)`
 - `timeout()`
 - `reschedule()` (requires `ttl` or `expirationTime`)
-- `peek()` (requires `requestTTL`, returns list of products)
+- `peek()` (requires `requestTTL`, returns `Map<K, OUT>`)
 - `peekId()` (requires `requestTTL`, returns list of matched IDs)
 
 Not supported in foreach mode:
 
-- `completeExceptionally`
-- `addProperties`
 - `create`
 
 Additional-property rules:
 
-- only `addProperties` accepts additional properties
+- only `addProperties` accepts additional properties (ID and foreach)
 - for all other commands, extra properties are rejected (`400`)
 
 Future handling:
@@ -320,6 +343,10 @@ Future handling:
 
 - `GET /tree` => conveyor name tree
 - `GET /{name}` => conveyor inspection data
+- Watch API:
+  - `GET /watch` => active watches for authenticated user
+  - `POST /watch/cancel` => cancel by `watchId` or by `(conveyor, correlationId|foreach)`
+  - `POST /watch/history-limit` => update foreach watch cache limit
 - Admin-only:
   - `POST /admin/upload` (multipart jar)
   - `POST /admin/reload/{name}`
@@ -334,6 +361,7 @@ Routes:
 - `GET /` => redirect `/dashboard`
 - `GET /dashboard` => dashboard page
 - Form-based admin actions under `/dashboard/admin/*`
+- Conveyor watch action: `POST /dashboard/watch`
 - Tester endpoint: `POST /dashboard/test/place`
 - Static tester endpoint: `POST /dashboard/test/static-part`
 - Command tester endpoint: `POST /dashboard/test/command`
@@ -344,6 +372,31 @@ Behavior:
 - Surface loader/system errors on page
 - Keep selection with `?name=...`
 - Preserve active dashboard tab with `?tab=...` across tree navigation and form actions
+- Emits compact dashboard output events for each submit:
+  - source key/type
+  - status line payload (`httpStatus`, `result`, `status`, `errorCode`, `errorMessage`, `responseTime`, `summaryLine`)
+  - JSON payload body
+
+### 8.3 WebSocket watch transport
+
+- Endpoint: `/ws/watch`
+- Per-user delivery model; session authentication ties events to the current dashboard user.
+- Uses `HttpSessionHandshakeInterceptor` so security context can be resolved during websocket handshake/session lifecycle.
+- Conveyor watch service registers bridge consumers (`ResultConsumer`, `ScrapConsumer`) on known/uploaded conveyors.
+- Watch events include metadata for UI routing:
+  - `watchId`, `displayName`, `conveyor`, `sourceConveyor`, `foreach`, `historyLimit`, `watchActive`
+  - `eventType` (`RESULT`, `SCRAP`, `PING`, `CANCELED`)
+  - `eventSignature` and `buildCreationTime` for duplicate suppression and traceability
+- Duplicate suppression signature for data events is based on event type + source conveyor + correlation key + build creation timestamp.
+- `PING` events are periodic keep-alive/wait-time updates for active watches.
+
+### 8.4 View exception handling
+
+- Dashboard/file-upload failures must not fall back to Spring Whitelabel page.
+- `@ControllerAdvice` handles multipart failures (`MultipartException`, `FileCountLimitExceededException`):
+  - Dashboard HTML requests => redirect back to dashboard (or referer dashboard URL) with flash error.
+  - API/JSON requests => `400` with `PlacementResult` error envelope.
+- Custom Thymeleaf error page template (`error.html`) is used for view rendering path.
 
 
 ## 9. Dashboard UI Requirements
@@ -354,13 +407,18 @@ Behavior:
 - Two-column layout:
   - left: conveyor tree
   - right: single dashboard component with tabs
+- Conveyor tree node state coloring:
+  - running and not suspended => green
+  - running and suspended => yellow
+  - not running / unresolved => gray
 - Tabs:
   - `Conveyor Details`
   - `Operations`
-  - `Part Loader Tester`
+  - `Parts`
   - `Static Parts`
   - `Commands`
   - `Admin Actions`
+- Header shows authenticated username and Logout button (no duplicate role/user labels).
 - Conveyor Details tab:
   - running state
   - mbean interface
@@ -391,9 +449,7 @@ Behavior:
   - controlled reload (`completeAndStop + reload`)
   - controlled delete (`completeAndStop + delete`)
   - update parameter and invoke MBean method (also available through Operations tab)
-- Header includes role badges and **Logout** button
-
-### 9.2 Part Loader Tester
+### 9.2 Parts tester
 
 Available only for top-level conveyors (no enclosing conveyor).  
 Validation requires `ttl` or `expirationTime`.
@@ -404,6 +460,7 @@ Inputs:
 - `foreach` checkbox
 - `id` (required only when `foreach` is unchecked)
 - request body textarea
+- optional body file upload (if present, file content overrides textarea body)
 - `ttl`, `expirationTime`, `creationTime`, `priority`, `requestTTL`
 - additional properties via dynamic rows:
   - add row (`+ Add property`)
@@ -412,17 +469,18 @@ Inputs:
 
 Outputs:
 
-- Placement result shown as formatted JSON
+- Placement submit creates a compact output status event in the shared Output dock (HTTP status, result, placement status, error code/message, response time).
 - UI behavior:
   - when `foreach` is checked, ID input is disabled in the form
+  - no watch checkbox in Parts tab
+  - two submit actions:
+    - `Submit`
+    - `Submit and watch` (registers watch then submits)
 
 ### 9.3 JSON syntax highlighting
 
 - Use Prism assets from WebJars (`prism-core`, `prism-json`, `prism` theme)
-- Highlight:
-  - placement result JSON
-  - live request-body preview (JSON content type)
-  - static-part request-body preview and static placement result JSON
+- Highlight live JSON previews and Output payload JSON rendering.
 
 ### 9.4 Static Parts tester
 
@@ -434,6 +492,7 @@ Inputs:
 - `contentType`
 - `delete` toggle
 - request body textarea (disabled/ignored in delete mode)
+- optional body file upload (if present, file content overrides textarea body)
 - `priority`
 - `requestTTL`
 - additional properties via dynamic key/value rows (`+ Add property`, `X` remove)
@@ -441,8 +500,9 @@ Inputs:
 Behavior:
 
 - Submits to dashboard route `POST /dashboard/test/static-part`
-- Renders static placement response in formatted JSON
+- Emits compact status/output event to the shared Output dock
 - Preserves active tab and entered values across redirects
+- Same top-level-only visibility/behavior as Parts tab.
 
 ### 9.5 Commands tester
 
@@ -451,8 +511,9 @@ Dedicated dashboard tab for command-loader workflows.
 Inputs:
 
 - `id` (required unless `foreach` is checked)
-- `foreach` checkbox
-- command body textarea (used by `completeExceptionally`)
+- `foreach` checkbox (inline with ID)
+- `watch results` checkbox (inline near title)
+- exception message textarea (used by `completeExceptionally`)
 - `ttl`, `expirationTime`, `creationTime`, `requestTTL`
 - additional properties via dynamic key/value rows (`+ Add property`, `X` remove)
 - command buttons:
@@ -469,11 +530,59 @@ Behavior:
 
 - submits to `POST /dashboard/test/command`
 - each command is invoked by its own button (`operation` value)
-- when `foreach` is checked, foreach-inapplicable buttons are disabled:
-  - `COMPLETE EXCEPTIONALLY`, `ADD PROPERTIES`, `CREATE`
+- command buttons are visually separated into two containers:
+  - build-safe: `CREATE`, `ADD PROPERTIES`, `RESCHEDULE`, `PEEK`, `PEEK ID`
+  - destructive: `CANCEL`, `TIMEOUT`, `COMPLETE EXCEPTIONALLY`
+- when `foreach` is checked, only `CREATE` is disabled
 - `ADD PROPERTIES` is disabled when no additional properties are provided
-- command result is rendered as formatted JSON
+- command submit emits compact status/output event to shared Output dock
 - preserves active tab and entered values across redirects
+
+### 9.6 Watch panel and watch tags
+
+- Left-side Watchers panel shows active watches for current user.
+- Watch creation paths:
+  - Conveyor-level watch: `Watch` button in Conveyors card (top-level conveyor only; creates `conveyor|*` watch)
+  - Parts `Submit and watch`
+  - Commands `watch results` checkbox
+- Tag behavior:
+  - gray while waiting
+  - green when result arrives
+  - error style on scrap
+  - click tag => open/focus corresponding watch output tab
+  - inline `X` on tag cancels watch
+
+### 9.7 Shared Output dock
+
+- Single output area at the bottom of screen for all conveyor submits and watch events.
+- Dock behavior:
+  - vertically resizable
+  - closable with `X`
+  - reopen via `Open Output` button in workspace header
+- Tab behavior:
+  - tabs are created on demand per conveyor and per watch
+  - tab content is isolated (no mixing between sources)
+  - each tab is closable with `X`
+  - closed tabs are recreated automatically when new events arrive
+- Event/timeline behavior:
+  - left-side vertical timeline of cached events per selected tab
+  - timeline item colors by status class (2xx/3xx/4xx/5xx style)
+  - click timestamp to view one event
+  - `Prev` / `Next` navigation
+  - `Clear events` removes cached events for selected tab
+  - `See all` shows all tab events in aggregate view and disables per-event navigation
+  - tail-follow behavior: if currently on latest event, new events auto-focus latest
+- Rendering behavior:
+  - compact status line above payload area
+  - JSONPath extraction input for payload view:
+    - empty value => `$`
+    - default => `$.payload`
+- Cache controls:
+  - `Watch Cache` numeric control (foreach watcher event history cap)
+  - `Conveyor Cache` numeric control (conveyor output event history cap)
+  - default values come from YAML config
+  - oldest cached entries are dropped when limit is reached
+  - watch `PING` events update elapsed wait clock but are not added to event history
 
 
 ## 10. Dynamic Conveyor Upload/Reload/Delete Requirements
@@ -491,6 +600,7 @@ Visibility and replacement behavior:
 - On name conflict, existing conveyor is stopped/unregistered, then replaced
 - Controlled stop uses `completeAndStop()` (5-second wait best effort)
 - Uploaded conveyors must become visible through `Conveyor.byName(...)`
+- Watch bridge hooks must be attached for newly uploaded/reloaded conveyors as well.
 
 Error handling:
 
@@ -524,17 +634,28 @@ Basic smoke checks:
 
 - Login as `admin/admin` in demo profile
 - Open `/dashboard`
-- Ensure tree renders and selecting a conveyor shows details
-- Run Part Loader tester and verify `PlacementResult<Boolean>` for:
-  - ID mode (explicit `id`)
-  - foreach mode (`foreach` checked, no ID)
+- Ensure tree renders with state colors (`RUNNING`, `SUSPENDED`, `STOPPED`) and selecting conveyor shows details.
+- Run Parts tester:
+  - ID mode: submit with `ttl` or `expirationTime`
+  - foreach mode: check `Foreach`, verify ID disables
+  - verify `Submit and watch` creates/updates watcher tag
 - Run Static Parts tester:
-  - create/update with value and verify placement response
+  - create/update with value and verify response event appears in Output dock
   - delete with `delete=true` and verify value is not required
 - Run Commands tester:
-  - ID mode: `cancel`, `peek`, `peekId`, `reschedule` (with timing), `create`
-  - foreach mode: verify unsupported command buttons are disabled
+  - ID mode: `create`, `peek`, `peekId`, `reschedule`, `addProperties`, `completeExceptionally`
+  - foreach mode: verify `create` disabled and other operations available per rules
   - verify `peek`/`peekId` require `requestTTL`
   - verify `ADD PROPERTIES` is disabled without properties
+- Watch flow:
+  - start conveyor-level watch via tree `Watch` button
+  - confirm websocket watch events appear in Watchers panel and Output dock
+  - confirm `PING` updates elapsed timer but does not add timeline entries
+  - cancel watch with tag `X` and verify removal
+- Output dock flow:
+  - close and reopen dock
+  - close/reopen per-source output tabs via new events
+  - verify timeline navigation (`Prev`, `Next`, `See all`, `Clear events`)
+  - verify watch/conveyor cache limits trim oldest events
 - Upload a valid conveyor jar and confirm new conveyor appears
 - Check `/swagger-ui/index.html` and `/v3/api-docs`

@@ -352,7 +352,7 @@
       buttons.forEach(function (button) {
         const op = button.getAttribute('data-op');
         let disabled = false;
-        if (forEachEnabled && (op === 'completeExceptionally' || op === 'create')) {
+        if (forEachEnabled && op === 'create') {
           disabled = true;
         }
         if (op === 'addProperties' && !hasProperties) {

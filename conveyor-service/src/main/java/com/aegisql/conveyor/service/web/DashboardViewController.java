@@ -231,6 +231,30 @@ public class DashboardViewController {
         }
     }
 
+    @PostMapping("/dashboard/watch")
+    public String watchConveyor(
+            @RequestParam("name") String name,
+            @RequestParam(name = "watchLimit", required = false) String watchLimit,
+            @RequestParam(name = "tab", required = false) String tab,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            if (!dashboardService.isTopLevelConveyor(name)) {
+                throw new IllegalArgumentException("Watch is available only for top-level conveyors");
+            }
+            Integer watchLimitValue = parseOptionalPositiveInt("watchLimit", watchLimit);
+            String username = authenticatedUsername(authentication);
+            conveyorWatchService.registerWatch(username, name, null, true, watchLimitValue);
+            redirectAttributes.addFlashAttribute("message", "Watch started for " + name);
+        } catch (Throwable t) {
+            redirectAttributes.addFlashAttribute("error", safeError(t));
+        }
+        redirectAttributes.addAttribute("name", name);
+        redirectAttributes.addAttribute("tab", normalizeTab(tab));
+        return "redirect:/dashboard";
+    }
+
     @PostMapping("/dashboard/test/place")
     public String placeTestPart(
             @RequestParam("name") String name,

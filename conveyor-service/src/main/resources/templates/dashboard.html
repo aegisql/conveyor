@@ -7,7 +7,7 @@
     <link rel="stylesheet"
           th:href="@{/webjars/prismjs/1.30.0/themes/prism.min.css}"
           href="/webjars/prismjs/1.30.0/themes/prism.min.css"/>
-    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260215d')}" href="/css/dashboard.css?v=20260215d"/>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260215f')}" href="/css/dashboard.css?v=20260215f"/>
 </head>
 <body>
 <div class="scene-bg"></div>
@@ -37,16 +37,29 @@
     <main class="grid">
         <aside class="card tree-card">
             <div class="card-title-row">
-                <h2>Conveyor Tree</h2>
-                <a class="action-link-button secondary-button small-button"
-                   th:href="@{/dashboard(name=${selectedName},tab=${activeTab})}">Refresh</a>
+                <h2>Conveyors</h2>
+                <div class="tree-actions">
+                    <a class="action-link-button small-button refresh-button"
+                       th:href="@{/dashboard(name=${selectedName},tab=${activeTab})}">Refresh</a>
+                    <form class="tree-watch-form tab-preserve-form" th:action="@{/dashboard/watch}" method="post">
+                        <input type="hidden" name="name" th:value="${selectedName}"/>
+                        <input type="hidden" name="tab" th:value="${activeTab}"/>
+                        <input type="hidden" name="watchLimit" class="watch-limit-hidden"
+                               th:value="${watchHistoryLimitDefault}"/>
+                        <button type="submit" class="small-button refresh-button"
+                                th:disabled="${selectedName == null or selected['topLevel'] != true}"
+                                th:attr="title=${selectedName == null ? 'Select conveyor first' : (selected['topLevel'] == true ? 'Watch all IDs for this conveyor' : 'Watch is available for top-level conveyors only')}">
+                            Watch
+                        </button>
+                    </form>
+                </div>
             </div>
             <div id="tree" class="tree"></div>
 
             <section class="watch-panel" aria-label="Result watchers">
                 <div class="card-title-row">
                     <h3>Watchers</h3>
-                    <button id="watch-refresh" type="button" class="secondary-button small-button">Refresh</button>
+                    <button id="watch-refresh" type="button" class="small-button refresh-button">Refresh</button>
                 </div>
                 <p class="meta">Tags are gray while waiting and turn green when a result or scrap arrives.</p>
                 <div id="watch-tags" class="watch-tags">
@@ -239,15 +252,7 @@
                      th:classappend="${activeTab == 'tab-tester'} ? ' active'"
                      th:attr="hidden=${activeTab == 'tab-tester'} ? null : 'hidden'">
                 <div th:if="${selectedName}">
-                    <div class="tester-title-row">
-                        <h3>Parts</h3>
-                        <label class="inline-check" for="test-watch-results" th:if="${selected['topLevel']}">
-                            <input id="test-watch-results" type="checkbox" name="watchResults" value="true"
-                                   form="parts-test-form"
-                                   th:checked="${testRequest != null and testRequest['watchResults'] == true}"/>
-                            <span>Watch results</span>
-                        </label>
-                    </div>
+                    <h3>Parts</h3>
                     <p class="meta" th:if="${selected['topLevel']}">
                         For tests, provide at least <code>ttl</code> or <code>expirationTime</code>.
                     </p>
@@ -359,7 +364,10 @@
                             </div>
                         </section>
 
-                        <button type="submit">Submit</button>
+                        <div class="tester-submit-actions">
+                            <button type="submit">Submit</button>
+                            <button type="submit" name="watchResults" value="true" class="secondary-button">Submit and watch</button>
+                        </div>
                     </form>
 
                 </div>
@@ -482,30 +490,20 @@
                             <span>Watch results</span>
                         </label>
                     </div>
-                    <p class="meta">
-                        For command execution, provide an <code>ID</code> or enable <code>Foreach</code>.
-                        <code>peek</code> and <code>peekId</code> require <code>requestTTL</code>.
-                        <code>reschedule</code> requires <code>ttl</code> or <code>expirationTime</code>.
-                    </p>
 
                     <form id="command-test-form" th:action="@{/dashboard/test/command}" method="post" class="stack-form tester-form tab-preserve-form">
                         <input type="hidden" name="name" th:value="${selectedName}"/>
                         <input type="hidden" name="tab" value="tab-commands"/>
                         <input type="hidden" name="watchLimit" class="watch-limit-hidden"
                                th:value="${commandTestRequest != null ? commandTestRequest['watchLimit'] : watchHistoryLimitDefault}"/>
-                        <div class="tester-grid tester-grid-primary">
+                        <div class="tester-grid tester-grid-primary command-primary-grid">
                             <div class="field-group tester-slot-id">
                                 <label for="command-id">ID</label>
                                 <input id="command-id" type="text" name="id" placeholder="e.g. user-42"
                                        th:attr="disabled=${commandTestRequest != null and commandTestRequest['foreach'] == true} ? 'disabled' : null, required=${commandTestRequest == null or commandTestRequest['foreach'] != true} ? 'required' : null"
                                        th:value="${commandTestRequest != null ? commandTestRequest['id'] : ''}"/>
                             </div>
-                            <div class="field-group tester-slot-request">
-                                <label for="command-request-ttl">Request TTL</label>
-                                <input id="command-request-ttl" type="text" name="requestTTL" placeholder="wait time, e.g. 3 SECONDS"
-                                       th:value="${commandTestRequest != null ? commandTestRequest['requestTTL'] : ''}"/>
-                            </div>
-                            <div class="field-group field-group-checkbox tester-slot-foreach">
+                            <div class="field-group field-group-checkbox command-slot-foreach-inline">
                                 <label class="inline-check" for="command-foreach">
                                     <input id="command-foreach" type="checkbox" name="foreach" value="true"
                                            th:checked="${commandTestRequest != null and commandTestRequest['foreach'] == true}"/>
@@ -515,11 +513,10 @@
                         </div>
 
                         <div class="field-group full-width">
-                            <label for="command-body">Command Body</label>
+                            <label for="command-body">Exception Message</label>
                             <textarea id="command-body" name="body" rows="5"
-                                      placeholder="Used by completeExceptionally (message text)"
+                                      placeholder="Exception message for completeExceptionally"
                                       th:text="${commandTestRequest != null ? commandTestRequest['body'] : ''}"></textarea>
-                            <p class="meta">Body is used only for <code>completeExceptionally</code>.</p>
                         </div>
 
                         <div class="tester-grid">
@@ -537,6 +534,11 @@
                                 <label for="command-creation">Creation Time</label>
                                 <input id="command-creation" type="text" name="creationTime" placeholder="epoch ms or ISO datetime"
                                        th:value="${commandTestRequest != null ? commandTestRequest['creationTime'] : ''}"/>
+                            </div>
+                            <div class="field-group">
+                                <label for="command-request-ttl">Request TTL</label>
+                                <input id="command-request-ttl" type="text" name="requestTTL" placeholder="wait time, e.g. 3 SECONDS"
+                                       th:value="${commandTestRequest != null ? commandTestRequest['requestTTL'] : ''}"/>
                             </div>
                         </div>
 
@@ -588,8 +590,7 @@
                                     <button type="submit" name="operation" value="timeout" class="command-op-button" data-op="timeout">
                                         TIMEOUT
                                     </button>
-                                    <button type="submit" name="operation" value="completeExceptionally" class="command-op-button" data-op="completeExceptionally"
-                                            th:attr="disabled=${commandTestRequest != null and commandTestRequest['foreach'] == true} ? 'disabled' : null">
+                                    <button type="submit" name="operation" value="completeExceptionally" class="command-op-button" data-op="completeExceptionally">
                                         COMPLETE EXCEPTIONALLY
                                     </button>
                                 </div>
@@ -699,6 +700,6 @@
         th:utext="${dashboardOutputEventJson}"></script>
 <script th:src="@{/webjars/prismjs/1.30.0/components/prism-core.min.js}" src="/webjars/prismjs/1.30.0/components/prism-core.min.js"></script>
 <script th:src="@{/webjars/prismjs/1.30.0/components/prism-json.min.js}" src="/webjars/prismjs/1.30.0/components/prism-json.min.js"></script>
-<script th:src="@{/js/dashboard.js(v='20260215h')}" src="/js/dashboard.js?v=20260215h"></script>
+<script th:src="@{/js/dashboard.js(v='20260215i')}" src="/js/dashboard.js?v=20260215i"></script>
 </body>
 </html>
