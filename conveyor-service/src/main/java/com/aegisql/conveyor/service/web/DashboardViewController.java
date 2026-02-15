@@ -68,8 +68,8 @@ public class DashboardViewController {
         this.commandService = commandService;
         this.conveyorWatchService = conveyorWatchService;
         this.objectMapper = objectMapper;
-        this.watchHistoryLimitDefault = Math.max(1, Math.min(500, watchHistoryLimitDefault));
-        this.conveyorHistoryLimitDefault = Math.max(1, Math.min(500, conveyorHistoryLimitDefault));
+        this.watchHistoryLimitDefault = Math.max(1, watchHistoryLimitDefault);
+        this.conveyorHistoryLimitDefault = Math.max(1, conveyorHistoryLimitDefault);
     }
 
     @GetMapping("/")

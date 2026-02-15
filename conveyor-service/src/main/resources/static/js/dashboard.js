@@ -13,7 +13,6 @@
   const OUTPUT_MAX_FONT_SIZE = 24;
   const OUTPUT_DEFAULT_FONT_SIZE = 12;
   const WATCH_HISTORY_MIN_LIMIT = 1;
-  const WATCH_HISTORY_MAX_LIMIT = 500;
   const WATCH_HISTORY_DEFAULT_LIMIT = 100;
 
   function initTabs() {
@@ -547,7 +546,7 @@
       if (!Number.isFinite(numeric)) {
         return WATCH_HISTORY_DEFAULT_LIMIT;
       }
-      return Math.min(Math.max(Math.round(numeric), WATCH_HISTORY_MIN_LIMIT), WATCH_HISTORY_MAX_LIMIT);
+      return Math.max(Math.round(numeric), WATCH_HISTORY_MIN_LIMIT);
     }
 
     const defaultWatchHistoryLimit = clampWatchHistoryLimit(
@@ -1581,7 +1580,7 @@
       if (!Number.isFinite(numeric)) {
         return outputDock.getWatchHistoryLimit();
       }
-      return Math.min(Math.max(Math.round(numeric), WATCH_HISTORY_MIN_LIMIT), WATCH_HISTORY_MAX_LIMIT);
+      return Math.max(Math.round(numeric), WATCH_HISTORY_MIN_LIMIT);
     }
 
     function parseTime(value) {

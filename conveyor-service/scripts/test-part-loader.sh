@@ -2,25 +2,127 @@
 set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:8080}"
-CONVEYOR="${1:-collector}"
-ID="${2:-$(date +%s)}"
+CONVEYOR="${CONVEYOR:-collector}"
+SINGLE_ID="${ID:-}"
 TTL="${TTL:-1 SECONDS}"
 REQUEST_TTL="${REQUEST_TTL:-100}"
 REST_USER="${REST_USER:-rest}"
 REST_PASSWORD="${REST_PASSWORD:-rest}"
 AUTH_MODE="${AUTH_MODE:-session}" # session | basic
-COOKIE_JAR="$(mktemp -t conveyor-service-cookies.XXXXXX)"
+INPUT_FILE=""
+SHUFFLE=false
 
+conveyor_set=false
+id_set=false
+
+COOKIE_JAR="$(mktemp -t conveyor-service-cookies.XXXXXX)"
 trap 'rm -f "$COOKIE_JAR"' EXIT
 
-if ! [[ "$ID" =~ ^[0-9]+$ ]]; then
-  echo "ID must be a number. Received: $ID" >&2
+usage() {
+  cat <<'USAGE'
+Usage:
+  test-part-loader.sh [conveyor] [id]
+  test-part-loader.sh [options]
+
+Options:
+  --conveyor <name>   Conveyor name (default: collector)
+  --id <number>       Single numeric ID for fixed 3-step flow (USER/ADDRESS/DONE)
+  --file <path>       Play pipe-delimited file with rows: ID|LABEL|BODY
+  --shuffle           Randomize order of file rows before sending
+  -h, --help          Show help
+
+Notes:
+  - If --file is set, single fixed flow is skipped and file rows are used.
+  - Backward-compatible positional mode is still supported: [conveyor] [id].
+USAGE
+}
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --conveyor)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for --conveyor" >&2
+        exit 1
+      fi
+      CONVEYOR="$2"
+      conveyor_set=true
+      shift 2
+      ;;
+    --id)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for --id" >&2
+        exit 1
+      fi
+      SINGLE_ID="$2"
+      id_set=true
+      shift 2
+      ;;
+    --file)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for --file" >&2
+        exit 1
+      fi
+      INPUT_FILE="$2"
+      shift 2
+      ;;
+    --shuffle)
+      SHUFFLE=true
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      while [[ $# -gt 0 ]]; do
+        POSITIONAL+=("$1")
+        shift
+      done
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      usage
+      exit 1
+      ;;
+    *)
+      POSITIONAL+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [[ ${#POSITIONAL[@]} -gt 0 && "$conveyor_set" == false ]]; then
+  CONVEYOR="${POSITIONAL[0]}"
+fi
+if [[ ${#POSITIONAL[@]} -gt 1 && "$id_set" == false ]]; then
+  SINGLE_ID="${POSITIONAL[1]}"
+fi
+if [[ ${#POSITIONAL[@]} -gt 2 ]]; then
+  echo "Too many positional arguments. Expected at most: [conveyor] [id]" >&2
+  usage
   exit 1
 fi
 
 if [[ "$AUTH_MODE" != "session" && "$AUTH_MODE" != "basic" ]]; then
   echo "AUTH_MODE must be 'session' or 'basic'. Received: $AUTH_MODE" >&2
   exit 1
+fi
+
+if [[ -n "$INPUT_FILE" ]]; then
+  if [[ ! -f "$INPUT_FILE" ]]; then
+    echo "Input file not found: $INPUT_FILE" >&2
+    exit 1
+  fi
+else
+  if [[ -z "$SINGLE_ID" ]]; then
+    SINGLE_ID="$(date +%s)"
+  fi
+  if ! [[ "$SINGLE_ID" =~ ^[0-9]+$ ]]; then
+    echo "ID must be a number. Received: $SINGLE_ID" >&2
+    exit 1
+  fi
 fi
 
 urlencode() {
@@ -93,12 +195,18 @@ perform_post() {
 }
 
 post_part() {
-  local label="$1"
-  local body="$2"
+  local id="$1"
+  local label="$2"
+  local body="$3"
   local query url response status response_body
 
+  if ! [[ "$id" =~ ^[0-9]+$ ]]; then
+    echo "ID must be numeric. Received: $id" >&2
+    exit 1
+  fi
+
   query="ttl=$(urlencode "$TTL")&requestTTL=$(urlencode "$REQUEST_TTL")"
-  url="${BASE_URL}/part/${CONVEYOR}/${ID}/${label}?${query}"
+  url="${BASE_URL}/part/${CONVEYOR}/${id}/${label}?${query}"
 
   echo "POST ${url}"
   echo "Body: ${body}"
@@ -118,18 +226,76 @@ post_part() {
   fi
 
   if [[ -z "$status" || "$status" -ge 400 ]]; then
-    echo "Request failed for label ${label}" >&2
+    echo "Request failed for ID=${id}, label=${label}" >&2
     exit 1
   fi
+}
+
+declare -a FILE_RECORDS=()
+
+load_file_records() {
+  local line raw_id raw_label raw_body line_no=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line_no=$((line_no + 1))
+    line="${line%$'\r'}"
+    [[ -z "${line//[[:space:]]/}" ]] && continue
+    [[ "$line" == "ID|LABEL|BODY" ]] && continue
+
+    IFS='|' read -r raw_id raw_label raw_body <<< "$line"
+    if [[ -z "${raw_id:-}" || -z "${raw_label:-}" || -z "${raw_body:-}" ]]; then
+      echo "Invalid record at ${INPUT_FILE}:${line_no}. Expected format: ID|LABEL|BODY" >&2
+      exit 1
+    fi
+    if ! [[ "$raw_id" =~ ^[0-9]+$ ]]; then
+      echo "Invalid numeric ID at ${INPUT_FILE}:${line_no}: ${raw_id}" >&2
+      exit 1
+    fi
+
+    FILE_RECORDS+=("${raw_id}|${raw_label}|${raw_body}")
+  done < "$INPUT_FILE"
+
+  if [[ ${#FILE_RECORDS[@]} -eq 0 ]]; then
+    echo "No records found in input file: $INPUT_FILE" >&2
+    exit 1
+  fi
+}
+
+shuffle_file_records() {
+  local i j tmp
+  for ((i = ${#FILE_RECORDS[@]} - 1; i > 0; i--)); do
+    j=$((RANDOM % (i + 1)))
+    tmp="${FILE_RECORDS[$i]}"
+    FILE_RECORDS[$i]="${FILE_RECORDS[$j]}"
+    FILE_RECORDS[$j]="$tmp"
+  done
+}
+
+play_file_records() {
+  local record id label body
+  for record in "${FILE_RECORDS[@]}"; do
+    IFS='|' read -r id label body <<< "$record"
+    post_part "$id" "$label" "$body"
+  done
 }
 
 if [[ "$AUTH_MODE" == "session" ]]; then
   login_session
 fi
 
-post_part "USER" '{"name":"John D"}'
-post_part "ADDRESS" '{"zip_code":"11111"}'
-post_part "DONE" '{}'
+if [[ -n "$INPUT_FILE" ]]; then
+  load_file_records
+  if [[ "$SHUFFLE" == true ]]; then
+    shuffle_file_records
+  fi
 
-echo "Sent 3 part-loader messages to conveyor '${CONVEYOR}' with ID=${ID}."
-echo "ttl='${TTL}', requestTTL='${REQUEST_TTL}'"
+  play_file_records
+  echo "Sent ${#FILE_RECORDS[@]} part-loader records to conveyor '${CONVEYOR}' from file '${INPUT_FILE}'."
+  echo "shuffle=${SHUFFLE}, ttl='${TTL}', requestTTL='${REQUEST_TTL}'"
+else
+  post_part "$SINGLE_ID" "USER" '{"name":"John D"}'
+  post_part "$SINGLE_ID" "ADDRESS" '{"zip_code":"11111"}'
+  post_part "$SINGLE_ID" "DONE" '{}'
+
+  echo "Sent 3 part-loader messages to conveyor '${CONVEYOR}' with ID=${SINGLE_ID}."
+  echo "ttl='${TTL}', requestTTL='${REQUEST_TTL}'"
+fi
