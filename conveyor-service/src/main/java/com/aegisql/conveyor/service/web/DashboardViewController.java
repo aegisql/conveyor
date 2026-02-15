@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.http.HttpStatus;
@@ -48,6 +49,8 @@ public class DashboardViewController {
     private final CommandService commandService;
     private final ConveyorWatchService conveyorWatchService;
     private final ObjectMapper objectMapper;
+    private final int watchHistoryLimitDefault;
+    private final int conveyorHistoryLimitDefault;
 
     public DashboardViewController(
             DashboardService dashboardService,
@@ -55,7 +58,9 @@ public class DashboardViewController {
             StaticPartService staticPartService,
             CommandService commandService,
             ConveyorWatchService conveyorWatchService,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            @Value("${conveyor.service.dashboard.default-watch-history-limit:100}") int watchHistoryLimitDefault,
+            @Value("${conveyor.service.dashboard.default-conveyor-history-limit:100}") int conveyorHistoryLimitDefault
     ) {
         this.dashboardService = dashboardService;
         this.placementService = placementService;
@@ -63,6 +68,8 @@ public class DashboardViewController {
         this.commandService = commandService;
         this.conveyorWatchService = conveyorWatchService;
         this.objectMapper = objectMapper;
+        this.watchHistoryLimitDefault = Math.max(1, Math.min(500, watchHistoryLimitDefault));
+        this.conveyorHistoryLimitDefault = Math.max(1, Math.min(500, conveyorHistoryLimitDefault));
     }
 
     @GetMapping("/")
@@ -95,11 +102,17 @@ public class DashboardViewController {
         model.addAttribute("systemErrors", dashboardService.drainLoaderErrors());
         model.addAttribute("username", authentication == null ? "" : authentication.getName());
         model.addAttribute("isAdmin", hasRole(authentication, "ROLE_DASHBOARD_ADMIN"));
+        model.addAttribute("watchHistoryLimitDefault", watchHistoryLimitDefault);
+        model.addAttribute("conveyorHistoryLimitDefault", conveyorHistoryLimitDefault);
+        if (model.containsAttribute("dashboardOutputEvent")) {
+            model.addAttribute("dashboardOutputEventJson",
+                    objectMapper.writeValueAsString(model.asMap().get("dashboardOutputEvent")));
+        }
         if (!model.containsAttribute("testRequest")) {
             model.addAttribute("testRequest", Map.of(
                     "foreach", false,
                     "watchResults", false,
-                    "watchLimit", "100",
+                    "watchLimit", String.valueOf(watchHistoryLimitDefault),
                     "extraProperties", List.of()
             ));
         }
@@ -111,7 +124,7 @@ public class DashboardViewController {
                     "foreach", false,
                     "operation", "cancel",
                     "watchResults", false,
-                    "watchLimit", "100",
+                    "watchLimit", String.valueOf(watchHistoryLimitDefault),
                     "extraProperties", List.of()
             ));
         }
@@ -290,8 +303,8 @@ public class DashboardViewController {
                         requestParams
                 );
             }
-            redirectAttributes.addFlashAttribute("testResultSummaryLine",
-                    buildResultSummaryLine(HttpStatus.OK.value(), result, elapsedMillis(startedNanos)));
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent",
+                    buildConveyorOutputEvent(name, HttpStatus.OK.value(), result, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("message", "Part test submitted");
             redirectAttributes.addFlashAttribute("testRequest",
                     buildTestRequest(
@@ -317,8 +330,8 @@ public class DashboardViewController {
                 conveyorWatchService.cancelWatch(username, name, id, forEach);
             }
             LOG.error("Part loader dashboard test failed for conveyor={} label={} foreach={}", name, label, forEach, t);
-            redirectAttributes.addFlashAttribute("testResultSummaryLine",
-                    buildErrorSummaryLine(t, elapsedMillis(startedNanos)));
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent",
+                    buildConveyorErrorOutputEvent(name, t, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("error", safeError(t));
             redirectAttributes.addFlashAttribute("testRequest",
                     buildTestRequest(
@@ -377,8 +390,8 @@ public class DashboardViewController {
                     resolveBodyBytes(requestBody, bodyFile),
                     requestParams
             );
-            redirectAttributes.addFlashAttribute("staticTestResultSummaryLine",
-                    buildResultSummaryLine(HttpStatus.OK.value(), result, elapsedMillis(startedNanos)));
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent",
+                    buildConveyorOutputEvent(name, HttpStatus.OK.value(), result, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("message", "Static part test submitted");
             redirectAttributes.addFlashAttribute("staticTestRequest",
                     buildStaticTestRequest(label, contentType, deleteMode, requestBody, priority, requestTtl, extraRows));
@@ -387,8 +400,8 @@ public class DashboardViewController {
             return "redirect:/dashboard";
         } catch (Throwable t) {
             LOG.error("Static part dashboard test failed for conveyor={} label={} delete={}", name, label, deleteMode, t);
-            redirectAttributes.addFlashAttribute("staticTestResultSummaryLine",
-                    buildErrorSummaryLine(t, elapsedMillis(startedNanos)));
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent",
+                    buildConveyorErrorOutputEvent(name, t, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("error", safeError(t));
             redirectAttributes.addFlashAttribute("staticTestRequest",
                     buildStaticTestRequest(label, contentType, deleteMode, requestBody, priority, requestTtl, extraRows));
@@ -424,6 +437,7 @@ public class DashboardViewController {
         String requestBody = safeString(body);
         String username = null;
         boolean watchRegistered = false;
+        long startedNanos = System.nanoTime();
         try {
             Map<String, String> requestParams = new HashMap<>();
             putIfText(requestParams, "ttl", ttl);
@@ -456,8 +470,8 @@ public class DashboardViewController {
                 );
             }
 
-            redirectAttributes.addFlashAttribute("commandTestResultJson",
-                    objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent",
+                    buildConveyorOutputEvent(name, HttpStatus.OK.value(), result, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("message", "Command submitted");
             redirectAttributes.addFlashAttribute("commandTestRequest",
                     buildCommandTestRequest(
@@ -481,6 +495,8 @@ public class DashboardViewController {
                 conveyorWatchService.cancelWatch(username, name, id, forEach);
             }
             LOG.error("Command dashboard test failed for conveyor={} id={} command={} foreach={}", name, id, operation, forEach, t);
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent",
+                    buildConveyorErrorOutputEvent(name, t, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("error", safeError(t));
             redirectAttributes.addFlashAttribute("commandTestRequest",
                     buildCommandTestRequest(
@@ -542,7 +558,7 @@ public class DashboardViewController {
         request.put("id", safeString(id));
         request.put("foreach", forEach);
         request.put("watchResults", watchResults);
-        request.put("watchLimit", StringUtils.hasText(watchLimit) ? watchLimit.trim() : "100");
+        request.put("watchLimit", StringUtils.hasText(watchLimit) ? watchLimit.trim() : String.valueOf(watchHistoryLimitDefault));
         request.put("label", safeString(label));
         request.put("contentType", safeString(contentType));
         request.put("body", safeString(body));
@@ -592,7 +608,7 @@ public class DashboardViewController {
         request.put("id", safeString(id));
         request.put("foreach", forEach);
         request.put("watchResults", watchResults);
-        request.put("watchLimit", StringUtils.hasText(watchLimit) ? watchLimit.trim() : "100");
+        request.put("watchLimit", StringUtils.hasText(watchLimit) ? watchLimit.trim() : String.valueOf(watchHistoryLimitDefault));
         request.put("operation", safeString(operation));
         request.put("body", safeString(body));
         request.put("ttl", safeString(ttl));
@@ -672,34 +688,104 @@ public class DashboardViewController {
         return Math.max(0L, (System.nanoTime() - startedNanos) / 1_000_000L);
     }
 
-    private String buildResultSummaryLine(int httpStatus, PlacementResult<?> result, long responseMillis) {
+    private Map<String, Object> buildConveyorOutputEvent(
+            String conveyorName,
+            int httpStatus,
+            PlacementResult<?> result,
+            long responseMillis
+    ) {
         Object resultValue = result == null ? null : result.getResult();
-        String status = result == null || result.getStatus() == null ? "UNKNOWN" : result.getStatus().name();
+        String placementStatus = result == null || result.getStatus() == null ? "UNKNOWN" : result.getStatus().name();
         String errorCode = result == null ? null : result.getErrorCode();
         String errorMessage = result == null ? null : result.getErrorMessage();
-        boolean failed = result == null || !result.isSuccess() || Boolean.FALSE.equals(resultValue);
-        return buildSummaryLine(
+
+        Map<String, Object> status = buildStatusPayload(
                 httpStatus,
                 resultValue,
-                status,
-                failed ? errorCode : null,
-                failed ? errorMessage : null,
+                placementStatus,
+                errorCode,
+                errorMessage,
                 responseMillis
+        );
+        return buildOutputEvent(
+                "conveyor",
+                conveyorName,
+                conveyorName,
+                status,
+                toJsonCompatible(result)
         );
     }
 
-    private String buildErrorSummaryLine(Throwable throwable, long responseMillis) {
+    private Map<String, Object> buildConveyorErrorOutputEvent(
+            String conveyorName,
+            Throwable throwable,
+            long responseMillis
+    ) {
         Throwable cause = rootCause(throwable);
         HttpStatus httpStatus = mapHttpStatus(cause);
         String placementStatus = httpStatus.is4xxClientError() ? "REJECTED" : "FAILED";
-        return buildSummaryLine(
+        String errorCode = mapErrorCode(cause);
+        String errorMessage = safeError(cause);
+
+        Map<String, Object> status = buildStatusPayload(
                 httpStatus.value(),
                 Boolean.FALSE,
                 placementStatus,
-                mapErrorCode(cause),
-                safeError(cause),
+                errorCode,
+                errorMessage,
                 responseMillis
         );
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("exceptionClass", cause.getClass().getName());
+        payload.put("message", errorMessage);
+
+        return buildOutputEvent("conveyor", conveyorName, conveyorName, status, payload);
+    }
+
+    private Map<String, Object> buildStatusPayload(
+            int httpStatus,
+            Object result,
+            String status,
+            String errorCode,
+            String errorMessage,
+            long responseMillis
+    ) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("httpStatus", httpStatus);
+        payload.put("result", toJsonCompatible(result));
+        payload.put("status", StringUtils.hasText(status) ? status : "UNKNOWN");
+        payload.put("errorCode", errorCode);
+        payload.put("errorMessage", errorMessage);
+        payload.put("responseTime", formatDuration(responseMillis));
+        payload.put("summaryLine", buildSummaryLine(httpStatus, result, status, errorCode, errorMessage, responseMillis));
+        return payload;
+    }
+
+    private Map<String, Object> buildOutputEvent(
+            String sourceType,
+            String sourceKey,
+            String title,
+            Map<String, Object> status,
+            Object payload
+    ) {
+        Map<String, Object> event = new LinkedHashMap<>();
+        event.put("sourceType", sourceType);
+        event.put("sourceKey", sourceKey);
+        event.put("title", title);
+        event.put("status", status);
+        event.put("payload", payload);
+        return event;
+    }
+
+    private Object toJsonCompatible(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return objectMapper.convertValue(value, Object.class);
+        } catch (IllegalArgumentException ex) {
+            return String.valueOf(value);
+        }
     }
 
     private String buildSummaryLine(

@@ -21,10 +21,13 @@ management:
 conveyor:
   service:
     upload-dir: ./upload
+    dashboard:
+      default-watch-history-limit: 100
+      default-conveyor-history-limit: 100
 
 logging:
   level:
-    com.aegisql.conveyor: INFO
+    com.aegisql.conveyor: DEBUG
 
 ---
 spring:

@@ -7,7 +7,7 @@
     <link rel="stylesheet"
           th:href="@{/webjars/prismjs/1.30.0/themes/prism.min.css}"
           href="/webjars/prismjs/1.30.0/themes/prism.min.css"/>
-    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260214d')}" href="/css/dashboard.css?v=20260214d"/>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260215d')}" href="/css/dashboard.css?v=20260215d"/>
 </head>
 <body>
 <div class="scene-bg"></div>
@@ -52,22 +52,16 @@
                 <div id="watch-tags" class="watch-tags">
                     <p class="meta">No active watches.</p>
                 </div>
-
-                <div id="watch-details" class="watch-details" hidden>
-                    <div class="watch-details-header">
-                        <h4 id="watch-details-title">Watch details</h4>
-                        <button id="watch-cancel" type="button" class="danger small-button">Cancel Watch</button>
-                    </div>
-                    <p id="watch-details-status" class="meta">Waiting for events.</p>
-                    <pre class="json-result"><code id="watch-details-json" class="language-json"></code></pre>
-                </div>
             </section>
         </aside>
 
         <section class="card workspace-card">
             <div class="card-title-row">
                 <h2>Conveyor Workspace</h2>
-                <span class="meta" th:text="${selectedName} ?: 'No conveyor selected'">No conveyor selected</span>
+                <div class="workspace-tools">
+                    <span class="meta" th:text="${selectedName} ?: 'No conveyor selected'">No conveyor selected</span>
+                    <button id="output-open-button" type="button" class="secondary-button small-button" hidden>Open Output</button>
+                </div>
             </div>
 
             <nav class="tabs" role="tablist" aria-label="Conveyor workspace tabs">
@@ -245,7 +239,15 @@
                      th:classappend="${activeTab == 'tab-tester'} ? ' active'"
                      th:attr="hidden=${activeTab == 'tab-tester'} ? null : 'hidden'">
                 <div th:if="${selectedName}">
-                    <h3>Parts</h3>
+                    <div class="tester-title-row">
+                        <h3>Parts</h3>
+                        <label class="inline-check" for="test-watch-results" th:if="${selected['topLevel']}">
+                            <input id="test-watch-results" type="checkbox" name="watchResults" value="true"
+                                   form="parts-test-form"
+                                   th:checked="${testRequest != null and testRequest['watchResults'] == true}"/>
+                            <span>Watch results</span>
+                        </label>
+                    </div>
                     <p class="meta" th:if="${selected['topLevel']}">
                         For tests, provide at least <code>ttl</code> or <code>expirationTime</code>.
                     </p>
@@ -253,63 +255,53 @@
                         Tester is available only for top-level conveyors (without enclosing conveyor).
                     </p>
 
-                    <form th:if="${selected['topLevel']}" th:action="@{/dashboard/test/place}" method="post" enctype="multipart/form-data" class="stack-form tester-form tab-preserve-form">
+                    <form id="parts-test-form" th:if="${selected['topLevel']}" th:action="@{/dashboard/test/place}" method="post" enctype="multipart/form-data" class="stack-form tester-form tab-preserve-form">
                         <input type="hidden" name="name" th:value="${selectedName}"/>
                         <input type="hidden" name="tab" value="tab-tester"/>
-                        <div class="tester-grid">
-                            <div class="field-group">
+                        <input type="hidden" name="watchLimit" class="watch-limit-hidden"
+                               th:value="${testRequest != null ? testRequest['watchLimit'] : watchHistoryLimitDefault}"/>
+                        <div class="tester-grid tester-grid-primary">
+                            <div class="field-group tester-slot-id">
                                 <label for="test-id">ID</label>
                                 <input id="test-id" type="text" name="id" placeholder="e.g. user-42"
                                        th:attr="disabled=${testRequest != null and testRequest['foreach'] == true} ? 'disabled' : null, required=${testRequest == null or testRequest['foreach'] != true} ? 'required' : null"
                                        th:value="${testRequest != null ? testRequest['id'] : ''}"/>
                             </div>
-                            <div class="field-group">
-                                <label for="test-foreach">Foreach</label>
-                                <label class="meta">
-                                    <input id="test-foreach" type="checkbox" name="foreach" value="true"
-                                           th:checked="${testRequest != null and testRequest['foreach'] == true}"/>
-                                    Foreach
-                                </label>
-                            </div>
-                            <div class="field-group">
-                                <label for="test-watch-results">Watch Results</label>
-                                <label class="meta">
-                                    <input id="test-watch-results" type="checkbox" name="watchResults" value="true"
-                                           th:checked="${testRequest != null and testRequest['watchResults'] == true}"/>
-                                    Watch results
-                                </label>
-                            </div>
-                            <div class="field-group">
-                                <label for="test-watch-limit">Watch Limit (foreach)</label>
-                                <input id="test-watch-limit" type="number" min="1" max="500" name="watchLimit" placeholder="100"
-                                       th:value="${testRequest != null ? testRequest['watchLimit'] : '100'}"/>
-                            </div>
-                            <div class="field-group">
+                            <div class="field-group tester-slot-label">
                                 <label for="test-label">Label</label>
                                 <input id="test-label" type="text" name="label" placeholder="e.g. FIRST_NAME" required
                                        th:value="${testRequest != null ? testRequest['label'] : ''}"/>
                             </div>
-                            <div class="field-group">
-                                <label for="test-content-type">Content Type</label>
-                                <select id="test-content-type" name="contentType" required>
-                                    <option value="application/json"
-                                            th:selected="${testRequest == null or testRequest['contentType'] == 'application/json'}">
-                                        application/json
-                                    </option>
-                                    <option value="text/plain"
-                                            th:selected="${testRequest != null and testRequest['contentType'] == 'text/plain'}">
-                                        text/plain
-                                    </option>
-                                    <option value="application/octet-stream"
-                                            th:selected="${testRequest != null and testRequest['contentType'] == 'application/octet-stream'}">
-                                        application/octet-stream
-                                    </option>
-                                </select>
+                            <div class="field-group field-group-checkbox tester-slot-foreach">
+                                <label class="inline-check" for="test-foreach">
+                                    <input id="test-foreach" type="checkbox" name="foreach" value="true"
+                                           th:checked="${testRequest != null and testRequest['foreach'] == true}"/>
+                                    <span>Foreach</span>
+                                </label>
                             </div>
                         </div>
 
                         <div class="field-group full-width">
-                            <label for="test-body">Body</label>
+                            <div class="body-header-row">
+                                <label for="test-body">Body</label>
+                                <div class="body-content-type">
+                                    <label for="test-content-type">Content Type</label>
+                                    <select id="test-content-type" name="contentType" required>
+                                        <option value="application/json"
+                                                th:selected="${testRequest == null or testRequest['contentType'] == 'application/json'}">
+                                            application/json
+                                        </option>
+                                        <option value="text/plain"
+                                                th:selected="${testRequest != null and testRequest['contentType'] == 'text/plain'}">
+                                            text/plain
+                                        </option>
+                                        <option value="application/octet-stream"
+                                                th:selected="${testRequest != null and testRequest['contentType'] == 'application/octet-stream'}">
+                                            application/octet-stream
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
                             <textarea id="test-body" name="body" rows="8" placeholder="Request body"
                                       th:text="${testRequest != null ? testRequest['body'] : ''}"></textarea>
                             <p class="meta">Live preview (syntax highlighted for JSON content type).</p>
@@ -370,10 +362,6 @@
                         <button type="submit">Submit</button>
                     </form>
 
-                    <div th:if="${testResultSummaryLine}">
-                        <h3>Placement Result</h3>
-                        <p class="result-summary" th:text="${testResultSummaryLine}"></p>
-                    </div>
                 </div>
                 <p class="meta" th:unless="${selectedName}">
                     Select a conveyor from the tree to test part placement.
@@ -475,10 +463,6 @@
                         <button type="submit">Submit</button>
                     </form>
 
-                    <div th:if="${staticTestResultSummaryLine}">
-                        <h3>Static Placement Result</h3>
-                        <p class="result-summary" th:text="${staticTestResultSummaryLine}"></p>
-                    </div>
                 </div>
                 <p class="meta" th:unless="${selectedName}">
                     Select a conveyor from the tree to test static part placement.
@@ -489,48 +473,44 @@
                      th:classappend="${activeTab == 'tab-commands'} ? ' active'"
                      th:attr="hidden=${activeTab == 'tab-commands'} ? null : 'hidden'">
                 <div th:if="${selectedName}">
-                    <h3>Command Loader Tester</h3>
+                    <div class="tester-title-row">
+                        <h3>Command Loader</h3>
+                        <label class="inline-check" for="command-watch-results">
+                            <input id="command-watch-results" type="checkbox" name="watchResults" value="true"
+                                   form="command-test-form"
+                                   th:checked="${commandTestRequest != null and commandTestRequest['watchResults'] == true}"/>
+                            <span>Watch results</span>
+                        </label>
+                    </div>
                     <p class="meta">
                         For command execution, provide an <code>ID</code> or enable <code>Foreach</code>.
                         <code>peek</code> and <code>peekId</code> require <code>requestTTL</code>.
                         <code>reschedule</code> requires <code>ttl</code> or <code>expirationTime</code>.
                     </p>
 
-                    <form th:action="@{/dashboard/test/command}" method="post" class="stack-form tester-form tab-preserve-form">
+                    <form id="command-test-form" th:action="@{/dashboard/test/command}" method="post" class="stack-form tester-form tab-preserve-form">
                         <input type="hidden" name="name" th:value="${selectedName}"/>
                         <input type="hidden" name="tab" value="tab-commands"/>
-                        <div class="tester-grid">
-                            <div class="field-group">
+                        <input type="hidden" name="watchLimit" class="watch-limit-hidden"
+                               th:value="${commandTestRequest != null ? commandTestRequest['watchLimit'] : watchHistoryLimitDefault}"/>
+                        <div class="tester-grid tester-grid-primary">
+                            <div class="field-group tester-slot-id">
                                 <label for="command-id">ID</label>
                                 <input id="command-id" type="text" name="id" placeholder="e.g. user-42"
                                        th:attr="disabled=${commandTestRequest != null and commandTestRequest['foreach'] == true} ? 'disabled' : null, required=${commandTestRequest == null or commandTestRequest['foreach'] != true} ? 'required' : null"
                                        th:value="${commandTestRequest != null ? commandTestRequest['id'] : ''}"/>
                             </div>
-                            <div class="field-group">
-                                <label for="command-foreach">Foreach</label>
-                                <label class="meta">
-                                    <input id="command-foreach" type="checkbox" name="foreach" value="true"
-                                           th:checked="${commandTestRequest != null and commandTestRequest['foreach'] == true}"/>
-                                    Foreach
-                                </label>
-                            </div>
-                            <div class="field-group">
-                                <label for="command-watch-results">Watch Results</label>
-                                <label class="meta">
-                                    <input id="command-watch-results" type="checkbox" name="watchResults" value="true"
-                                           th:checked="${commandTestRequest != null and commandTestRequest['watchResults'] == true}"/>
-                                    Watch results
-                                </label>
-                            </div>
-                            <div class="field-group">
-                                <label for="command-watch-limit">Watch Limit (foreach)</label>
-                                <input id="command-watch-limit" type="number" min="1" max="500" name="watchLimit" placeholder="100"
-                                       th:value="${commandTestRequest != null ? commandTestRequest['watchLimit'] : '100'}"/>
-                            </div>
-                            <div class="field-group">
+                            <div class="field-group tester-slot-request">
                                 <label for="command-request-ttl">Request TTL</label>
                                 <input id="command-request-ttl" type="text" name="requestTTL" placeholder="wait time, e.g. 3 SECONDS"
                                        th:value="${commandTestRequest != null ? commandTestRequest['requestTTL'] : ''}"/>
+                            </div>
+                            <div class="field-group field-group-checkbox tester-slot-foreach">
+                                <label class="inline-check" for="command-foreach">
+                                    <input id="command-foreach" type="checkbox" name="foreach" value="true"
+                                           th:checked="${commandTestRequest != null and commandTestRequest['foreach'] == true}"/>
+                                    <span>Foreach</span>
+                                </label>
                             </div>
                         </div>
 
@@ -617,10 +597,6 @@
                         </div>
                     </form>
 
-                    <div th:if="${commandTestResultJson}">
-                        <h3>Command Result</h3>
-                        <pre class="json-result"><code class="language-json" th:text="${commandTestResultJson}"></code></pre>
-                    </div>
                 </div>
                 <p class="meta" th:unless="${selectedName}">
                     Select a conveyor from the tree to execute commands.
@@ -659,11 +635,70 @@
             </section>
         </section>
     </main>
+
+    <section id="output-dock" class="card output-dock" hidden aria-label="Output area"
+             th:attr="data-default-watch-history-limit=${watchHistoryLimitDefault},data-default-conveyor-history-limit=${conveyorHistoryLimitDefault}">
+        <div id="output-resize-handle" class="output-resize-handle" role="separator" aria-orientation="horizontal"
+             aria-label="Resize output area"></div>
+        <div class="card-title-row output-title-row">
+            <h2>Output</h2>
+            <div class="output-controls">
+                <div class="output-control-group">
+                    <span class="meta">Font</span>
+                    <button id="output-font-decrease" type="button" class="secondary-button small-button">-</button>
+                    <span id="output-font-size-label" class="output-control-value">12px</span>
+                    <button id="output-font-increase" type="button" class="secondary-button small-button">+</button>
+                </div>
+                <div class="output-control-group">
+                    <span class="meta">Watch Cache</span>
+                    <input id="output-watch-limit" type="number" min="1" max="500" step="1"
+                           th:value="${watchHistoryLimitDefault}" value="100"/>
+                </div>
+                <div class="output-control-group">
+                    <span class="meta">Conveyor Cache</span>
+                    <input id="output-conveyor-limit" type="number" min="1" max="500" step="1"
+                           th:value="${conveyorHistoryLimitDefault}" value="100"/>
+                </div>
+                <div class="output-control-group output-jsonpath-group">
+                    <span class="meta">JSONPath</span>
+                    <input id="output-jsonpath" type="text" value="$.payload" placeholder="$.payload.result"/>
+                </div>
+                <button id="output-close-button" type="button" class="secondary-button small-button">X</button>
+            </div>
+        </div>
+        <div id="output-tab-list" class="output-tab-list" role="tablist" aria-label="Output tabs"></div>
+        <div id="output-empty" class="meta">No output yet.</div>
+        <section id="output-content" class="output-content" hidden>
+            <div class="output-content-layout">
+                <aside class="output-timeline-panel" aria-label="Event timeline">
+                    <div class="output-timeline-controls">
+                        <label class="inline-check" for="output-see-all">
+                            <input id="output-see-all" type="checkbox"/>
+                            <span>See all</span>
+                        </label>
+                        <div class="output-nav-group">
+                            <button id="output-prev-button" type="button" class="secondary-button small-button">Prev</button>
+                            <button id="output-next-button" type="button" class="secondary-button small-button">Next</button>
+                        </div>
+                        <button id="output-clear-button" type="button" class="secondary-button small-button">Clear events</button>
+                    </div>
+                    <div id="output-timeline-list" class="output-timeline-list"></div>
+                </aside>
+                <section class="output-event-panel" aria-label="Selected output event">
+                    <p id="output-status-line" class="output-status-line"></p>
+                    <pre class="json-result"><code id="output-json" class="language-json"></code></pre>
+                </section>
+            </div>
+        </section>
+    </section>
 </div>
 
 <script id="tree-data" type="application/json" th:utext="${treeJson}">{}</script>
+<script id="dashboard-output-event" type="application/json"
+        th:if="${dashboardOutputEventJson != null}"
+        th:utext="${dashboardOutputEventJson}"></script>
 <script th:src="@{/webjars/prismjs/1.30.0/components/prism-core.min.js}" src="/webjars/prismjs/1.30.0/components/prism-core.min.js"></script>
 <script th:src="@{/webjars/prismjs/1.30.0/components/prism-json.min.js}" src="/webjars/prismjs/1.30.0/components/prism-json.min.js"></script>
-<script th:src="@{/js/dashboard.js(v='20260214c')}" src="/js/dashboard.js?v=20260214c"></script>
+<script th:src="@{/js/dashboard.js(v='20260215h')}" src="/js/dashboard.js?v=20260215h"></script>
 </body>
 </html>
