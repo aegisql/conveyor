@@ -60,6 +60,8 @@ public class ConveyorMetaInfoBuilderTest {
         assertTrue(c.contains(Integer.class));
         assertTrue(c.contains(Long.class));
 
+        assertNull(metaInfo.getSupportedValueTypes("X"));
+
         System.out.println(ac.getGenericName());
         assertEquals("AssemblingConveyor<Integer,String,User>",ac.getGenericName());
     }
@@ -166,5 +168,64 @@ public class ConveyorMetaInfoBuilderTest {
         System.out.println(wrap);
         assertNotNull(metaInfo);
     }
+
+
+    @Test
+    public void regexpMetaInfoTest() {
+        AssemblingConveyor<Integer,String, User> ac = new AssemblingConveyor<>(){
+            @Override
+            public ConveyorMetaInfo<Integer, String, User> getMetaInfo() {
+                return ConveyorMetaInfoBuilder.of(this)
+                        .keyType(Integer.class)
+                        .labelType(String.class)
+                        .productType(User.class)
+                        .labels("A.*","B.*",".*")
+                        .builderSupplier(UserBuilder::new)
+                        .supportedTypes("A.*", String.class)
+                        .supportedTypes("B.*", String.class)
+                        .supportedTypes(".*", Long.class,Integer.class)
+                        .get();
+            }
+        };
+        ac.setName("MetaInfoTestConveyor");
+        ConveyorMetaInfo<Integer, String, User> metaInfo = ac.getMetaInfo();
+        System.out.println(metaInfo);
+        assertEquals(Integer.class,metaInfo.getKeyType());
+        assertEquals(String.class,metaInfo.getLabelType());
+        assertEquals(User.class,metaInfo.getProductType());
+        Set<String> labels = metaInfo.getLabels();
+        assertNotNull(labels);
+        assertEquals(3,labels.size());
+        assertTrue(labels.contains("A.*"));
+        assertTrue(labels.contains("B.*"));
+        assertTrue(labels.contains(".*"));
+
+        Set<Class<?>> a = metaInfo.getSupportedValueTypes("AAAA");
+        assertNotNull(a);
+        assertEquals(1,a.size());
+        assertTrue(a.contains(String.class));
+
+        Set<Class<?>> b = metaInfo.getSupportedValueTypes("BBB");
+        assertNotNull(b);
+        assertEquals(1,b.size());
+        assertTrue(b.contains(String.class));
+
+        Set<Class<?>> c = metaInfo.getSupportedValueTypes("C");
+        assertNotNull(c);
+        assertEquals(2,c.size());
+        assertTrue(c.contains(Integer.class));
+        assertTrue(c.contains(Long.class));
+
+
+        Set<Class<?>> x = metaInfo.getSupportedValueTypes("SOME");
+        assertNotNull(x);
+        assertEquals(2,x.size());
+        assertTrue(x.contains(Integer.class));
+        assertTrue(x.contains(Long.class));
+
+        System.out.println(ac.getGenericName());
+        assertEquals("AssemblingConveyor<Integer,String,User>",ac.getGenericName());
+    }
+
 
 }

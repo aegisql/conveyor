@@ -268,7 +268,7 @@ public class ValueConsumerTest {
 
 		StringBuilder sb = new StringBuilder();
 
-		lvc = lvc.<String>match("a+", v->{
+		lvc = lvc.identity().<String>match("a+", v->{
 			System.out.println("appending:"+v);
 			sb.append(v.toLowerCase());			
 		}).<String>match("z+", v->{

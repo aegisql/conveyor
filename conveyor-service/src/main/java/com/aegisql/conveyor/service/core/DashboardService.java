@@ -57,7 +57,7 @@ public class DashboardService {
         this.conveyorWatchService = conveyorWatchService;
         this.uploadDir = properties.getUploadDir().toAbsolutePath().normalize();
         try {
-            Files.createDirectories(this.uploadDir);
+            resolveUploadDir();
             refreshUploadsClassLoader();
             try {
                 loadUploadedConveyors();
@@ -232,6 +232,11 @@ public class DashboardService {
         Conveyor<?, ?, ?> conveyor = resolve(name);
         stopAndUnregister(conveyor);
         Conveyor.loadServices();
+        try {
+            refreshUploadsClassLoader();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot refresh upload directory: " + uploadDir, e);
+        }
         clearLoaderErrors();
         loadUploadedConveyors();
         conveyorWatchService.ensureKnownConveyorsHooked();
@@ -255,11 +260,11 @@ public class DashboardService {
         if (!safeName.endsWith(".jar")) {
             throw new IllegalArgumentException("Only .jar uploads are supported");
         }
-        Path target = uploadDir.resolve(safeName).normalize();
-        if (!target.startsWith(uploadDir)) {
+        Path resolvedUploadDir = resolveUploadDir();
+        Path target = resolvedUploadDir.resolve(safeName).normalize();
+        if (!target.startsWith(resolvedUploadDir)) {
             throw new IllegalArgumentException("Invalid target path");
         }
-        Files.createDirectories(uploadDir);
         try (var input = file.getInputStream()) {
             Files.copy(input, target, StandardCopyOption.REPLACE_EXISTING);
         }
@@ -390,7 +395,8 @@ public class DashboardService {
             uploadsClassLoader.close();
         }
         List<URL> urls = new ArrayList<>();
-        try (Stream<Path> stream = Files.list(uploadDir)) {
+        Path resolvedUploadDir = resolveUploadDir();
+        try (Stream<Path> stream = Files.list(resolvedUploadDir)) {
             stream.filter(Files::isRegularFile)
                     .filter(path -> path.getFileName().toString().endsWith(".jar"))
                     .sorted()
@@ -403,6 +409,13 @@ public class DashboardService {
                     });
         }
         uploadsClassLoader = new URLClassLoader(urls.toArray(new URL[0]), Thread.currentThread().getContextClassLoader());
+    }
+
+    private Path resolveUploadDir() throws IOException {
+        if (!Files.exists(uploadDir)) {
+            Files.createDirectories(uploadDir);
+        }
+        return uploadDir.toRealPath();
     }
 
     private void loadUploadedConveyors() {

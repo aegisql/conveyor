@@ -30,7 +30,7 @@ public class CountersAggregator implements Supplier<Map<String,Map<String,Intege
     }
 
     public void addNames(Collection<String> names) {
-        names.forEach(this::addName);
+        names.stream().filter(Objects::nonNull).map(s->s.trim()).forEach(this::addName);
     }
 
     @Override

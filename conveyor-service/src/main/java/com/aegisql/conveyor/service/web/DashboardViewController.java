@@ -51,6 +51,8 @@ public class DashboardViewController {
     private final ObjectMapper objectMapper;
     private final int watchHistoryLimitDefault;
     private final int conveyorHistoryLimitDefault;
+    private final String defaultTtlInputValue;
+    private final String defaultRequestTtlInputValue;
 
     public DashboardViewController(
             DashboardService dashboardService,
@@ -60,7 +62,9 @@ public class DashboardViewController {
             ConveyorWatchService conveyorWatchService,
             ObjectMapper objectMapper,
             @Value("${conveyor.service.dashboard.default-watch-history-limit:100}") int watchHistoryLimitDefault,
-            @Value("${conveyor.service.dashboard.default-conveyor-history-limit:100}") int conveyorHistoryLimitDefault
+            @Value("${conveyor.service.dashboard.default-conveyor-history-limit:100}") int conveyorHistoryLimitDefault,
+            @Value("${conveyor.service.dashboard.default-ttl:}") String defaultTtlInputValue,
+            @Value("${conveyor.service.dashboard.default-request-ttl:}") String defaultRequestTtlInputValue
     ) {
         this.dashboardService = dashboardService;
         this.placementService = placementService;
@@ -70,6 +74,8 @@ public class DashboardViewController {
         this.objectMapper = objectMapper;
         this.watchHistoryLimitDefault = Math.max(1, watchHistoryLimitDefault);
         this.conveyorHistoryLimitDefault = Math.max(1, conveyorHistoryLimitDefault);
+        this.defaultTtlInputValue = sanitizeOptionalInput(defaultTtlInputValue);
+        this.defaultRequestTtlInputValue = sanitizeOptionalInput(defaultRequestTtlInputValue);
     }
 
     @GetMapping("/")
@@ -104,6 +110,8 @@ public class DashboardViewController {
         model.addAttribute("isAdmin", hasRole(authentication, "ROLE_DASHBOARD_ADMIN"));
         model.addAttribute("watchHistoryLimitDefault", watchHistoryLimitDefault);
         model.addAttribute("conveyorHistoryLimitDefault", conveyorHistoryLimitDefault);
+        model.addAttribute("defaultTtlInputValue", defaultTtlInputValue);
+        model.addAttribute("defaultRequestTtlInputValue", defaultRequestTtlInputValue);
         if (model.containsAttribute("dashboardOutputEvent")) {
             model.addAttribute("dashboardOutputEventJson",
                     objectMapper.writeValueAsString(model.asMap().get("dashboardOutputEvent")));
@@ -113,11 +121,17 @@ public class DashboardViewController {
                     "foreach", false,
                     "watchResults", false,
                     "watchLimit", String.valueOf(watchHistoryLimitDefault),
+                    "ttl", defaultTtlInputValue,
+                    "requestTTL", defaultRequestTtlInputValue,
                     "extraProperties", List.of()
             ));
         }
         if (!model.containsAttribute("staticTestRequest")) {
-            model.addAttribute("staticTestRequest", Map.of("delete", false, "extraProperties", List.of()));
+            model.addAttribute("staticTestRequest", Map.of(
+                    "delete", false,
+                    "requestTTL", defaultRequestTtlInputValue,
+                    "extraProperties", List.of()
+            ));
         }
         if (!model.containsAttribute("commandTestRequest")) {
             model.addAttribute("commandTestRequest", Map.of(
@@ -125,6 +139,8 @@ public class DashboardViewController {
                     "operation", "cancel",
                     "watchResults", false,
                     "watchLimit", String.valueOf(watchHistoryLimitDefault),
+                    "ttl", defaultTtlInputValue,
+                    "requestTTL", defaultRequestTtlInputValue,
                     "extraProperties", List.of()
             ));
         }
@@ -189,6 +205,7 @@ public class DashboardViewController {
                               @RequestParam(name = "arg", required = false) String arg,
                               @RequestParam(name = "tab", required = false) String tab,
                               RedirectAttributes redirectAttributes) {
+        long startedNanos = System.nanoTime();
         try {
             Object payload = null;
             if (StringUtils.hasText(arg)) {
@@ -198,12 +215,25 @@ public class DashboardViewController {
                     payload = arg;
                 }
             }
-            dashboardService.invokeMBean(name, method, payload);
+            Object invokeResult = dashboardService.invokeMBean(name, method, payload);
+            Map<String, Object> operationDetails = new LinkedHashMap<>();
+            operationDetails.put("method", method);
+            operationDetails.put("argument", toJsonCompatible(payload));
+            operationDetails.put("result", toJsonCompatible(invokeResult));
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent",
+                    buildAdminOperationOutputEvent(
+                            name,
+                            "mbean." + method,
+                            operationDetails,
+                            elapsedMillis(startedNanos)
+                    ));
             redirectAttributes.addFlashAttribute("message", "Invoked");
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
             return "redirect:/dashboard";
         } catch (Throwable t) {
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent",
+                    buildConveyorErrorOutputEvent(name, t, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("error", safeError(t));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
@@ -217,13 +247,26 @@ public class DashboardViewController {
                                   @RequestParam("value") String value,
                                   @RequestParam(name = "tab", required = false) String tab,
                                   RedirectAttributes redirectAttributes) {
+        long startedNanos = System.nanoTime();
         try {
             dashboardService.updateParameter(name, parameter, value);
+            Map<String, Object> parameterDetails = new LinkedHashMap<>();
+            parameterDetails.put("parameter", parameter);
+            parameterDetails.put("value", value);
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent",
+                    buildAdminOperationOutputEvent(
+                            name,
+                            "parameter." + parameter,
+                            parameterDetails,
+                            elapsedMillis(startedNanos)
+                    ));
             redirectAttributes.addFlashAttribute("message", "Parameter updated");
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
             return "redirect:/dashboard";
         } catch (Throwable t) {
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent",
+                    buildConveyorErrorOutputEvent(name, t, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("error", safeError(t));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
@@ -697,6 +740,13 @@ public class DashboardViewController {
         return value == null ? "" : value;
     }
 
+    private String sanitizeOptionalInput(String value) {
+        if (!StringUtils.hasText(value)) {
+            return "";
+        }
+        return value.trim();
+    }
+
     private byte[] resolveBodyBytes(String inlineBody, MultipartFile bodyFile) {
         if (bodyFile != null && !bodyFile.isEmpty()) {
             try {
@@ -763,6 +813,26 @@ public class DashboardViewController {
         payload.put("exceptionClass", cause.getClass().getName());
         payload.put("message", errorMessage);
 
+        return buildOutputEvent("conveyor", conveyorName, conveyorName, status, payload);
+    }
+
+    private Map<String, Object> buildAdminOperationOutputEvent(
+            String conveyorName,
+            String operationName,
+            Object details,
+            long responseMillis
+    ) {
+        Map<String, Object> status = buildStatusPayload(
+                HttpStatus.OK.value(),
+                Boolean.TRUE,
+                "COMPLETED",
+                null,
+                null,
+                responseMillis
+        );
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("operation", operationName);
+        payload.put("details", toJsonCompatible(details));
         return buildOutputEvent("conveyor", conveyorName, conveyorName, status, payload);
     }
 

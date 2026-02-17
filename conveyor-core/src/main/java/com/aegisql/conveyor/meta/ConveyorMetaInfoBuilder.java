@@ -14,15 +14,15 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
     private final Class<K> keyType;
     private final Class<L> labelType;
     private final Class<OUT> productType;
-    private final HashMap<L, Set<Class<?>>> supportedValueTypes = new HashMap<>();
-    private final Set<L> labels = new HashSet<>();
+    private final Map<L, Set<Class<?>>> supportedValueTypes = new LinkedHashMap<>();
+    private final Set<L> labels = new LinkedHashSet<>();
     private final BuilderSupplier<OUT> builderSupplier;
 
     public ConveyorMetaInfoBuilder() {
-        this(null,null,null,null,null,new HashMap<>(),new HashSet<>());
+        this(null,null,null,null,null,new LinkedHashMap<>(),new LinkedHashSet<>());
     }
 
-    private ConveyorMetaInfoBuilder(Conveyor<K,L,OUT> conveyor,Class<K> keyType, Class<L> labelType, Class<OUT> productType, BuilderSupplier<OUT> builderSupplier, HashMap<L, Set<Class<?>>> supportedValueTypes, Collection<L> labels) {
+    private ConveyorMetaInfoBuilder(Conveyor<K,L,OUT> conveyor,Class<K> keyType, Class<L> labelType, Class<OUT> productType, BuilderSupplier<OUT> builderSupplier, Map<L, Set<Class<?>>> supportedValueTypes, Collection<L> labels) {
         this.conveyor = conveyor;
         this.keyType = keyType;
         this.labelType = labelType;
@@ -33,7 +33,7 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
     }
 
     public static <K,L,OUT> ConveyorMetaInfoBuilder<K,L,OUT> of(Conveyor<K,L,OUT> c) {
-        return new ConveyorMetaInfoBuilder<>(c,null,null,null,null,new HashMap<>(),new HashSet<>());
+        return new ConveyorMetaInfoBuilder<>(c,null,null,null,null,new LinkedHashMap<>(),new LinkedHashSet<>());
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> keyType(Class<K> k) {
@@ -41,7 +41,7 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> labelType(Class<L> l) {
-        ConveyorMetaInfoBuilder<K,L,OUT> res = new ConveyorMetaInfoBuilder<>(conveyor,keyType, l, productType, builderSupplier, supportedValueTypes, labels);
+       var res = new ConveyorMetaInfoBuilder<>(conveyor,keyType, l, productType, builderSupplier, supportedValueTypes, labels);
         if(l != null && l.isEnum()) {
             for(var element: EnumSet.allOf((Class)l)){
                 res = res.addLabel((L) element);
@@ -59,7 +59,7 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> labels(L l, L... more) {
-        Set<L> labels = new HashSet<>(this.labels);
+        var labels = new LinkedHashSet<>(this.labels);
         labels.add(l);
         if(more != null) {
             labels.addAll(Arrays.asList(more));
@@ -68,21 +68,21 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> addLabel(L l) {
-        Set<L> labels = new HashSet<>(this.labels);
+        var labels = new LinkedHashSet<>(this.labels);
         labels.add(l);
         return new ConveyorMetaInfoBuilder<>(conveyor,keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> addLabels(Collection<L> l) {
-        Set<L> labels = new HashSet<>(this.labels);
+        var labels = new LinkedHashSet<>(this.labels);
         labels.addAll(l);
         return new ConveyorMetaInfoBuilder<>(conveyor,keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
     }
 
 
     public ConveyorMetaInfoBuilder<K,L,OUT> supportedTypes(L l, Class<?> cl, Class<?>... more) {
-        HashMap<L, Set<Class<?>>> supportedValueTypes = new HashMap<>(this.supportedValueTypes);
-        Set<Class<?>> classes = supportedValueTypes.computeIfAbsent(l, lbl -> new HashSet<>());
+        var supportedValueTypes = new LinkedHashMap<>(this.supportedValueTypes);
+        var classes = supportedValueTypes.computeIfAbsent(l, lbl -> new LinkedHashSet<>());
         classes.add(cl);
         if(more != null) {
             classes.addAll(Arrays.asList(more));
@@ -91,8 +91,8 @@ public class ConveyorMetaInfoBuilder<K,L,OUT> implements Supplier<ConveyorMetaIn
     }
 
     public ConveyorMetaInfoBuilder<K,L,OUT> supportedTypes(L l, Collection<Class<?>> c) {
-        HashMap<L, Set<Class<?>>> supportedValueTypes = new HashMap<>(this.supportedValueTypes);
-        Set<Class<?>> classes = supportedValueTypes.computeIfAbsent(l, lbl -> new HashSet<>());
+        var supportedValueTypes = new LinkedHashMap<>(this.supportedValueTypes);
+        var classes = supportedValueTypes.computeIfAbsent(l, lbl -> new LinkedHashSet<>());
         classes.addAll(c);
         return new ConveyorMetaInfoBuilder<>(conveyor,keyType,labelType,productType,builderSupplier,supportedValueTypes,labels);
     }

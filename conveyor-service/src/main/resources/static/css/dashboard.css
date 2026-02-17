@@ -132,6 +132,16 @@ h1, h2, h3 {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+}
+
+.workspace-selected-name {
+  text-align: right;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .tabs {

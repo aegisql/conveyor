@@ -64,6 +64,7 @@ Last version supporting Java 8 is 1.4.4
 ## Release History
 
 ### 1.7.3-SNAPSHOT
+* Add new Conveyor Service
 * Counters Aggregator utility conveyor
 * Extensions to the LabeledValueConsumer interface
 * Updated dependencies

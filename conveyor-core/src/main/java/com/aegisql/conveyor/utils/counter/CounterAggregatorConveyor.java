@@ -3,11 +3,15 @@ package com.aegisql.conveyor.utils.counter;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.meta.ConveyorMetaInfo;
+import com.aegisql.conveyor.meta.ConveyorMetaInfoBuilder;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.function.Supplier;
+
 
 public class CounterAggregatorConveyor<K> extends AssemblingConveyor<K,String, Map<String, Map<String, Integer>>> {
 
@@ -47,6 +51,27 @@ public class CounterAggregatorConveyor<K> extends AssemblingConveyor<K,String, M
     public void setExpectedLabelSuffix(String expected_label_suffix) {
         this.expected_label_suffix = expected_label_suffix;
         setDefaultCartConsumer(names_label, expected_label_suffix);
+    }
+
+    protected ConveyorMetaInfo<K,String, Map<String, Map<String, Integer>>> metaInfo = null;
+
+    @SuppressWarnings("unchecked")
+    private static Class<List<String>> toListOfStringType() {
+        return (Class<List<String>>) (Class<?>) List.class;
+    }
+    @SuppressWarnings("unchecked")
+    protected static Class<Map<String, Map<String, Integer>>> productMapType() {
+        return (Class<Map<String, Map<String, Integer>>>) (Class<?>) Map.class;
+    }
+    protected ConveyorMetaInfoBuilder<K,String, Map<String, Map<String, Integer>>> getMetaInfoBuilder() {
+        return new ConveyorMetaInfoBuilder<K,String, Map<String, Map<String, Integer>>>()
+                .labelType(String.class)
+                .productType(productMapType())
+                .labels(names_label,".*"+expected_label_suffix,".*")
+                .supportedTypes(names_label,toListOfStringType())
+                .supportedTypes(".*"+expected_label_suffix,Integer.class)
+                .supportedTypes(".*",Integer.class)
+                ;
     }
 
 }

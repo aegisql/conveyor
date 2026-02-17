@@ -24,6 +24,8 @@ conveyor:
     dashboard:
       default-watch-history-limit: 100
       default-conveyor-history-limit: 100
+      default-ttl: "1 MINUTES"
+      default-request-ttl: "100"
 
 logging:
   level:
@@ -42,4 +44,4 @@ spring:
 
 logging:
   level:
-    com.aegisql.conveyor: DEBUG
+    com.aegisql.conveyor: INFO
