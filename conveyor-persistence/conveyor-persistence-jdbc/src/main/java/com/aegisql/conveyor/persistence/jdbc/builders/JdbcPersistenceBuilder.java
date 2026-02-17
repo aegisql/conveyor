@@ -921,7 +921,7 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	 */
 	public <L> JdbcPersistenceBuilder<K> addLabelPersistenceFilter(final Predicate<L> labelFilter) {
 		return addCartPersistenceFilter(cart->{
-			L label = (L) cart.getLabel();
+			L label = cast(cart.getLabel());
 			return labelFilter.test(label);
 		});
 	}
@@ -936,8 +936,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	 */
 	public <L,V> JdbcPersistenceBuilder<K> addLabelValuePersistenceFilter(final BiPredicate<L,V> labelValueFilter) {
 		return addCartPersistenceFilter(cart->{
-			L label = (L) cart.getLabel();
-			V value = (V) cart.getValue();
+			L label = cast(cart.getLabel());
+			V value = cast(cart.getValue());
 			return labelValueFilter.test(label,value);
 		});
 	}
@@ -1000,8 +1000,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	 * @param initializer the initializer
 	 * @return the jdbc persistence builder
 	 */
-	public JdbcPersistenceBuilder<K> jdbcConnection(Function<ConnectionFactory<? extends DataSource>,? extends DataSource> initializer) {
-		return connectionFactory( ConnectionFactory.cachingFactoryInstance((Function)initializer));
+	public <T extends DataSource> JdbcPersistenceBuilder<K> jdbcConnection(Function<ConnectionFactory<T>, T> initializer) {
+		return connectionFactory(ConnectionFactory.cachingFactoryInstance(initializer));
 	}
 
 	/**
@@ -1020,8 +1020,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	 * @param initializer the initializer
 	 * @return the jdbc persistence builder
 	 */
-	public JdbcPersistenceBuilder<K> dbcpConnection(Function<ConnectionFactory<? extends DataSource>,? extends DataSource> initializer) {
-		return connectionFactory( ConnectionFactory.nonCachingFactoryInstance((Function)initializer));
+	public <T extends DataSource> JdbcPersistenceBuilder<K> dbcpConnection(Function<ConnectionFactory<T>, T> initializer) {
+		return connectionFactory(ConnectionFactory.nonCachingFactoryInstance(initializer));
 	}
 
 	/**
@@ -1409,8 +1409,16 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 		JdbcPersistenceBuilder<K> jdbcPersistenceBuilder = presetInitializer(type, metaInfo.getKeyType());
 		Class labelType = metaInfo.getLabelType();
 		if(labelType.isEnum()) {
-			jdbcPersistenceBuilder = jdbcPersistenceBuilder.labelConverter(labelType);
+			@SuppressWarnings({"rawtypes", "unchecked"})
+			Class enumLabelType = labelType;
+			jdbcPersistenceBuilder = jdbcPersistenceBuilder.labelConverter(enumLabelType);
 		}
 		return jdbcPersistenceBuilder;
 	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> T cast(Object value) {
+		return (T) value;
+	}
+
 }

@@ -3,6 +3,7 @@ package com.aegisql.conveyor.persistence.jdbc.archive;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
+import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.utils.CartOutputStream;
@@ -50,12 +51,12 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 	 *
 	 * @return the cart output stream
 	 */
-	private CartOutputStream<K, ?> getCartOutputStream() {
+	private CartOutputStream<K, Object> getCartOutputStream() {
 		try {
 			File f = new File(bLogConf.getFilePath());
 			readBytes = f.length();
 			FileOutputStream fos = new FileOutputStream(f, true);
-			return new CartOutputStream<>(bLogConf.getCartConverter(), fos);
+			return new CartOutputStream<>(castCartConverter(bLogConf.getCartConverter()), fos);
 		} catch (FileNotFoundException e) {
 			throw new PersistenceException("Error opening file " + bLogConf.getPath(), e);
 		}
@@ -78,8 +79,8 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 	 * @param cos the cos
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private void archiveCarts(Collection<Cart<K, ?, Object>> carts,CartOutputStream<K, ?> cos) throws IOException {
-		for (Cart cart: carts) {
+	private void archiveCarts(Collection<Cart<K, ?, Object>> carts,CartOutputStream<K, Object> cos) throws IOException {
+		for (Cart<K, ?, Object> cart: carts) {
 			readBytes += cos.writeCart(cart);
 			if(readBytes > bLogConf.getMaxSize()) {
 				cos.close();
@@ -123,7 +124,7 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 			return;
 		}
 
-		try(CartOutputStream<K, ?> cos = getCartOutputStream()) {
+			try(CartOutputStream<K, Object> cos = getCartOutputStream()) {
 			Collection<Collection<Long>> balanced = PersistUtils.balanceIdList(ids, bLogConf.getBucketSize());
 			for(Collection<Long> bucket: balanced) {
 				Collection<Cart<K, ?, Object>> carts = persistence.getParts(bucket);
@@ -170,7 +171,7 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 	 */
 	@Override
 	public void archiveExpiredParts() {
-		try(CartOutputStream<K, ?> cos = getCartOutputStream()) {
+		try(CartOutputStream<K, Object> cos = getCartOutputStream()) {
 			Collection<Cart<K, ?, Object>> carts = persistence.getExpiredParts();
 			archiveCarts(carts,cos);
 		} catch (IOException e) {
@@ -185,7 +186,7 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 	 */
 	@Override
 	public void archiveAll() {
-		try(CartOutputStream<K, ?> cos = getCartOutputStream()) {
+		try(CartOutputStream<K, Object> cos = getCartOutputStream()) {
 			Collection<Cart<K, ?, Object>> carts = persistence.getAllParts();
 			archiveCarts(carts,cos);
 		} catch (IOException e) {
@@ -201,6 +202,11 @@ public class FileArchiver<K> extends AbstractJdbcArchiver<K> {
 	@Override
 	public String toString() {
 		return super.toString()+" bLogConf="+bLogConf;
+	}
+
+	@SuppressWarnings("unchecked")
+	private CartToBytesConverter<K, ?, Object> castCartConverter(CartToBytesConverter converter) {
+		return (CartToBytesConverter<K, ?, Object>) converter;
 	}
 
 }

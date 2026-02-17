@@ -46,7 +46,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	/** The blob converter. */
 	// private final BlobConverter blobConverter;
 
-	private final ConverterAdviser converterAdviser;
+	private final ConverterAdviser<Object> converterAdviser;
 
 	/** The map converter. */
 	private final MapToJsonConverter mapConverter;
@@ -55,7 +55,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	private final EnumConverter<LoadType> loadTypeConverter = new EnumConverter<>(LoadType.class);
 
 	/** The label converter. */
-	private final ObjectConverter labelConverter;
+	private final ObjectConverter<Object, String> labelConverter;
 
 	// private final DynamicPersistenceSql dynamicPersistenceSql;
 
@@ -109,9 +109,9 @@ public class JdbcPersistence<K> implements Persistence<K> {
                            ObjectConverter<?, String> labelConverter, ConverterAdviser<?> converterAdviser, int maxBatchSize,
                            long maxBatchTime, String info, Set<String> nonPersistentProperties, int minCompactSize, List<Field<?>> additionalFields, Predicate<Cart<K, ?, ?>> persistentPartFilter) {
 		this.idSupplier = idSupplier;
-		this.converterAdviser = converterAdviser;
+		this.converterAdviser = castConverterAdviser(converterAdviser);
 		this.archiver = archiver;
-		this.labelConverter = labelConverter;
+		this.labelConverter = castLabelConverter(labelConverter);
 		this.maxBatchSize = maxBatchSize;
 		this.maxBatchTime = maxBatchTime;
         this.persistentPartFilter = persistentPartFilter;
@@ -173,12 +173,12 @@ public class JdbcPersistence<K> implements Persistence<K> {
 			byteConverter = converterAdviser.getConverter(RESTORE_BUILD_COMMAND,
 					valueClassName);
 			hint = byteConverter.conversionHint();
-			label = labelConverter.toPersistence(RESTORE_BUILD_COMMAND);
+			label = toPersistentLabel(RESTORE_BUILD_COMMAND);
 		} else {
 			byteConverter = converterAdviser.getConverter(label,
 					valueClassName);
 			hint = byteConverter.conversionHint();
-			label = labelConverter.toPersistence(cart.getLabel());
+			label = toPersistentLabel(cart.getLabel());
 		}
 		
 		List<Object> fields = additionalFields
@@ -241,55 +241,8 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getParts(Collection<Long> ids) {
-		// TODO finish
-
 		LOG.debug("getAllParts for: {}", ids);
-		return engine.getParts(ids, rs -> {
-			try {
-				K key = (K) rs.getObject(1);
-				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-				String labelString = rs.getString(3);
-				String hint = rs.getString(8);
-				long creationTime = rs.getTimestamp(4).getTime();
-				long expirationTime = rs.getTimestamp(5).getTime();
-				long priority = rs.getLong(9);
-				if (loadType == LoadType.COMMAND) {
-					CommandLabel command = CommandLabel.valueOf(labelString.trim());
-					if (command == CommandLabel.RESTORE_BUILD) {
-						ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(command, hint);
-						Memento memento = (Memento) byteConverter.fromPersistence(rs.getBytes(2));
-						return new GeneralCommand(key, memento, command, creationTime, expirationTime);
-					}
-				} else {
-					L label = null;
-					if (labelString != null) {
-						label = (L) labelConverter.fromPersistence(labelString.trim());
-					}
-					ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
-					Object val = byteConverter.fromPersistence(rs.getBytes(2));
-
-					Map<String, Object> properties = mapConverter.fromPersistence(rs.getString(7));
-					// LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-
-					if (loadType == LoadType.BUILDER) {
-						return new CreatingCart<>(key, (BuilderSupplier) val, creationTime, expirationTime, priority);
-					} else if (loadType == LoadType.RESULT_CONSUMER) {
-						return new ResultConsumerCart<>(key, (ResultConsumer) val, creationTime, expirationTime,
-								priority);
-					} else if (loadType == LoadType.MULTI_KEY_PART) {
-						Load load = (Load) val;
-						return new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,
-								load.getLoadType(), properties, priority);
-					} else {
-						return new ShoppingCart<>(key, val, label, creationTime, expirationTime, properties, loadType,
-								priority);
-					}
-				}
-			} catch (SQLException e) {
-				throw new PersistenceException(e);
-			}
-			throw new PersistenceException("Unexpected result");
-		});
+		return engine.getParts(ids, this::readPartCart);
 	}
 
 	/*
@@ -299,56 +252,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getAllParts() {
-		return engine.getUnfinishedParts(rs -> {
-			try {
-				Cart<K, ?, L> cart = null;
-				K key = (K) rs.getObject(1);
-				String labelString = rs.getString(3);
-				LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-				String hint = rs.getString(8);
-				long creationTime = rs.getTimestamp(4).getTime();
-				long expirationTime = rs.getTimestamp(5).getTime();
-				long priority = rs.getLong(9);
-				if (loadType == LoadType.COMMAND) {
-					CommandLabel command = CommandLabel.valueOf(labelString.trim());
-					if (command == CommandLabel.RESTORE_BUILD) {
-						ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(command, hint);
-						Memento memento = (Memento) byteConverter.fromPersistence(rs.getBytes(2));
-						return new GeneralCommand(key, memento, command, creationTime, expirationTime);
-					}
-				} else {
-					L label = null;
-					if (labelString != null) {
-						label = (L) labelConverter.fromPersistence(labelString.trim());
-					}
-
-					ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
-					Object val = byteConverter.fromPersistence(rs.getBytes(2));
-
-					Map<String, Object> properties = mapConverter.fromPersistence(rs.getString(7));
-					// LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-					if (loadType == LoadType.BUILDER) {
-						return new CreatingCart<>(key, (BuilderSupplier) val, creationTime, expirationTime, priority);
-					} else if (loadType == LoadType.RESULT_CONSUMER) {
-						return new ResultConsumerCart<>(key, (ResultConsumer) val, creationTime, expirationTime,
-								priority);
-					} else if (loadType == LoadType.MULTI_KEY_PART) {
-						Load load = (Load) val;
-						return new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime, expirationTime,
-								load.getLoadType(), properties, priority);
-					} else {
-						return new ShoppingCart<>(key, val, label, creationTime, expirationTime, properties, loadType,
-								priority);
-					}
-				}
-
-			} catch (Exception e) {
-				LOG.error("getAllUnfinishedPartIdsQuery exception", e);
-				throw new PersistenceException("getAllUnfinishedPartIdsQuery failed", e);
-			}
-			throw new PersistenceException("Unexpected result in getAllParts");
-
-		});
+		return engine.getUnfinishedParts(this::readPartCart);
 	}
 
 	/*
@@ -358,57 +262,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public <L> Collection<Cart<K, ?, L>> getExpiredParts() {
-
-		return engine.getExpiredParts(rs -> {
-			try {
-					K key = (K) rs.getObject(1);
-					LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-					String labelString = rs.getString(3);
-					String hint = rs.getString(8);
-					long creationTime = rs.getTimestamp(4).getTime();
-					long expirationTime = rs.getTimestamp(5).getTime();
-					long priority = rs.getLong(9);
-					if (loadType == LoadType.COMMAND) {
-						CommandLabel command = CommandLabel.valueOf(labelString.trim());
-						if (command == CommandLabel.RESTORE_BUILD) {
-							ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(command,
-									hint);
-							Memento memento = (Memento) byteConverter.fromPersistence(rs.getBytes(2));
-							return new GeneralCommand(key, memento, command, creationTime, expirationTime);
-						}
-					} else {
-						L label = null;
-						if (labelString != null) {
-							label = (L) labelConverter.fromPersistence(labelString.trim());
-						}
-
-						ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
-						Object val = byteConverter.fromPersistence(rs.getBytes(2));
-
-						Map<String, Object> properties = mapConverter.fromPersistence(rs.getString(7));
-						// LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
-						if (loadType == LoadType.BUILDER) {
-							return new CreatingCart<>(key, (BuilderSupplier) val, creationTime, expirationTime,
-									priority);
-						} else if (loadType == LoadType.RESULT_CONSUMER) {
-							return new ResultConsumerCart<>(key, (ResultConsumer) val, creationTime, expirationTime,
-									priority);
-						} else if (loadType == LoadType.MULTI_KEY_PART) {
-							Load load = (Load) val;
-							return new MultiKeyCart(load.getFilter(), load.getValue(), label, creationTime,
-									expirationTime, load.getLoadType(), properties, priority);
-						} else {
-							return new ShoppingCart<>(key, val, label, creationTime, expirationTime, properties,
-									loadType, priority);
-						}
-				}
-			} catch (Exception e) {
-				LOG.error("getExpiredParts exception", e);
-				throw new PersistenceException("getExpiredParts failed", e);
-			}
-			throw new PersistenceException("Unexpected result in getExpiredParts");
-
-		});
+		return engine.getExpiredParts(this::readPartCart);
 	}
 
 	/*
@@ -420,7 +274,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	public Set<K> getCompletedKeys() {
 		return engine.getAllCompletedKeys(rs->{
 			try {
-				return (K) rs.getObject(1);
+				return castKey(rs.getObject(1));
 			} catch (Exception e) {
 				LOG.error("getCompletedKeys Exception", e);
 				throw new PersistenceException("getCompletedKeys failed", e);
@@ -482,15 +336,15 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	public <L> Collection<Cart<K, ?, L>> getAllStaticParts() {
 		return engine.getStaticParts(rs->{
 			try {
-					K key = (K) rs.getObject(1);
-					L label = (L) labelConverter.fromPersistence(rs.getString(3).trim());
+					K key = castKey(rs.getObject(1));
+					L label = fromPersistentLabel(rs.getString(3).trim());
 					String hint = rs.getString(8);
 					ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
 					Object val = byteConverter.fromPersistence(rs.getBytes(2));
 					long creationTime = rs.getTimestamp(4).getTime();
 					long expirationTime = rs.getTimestamp(5).getTime();
 					LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
-					Map<String, Object> properties = mapConverter.fromPersistence(rs.getString(7));
+					Map<String, Object> properties = fromPersistentProperties(rs.getString(7));
 					// LOG.debug("{},{},{},{},{},{}",key,val,label,creationTime,expirationTime,loadType);
 					return new ShoppingCart<>(key, val, label, creationTime, expirationTime, properties, loadType, 0);
 			} catch (Exception e) {
@@ -499,6 +353,51 @@ public class JdbcPersistence<K> implements Persistence<K> {
 			}
 
 		});
+	}
+
+	private <L> Cart<K, ?, L> readPartCart(java.sql.ResultSet rs) {
+		try {
+			K key = castKey(rs.getObject(1));
+			LoadType loadType = loadTypeConverter.fromPersistence(rs.getString(6).trim());
+			String labelString = rs.getString(3);
+			String hint = rs.getString(8);
+			long creationTime = rs.getTimestamp(4).getTime();
+			long expirationTime = rs.getTimestamp(5).getTime();
+			long priority = rs.getLong(9);
+			if (loadType == LoadType.COMMAND) {
+				CommandLabel command = CommandLabel.valueOf(labelString.trim());
+				if (command == CommandLabel.RESTORE_BUILD) {
+					ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(command, hint);
+					Memento memento = (Memento) byteConverter.fromPersistence(rs.getBytes(2));
+					return castCart(new GeneralCommand<>(key, memento, command, creationTime, expirationTime));
+				}
+			} else {
+				L label = null;
+				if (labelString != null) {
+					label = fromPersistentLabel(labelString.trim());
+				}
+				ObjectConverter<Object, byte[]> byteConverter = converterAdviser.getConverter(label, hint);
+				Object val = byteConverter.fromPersistence(rs.getBytes(2));
+				Map<String, Object> properties = fromPersistentProperties(rs.getString(7));
+				if (loadType == LoadType.BUILDER) {
+					return castCart(new CreatingCart<>(key, asBuilderSupplier(val), creationTime, expirationTime, priority));
+				} else if (loadType == LoadType.RESULT_CONSUMER) {
+					return castCart(new ResultConsumerCart<>(key, asResultConsumer(val), creationTime, expirationTime, priority));
+				} else if (loadType == LoadType.MULTI_KEY_PART) {
+					Load<K, Object> load = asLoad(val);
+					return castCart(new MultiKeyCart<>(load.getFilter(), load.getValue(), label, creationTime,
+							expirationTime, load.getLoadType(), properties, priority));
+				} else {
+					return new ShoppingCart<>(key, val, label, creationTime, expirationTime, properties, loadType, priority);
+				}
+			}
+		} catch (SQLException e) {
+			throw new PersistenceException(e);
+		} catch (Exception e) {
+			LOG.error("readPartCart exception", e);
+			throw new PersistenceException("Failed to read part cart", e);
+		}
+		throw new PersistenceException("Unexpected result");
 	}
 
 	/*
@@ -575,6 +474,55 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	@Override
 	public int getMinCompactSize() {
 		return minCompactSize;
+	}
+
+	@SuppressWarnings("unchecked")
+	private ConverterAdviser<Object> castConverterAdviser(ConverterAdviser<?> adviser) {
+		return (ConverterAdviser<Object>) adviser;
+	}
+
+	@SuppressWarnings("unchecked")
+	private ObjectConverter<Object, String> castLabelConverter(ObjectConverter<?, String> converter) {
+		return (ObjectConverter<Object, String>) converter;
+	}
+
+	private String toPersistentLabel(Object label) {
+		return labelConverter.toPersistence(label);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <L> L fromPersistentLabel(String persistedLabel) {
+		return (L) labelConverter.fromPersistence(persistedLabel);
+	}
+
+	@SuppressWarnings("unchecked")
+	private K castKey(Object key) {
+		return (K) key;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> fromPersistentProperties(String serializedProperties) {
+		return (Map<String, Object>) mapConverter.fromPersistence(serializedProperties);
+	}
+
+	@SuppressWarnings("unchecked")
+	private BuilderSupplier<Object> asBuilderSupplier(Object value) {
+		return (BuilderSupplier<Object>) value;
+	}
+
+	@SuppressWarnings("unchecked")
+	private ResultConsumer<K, Object> asResultConsumer(Object value) {
+		return (ResultConsumer<K, Object>) value;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Load<K, Object> asLoad(Object value) {
+		return (Load<K, Object>) value;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <L> Cart<K, ?, L> castCart(Cart<K, ?, ?> cart) {
+		return (Cart<K, ?, L>) cart;
 	}
 
 }
