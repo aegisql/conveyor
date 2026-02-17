@@ -43,11 +43,11 @@ public class StaticPartService {
             Map<String, String> requestParams
     ) {
         Conveyor<?, ?, ?> conveyor = resolveConveyor(conveyorName);
+        Conveyor<Object, Object, Object> objectConveyor = asObjectConveyor(conveyor);
         var metaInfo = resolveMetaInfo(conveyor);
         Object typedLabel = convertSimple(label, metaInfo.getLabelType());
 
-        @SuppressWarnings("rawtypes")
-        StaticPartLoader loader = conveyor.staticPart();
+        StaticPartLoader<Object> loader = objectConveyor.staticPart();
         loader = loader.label(typedLabel);
 
         Map<String, String> remaining = new HashMap<>(requestParams);
@@ -268,11 +268,22 @@ public class StaticPartService {
                 return Float.parseFloat(raw);
             }
             if (targetType.isEnum()) {
-                return Enum.valueOf((Class<Enum>) targetType.asSubclass(Enum.class), raw);
+                return parseEnumValue(raw, targetType);
             }
             return objectMapper.convertValue(raw, targetType);
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException("Cannot convert '" + raw + "' to " + targetType.getSimpleName(), ex);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Conveyor<Object, Object, Object> asObjectConveyor(Conveyor<?, ?, ?> conveyor) {
+        return (Conveyor<Object, Object, Object>) conveyor;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Object parseEnumValue(String raw, Class<?> targetType) {
+        Class<? extends Enum> enumType = targetType.asSubclass(Enum.class);
+        return Enum.valueOf((Class) enumType, raw);
     }
 }

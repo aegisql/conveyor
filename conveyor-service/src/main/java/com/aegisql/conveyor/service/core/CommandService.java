@@ -65,6 +65,7 @@ public class CommandService {
             Map<String, String> requestParams
     ) {
         Conveyor<?, ?, ?> conveyor = resolveConveyor(conveyorName);
+        Conveyor<Object, Object, Object> objectConveyor = asObjectConveyor(conveyor);
         CommandOperation operation = CommandOperation.fromString(operationName);
 
         if (forEach && !operation.foreachSupported) {
@@ -101,16 +102,14 @@ public class CommandService {
         appliedProps.put("command", operation.apiName);
         appliedProps.put("foreach", forEach);
 
-        CompletableFuture<?> future;
+        CompletableFuture<Object> future;
         if (forEach) {
-            @SuppressWarnings("rawtypes")
-            MultiKeyCommandLoader loader = conveyor.command().foreach();
+            MultiKeyCommandLoader<Object, Object> loader = objectConveyor.command().foreach();
             loader = applyCommonTiming(loader, ttl, creationTime, expirationTime);
 
-            future = invokeForEach(conveyor, operation, loader, body, remaining);
+            future = invokeForEach(objectConveyor, operation, loader, body, remaining);
         } else {
-            @SuppressWarnings("rawtypes")
-            CommandLoader loader = conveyor.command();
+            CommandLoader<Object, Object> loader = objectConveyor.command();
             loader = loader.id(convertSimple(id, resolveKeyType(conveyor)));
             loader = applyCommonTiming(loader, ttl, creationTime, expirationTime);
 
@@ -122,7 +121,7 @@ public class CommandService {
         }
 
         return buildResult(
-                castFuture(future),
+                future,
                 requestTtl,
                 forEach ? null : id,
                 operation.apiName,
@@ -130,65 +129,59 @@ public class CommandService {
         );
     }
 
-    private CompletableFuture<?> invokeById(
+    private CompletableFuture<Object> invokeById(
             CommandOperation operation,
-            @SuppressWarnings("rawtypes") CommandLoader loader,
+            CommandLoader<Object, Object> loader,
             byte[] body,
             Map<String, String> remaining
     ) {
         return switch (operation) {
-            case CANCEL -> loader.cancel();
-            case COMPLETE_EXCEPTIONALLY -> loader.completeExceptionally(new RuntimeException(readBodyMessage(body)));
-            case ADD_PROPERTIES -> loader.addProperties(new LinkedHashMap<>(remaining));
-            case TIMEOUT -> loader.timeout();
-            case RESCHEDULE -> loader.reschedule();
-            case CREATE -> loader.create();
+            case CANCEL -> toObjectFuture(loader.cancel());
+            case COMPLETE_EXCEPTIONALLY -> toObjectFuture(loader.completeExceptionally(new RuntimeException(readBodyMessage(body))));
+            case ADD_PROPERTIES -> toObjectFuture(loader.addProperties(new LinkedHashMap<>(remaining)));
+            case TIMEOUT -> toObjectFuture(loader.timeout());
+            case RESCHEDULE -> toObjectFuture(loader.reschedule());
+            case CREATE -> toObjectFuture(loader.create());
             case PEEK -> loader.peek().thenApply(bin -> bin == null ? null : ((ProductBin<?, ?>) bin).product);
-            case PEEK_ID -> loader.peekId(k -> {
-            });
+            case PEEK_ID -> toObjectFuture(loader.peekId(k -> {}));
         };
     }
 
-    private CompletableFuture<?> invokeForEach(
-            Conveyor<?, ?, ?> conveyor,
+    private CompletableFuture<Object> invokeForEach(
+            Conveyor<Object, Object, Object> conveyor,
             CommandOperation operation,
-            @SuppressWarnings("rawtypes") MultiKeyCommandLoader loader,
+            MultiKeyCommandLoader<Object, Object> loader,
             byte[] body,
             Map<String, String> remaining
     ) {
         return switch (operation) {
-            case CANCEL -> loader.cancel();
-            case COMPLETE_EXCEPTIONALLY -> invokeForEachCompleteExceptionally(conveyor, loader, body);
-            case ADD_PROPERTIES -> loader.addProperties(toObjectMap(remaining));
-            case TIMEOUT -> loader.timeout();
-            case RESCHEDULE -> loader.reschedule();
+            case CANCEL -> toObjectFuture(loader.cancel());
+            case COMPLETE_EXCEPTIONALLY -> toObjectFuture(invokeForEachCompleteExceptionally(conveyor, loader, body));
+            case ADD_PROPERTIES -> toObjectFuture(loader.addProperties(toObjectMap(remaining)));
+            case TIMEOUT -> toObjectFuture(loader.timeout());
+            case RESCHEDULE -> toObjectFuture(loader.reschedule());
             case PEEK -> loader.peek().thenApply(bins -> {
                 Map<Object, Object> productsByKey = new LinkedHashMap<>();
-                List<?> rawBins = (List<?>) bins;
-                for (Object value : rawBins) {
-                    if (value instanceof ProductBin<?, ?> bin) {
-                        productsByKey.put(bin.key, bin.product);
-                    }
+                for (ProductBin<Object, Object> bin : bins) {
+                    productsByKey.put(bin.key, bin.product);
                 }
                 return productsByKey;
             });
             case PEEK_ID -> {
                 List<Object> ids = new ArrayList<>();
-                yield loader.peekId(ids::add).thenApply(ok -> ids);
+                yield loader.peekId(ids::add).thenApply(ok -> (Object) ids);
             }
             default -> throw new IllegalArgumentException("Command " + operation.apiName + " is not supported in foreach mode");
         };
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     private CompletableFuture<Boolean> invokeForEachCompleteExceptionally(
-            Conveyor<?, ?, ?> conveyor,
-            MultiKeyCommandLoader loader,
+            Conveyor<Object, Object, Object> conveyor,
+            MultiKeyCommandLoader<Object, Object> loader,
             byte[] body
     ) {
         String message = readBodyMessage(body);
         List<Object> ids = new ArrayList<>();
-        Conveyor rawConveyor = (Conveyor) conveyor;
         return loader.peekId(ids::add).thenCompose(ignore -> {
             if (ids.isEmpty()) {
                 return CompletableFuture.completedFuture(Boolean.FALSE);
@@ -196,7 +189,7 @@ public class CommandService {
 
             List<CompletableFuture<Boolean>> futures = new ArrayList<>(ids.size());
             for (Object key : ids) {
-                CommandLoader perIdLoader = rawConveyor.command().id(key);
+                CommandLoader<Object, Object> perIdLoader = conveyor.command().id(key);
                 perIdLoader = applyCommonTiming(perIdLoader, loader);
                 futures.add(perIdLoader.completeExceptionally(new RuntimeException(message)));
             }
@@ -208,8 +201,10 @@ public class CommandService {
         });
     }
 
-    @SuppressWarnings("rawtypes")
-    private CommandLoader applyCommonTiming(CommandLoader loader, MultiKeyCommandLoader multiKeyLoader) {
+    private <K, OUT> CommandLoader<K, OUT> applyCommonTiming(
+            CommandLoader<K, OUT> loader,
+            MultiKeyCommandLoader<K, OUT> multiKeyLoader
+    ) {
         if (multiKeyLoader.ttlMsec > 0) {
             loader = loader.ttl(multiKeyLoader.ttlMsec, TimeUnit.MILLISECONDS);
         }
@@ -228,14 +223,12 @@ public class CommandService {
         return props;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private CompletableFuture<Object> castFuture(CompletableFuture<?> future) {
-        return (CompletableFuture) future;
+    private <T> CompletableFuture<Object> toObjectFuture(CompletableFuture<T> future) {
+        return future.thenApply(value -> value);
     }
 
-    @SuppressWarnings("rawtypes")
-    private CommandLoader applyCommonTiming(
-            CommandLoader loader,
+    private <K, OUT> CommandLoader<K, OUT> applyCommonTiming(
+            CommandLoader<K, OUT> loader,
             OptionalLong ttl,
             OptionalLong creationTime,
             OptionalLong expirationTime
@@ -252,9 +245,8 @@ public class CommandService {
         return loader;
     }
 
-    @SuppressWarnings("rawtypes")
-    private MultiKeyCommandLoader applyCommonTiming(
-            MultiKeyCommandLoader loader,
+    private <K, OUT> MultiKeyCommandLoader<K, OUT> applyCommonTiming(
+            MultiKeyCommandLoader<K, OUT> loader,
             OptionalLong ttl,
             OptionalLong creationTime,
             OptionalLong expirationTime
@@ -390,12 +382,23 @@ public class CommandService {
                 return Float.parseFloat(raw);
             }
             if (targetType.isEnum()) {
-                return Enum.valueOf((Class<Enum>) targetType.asSubclass(Enum.class), raw);
+                return parseEnumValue(raw, targetType);
             }
             return objectMapper.convertValue(raw, targetType);
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException("Cannot convert '" + raw + "' to " + targetType.getSimpleName(), ex);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Conveyor<Object, Object, Object> asObjectConveyor(Conveyor<?, ?, ?> conveyor) {
+        return (Conveyor<Object, Object, Object>) conveyor;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Object parseEnumValue(String raw, Class<?> targetType) {
+        Class<? extends Enum> enumType = targetType.asSubclass(Enum.class);
+        return Enum.valueOf((Class) enumType, raw);
     }
 
     private String readBodyMessage(byte[] body) {
