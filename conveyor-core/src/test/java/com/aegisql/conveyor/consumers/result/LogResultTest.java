@@ -23,6 +23,7 @@ public class LogResultTest {
         LogResult stdout = new LogResult(L, LogResult.Level.STDOUT);
         LogResult stderr = new LogResult(L, LogResult.Level.STDERR);
         stderr.accept(ResultConsumerTest.getProductBin(2,"test 2"));
+        System.out.println(stdout.toString());
     }
 
     @Test

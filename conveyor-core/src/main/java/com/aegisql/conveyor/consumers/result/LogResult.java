@@ -370,7 +370,7 @@ public class LogResult <K,E> implements ResultConsumer<K,E> {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("LogResult{}");
+		final StringBuilder sb = new StringBuilder("LogResul");
 		return sb.toString();
 	}
 }

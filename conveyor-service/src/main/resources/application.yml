@@ -9,6 +9,7 @@ spring:
           issuer-uri: http://localhost/issuer
 
 server:
+  port: 8080
   tomcat:
     max-part-count: 200
 

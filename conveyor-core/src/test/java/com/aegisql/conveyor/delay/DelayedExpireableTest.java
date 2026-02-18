@@ -6,8 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DelayedExpireableTest {
 
@@ -28,6 +27,9 @@ public class DelayedExpireableTest {
         assertEquals(de1.hashCode(),de2.hashCode());
         assertEquals(de1.getExpirationTime(),de2.getExpirationTime());
         assertEquals(de1,de3);
+        assertTrue(de1.equals(de1));
+        assertFalse(de1.equals(null));
+        assertFalse(de1.equals(new DelayedExpireable(expTime+1)));
         DelayedExpireable de4 = new DelayedExpireable(expTime+100000);
         DelayedExpireable de5 = new DelayedExpireable(expTime-100000);
 
