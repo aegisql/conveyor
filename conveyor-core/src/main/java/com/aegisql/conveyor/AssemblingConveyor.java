@@ -627,7 +627,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 
 				@Override
 				public void setExpirationPostponeTimeMsec(long msec) {
-					if(msec > 0) {
+					if(msec >= 0) {
+                        thisConv.enablePostponeExpiration(msec > 0);
 						thisConv.setExpirationPostponeTime(msec, TimeUnit.MILLISECONDS);
 						LOG.info("Conveyor {} changed ExpirationPostponeTime to {}msec",name,msec);
 					}					
