@@ -832,14 +832,14 @@ public class SmartConveyorTest {
 			pl.label(UserBuilderEvents.SET_YEAR).value(1900+i).place(); 
 		}
 		
-		Future<?> f = conveyor.completeAndStop();
-		PartLoader pl = conveyor.part().id(101);
-		Future<Boolean> cf = pl.label(UserBuilderEvents.SET_FIRST).value("First_"+101).place();
-		System.err.println(cf);
-		assertTrue(cf.isDone());
-		assertThrows(ExecutionException.class,()->cf.get());
-		conveyor.completeAndStop().get();
-	}
+			Future<?> f = conveyor.completeAndStop();
+			PartLoader pl = conveyor.part().id(101);
+			Future<Boolean> cf = pl.label(UserBuilderEvents.SET_FIRST).value("First_"+101).place();
+			System.err.println(cf);
+			assertThrows(ExecutionException.class,()->cf.get());
+			assertTrue(cf.isDone());
+			conveyor.completeAndStop().get();
+		}
 
 
 	/**

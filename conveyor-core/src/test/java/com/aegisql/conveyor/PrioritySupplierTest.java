@@ -77,7 +77,9 @@ public class PrioritySupplierTest {
         long now = System.currentTimeMillis();
         //same creation time, but nano resolution is different
         Cart<Integer,String,String> c1 = new ShoppingCart<>(1,"v1","l1",now,0,0);
+        waitForNextNanoTick();
         Cart<Integer,String,String> c2 = new ShoppingCart<>(2,"v2","l2",now,0,0);
+        waitForNextNanoTick();
         Cart<Integer,String,String> c3 = new ShoppingCart<>(3,"v3","l3",now,0,0);
         // put in reversed order
         queue.add(c3);
@@ -88,6 +90,13 @@ public class PrioritySupplierTest {
         assertEquals(2,queue.poll().getKey());
         assertEquals(3,queue.poll().getKey());
 
+    }
+
+    private static void waitForNextNanoTick() {
+        long value = System.nanoTime();
+        while (System.nanoTime() == value) {
+            // spin until nanoTime advances to make ordering deterministic
+        }
     }
 
     @Test

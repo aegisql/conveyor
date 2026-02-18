@@ -44,6 +44,7 @@ public class ConveyorMetaInfoBuilderTest {
         assertTrue(labels.contains("A"));
         assertTrue(labels.contains("B"));
         assertTrue(labels.contains("C"));
+        assertNotNull(metaInfo.builderSupplierFactory());
 
         Set<Class<?>> a = metaInfo.getSupportedValueTypes("A");
         assertNotNull(a);

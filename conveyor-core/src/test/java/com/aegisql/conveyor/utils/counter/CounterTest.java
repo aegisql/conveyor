@@ -37,4 +37,26 @@ class CounterTest {
         assertEquals("Counter testCounter cannot have negative expected value: -1", exception.getMessage());
     }
 
+    @Test
+    public void testCounterAccessorsAndToString() {
+        Counter counter = new Counter("counterAccessors");
+
+        assertEquals("counterAccessors", counter.getName());
+        assertEquals(0, counter.getCount());
+        assertEquals(-1, counter.getExpected());
+
+        counter.setExpected(0);
+        assertEquals(0, counter.getExpected());
+        assertTrue(counter.test());
+
+        // Setting the same expected value again is allowed.
+        counter.setExpected(0);
+        assertEquals(0, counter.getExpected());
+
+        String text = counter.toString();
+        assertTrue(text.contains("name='counterAccessors'"));
+        assertTrue(text.contains("count=0"));
+        assertTrue(text.contains("expected=0"));
+    }
+
 }

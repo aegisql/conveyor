@@ -81,4 +81,24 @@ public class MBeanRegisterTest {
         assertFalse(MBEAN.getRegisteredConveyorNames().contains("MBeanRegisterNamesTest"));
     }
 
+    @Test
+    public void knownConveyorNamesAndMalformedMBeanNameTest() {
+        AssemblingConveyor<Integer,String,String> ac = new AssemblingConveyor<>();
+        ac.setName("MBeanKnownNamesTest");
+        try {
+            assertNotNull(MBEAN.byName("MBeanKnownNamesTest"));
+            assertTrue(MBEAN.getKnownConveyorNames().contains("MBeanKnownNamesTest"));
+
+            MBEAN.resetConveyor("MBeanKnownNamesTest");
+            assertFalse(MBEAN.getKnownConveyorNames().contains("MBeanKnownNamesTest"));
+
+            assertThrows(
+                    ConveyorRuntimeException.class,
+                    () -> MBEAN.getMBeanInstance("bad,name", AssemblingConveyorMBean.class)
+            );
+        } finally {
+            MBEAN.unRegister("MBeanKnownNamesTest");
+        }
+    }
+
 }
