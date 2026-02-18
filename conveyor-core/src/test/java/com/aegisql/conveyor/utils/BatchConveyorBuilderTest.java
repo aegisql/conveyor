@@ -71,6 +71,16 @@ public class BatchConveyorBuilderTest {
 		assertTrue(b.toDelayed().getDelay(TimeUnit.MILLISECONDS) < 0);
 		
 	}
+
+	@Test
+	public void testBatchCollectingBuilderSizeOnlyConstructor() {
+		BatchCollectingBuilder<Integer> b = new BatchCollectingBuilder<>(2);
+		assertFalse(b.test());
+		BatchCollectingBuilder.add(b, 1);
+		assertFalse(b.test());
+		BatchCollectingBuilder.add(b, 2);
+		assertTrue(b.test());
+	}
 	
 	/**
 	 * Test batch conveyor.

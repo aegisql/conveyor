@@ -59,6 +59,11 @@ public class DuplicateValidatorTest {
         dv.acknowledge().accept(new AcknowledgeStatus<>("key", Status.READY,cart1.getAllProperties()));
     }
 
+    @Test
+    public void duplicateValidatorRequiresPropertyName() {
+        assertThrows(NullPointerException.class, () -> new DuplicateValidator<String, String, Integer>(null));
+    }
+
     public static class SummaBuilder implements Supplier<Integer> {
         public int summa = 0;
 
@@ -102,6 +107,25 @@ public class DuplicateValidatorTest {
         loader.label("done").place().join();
         assertEquals(Integer.valueOf(300),res.getCurrent());
 
+        sc.completeAndStop().join();
+    }
+
+    @Test
+    public void duplicateValueWithConveyorCustomPropertyName() {
+        SimpleConveyor<Integer,Integer> sc = new SimpleConveyor<>();
+        sc.setBuilderSupplier(SummaBuilder::new);
+        LastScrapReference<Integer> scrap = LastScrapReference.of(sc);
+        sc.scrapConsumer(scrap).set();
+        sc.setReadinessEvaluator(Conveyor.getTesterFor(sc).accepted("done"));
+        DuplicateValidator.wrap(sc, "CUSTOM_VALUE_ID");
+
+        var loader = sc.part().id(1).label("add");
+        loader.value(10).addProperty("CUSTOM_VALUE_ID", 42).place();
+        loader.value(20).addProperty("CUSTOM_VALUE_ID", 42).place();
+        loader.label("done").place().join();
+
+        assertNotNull(scrap.getCurrent());
+        assertEquals(DuplicateValueException.class, scrap.getCurrent().error.getClass());
         sc.completeAndStop().join();
     }
 

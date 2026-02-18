@@ -7,6 +7,7 @@ import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Set;
 
 import static com.aegisql.conveyor.meta.ConveyorMetaInfoBuilderTest.Label.*;
@@ -225,6 +226,25 @@ public class ConveyorMetaInfoBuilderTest {
 
         System.out.println(ac.getGenericName());
         assertEquals("AssemblingConveyor<Integer,String,User>",ac.getGenericName());
+    }
+
+    @Test
+    public void collectionBasedBuilderApiTest() {
+        ConveyorMetaInfo<Integer, String, User> metaInfo = new ConveyorMetaInfoBuilder<Integer, String, User>()
+                .keyType(Integer.class)
+                .labelType(String.class)
+                .productType(User.class)
+                .builderSupplier(UserBuilder::new)
+                .labels("A", (String[]) null)
+                .addLabels(List.of("B"))
+                .supportedTypes("A", List.of(String.class))
+                .supportedTypes("B", List.of(Integer.class))
+                .get();
+
+        assertEquals(2, metaInfo.getLabels().size());
+        assertTrue(metaInfo.getLabels().containsAll(Set.of("A", "B")));
+        assertEquals(Set.of(String.class), metaInfo.getSupportedValueTypes("A"));
+        assertEquals(Set.of(Integer.class), metaInfo.getSupportedValueTypes("B"));
     }
 
 

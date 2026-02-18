@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.consumers.result;
 
 import com.aegisql.conveyor.ProductBin;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SampleResultsTest {
@@ -38,6 +40,20 @@ public class SampleResultsTest {
         assertTrue(last05.get(9)-last05.get(0)>100);
 
 
+    }
+
+    @Test
+    public void sampleResultFactoryAndToStringTest() {
+        SampleResults<Integer,Integer> sr = SampleResults.of(null,3,1);
+        sr.accept(new ProductBin<>(null, 1, 10, 0, null, null, null));
+        String text = sr.toString();
+        assertTrue(text.startsWith("LastResults ["));
+    }
+
+    @Test
+    public void invalidSampleRateTest() {
+        assertThrows(ConveyorRuntimeException.class, () -> new SampleResults<>(10,-0.01));
+        assertThrows(ConveyorRuntimeException.class, () -> new SampleResults<>(10,1.01));
     }
 
 }

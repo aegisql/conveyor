@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -64,6 +65,16 @@ public class ValueTypeValidatorTest {
             assertTrue(e.getMessage().startsWith("Value type is unsupported"));
         }
 
+    }
+
+    @Test
+    public void testValueTypeValidatorMissingAcceptTypes() {
+        ValueTypeValidator<Integer,SmartLabel<TestBuilder>> validator = new ValueTypeValidator<>();
+        var NO_TYPES = SmartLabel.of("NO_TYPES", TestBuilder::setString);
+        Cart<Integer,?,SmartLabel<TestBuilder>> cart = new ShoppingCart<>(1, "text", NO_TYPES);
+
+        ConveyorRuntimeException e = assertThrows(ConveyorRuntimeException.class, () -> validator.accept(cart));
+        assertTrue(e.getMessage().startsWith("ValueTypeValidator expected explicit list of supported types"));
     }
 
 }

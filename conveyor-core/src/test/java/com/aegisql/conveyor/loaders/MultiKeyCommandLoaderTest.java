@@ -3,9 +3,16 @@ package com.aegisql.conveyor.loaders;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MultiKeyCommandLoaderTest {
 
@@ -95,6 +102,23 @@ public class MultiKeyCommandLoaderTest {
         });
         cl.addProperty("a","A");
         cl.addProperties(Map.of("a","A","b","B"));
+        cl.addProperties(null);
+    }
+
+    @Test
+    public void peekIdTest() {
+        MultiKeyCommandLoader<Integer, String> success = new MultiKeyCommandLoader<>(cmd -> CompletableFuture.completedFuture(true));
+        assertEquals(Collections.emptyList(), success.peekId().join());
+
+        MultiKeyCommandLoader<Integer, String> failed = new MultiKeyCommandLoader<>(cmd -> CompletableFuture.completedFuture(false));
+        CompletionException e = assertThrows(CompletionException.class, () -> failed.peekId().join());
+        assertTrue(e.getCause() instanceof CancellationException);
+    }
+
+    @Test
+    public void addPropertiesNullInputTest() {
+        MultiKeyCommandLoader<Integer, String> cl = new MultiKeyCommandLoader<>(cmd -> CompletableFuture.completedFuture(true));
+        assertTrue(cl.addProperties(null).join());
     }
 
 }
