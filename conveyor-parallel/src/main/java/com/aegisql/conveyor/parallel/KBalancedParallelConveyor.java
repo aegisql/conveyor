@@ -4,14 +4,12 @@
 package com.aegisql.conveyor.parallel;
 
 import com.aegisql.conveyor.*;
-import com.aegisql.conveyor.cart.Cart;
-import com.aegisql.conveyor.cart.CreatingCart;
-import com.aegisql.conveyor.cart.FutureCart;
-import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.*;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -104,6 +102,10 @@ public class KBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 	@Override
 	public <V> CompletableFuture<Boolean> place(Cart<K,V,L> cart) {
 		Objects.requireNonNull(cart, "Cart is null");
+        if(cart.getLoadType() == LoadType.STATIC_PART) {
+            var futures = conveyors.stream().map(c -> c.place(cart)).toList();
+            return ParallelConveyor.combineFutures(futures);
+        }
 		Conveyor<K,L,OUT> balancedCobveyor    = this.balancingCart.apply(cart).get(0);
 		return balancedCobveyor.place(cart);
 	}

@@ -144,7 +144,7 @@ public class PBalancedConvTest {
 		delLoader.addProperty("version", 1).addProperty("abtest","A").value(" ").place();
 		delLoader.addProperty("version", 1).addProperty("abtest","B").value("-").place();
 		delLoader.addProperty("version", 2).addProperty("abtest","A").value(" ").place();
-		delLoader.addProperty("version", 2).addProperty("abtest","B").value("-").place();
+		delLoader.addProperty("version", 2).addProperty("abtest","B").value("-").place().join();
 		// load data and metadata
 		v1Loader.id(1).label("first").addProperty("abtest","A").value("A").place();
 		v2Loader.id(2).label("first").addProperty("abtest","A").value("X").place();

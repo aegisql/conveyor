@@ -119,7 +119,16 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 	            return place(cart);
 	        });
 	}
-	
+
+    public static CompletableFuture<Boolean> combineFutures(List<CompletableFuture<Boolean>> futures) {
+        CompletableFuture<?>[] all = futures.toArray(CompletableFuture[]::new);
+
+        return CompletableFuture.allOf(all)
+                .thenApply(ignored ->
+                        futures.stream().allMatch(f -> Boolean.TRUE.equals(f.join()))
+                );
+    }
+
 	@Override
 	public StaticPartLoader<L> staticPart() {
 		return new StaticPartLoader<>(cl -> {

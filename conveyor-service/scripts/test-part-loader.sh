@@ -27,8 +27,12 @@ Usage:
 Options:
   --conveyor <name>   Conveyor name (default: collector)
   --id <value>        Single ID for fixed 3-step flow (USER/ADDRESS/DONE)
-  --file <path>       Play pipe-delimited file with rows: CONVEYOR_NAME|ID|LABEL|BODY
-  --shuffle           Randomize order of file rows before sending
+  --file <path>       Play pipe-delimited file with header:
+                      CONVEYOR_NAME|ID|LABEL|BODY (parts) or
+                      CONVEYOR_NAME|LABEL|BODY (static parts)
+                      Any columns after BODY are sent as request properties.
+  --shuffle           Randomize order by blocks before sending:
+                      parts: CONVEYOR_NAME|ID, static: CONVEYOR_NAME|LABEL
   -h, --help          Show help
 
 Notes:
@@ -195,6 +199,7 @@ post_part() {
   local id="$2"
   local label="$3"
   local body="$4"
+  local extra_props_query="${5:-}"
   local conveyor_path id_path label_path
   local query url response status response_body
 
@@ -202,6 +207,9 @@ post_part() {
   id_path="$(urlencode "$id")"
   label_path="$(urlencode "$label")"
   query="ttl=$(urlencode "$TTL")&requestTTL=$(urlencode "$REQUEST_TTL")"
+  if [[ -n "$extra_props_query" ]]; then
+    query+="&${extra_props_query}"
+  fi
   url="${BASE_URL}/part/${conveyor_path}/${id_path}/${label_path}?${query}"
 
   echo "POST ${url}"
@@ -227,23 +235,133 @@ post_part() {
   fi
 }
 
+post_static_part() {
+  local conveyor_name="$1"
+  local label="$2"
+  local body="$3"
+  local extra_props_query="${4:-}"
+  local conveyor_path label_path query url response status response_body
+
+  conveyor_path="$(urlencode "$conveyor_name")"
+  label_path="$(urlencode "$label")"
+  query="requestTTL=$(urlencode "$REQUEST_TTL")"
+  if [[ -n "$extra_props_query" ]]; then
+    query+="&${extra_props_query}"
+  fi
+  url="${BASE_URL}/static-part/${conveyor_path}/${label_path}?${query}"
+
+  echo "POST ${url}"
+  echo "Body: ${body}"
+
+  response="$(perform_post "$url" "$body")"
+
+  status="$(printf '%s\n' "$response" | sed -n 's/^HTTP_STATUS://p')"
+  response_body="$(printf '%s\n' "$response" | sed '/^HTTP_STATUS:/d')"
+
+  echo "HTTP ${status}"
+  print_json "$response_body"
+  echo
+
+  if [[ "$status" == "302" ]]; then
+    echo "Received HTTP 302 (likely authentication redirect). Check AUTH_MODE and credentials." >&2
+    exit 1
+  fi
+
+  if [[ -z "$status" || "$status" -ge 400 ]]; then
+    echo "Request failed for label=${label}" >&2
+    exit 1
+  fi
+}
+
 declare -a FILE_RECORDS=()
+FILE_MODE=""
+declare -a HEADER_COLUMNS=()
+HEADER_COLUMNS_COUNT=0
+BASE_COLUMNS_COUNT=0
 
 load_file_records() {
   local line raw_conveyor raw_id raw_label raw_body line_no=0
+  local header_seen=false
+  local props_query prop_sep key value idx
+  local -a row_columns=()
   while IFS= read -r line || [[ -n "$line" ]]; do
     line_no=$((line_no + 1))
     line="${line%$'\r'}"
     [[ -z "${line//[[:space:]]/}" ]] && continue
-    [[ "$line" == "CONVEYOR_NAME|ID|LABEL|BODY" ]] && continue
 
-    IFS='|' read -r raw_conveyor raw_id raw_label raw_body <<< "$line"
-    if [[ -z "${raw_conveyor:-}" || -z "${raw_id:-}" || -z "${raw_label:-}" || -z "${raw_body:-}" ]]; then
-      echo "Invalid record at ${INPUT_FILE}:${line_no}. Expected format: CONVEYOR_NAME|ID|LABEL|BODY" >&2
+    if [[ "$header_seen" == false ]]; then
+      header_seen=true
+      IFS='|' read -r -a HEADER_COLUMNS <<< "$line"
+      HEADER_COLUMNS_COUNT="${#HEADER_COLUMNS[@]}"
+      if [[ "$HEADER_COLUMNS_COUNT" -ge 4 \
+         && "${HEADER_COLUMNS[0]}" == "CONVEYOR_NAME" \
+         && "${HEADER_COLUMNS[1]}" == "ID" \
+         && "${HEADER_COLUMNS[2]}" == "LABEL" \
+         && "${HEADER_COLUMNS[3]}" == "BODY" ]]; then
+        FILE_MODE="parts"
+        BASE_COLUMNS_COUNT=4
+        continue
+      fi
+      if [[ "$HEADER_COLUMNS_COUNT" -ge 3 \
+         && "${HEADER_COLUMNS[0]}" == "CONVEYOR_NAME" \
+         && "${HEADER_COLUMNS[1]}" == "LABEL" \
+         && "${HEADER_COLUMNS[2]}" == "BODY" ]]; then
+        FILE_MODE="static"
+        BASE_COLUMNS_COUNT=3
+        continue
+      fi
+      echo "Invalid header in ${INPUT_FILE}:${line_no}. Expected 'CONVEYOR_NAME|ID|LABEL|BODY[...]' or 'CONVEYOR_NAME|LABEL|BODY[...]'" >&2
       exit 1
     fi
-    FILE_RECORDS+=("${raw_conveyor}|${raw_id}|${raw_label}|${raw_body}")
+
+    IFS='|' read -r -a row_columns <<< "$line"
+    if [[ "${#row_columns[@]}" -lt "$BASE_COLUMNS_COUNT" || "${#row_columns[@]}" -gt "$HEADER_COLUMNS_COUNT" ]]; then
+      echo "Invalid record at ${INPUT_FILE}:${line_no}. Expected ${BASE_COLUMNS_COUNT}-${HEADER_COLUMNS_COUNT} columns based on header." >&2
+      exit 1
+    fi
+
+    props_query=""
+    prop_sep=""
+    for ((idx = BASE_COLUMNS_COUNT; idx < HEADER_COLUMNS_COUNT; idx++)); do
+      key="${HEADER_COLUMNS[$idx]}"
+      if [[ -z "${key:-}" ]]; then
+        echo "Invalid header in ${INPUT_FILE}: property column name at index ${idx} is empty." >&2
+        exit 1
+      fi
+      value=""
+      if [[ "$idx" -lt "${#row_columns[@]}" ]]; then
+        value="${row_columns[$idx]}"
+      fi
+      props_query+="${prop_sep}$(urlencode "$key")=$(urlencode "$value")"
+      prop_sep="&"
+    done
+
+    if [[ "$FILE_MODE" == "parts" ]]; then
+      raw_conveyor="${row_columns[0]}"
+      raw_id="${row_columns[1]}"
+      raw_label="${row_columns[2]}"
+      raw_body="${row_columns[3]}"
+      if [[ -z "${raw_conveyor:-}" || -z "${raw_id:-}" || -z "${raw_label:-}" || -z "${raw_body:-}" ]]; then
+        echo "Invalid record at ${INPUT_FILE}:${line_no}. Expected format: CONVEYOR_NAME|ID|LABEL|BODY[|...]" >&2
+        exit 1
+      fi
+      FILE_RECORDS+=("${raw_conveyor}|${raw_id}|${raw_label}|${raw_body}|${props_query}")
+    else
+      raw_conveyor="${row_columns[0]}"
+      raw_label="${row_columns[1]}"
+      raw_body="${row_columns[2]}"
+      if [[ -z "${raw_conveyor:-}" || -z "${raw_label:-}" || -z "${raw_body:-}" ]]; then
+        echo "Invalid record at ${INPUT_FILE}:${line_no}. Expected format: CONVEYOR_NAME|LABEL|BODY[|...]" >&2
+        exit 1
+      fi
+      FILE_RECORDS+=("${raw_conveyor}||${raw_label}|${raw_body}|${props_query}")
+    fi
   done < "$INPUT_FILE"
+
+  if [[ "$header_seen" == false ]]; then
+    echo "Input file is empty or has no header: $INPUT_FILE" >&2
+    exit 1
+  fi
 
   if [[ ${#FILE_RECORDS[@]} -eq 0 ]]; then
     echo "No records found in input file: $INPUT_FILE" >&2
@@ -252,20 +370,60 @@ load_file_records() {
 }
 
 shuffle_file_records() {
-  local i j tmp
-  for ((i = ${#FILE_RECORDS[@]} - 1; i > 0; i--)); do
+  local -a keys=()
+  local -a grouped=()
+  local record conveyor_name id label body props_query key found idx
+  local i j tmp group_line
+
+  # Group records by conveyor+id (parts) or conveyor+label (static), preserving source order in each group.
+  for record in "${FILE_RECORDS[@]}"; do
+    IFS='|' read -r conveyor_name id label body props_query <<< "$record"
+    if [[ "$FILE_MODE" == "parts" ]]; then
+      key="${conveyor_name}|${id}"
+    else
+      key="${conveyor_name}|${label}"
+    fi
+    found=-1
+    for idx in "${!keys[@]}"; do
+      if [[ "${keys[$idx]}" == "$key" ]]; then
+        found="$idx"
+        break
+      fi
+    done
+    if [[ "$found" -eq -1 ]]; then
+      keys+=("$key")
+      grouped+=("$record")
+    else
+      grouped[$found]+=$'\n'"$record"
+    fi
+  done
+
+  # Shuffle group order.
+  for ((i = ${#grouped[@]} - 1; i > 0; i--)); do
     j=$((RANDOM % (i + 1)))
-    tmp="${FILE_RECORDS[$i]}"
-    FILE_RECORDS[$i]="${FILE_RECORDS[$j]}"
-    FILE_RECORDS[$j]="$tmp"
+    tmp="${grouped[$i]}"
+    grouped[$i]="${grouped[$j]}"
+    grouped[$j]="$tmp"
+  done
+
+  # Flatten back to FILE_RECORDS.
+  FILE_RECORDS=()
+  for idx in "${!grouped[@]}"; do
+    while IFS= read -r group_line || [[ -n "$group_line" ]]; do
+      FILE_RECORDS+=("$group_line")
+    done <<< "${grouped[$idx]}"
   done
 }
 
 play_file_records() {
-  local record conveyor_name id label body
+  local record conveyor_name id label body props_query
   for record in "${FILE_RECORDS[@]}"; do
-    IFS='|' read -r conveyor_name id label body <<< "$record"
-    post_part "$conveyor_name" "$id" "$label" "$body"
+    IFS='|' read -r conveyor_name id label body props_query <<< "$record"
+    if [[ "$FILE_MODE" == "parts" ]]; then
+      post_part "$conveyor_name" "$id" "$label" "$body" "$props_query"
+    else
+      post_static_part "$conveyor_name" "$label" "$body" "$props_query"
+    fi
   done
 }
 
@@ -280,7 +438,7 @@ if [[ -n "$INPUT_FILE" ]]; then
   fi
 
   play_file_records
-  echo "Sent ${#FILE_RECORDS[@]} part-loader records from file '${INPUT_FILE}' (conveyor per row)."
+  echo "Sent ${#FILE_RECORDS[@]} records from file '${INPUT_FILE}' (mode=${FILE_MODE}, conveyor per row)."
   echo "shuffle=${SHUFFLE}, ttl='${TTL}', requestTTL='${REQUEST_TTL}'"
 else
   post_part "$CONVEYOR" "$SINGLE_ID" "USER" '{"name":"John D"}'
