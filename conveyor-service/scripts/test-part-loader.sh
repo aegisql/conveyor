@@ -26,8 +26,8 @@ Usage:
 
 Options:
   --conveyor <name>   Conveyor name (default: collector)
-  --id <number>       Single numeric ID for fixed 3-step flow (USER/ADDRESS/DONE)
-  --file <path>       Play pipe-delimited file with rows: ID|LABEL|BODY
+  --id <value>        Single ID for fixed 3-step flow (USER/ADDRESS/DONE)
+  --file <path>       Play pipe-delimited file with rows: CONVEYOR_NAME|ID|LABEL|BODY
   --shuffle           Randomize order of file rows before sending
   -h, --help          Show help
 
@@ -119,10 +119,6 @@ else
   if [[ -z "$SINGLE_ID" ]]; then
     SINGLE_ID="$(date +%s)"
   fi
-  if ! [[ "$SINGLE_ID" =~ ^[0-9]+$ ]]; then
-    echo "ID must be a number. Received: $SINGLE_ID" >&2
-    exit 1
-  fi
 fi
 
 urlencode() {
@@ -195,18 +191,18 @@ perform_post() {
 }
 
 post_part() {
-  local id="$1"
-  local label="$2"
-  local body="$3"
+  local conveyor_name="$1"
+  local id="$2"
+  local label="$3"
+  local body="$4"
+  local conveyor_path id_path label_path
   local query url response status response_body
 
-  if ! [[ "$id" =~ ^[0-9]+$ ]]; then
-    echo "ID must be numeric. Received: $id" >&2
-    exit 1
-  fi
-
+  conveyor_path="$(urlencode "$conveyor_name")"
+  id_path="$(urlencode "$id")"
+  label_path="$(urlencode "$label")"
   query="ttl=$(urlencode "$TTL")&requestTTL=$(urlencode "$REQUEST_TTL")"
-  url="${BASE_URL}/part/${CONVEYOR}/${id}/${label}?${query}"
+  url="${BASE_URL}/part/${conveyor_path}/${id_path}/${label_path}?${query}"
 
   echo "POST ${url}"
   echo "Body: ${body}"
@@ -234,24 +230,19 @@ post_part() {
 declare -a FILE_RECORDS=()
 
 load_file_records() {
-  local line raw_id raw_label raw_body line_no=0
+  local line raw_conveyor raw_id raw_label raw_body line_no=0
   while IFS= read -r line || [[ -n "$line" ]]; do
     line_no=$((line_no + 1))
     line="${line%$'\r'}"
     [[ -z "${line//[[:space:]]/}" ]] && continue
-    [[ "$line" == "ID|LABEL|BODY" ]] && continue
+    [[ "$line" == "CONVEYOR_NAME|ID|LABEL|BODY" ]] && continue
 
-    IFS='|' read -r raw_id raw_label raw_body <<< "$line"
-    if [[ -z "${raw_id:-}" || -z "${raw_label:-}" || -z "${raw_body:-}" ]]; then
-      echo "Invalid record at ${INPUT_FILE}:${line_no}. Expected format: ID|LABEL|BODY" >&2
+    IFS='|' read -r raw_conveyor raw_id raw_label raw_body <<< "$line"
+    if [[ -z "${raw_conveyor:-}" || -z "${raw_id:-}" || -z "${raw_label:-}" || -z "${raw_body:-}" ]]; then
+      echo "Invalid record at ${INPUT_FILE}:${line_no}. Expected format: CONVEYOR_NAME|ID|LABEL|BODY" >&2
       exit 1
     fi
-    if ! [[ "$raw_id" =~ ^[0-9]+$ ]]; then
-      echo "Invalid numeric ID at ${INPUT_FILE}:${line_no}: ${raw_id}" >&2
-      exit 1
-    fi
-
-    FILE_RECORDS+=("${raw_id}|${raw_label}|${raw_body}")
+    FILE_RECORDS+=("${raw_conveyor}|${raw_id}|${raw_label}|${raw_body}")
   done < "$INPUT_FILE"
 
   if [[ ${#FILE_RECORDS[@]} -eq 0 ]]; then
@@ -271,10 +262,10 @@ shuffle_file_records() {
 }
 
 play_file_records() {
-  local record id label body
+  local record conveyor_name id label body
   for record in "${FILE_RECORDS[@]}"; do
-    IFS='|' read -r id label body <<< "$record"
-    post_part "$id" "$label" "$body"
+    IFS='|' read -r conveyor_name id label body <<< "$record"
+    post_part "$conveyor_name" "$id" "$label" "$body"
   done
 }
 
@@ -289,12 +280,12 @@ if [[ -n "$INPUT_FILE" ]]; then
   fi
 
   play_file_records
-  echo "Sent ${#FILE_RECORDS[@]} part-loader records to conveyor '${CONVEYOR}' from file '${INPUT_FILE}'."
+  echo "Sent ${#FILE_RECORDS[@]} part-loader records from file '${INPUT_FILE}' (conveyor per row)."
   echo "shuffle=${SHUFFLE}, ttl='${TTL}', requestTTL='${REQUEST_TTL}'"
 else
-  post_part "$SINGLE_ID" "USER" '{"name":"John D"}'
-  post_part "$SINGLE_ID" "ADDRESS" '{"zip_code":"11111"}'
-  post_part "$SINGLE_ID" "DONE" '{}'
+  post_part "$CONVEYOR" "$SINGLE_ID" "USER" '{"name":"John D"}'
+  post_part "$CONVEYOR" "$SINGLE_ID" "ADDRESS" '{"zip_code":"11111"}'
+  post_part "$CONVEYOR" "$SINGLE_ID" "DONE" '{}'
 
   echo "Sent 3 part-loader messages to conveyor '${CONVEYOR}' with ID=${SINGLE_ID}."
   echo "ttl='${TTL}', requestTTL='${REQUEST_TTL}'"

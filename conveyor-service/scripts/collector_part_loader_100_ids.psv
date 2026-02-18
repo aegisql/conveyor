@@ -1,0 +1,301 @@
+CONVEYOR_NAME|ID|LABEL|BODY
+collector|1001|USER|{"user_name":"Michael Taylor"}
+collector|1001|ADDRESS|{"zip_code":"17919"}
+collector|1001|DONE|{}
+collector|1002|USER|{"user_name":"Evelyn Garcia"}
+collector|1002|ADDRESS|{"zip_code":"25838"}
+collector|1002|DONE|{}
+collector|1003|USER|{"user_name":"Benjamin Anderson"}
+collector|1003|ADDRESS|{"zip_code":"33757"}
+collector|1003|DONE|{}
+collector|1004|USER|{"user_name":"Sophia Brown"}
+collector|1004|ADDRESS|{"zip_code":"41676"}
+collector|1004|DONE|{}
+collector|1005|USER|{"user_name":"Liam Gonzalez"}
+collector|1005|ADDRESS|{"zip_code":"49595"}
+collector|1005|DONE|{}
+collector|1006|USER|{"user_name":"Harper Johnson"}
+collector|1006|ADDRESS|{"zip_code":"57514"}
+collector|1006|DONE|{}
+collector|1007|USER|{"user_name":"Lucas Hernandez"}
+collector|1007|ADDRESS|{"zip_code":"65433"}
+collector|1007|DONE|{}
+collector|1008|USER|{"user_name":"Isabella Martin"}
+collector|1008|ADDRESS|{"zip_code":"73352"}
+collector|1008|DONE|{}
+collector|1009|USER|{"user_name":"Noah Rodriguez"}
+collector|1009|ADDRESS|{"zip_code":"81271"}
+collector|1009|DONE|{}
+collector|1010|USER|{"user_name":"Ella Moore"}
+collector|1010|ADDRESS|{"zip_code":"89190"}
+collector|1010|DONE|{}
+collector|1011|USER|{"user_name":"Henry Miller"}
+collector|1011|ADDRESS|{"zip_code":"97109"}
+collector|1011|DONE|{}
+collector|1012|USER|{"user_name":"Amelia Thomas"}
+collector|1012|ADDRESS|{"zip_code":"15028"}
+collector|1012|DONE|{}
+collector|1013|USER|{"user_name":"Ava Jones"}
+collector|1013|ADDRESS|{"zip_code":"22947"}
+collector|1013|DONE|{}
+collector|1014|USER|{"user_name":"Abigail Wilson"}
+collector|1014|ADDRESS|{"zip_code":"30866"}
+collector|1014|DONE|{}
+collector|1015|USER|{"user_name":"Alexander Williams"}
+collector|1015|ADDRESS|{"zip_code":"38785"}
+collector|1015|DONE|{}
+collector|1016|USER|{"user_name":"Mia Lopez"}
+collector|1016|ADDRESS|{"zip_code":"46704"}
+collector|1016|DONE|{}
+collector|1017|USER|{"user_name":"Mason Smith"}
+collector|1017|ADDRESS|{"zip_code":"54623"}
+collector|1017|DONE|{}
+collector|1018|USER|{"user_name":"Emma Martinez"}
+collector|1018|ADDRESS|{"zip_code":"62542"}
+collector|1018|DONE|{}
+collector|1019|USER|{"user_name":"Elijah Jackson"}
+collector|1019|ADDRESS|{"zip_code":"70461"}
+collector|1019|DONE|{}
+collector|1020|USER|{"user_name":"Charlotte Davis"}
+collector|1020|ADDRESS|{"zip_code":"78380"}
+collector|1020|DONE|{}
+collector|1021|USER|{"user_name":"James Taylor"}
+collector|1021|ADDRESS|{"zip_code":"86299"}
+collector|1021|DONE|{}
+collector|1022|USER|{"user_name":"Olivia Garcia"}
+collector|1022|ADDRESS|{"zip_code":"94218"}
+collector|1022|DONE|{}
+collector|1023|USER|{"user_name":"Michael Anderson"}
+collector|1023|ADDRESS|{"zip_code":"12137"}
+collector|1023|DONE|{}
+collector|1024|USER|{"user_name":"Evelyn Brown"}
+collector|1024|ADDRESS|{"zip_code":"20056"}
+collector|1024|DONE|{}
+collector|1025|USER|{"user_name":"Benjamin Gonzalez"}
+collector|1025|ADDRESS|{"zip_code":"27975"}
+collector|1025|DONE|{}
+collector|1026|USER|{"user_name":"Sophia Johnson"}
+collector|1026|ADDRESS|{"zip_code":"35894"}
+collector|1026|DONE|{}
+collector|1027|USER|{"user_name":"Liam Hernandez"}
+collector|1027|ADDRESS|{"zip_code":"43813"}
+collector|1027|DONE|{}
+collector|1028|USER|{"user_name":"Harper Martin"}
+collector|1028|ADDRESS|{"zip_code":"51732"}
+collector|1028|DONE|{}
+collector|1029|USER|{"user_name":"Lucas Rodriguez"}
+collector|1029|ADDRESS|{"zip_code":"59651"}
+collector|1029|DONE|{}
+collector|1030|USER|{"user_name":"Isabella Moore"}
+collector|1030|ADDRESS|{"zip_code":"67570"}
+collector|1030|DONE|{}
+collector|1031|USER|{"user_name":"Noah Miller"}
+collector|1031|ADDRESS|{"zip_code":"75489"}
+collector|1031|DONE|{}
+collector|1032|USER|{"user_name":"Ella Thomas"}
+collector|1032|ADDRESS|{"zip_code":"83408"}
+collector|1032|DONE|{}
+collector|1033|USER|{"user_name":"Henry Jones"}
+collector|1033|ADDRESS|{"zip_code":"91327"}
+collector|1033|DONE|{}
+collector|1034|USER|{"user_name":"Amelia Wilson"}
+collector|1034|ADDRESS|{"zip_code":"99246"}
+collector|1034|DONE|{}
+collector|1035|USER|{"user_name":"Ava Williams"}
+collector|1035|ADDRESS|{"zip_code":"17165"}
+collector|1035|DONE|{}
+collector|1036|USER|{"user_name":"Abigail Lopez"}
+collector|1036|ADDRESS|{"zip_code":"25084"}
+collector|1036|DONE|{}
+collector|1037|USER|{"user_name":"Alexander Smith"}
+collector|1037|ADDRESS|{"zip_code":"33003"}
+collector|1037|DONE|{}
+collector|1038|USER|{"user_name":"Mia Martinez"}
+collector|1038|ADDRESS|{"zip_code":"40922"}
+collector|1038|DONE|{}
+collector|1039|USER|{"user_name":"Mason Jackson"}
+collector|1039|ADDRESS|{"zip_code":"48841"}
+collector|1039|DONE|{}
+collector|1040|USER|{"user_name":"Emma Davis"}
+collector|1040|ADDRESS|{"zip_code":"56760"}
+collector|1040|DONE|{}
+collector|1041|USER|{"user_name":"Elijah Taylor"}
+collector|1041|ADDRESS|{"zip_code":"64679"}
+collector|1041|DONE|{}
+collector|1042|USER|{"user_name":"Charlotte Garcia"}
+collector|1042|ADDRESS|{"zip_code":"72598"}
+collector|1042|DONE|{}
+collector|1043|USER|{"user_name":"James Anderson"}
+collector|1043|ADDRESS|{"zip_code":"80517"}
+collector|1043|DONE|{}
+collector|1044|USER|{"user_name":"Olivia Brown"}
+collector|1044|ADDRESS|{"zip_code":"88436"}
+collector|1044|DONE|{}
+collector|1045|USER|{"user_name":"Michael Gonzalez"}
+collector|1045|ADDRESS|{"zip_code":"96355"}
+collector|1045|DONE|{}
+collector|1046|USER|{"user_name":"Evelyn Johnson"}
+collector|1046|ADDRESS|{"zip_code":"14274"}
+collector|1046|DONE|{}
+collector|1047|USER|{"user_name":"Benjamin Hernandez"}
+collector|1047|ADDRESS|{"zip_code":"22193"}
+collector|1047|DONE|{}
+collector|1048|USER|{"user_name":"Sophia Martin"}
+collector|1048|ADDRESS|{"zip_code":"30112"}
+collector|1048|DONE|{}
+collector|1049|USER|{"user_name":"Liam Rodriguez"}
+collector|1049|ADDRESS|{"zip_code":"38031"}
+collector|1049|DONE|{}
+collector|1050|USER|{"user_name":"Harper Moore"}
+collector|1050|ADDRESS|{"zip_code":"45950"}
+collector|1050|DONE|{}
+collector|1051|USER|{"user_name":"Lucas Miller"}
+collector|1051|ADDRESS|{"zip_code":"53869"}
+collector|1051|DONE|{}
+collector|1052|USER|{"user_name":"Isabella Thomas"}
+collector|1052|ADDRESS|{"zip_code":"61788"}
+collector|1052|DONE|{}
+collector|1053|USER|{"user_name":"Noah Jones"}
+collector|1053|ADDRESS|{"zip_code":"69707"}
+collector|1053|DONE|{}
+collector|1054|USER|{"user_name":"Ella Wilson"}
+collector|1054|ADDRESS|{"zip_code":"77626"}
+collector|1054|DONE|{}
+collector|1055|USER|{"user_name":"Henry Williams"}
+collector|1055|ADDRESS|{"zip_code":"85545"}
+collector|1055|DONE|{}
+collector|1056|USER|{"user_name":"Amelia Lopez"}
+collector|1056|ADDRESS|{"zip_code":"93464"}
+collector|1056|DONE|{}
+collector|1057|USER|{"user_name":"Ava Smith"}
+collector|1057|ADDRESS|{"zip_code":"11383"}
+collector|1057|DONE|{}
+collector|1058|USER|{"user_name":"Abigail Martinez"}
+collector|1058|ADDRESS|{"zip_code":"19302"}
+collector|1058|DONE|{}
+collector|1059|USER|{"user_name":"Alexander Jackson"}
+collector|1059|ADDRESS|{"zip_code":"27221"}
+collector|1059|DONE|{}
+collector|1060|USER|{"user_name":"Mia Davis"}
+collector|1060|ADDRESS|{"zip_code":"35140"}
+collector|1060|DONE|{}
+collector|1061|USER|{"user_name":"Mason Taylor"}
+collector|1061|ADDRESS|{"zip_code":"43059"}
+collector|1061|DONE|{}
+collector|1062|USER|{"user_name":"Emma Garcia"}
+collector|1062|ADDRESS|{"zip_code":"50978"}
+collector|1062|DONE|{}
+collector|1063|USER|{"user_name":"Elijah Anderson"}
+collector|1063|ADDRESS|{"zip_code":"58897"}
+collector|1063|DONE|{}
+collector|1064|USER|{"user_name":"Charlotte Brown"}
+collector|1064|ADDRESS|{"zip_code":"66816"}
+collector|1064|DONE|{}
+collector|1065|USER|{"user_name":"James Gonzalez"}
+collector|1065|ADDRESS|{"zip_code":"74735"}
+collector|1065|DONE|{}
+collector|1066|USER|{"user_name":"Olivia Johnson"}
+collector|1066|ADDRESS|{"zip_code":"82654"}
+collector|1066|DONE|{}
+collector|1067|USER|{"user_name":"Michael Hernandez"}
+collector|1067|ADDRESS|{"zip_code":"90573"}
+collector|1067|DONE|{}
+collector|1068|USER|{"user_name":"Evelyn Martin"}
+collector|1068|ADDRESS|{"zip_code":"98492"}
+collector|1068|DONE|{}
+collector|1069|USER|{"user_name":"Benjamin Rodriguez"}
+collector|1069|ADDRESS|{"zip_code":"16411"}
+collector|1069|DONE|{}
+collector|1070|USER|{"user_name":"Sophia Moore"}
+collector|1070|ADDRESS|{"zip_code":"24330"}
+collector|1070|DONE|{}
+collector|1071|USER|{"user_name":"Liam Miller"}
+collector|1071|ADDRESS|{"zip_code":"32249"}
+collector|1071|DONE|{}
+collector|1072|USER|{"user_name":"Harper Thomas"}
+collector|1072|ADDRESS|{"zip_code":"40168"}
+collector|1072|DONE|{}
+collector|1073|USER|{"user_name":"Lucas Jones"}
+collector|1073|ADDRESS|{"zip_code":"48087"}
+collector|1073|DONE|{}
+collector|1074|USER|{"user_name":"Isabella Wilson"}
+collector|1074|ADDRESS|{"zip_code":"56006"}
+collector|1074|DONE|{}
+collector|1075|USER|{"user_name":"Noah Williams"}
+collector|1075|ADDRESS|{"zip_code":"63925"}
+collector|1075|DONE|{}
+collector|1076|USER|{"user_name":"Ella Lopez"}
+collector|1076|ADDRESS|{"zip_code":"71844"}
+collector|1076|DONE|{}
+collector|1077|USER|{"user_name":"Henry Smith"}
+collector|1077|ADDRESS|{"zip_code":"79763"}
+collector|1077|DONE|{}
+collector|1078|USER|{"user_name":"Amelia Martinez"}
+collector|1078|ADDRESS|{"zip_code":"87682"}
+collector|1078|DONE|{}
+collector|1079|USER|{"user_name":"Ava Jackson"}
+collector|1079|ADDRESS|{"zip_code":"95601"}
+collector|1079|DONE|{}
+collector|1080|USER|{"user_name":"Abigail Davis"}
+collector|1080|ADDRESS|{"zip_code":"13520"}
+collector|1080|DONE|{}
+collector|1081|USER|{"user_name":"Alexander Taylor"}
+collector|1081|ADDRESS|{"zip_code":"21439"}
+collector|1081|DONE|{}
+collector|1082|USER|{"user_name":"Mia Garcia"}
+collector|1082|ADDRESS|{"zip_code":"29358"}
+collector|1082|DONE|{}
+collector|1083|USER|{"user_name":"Mason Anderson"}
+collector|1083|ADDRESS|{"zip_code":"37277"}
+collector|1083|DONE|{}
+collector|1084|USER|{"user_name":"Emma Brown"}
+collector|1084|ADDRESS|{"zip_code":"45196"}
+collector|1084|DONE|{}
+collector|1085|USER|{"user_name":"Elijah Gonzalez"}
+collector|1085|ADDRESS|{"zip_code":"53115"}
+collector|1085|DONE|{}
+collector|1086|USER|{"user_name":"Charlotte Johnson"}
+collector|1086|ADDRESS|{"zip_code":"61034"}
+collector|1086|DONE|{}
+collector|1087|USER|{"user_name":"James Hernandez"}
+collector|1087|ADDRESS|{"zip_code":"68953"}
+collector|1087|DONE|{}
+collector|1088|USER|{"user_name":"Olivia Martin"}
+collector|1088|ADDRESS|{"zip_code":"76872"}
+collector|1088|DONE|{}
+collector|1089|USER|{"user_name":"Michael Rodriguez"}
+collector|1089|ADDRESS|{"zip_code":"84791"}
+collector|1089|DONE|{}
+collector|1090|USER|{"user_name":"Evelyn Moore"}
+collector|1090|ADDRESS|{"zip_code":"92710"}
+collector|1090|DONE|{}
+collector|1091|USER|{"user_name":"Benjamin Miller"}
+collector|1091|ADDRESS|{"zip_code":"10629"}
+collector|1091|DONE|{}
+collector|1092|USER|{"user_name":"Sophia Thomas"}
+collector|1092|ADDRESS|{"zip_code":"18548"}
+collector|1092|DONE|{}
+collector|1093|USER|{"user_name":"Liam Jones"}
+collector|1093|ADDRESS|{"zip_code":"26467"}
+collector|1093|DONE|{}
+collector|1094|USER|{"user_name":"Harper Wilson"}
+collector|1094|ADDRESS|{"zip_code":"34386"}
+collector|1094|DONE|{}
+collector|1095|USER|{"user_name":"Lucas Williams"}
+collector|1095|ADDRESS|{"zip_code":"42305"}
+collector|1095|DONE|{}
+collector|1096|USER|{"user_name":"Isabella Lopez"}
+collector|1096|ADDRESS|{"zip_code":"50224"}
+collector|1096|DONE|{}
+collector|1097|USER|{"user_name":"Noah Smith"}
+collector|1097|ADDRESS|{"zip_code":"58143"}
+collector|1097|DONE|{}
+collector|1098|USER|{"user_name":"Ella Martinez"}
+collector|1098|ADDRESS|{"zip_code":"66062"}
+collector|1098|DONE|{}
+collector|1099|USER|{"user_name":"Henry Jackson"}
+collector|1099|ADDRESS|{"zip_code":"73981"}
+collector|1099|DONE|{}
+collector|1100|USER|{"user_name":"Amelia Davis"}
+collector|1100|ADDRESS|{"zip_code":"81900"}
+collector|1100|DONE|{}
