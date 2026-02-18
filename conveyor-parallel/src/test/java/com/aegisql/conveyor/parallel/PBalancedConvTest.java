@@ -11,9 +11,7 @@ import org.junit.jupiter.api.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -136,7 +134,7 @@ public class PBalancedConvTest {
 		ConveyorAcceptor<Integer, String, String> t4 = new ConveyorAcceptor<>(c4);
 		t4.expectsValue("version", 2).expectsValue("abtest", "B");
 		// wrap conveyors with PBalancedParallelConveyor
-		PBalancedParallelConveyor<Integer, String, String> pbc = new PBalancedParallelConveyor<>(t1,t2,t3,t4);
+		var pbc = new PBalancedParallelConveyor<>(t1,t2,t3,t4);
 		pbc.setName("testPConveyorDouble");
 		pbc.setReadinessEvaluator(Conveyor.getTesterFor(pbc).accepted("first", "second"));
 		pbc.resultConsumer(results).set();
@@ -170,7 +168,6 @@ public class PBalancedConvTest {
             pbc.completeAndStop().get(5, TimeUnit.SECONDS);
         } catch (Exception e) {
             pbc.stop();
-            e.printStackTrace();
         }
         System.out.println(results);
 		// test results
@@ -185,7 +182,6 @@ public class PBalancedConvTest {
 	@Test
 	public void testFailNotSamePropTest() {
 		// place results here
-		ResultMap<Integer, String> results = new ResultMap<>();
 		//V1,A
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(StringConcatBuilder1::new);
 		//V1,B
@@ -208,8 +204,6 @@ public class PBalancedConvTest {
 
 	@Test
 	public void testFailNotSetPropTest() {
-		// place results here
-		ResultMap<Integer, String> results = new ResultMap<>();
 		//V1,A
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(StringConcatBuilder1::new);
 		//V1,B

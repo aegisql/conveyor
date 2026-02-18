@@ -1,0 +1,9 @@
+CONVEYOR_NAME|ID|LABEL|BODY|param1|param2
+collector|1001|USER|{"user_name": "Michael Taylor"}|A|B
+collector|1001|ADDRESS|{"zip_code": "17919"}|C|D
+collector|1001|PHONE|{"cell":"123-45-67"}|C|D
+collector|1001|DONE|{}|E|F
+collector|1002|USER|{"user_name": "Evelyn Garcia"}|G|H
+collector|1002|ADDRESS|{"zip_code": "25838"}|I|J
+collector|1001|PHONE|{"cell": "123-45-68"}|C|D
+collector|1002|DONE|{}|K|L
