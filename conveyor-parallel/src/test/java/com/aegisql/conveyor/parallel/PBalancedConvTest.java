@@ -11,6 +11,9 @@ import org.junit.jupiter.api.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PBalancedConvTest {
 
 	static abstract class AbstractConcatBuilder implements Supplier<String> {
+        String random = "";
 		String del = "";
 		String first;
 		String second;
@@ -26,14 +30,14 @@ public class PBalancedConvTest {
 	static class StringConcatBuilder1 extends AbstractConcatBuilder {
 		@Override
 		public String get() {
-			return first+del+second;
+			return first+del+second+random;
 		}
 	}
 
 	static class StringConcatBuilder2 extends AbstractConcatBuilder {
 		@Override
 		public String get() {
-			return second+del+first;
+			return second+del+first+random;
 		}
 	}
 
@@ -137,17 +141,23 @@ public class PBalancedConvTest {
 		pbc.setReadinessEvaluator(Conveyor.getTesterFor(pbc).accepted("first", "second"));
 		pbc.resultConsumer(results).set();
 		// Obtain and set up loaders
+
+        pbc.staticPart().label("random").value("!").place().join();
+
 		StaticPartLoader<String> delLoader = pbc.staticPart().label("del");
 		PartLoader<Integer, String> v1Loader = pbc.part().addProperty("version", 1);
 		PartLoader<Integer, String> v2Loader = pbc.part().addProperty("version", 2);
 		// load constants
-		delLoader.addProperty("version", 1).addProperty("abtest","A").value(" ").place();
-		delLoader.addProperty("version", 1).addProperty("abtest","B").value("-").place();
-		delLoader.addProperty("version", 2).addProperty("abtest","A").value(" ").place();
+		delLoader.addProperty("version", 1).addProperty("abtest","A").value(" ").place().join();
+		delLoader.addProperty("version", 1).addProperty("abtest","B").value("-").place().join();
+		delLoader.addProperty("version", 2).addProperty("abtest","A").value(" ").place().join();
 		delLoader.addProperty("version", 2).addProperty("abtest","B").value("-").place().join();
-		// load data and metadata
-		v1Loader.id(1).label("first").addProperty("abtest","A").value("A").place();
-		v2Loader.id(2).label("first").addProperty("abtest","A").value("X").place();
+
+
+
+        // load data and metadata
+		v1Loader.id(1).label("first").addProperty("abtest","A").value("A").place().join();
+		v2Loader.id(2).label("first").addProperty("abtest","A").value("X").place().join();
 		v1Loader.id(1).label("second").addProperty("abtest","A").value("B").place();
 		v2Loader.id(2).label("second").addProperty("abtest","A").value("Y").place();
 
@@ -156,14 +166,19 @@ public class PBalancedConvTest {
 		v1Loader.id(3).label("second").addProperty("abtest","B").value("S").place();
 		v2Loader.id(4).label("second").addProperty("abtest","B").value("T").place().join();
 		// wait and stop
-		pbc.completeAndStop().join();
-		System.out.println(results);
+        try {
+            pbc.completeAndStop().get(5, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            pbc.stop();
+            e.printStackTrace();
+        }
+        System.out.println(results);
 		// test results
 		assertEquals(4, results.size());
-		assertEquals("A B", results.get(1));
-		assertEquals("Y X", results.get(2));
-		assertEquals("W-S", results.get(3));
-		assertEquals("T-R", results.get(4));
+		assertEquals("A B!", results.get(1));
+		assertEquals("Y X!", results.get(2));
+		assertEquals("W-S!", results.get(3));
+		assertEquals("T-R!", results.get(4));
 
 	}
 

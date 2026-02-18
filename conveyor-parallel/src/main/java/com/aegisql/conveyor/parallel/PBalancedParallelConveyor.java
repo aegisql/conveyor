@@ -7,6 +7,7 @@ import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.FutureCart;
+import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 
@@ -101,6 +102,10 @@ public class PBalancedParallelConveyor<K, L, OUT> extends ParallelConveyor<K, L,
 		if(conv != null) {
 			return conv.place(cart);
 		} else {
+            if(cart.getLoadType() == LoadType.STATIC_PART) {
+                var futures = conveyors.stream().map(c -> c.place(cart)).toList();
+                return ParallelConveyor.combineFutures(futures);
+            }
 			return failedFuture;
 		}
 	}
