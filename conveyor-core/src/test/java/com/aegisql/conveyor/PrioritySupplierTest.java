@@ -225,6 +225,26 @@ public class PrioritySupplierTest {
 
     }
 
+    @Test
+    public void prioritizedByPropertyShouldTreatMissingValuesAsLowestPriority() {
+        PriorityBlockingQueue<Cart> queue = Priority.prioritizedByProperty("TEST_PRIORITY").get();
+
+        Cart<Integer,String,String> withPriority = new ShoppingCart<>(1,"v1","l1",System.currentTimeMillis(),0,0);
+        Cart<Integer,String,String> missingPriorityA = new ShoppingCart<>(2,"v2","l2",System.currentTimeMillis(),0,0);
+        Cart<Integer,String,String> missingPriorityB = new ShoppingCart<>(3,"v3","l3",System.currentTimeMillis(),0,0);
+
+        withPriority.addProperty("TEST_PRIORITY",10L);
+
+        queue.add(missingPriorityA);
+        queue.add(withPriority);
+        queue.add(missingPriorityB);
+
+        assertEquals(1,queue.poll().getKey());
+        // both null priorities are equal and should keep nano-time order
+        assertEquals(2,queue.poll().getKey());
+        assertEquals(3,queue.poll().getKey());
+    }
+
     static class A {
         String val;
         public A(String val) {

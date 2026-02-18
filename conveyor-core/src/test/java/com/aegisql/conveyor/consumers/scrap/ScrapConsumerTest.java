@@ -6,9 +6,14 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ScrapConsumerTest {
@@ -71,8 +76,8 @@ public class ScrapConsumerTest {
         assertTrue(res1.get());
     }
 
-    @Test
-    public void  filterByPropertyEqualsTest() {
+	@Test
+	public void  filterByPropertyEqualsTest() {
 
         AtomicBoolean res1 = new AtomicBoolean(false);
 
@@ -86,8 +91,43 @@ public class ScrapConsumerTest {
         rc1.accept(bin1);
         assertFalse(res1.get());
         bin1.properties.put("test","TEST");
-        rc1.accept(bin1);
-        assertTrue(res1.get());
-    }
+		rc1.accept(bin1);
+		assertTrue(res1.get());
+	}
+
+	@Test
+	public void defaultMethodsShouldCoverNullGuardsAndCustomAsyncPool() throws Exception {
+		AtomicBoolean accepted = new AtomicBoolean(false);
+		ScrapConsumer<Integer, String> base = bin -> accepted.set(true);
+
+		assertThrows(NullPointerException.class, () -> base.andThen(null));
+		assertThrows(NullPointerException.class, () -> base.filter(null));
+		assertThrows(NullPointerException.class, () -> base.filterKey(null));
+		assertThrows(NullPointerException.class, () -> base.filterScrap(null));
+		assertThrows(NullPointerException.class, () -> base.filterScrapType(null));
+		assertThrows(NullPointerException.class, () -> base.filterFailureType(null));
+		assertThrows(NullPointerException.class, () -> base.filterError(null));
+		assertThrows(NullPointerException.class, () -> base.filterProperty(null, x -> true));
+		assertThrows(NullPointerException.class, () -> base.filterProperty("p", null));
+		assertThrows(NullPointerException.class, () -> base.propertyEquals(null, "v"));
+		assertThrows(NullPointerException.class, () -> base.async(null));
+
+		ScrapBin<Integer, String> nullKeyBin = new ScrapBin<>(
+				null, null, "scrap", "comment", null,
+				ScrapBin.FailureType.GENERAL_FAILURE, new HashMap<>(), null
+		);
+		base.filterKey(k -> true).accept(nullKeyBin);
+		assertFalse(accepted.get());
+
+		ExecutorService pool = Executors.newSingleThreadExecutor();
+		try {
+			CompletableFuture<Long> threadId = new CompletableFuture<>();
+			ScrapConsumer<Integer, String> threaded = bin -> threadId.complete(Thread.currentThread().threadId());
+			threaded.async(pool).accept(getScrapBin(10, "s10"));
+			assertTrue(threadId.get(2, TimeUnit.SECONDS) != Thread.currentThread().threadId());
+		} finally {
+			pool.shutdownNow();
+		}
+	}
 
 }

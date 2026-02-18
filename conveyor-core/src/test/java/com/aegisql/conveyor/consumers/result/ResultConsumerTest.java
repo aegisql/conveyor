@@ -14,10 +14,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -402,6 +405,48 @@ public class ResultConsumerTest {
 		bin1.properties.put("test","TEST");
 		rc1.accept(bin1);
 		assertTrue(res1.get());
+	}
+
+	@Test
+	public void defaultMethodsShouldCoverNullGuardsAndAsyncWithCustomPool() throws Exception {
+		AtomicInteger calls = new AtomicInteger();
+		ResultConsumer<Integer, String> base = bin -> calls.incrementAndGet();
+
+		assertThrows(NullPointerException.class, () -> base.andThen(null));
+		assertThrows(NullPointerException.class, () -> base.filter(null));
+		assertThrows(NullPointerException.class, () -> base.filterKey(null));
+		assertThrows(NullPointerException.class, () -> base.filterResult(null));
+		assertThrows(NullPointerException.class, () -> base.filterStatus(null));
+		assertThrows(NullPointerException.class, () -> base.filterProperty(null, x -> true));
+		assertThrows(NullPointerException.class, () -> base.filterProperty("p", null));
+		assertThrows(NullPointerException.class, () -> base.propertyEquals(null, "v"));
+		assertThrows(NullPointerException.class, () -> base.async(null));
+
+		HashMap<String, Object> wrongProps = new HashMap<>();
+		wrongProps.put("kind", "B");
+		ProductBin<Integer, String> wrong = new ProductBin<>(null, 1, "wrong", 0, Status.INVALID, wrongProps, null);
+		base.filterResult("ok"::equals).accept(wrong);
+		base.filterStatus(Status.READY::equals).accept(wrong);
+		base.propertyEquals("kind", "A").accept(wrong);
+		assertEquals(0, calls.get());
+
+		HashMap<String, Object> rightProps = new HashMap<>();
+		rightProps.put("kind", "A");
+		ProductBin<Integer, String> right = new ProductBin<>(null, 2, "ok", 0, Status.READY, rightProps, null);
+		base.filterResult("ok"::equals).accept(right);
+		base.filterStatus(Status.READY::equals).accept(right);
+		base.propertyEquals("kind", "A").accept(right);
+		assertEquals(3, calls.get());
+
+		ExecutorService pool = Executors.newSingleThreadExecutor();
+		try {
+			CompletableFuture<Long> threadId = new CompletableFuture<>();
+			ResultConsumer<Integer, String> threaded = bin -> threadId.complete(Thread.currentThread().threadId());
+			threaded.async(pool).accept(getProductBin(3, "async"));
+			assertTrue(threadId.get(2, TimeUnit.SECONDS) != Thread.currentThread().threadId());
+		} finally {
+			pool.shutdownNow();
+		}
 	}
 
 

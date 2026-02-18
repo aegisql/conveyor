@@ -553,22 +553,27 @@ public class ProductSupplierTest {
 		assertTrue(ttExpired instanceof Expireable);
 		assertTrue(ttExpired instanceof Testing);
 		assertTrue(ttExpired instanceof TimeoutAction);
+		assertEquals("TT", ttExpired.get());
 		assertEquals("TT", ttExpired.getSupplier().get());
 		assertTrue(((Testing) ttExpired).test());
 		((TimeoutAction) ttExpired).onTimeout();
 		assertEquals(1, tt.getTimeoutCount());
 		assertEquals(777L, ((Expireable) ttExpired).getExpirationTime());
+		assertSame(tt, ttExpired.unwrap(Object.class));
 
 		StateTimeoutSupplier st = new StateTimeoutSupplier();
 		ProductSupplier<String> stExpired = st.expires(() -> 888L);
 		assertTrue(stExpired instanceof Expireable);
 		assertTrue(stExpired instanceof TestingState);
 		assertTrue(stExpired instanceof TimeoutAction);
+		assertEquals("ST", stExpired.get());
+		assertEquals("ST", stExpired.getSupplier().get());
 		State<Integer, String> state = new State<>(1, 1L, 2L, 3L, 4L, 0, Map.of(), Collections.emptyList());
 		assertTrue(((TestingState<Integer, String>) stExpired).test(state));
 		((TimeoutAction) stExpired).onTimeout();
 		assertEquals(1, st.getTimeoutCount());
 		assertEquals(888L, ((Expireable) stExpired).getExpirationTime());
+		assertSame(st, stExpired.unwrap(Object.class));
 	}
 
 	@Test
@@ -579,37 +584,48 @@ public class ProductSupplierTest {
 		ProductSupplier<String> withTimeoutAction = supplier.onTimeout(s -> timeoutCalls.incrementAndGet());
 		assertTrue(withTimeoutAction instanceof Expireable);
 		assertTrue(withTimeoutAction instanceof TimeoutAction);
+		assertEquals("E", withTimeoutAction.get());
 		assertEquals("E", withTimeoutAction.getSupplier().get());
 		assertEquals(1_000L, ((Expireable) withTimeoutAction).getExpirationTime());
 		((TimeoutAction) withTimeoutAction).onTimeout();
 		assertEquals(1, timeoutCalls.get());
+		assertSame(supplier, withTimeoutAction.unwrap(Object.class));
 
 		ExpiringTestingSupplier testingSupplier = new ExpiringTestingSupplier(2_000L);
 		ProductSupplier<String> testingTimeout = testingSupplier.onTimeout(s -> timeoutCalls.incrementAndGet());
 		assertTrue(testingTimeout instanceof Expireable);
 		assertTrue(testingTimeout instanceof Testing);
 		assertTrue(testingTimeout instanceof TimeoutAction);
+		assertEquals("ET", testingTimeout.get());
+		assertEquals("ET", testingTimeout.getSupplier().get());
 		assertTrue(((Testing) testingTimeout).test());
 		((TimeoutAction) testingTimeout).onTimeout();
 		assertEquals(2_000L, ((Expireable) testingTimeout).getExpirationTime());
+		assertSame(testingSupplier, testingTimeout.unwrap(Object.class));
 
 		ExpiringStateSupplier stateSupplier = new ExpiringStateSupplier(3_000L);
 		ProductSupplier<String> stateTimeout = stateSupplier.onTimeout(s -> timeoutCalls.incrementAndGet());
 		assertTrue(stateTimeout instanceof Expireable);
 		assertTrue(stateTimeout instanceof TestingState);
 		assertTrue(stateTimeout instanceof TimeoutAction);
+		assertEquals("ES", stateTimeout.get());
+		assertEquals("ES", stateTimeout.getSupplier().get());
 		State<Integer, String> timeoutState = new State<>(7, 1L, 2L, 3L, 4L, 0, Map.of(), Collections.emptyList());
 		assertTrue(((TestingState<Integer, String>) stateTimeout).test(timeoutState));
 		assertEquals(3_000L, ((Expireable) stateTimeout).getExpirationTime());
 		((TimeoutAction) stateTimeout).onTimeout();
+		assertSame(stateSupplier, stateTimeout.unwrap(Object.class));
 
 		ProductSupplier<String> ready = supplier.readyAlgorithm(s -> s.get().equals("E"));
 		assertTrue(ready instanceof Expireable);
 		assertTrue(ready instanceof Testing);
 		assertTrue(ready instanceof TimeoutAction);
+		assertEquals("E", ready.get());
+		assertEquals("E", ready.getSupplier().get());
 		assertTrue(((Testing) ready).test());
 		((TimeoutAction) ready).onTimeout();
 		assertEquals(1, supplier.getTimeoutCount());
+		assertSame(supplier, ready.unwrap(Object.class));
 
 		ProductSupplier<String> readyState = supplier.readyAlgorithm(
 				(state, ps) -> state != null && Integer.valueOf(11).equals(state.key) && ps.get().equals("E")
@@ -617,10 +633,14 @@ public class ProductSupplierTest {
 		assertTrue(readyState instanceof Expireable);
 		assertTrue(readyState instanceof TestingState);
 		assertTrue(readyState instanceof TimeoutAction);
+		assertEquals("E", readyState.get());
+		assertEquals("E", readyState.getSupplier().get());
+		assertEquals(1_000L, ((Expireable) readyState).getExpirationTime());
 		State<Integer, String> state = new State<>(11, 1L, 2L, 3L, 4L, 0, Map.of(), Collections.emptyList());
 		assertTrue(((TestingState<Integer, String>) readyState).test(state));
 		((TimeoutAction) readyState).onTimeout();
 		assertEquals(2, supplier.getTimeoutCount());
+		assertSame(supplier, readyState.unwrap(Object.class));
 	}
 
 }

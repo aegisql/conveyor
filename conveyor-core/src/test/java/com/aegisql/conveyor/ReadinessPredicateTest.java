@@ -60,6 +60,7 @@ public class ReadinessPredicateTest {
         assertTrue(base.accepted("missing", 0).test(st, () -> "ignored"));
         assertFalse(base.accepted("B", 2).test(st, () -> "ignored"));
 
+        assertTrue(base.accepted("B", (String[]) null).test(st, () -> "ignored"));
         assertTrue(base.accepted("B", "A").test(st, () -> "ignored"));
         assertFalse(base.accepted("C", "A").test(st, () -> "ignored"));
     }
@@ -78,6 +79,14 @@ public class ReadinessPredicateTest {
 
         ReadinessPredicate<Integer, String, String> custom = (s, sup) -> s.key == 7;
         assertSame(custom, ReadinessPredicate.<Integer, String, String>of(null, custom));
+    }
+
+    @Test
+    public void stateToStringShouldIncludeKeyAndHistory() {
+        State<Integer, String> st = state(9, 1, Map.of("X", 1));
+        String text = st.toString();
+        assertTrue(text.contains("key=9"));
+        assertTrue(text.contains("eventHistory={X=1}"));
     }
 
 }
