@@ -10,12 +10,7 @@ Spring Boot service for working with Conveyor instances over HTTP:
 
 ## Screenshot Placeholders
 
-Replace these with real screenshots when ready.
-
-![Dashboard Overview](./docs/images/dashboard-overview.png)
-![Part Loader Tester](./docs/images/dashboard-part-tester.png)
-![Command Tester](./docs/images/dashboard-command-tester.png)
-
+<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/cs01.png alt="Conveyor Service Dashboard">
 ## Configuration
 
 Default config file: `src/main/resources/application.yml`
