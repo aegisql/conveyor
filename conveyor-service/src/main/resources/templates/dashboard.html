@@ -607,9 +607,12 @@
             <section id="tab-admin" class="tab-panel" role="tabpanel"
                      th:classappend="${activeTab == 'tab-admin'} ? ' active'"
                      th:attr="hidden=${activeTab == 'tab-admin'} ? null : 'hidden'">
+                <div class="alert err" th:if="${uploadEnabled == false}">
+                    Upload and remove are disabled by the service admin.
+                </div>
                 <div th:if="${isAdmin}">
-                    <h3>Upload Conveyor JAR</h3>
-                    <form th:action="@{/dashboard/admin/upload}" method="post" enctype="multipart/form-data" class="stack-form tab-preserve-form">
+                    <h3 th:if="${uploadEnabled}">Upload Conveyor JAR</h3>
+                    <form th:if="${uploadEnabled}" th:action="@{/dashboard/admin/upload}" method="post" enctype="multipart/form-data" class="stack-form tab-preserve-form">
                         <input type="hidden" name="tab" value="tab-admin"/>
                         <input type="file" name="file" accept=".jar" required/>
                         <button type="submit">Upload / Replace</button>
@@ -622,8 +625,8 @@
                         <button type="submit">completeAndStop + reload</button>
                     </form>
 
-                    <h3>Controlled Delete</h3>
-                    <form th:action="@{/dashboard/admin/delete}" method="post" class="inline-form tab-preserve-form"
+                    <h3 th:if="${uploadEnabled}">Controlled Delete</h3>
+                    <form th:if="${uploadEnabled}" th:action="@{/dashboard/admin/delete}" method="post" class="inline-form tab-preserve-form"
                           onsubmit="return confirm('Delete selected conveyor?');">
                         <input type="text" name="name" th:value="${selectedName}" placeholder="conveyor name" required/>
                         <input type="hidden" name="tab" value="tab-admin"/>

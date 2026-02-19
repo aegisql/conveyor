@@ -1,0 +1,202 @@
+# Authentication and Authorization
+
+This document describes the authentication model currently implemented in `conveyor-service` and how to run each supported mode.
+
+## 1. Implemented approach
+
+The service supports two runtime security profiles:
+
+- `demo`: local in-memory users with form login
+- `prod`: external identity integration with JWT resource server, optional OAuth2 browser login, and HTTP Basic
+
+Authentication methods currently implemented:
+
+- Form login (`demo` only)
+- Remember-me + signed auth cookie (`demo` only)
+- OAuth2 login (`prod`, optional via config)
+- JWT bearer token validation (`prod`)
+- HTTP Basic (`prod`)
+
+Authorization is role-based.
+
+## 2. Roles and protected endpoints
+
+Roles used by the service:
+
+- `ROLE_REST_USER`
+- `ROLE_DASHBOARD_VIEWER`
+- `ROLE_DASHBOARD_ADMIN`
+
+Access rules:
+
+- `POST /part/**`, `POST /static-part/**`, `POST /command/**` -> `ROLE_REST_USER`
+- `/dashboard/**`, `/api/dashboard/**` -> `ROLE_DASHBOARD_VIEWER` or `ROLE_DASHBOARD_ADMIN`
+- `/dashboard/admin/**`, `/api/dashboard/admin/**` -> `ROLE_DASHBOARD_ADMIN`
+- `/ws/**` -> `ROLE_DASHBOARD_VIEWER` or `ROLE_DASHBOARD_ADMIN`
+- Swagger endpoints are public: `/swagger-ui/**`, `/v3/api-docs/**`, `/v3/api-docs.yaml`
+
+Notes:
+
+- Static assets and webjars are excluded from security.
+- Feature flag `conveyor.service.upload-enable=false` does not change authentication, but upload/delete admin operations return `403 FORBIDDEN`.
+
+## 3. Configuration keys
+
+Main security-related properties:
+
+- `spring.profiles.active` (`demo` or `prod`)
+- `spring.security.oauth2.resourceserver.jwt.issuer-uri`
+- `conveyor.service.oauth2-login-enable` (default `true`)
+
+Optional, but relevant to admin operations:
+
+- `conveyor.service.upload-enable` (default `true`)
+
+## 4. Demo profile (local testing)
+
+This is the easiest mode for local evaluation.
+
+### 4.1 Start
+
+```bash
+SPRING_PROFILES_ACTIVE=demo mvn -pl conveyor-service spring-boot:run
+```
+
+### 4.2 Built-in users
+
+- `rest/rest` -> `ROLE_REST_USER`
+- `viewer/viewer` -> `ROLE_DASHBOARD_VIEWER`
+- `admin/admin` -> `ROLE_REST_USER`, `ROLE_DASHBOARD_VIEWER`, `ROLE_DASHBOARD_ADMIN`
+
+### 4.3 Browser login
+
+1. Open `http://localhost:8080/dashboard`
+2. Login form appears
+3. Use `viewer` or `admin` credentials
+4. On success, app redirects to `/dashboard`
+
+### 4.4 Remember-me and demo auth cookie
+
+In `demo`, the app sets:
+
+- remember-me cookie: `CONVEYOR_DEMO_REMEMBER_ME`
+- signed auth cookie: `CONVEYOR_DEMO_AUTH`
+
+Logout clears the demo auth cookie and redirects to `/login?logout`.
+
+### 4.5 REST test in demo
+
+Use Basic auth with `rest/rest`:
+
+```bash
+curl -u rest:rest -X POST "http://localhost:8080/part/collector/1/USER" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Ann"}'
+```
+
+## 5. Prod profile with OAuth2 login enabled
+
+Use this when users should sign in through OAuth2/OIDC in browser.
+
+### 5.1 Required config
+
+Set:
+
+- `spring.profiles.active=prod`
+- `conveyor.service.oauth2-login-enable=true` (default)
+- `spring.security.oauth2.resourceserver.jwt.issuer-uri=<your issuer>`
+- `spring.security.oauth2.client.registration.*` and `provider.*` entries (for browser login)
+
+### 5.2 Start
+
+```bash
+SPRING_PROFILES_ACTIVE=prod mvn -pl conveyor-service spring-boot:run
+```
+
+### 5.3 Login flow
+
+1. Open dashboard URL
+2. Spring Security OAuth2 login flow starts
+3. Authenticate at IdP
+4. Return to service with authenticated session
+
+### 5.4 Important role mapping note
+
+Authentication alone is not enough. Users must have authorities that resolve to:
+
+- `ROLE_DASHBOARD_VIEWER` for dashboard/watch
+- `ROLE_DASHBOARD_ADMIN` for admin operations
+- `ROLE_REST_USER` for part/static-part/command APIs
+
+If IdP tokens/users are not mapped to these roles, requests will return `403`.
+
+## 6. Prod profile with OAuth2 login disabled
+
+Use this when corporate users want to replace built-in browser OAuth login with their own IAM entry flow.
+
+### 6.1 Required config
+
+- `spring.profiles.active=prod`
+- `conveyor.service.oauth2-login-enable=false`
+- `spring.security.oauth2.resourceserver.jwt.issuer-uri=<your issuer>`
+
+### 6.2 Behavior
+
+With OAuth2 login disabled, the app still supports:
+
+- JWT bearer tokens (`oauth2ResourceServer().jwt()`)
+- HTTP Basic (`httpBasic()`)
+
+This allows corporate setups where browser/API identity is handled externally and forwarded as JWT or Basic credentials.
+
+### 6.3 Start
+
+```bash
+SPRING_PROFILES_ACTIVE=prod \
+CONVEYOR_SERVICE_OAUTH2_LOGIN_ENABLE=false \
+SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://issuer.example.com \
+mvn -pl conveyor-service spring-boot:run
+```
+
+## 7. JWT usage (prod)
+
+For bearer auth, pass token in `Authorization` header:
+
+```bash
+curl -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -X POST "http://localhost:8080/part/collector/1/USER" \
+  -d '{"name":"Ann"}'
+```
+
+Token must be issued by configured `issuer-uri` and contain authorities mapped to required service roles.
+
+## 8. HTTP Basic usage (prod)
+
+HTTP Basic is enabled in `prod` by design.
+
+```bash
+curl -u user:password -X POST "http://localhost:8080/part/collector/1/USER" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Ann"}'
+```
+
+Credentials must be backed by your configured authentication provider chain for prod deployment.
+
+## 9. WebSocket authentication
+
+Watch socket endpoint:
+
+- `/ws/watch`
+
+Access requires dashboard roles (`ROLE_DASHBOARD_VIEWER` or `ROLE_DASHBOARD_ADMIN`).
+
+Current implementation registers the socket with `HttpSessionHandshakeInterceptor`, so browser session authentication is used for dashboard watch streaming.
+
+## 10. Quick verification checklist
+
+1. Confirm active profile (`demo` or `prod`).
+2. Confirm auth method expected for that profile.
+3. Confirm role mapping for requested endpoint class (REST, dashboard, admin).
+4. If admin operations fail with `403 FORBIDDEN` and error code `FORBIDDEN`, also verify `conveyor.service.upload-enable=true`.
+5. For WebSocket watch, confirm dashboard role and active authenticated browser session.

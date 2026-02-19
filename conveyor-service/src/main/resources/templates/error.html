@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conveyor Service Error</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f3f5f7;
+            --panel: #ffffff;
+            --text: #1f2933;
+            --muted: #6b7785;
+            --line: #d7dde4;
+            --accent: #1f6feb;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .layout {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .card {
+            width: min(760px, 100%);
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+            padding: 1.5rem;
+        }
+
+        h1 {
+            margin: 0 0 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .meta {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .details {
+            margin-top: 1.25rem;
+            border-top: 1px solid var(--line);
+            padding-top: 1rem;
+        }
+
+        .row {
+            margin: 0.5rem 0;
+        }
+
+        .label {
+            color: var(--muted);
+            margin-right: 0.4rem;
+        }
+
+        .actions {
+            margin-top: 1.5rem;
+        }
+
+        .button {
+            display: inline-block;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            padding: 0.55rem 0.9rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <section class="card">
+        <h1>Request Failed</h1>
+        <p class="meta">The application handled an internal error and returned this page instead of Whitelabel.</p>
+        <div class="details">
+            <p class="row">
+                <span class="label">Status:</span>
+                <span th:text="${status != null ? status : 500}">500</span>
+                <span th:if="${error != null and !#strings.isEmpty(error)}">(<span th:text="${error}">Internal Server Error</span>)</span>
+            </p>
+            <p class="row" th:if="${message != null and !#strings.isEmpty(message)}">
+                <span class="label">Message:</span>
+                <span th:text="${message}">Unexpected error</span>
+            </p>
+            <p class="row" th:if="${path != null and !#strings.isEmpty(path)}">
+                <span class="label">Path:</span>
+                <span th:text="${path}">/dashboard</span>
+            </p>
+            <p class="row" th:if="${timestamp != null}">
+                <span class="label">Timestamp:</span>
+                <span th:text="${timestamp}">2026-02-14T16:46:44</span>
+            </p>
+        </div>
+        <div class="actions">
+            <a class="button" th:href="@{/dashboard}">Return to Dashboard</a>
+        </div>
+    </section>
+</div>
+</body>
+</html>

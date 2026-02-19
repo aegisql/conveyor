@@ -34,6 +34,19 @@ Key properties:
 - `conveyor.service.upload-dir`
   - Directory where uploaded extension JARs are stored.
   - Default: `./upload`
+- `conveyor.service.upload-enable`
+  - Enables/disables runtime upload and delete operations.
+  - Default: `true`
+  - When `false`:
+    - backend blocks upload/delete endpoints with `403 FORBIDDEN`
+    - dashboard hides upload/delete controls and shows admin notice
+- `conveyor.service.oauth2-login-enable`
+  - Enables/disables built-in OAuth2 browser login in `prod`.
+  - Default: `true`
+  - When `false`:
+    - app does not configure `oauth2Login()`
+    - JWT resource server auth and HTTP Basic remain available
+    - useful when corporate IAM is handled externally
 - `spring.security.oauth2.resourceserver.jwt.issuer-uri`
   - Used in `prod` profile for JWT validation.
 - `logging.level.com.aegisql.conveyor`
@@ -43,7 +56,11 @@ You can override properties with environment variables, for example:
 
 - `SPRING_PROFILES_ACTIVE=demo`
 - `CONVEYOR_SERVICE_UPLOAD_DIR=./upload`
+- `CONVEYOR_SERVICE_UPLOAD_ENABLE=true`
+- `CONVEYOR_SERVICE_OAUTH2_LOGIN_ENABLE=true`
 - `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://your-issuer`
+
+Dashboard details view shows `Upload Dir` exactly as configured (for example `./upload`), not an expanded absolute path.
 
 ## Build And Run
 

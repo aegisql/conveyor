@@ -5,6 +5,7 @@ import com.aegisql.conveyor.ConveyorInitiatingService;
 import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import com.aegisql.conveyor.service.config.ConveyorServiceProperties;
 import com.aegisql.conveyor.service.error.ConveyorNotFoundException;
+import com.aegisql.conveyor.service.error.FeatureDisabledException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,8 @@ public class DashboardService {
     private final ObjectMapper objectMapper;
     private final ConveyorWatchService conveyorWatchService;
     private final Path uploadDir;
+    private final String configuredUploadDir;
+    private final boolean uploadEnabled;
     private final List<String> loaderErrors = new ArrayList<>();
     private final Set<String> uploadedConveyorNames = Collections.synchronizedSet(new LinkedHashSet<>());
     private URLClassLoader uploadsClassLoader;
@@ -55,7 +58,12 @@ public class DashboardService {
     ) {
         this.objectMapper = objectMapper;
         this.conveyorWatchService = conveyorWatchService;
-        this.uploadDir = properties.getUploadDir().toAbsolutePath().normalize();
+        Path configuredPath = properties.getUploadDir();
+        this.configuredUploadDir = configuredPath == null ? "" : configuredPath.toString();
+        this.uploadEnabled = properties.isUploadEnable();
+        this.uploadDir = configuredPath == null
+                ? Path.of(".").toAbsolutePath().normalize()
+                : configuredPath.toAbsolutePath().normalize();
         try {
             resolveUploadDir();
             refreshUploadsClassLoader();
@@ -138,7 +146,7 @@ public class DashboardService {
         payload.put("enclosingConveyor", enclosingConveyor);
         payload.put("topLevel", enclosingConveyor == null);
         payload.put("generatedAt", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(Instant.now().atOffset(ZoneOffset.UTC)));
-        payload.put("uploadDirectory", uploadDir.toString());
+        payload.put("uploadDirectory", configuredUploadDir);
         payload.put("loaderErrors", getLoaderErrors());
         payload.put("attributes", List.of());
         payload.put("writableParameters", List.of());
@@ -228,6 +236,10 @@ public class DashboardService {
         return copy;
     }
 
+    public boolean isUploadEnabled() {
+        return uploadEnabled;
+    }
+
     public void reload(String name) {
         Conveyor<?, ?, ?> conveyor = resolve(name);
         stopAndUnregister(conveyor);
@@ -243,12 +255,14 @@ public class DashboardService {
     }
 
     public void delete(String name) {
+        ensureUploadEnabled("Delete");
         Conveyor<?, ?, ?> conveyor = resolve(name);
         stopAndUnregister(conveyor);
         uploadedConveyorNames.remove(name);
     }
 
     public void upload(MultipartFile file) throws IOException {
+        ensureUploadEnabled("Upload");
         if (file.isEmpty()) {
             throw new IllegalArgumentException("Uploaded file is empty");
         }
@@ -272,6 +286,12 @@ public class DashboardService {
         clearLoaderErrors();
         loadUploadedConveyors();
         conveyorWatchService.ensureKnownConveyorsHooked();
+    }
+
+    private void ensureUploadEnabled(String operation) {
+        if (!uploadEnabled) {
+            throw new FeatureDisabledException(operation + " is disabled by the service admin");
+        }
     }
 
     public void updateParameter(String name, String parameter, String value) {

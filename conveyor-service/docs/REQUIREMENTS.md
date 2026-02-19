@@ -51,6 +51,8 @@ Required dependencies:
 
 - `spring.application.name=conveyor-service`
 - `conveyor.service.upload-dir` (default used by app: `./upload`)
+- `conveyor.service.upload-enable` (default `true`)
+- `conveyor.service.oauth2-login-enable` (default `true`)
 - `conveyor.service.dashboard.default-watch-history-limit` (default `100`)
 - `conveyor.service.dashboard.default-conveyor-history-limit` (default `100`)
 - `server.tomcat.max-part-count=200`
@@ -63,7 +65,9 @@ Required dependencies:
 
 - Binds prefix `conveyor.service`
 - Exposes `Path uploadDir`
-- Default fallback path in code: `${user.home}/.conveyor-service/uploads`
+- Exposes `boolean uploadEnable` (default `true`)
+- Exposes `boolean oauth2LoginEnable` (default `true`)
+- Default fallback path in code: `${user.home}/.conveyor-service/upload`
 
 
 ## 4. Security Requirements
@@ -76,7 +80,9 @@ Required dependencies:
 
 ### 4.2 `prod` profile
 
-- OAuth2 login enabled
+- OAuth2 login is controlled by `conveyor.service.oauth2-login-enable`:
+  - `true` => built-in OAuth2 browser login enabled
+  - `false` => built-in OAuth2 browser login disabled
 - OAuth2 resource server JWT enabled
 - HTTP Basic enabled
 - Authorization:
@@ -353,6 +359,9 @@ Future handling:
   - `DELETE /admin/{name}`
   - `POST /admin/{name}/mbean/{method}`
   - `POST /admin/{name}/parameter/{parameter}?value=...`
+- Upload/delete feature-gating:
+  - when `conveyor.service.upload-enable=false`, upload and delete endpoints are disabled
+  - disabled responses use HTTP `403` with placement envelope `errorCode=FORBIDDEN`
 
 ### 8.2 HTML controller
 
@@ -424,7 +433,7 @@ Behavior:
   - mbean interface
   - meta-info availability
   - snapshot timestamp
-  - upload directory
+  - upload directory (shown as configured value, not expanded absolute path)
 - Meta-info visual presentation (not raw JSON):
   - key/label/product type cards
   - labels chips
@@ -449,6 +458,10 @@ Behavior:
   - controlled reload (`completeAndStop + reload`)
   - controlled delete (`completeAndStop + delete`)
   - update parameter and invoke MBean method (also available through Operations tab)
+  - when `upload-enable=false`:
+    - upload and delete forms are hidden/disabled
+    - explicit message is shown: upload/remove disabled by service admin
+    - reload remains available
 ### 9.2 Parts tester
 
 Available only for top-level conveyors (no enclosing conveyor).  
@@ -593,6 +606,12 @@ Upload behavior:
 - Store in configured upload dir
 - Build URLClassLoader from all jars in upload dir
 - Discover providers via `ServiceLoader<ConveyorInitiatingService>`
+- Guarded by `conveyor.service.upload-enable=true`
+
+Delete behavior:
+
+- Guarded by `conveyor.service.upload-enable=true`
+- Uses controlled stop/unregister for selected conveyor
 
 Visibility and replacement behavior:
 
@@ -658,4 +677,8 @@ Basic smoke checks:
   - verify timeline navigation (`Prev`, `Next`, `See all`, `Clear events`)
   - verify watch/conveyor cache limits trim oldest events
 - Upload a valid conveyor jar and confirm new conveyor appears
+- Set `conveyor.service.upload-enable=false` and verify:
+  - dashboard admin tab shows upload/remove disabled message
+  - upload and delete controls are unavailable
+  - API upload/delete endpoints return `403` with `errorCode=FORBIDDEN`
 - Check `/swagger-ui/index.html` and `/v3/api-docs`

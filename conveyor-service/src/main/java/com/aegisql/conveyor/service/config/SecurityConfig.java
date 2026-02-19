@@ -54,7 +54,7 @@ public class SecurityConfig {
 
     @Bean
     @Profile("prod")
-    SecurityFilterChain securityProd(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityProd(HttpSecurity http, ConveyorServiceProperties properties) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
@@ -65,9 +65,11 @@ public class SecurityConfig {
                         .requestMatchers(DASHBOARD_PATHS).hasAnyRole("DASHBOARD_VIEWER", "DASHBOARD_ADMIN")
                         .anyRequest().authenticated()
                 )
-                .oauth2Login(Customizer.withDefaults())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .httpBasic(Customizer.withDefaults());
+        if (properties.isOauth2LoginEnable()) {
+            http.oauth2Login(Customizer.withDefaults());
+        }
         return http.build();
     }
 

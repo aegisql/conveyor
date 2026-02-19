@@ -3,6 +3,7 @@ package com.aegisql.conveyor.service.web;
 import com.aegisql.conveyor.service.api.PlacementResult;
 import com.aegisql.conveyor.service.api.PlacementStatus;
 import com.aegisql.conveyor.service.error.ConveyorNotFoundException;
+import com.aegisql.conveyor.service.error.FeatureDisabledException;
 import com.aegisql.conveyor.service.error.UnsupportedMappingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +39,17 @@ public class RestExceptionHandler {
                 .exceptionClass(ex.getClass().getName())
                 .build();
         return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(body);
+    }
+
+    @ExceptionHandler(FeatureDisabledException.class)
+    public ResponseEntity<PlacementResult<Void>> handleFeatureDisabled(FeatureDisabledException ex) {
+        var body = PlacementResult.<Void>builder()
+                .status(PlacementStatus.REJECTED)
+                .errorCode("FORBIDDEN")
+                .errorMessage(ex.getMessage())
+                .exceptionClass(ex.getClass().getName())
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

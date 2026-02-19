@@ -108,6 +108,7 @@ public class DashboardViewController {
         model.addAttribute("systemErrors", dashboardService.drainLoaderErrors());
         model.addAttribute("username", authentication == null ? "" : authentication.getName());
         model.addAttribute("isAdmin", hasRole(authentication, "ROLE_DASHBOARD_ADMIN"));
+        model.addAttribute("uploadEnabled", dashboardService.isUploadEnabled());
         model.addAttribute("watchHistoryLimitDefault", watchHistoryLimitDefault);
         model.addAttribute("conveyorHistoryLimitDefault", conveyorHistoryLimitDefault);
         model.addAttribute("defaultTtlInputValue", defaultTtlInputValue);
