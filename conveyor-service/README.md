@@ -8,9 +8,18 @@ Spring Boot service for working with Conveyor instances over HTTP:
   - `demo` profile: local in-memory users.
   - `prod` profile: OAuth2/OIDC.
 
-## Screenshot Placeholders
 
 <img src=https://github.com/aegisql/conveyor/blob/master/doc/img/cs01.png alt="Conveyor Service Dashboard">
+
+<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/cs02.png alt="Conveyor Service Dashboard">
+
+<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/cs03.png alt="Conveyor Service Dashboard">
+
+<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/cs04.png alt="Conveyor Service Dashboard">
+
+<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/cs05.png alt="Conveyor Service Dashboard">
+
+
 ## Configuration
 
 Default config file: `src/main/resources/application.yml`
