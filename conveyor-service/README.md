@@ -2,6 +2,8 @@
 
 Spring Boot service for working with Conveyor instances over HTTP:
 
+#### This service is still in experimental alpha version. Use it at your own risk.
+
 - REST APIs for `part`, `static-part`, and `command` loaders.
 - Web dashboard for monitoring, configuration, admin operations, and interactive loader testing.
 - Pluggable auth model:
