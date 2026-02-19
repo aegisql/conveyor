@@ -25,6 +25,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -38,6 +40,7 @@ import java.util.Base64;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private static final Logger LOG = LoggerFactory.getLogger(SecurityConfig.class);
     private static final String[] DASHBOARD_PATHS = {"/dashboard/**", "/api/dashboard/**"};
     private static final String[] DASHBOARD_ADMIN_PATHS = {"/dashboard/admin/**", "/api/dashboard/admin/**"};
     private static final String[] DASHBOARD_WS_PATHS = {"/ws/**"};
@@ -68,7 +71,10 @@ public class SecurityConfig {
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .httpBasic(Customizer.withDefaults());
         if (properties.isOauth2LoginEnable()) {
-            http.oauth2Login(Customizer.withDefaults());
+            http.oauth2Login(oauth2 -> oauth2.failureHandler((request, response, exception) -> {
+                LOG.error("OAuth2 login failed: {}", exception.getMessage(), exception);
+                response.sendRedirect(request.getContextPath() + "/login?error");
+            }));
         }
         return http.build();
     }
