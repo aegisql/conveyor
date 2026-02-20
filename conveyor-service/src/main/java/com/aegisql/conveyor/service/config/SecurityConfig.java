@@ -85,8 +85,12 @@ public class SecurityConfig {
                         .requestMatchers(DASHBOARD_PATHS).hasAnyRole("DASHBOARD_VIEWER", "DASHBOARD_ADMIN")
                         .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .httpBasic(Customizer.withDefaults());
+        if (properties.isOauth2ResourceServerEnable()) {
+            http.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+        } else {
+            LOG.info("OAuth2 resource-server JWT validation is disabled (conveyor.service.oauth2-resource-server-enable=false)");
+        }
         if (properties.isOauth2LoginEnable()) {
             http.oauth2Login(oauth2 -> oauth2
                     .authorizationEndpoint(authorization -> authorization
@@ -135,19 +139,22 @@ public class SecurityConfig {
         return new OAuth2AuthorizationRequestResolver() {
             @Override
             public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
-                return stripPkce(delegate.resolve(request));
+                return normalizeLinkedinAuthorizationRequest(delegate.resolve(request));
             }
 
             @Override
             public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
-                return stripPkce(delegate.resolve(request, clientRegistrationId));
+                return normalizeLinkedinAuthorizationRequest(delegate.resolve(request, clientRegistrationId));
             }
         };
     }
 
-    private static OAuth2AuthorizationRequest stripPkce(OAuth2AuthorizationRequest request) {
+    private static OAuth2AuthorizationRequest normalizeLinkedinAuthorizationRequest(OAuth2AuthorizationRequest request) {
         if (request == null) {
             return null;
+        }
+        if (!"linkedin".equals(request.getAttributes().get("registration_id"))) {
+            return request;
         }
         Map<String, Object> additionalParameters = new LinkedHashMap<>(request.getAdditionalParameters());
         additionalParameters.remove("nonce");

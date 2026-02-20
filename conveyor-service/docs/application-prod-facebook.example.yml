@@ -2,7 +2,7 @@
 #
 # Suggested usage:
 # 1) Use this as reference for src/main/resources/application-facebook.yml
-# 2) Set env vars: FACEBOOK_CLIENT_ID, FACEBOOK_CLIENT_SECRET, JWT_ISSUER_URI
+# 2) Set env vars: FACEBOOK_CLIENT_ID, FACEBOOK_CLIENT_SECRET
 # 3) Run with profiles: prod,facebook
 #
 # Facebook app redirect URI must include:
@@ -17,20 +17,19 @@ spring:
       client:
         registration:
           facebook:
+            provider: facebook
             client-id: ${FACEBOOK_CLIENT_ID:replace-me}
             client-secret: ${FACEBOOK_CLIENT_SECRET:replace-me}
             client-name: Facebook
+            client-authentication-method: client_secret_post
             authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            # For local runs, keep this exact callback URI aligned with Facebook app settings.
+            redirect-uri: "http://localhost:8080/login/oauth2/code/facebook"
             scope:
-              - public_profile
               - email
-      resourceserver:
-        jwt:
-          # Required by prod security chain (JWT resource server is enabled).
-          # Point this to your corporate or platform JWT issuer.
-          issuer-uri: ${JWT_ISSUER_URI:https://issuer.example.com}
-
+              - public_profile
 conveyor:
   service:
     oauth2-login-enable: true
+    # Disable JWT resource-server mode when only browser OAuth login is used.
+    oauth2-resource-server-enable: false

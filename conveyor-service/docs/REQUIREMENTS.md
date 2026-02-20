@@ -53,6 +53,7 @@ Required dependencies:
 - `conveyor.service.upload-dir` (default used by app: `./upload`)
 - `conveyor.service.upload-enable` (default `true`)
 - `conveyor.service.oauth2-login-enable` (default `true`)
+- `conveyor.service.oauth2-resource-server-enable` (default `true`)
 - `conveyor.service.dashboard.default-watch-history-limit` (default `100`)
 - `conveyor.service.dashboard.default-conveyor-history-limit` (default `100`)
 - `conveyor.service.dashboard.default-admin-stop-timeout` (default `1 MINUTES`)
@@ -68,6 +69,7 @@ Required dependencies:
 - Exposes `Path uploadDir`
 - Exposes `boolean uploadEnable` (default `true`)
 - Exposes `boolean oauth2LoginEnable` (default `true`)
+- Exposes `boolean oauth2ResourceServerEnable` (default `true`)
 - Default fallback path in code: `${user.home}/.conveyor-service/upload`
 
 
@@ -84,7 +86,9 @@ Required dependencies:
 - OAuth2 login is controlled by `conveyor.service.oauth2-login-enable`:
   - `true` => built-in OAuth2 browser login enabled
   - `false` => built-in OAuth2 browser login disabled
-- OAuth2 resource server JWT enabled
+- OAuth2 resource server JWT is controlled by `conveyor.service.oauth2-resource-server-enable`:
+  - `true` => bearer JWT validation enabled (`oauth2ResourceServer().jwt()`)
+  - `false` => bearer JWT validation disabled
 - HTTP Basic enabled
 - Authorization:
   - `POST /part/**`, `POST /static-part/**`, `POST /command/**` => `REST_USER`
@@ -92,6 +96,10 @@ Required dependencies:
   - `/dashboard/admin/**`, `/api/dashboard/admin/**` => `DASHBOARD_ADMIN`
   - `/dashboard/**`, `/api/dashboard/**` => `DASHBOARD_VIEWER` or `DASHBOARD_ADMIN`
   - Swagger endpoints permitted
+
+Facebook profile interoperability requirement:
+
+- `application-facebook.yml` must set `conveyor.service.oauth2-resource-server-enable=false` by default so browser OAuth login works without requiring `spring.security.oauth2.resourceserver.jwt.issuer-uri`.
 
 ### 4.3 `demo` profile
 

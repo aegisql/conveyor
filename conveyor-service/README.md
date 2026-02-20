@@ -8,7 +8,7 @@ Spring Boot service for working with Conveyor instances over HTTP:
 - Web dashboard for monitoring, configuration, admin operations, and interactive loader testing.
 - Pluggable auth model:
   - `demo` profile: local in-memory users.
-  - `prod` profile: OAuth2/OIDC.
+  - `prod` profile: OAuth2/OIDC with optional JWT resource-server mode.
 
 
 <img src=https://github.com/aegisql/conveyor/blob/master/doc/img/cs01.png alt="Conveyor Service Dashboard">
@@ -47,8 +47,12 @@ Key properties:
     - app does not configure `oauth2Login()`
     - JWT resource server auth and HTTP Basic remain available
     - useful when corporate IAM is handled externally
+- `conveyor.service.oauth2-resource-server-enable`
+  - Enables/disables JWT bearer-token validation in `prod`.
+  - Default: `true`
+  - Set to `false` when running browser OAuth login only (for example `prod,facebook` locally).
 - `spring.security.oauth2.resourceserver.jwt.issuer-uri`
-  - Used in `prod` profile for JWT validation.
+  - Used only when `conveyor.service.oauth2-resource-server-enable=true`.
 - `logging.level.com.aegisql.conveyor`
   - Conveyor logging level (`DEBUG` in `demo`, `INFO` by default).
 
@@ -58,6 +62,7 @@ You can override properties with environment variables, for example:
 - `CONVEYOR_SERVICE_UPLOAD_DIR=./upload`
 - `CONVEYOR_SERVICE_UPLOAD_ENABLE=true`
 - `CONVEYOR_SERVICE_OAUTH2_LOGIN_ENABLE=true`
+- `CONVEYOR_SERVICE_OAUTH2_RESOURCE_SERVER_ENABLE=false`
 - `SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://your-issuer`
 
 Dashboard details view shows `Upload Dir` exactly as configured (for example `./upload`), not an expanded absolute path.
@@ -69,6 +74,15 @@ From repository root:
 ```bash
 mvn -pl conveyor-core,conveyor-parallel,conveyor-configurator -am -DskipTests install
 mvn -pl conveyor-service -Dspring-boot.run.profiles=demo spring-boot:run
+```
+
+Facebook OAuth local run (no JWT issuer required):
+
+```bash
+SPRING_PROFILES_ACTIVE=prod,facebook \
+FACEBOOK_CLIENT_ID=<your-app-id> \
+FACEBOOK_CLIENT_SECRET=<your-app-secret> \
+mvn -pl conveyor-service spring-boot:run
 ```
 
 The service starts on `http://localhost:8080` by default.

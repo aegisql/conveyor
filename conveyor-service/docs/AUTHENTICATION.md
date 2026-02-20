@@ -7,7 +7,7 @@ This document describes the authentication model currently implemented in `conve
 The service supports two runtime security profiles:
 
 - `demo`: local in-memory users with form login
-- `prod`: external identity integration with JWT resource server, optional OAuth2 browser login, and HTTP Basic
+- `prod`: external identity integration with optional JWT resource server, optional OAuth2 browser login, and HTTP Basic
 
 Authentication methods currently implemented:
 
@@ -47,6 +47,7 @@ Main security-related properties:
 - `spring.profiles.active` (`demo` or `prod`)
 - `spring.security.oauth2.resourceserver.jwt.issuer-uri`
 - `conveyor.service.oauth2-login-enable` (default `true`)
+- `conveyor.service.oauth2-resource-server-enable` (default `true`)
 
 Optional, but relevant to admin operations:
 
@@ -104,28 +105,42 @@ Set:
 
 - `spring.profiles.active=prod`
 - `conveyor.service.oauth2-login-enable=true` (default)
-- `spring.security.oauth2.resourceserver.jwt.issuer-uri=<your issuer>`
+- `conveyor.service.oauth2-resource-server-enable=true|false` (set `false` when only browser login is needed)
+- `spring.security.oauth2.resourceserver.jwt.issuer-uri=<your issuer>` only when resource server is enabled
 - `spring.security.oauth2.client.registration.*` and `provider.*` entries (for browser login)
 - Runtime profile files live under `src/main/resources`:
   - `application-linkedin.yml`
+  - `application-facebook.yml`
   - `application-demo.yml`
   - `application-dev.yml`
 - For LinkedIn, use `client-authentication-method=client_secret_post`
 - For local LinkedIn callback, register exact redirect URI: `http://localhost:8080/login/oauth2/code/linkedin`
 - LinkedIn example config is available in `docs/application-prod-linkedin.example.yml`
+- For Facebook, use `client-authentication-method=client_secret_post`
+- For local Facebook callback, register exact redirect URI: `http://localhost:8080/login/oauth2/code/facebook`
+- Facebook example config is available in `docs/application-prod-facebook.example.yml`
 
 ### 5.2 Start
 
 From repository root:
 
 ```bash
-SPRING_PROFILES_ACTIVE=prod mvn -pl conveyor-service spring-boot:run
+SPRING_PROFILES_ACTIVE=prod,linkedin mvn -pl conveyor-service spring-boot:run
 ```
 
 From `conveyor-service` directory:
 
 ```bash
-SPRING_PROFILES_ACTIVE=prod mvn spring-boot:run
+SPRING_PROFILES_ACTIVE=prod,facebook mvn spring-boot:run
+```
+
+Minimal Facebook local run (no JWT issuer required):
+
+```bash
+SPRING_PROFILES_ACTIVE=prod,facebook \
+FACEBOOK_CLIENT_ID=<your-app-id> \
+FACEBOOK_CLIENT_SECRET=<your-app-secret> \
+mvn -pl conveyor-service spring-boot:run
 ```
 
 ### 5.3 Login flow
@@ -165,14 +180,27 @@ For `linkedin` profile, the service normalizes the authorization/token request s
 - Removes nonce from custom authorization request handling for LinkedIn
 - Uses `openid` and `email` scopes by default in `application.yml`
 
-### 5.6 Running `test-part-loader.sh` with LinkedIn login
+### 5.6 Facebook profile notes (current implementation)
+
+For `facebook` profile, the service uses Spring Security provider defaults plus explicit registration settings:
+
+- Registration id: `facebook`
+- `client-authentication-method=client_secret_post`
+- scopes: `email`, `public_profile`
+- callback URI: `http://localhost:8080/login/oauth2/code/facebook`
+- `conveyor.service.oauth2-resource-server-enable=false` by default (no JWT issuer required for browser login)
+- `spring.security.oauth2.resourceserver.jwt.issuer-uri` is not required unless you turn resource-server mode back on
+
+Unlike LinkedIn flow normalization, Facebook uses the default OAuth2 authorization request shape.
+
+### 5.7 Running `test-part-loader.sh` with LinkedIn/Facebook login
 
 The script cannot execute the interactive OAuth browser flow on its own.
 
 Use this flow:
 
-1. Start service with `prod,linkedin` profiles.
-2. Open `/dashboard` in browser and complete LinkedIn login.
+1. Start service with either `prod,linkedin` or `prod,facebook` profiles.
+2. Open `/dashboard` in browser and complete provider login.
 3. Copy the `JSESSIONID` cookie value for `http://localhost:8080`.
 4. Run script with cookie mode:
 
@@ -189,6 +217,7 @@ Use this when corporate users want to replace built-in browser OAuth login with 
 
 - `spring.profiles.active=prod`
 - `conveyor.service.oauth2-login-enable=false`
+- `conveyor.service.oauth2-resource-server-enable=true`
 - `spring.security.oauth2.resourceserver.jwt.issuer-uri=<your issuer>`
 
 ### 6.2 Behavior

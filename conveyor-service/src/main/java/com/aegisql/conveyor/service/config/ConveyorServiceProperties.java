@@ -11,6 +11,7 @@ public class ConveyorServiceProperties {
     private Path uploadDir = Paths.get(System.getProperty("user.home"), ".conveyor-service", "upload");
     private boolean uploadEnable = true;
     private boolean oauth2LoginEnable = true;
+    private boolean oauth2ResourceServerEnable = true;
 
     public Path getUploadDir() {
         return uploadDir;
@@ -34,5 +35,13 @@ public class ConveyorServiceProperties {
 
     public void setOauth2LoginEnable(boolean oauth2LoginEnable) {
         this.oauth2LoginEnable = oauth2LoginEnable;
+    }
+
+    public boolean isOauth2ResourceServerEnable() {
+        return oauth2ResourceServerEnable;
+    }
+
+    public void setOauth2ResourceServerEnable(boolean oauth2ResourceServerEnable) {
+        this.oauth2ResourceServerEnable = oauth2ResourceServerEnable;
     }
 }

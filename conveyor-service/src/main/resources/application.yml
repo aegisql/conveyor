@@ -24,6 +24,7 @@ conveyor:
     upload-dir: ./upload
     upload-enable: true
     oauth2-login-enable: true
+    oauth2-resource-server-enable: true
     dashboard:
       default-watch-history-limit: 100
       default-conveyor-history-limit: 100
