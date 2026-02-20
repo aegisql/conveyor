@@ -8,4 +8,4 @@
 /conveyor-service/target/
 /conveyor-service/upload/
 .DS_Store
-/carts_schema/
+carts_schema/
