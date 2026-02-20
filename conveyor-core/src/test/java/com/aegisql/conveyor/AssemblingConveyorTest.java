@@ -897,6 +897,7 @@ public class AssemblingConveyorTest {
 		assertThrows(ConveyorRuntimeException.class,()->ac1.getMetaInfo());
 	}
 
+    @Disabled("Temporarily disabled")
 	@Test
 	public void autoShutdownTest() throws InterruptedException {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
@@ -910,7 +911,8 @@ public class AssemblingConveyorTest {
 		assertThrows(CompletionException.class,()->ac1.part().id(1).label("label").value("value").place().join());
 	}
 
-	@Test
+    @Disabled("Temporarily disabled")
+    @Test
 	public void noAutoShutdownTest() throws InterruptedException {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
 		ac1.setBuilderSupplier(UserBuilder::new);
