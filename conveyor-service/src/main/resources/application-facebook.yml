@@ -1,0 +1,26 @@
+spring:
+  config:
+    activate:
+      on-profile: facebook
+  security:
+    oauth2:
+      client:
+        registration:
+          facebook:
+            provider: facebook
+            client-id: ${FACEBOOK_CLIENT_ID}
+            client-secret: ${FACEBOOK_CLIENT_SECRET}
+            client-name: Facebook
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            # Keep this exact callback URI aligned with Facebook Login settings.
+            redirect-uri: "http://localhost:8080/login/oauth2/code/facebook"
+            scope:
+              - email
+              - public_profile
+
+conveyor:
+  service:
+    oauth2-login-enable: true
+    # Facebook browser login does not require JWT issuer configuration.
+    oauth2-resource-server-enable: false

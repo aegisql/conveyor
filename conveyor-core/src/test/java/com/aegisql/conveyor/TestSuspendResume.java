@@ -67,4 +67,50 @@ public class TestSuspendResume {
 	public void suspendEnumTest() {
 		assertThrows(AbstractMethodError.class,()->CommandLabel.SUSPEND.get());
 	}
+
+
+    @Test
+    public void testcompleAndForceStop() {
+
+        AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
+        conveyor.setBuilderSupplier(UserBuilderSmart::new);
+
+        ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+        conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
+        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(SET_FIRST,SET_LAST,SET_YEAR));
+        conveyor.setName("ConveyorToBeStopped");
+        assertTrue(conveyor.isRunning());
+
+        conveyor.part().id(1).label(UserBuilderEvents.SET_FIRST).value("A").place();
+        conveyor.part().id(1).label(UserBuilderEvents.SET_LAST).value("B").place();
+
+        conveyor.completeThenForceStop(5,TimeUnit.SECONDS);
+
+        assertFalse(conveyor.isRunning());
+    }
+
+    @Test
+    public void testcompleAndForceStopWithEmptyConveyor() {
+
+        AssemblingConveyor<Integer, UserBuilderEvents, User> conveyor = new AssemblingConveyor<>();
+        conveyor.setBuilderSupplier(UserBuilderSmart::new);
+
+        ResultQueue<Integer,User> outQueue = new ResultQueue<>();
+
+        conveyor.resultConsumer().first(outQueue).andThen(LogResult.debug(conveyor)).set();
+        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(SET_FIRST,SET_LAST,SET_YEAR));
+        conveyor.setName("ConveyorToBeStopped");
+        assertTrue(conveyor.isRunning());
+
+        conveyor.part().id(1).label(UserBuilderEvents.SET_FIRST).value("A").place();
+        conveyor.part().id(1).label(UserBuilderEvents.SET_LAST).value("B").place();
+        conveyor.part().id(1).label(UserBuilderEvents.SET_YEAR).value(2000).place();
+
+        conveyor.completeThenForceStop(5,TimeUnit.SECONDS);
+
+        assertFalse(conveyor.isRunning());
+    }
+
+
 }

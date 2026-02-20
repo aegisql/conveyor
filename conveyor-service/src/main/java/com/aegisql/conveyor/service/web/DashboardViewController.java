@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.service.web;
 
 import com.aegisql.conveyor.service.api.PlacementResult;
+import com.aegisql.conveyor.service.core.DashboardAdminOperationService;
 import com.aegisql.conveyor.service.core.CommandService;
 import com.aegisql.conveyor.service.core.ConveyorWatchService;
 import com.aegisql.conveyor.service.core.DashboardService;
@@ -45,6 +46,7 @@ public class DashboardViewController {
             TAB_DETAILS, "tab-operations", "tab-tester", "tab-static", "tab-commands", "tab-admin"
     ));
 
+    private final DashboardAdminOperationService dashboardAdminOperationService;
     private final DashboardService dashboardService;
     private final PlacementService placementService;
     private final StaticPartService staticPartService;
@@ -58,6 +60,7 @@ public class DashboardViewController {
     private final String defaultAdminStopTimeoutInputValue;
 
     public DashboardViewController(
+            DashboardAdminOperationService dashboardAdminOperationService,
             DashboardService dashboardService,
             PlacementService placementService,
             StaticPartService staticPartService,
@@ -70,6 +73,7 @@ public class DashboardViewController {
             @Value("${conveyor.service.dashboard.default-request-ttl:}") String defaultRequestTtlInputValue,
             @Value("${conveyor.service.dashboard.default-admin-stop-timeout:1 MINUTES}") String defaultAdminStopTimeoutInputValue
     ) {
+        this.dashboardAdminOperationService = dashboardAdminOperationService;
         this.dashboardService = dashboardService;
         this.placementService = placementService;
         this.staticPartService = staticPartService;
@@ -176,17 +180,23 @@ public class DashboardViewController {
     public String reload(@RequestParam("name") String name,
                          @RequestParam(name = "stopTimeout", required = false) String stopTimeout,
                          @RequestParam(name = "tab", required = false) String tab,
+                         Authentication authentication,
                          RedirectAttributes redirectAttributes) {
         try {
             LOG.info("Dashboard admin reload requested: name='{}', stopTimeout='{}'", name, stopTimeout);
-            dashboardService.reload(name, stopTimeout);
-            redirectAttributes.addFlashAttribute("message", "Reloaded");
+            Map<String, Object> scheduledEvent = dashboardAdminOperationService.scheduleReload(
+                    authenticatedUsername(authentication),
+                    name,
+                    stopTimeout
+            );
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent", scheduledEvent);
             redirectAttributes.addFlashAttribute("adminStopTimeoutInputValue", normalizeAdminStopTimeoutInput(stopTimeout));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
             return "redirect:/dashboard";
         } catch (Throwable t) {
-            redirectAttributes.addFlashAttribute("error", safeError(t));
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent",
+                    buildConveyorErrorOutputEvent(name, t, 0L));
             redirectAttributes.addFlashAttribute("adminStopTimeoutInputValue", normalizeAdminStopTimeoutInput(stopTimeout));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
@@ -198,17 +208,23 @@ public class DashboardViewController {
     public String delete(@RequestParam("name") String name,
                          @RequestParam(name = "stopTimeout", required = false) String stopTimeout,
                          @RequestParam(name = "tab", required = false) String tab,
+                         Authentication authentication,
                          RedirectAttributes redirectAttributes) {
         try {
             LOG.info("Dashboard admin delete requested: name='{}', stopTimeout='{}'", name, stopTimeout);
-            dashboardService.delete(name, stopTimeout);
-            redirectAttributes.addFlashAttribute("message", "Deleted");
+            Map<String, Object> scheduledEvent = dashboardAdminOperationService.scheduleDelete(
+                    authenticatedUsername(authentication),
+                    name,
+                    stopTimeout
+            );
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent", scheduledEvent);
             redirectAttributes.addFlashAttribute("adminStopTimeoutInputValue", normalizeAdminStopTimeoutInput(stopTimeout));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
             return "redirect:/dashboard";
         } catch (Throwable t) {
-            redirectAttributes.addFlashAttribute("error", safeError(t));
+            redirectAttributes.addFlashAttribute("dashboardOutputEvent",
+                    buildConveyorErrorOutputEvent(name, t, 0L));
             redirectAttributes.addFlashAttribute("adminStopTimeoutInputValue", normalizeAdminStopTimeoutInput(stopTimeout));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));

@@ -5,6 +5,7 @@
   const WATCH_LIST_API = '/api/dashboard/watch';
   const WATCH_CANCEL_API = '/api/dashboard/watch/cancel';
   const WATCH_HISTORY_LIMIT_API = '/api/dashboard/watch/history-limit';
+  const ADMIN_EVENTS_API = '/api/dashboard/admin/events';
   const WATCH_WS_PATH = '/ws/watch';
 
   const OUTPUT_MIN_HEIGHT = 170;
@@ -2213,6 +2214,58 @@
     };
   }
 
+  function initAdminOperationEvents(outputDock) {
+    if (!outputDock) {
+      return;
+    }
+    const hasAdminControls = Boolean(document.querySelector('.admin-form-grid-actions'));
+    if (!hasAdminControls) {
+      return;
+    }
+
+    let pollInFlight = false;
+
+    async function pollAdminEvents() {
+      if (pollInFlight) {
+        return;
+      }
+      pollInFlight = true;
+      try {
+        const response = await fetch(ADMIN_EVENTS_API, {
+          method: 'GET',
+          headers: { Accept: 'application/json' }
+        });
+        if (!response.ok) {
+          throw new Error('Admin events API returned status ' + response.status);
+        }
+        const events = await response.json();
+        if (!Array.isArray(events) || events.length === 0) {
+          return;
+        }
+        let shouldRefreshTree = false;
+        events.forEach(function (event) {
+          if (!event || typeof event !== 'object') {
+            return;
+          }
+          outputDock.pushConveyorEvent(event);
+          if (event.payload && event.payload.treeRefresh === true) {
+            shouldRefreshTree = true;
+          }
+        });
+        if (shouldRefreshTree) {
+          renderTree();
+        }
+      } catch (error) {
+        console.error('Failed to poll admin operation events', error);
+      } finally {
+        pollInFlight = false;
+      }
+    }
+
+    pollAdminEvents();
+    window.setInterval(pollAdminEvents, 1000);
+  }
+
   async function loadTreeData() {
     const embedded = parseEmbeddedTree();
     try {
@@ -2279,6 +2332,7 @@
   const outputDock = initOutputDock();
   const watchPanel = initWatchPanel(outputDock);
   outputDock.onWatchHistoryLimitChange(watchPanel.setHistoryLimit);
+  initAdminOperationEvents(outputDock);
 
   const outputEvent = parseEmbeddedOutputEvent();
   if (outputEvent) {

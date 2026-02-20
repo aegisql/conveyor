@@ -88,11 +88,6 @@ public class DashboardService {
     public Map<String, Map<String, ?>> conveyorTree() {
         Set<String> names = new LinkedHashSet<>();
         try {
-            names.addAll(Conveyor.getKnownConveyorNames());
-        } catch (Exception e) {
-            LOG.warn("Failed reading known conveyor names", e);
-        }
-        try {
             names.addAll(Conveyor.getRegisteredConveyorNames());
         } catch (Exception e) {
             LOG.warn("Failed reading registered conveyor names", e);
@@ -366,10 +361,42 @@ public class DashboardService {
 
     private void stopAndUnregister(Conveyor<?, ?, ?> conveyor, String stopTimeoutInput) {
         long timeoutMillis = resolveStopTimeoutMillis(stopTimeoutInput);
-        LOG.info("Admin stop/delete flow: completeThenForceStop + unRegisterTree for conveyor='{}' timeoutMs={}",
+        long startedAt = System.nanoTime();
+        LOG.info("Admin stop/delete flow: completeThenForceStop then unRegisterTree for conveyor='{}' timeoutMs={}",
                 conveyor.getName(), timeoutMillis);
-        Conveyor.unRegisterTree(conveyor.getName());
         conveyor.completeThenForceStop(timeoutMillis, TimeUnit.MILLISECONDS);
+        waitUntilNotRunning(conveyor, timeoutMillis, startedAt);
+        Conveyor.unRegisterTree(conveyor.getName());
+        long elapsedMillis = Math.max(0L, (System.nanoTime() - startedAt) / 1_000_000L);
+        LOG.info("Admin stop/delete flow finished for conveyor='{}' in {} ms", conveyor.getName(), elapsedMillis);
+    }
+
+    private void waitUntilNotRunning(Conveyor<?, ?, ?> conveyor, long timeoutMillis, long startedAt) {
+        long deadlineNanos = startedAt + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+        while (System.nanoTime() < deadlineNanos) {
+            if (!isRunningSafe(conveyor)) {
+                return;
+            }
+            try {
+                Thread.sleep(50L);
+            } catch (InterruptedException interruptedException) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        if (isRunningSafe(conveyor)) {
+            LOG.warn("Conveyor '{}' is still running after {} ms; forcing stop before unregister",
+                    conveyor.getName(), timeoutMillis);
+            conveyor.stop();
+        }
+    }
+
+    private boolean isRunningSafe(Conveyor<?, ?, ?> conveyor) {
+        try {
+            return conveyor.isRunning();
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     private long resolveStopTimeoutMillis(String stopTimeoutInput) {

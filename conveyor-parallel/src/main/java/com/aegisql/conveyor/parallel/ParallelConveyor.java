@@ -295,12 +295,15 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 		if(this.conveyorFuture == null) {
 			synchronized (this.conveyorFutureLock) {
 				if(this.conveyorFuture == null) {
-					this.conveyorFuture = new CompletableFuture<>();
-					this.conveyorFuture.complete(true);
-					for(Conveyor<K, L, OUT> c:conveyors) {
-						CompletableFuture<Boolean> f = c.completeAndStop();
-						this.conveyorFuture = this.conveyorFuture.thenCombine(f, (a,b)-> a && b);
-					}
+					List<CompletableFuture<Boolean>> futures = conveyors.stream()
+							.map(Conveyor::completeAndStop)
+							.toList();
+					this.conveyorFuture = combineFutures(futures)
+							.whenComplete((result, error) -> {
+								if (error == null && Boolean.TRUE.equals(result)) {
+									this.running = false;
+								}
+							});
 				}
 			}
 		}

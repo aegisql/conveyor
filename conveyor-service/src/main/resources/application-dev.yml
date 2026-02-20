@@ -6,5 +6,5 @@ spring:
 logging:
   level:
     com.aegisql.conveyor: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.web.client: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web.client: INFO
