@@ -9,6 +9,7 @@ REQUEST_TTL="${REQUEST_TTL:-100}"
 REST_USER="${REST_USER:-rest}"
 REST_PASSWORD="${REST_PASSWORD:-rest}"
 AUTH_MODE="${AUTH_MODE:-session}" # session | basic
+SESSION_COOKIE="${SESSION_COOKIE:-}" # used when AUTH_MODE=cookie, e.g. "JSESSIONID=..."
 INPUT_FILE=""
 SHUFFLE=false
 
@@ -38,6 +39,8 @@ Options:
 Notes:
   - If --file is set, single fixed flow is skipped and file rows are used.
   - Backward-compatible positional mode is still supported: [conveyor] [id].
+  - AUTH_MODE=session|basic|cookie (default: session).
+  - AUTH_MODE=cookie requires SESSION_COOKIE, e.g. JSESSIONID=...
 USAGE
 }
 
@@ -109,8 +112,13 @@ if [[ ${#POSITIONAL[@]} -gt 2 ]]; then
   exit 1
 fi
 
-if [[ "$AUTH_MODE" != "session" && "$AUTH_MODE" != "basic" ]]; then
-  echo "AUTH_MODE must be 'session' or 'basic'. Received: $AUTH_MODE" >&2
+if [[ "$AUTH_MODE" != "session" && "$AUTH_MODE" != "basic" && "$AUTH_MODE" != "cookie" ]]; then
+  echo "AUTH_MODE must be 'session', 'basic', or 'cookie'. Received: $AUTH_MODE" >&2
+  exit 1
+fi
+
+if [[ "$AUTH_MODE" == "cookie" && -z "$SESSION_COOKIE" ]]; then
+  echo "AUTH_MODE=cookie requires SESSION_COOKIE, e.g. SESSION_COOKIE='JSESSIONID=...'" >&2
   exit 1
 fi
 
@@ -179,6 +187,13 @@ perform_post() {
   if [[ "$AUTH_MODE" == "basic" ]]; then
     curl -sS \
       -u "${REST_USER}:${REST_PASSWORD}" \
+      -H "Content-Type: application/json" \
+      -X POST "$url" \
+      --data "$body" \
+      -w $'\nHTTP_STATUS:%{http_code}'
+  elif [[ "$AUTH_MODE" == "cookie" ]]; then
+    curl -sS \
+      -H "Cookie: ${SESSION_COOKIE}" \
       -H "Content-Type: application/json" \
       -X POST "$url" \
       --data "$body" \

@@ -57,7 +57,11 @@ Options:
 - `REQUEST_TTL`: sent as `requestTTL` query param. Default: `100`
 - `REST_USER`: username for auth. Default: `rest`
 - `REST_PASSWORD`: password for auth. Default: `rest`
-- `AUTH_MODE`: `session` (default, login at `/login` and reuse cookie session) or `basic` (send HTTP basic auth on each request)
+- `AUTH_MODE`:
+  - `session` (default, login at `/login` and reuse cookie session)
+  - `basic` (send HTTP basic auth on each request)
+  - `cookie` (send pre-existing session cookie, for example `JSESSIONID=...`)
+- `SESSION_COOKIE`: required when `AUTH_MODE=cookie`, for example `JSESSIONID=ABCDEF...`
 
 ## File Playback Example
 
@@ -126,6 +130,17 @@ TTL="2500" REQUEST_TTL="1 SECONDS" \
 /Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh collector 2002
 ```
 
+LinkedIn OAuth browser session mode:
+
+1. Start service with LinkedIn profile and sign in once in browser (`/dashboard`).
+2. Copy browser `JSESSIONID` cookie for `http://localhost:8080`.
+3. Run script with cookie auth:
+
+```bash
+AUTH_MODE=cookie SESSION_COOKIE='JSESSIONID=<paste-cookie-value>' \
+/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh collector 2003
+```
+
 ## Notes
 
 - If `jq` is installed, JSON responses are pretty-printed.
@@ -138,3 +153,4 @@ TTL="2500" REQUEST_TTL="1 SECONDS" \
 - In file mode, each property column value is sent as a query parameter with the same name.
 - In static mode, `ttl` is not sent (static part endpoint rejects it); `requestTTL` is still sent.
 - In the demo profile, use `AUTH_MODE=session` for `/part/**` endpoints.
+- For LinkedIn OAuth profile, `AUTH_MODE=cookie` is recommended because the script cannot perform interactive OAuth in terminal mode.

@@ -165,6 +165,22 @@ For `linkedin` profile, the service normalizes the authorization/token request s
 - Removes nonce from custom authorization request handling for LinkedIn
 - Uses `openid` and `email` scopes by default in `application.yml`
 
+### 5.6 Running `test-part-loader.sh` with LinkedIn login
+
+The script cannot execute the interactive OAuth browser flow on its own.
+
+Use this flow:
+
+1. Start service with `prod,linkedin` profiles.
+2. Open `/dashboard` in browser and complete LinkedIn login.
+3. Copy the `JSESSIONID` cookie value for `http://localhost:8080`.
+4. Run script with cookie mode:
+
+```bash
+AUTH_MODE=cookie SESSION_COOKIE='JSESSIONID=<cookie-value>' \
+/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh collector 2003
+```
+
 ## 6. Prod profile with OAuth2 login disabled
 
 Use this when corporate users want to replace built-in browser OAuth login with their own IAM entry flow.
