@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,6 +34,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Controller
@@ -109,7 +111,7 @@ public class DashboardViewController {
         model.addAttribute("selectedName", name);
         model.addAttribute("activeTab", normalizeTab(tab));
         model.addAttribute("systemErrors", dashboardService.drainLoaderErrors());
-        model.addAttribute("username", authentication == null ? "" : authentication.getName());
+        model.addAttribute("username", displayUsername(authentication));
         model.addAttribute("isAdmin", hasRole(authentication, "ROLE_DASHBOARD_ADMIN"));
         model.addAttribute("uploadEnabled", dashboardService.isUploadEnabled());
         model.addAttribute("watchHistoryLimitDefault", watchHistoryLimitDefault);
@@ -971,6 +973,76 @@ public class DashboardViewController {
             throw new IllegalArgumentException("Authenticated user is required");
         }
         return authentication.getName();
+    }
+
+    private String displayUsername(Authentication authentication) {
+        if (authentication == null) {
+            return "";
+        }
+        String oauthDisplay = oauthDisplayName(authentication.getPrincipal());
+        if (StringUtils.hasText(oauthDisplay)) {
+            return oauthDisplay;
+        }
+        return StringUtils.hasText(authentication.getName()) ? authentication.getName() : "";
+    }
+
+    private String oauthDisplayName(Object principal) {
+        if (!(principal instanceof OAuth2AuthenticatedPrincipal oauthPrincipal)) {
+            return null;
+        }
+        Map<String, Object> attributes = oauthPrincipal.getAttributes();
+        String email = firstNonBlank(
+                asString(attributes.get("email")),
+                asString(attributes.get("emailAddress"))
+        );
+        if (StringUtils.hasText(email)) {
+            return email;
+        }
+        String username = firstNonBlank(
+                asString(attributes.get("preferred_username")),
+                asString(attributes.get("username")),
+                asString(attributes.get("login")),
+                asString(attributes.get("name"))
+        );
+        if (StringUtils.hasText(username)) {
+            return username;
+        }
+        String givenName = asString(attributes.get("given_name"));
+        String familyName = asString(attributes.get("family_name"));
+        String fullName = firstNonBlank(
+                joinNonBlank(givenName, familyName),
+                asString(attributes.get("first_name")),
+                asString(attributes.get("last_name"))
+        );
+        if (StringUtils.hasText(fullName)) {
+            return fullName;
+        }
+        return null;
+    }
+
+    private String firstNonBlank(String... candidates) {
+        for (String candidate : candidates) {
+            if (StringUtils.hasText(candidate)) {
+                return candidate.trim();
+            }
+        }
+        return null;
+    }
+
+    private String joinNonBlank(String left, String right) {
+        String joined = String.join(" ",
+                Objects.requireNonNullElse(left, "").trim(),
+                Objects.requireNonNullElse(right, "").trim()
+        ).trim();
+        return StringUtils.hasText(joined) ? joined : null;
+    }
+
+    private String asString(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String text = String.valueOf(value).trim();
+        return StringUtils.hasText(text) ? text : null;
     }
 
     private boolean hasRole(Authentication authentication, String role) {
