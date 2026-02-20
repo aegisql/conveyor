@@ -7,3 +7,4 @@
 .gradle/
 /conveyor-service/target/
 /conveyor-service/upload/
+.DS_Store
