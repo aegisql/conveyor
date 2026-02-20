@@ -18,6 +18,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
@@ -35,6 +44,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
@@ -57,7 +70,11 @@ public class SecurityConfig {
 
     @Bean
     @Profile("prod")
-    SecurityFilterChain securityProd(HttpSecurity http, ConveyorServiceProperties properties) throws Exception {
+    SecurityFilterChain securityProd(
+            HttpSecurity http,
+            ConveyorServiceProperties properties,
+            ClientRegistrationRepository clientRegistrationRepository
+    ) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
@@ -71,12 +88,87 @@ public class SecurityConfig {
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .httpBasic(Customizer.withDefaults());
         if (properties.isOauth2LoginEnable()) {
-            http.oauth2Login(oauth2 -> oauth2.failureHandler((request, response, exception) -> {
-                LOG.error("OAuth2 login failed: {}", exception.getMessage(), exception);
-                response.sendRedirect(request.getContextPath() + "/login?error");
-            }));
+            http.oauth2Login(oauth2 -> oauth2
+                    .authorizationEndpoint(authorization -> authorization
+                            .authorizationRequestResolver(
+                                    linkedinAuthorizationRequestResolver(clientRegistrationRepository)
+                            ))
+                    .tokenEndpoint(token -> token
+                            .accessTokenResponseClient(linkedinAccessTokenResponseClient()))
+                    .userInfoEndpoint(userInfo -> userInfo.userAuthoritiesMapper(authorities -> {
+                        // LinkedIn/OIDC users do not carry app-specific roles by default.
+                        // Grant dashboard viewer + REST user roles for authenticated UI usage.
+                        Set<org.springframework.security.core.GrantedAuthority> mapped = new HashSet<>(authorities);
+                        mapped.add(new SimpleGrantedAuthority("ROLE_DASHBOARD_VIEWER"));
+                        mapped.add(new SimpleGrantedAuthority("ROLE_REST_USER"));
+                        return mapped;
+                    }))
+                    .successHandler((request, response, authentication) ->
+                            response.sendRedirect(request.getContextPath() + "/dashboard"))
+                    .failureHandler((request, response, exception) -> {
+                        LOG.error("OAuth2 login failed: {}", exception.getMessage(), exception);
+                        response.sendRedirect(request.getContextPath() + "/login?error");
+                    }));
         }
         return http.build();
+    }
+
+    private static OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> linkedinAccessTokenResponseClient() {
+        RestClientAuthorizationCodeTokenResponseClient defaultClient = new RestClientAuthorizationCodeTokenResponseClient();
+        RestClientAuthorizationCodeTokenResponseClient linkedinClient = new RestClientAuthorizationCodeTokenResponseClient();
+        linkedinClient.setParametersCustomizer(parameters -> parameters.remove("code_verifier"));
+        return grantRequest -> {
+            if ("linkedin".equals(grantRequest.getClientRegistration().getRegistrationId())) {
+                return linkedinClient.getTokenResponse(grantRequest);
+            }
+            return defaultClient.getTokenResponse(grantRequest);
+        };
+    }
+
+    private static OAuth2AuthorizationRequestResolver linkedinAuthorizationRequestResolver(
+            ClientRegistrationRepository clientRegistrationRepository
+    ) {
+        DefaultOAuth2AuthorizationRequestResolver delegate = new DefaultOAuth2AuthorizationRequestResolver(
+                clientRegistrationRepository,
+                OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI
+        );
+        return new OAuth2AuthorizationRequestResolver() {
+            @Override
+            public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+                return stripPkce(delegate.resolve(request));
+            }
+
+            @Override
+            public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
+                return stripPkce(delegate.resolve(request, clientRegistrationId));
+            }
+        };
+    }
+
+    private static OAuth2AuthorizationRequest stripPkce(OAuth2AuthorizationRequest request) {
+        if (request == null) {
+            return null;
+        }
+        Map<String, Object> additionalParameters = new LinkedHashMap<>(request.getAdditionalParameters());
+        additionalParameters.remove("nonce");
+        additionalParameters.remove("code_challenge");
+        additionalParameters.remove("code_challenge_method");
+
+        Map<String, Object> attributes = new LinkedHashMap<>(request.getAttributes());
+        attributes.remove("nonce");
+        attributes.remove("code_verifier");
+
+        return OAuth2AuthorizationRequest.from(request)
+                .additionalParameters(map -> {
+                    map.clear();
+                    map.putAll(additionalParameters);
+                })
+                .attributes(map -> {
+                    map.clear();
+                    map.putAll(attributes);
+                })
+                .authorizationRequestUri((String) null)
+                .build();
     }
 
     @Bean

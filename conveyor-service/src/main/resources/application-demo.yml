@@ -1,0 +1,15 @@
+spring:
+  config:
+    activate:
+      on-profile: demo
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          enabled: false
+
+logging:
+  level:
+    com.aegisql.conveyor: INFO
+    org.springframework.security: DEBUG
+    org.springframework.web.client: DEBUG

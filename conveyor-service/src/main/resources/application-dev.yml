@@ -1,0 +1,10 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    com.aegisql.conveyor: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web.client: DEBUG

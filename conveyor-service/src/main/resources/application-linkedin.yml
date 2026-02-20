@@ -1,0 +1,30 @@
+spring:
+  config:
+    activate:
+      on-profile: linkedin
+  security:
+    oauth2:
+      client:
+        registration:
+          linkedin:
+            provider: linkedin
+            client-id: ${LINKEDIN_CLIENT_ID}
+            client-secret: ${LINKEDIN_CLIENT_SECRET}
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            # Keep this exact callback URI aligned with LinkedIn app settings.
+            redirect-uri: "http://localhost:8080/login/oauth2/code/linkedin"
+            scope:
+              - openid
+              # Prefer email-only profileless login.
+              - email
+        provider:
+          linkedin:
+            authorization-uri: https://www.linkedin.com/oauth/v2/authorization
+            token-uri: https://www.linkedin.com/oauth/v2/accessToken
+            user-info-uri: https://api.linkedin.com/v2/userinfo
+            jwk-set-uri: https://www.linkedin.com/oauth/openid/jwks
+            user-name-attribute: sub
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI:https://www.linkedin.com/oauth}

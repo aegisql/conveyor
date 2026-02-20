@@ -1,7 +1,7 @@
 # Example LinkedIn OAuth2 login configuration for conveyor-service.
 #
 # Suggested usage:
-# 1) Copy this file to src/main/resources/application-linkedin.yml
+# 1) Use this as reference for src/main/resources/application-linkedin.yml
 # 2) Set env vars: LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET, JWT_ISSUER_URI
 # 3) Run with profiles: prod,linkedin
 #
@@ -23,9 +23,13 @@ spring:
             client-name: LinkedIn
             client-authentication-method: client_secret_post
             authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            # For local runs, keep this exact callback URI aligned with LinkedIn app settings.
+            redirect-uri: "http://localhost:8080/login/oauth2/code/linkedin"
             scope:
               - openid
+              # Prefer email-only profileless login to avoid requesting profile photo.
+              # If your LinkedIn app is provisioned for "profile", you can add it.
+              - email
         provider:
           linkedin:
             authorization-uri: https://www.linkedin.com/oauth/v2/authorization

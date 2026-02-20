@@ -1,7 +1,7 @@
 # Example Facebook OAuth2 login configuration for conveyor-service.
 #
 # Suggested usage:
-# 1) Copy this file to src/main/resources/application-facebook.yml
+# 1) Use this as reference for src/main/resources/application-facebook.yml
 # 2) Set env vars: FACEBOOK_CLIENT_ID, FACEBOOK_CLIENT_SECRET, JWT_ISSUER_URI
 # 3) Run with profiles: prod,facebook
 #

@@ -106,11 +106,26 @@ Set:
 - `conveyor.service.oauth2-login-enable=true` (default)
 - `spring.security.oauth2.resourceserver.jwt.issuer-uri=<your issuer>`
 - `spring.security.oauth2.client.registration.*` and `provider.*` entries (for browser login)
+- Runtime profile files live under `src/main/resources`:
+  - `application-linkedin.yml`
+  - `application-demo.yml`
+  - `application-dev.yml`
+- For LinkedIn, use `client-authentication-method=client_secret_post`
+- For local LinkedIn callback, register exact redirect URI: `http://localhost:8080/login/oauth2/code/linkedin`
+- LinkedIn example config is available in `docs/application-prod-linkedin.example.yml`
 
 ### 5.2 Start
 
+From repository root:
+
 ```bash
 SPRING_PROFILES_ACTIVE=prod mvn -pl conveyor-service spring-boot:run
+```
+
+From `conveyor-service` directory:
+
+```bash
+SPRING_PROFILES_ACTIVE=prod mvn spring-boot:run
 ```
 
 ### 5.3 Login flow
@@ -119,16 +134,36 @@ SPRING_PROFILES_ACTIVE=prod mvn -pl conveyor-service spring-boot:run
 2. Spring Security OAuth2 login flow starts
 3. Authenticate at IdP
 4. Return to service with authenticated session
+5. Current implementation redirects successful OAuth2 login to `/dashboard`
 
-### 5.4 Important role mapping note
+### 5.4 Role mapping in current implementation
 
-Authentication alone is not enough. Users must have authorities that resolve to:
+For OAuth2 browser login, the service currently grants these roles after successful authentication:
+
+- `ROLE_DASHBOARD_VIEWER`
+- `ROLE_REST_USER`
+
+Admin operations still require:
+
+- `ROLE_DASHBOARD_ADMIN`
+
+Authorization expectations remain:
 
 - `ROLE_DASHBOARD_VIEWER` for dashboard/watch
 - `ROLE_DASHBOARD_ADMIN` for admin operations
 - `ROLE_REST_USER` for part/static-part/command APIs
 
 If IdP tokens/users are not mapped to these roles, requests will return `403`.
+
+### 5.5 LinkedIn interoperability notes (current implementation)
+
+For `linkedin` profile, the service normalizes the authorization/token request shape to avoid provider incompatibilities observed during local testing:
+
+- Uses `client_secret_post` token client authentication
+- Removes PKCE parameters (`code_challenge`, `code_challenge_method`)
+- Removes `code_verifier` from LinkedIn token POST
+- Removes nonce from custom authorization request handling for LinkedIn
+- Uses `openid` and `email` scopes by default in `application.yml`
 
 ## 6. Prod profile with OAuth2 login disabled
 
@@ -200,3 +235,21 @@ Current implementation registers the socket with `HttpSessionHandshakeIntercepto
 3. Confirm role mapping for requested endpoint class (REST, dashboard, admin).
 4. If admin operations fail with `403 FORBIDDEN` and error code `FORBIDDEN`, also verify `conveyor.service.upload-enable=true`.
 5. For WebSocket watch, confirm dashboard role and active authenticated browser session.
+6. For local OAuth testing, prefer an incognito window to avoid stale login/session cookies.
+
+## 11. OAuth2 troubleshooting (local)
+
+Common errors and what they usually mean:
+
+- `invalid_client` from token endpoint:
+  - Usually client credentials mismatch or redirect URI mismatch in IdP app config
+  - Validate credentials directly with a token curl call (a code-related error like `invalid_grant` or `authorization code not found` with a dummy code confirms credentials are accepted)
+- `invalid_nonce` after token exchange:
+  - Token exchange succeeded, but nonce validation failed in OIDC callback handling
+  - Use latest service build and clear local browser session/cookies
+- Browser loop back to `/login`:
+  - Often a downstream OAuth2 callback failure; check `OAuth2 login failed:` log line first
+
+Security note:
+
+- Do not keep debug logs containing client secrets; rotate leaked OAuth client secrets immediately.
