@@ -914,7 +914,7 @@ public class AssemblingConveyorTest {
 		ac1.setReadinessEvaluator(Conveyor.getTesterFor(ac1).accepted("done"));
 		ac1.resultConsumer(LogResult.debug(ac1)).set();
 		ac1.setLongInactivityAction(ac1::stop, Duration.ofSeconds(3));
-		ac1.part().id(1).label("label").value("value").place();
+		ac1.part().id(1).label("label").value("value").place().join();
 		Thread.sleep(4000);
 		assertDoesNotThrow(()->ac1.part().id(1).label("done").value("value").place().join());
 		Thread.sleep(4000);
