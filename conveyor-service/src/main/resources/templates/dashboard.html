@@ -7,7 +7,7 @@
     <link rel="stylesheet"
           th:href="@{/webjars/prismjs/1.30.0/themes/prism.min.css}"
           href="/webjars/prismjs/1.30.0/themes/prism.min.css"/>
-    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260215f')}" href="/css/dashboard.css?v=20260215f"/>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260220b')}" href="/css/dashboard.css?v=20260220b"/>
 </head>
 <body>
 <div class="scene-bg"></div>
@@ -610,32 +610,75 @@
                 <div class="alert err" th:if="${uploadEnabled == false}">
                     Upload and remove are disabled by the service admin.
                 </div>
-                <div th:if="${isAdmin}">
-                    <h3 th:if="${uploadEnabled}">Upload Conveyor JAR</h3>
-                    <form th:if="${uploadEnabled}" th:action="@{/dashboard/admin/upload}" method="post" enctype="multipart/form-data" class="stack-form tab-preserve-form">
-                        <input type="hidden" name="tab" value="tab-admin"/>
-                        <input type="file" name="file" accept=".jar" required/>
-                        <button type="submit">Upload / Replace</button>
-                    </form>
+                <div th:if="${isAdmin}" class="admin-panel">
+                    <section class="admin-action-group" th:if="${uploadEnabled}">
+                        <h3>Upload Conveyor JAR</h3>
+                        <form th:action="@{/dashboard/admin/upload}" method="post" enctype="multipart/form-data"
+                              class="inline-form admin-inline-form admin-form-grid admin-form-grid-upload tab-preserve-form">
+                            <input type="hidden" name="tab" value="tab-admin"/>
+                            <div class="field-group admin-upload-file">
+                                <label for="admin-upload-file">JAR File</label>
+                                <div id="admin-upload-dropzone"
+                                     class="admin-upload-dropzone"
+                                     role="button"
+                                     tabindex="0"
+                                     aria-controls="admin-upload-file"
+                                     aria-label="Drag and drop a JAR file, or click to choose one">
+                                    <div class="admin-upload-dropzone-title">Drag and drop JAR file here</div>
+                                    <div class="admin-upload-dropzone-hint">or click to choose file</div>
+                                    <div id="admin-upload-file-name" class="admin-upload-file-name">No file selected</div>
+                                </div>
+                                <input id="admin-upload-file" type="file" name="file" accept=".jar" required/>
+                            </div>
+                            <div class="admin-action-buttons admin-action-buttons-single">
+                                <button type="submit">Upload / Replace</button>
+                            </div>
+                        </form>
+                    </section>
 
-                    <h3>Controlled Reload</h3>
-                    <form th:action="@{/dashboard/admin/reload}" method="post" class="inline-form tab-preserve-form">
-                        <input type="text" name="name" th:value="${selectedName}" placeholder="conveyor name" required/>
-                        <input type="text" name="stopTimeout" placeholder="stop timeout, e.g. 1 MINUTES"
-                               th:value="${adminStopTimeoutInputValue}" value="1 MINUTES"/>
-                        <input type="hidden" name="tab" value="tab-admin"/>
-                        <button type="submit">completeThenForceStop + reload</button>
-                    </form>
+                    <section class="admin-action-group">
+                        <h3>Controlled Reload / Delete Tree</h3>
+                        <p class="meta">Top-level conveyors only. Delete removes the full conveyor tree.</p>
 
-                    <h3 th:if="${uploadEnabled}">Controlled Delete</h3>
-                    <form th:if="${uploadEnabled}" th:action="@{/dashboard/admin/delete}" method="post" class="inline-form tab-preserve-form"
-                          onsubmit="return confirm('Delete selected conveyor?');">
-                        <input type="text" name="name" th:value="${selectedName}" placeholder="conveyor name" required/>
-                        <input type="text" name="stopTimeout" placeholder="stop timeout, e.g. 1 MINUTES"
-                               th:value="${adminStopTimeoutInputValue}" value="1 MINUTES"/>
-                        <input type="hidden" name="tab" value="tab-admin"/>
-                        <button class="danger" type="submit">completeThenForceStop + delete</button>
-                    </form>
+                        <form th:action="@{/dashboard/admin/reload}" method="post"
+                              class="inline-form admin-inline-form admin-form-grid admin-form-grid-actions tab-preserve-form">
+                            <input type="hidden" name="name" th:value="${selectedName}"/>
+                            <input type="hidden" name="tab" value="tab-admin"/>
+
+                            <div class="field-group admin-selected-conveyor">
+                                <label for="admin-selected-conveyor">Selected Conveyor</label>
+                                <input id="admin-selected-conveyor" type="text" th:value="${selectedName}" readonly aria-readonly="true"/>
+                            </div>
+
+                            <div class="field-group admin-stop-timeout">
+                                <label for="admin-stop-timeout">Complete and Stop Timeout</label>
+                                <input id="admin-stop-timeout" type="text" name="stopTimeout"
+                                       placeholder="stop timeout, e.g. 1 MINUTES"
+                                       th:value="${adminStopTimeoutInputValue}" value="1 MINUTES"/>
+                            </div>
+
+                            <div class="admin-action-buttons admin-action-buttons-pair">
+                                <button type="submit" th:formaction="@{/dashboard/admin/reload}"
+                                        th:disabled="${selected['topLevel'] != true}"
+                                        th:attr="title=${selected['topLevel'] == true ? 'Reload selected top-level conveyor' : 'Reload is available only for top-level conveyors'}">
+                                    Reload
+                                </button>
+                                <button class="danger" type="submit" th:formaction="@{/dashboard/admin/delete}"
+                                        th:disabled="${selected['topLevel'] != true}"
+                                        th:attr="title=${selected['topLevel'] == true ? 'Delete selected conveyor tree' : 'Delete is available only for top-level conveyors'}"
+                                        onclick="return confirm('Delete selected conveyor tree?');">
+                                    Delete
+                                </button>
+                            </div>
+                        </form>
+
+                        <p class="meta" th:if="${selectedName == null or selectedName == ''}">
+                            Hint: select a top-level conveyor in the tree to enable Reload/Delete.
+                        </p>
+                        <p class="meta" th:if="${selectedName != null and selectedName != '' and selected['topLevel'] != true}">
+                            Hint: Reload/Delete are available only for top-level conveyors.
+                        </p>
+                    </section>
                 </div>
                 <p class="meta" th:unless="${isAdmin}">
                     Admin role is required to use upload, reload, and delete actions.
@@ -707,6 +750,6 @@
         th:utext="${dashboardOutputEventJson}"></script>
 <script th:src="@{/webjars/prismjs/1.30.0/components/prism-core.min.js}" src="/webjars/prismjs/1.30.0/components/prism-core.min.js"></script>
 <script th:src="@{/webjars/prismjs/1.30.0/components/prism-json.min.js}" src="/webjars/prismjs/1.30.0/components/prism-json.min.js"></script>
-<script th:src="@{/js/dashboard.js(v='20260215j')}" src="/js/dashboard.js?v=20260215j"></script>
+<script th:src="@{/js/dashboard.js(v='20260220a')}" src="/js/dashboard.js?v=20260220a"></script>
 </body>
 </html>

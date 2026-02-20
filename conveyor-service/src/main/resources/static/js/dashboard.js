@@ -407,6 +407,129 @@
     });
   }
 
+  function initAdminUploadDropzone() {
+    const fileInput = document.getElementById('admin-upload-file');
+    const dropzone = document.getElementById('admin-upload-dropzone');
+    const fileNameNode = document.getElementById('admin-upload-file-name');
+    if (!fileInput || !dropzone) {
+      return;
+    }
+
+    const defaultFileName = 'No file selected';
+
+    function updateFileName(file) {
+      if (!fileNameNode) {
+        return;
+      }
+      fileNameNode.textContent = file && file.name ? file.name : defaultFileName;
+    }
+
+    function clearValidationState() {
+      fileInput.setCustomValidity('');
+      dropzone.classList.remove('invalid');
+    }
+
+    function markInvalid(message) {
+      fileInput.setCustomValidity(message);
+      dropzone.classList.add('invalid');
+      if (fileNameNode) {
+        fileNameNode.textContent = message;
+      }
+    }
+
+    function isJarFile(file) {
+      return !!(file && file.name && file.name.toLowerCase().endsWith('.jar'));
+    }
+
+    function assignFile(file) {
+      if (!file) {
+        return;
+      }
+      if (!isJarFile(file)) {
+        markInvalid('Only .jar files are supported');
+        return;
+      }
+      try {
+        const transfer = new DataTransfer();
+        transfer.items.add(file);
+        fileInput.files = transfer.files;
+      } catch (error) {
+        markInvalid('Unable to assign dropped file in this browser');
+        return;
+      }
+      clearValidationState();
+      updateFileName(file);
+    }
+
+    function preventDefaults(event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (eventName) {
+      dropzone.addEventListener(eventName, preventDefaults);
+    });
+
+    dropzone.addEventListener('dragenter', function () {
+      dropzone.classList.remove('invalid');
+      dropzone.classList.add('drag-over');
+    });
+
+    dropzone.addEventListener('dragover', function (event) {
+      dropzone.classList.remove('invalid');
+      dropzone.classList.add('drag-over');
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'copy';
+      }
+    });
+
+    dropzone.addEventListener('dragleave', function (event) {
+      if (event.relatedTarget && dropzone.contains(event.relatedTarget)) {
+        return;
+      }
+      dropzone.classList.remove('drag-over');
+    });
+
+    dropzone.addEventListener('drop', function (event) {
+      dropzone.classList.remove('drag-over');
+      const files = event.dataTransfer ? event.dataTransfer.files : null;
+      if (!files || files.length === 0) {
+        return;
+      }
+      assignFile(files[0]);
+    });
+
+    dropzone.addEventListener('click', function () {
+      fileInput.click();
+    });
+
+    dropzone.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        fileInput.click();
+      }
+    });
+
+    fileInput.addEventListener('change', function () {
+      const file = fileInput.files && fileInput.files.length ? fileInput.files[0] : null;
+      if (!file) {
+        clearValidationState();
+        updateFileName(null);
+        return;
+      }
+      if (!isJarFile(file)) {
+        markInvalid('Only .jar files are supported');
+        fileInput.value = '';
+        return;
+      }
+      clearValidationState();
+      updateFileName(file);
+    });
+
+    const initialFile = fileInput.files && fileInput.files.length ? fileInput.files[0] : null;
+    updateFileName(initialFile);
+  }
+
   function formatClockTime(value) {
     if (value === null || value === undefined || value === '') {
       return 'n/a';
@@ -1972,6 +2095,7 @@
   initPartLoaderTester();
   initStaticPartTester();
   initCommandTester();
+  initAdminUploadDropzone();
   initStopOperationWarning();
 
   const outputDock = initOutputDock();

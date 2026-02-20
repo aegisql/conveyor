@@ -253,6 +253,7 @@ public class DashboardService {
 
     public void reload(String name, String stopTimeout) {
         Conveyor<?, ?, ?> conveyor = resolve(name);
+        ensureTopLevelConveyor(conveyor, "Reload");
         stopAndUnregister(conveyor, stopTimeout);
         Conveyor.loadServices();
         try {
@@ -272,6 +273,7 @@ public class DashboardService {
     public void delete(String name, String stopTimeout) {
         ensureUploadEnabled("Delete");
         Conveyor<?, ?, ?> conveyor = resolve(name);
+        ensureTopLevelConveyor(conveyor, "Delete");
         stopAndUnregister(conveyor, stopTimeout);
         uploadedConveyorNames.remove(name);
     }
@@ -414,6 +416,16 @@ public class DashboardService {
     public boolean isTopLevelConveyor(String name) {
         Conveyor<?, ?, ?> conveyor = resolve(name);
         return getEnclosingConveyorName(conveyor) == null;
+    }
+
+    private void ensureTopLevelConveyor(Conveyor<?, ?, ?> conveyor, String operation) {
+        String enclosing = getEnclosingConveyorName(conveyor);
+        if (enclosing != null) {
+            throw new IllegalArgumentException(
+                    operation + " is allowed only for top-level conveyors. '" + conveyor.getName()
+                            + "' belongs to tree '" + enclosing + "'."
+            );
+        }
     }
 
     private Conveyor<?, ?, ?> resolve(String name) {

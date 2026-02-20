@@ -55,6 +55,7 @@ Required dependencies:
 - `conveyor.service.oauth2-login-enable` (default `true`)
 - `conveyor.service.dashboard.default-watch-history-limit` (default `100`)
 - `conveyor.service.dashboard.default-conveyor-history-limit` (default `100`)
+- `conveyor.service.dashboard.default-admin-stop-timeout` (default `1 MINUTES`)
 - `server.tomcat.max-part-count=200`
 - Management endpoints exposure: `health,info`
 - Logging:
@@ -359,6 +360,10 @@ Future handling:
   - `DELETE /admin/{name}` (optional `stopTimeout`)
   - `POST /admin/{name}/mbean/{method}`
   - `POST /admin/{name}/parameter/{parameter}?value=...`
+- Reload/delete safety:
+  - reload and delete are allowed only for top-level conveyors (no enclosing conveyor)
+  - selecting a child conveyor must be rejected with `400` (`BAD_REQUEST`)
+  - controlled stop path uses `Conveyor.unRegisterTree(...)` and `completeThenForceStop(stopTimeout)` with default `1 MINUTES`
 - Upload/delete feature-gating:
   - when `conveyor.service.upload-enable=false`, upload and delete endpoints are disabled
   - disabled responses use HTTP `403` with placement envelope `errorCode=FORBIDDEN`
@@ -454,14 +459,23 @@ Behavior:
     - visible warning text: irreversible, may cause data loss
     - browser confirmation dialog before submit
 - Admin forms:
-  - upload jar
-  - controlled reload (`completeThenForceStop + reload`)
-  - controlled delete (`completeThenForceStop + delete`)
-  - reload/delete include stop-timeout input (`stopTimeout`), default `1 MINUTES`
+  - upload jar supports both:
+    - drag-and-drop area
+    - native file picker input (`Choose File`)
+  - controlled reload/delete form:
+    - selected conveyor is read-only and comes from tree selection
+    - controls stay visible even with no selection
+    - reload/delete buttons are inactive unless a top-level conveyor is selected
+    - neutral hint text is shown when selection is missing/invalid (not an error alert)
+    - one shared timeout input for both actions with label `Complete and Stop Timeout`
+    - timeout request parameter remains `stopTimeout`, default `1 MINUTES`
+    - action labels are `Reload` and `Delete`
+    - delete action deletes the full conveyor tree
   - update parameter and invoke MBean method (also available through Operations tab)
   - when `upload-enable=false`:
-    - upload and delete forms are hidden/disabled
+    - upload controls are hidden/disabled
     - explicit message is shown: upload/remove disabled by service admin
+    - delete remains server-side guarded (`403`) when attempted
     - reload remains available
 ### 9.2 Parts tester
 
@@ -612,14 +626,16 @@ Upload behavior:
 Delete behavior:
 
 - Guarded by `conveyor.service.upload-enable=true`
-- Uses controlled stop/unregister-tree for selected conveyor
+- Allowed only for top-level conveyors
+- Uses controlled stop/unregister-tree for selected conveyor tree
 
 Visibility and replacement behavior:
 
 - Uploaded conveyor names tracked and merged into tree sources
 - On name conflict, existing conveyor is stopped/unregistered, then replaced
-- Controlled stop uses `completeThenForceStop(stopTimeout)` (default `1 MINUTES`)
-- Unregistration uses `Conveyor.unRegisterTree(...)`
+- Reload is allowed only for top-level conveyors
+- Controlled stop uses one shared timeout input (`stopTimeout`) for reload/delete, default `1 MINUTES`
+- Unregistration uses `Conveyor.unRegisterTree(...)` before `completeThenForceStop(...)`
 - Uploaded conveyors must become visible through `Conveyor.byName(...)`
 - Watch bridge hooks must be attached for newly uploaded/reloaded conveyors as well.
 
@@ -678,9 +694,15 @@ Basic smoke checks:
   - close/reopen per-source output tabs via new events
   - verify timeline navigation (`Prev`, `Next`, `See all`, `Clear events`)
   - verify watch/conveyor cache limits trim oldest events
-- Upload a valid conveyor jar and confirm new conveyor appears
+- Admin actions flow:
+  - verify reload/delete controls stay visible with no conveyor selected
+  - verify no-selection and non-top-level guidance is shown as neutral hint text
+  - verify reload/delete buttons are inactive until a top-level conveyor is selected
+  - verify field label is `Complete and Stop Timeout`
+- Upload a valid conveyor jar using both native picker and drag/drop, confirm new conveyor appears
 - Set `conveyor.service.upload-enable=false` and verify:
   - dashboard admin tab shows upload/remove disabled message
-  - upload and delete controls are unavailable
+  - upload controls are unavailable
+  - delete API remains forbidden (`403`)
   - API upload/delete endpoints return `403` with `errorCode=FORBIDDEN`
 - Check `/swagger-ui/index.html` and `/v3/api-docs`
