@@ -6,9 +6,11 @@ import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import com.aegisql.conveyor.service.config.ConveyorServiceProperties;
 import com.aegisql.conveyor.service.error.ConveyorNotFoundException;
 import com.aegisql.conveyor.service.error.FeatureDisabledException;
+import com.aegisql.conveyor.service.util.RequestParsing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +37,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.ServiceConfigurationError;
 import java.util.Set;
+import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -42,11 +45,13 @@ import java.util.stream.Stream;
 public class DashboardService {
 
     private static final Logger LOG = LoggerFactory.getLogger(DashboardService.class);
+    private static final String DEFAULT_ADMIN_STOP_TIMEOUT = "1 MINUTES";
     private final ObjectMapper objectMapper;
     private final ConveyorWatchService conveyorWatchService;
     private final Path uploadDir;
     private final String configuredUploadDir;
     private final boolean uploadEnabled;
+    private final long defaultAdminStopTimeoutMillis;
     private final List<String> loaderErrors = new ArrayList<>();
     private final Set<String> uploadedConveyorNames = Collections.synchronizedSet(new LinkedHashSet<>());
     private URLClassLoader uploadsClassLoader;
@@ -54,13 +59,15 @@ public class DashboardService {
     public DashboardService(
             ObjectMapper objectMapper,
             ConveyorServiceProperties properties,
-            ConveyorWatchService conveyorWatchService
+            ConveyorWatchService conveyorWatchService,
+            @Value("${conveyor.service.dashboard.default-admin-stop-timeout:1 MINUTES}") String defaultAdminStopTimeoutInput
     ) {
         this.objectMapper = objectMapper;
         this.conveyorWatchService = conveyorWatchService;
         Path configuredPath = properties.getUploadDir();
         this.configuredUploadDir = configuredPath == null ? "" : configuredPath.toString();
         this.uploadEnabled = properties.isUploadEnable();
+        this.defaultAdminStopTimeoutMillis = parseConfiguredStopTimeoutMillis(sanitizeStopTimeoutInput(defaultAdminStopTimeoutInput));
         this.uploadDir = configuredPath == null
                 ? Path.of(".").toAbsolutePath().normalize()
                 : configuredPath.toAbsolutePath().normalize();
@@ -241,8 +248,12 @@ public class DashboardService {
     }
 
     public void reload(String name) {
+        reload(name, null);
+    }
+
+    public void reload(String name, String stopTimeout) {
         Conveyor<?, ?, ?> conveyor = resolve(name);
-        stopAndUnregister(conveyor);
+        stopAndUnregister(conveyor, stopTimeout);
         Conveyor.loadServices();
         try {
             refreshUploadsClassLoader();
@@ -255,9 +266,13 @@ public class DashboardService {
     }
 
     public void delete(String name) {
+        delete(name, null);
+    }
+
+    public void delete(String name, String stopTimeout) {
         ensureUploadEnabled("Delete");
         Conveyor<?, ?, ?> conveyor = resolve(name);
-        stopAndUnregister(conveyor);
+        stopAndUnregister(conveyor, stopTimeout);
         uploadedConveyorNames.remove(name);
     }
 
@@ -344,10 +359,56 @@ public class DashboardService {
     }
 
     private void stopAndUnregister(Conveyor<?, ?, ?> conveyor) {
+        stopAndUnregister(conveyor, null);
+    }
+
+    private void stopAndUnregister(Conveyor<?, ?, ?> conveyor, String stopTimeoutInput) {
+        long timeoutMillis = resolveStopTimeoutMillis(stopTimeoutInput);
+        LOG.info("Admin stop/delete flow: completeThenForceStop + unRegisterTree for conveyor='{}' timeoutMs={}",
+                conveyor.getName(), timeoutMillis);
+        Conveyor.unRegisterTree(conveyor.getName());
+        conveyor.completeThenForceStop(timeoutMillis, TimeUnit.MILLISECONDS);
+    }
+
+    private long resolveStopTimeoutMillis(String stopTimeoutInput) {
+        if (stopTimeoutInput == null || stopTimeoutInput.isBlank()) {
+            return defaultAdminStopTimeoutMillis;
+        }
+        return parseStopTimeoutMillis(stopTimeoutInput);
+    }
+
+    private long parseConfiguredStopTimeoutMillis(String configuredValue) {
         try {
-            conveyor.completeAndStop().get(5, TimeUnit.SECONDS);
-        } catch (Exception ignored) { }
-        Conveyor.unRegister(conveyor.getName());
+            return parseStopTimeoutMillis(configuredValue);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalStateException(
+                    "Invalid property conveyor.service.dashboard.default-admin-stop-timeout: " + configuredValue,
+                    ex
+            );
+        }
+    }
+
+    private long parseStopTimeoutMillis(String rawValue) {
+        String trimmed = rawValue == null ? "" : rawValue.trim();
+        try {
+            OptionalLong parsed = RequestParsing.parseDurationMillis(trimmed);
+            if (parsed.isEmpty()) {
+                throw new IllegalArgumentException("stopTimeout is required");
+            }
+            return parsed.getAsLong();
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException(
+                    "Invalid stopTimeout '" + rawValue + "'. Use milliseconds or '<number> <TIME_UNIT>' (for example '1 MINUTES').",
+                    ex
+            );
+        }
+    }
+
+    private String sanitizeStopTimeoutInput(String rawValue) {
+        if (rawValue == null || rawValue.isBlank()) {
+            return DEFAULT_ADMIN_STOP_TIMEOUT;
+        }
+        return rawValue.trim();
     }
 
     public boolean isTopLevelConveyor(String name) {

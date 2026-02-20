@@ -621,16 +621,20 @@
                     <h3>Controlled Reload</h3>
                     <form th:action="@{/dashboard/admin/reload}" method="post" class="inline-form tab-preserve-form">
                         <input type="text" name="name" th:value="${selectedName}" placeholder="conveyor name" required/>
+                        <input type="text" name="stopTimeout" placeholder="stop timeout, e.g. 1 MINUTES"
+                               th:value="${adminStopTimeoutInputValue}" value="1 MINUTES"/>
                         <input type="hidden" name="tab" value="tab-admin"/>
-                        <button type="submit">completeAndStop + reload</button>
+                        <button type="submit">completeThenForceStop + reload</button>
                     </form>
 
                     <h3 th:if="${uploadEnabled}">Controlled Delete</h3>
                     <form th:if="${uploadEnabled}" th:action="@{/dashboard/admin/delete}" method="post" class="inline-form tab-preserve-form"
                           onsubmit="return confirm('Delete selected conveyor?');">
                         <input type="text" name="name" th:value="${selectedName}" placeholder="conveyor name" required/>
+                        <input type="text" name="stopTimeout" placeholder="stop timeout, e.g. 1 MINUTES"
+                               th:value="${adminStopTimeoutInputValue}" value="1 MINUTES"/>
                         <input type="hidden" name="tab" value="tab-admin"/>
-                        <button class="danger" type="submit">completeAndStop + delete</button>
+                        <button class="danger" type="submit">completeThenForceStop + delete</button>
                     </form>
                 </div>
                 <p class="meta" th:unless="${isAdmin}">

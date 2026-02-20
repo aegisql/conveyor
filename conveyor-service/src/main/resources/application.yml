@@ -29,6 +29,7 @@ conveyor:
       default-conveyor-history-limit: 100
       default-ttl: "1 MINUTES"
       default-request-ttl: "100"
+      default-admin-stop-timeout: "1 MINUTES"
 
 logging:
   level:

@@ -11,6 +11,7 @@
           </option>
           <option name="goals">
             <list>
+              <option value="-am" />
               <option value="-Dspring-boot.run.profiles=demo" />
               <option value="spring-boot:run" />
             </list>

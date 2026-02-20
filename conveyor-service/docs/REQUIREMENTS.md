@@ -355,8 +355,8 @@ Future handling:
   - `POST /watch/history-limit` => update foreach watch cache limit
 - Admin-only:
   - `POST /admin/upload` (multipart jar)
-  - `POST /admin/reload/{name}`
-  - `DELETE /admin/{name}`
+  - `POST /admin/reload/{name}` (optional `stopTimeout`)
+  - `DELETE /admin/{name}` (optional `stopTimeout`)
   - `POST /admin/{name}/mbean/{method}`
   - `POST /admin/{name}/parameter/{parameter}?value=...`
 - Upload/delete feature-gating:
@@ -455,8 +455,9 @@ Behavior:
     - browser confirmation dialog before submit
 - Admin forms:
   - upload jar
-  - controlled reload (`completeAndStop + reload`)
-  - controlled delete (`completeAndStop + delete`)
+  - controlled reload (`completeThenForceStop + reload`)
+  - controlled delete (`completeThenForceStop + delete`)
+  - reload/delete include stop-timeout input (`stopTimeout`), default `1 MINUTES`
   - update parameter and invoke MBean method (also available through Operations tab)
   - when `upload-enable=false`:
     - upload and delete forms are hidden/disabled
@@ -611,13 +612,14 @@ Upload behavior:
 Delete behavior:
 
 - Guarded by `conveyor.service.upload-enable=true`
-- Uses controlled stop/unregister for selected conveyor
+- Uses controlled stop/unregister-tree for selected conveyor
 
 Visibility and replacement behavior:
 
 - Uploaded conveyor names tracked and merged into tree sources
 - On name conflict, existing conveyor is stopped/unregistered, then replaced
-- Controlled stop uses `completeAndStop()` (5-second wait best effort)
+- Controlled stop uses `completeThenForceStop(stopTimeout)` (default `1 MINUTES`)
+- Unregistration uses `Conveyor.unRegisterTree(...)`
 - Uploaded conveyors must become visible through `Conveyor.byName(...)`
 - Watch bridge hooks must be attached for newly uploaded/reloaded conveyors as well.
 

@@ -1,6 +1,8 @@
 package com.aegisql.conveyor.service.web;
 
 import com.aegisql.conveyor.service.core.DashboardService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,6 +14,7 @@ import java.util.Map;
 @RequestMapping("/api/dashboard")
 public class DashboardController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DashboardController.class);
     private final DashboardService dashboardService;
 
     public DashboardController(DashboardService dashboardService) {
@@ -35,14 +38,22 @@ public class DashboardController {
     }
 
     @PostMapping("/admin/reload/{name}")
-    public ResponseEntity<Void> reload(@PathVariable("name") String name) {
-        dashboardService.reload(name);
+    public ResponseEntity<Void> reload(
+            @PathVariable("name") String name,
+            @RequestParam(name = "stopTimeout", required = false) String stopTimeout
+    ) {
+        LOG.info("API admin reload requested: name='{}', stopTimeout='{}'", name, stopTimeout);
+        dashboardService.reload(name, stopTimeout);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/admin/{name}")
-    public ResponseEntity<Void> delete(@PathVariable("name") String name) {
-        dashboardService.delete(name);
+    public ResponseEntity<Void> delete(
+            @PathVariable("name") String name,
+            @RequestParam(name = "stopTimeout", required = false) String stopTimeout
+    ) {
+        LOG.info("API admin delete requested: name='{}', stopTimeout='{}'", name, stopTimeout);
+        dashboardService.delete(name, stopTimeout);
         return ResponseEntity.ok().build();
     }
 

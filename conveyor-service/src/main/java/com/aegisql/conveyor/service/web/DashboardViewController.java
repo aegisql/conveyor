@@ -53,6 +53,7 @@ public class DashboardViewController {
     private final int conveyorHistoryLimitDefault;
     private final String defaultTtlInputValue;
     private final String defaultRequestTtlInputValue;
+    private final String defaultAdminStopTimeoutInputValue;
 
     public DashboardViewController(
             DashboardService dashboardService,
@@ -64,7 +65,8 @@ public class DashboardViewController {
             @Value("${conveyor.service.dashboard.default-watch-history-limit:100}") int watchHistoryLimitDefault,
             @Value("${conveyor.service.dashboard.default-conveyor-history-limit:100}") int conveyorHistoryLimitDefault,
             @Value("${conveyor.service.dashboard.default-ttl:}") String defaultTtlInputValue,
-            @Value("${conveyor.service.dashboard.default-request-ttl:}") String defaultRequestTtlInputValue
+            @Value("${conveyor.service.dashboard.default-request-ttl:}") String defaultRequestTtlInputValue,
+            @Value("${conveyor.service.dashboard.default-admin-stop-timeout:1 MINUTES}") String defaultAdminStopTimeoutInputValue
     ) {
         this.dashboardService = dashboardService;
         this.placementService = placementService;
@@ -76,6 +78,7 @@ public class DashboardViewController {
         this.conveyorHistoryLimitDefault = Math.max(1, conveyorHistoryLimitDefault);
         this.defaultTtlInputValue = sanitizeOptionalInput(defaultTtlInputValue);
         this.defaultRequestTtlInputValue = sanitizeOptionalInput(defaultRequestTtlInputValue);
+        this.defaultAdminStopTimeoutInputValue = sanitizeOptionalInput(defaultAdminStopTimeoutInputValue);
     }
 
     @GetMapping("/")
@@ -113,6 +116,9 @@ public class DashboardViewController {
         model.addAttribute("conveyorHistoryLimitDefault", conveyorHistoryLimitDefault);
         model.addAttribute("defaultTtlInputValue", defaultTtlInputValue);
         model.addAttribute("defaultRequestTtlInputValue", defaultRequestTtlInputValue);
+        if (!model.containsAttribute("adminStopTimeoutInputValue")) {
+            model.addAttribute("adminStopTimeoutInputValue", defaultAdminStopTimeoutInputValue);
+        }
         if (model.containsAttribute("dashboardOutputEvent")) {
             model.addAttribute("dashboardOutputEventJson",
                     objectMapper.writeValueAsString(model.asMap().get("dashboardOutputEvent")));
@@ -166,16 +172,20 @@ public class DashboardViewController {
 
     @PostMapping("/dashboard/admin/reload")
     public String reload(@RequestParam("name") String name,
+                         @RequestParam(name = "stopTimeout", required = false) String stopTimeout,
                          @RequestParam(name = "tab", required = false) String tab,
                          RedirectAttributes redirectAttributes) {
         try {
-            dashboardService.reload(name);
+            LOG.info("Dashboard admin reload requested: name='{}', stopTimeout='{}'", name, stopTimeout);
+            dashboardService.reload(name, stopTimeout);
             redirectAttributes.addFlashAttribute("message", "Reloaded");
+            redirectAttributes.addFlashAttribute("adminStopTimeoutInputValue", normalizeAdminStopTimeoutInput(stopTimeout));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
             return "redirect:/dashboard";
         } catch (Throwable t) {
             redirectAttributes.addFlashAttribute("error", safeError(t));
+            redirectAttributes.addFlashAttribute("adminStopTimeoutInputValue", normalizeAdminStopTimeoutInput(stopTimeout));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
             return "redirect:/dashboard";
@@ -184,16 +194,20 @@ public class DashboardViewController {
 
     @PostMapping("/dashboard/admin/delete")
     public String delete(@RequestParam("name") String name,
+                         @RequestParam(name = "stopTimeout", required = false) String stopTimeout,
                          @RequestParam(name = "tab", required = false) String tab,
                          RedirectAttributes redirectAttributes) {
         try {
-            dashboardService.delete(name);
+            LOG.info("Dashboard admin delete requested: name='{}', stopTimeout='{}'", name, stopTimeout);
+            dashboardService.delete(name, stopTimeout);
             redirectAttributes.addFlashAttribute("message", "Deleted");
+            redirectAttributes.addFlashAttribute("adminStopTimeoutInputValue", normalizeAdminStopTimeoutInput(stopTimeout));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
             return "redirect:/dashboard";
         } catch (Throwable t) {
             redirectAttributes.addFlashAttribute("error", safeError(t));
+            redirectAttributes.addFlashAttribute("adminStopTimeoutInputValue", normalizeAdminStopTimeoutInput(stopTimeout));
             redirectAttributes.addAttribute("name", name);
             redirectAttributes.addAttribute("tab", normalizeTab(tab));
             return "redirect:/dashboard";
@@ -746,6 +760,13 @@ public class DashboardViewController {
             return "";
         }
         return value.trim();
+    }
+
+    private String normalizeAdminStopTimeoutInput(String stopTimeout) {
+        if (!StringUtils.hasText(stopTimeout)) {
+            return defaultAdminStopTimeoutInputValue;
+        }
+        return stopTimeout.trim();
     }
 
     private byte[] resolveBodyBytes(String inlineBody, MultipartFile bodyFile) {

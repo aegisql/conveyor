@@ -30,300 +30,326 @@ import static com.aegisql.conveyor.InitiationServiceRegister.SERVICES;
 import static com.aegisql.conveyor.MBeanRegister.MBEAN;
 
 /**
- * The Interface Conveyor.
+ * The interface Conveyor.
  *
- * @param <K>   the key type
- * @param <L>   the label type
- * @param <OUT> the target class type
- * @author Mikhail Teplitskiy
- * @version 1.1.0
+ * @param <K>   the type parameter
+ * @param <L>   the type parameter
+ * @param <OUT> the type parameter
  */
 public interface Conveyor<K, L, OUT> {
 
-	/**
-	 * The Constant LOG.
-	 */
-	Logger LOG = LoggerFactory.getLogger(Conveyor.class);
+    /**
+     * The constant LOG.
+     */
+    Logger LOG = LoggerFactory.getLogger(Conveyor.class);
 
-	/**
-	 * Part.
-	 *
-	 * @return the part loader
-	 */
-	PartLoader<K,L> part();
+    /**
+     * Part part loader.
+     *
+     * @return the part loader
+     */
+    PartLoader<K,L> part();
 
-	/**
-	 * StaticPart.
-	 *
-	 * @return the static part loader
-	 */
-	StaticPartLoader<L> staticPart();
+    /**
+     * Static part static part loader.
+     *
+     * @return the static part loader
+     */
+    StaticPartLoader<L> staticPart();
 
-	/**
-	 * Builds the.
-	 *
-	 * @return the builder loader
-	 */
-	BuilderLoader<K, OUT> build();
+    /**
+     * Build builder loader.
+     *
+     * @return the builder loader
+     */
+    BuilderLoader<K, OUT> build();
 
-	/**
-	 * Future.
-	 *
-	 * @return the future loader
-	 */
-	FutureLoader<K, OUT> future();
+    /**
+     * Future future loader.
+     *
+     * @return the future loader
+     */
+    FutureLoader<K, OUT> future();
 
-	/**
-	 * Command.
-	 *
-	 * @return the command loader
-	 */
-	CommandLoader<K, OUT> command();
+    /**
+     * Command command loader.
+     *
+     * @return the command loader
+     */
+    CommandLoader<K, OUT> command();
 
-	/**
-	 * Adds the cart to the input queue.
-	 *
-	 * @param <V>  the value type
-	 * @param cart the cart
-	 * @return true, if successful
-	 */
-	<V> CompletableFuture<Boolean> place(Cart<K, V, L> cart);
+    /**
+     * Place completable future.
+     *
+     * @param <V>  the type parameter
+     * @param cart the cart
+     * @return the completable future
+     */
+    <V> CompletableFuture<Boolean> place(Cart<K, V, L> cart);
 
-	/**
-	 * Adds the command to the management queue.
-	 *
-	 * @param <V>     the value type
-	 * @param command Cart
-	 * @return true, if successful
-	 */
-	<V> CompletableFuture<Boolean> command(GeneralCommand<K, V> command);
+    /**
+     * Command completable future.
+     *
+     * @param <V>     the type parameter
+     * @param command the command
+     * @return the completable future
+     */
+    <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> command);
 
-	/**
-	 * Result consumer.
-	 *
-	 * @return the result consumer loader
-	 */
-	ResultConsumerLoader<K, OUT> resultConsumer();
+    /**
+     * Result consumer result consumer loader.
+     *
+     * @return the result consumer loader
+     */
+    ResultConsumerLoader<K, OUT> resultConsumer();
 
-	/**
-	 * Result consumer.
-	 *
-	 * @param consumer the consumer
-	 * @return the result consumer loader
-	 */
-	ResultConsumerLoader<K, OUT> resultConsumer(ResultConsumer<K, OUT> consumer);
+    /**
+     * Result consumer result consumer loader.
+     *
+     * @param consumer the consumer
+     * @return the result consumer loader
+     */
+    ResultConsumerLoader<K, OUT> resultConsumer(ResultConsumer<K, OUT> consumer);
 
-	/**
-	 * Gets the result consumer.
-	 *
-	 * @return the result consumer
-	 */
-	ResultConsumer<K,OUT> getResultConsumer();
+    /**
+     * Gets result consumer.
+     *
+     * @return the result consumer
+     */
+    ResultConsumer<K,OUT> getResultConsumer();
 
-	/**
-	 * Gets the collector size.
-	 *
-	 * @return the collector size
-	 */
-	int getCollectorSize();
+    /**
+     * Gets collector size.
+     *
+     * @return the collector size
+     */
+    int getCollectorSize();
 
-	/**
-	 * Gets the input queue size.
-	 *
-	 * @return the input queue size
-	 */
-	int getInputQueueSize();
+    /**
+     * Gets input queue size.
+     *
+     * @return the input queue size
+     */
+    int getInputQueueSize();
 
-	/**
-	 * Gets the delayed queue size.
-	 *
-	 * @return the delayed queue size
-	 */
-	int getDelayedQueueSize();
+    /**
+     * Gets delayed queue size.
+     *
+     * @return the delayed queue size
+     */
+    int getDelayedQueueSize();
 
-	/**
-	 * Scrap consumer.
-	 *
-	 * @return the scrap consumer loader
-	 */
-	ScrapConsumerLoader<K> scrapConsumer();
+    /**
+     * Scrap consumer scrap consumer loader.
+     *
+     * @return the scrap consumer loader
+     */
+    ScrapConsumerLoader<K> scrapConsumer();
 
-	/**
-	 * Scrap consumer.
-	 *
-	 * @param scrapConsumer the scrap consumer
-	 * @return the scrap consumer loader
-	 */
-	ScrapConsumerLoader<K> scrapConsumer(ScrapConsumer<K, ?> scrapConsumer);
+    /**
+     * Scrap consumer scrap consumer loader.
+     *
+     * @param scrapConsumer the scrap consumer
+     * @return the scrap consumer loader
+     */
+    ScrapConsumerLoader<K> scrapConsumer(ScrapConsumer<K, ?> scrapConsumer);
 
-	/**
-	 * Stop.
-	 */
-	void stop();
+    /**
+     * Stop.
+     */
+    void stop();
 
-	/**
-	 * complete all tasks and stop.
-	 *
-	 * @return the completable future
-	 */
-	CompletableFuture<Boolean> completeAndStop();
+    /**
+     * Complete and stop completable future.
+     *
+     * @return the completable future
+     */
+    CompletableFuture<Boolean> completeAndStop();
 
-	/**
-	 * Sets the idle heart beat.
-	 *
-	 * @param heartbeat the heartbeat
-	 * @param unit      the unit
-	 */
-	void setIdleHeartBeat(long heartbeat, TimeUnit unit);
-
-	/**
-	 * Sets the idle heart beat.
-	 *
-	 * @param duration the duration
-	 */
-	void setIdleHeartBeat(Duration duration);
-
-	/**
-	 * Sets the default builder timeout.
-	 *
-	 * @param builderTimeout the builder timeout
-	 * @param unit           the unit
-	 */
-	void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit);
-
-	/**
-	 * Sets the default builder timeout.
-	 *
-	 * @param duration the duration
-	 */
-	void setDefaultBuilderTimeout(Duration duration);
-
-	/**
-	 * Reject unexpireable carts older than.
-	 *
-	 * @param timeout the timeout
-	 * @param unit    the unit
-	 */
-	void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit);
-
-	/**
-	 * Reject unexpireable carts older than.
-	 *
-	 * @param duration the duration
-	 */
-	void rejectUnexpireableCartsOlderThan(Duration duration);
+    /**
+     * Complete then force stop.
+     *
+     * @param timeout the timeout
+     * @param unit    the unit
+     */
+    default void completeThenForceStop(long timeout, TimeUnit unit) {
+        try {
+            LOG.info("Preparing to stop {} max {} {}",getName(),timeout,unit);
+            this.completeAndStop().get(timeout,unit);
+        } catch (Exception e) {
+            LOG.error("Force stopping {}",getName());
+            this.stop();
+        }
+    }
 
 
-	/**
-	 * Sets the on timeout action.
-	 *
-	 * @param timeoutAction the new on timeout action
-	 */
-	void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction);
+    /**
+     * Sets idle heart beat.
+     *
+     * @param heartbeat the heartbeat
+     * @param unit      the unit
+     */
+    void setIdleHeartBeat(long heartbeat, TimeUnit unit);
 
-	/**
-	 * Sets the default cart consumer.
-	 *
-	 * @param <B>          the generic type
-	 * @param cartConsumer the cart consumer
-	 */
-	<B extends Supplier<? extends OUT>> void setDefaultCartConsumer(LabeledValueConsumer<L, ?, B> cartConsumer);
+    /**
+     * Sets idle heart beat.
+     *
+     * @param duration the duration
+     */
+    void setIdleHeartBeat(Duration duration);
 
-	/**
-	 * Sets the readiness evaluator.
-	 *
-	 * @param ready the ready
-	 */
-	void setReadinessEvaluator(BiPredicate<State<K, L>, Supplier<? extends OUT>> ready);
+    /**
+     * Sets default builder timeout.
+     *
+     * @param builderTimeout the builder timeout
+     * @param unit           the unit
+     */
+    void setDefaultBuilderTimeout(long builderTimeout, TimeUnit unit);
 
-	/**
-	 * Sets the readiness evaluator.
-	 *
-	 * @param readiness the new readiness evaluator
-	 */
-	void setReadinessEvaluator(Predicate<Supplier<? extends OUT>> readiness);
+    /**
+     * Sets default builder timeout.
+     *
+     * @param duration the duration
+     */
+    void setDefaultBuilderTimeout(Duration duration);
 
-	/**
-	 * Sets the builder supplier.
-	 *
-	 * @param builderSupplier the new builder supplier
-	 */
-	void setBuilderSupplier(BuilderSupplier<OUT> builderSupplier);
+    /**
+     * Reject unexpireable carts older than.
+     *
+     * @param timeout the timeout
+     * @param unit    the unit
+     */
+    void rejectUnexpireableCartsOlderThan(long timeout, TimeUnit unit);
 
-	/**
-	 * Sets the name.
-	 *
-	 * @param string the new name
-	 */
-	void setName(String string);
+    /**
+     * Reject unexpireable carts older than.
+     *
+     * @param duration the duration
+     */
+    void rejectUnexpireableCartsOlderThan(Duration duration);
 
-	/**
-	 * Checks if is running.
-	 *
-	 * @return true, if is running
-	 */
-	boolean isRunning();
 
-	/**
-	 * Adds the cart before placement validator.
-	 *
-	 * @param cartBeforePlacementValidator the cart before placement validator
-	 */
-	void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator);
+    /**
+     * Sets on timeout action.
+     *
+     * @param timeoutAction the timeout action
+     */
+    void setOnTimeoutAction(Consumer<Supplier<? extends OUT>> timeoutAction);
 
-	/**
-	 * Adds the before key eviction action.
-	 *
-	 * @param keyBeforeEviction the key before eviction
-	 */
-	void addBeforeKeyEvictionAction(Consumer<AcknowledgeStatus<K>> keyBeforeEviction);
+    /**
+     * Sets default cart consumer.
+     *
+     * @param <B>          the type parameter
+     * @param cartConsumer the cart consumer
+     */
+    <B extends Supplier<? extends OUT>> void setDefaultCartConsumer(LabeledValueConsumer<L, ?, B> cartConsumer);
 
-	/**
-	 * Adds the before key rescheduling action.
-	 *
-	 * @param keyBeforeRescheduling the key before rescheduling
-	 */
-	void addBeforeKeyReschedulingAction(BiConsumer<K, Long> keyBeforeRescheduling);
+    /**
+     * Sets readiness evaluator.
+     *
+     * @param ready the ready
+     */
+    void setReadinessEvaluator(BiPredicate<State<K, L>, Supplier<? extends OUT>> ready);
 
-	/**
-	 * Gets the expiration time.
-	 *
-	 * @param key the key
-	 * @return the expiration time
-	 */
-	long getExpirationTime(K key);
+    /**
+     * Sets readiness evaluator.
+     *
+     * @param readiness the readiness
+     */
+    void setReadinessEvaluator(Predicate<Supplier<? extends OUT>> readiness);
 
-	/**
-	 * Checks if is l balanced.
-	 *
-	 * @return true, if is l balanced
-	 */
-	boolean isLBalanced();
+    /**
+     * Sets builder supplier.
+     *
+     * @param builderSupplier the builder supplier
+     */
+    void setBuilderSupplier(BuilderSupplier<OUT> builderSupplier);
 
-	/**
-	 * Gets the accepted labels.
-	 *
-	 * @return the accepted labels
-	 */
-	Set<L> getAcceptedLabels();
+    /**
+     * Sets name.
+     *
+     * @param string the string
+     */
+    void setName(String string);
 
-	/**
-	 * Accept labels.
-	 *
-	 * @param labels the labels
-	 */
-	void acceptLabels(L... labels);
+    /**
+     * Is running boolean.
+     *
+     * @return the boolean
+     */
+    boolean isRunning();
 
-	/**
-	 * Gets the name.
-	 *
-	 * @return the name
-	 */
-	String getName();
+    /**
+     * Add cart before placement validator.
+     *
+     * @param cartBeforePlacementValidator the cart before placement validator
+     */
+    void addCartBeforePlacementValidator(Consumer<Cart<K, ?, L>> cartBeforePlacementValidator);
 
-	void setInactiveEvictionAction(int maxCollectorSize, Consumer<CommandLoader.EvictionCommand<K>> action);
+    /**
+     * Add before key eviction action.
+     *
+     * @param keyBeforeEviction the key before eviction
+     */
+    void addBeforeKeyEvictionAction(Consumer<AcknowledgeStatus<K>> keyBeforeEviction);
 
-	default String getGenericName() {
+    /**
+     * Add before key rescheduling action.
+     *
+     * @param keyBeforeRescheduling the key before rescheduling
+     */
+    void addBeforeKeyReschedulingAction(BiConsumer<K, Long> keyBeforeRescheduling);
+
+    /**
+     * Gets expiration time.
+     *
+     * @param key the key
+     * @return the expiration time
+     */
+    long getExpirationTime(K key);
+
+    /**
+     * Is l balanced boolean.
+     *
+     * @return the boolean
+     */
+    boolean isLBalanced();
+
+    /**
+     * Gets accepted labels.
+     *
+     * @return the accepted labels
+     */
+    Set<L> getAcceptedLabels();
+
+    /**
+     * Accept labels.
+     *
+     * @param labels the labels
+     */
+    void acceptLabels(L... labels);
+
+    /**
+     * Gets name.
+     *
+     * @return the name
+     */
+    String getName();
+
+    /**
+     * Sets inactive eviction action.
+     *
+     * @param maxCollectorSize the max collector size
+     * @param action           the action
+     */
+    void setInactiveEvictionAction(int maxCollectorSize, Consumer<CommandLoader.EvictionCommand<K>> action);
+
+    /**
+     * Gets generic name.
+     *
+     * @return the generic name
+     */
+    default String getGenericName() {
 		try {
 			var metaInfo = getMetaInfo();
             return getClassName(this.getClass())+metaInfo.generic();
@@ -332,7 +358,13 @@ public interface Conveyor<K, L, OUT> {
 		}
 	}
 
-	static String getClassName(Class c) {
+    /**
+     * Gets class name.
+     *
+     * @param c the c
+     * @return the class name
+     */
+    static String getClassName(Class c) {
 		String simpleName = c.getSimpleName();
 		if(simpleName.isEmpty()) {
 			return getClassName(c.getSuperclass());
@@ -341,232 +373,269 @@ public interface Conveyor<K, L, OUT> {
 		}
 	}
 
-	/**
-	 * Enable postpone expiration.
-	 *
-	 * @param flag the flag
-	 */
-	void enablePostponeExpiration(boolean flag);
+    /**
+     * Enable postpone expiration.
+     *
+     * @param flag the flag
+     */
+    void enablePostponeExpiration(boolean flag);
 
-	/**
-	 * Enable postpone expiration on timeout.
-	 *
-	 * @param flag the flag
-	 */
-	void enablePostponeExpirationOnTimeout(boolean flag);
+    /**
+     * Enable postpone expiration on timeout.
+     *
+     * @param flag the flag
+     */
+    void enablePostponeExpirationOnTimeout(boolean flag);
 
-	/**
-	 * Sets the expiration postpone time.
-	 *
-	 * @param time the time
-	 * @param unit the unit
-	 */
-	void setExpirationPostponeTime(long time, TimeUnit unit);
+    /**
+     * Sets expiration postpone time.
+     *
+     * @param time the time
+     * @param unit the unit
+     */
+    void setExpirationPostponeTime(long time, TimeUnit unit);
 
-	/**
-	 * Sets the expiration postpone time.
-	 *
-	 * @param duration the duration
-	 */
-	void setExpirationPostponeTime(Duration duration);
+    /**
+     * Sets expiration postpone time.
+     *
+     * @param duration the duration
+     */
+    void setExpirationPostponeTime(Duration duration);
 
-	/**
-	 * Checks if is forwarding results.
-	 *
-	 * @return true, if is forwarding results
-	 */
-	boolean isForwardingResults();
+    /**
+     * Is forwarding results boolean.
+     *
+     * @return the boolean
+     */
+    boolean isForwardingResults();
 
 
-	/**
-	 * Gets the tester for.
-	 *
-	 * @param <K>      the key type
-	 * @param <L>      the generic type
-	 * @param <OUT>    the generic type
-	 * @param conveyor the conveyor
-	 * @return the tester for
-	 */
-	static <K, L,OUT> ReadinessTester<K, L,OUT> getTesterFor(Conveyor<K, L, OUT> conveyor) {
+    /**
+     * Gets tester for.
+     *
+     * @param <K>      the type parameter
+     * @param <L>      the type parameter
+     * @param <OUT>    the type parameter
+     * @param conveyor the conveyor
+     * @return the tester for
+     */
+    static <K, L,OUT> ReadinessTester<K, L,OUT> getTesterFor(Conveyor<K, L, OUT> conveyor) {
 		return new ReadinessTester<>(conveyor::setReadinessEvaluator);
 	}
 
-	/**
-	 * Gets the consumer for.
-	 *
-	 * @param <L>      the generic type
-	 * @param <OUT>    the generic type
-	 * @param conveyor the conveyor
-	 * @return the consumer for
-	 */
-	static <L,OUT> LabeledValueConsumer<L, ?, Supplier<? extends OUT>> getConsumerFor(Conveyor<?, L, OUT> conveyor) {
+    /**
+     * Gets consumer for.
+     *
+     * @param <L>      the type parameter
+     * @param <OUT>    the type parameter
+     * @param conveyor the conveyor
+     * @return the consumer for
+     */
+    static <L,OUT> LabeledValueConsumer<L, ?, Supplier<? extends OUT>> getConsumerFor(Conveyor<?, L, OUT> conveyor) {
 		return (l,v,b)->{
 			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
 		};
 	}
 
-	/**
-	 * Gets the consumer for.
-	 *
-	 * @param <L>      the generic type
-	 * @param <OUT>    the generic type
-	 * @param <B>      the generic type
-	 * @param conveyor the conveyor
-	 * @param builder  the builder
-	 * @return the consumer for
-	 */
-	static <L,OUT,B extends Supplier<? extends OUT>> LabeledValueConsumer<L, ?, B> getConsumerFor(Conveyor<?, L, OUT> conveyor, Class<B> builder) {
+    /**
+     * Gets consumer for.
+     *
+     * @param <L>      the type parameter
+     * @param <OUT>    the type parameter
+     * @param <B>      the type parameter
+     * @param conveyor the conveyor
+     * @param builder  the builder
+     * @return the consumer for
+     */
+    static <L,OUT,B extends Supplier<? extends OUT>> LabeledValueConsumer<L, ?, B> getConsumerFor(Conveyor<?, L, OUT> conveyor, Class<B> builder) {
 		return (l,v,b)->{
 			throw new IllegalStateException("undefined behavior for label '"+l+"'"+" value='"+v+"'");
 		};
 	}
 
-	/**
-	 * Gets the cart counter.
-	 *
-	 * @return the cart counter
-	 */
-	long getCartCounter();
+    /**
+     * Gets cart counter.
+     *
+     * @return the cart counter
+     */
+    long getCartCounter();
 
-	/**
-	 * Sets the auto acknowledge. Default value is true
-	 *
-	 * @param auto the new auto acknowledge
-	 */
-	void setAutoAcknowledge(boolean auto);
+    /**
+     * Sets auto acknowledge.
+     *
+     * @param auto the auto
+     */
+    void setAutoAcknowledge(boolean auto);
 
-	/**
-	 * Sets the acknowledge action.
-	 *
-	 * @param ackAction the new acknowledge action
-	 */
-	void setAcknowledgeAction(Consumer<AcknowledgeStatus<K>> ackAction);
+    /**
+     * Sets acknowledge action.
+     *
+     * @param ackAction the ack action
+     */
+    void setAcknowledgeAction(Consumer<AcknowledgeStatus<K>> ackAction);
 
-	/**
-	 * Auto acknowledge on status.
-	 *
-	 * @param first the first
-	 * @param other the other
-	 */
-	void autoAcknowledgeOnStatus(Status first, Status... other);
+    /**
+     * Auto acknowledge on status.
+     *
+     * @param first the first
+     * @param other the other
+     */
+    void autoAcknowledgeOnStatus(Status first, Status... other);
 
-	/**
-	 * Interrupt.
-	 *
-	 * @param conveyorName the conveyor name
-	 */
-	void interrupt(String conveyorName);
+    /**
+     * Interrupt.
+     *
+     * @param conveyorName the conveyor name
+     */
+    void interrupt(String conveyorName);
 
-	/**
-	 * Interrupt.
-	 *
-	 * @param conveyorName the conveyor name
-	 * @param key          the key
-	 */
-	void interrupt(String conveyorName, K key);
+    /**
+     * Interrupt.
+     *
+     * @param conveyorName the conveyor name
+     * @param key          the key
+     */
+    void interrupt(String conveyorName, K key);
 
-	/**
-	 * Kill the build.
-	 * Send cancel command then interrupt for the same id
-	 *
-	 * @param id the id
-	 * @return the completable future
-	 */
-	default CompletableFuture<Boolean> kill(K id) {
+    /**
+     * Kill completable future.
+     *
+     * @param id the id
+     * @return the completable future
+     */
+    default CompletableFuture<Boolean> kill(K id) {
 		LOG.debug("Build for id={} is about to be killed.",id);
 		CompletableFuture<Boolean> cancel = this.command().id(id).cancel();
 		this.interrupt(this.getName(),id);
 		return cancel;
 	}
 
-	/**
-	 * Sets the cart payload accessor.
-	 *
-	 * @param payloadFunction the payload function
-	 */
-	void setCartPayloadAccessor(Function<Cart<K,?,L>,Object> payloadFunction);
+    /**
+     * Sets cart payload accessor.
+     *
+     * @param payloadFunction the payload function
+     */
+    void setCartPayloadAccessor(Function<Cart<K,?,L>,Object> payloadFunction);
 
-	/**
-	 * Suspend processing thread.
-	 */
-	void suspend();
+    /**
+     * Suspend.
+     */
+    void suspend();
 
-	/**
-	 * Resume processing thread.
-	 */
-	void resume();
+    /**
+     * Resume.
+     */
+    void resume();
 
-	/**
-	 * Checks if is suspended.
-	 *
-	 * @return true, if is suspended
-	 */
-	boolean isSuspended();
+    /**
+     * Is suspended boolean.
+     *
+     * @return the boolean
+     */
+    boolean isSuspended();
 
-	/**
-	 * M bean interface class.
-	 *
-	 * @return the class
-	 */
-	Class<?> mBeanInterface();
+    /**
+     * M bean interface class.
+     *
+     * @return the class
+     */
+    Class<?> mBeanInterface();
 
-	/**
-	 * Gets meta info.
-	 *
-	 * @return the meta info
-	 */
-	ConveyorMetaInfo<K,L,OUT> getMetaInfo();
+    /**
+     * Gets meta info.
+     *
+     * @return the meta info
+     */
+    ConveyorMetaInfo<K,L,OUT> getMetaInfo();
 
+    /**
+     * Gets enclosing conveyor.
+     *
+     * @return the enclosing conveyor
+     */
     Conveyor<?,?,?> getEnclosingConveyor();
 
+    /**
+     * Sets enclosing conveyor.
+     *
+     * @param conveyor the conveyor
+     */
     void setEnclosingConveyor(Conveyor<?,?,?> conveyor);
 
-	/**
-	 * By name.
-	 *
-	 * @param name the name
-	 * @return the conveyor
-	 */
-	static Conveyor byName(String name) {
+    /**
+     * By name conveyor.
+     *
+     * @param name the name
+     * @return the conveyor
+     */
+    static Conveyor byName(String name) {
 		return MBEAN.byName(name);
 	}
 
-	default Object getMBeanInstance(String name) {
+    /**
+     * Gets m bean instance.
+     *
+     * @param name the name
+     * @return the m bean instance
+     */
+    default Object getMBeanInstance(String name) {
 		return MBEAN.getMBeanInstance(name, mBeanInterface());
 	}
 
-	/**
-	 * Lazy supplier.
-	 *
-	 * @param name the name
-	 * @return the supplier
-	 */
-	static Supplier<Conveyor> lazySupplier(String name) {
+    /**
+     * Lazy supplier supplier.
+     *
+     * @param name the name
+     * @return the supplier
+     */
+    static Supplier<Conveyor> lazySupplier(String name) {
 		return new LazyConveyorSupplier(name);
 	}
 
 
-	/**
-	 * Un register.
-	 *
-	 * @param name the name
-	 */
-	static void unRegister(String name) {
+    /**
+     * Un register.
+     *
+     * @param name the name
+     */
+    static void unRegister(String name) {
 		MBEAN.unRegister(name);
 	}
 
-	/**
-	 * Un register conveyor instance.
-	 */
-	default void unRegister() {
+    /**
+     * Un register tree.
+     *
+     * @param name the name
+     */
+    static void unRegisterTree(String name) {
+        Map<String, ?> children = getKnownConveyorNameTree().get(name);
+        LOG.info("Unregister "+name);
+        MBEAN.unRegister(name);
+        if(children != null && ! children.isEmpty()) {
+            children.keySet().forEach(Conveyor::unRegisterTree);
+        }
+    }
+
+    /**
+     * Un register.
+     */
+    default void unRegister() {
 		unRegister(this.getName());
 	}
 
-	static void loadServices() {
+    /**
+     * Load services.
+     */
+    static void loadServices() {
 		SERVICES.reload();
 		SERVICES.getLoadedConveyorNames();
 	}
 
+    /**
+     * Gets known conveyor names.
+     *
+     * @return the known conveyor names
+     */
     static Set<String> getKnownConveyorNames() {
 		loadServices();
 		var set = new HashSet<>(MBEAN.getKnownConveyorNames());
@@ -574,11 +643,21 @@ public interface Conveyor<K, L, OUT> {
 		return Collections.unmodifiableSet(set);
 	}
 
-	static Set<String> getRegisteredConveyorNames() {
+    /**
+     * Gets registered conveyor names.
+     *
+     * @return the registered conveyor names
+     */
+    static Set<String> getRegisteredConveyorNames() {
 		return Collections.unmodifiableSet(new HashSet<>(MBEAN.getRegisteredConveyorNames()));
 	}
 
-	static Map<String, Map<String, ?>> getKnownConveyorNameTree() {
+    /**
+     * Gets known conveyor name tree.
+     *
+     * @return the known conveyor name tree
+     */
+    static Map<String, Map<String, ?>> getKnownConveyorNameTree() {
 		var knownNames = getKnownConveyorNames();
 		var parentByChild = new HashMap<String, String>();
 		for (String name : knownNames) {
@@ -635,30 +714,40 @@ public interface Conveyor<K, L, OUT> {
 		return Collections.unmodifiableMap(childrenTree);
 	}
 
-	static Set<String> getLoadedConveyorNames() {
+    /**
+     * Gets loaded conveyor names.
+     *
+     * @return the loaded conveyor names
+     */
+    static Set<String> getLoadedConveyorNames() {
 		return Collections.unmodifiableSet(SERVICES.getLoadedConveyorNames());
 	}
 
-	static List<ConveyorInitiatingService> getLoadedConveyorServices() {
+    /**
+     * Gets loaded conveyor services.
+     *
+     * @return the loaded conveyor services
+     */
+    static List<ConveyorInitiatingService> getLoadedConveyorServices() {
 		return Collections.unmodifiableList(SERVICES.getLoadedConveyorServices());
 	}
 
-	/**
-	 * Register.
-	 *
-	 * @param conveyor    the conveyor
-	 * @param mbeanObject the mbean object
-	 */
-	static void register(Conveyor conveyor, Object mbeanObject) {
+    /**
+     * Register.
+     *
+     * @param conveyor    the conveyor
+     * @param mbeanObject the mbean object
+     */
+    static void register(Conveyor conveyor, Object mbeanObject) {
 		MBEAN.register(conveyor,mbeanObject);
 	}
 
-	/**
-	 * Register.
-	 *
-	 * @param mbeanObject the mbean object
-	 */
-	default void register(Object mbeanObject) {
+    /**
+     * Register.
+     *
+     * @param mbeanObject the mbean object
+     */
+    default void register(Object mbeanObject) {
 		register(this,mbeanObject);
 	}
 
