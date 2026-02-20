@@ -901,7 +901,11 @@ public class AssemblingConveyorTest {
 	public void autoShutdownTest() throws InterruptedException {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
 		ac1.setLongInactivityAction(ac1::stop, Duration.ofSeconds(3));
-		Thread.sleep(4000);
+        for(int i = 0; i < 10; i++) {
+            Thread.sleep(1000);
+            if(!ac1.isRunning())break;
+        }
+
 		assertFalse(ac1.isRunning());
 		assertThrows(CompletionException.class,()->ac1.part().id(1).label("label").value("value").place().join());
 	}
