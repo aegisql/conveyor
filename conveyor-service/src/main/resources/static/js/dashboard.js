@@ -836,8 +836,8 @@
     const fontDecreaseButton = document.getElementById('output-font-decrease');
     const fontIncreaseButton = document.getElementById('output-font-increase');
     const fontSizeLabel = document.getElementById('output-font-size-label');
-    const watchLimitInput = document.getElementById('output-watch-limit');
-    const conveyorLimitInput = document.getElementById('output-conveyor-limit');
+    const cacheLimitInput = document.getElementById('output-cache-limit');
+    const cacheLimitLabel = document.getElementById('output-cache-label');
     const jsonPathInput = document.getElementById('output-jsonpath');
     const watchLimitHiddenInputs = Array.from(document.querySelectorAll('input.watch-limit-hidden'));
     const configuredDefaultWatchHistory = dock && dock.dataset ? Number(dock.dataset.defaultWatchHistoryLimit) : NaN;
@@ -858,13 +858,13 @@
       Number.isFinite(configuredDefaultConveyorHistory) ? configuredDefaultConveyorHistory : WATCH_HISTORY_DEFAULT_LIMIT
     );
 
-    if (!dock || !openButton || !closeButton || !resizeHandle || !tabList || !emptyPanel || !content || !timelineList || !seeAllCheckbox || !prevButton || !nextButton || !clearButton || !statusLine || !jsonCode || !fontDecreaseButton || !fontIncreaseButton || !fontSizeLabel || !watchLimitInput || !conveyorLimitInput || !jsonPathInput) {
+    if (!dock || !openButton || !closeButton || !resizeHandle || !tabList || !emptyPanel || !content || !timelineList || !seeAllCheckbox || !prevButton || !nextButton || !clearButton || !statusLine || !jsonCode || !fontDecreaseButton || !fontIncreaseButton || !fontSizeLabel || !cacheLimitInput || !cacheLimitLabel || !jsonPathInput) {
       return {
         pushConveyorEvent: function () {},
         pushWatchEvent: function () {},
         focusWatchTab: function () {},
         open: function () {},
-        getWatchHistoryLimit: function () { return defaultWatchHistoryLimit; }
+        getDefaultWatchHistoryLimit: function () { return defaultWatchHistoryLimit; }
       };
     }
 
@@ -874,11 +874,10 @@
       open: true,
       height: OUTPUT_DEFAULT_HEIGHT,
       fontSize: OUTPUT_DEFAULT_FONT_SIZE,
-      watchHistoryLimit: defaultWatchHistoryLimit,
-      conveyorHistoryLimit: defaultConveyorHistoryLimit,
-      jsonPath: '$.payload'
+      defaultWatchHistoryLimit: defaultWatchHistoryLimit,
+      defaultConveyorHistoryLimit: defaultConveyorHistoryLimit,
+      defaultJsonPath: '$.payload'
     };
-    let watchHistoryLimitListener = null;
 
     function maxDockHeight() {
       return Math.max(OUTPUT_MIN_HEIGHT, Math.floor(window.innerHeight * 0.75));
@@ -1065,15 +1064,32 @@
       return values.length === 1 ? values[0] : values;
     }
 
+    function resolveDefaultHistoryLimit(tabType) {
+      return tabType === 'watch'
+        ? state.defaultWatchHistoryLimit
+        : state.defaultConveyorHistoryLimit;
+    }
+
+    function tabCacheLabel(tabType) {
+      return tabType === 'watch' ? 'Watch Cache' : 'Conveyor Cache';
+    }
+
     function resolveTabHistoryLimit(tab) {
       if (!tab) {
-        return state.watchHistoryLimit;
+        return state.defaultConveyorHistoryLimit;
       }
       const numeric = Number(tab.historyLimit);
       if (Number.isFinite(numeric) && numeric > 0) {
         return clampWatchHistoryLimit(numeric);
       }
-      return state.watchHistoryLimit;
+      return resolveDefaultHistoryLimit(tab.type);
+    }
+
+    function resolveTabJsonPath(tab) {
+      if (!tab || typeof tab.jsonPath !== 'string' || !tab.jsonPath.trim()) {
+        return state.defaultJsonPath;
+      }
+      return normalizeJsonPath(tab.jsonPath);
     }
 
     function savePrefs() {
@@ -1081,9 +1097,7 @@
         open: state.open,
         height: state.height,
         fontSize: state.fontSize,
-        watchHistoryLimit: state.watchHistoryLimit,
-        conveyorHistoryLimit: state.conveyorHistoryLimit,
-        jsonPath: state.jsonPath
+        jsonPath: state.defaultJsonPath
       };
       window.localStorage.setItem(OUTPUT_DOCK_PREFS_KEY, JSON.stringify(prefs));
     }
@@ -1092,17 +1106,19 @@
       const payload = {
         selectedTabId: state.selectedTabId,
         tabs: Array.from(state.tabs.values())
-          .filter(function (tab) { return tab.type === 'conveyor'; })
+          .filter(function (tab) { return tab.type === 'conveyor' || tab.type === 'admin'; })
           .map(function (tab) {
             return {
               tabId: tab.tabId,
               title: tab.title,
-              type: 'conveyor',
+              type: tab.type,
               sourceKey: tab.sourceKey,
               events: tab.events,
+              historyLimit: resolveTabHistoryLimit(tab),
               selectedEventIndex: tab.selectedEventIndex,
               seeAll: tab.seeAll === true,
-              followTail: tab.followTail !== false
+              followTail: tab.followTail !== false,
+              jsonPath: resolveTabJsonPath(tab)
             };
           })
       };
@@ -1118,15 +1134,16 @@
         const parsed = JSON.parse(raw);
         const tabs = Array.isArray(parsed.tabs) ? parsed.tabs : [];
         tabs.forEach(function (savedTab) {
-          if (!savedTab || !savedTab.tabId || savedTab.type !== 'conveyor') {
+          if (!savedTab || !savedTab.tabId || (savedTab.type !== 'conveyor' && savedTab.type !== 'admin')) {
             return;
           }
+          const restoredType = savedTab.type === 'admin' ? 'admin' : 'conveyor';
           const tab = ensureTab(
             savedTab.tabId,
             savedTab.title || savedTab.sourceKey || savedTab.tabId,
-            'conveyor',
+            restoredType,
             savedTab.sourceKey || savedTab.tabId,
-            state.conveyorHistoryLimit
+            savedTab.historyLimit
           );
           tab.events = [];
           tab.eventKeys.clear();
@@ -1139,6 +1156,7 @@
           });
           tab.seeAll = savedTab.seeAll === true;
           tab.followTail = savedTab.followTail !== false;
+          tab.jsonPath = normalizeJsonPath(savedTab.jsonPath || state.defaultJsonPath);
           if (Number.isInteger(savedTab.selectedEventIndex)) {
             tab.selectedEventIndex = savedTab.selectedEventIndex;
           } else if (tab.events.length > 0) {
@@ -1174,21 +1192,17 @@
         }
         state.height = clampHeight(prefs.height);
         state.fontSize = clampFontSize(prefs.fontSize);
-        state.watchHistoryLimit = clampWatchHistoryLimit(prefs.watchHistoryLimit);
-        state.conveyorHistoryLimit = clampWatchHistoryLimit(prefs.conveyorHistoryLimit);
-        state.jsonPath = normalizeJsonPath(prefs.jsonPath || '$.payload');
+        state.defaultJsonPath = normalizeJsonPath(prefs.jsonPath || '$.payload');
       } catch (e) {
         state.open = true;
         state.height = OUTPUT_DEFAULT_HEIGHT;
         state.fontSize = OUTPUT_DEFAULT_FONT_SIZE;
-        state.watchHistoryLimit = defaultWatchHistoryLimit;
-        state.conveyorHistoryLimit = defaultConveyorHistoryLimit;
-        state.jsonPath = '$.payload';
+        state.defaultJsonPath = '$.payload';
       }
     }
 
     function syncWatchLimitHiddenInputs() {
-      const currentLimit = String(state.watchHistoryLimit);
+      const currentLimit = String(state.defaultWatchHistoryLimit);
       watchLimitHiddenInputs.forEach(function (input) {
         input.value = currentLimit;
       });
@@ -1196,9 +1210,12 @@
 
     function updateControlUi() {
       fontSizeLabel.textContent = state.fontSize + 'px';
-      watchLimitInput.value = String(state.watchHistoryLimit);
-      conveyorLimitInput.value = String(state.conveyorHistoryLimit);
-      jsonPathInput.value = state.jsonPath;
+      const tab = selectedTab();
+      cacheLimitLabel.textContent = tab ? tabCacheLabel(tab.type) : 'Cache';
+      cacheLimitInput.value = tab ? String(resolveTabHistoryLimit(tab)) : '';
+      cacheLimitInput.disabled = !tab;
+      jsonPathInput.value = tab ? resolveTabJsonPath(tab) : state.defaultJsonPath;
+      jsonPathInput.disabled = !tab;
       syncWatchLimitHiddenInputs();
     }
 
@@ -1223,19 +1240,19 @@
           sourceKey: sourceKey,
           events: [],
           eventKeys: new Set(),
-          historyLimit: clampWatchHistoryLimit(historyLimit),
+          historyLimit: Number.isFinite(Number(historyLimit)) && Number(historyLimit) > 0
+            ? clampWatchHistoryLimit(historyLimit)
+            : resolveDefaultHistoryLimit(type),
           selectedEventIndex: -1,
           seeAll: false,
-          followTail: true
+          followTail: true,
+          jsonPath: state.defaultJsonPath
         };
         state.tabs.set(tabId, tab);
       } else {
         tab.title = title || tab.title;
         tab.type = type || tab.type;
         tab.sourceKey = sourceKey || tab.sourceKey;
-        if (Number.isFinite(Number(historyLimit)) && Number(historyLimit) > 0) {
-          tab.historyLimit = clampWatchHistoryLimit(historyLimit);
-        }
         if (!Number.isInteger(tab.selectedEventIndex)) {
           tab.selectedEventIndex = -1;
         }
@@ -1245,6 +1262,7 @@
         if (typeof tab.followTail !== 'boolean') {
           tab.followTail = true;
         }
+        tab.jsonPath = resolveTabJsonPath(tab);
       }
       return tab;
     }
@@ -1527,12 +1545,13 @@
         } : [];
       }
       let payloadToDisplay = payloadForView;
+      const tabJsonPath = resolveTabJsonPath(tab);
       try {
-        payloadToDisplay = evaluateJsonPath(payloadForView, state.jsonPath);
+        payloadToDisplay = evaluateJsonPath(payloadForView, tabJsonPath);
       } catch (error) {
         payloadToDisplay = {
           jsonPathError: error && error.message ? error.message : String(error),
-          path: state.jsonPath,
+          path: tabJsonPath,
           source: payloadForView
         };
       }
@@ -1553,14 +1572,21 @@
         return;
       }
       const tabId = 'conveyor:' + event.sourceKey;
-      const tab = ensureTab(tabId, event.title || event.sourceKey, 'conveyor', event.sourceKey, state.conveyorHistoryLimit);
+      const tabType = event.sourceType === 'admin' ? 'admin' : 'conveyor';
+      const tab = ensureTab(
+        tabId,
+        event.title || event.sourceKey,
+        tabType,
+        event.sourceKey,
+        resolveDefaultHistoryLimit(tabType)
+      );
       const status = event.status || {};
       addEvent(tab, {
         timestamp: new Date().toISOString(),
         statusLine: buildStatusLine(status),
         status: status,
         meta: {
-          sourceType: 'conveyor',
+          sourceType: tabType,
           sourceKey: event.sourceKey
         },
         payload: event.payload
@@ -1627,7 +1653,7 @@
         return;
       }
       const tabId = 'watch:' + watchId;
-      ensureTab(tabId, displayName || watchId, 'watch', watchId, 1);
+      ensureTab(tabId, displayName || watchId, 'watch', watchId, resolveDefaultHistoryLimit('watch'));
       state.selectedTabId = tabId;
       state.open = true;
       render();
@@ -1643,33 +1669,24 @@
       applyDockState();
     }
 
-    function setWatchHistoryLimit(value) {
-      state.watchHistoryLimit = clampWatchHistoryLimit(value);
-      state.tabs.forEach(function (tab) {
-        if (tab.type === 'watch') {
-          tab.historyLimit = tab.sourceKey && tab.sourceKey.endsWith('|*') ? state.watchHistoryLimit : 1;
-        }
-      });
-      trimAllTabs();
-      render();
-      if (typeof watchHistoryLimitListener === 'function') {
-        watchHistoryLimitListener(state.watchHistoryLimit);
+    function setSelectedTabHistoryLimit(value) {
+      const tab = selectedTab();
+      if (!tab) {
+        return;
       }
-    }
-
-    function setConveyorHistoryLimit(value) {
-      state.conveyorHistoryLimit = clampWatchHistoryLimit(value);
-      state.tabs.forEach(function (tab) {
-        if (tab.type === 'conveyor') {
-          tab.historyLimit = state.conveyorHistoryLimit;
-        }
-      });
+      tab.historyLimit = clampWatchHistoryLimit(value);
       trimAllTabs();
       render();
     }
 
     function setJsonPath(value) {
-      state.jsonPath = normalizeJsonPath(value);
+      const normalized = normalizeJsonPath(value);
+      const tab = selectedTab();
+      if (!tab) {
+        state.defaultJsonPath = normalized;
+      } else {
+        tab.jsonPath = normalized;
+      }
       render();
     }
 
@@ -1739,42 +1756,23 @@
       clearSelectedTabEvents();
     });
 
-    watchLimitInput.addEventListener('change', function () {
-      setWatchHistoryLimit(watchLimitInput.value);
+    cacheLimitInput.addEventListener('change', function () {
+      setSelectedTabHistoryLimit(cacheLimitInput.value);
     });
 
-    watchLimitInput.addEventListener('input', function () {
-      setWatchHistoryLimit(watchLimitInput.value);
+    cacheLimitInput.addEventListener('input', function () {
+      setSelectedTabHistoryLimit(cacheLimitInput.value);
     });
 
-    watchLimitInput.addEventListener('keydown', function (event) {
+    cacheLimitInput.addEventListener('keydown', function (event) {
       if (event.key === 'Enter') {
         event.preventDefault();
-        setWatchHistoryLimit(watchLimitInput.value);
+        setSelectedTabHistoryLimit(cacheLimitInput.value);
       }
     });
 
-    watchLimitInput.addEventListener('blur', function () {
-      setWatchHistoryLimit(watchLimitInput.value);
-    });
-
-    conveyorLimitInput.addEventListener('change', function () {
-      setConveyorHistoryLimit(conveyorLimitInput.value);
-    });
-
-    conveyorLimitInput.addEventListener('input', function () {
-      setConveyorHistoryLimit(conveyorLimitInput.value);
-    });
-
-    conveyorLimitInput.addEventListener('keydown', function (event) {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        setConveyorHistoryLimit(conveyorLimitInput.value);
-      }
-    });
-
-    conveyorLimitInput.addEventListener('blur', function () {
-      setConveyorHistoryLimit(conveyorLimitInput.value);
+    cacheLimitInput.addEventListener('blur', function () {
+      setSelectedTabHistoryLimit(cacheLimitInput.value);
     });
 
     jsonPathInput.addEventListener('change', function () {
@@ -1824,8 +1822,8 @@
     loadPrefs();
     state.height = clampHeight(state.height);
     state.fontSize = clampFontSize(state.fontSize);
-    state.watchHistoryLimit = clampWatchHistoryLimit(state.watchHistoryLimit);
-    state.conveyorHistoryLimit = clampWatchHistoryLimit(state.conveyorHistoryLimit);
+    state.defaultWatchHistoryLimit = clampWatchHistoryLimit(state.defaultWatchHistoryLimit);
+    state.defaultConveyorHistoryLimit = clampWatchHistoryLimit(state.defaultConveyorHistoryLimit);
     loadConveyorHistory();
     trimAllTabs();
     render();
@@ -1835,10 +1833,7 @@
       pushWatchEvent: pushWatchEvent,
       focusWatchTab: focusWatchTab,
       open: openDock,
-      getWatchHistoryLimit: function () { return state.watchHistoryLimit; },
-      onWatchHistoryLimitChange: function (listener) {
-        watchHistoryLimitListener = typeof listener === 'function' ? listener : null;
-      }
+      getDefaultWatchHistoryLimit: function () { return state.defaultWatchHistoryLimit; }
     };
   }
 
@@ -1880,7 +1875,7 @@
     function clampWatchHistoryLimit(limit) {
       const numeric = Number(limit);
       if (!Number.isFinite(numeric)) {
-        return outputDock.getWatchHistoryLimit();
+        return outputDock.getDefaultWatchHistoryLimit();
       }
       return Math.max(Math.round(numeric), WATCH_HISTORY_MIN_LIMIT);
     }
@@ -1923,7 +1918,7 @@
     }
 
     function normalizeWatch(raw) {
-      const currentDefaultLimit = outputDock.getWatchHistoryLimit();
+      const currentDefaultLimit = outputDock.getDefaultWatchHistoryLimit();
       const watch = {
         watchId: raw.watchId,
         displayName: raw.displayName || raw.watchId,
@@ -2106,7 +2101,7 @@
           correlationId: payload.correlationId || null,
           foreach: !!payload.properties.foreach,
           active: payload.properties.watchActive !== false,
-          historyLimit: Number(payload.properties.historyLimit || (payload.properties.foreach ? outputDock.getWatchHistoryLimit() : 1)),
+          historyLimit: Number(payload.properties.historyLimit || (payload.properties.foreach ? outputDock.getDefaultWatchHistoryLimit() : 1)),
           events: []
         });
         state.watches.set(watchId, watch);
@@ -2331,7 +2326,6 @@
 
   const outputDock = initOutputDock();
   const watchPanel = initWatchPanel(outputDock);
-  outputDock.onWatchHistoryLimitChange(watchPanel.setHistoryLimit);
   initAdminOperationEvents(outputDock);
 
   const outputEvent = parseEmbeddedOutputEvent();

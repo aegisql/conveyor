@@ -721,14 +721,9 @@
                     <button id="output-font-increase" type="button" class="secondary-button small-button">+</button>
                 </div>
                 <div class="output-control-group">
-                    <span class="meta">Watch Cache</span>
-                    <input id="output-watch-limit" type="number" min="1" step="1"
+                    <span id="output-cache-label" class="meta">Cache</span>
+                    <input id="output-cache-limit" type="number" min="1" step="1"
                            th:value="${watchHistoryLimitDefault}" value="100"/>
-                </div>
-                <div class="output-control-group">
-                    <span class="meta">Conveyor Cache</span>
-                    <input id="output-conveyor-limit" type="number" min="1" step="1"
-                           th:value="${conveyorHistoryLimitDefault}" value="100"/>
                 </div>
                 <div class="output-control-group output-jsonpath-group">
                     <span class="meta">JSONPath</span>
@@ -770,6 +765,6 @@
         th:utext="${dashboardOutputEventJson}"></script>
 <script th:src="@{/webjars/prismjs/1.30.0/components/prism-core.min.js}" src="/webjars/prismjs/1.30.0/components/prism-core.min.js"></script>
 <script th:src="@{/webjars/prismjs/1.30.0/components/prism-json.min.js}" src="/webjars/prismjs/1.30.0/components/prism-json.min.js"></script>
-<script th:src="@{/js/dashboard.js(v='20260220e')}" src="/js/dashboard.js?v=20260220e"></script>
+<script th:src="@{/js/dashboard.js(v='20260220g')}" src="/js/dashboard.js?v=20260220g"></script>
 </body>
 </html>
