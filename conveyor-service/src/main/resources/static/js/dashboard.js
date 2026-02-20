@@ -256,6 +256,169 @@
     renderPreview();
   }
 
+  function initBodyUploadDropzone(options) {
+    const fileInput = document.getElementById(options.fileInputId);
+    const dropzone = document.getElementById(options.dropzoneId);
+    const fileNameNode = document.getElementById(options.fileNameId);
+    const bodyInput = document.getElementById(options.bodyInputId);
+    if (!fileInput || !dropzone || !bodyInput) {
+      return null;
+    }
+
+    const defaultFileName = 'No file selected';
+
+    function updateFileName(file) {
+      if (!fileNameNode) {
+        return;
+      }
+      fileNameNode.textContent = file && file.name ? file.name : defaultFileName;
+    }
+
+    function clearValidationState() {
+      fileInput.setCustomValidity('');
+      dropzone.classList.remove('invalid');
+    }
+
+    function markInvalid(message) {
+      fileInput.setCustomValidity(message);
+      dropzone.classList.add('invalid');
+      if (fileNameNode) {
+        fileNameNode.textContent = message;
+      }
+    }
+
+    function loadBodyFromFile(file) {
+      if (!file) {
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function () {
+        const content = typeof reader.result === 'string' ? reader.result : '';
+        bodyInput.value = content;
+        bodyInput.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      reader.onerror = function () {
+        markInvalid('Failed to read dropped file');
+      };
+      reader.readAsText(file);
+    }
+
+    function assignFileFromDrop(file) {
+      if (!file) {
+        return;
+      }
+      try {
+        const transfer = new DataTransfer();
+        transfer.items.add(file);
+        fileInput.files = transfer.files;
+      } catch (error) {
+        // Continue without assigning file input; textarea still receives file content.
+      }
+      clearValidationState();
+      updateFileName(file);
+      loadBodyFromFile(file);
+    }
+
+    function assignFileFromPicker() {
+      const file = fileInput.files && fileInput.files.length ? fileInput.files[0] : null;
+      if (!file) {
+        clearValidationState();
+        updateFileName(null);
+        return;
+      }
+      clearValidationState();
+      updateFileName(file);
+      loadBodyFromFile(file);
+    }
+
+    function isEnabled() {
+      return !fileInput.disabled;
+    }
+
+    function preventDefaults(event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (eventName) {
+      dropzone.addEventListener(eventName, preventDefaults);
+    });
+
+    dropzone.addEventListener('dragenter', function () {
+      if (!isEnabled()) {
+        return;
+      }
+      dropzone.classList.remove('invalid');
+      dropzone.classList.add('drag-over');
+    });
+
+    dropzone.addEventListener('dragover', function (event) {
+      if (!isEnabled()) {
+        return;
+      }
+      dropzone.classList.remove('invalid');
+      dropzone.classList.add('drag-over');
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'copy';
+      }
+    });
+
+    dropzone.addEventListener('dragleave', function (event) {
+      if (event.relatedTarget && dropzone.contains(event.relatedTarget)) {
+        return;
+      }
+      dropzone.classList.remove('drag-over');
+    });
+
+    dropzone.addEventListener('drop', function (event) {
+      dropzone.classList.remove('drag-over');
+      if (!isEnabled()) {
+        return;
+      }
+      const files = event.dataTransfer ? event.dataTransfer.files : null;
+      if (!files || files.length === 0) {
+        return;
+      }
+      assignFileFromDrop(files[0]);
+    });
+
+    dropzone.addEventListener('click', function () {
+      if (!isEnabled()) {
+        return;
+      }
+      fileInput.click();
+    });
+
+    dropzone.addEventListener('keydown', function (event) {
+      if (!isEnabled()) {
+        return;
+      }
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        fileInput.click();
+      }
+    });
+
+    fileInput.addEventListener('change', assignFileFromPicker);
+
+    function setEnabled(enabled) {
+      const active = !!enabled;
+      fileInput.disabled = !active;
+      dropzone.classList.toggle('disabled', !active);
+      dropzone.classList.remove('drag-over');
+      dropzone.setAttribute('aria-disabled', active ? 'false' : 'true');
+      dropzone.tabIndex = active ? 0 : -1;
+    }
+
+    const initialFile = fileInput.files && fileInput.files.length ? fileInput.files[0] : null;
+    updateFileName(initialFile);
+    setEnabled(true);
+
+    return {
+      setEnabled: setEnabled
+    };
+  }
+
   function initPropertyEditor(listId, addButtonId, keyName, valueName) {
     const list = document.getElementById(listId);
     const addButton = document.getElementById(addButtonId);
@@ -297,6 +460,12 @@
 
   function initPartLoaderTester() {
     initPropertyEditor('extra-param-list', 'add-extra-param', 'extraParamKey', 'extraParamValue');
+    initBodyUploadDropzone({
+      fileInputId: 'test-body-file',
+      dropzoneId: 'test-body-dropzone',
+      fileNameId: 'test-body-file-name',
+      bodyInputId: 'test-body'
+    });
   }
 
   function initStaticPartTester() {
@@ -304,6 +473,12 @@
 
     const deleteCheckbox = document.getElementById('static-delete');
     const bodyInput = document.getElementById('static-body');
+    const bodyUploadDropzone = initBodyUploadDropzone({
+      fileInputId: 'static-body-file',
+      dropzoneId: 'static-body-dropzone',
+      fileNameId: 'static-body-file-name',
+      bodyInputId: 'static-body'
+    });
     if (!deleteCheckbox || !bodyInput) {
       return;
     }
@@ -312,6 +487,9 @@
       const isDelete = !!deleteCheckbox.checked;
       bodyInput.disabled = isDelete;
       bodyInput.placeholder = isDelete ? 'Delete mode enabled. Body is ignored.' : 'Static part value';
+      if (bodyUploadDropzone && typeof bodyUploadDropzone.setEnabled === 'function') {
+        bodyUploadDropzone.setEnabled(!isDelete);
+      }
     }
 
     deleteCheckbox.addEventListener('change', syncDeleteMode);

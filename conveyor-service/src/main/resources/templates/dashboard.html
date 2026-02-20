@@ -7,7 +7,7 @@
     <link rel="stylesheet"
           th:href="@{/webjars/prismjs/1.30.0/themes/prism.min.css}"
           href="/webjars/prismjs/1.30.0/themes/prism.min.css"/>
-    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260220b')}" href="/css/dashboard.css?v=20260220b"/>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260220c')}" href="/css/dashboard.css?v=20260220c"/>
 </head>
 <body>
 <div class="scene-bg"></div>
@@ -307,15 +307,25 @@
                                     </select>
                                 </div>
                             </div>
-                            <textarea id="test-body" name="body" rows="8" placeholder="Request body"
-                                      th:text="${testRequest != null ? testRequest['body'] : ''}"></textarea>
+                            <div class="body-upload-layout">
+                                <textarea id="test-body" name="body" rows="8" placeholder="Request body"
+                                          th:text="${testRequest != null ? testRequest['body'] : ''}"></textarea>
+                                <div class="body-upload-file">
+                                    <div id="test-body-dropzone"
+                                         class="body-upload-dropzone"
+                                         role="button"
+                                         tabindex="0"
+                                         aria-controls="test-body-file"
+                                         aria-label="Drag and drop body file, or click to choose one">
+                                        <div class="body-upload-dropzone-title">Drop body file</div>
+                                        <div class="body-upload-dropzone-hint">Loads immediately into Body</div>
+                                        <div id="test-body-file-name" class="body-upload-file-name">No file selected</div>
+                                    </div>
+                                    <input id="test-body-file" type="file" name="bodyFile"/>
+                                </div>
+                            </div>
                             <p class="meta">Live preview (syntax highlighted for JSON content type).</p>
                             <pre class="json-result"><code id="request-body-preview" class="language-json"></code></pre>
-                        </div>
-                        <div class="field-group full-width">
-                            <label for="test-body-file">Body File</label>
-                            <input id="test-body-file" type="file" name="bodyFile"/>
-                            <p class="meta">Optional. If provided, file content is used instead of textarea body.</p>
                         </div>
 
                         <div class="tester-grid">
@@ -426,15 +436,25 @@
 
                         <div class="field-group full-width">
                             <label for="static-body">Body</label>
-                            <textarea id="static-body" name="body" rows="8" placeholder="Static part value"
-                                      th:text="${staticTestRequest != null ? staticTestRequest['body'] : ''}"></textarea>
+                            <div class="body-upload-layout">
+                                <textarea id="static-body" name="body" rows="8" placeholder="Static part value"
+                                          th:text="${staticTestRequest != null ? staticTestRequest['body'] : ''}"></textarea>
+                                <div class="body-upload-file">
+                                    <div id="static-body-dropzone"
+                                         class="body-upload-dropzone"
+                                         role="button"
+                                         tabindex="0"
+                                         aria-controls="static-body-file"
+                                         aria-label="Drag and drop body file, or click to choose one">
+                                        <div class="body-upload-dropzone-title">Drop body file</div>
+                                        <div class="body-upload-dropzone-hint">Loads immediately into Body</div>
+                                        <div id="static-body-file-name" class="body-upload-file-name">No file selected</div>
+                                    </div>
+                                    <input id="static-body-file" type="file" name="bodyFile"/>
+                                </div>
+                            </div>
                             <p class="meta">Live preview (syntax highlighted for JSON content type).</p>
                             <pre class="json-result"><code id="static-request-body-preview" class="language-json"></code></pre>
-                        </div>
-                        <div class="field-group full-width">
-                            <label for="static-body-file">Body File</label>
-                            <input id="static-body-file" type="file" name="bodyFile"/>
-                            <p class="meta">Optional. If provided, file content is used instead of textarea body.</p>
                         </div>
 
                         <div class="tester-grid">
@@ -750,6 +770,6 @@
         th:utext="${dashboardOutputEventJson}"></script>
 <script th:src="@{/webjars/prismjs/1.30.0/components/prism-core.min.js}" src="/webjars/prismjs/1.30.0/components/prism-core.min.js"></script>
 <script th:src="@{/webjars/prismjs/1.30.0/components/prism-json.min.js}" src="/webjars/prismjs/1.30.0/components/prism-json.min.js"></script>
-<script th:src="@{/js/dashboard.js(v='20260220a')}" src="/js/dashboard.js?v=20260220a"></script>
+<script th:src="@{/js/dashboard.js(v='20260220b')}" src="/js/dashboard.js?v=20260220b"></script>
 </body>
 </html>
