@@ -53,6 +53,12 @@ Optional, but relevant to admin operations:
 
 - `conveyor.service.upload-enable` (default `true`)
 
+Profile note:
+
+- `demo` enables local form-login mode and sets local logging defaults
+- `dev` is logging-focused only; it does not switch auth mode by itself
+- To use local form login, `demo` must be active
+
 ## 4. Demo profile (local testing)
 
 This is the easiest mode for local evaluation.
@@ -208,6 +214,17 @@ Use this flow:
 AUTH_MODE=cookie SESSION_COOKIE='JSESSIONID=<cookie-value>' \
 /Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh collector 2003
 ```
+
+### 5.8 Dashboard OAuth user display
+
+For OAuth2 logins shown in the dashboard header, display name resolution is:
+
+1. `email` / `emailAddress`
+2. `preferred_username` / `username` / `login` / `name`
+3. composed first+last name (`given_name` + `family_name`, or `first_name`/`last_name`)
+4. fallback to `authentication.getName()`
+
+This avoids showing opaque provider identifiers when richer claims (especially email) are available.
 
 ## 6. Prod profile with OAuth2 login disabled
 

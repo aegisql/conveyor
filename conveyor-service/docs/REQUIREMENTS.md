@@ -366,12 +366,13 @@ Future handling:
   - `POST /admin/upload` (multipart jar)
   - `POST /admin/reload/{name}` (optional `stopTimeout`)
   - `DELETE /admin/{name}` (optional `stopTimeout`)
+  - `GET /admin/events` (poll async admin completion/failure events for current user)
   - `POST /admin/{name}/mbean/{method}`
   - `POST /admin/{name}/parameter/{parameter}?value=...`
 - Reload/delete safety:
   - reload and delete are allowed only for top-level conveyors (no enclosing conveyor)
   - selecting a child conveyor must be rejected with `400` (`BAD_REQUEST`)
-  - controlled stop path uses `Conveyor.unRegisterTree(...)` and `completeThenForceStop(stopTimeout)` with default `1 MINUTES`
+  - controlled stop path uses `completeThenForceStop(stopTimeout)` (default `1 MINUTES`), waits for stop (up to timeout), then calls `Conveyor.unRegisterTree(...)`
 - Upload/delete feature-gating:
   - when `conveyor.service.upload-enable=false`, upload and delete endpoints are disabled
   - disabled responses use HTTP `403` with placement envelope `errorCode=FORBIDDEN`
@@ -398,6 +399,10 @@ Behavior:
   - source key/type
   - status line payload (`httpStatus`, `result`, `status`, `errorCode`, `errorMessage`, `responseTime`, `summaryLine`)
   - JSON payload body
+- Admin reload/delete are asynchronous:
+  - submit returns scheduled output event immediately
+  - completion/failure events are polled from `/api/dashboard/admin/events`
+  - completion events mark tree refresh so UI can reload conveyor tree state
 
 ### 8.3 WebSocket watch transport
 
@@ -496,7 +501,10 @@ Inputs:
 - `foreach` checkbox
 - `id` (required only when `foreach` is unchecked)
 - request body textarea
-- optional body file upload (if present, file content overrides textarea body)
+- body file upload UI includes:
+  - right-side square drag/drop target that loads dropped file into `Body` immediately
+  - native file picker (`Choose File`) below the drop zone
+  - if present, loaded file content overrides textarea body
 - `ttl`, `expirationTime`, `creationTime`, `priority`, `requestTTL`
 - additional properties via dynamic rows:
   - add row (`+ Add property`)
@@ -528,7 +536,10 @@ Inputs:
 - `contentType`
 - `delete` toggle
 - request body textarea (disabled/ignored in delete mode)
-- optional body file upload (if present, file content overrides textarea body)
+- body file upload UI includes:
+  - right-side square drag/drop target that loads dropped file into `Body` immediately
+  - native file picker (`Choose File`) below the drop zone
+  - if present, loaded file content overrides textarea body
 - `priority`
 - `requestTTL`
 - additional properties via dynamic key/value rows (`+ Add property`, `X` remove)
@@ -610,14 +621,19 @@ Behavior:
   - tail-follow behavior: if currently on latest event, new events auto-focus latest
 - Rendering behavior:
   - compact status line above payload area
-  - JSONPath extraction input for payload view:
-    - empty value => `$`
-    - default => `$.payload`
+  - JSONPath extraction input is per selected Output tab:
+    - empty value resolves to `$`
+    - default value is `$.payload`
+    - each tab can use a different JSONPath
 - Cache controls:
-  - `Watch Cache` numeric control (foreach watcher event history cap)
-  - `Conveyor Cache` numeric control (conveyor output event history cap)
-  - default values come from YAML config
-  - oldest cached entries are dropped when limit is reached
+  - one cache-limit input is shown for the selected Output tab
+  - control label is dynamic:
+    - `Watch Cache` for watch tabs
+    - `Conveyor Cache` for conveyor/admin tabs
+  - default values come from YAML config:
+    - watch tabs -> `default-watch-history-limit`
+    - conveyor/admin tabs -> `default-conveyor-history-limit`
+  - oldest cached entries are dropped when per-tab limit is reached
   - watch `PING` events update elapsed wait clock but are not added to event history
 
 
@@ -643,7 +659,7 @@ Visibility and replacement behavior:
 - On name conflict, existing conveyor is stopped/unregistered, then replaced
 - Reload is allowed only for top-level conveyors
 - Controlled stop uses one shared timeout input (`stopTimeout`) for reload/delete, default `1 MINUTES`
-- Unregistration uses `Conveyor.unRegisterTree(...)` before `completeThenForceStop(...)`
+- Unregistration order is: `completeThenForceStop(...)`, wait-for-stop, then `Conveyor.unRegisterTree(...)`
 - Uploaded conveyors must become visible through `Conveyor.byName(...)`
 - Watch bridge hooks must be attached for newly uploaded/reloaded conveyors as well.
 
@@ -701,12 +717,16 @@ Basic smoke checks:
   - close and reopen dock
   - close/reopen per-source output tabs via new events
   - verify timeline navigation (`Prev`, `Next`, `See all`, `Clear events`)
-  - verify watch/conveyor cache limits trim oldest events
+  - verify cache label/value switch per selected tab (`Watch Cache` vs `Conveyor Cache`)
+  - verify per-tab cache limits trim oldest events
+  - verify JSONPath is independent per selected output tab
 - Admin actions flow:
   - verify reload/delete controls stay visible with no conveyor selected
   - verify no-selection and non-top-level guidance is shown as neutral hint text
   - verify reload/delete buttons are inactive until a top-level conveyor is selected
   - verify field label is `Complete and Stop Timeout`
+  - verify submit creates scheduled event in `Admin` output tab
+  - verify completion/failure arrives later in `Admin` output tab and refreshes tree
 - Upload a valid conveyor jar using both native picker and drag/drop, confirm new conveyor appears
 - Set `conveyor.service.upload-enable=false` and verify:
   - dashboard admin tab shows upload/remove disabled message

@@ -176,8 +176,9 @@ public interface Conveyor<K, L, OUT> {
         try {
             LOG.info("Preparing to stop {} max {} {}",getName(),timeout,unit);
             this.completeAndStop().get(timeout,unit);
+            LOG.info("Conveyor {} has stopped gracefully",getName());
         } catch (Exception e) {
-            LOG.error("Force stopping {}",getName());
+            LOG.error("Force stopping {}. Some data may be lost.",getName());
             this.stop();
         }
     }
