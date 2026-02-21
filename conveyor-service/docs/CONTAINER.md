@@ -5,6 +5,7 @@ This document describes how to run `conveyor-service` as a Docker container with
 - `demo` authentication profile enabled by default
 - exposed HTTP port `8080`
 - bind-mounted upload directory for extension JAR drop-in
+- bundled loader scripts and sample PSV files at `/opt/conveyor/scripts`
 - optional pre-seeded extension JARs copied on first container start when missing in mounted upload directory
 
 ## 1. Why `No ConveyorInitiatingService providers ...` appears
@@ -25,6 +26,7 @@ The image declares:
 
 - `EXPOSE 8080`
 - `VOLUME /opt/conveyor/upload`
+- test helper files in `/opt/conveyor/scripts` (`test-part-loader.sh`, `*.psv`, docs)
 
 Seed behavior:
 
@@ -123,7 +125,45 @@ When the upload directory is mounted, startup seed-copy is non-destructive:
 - missing seeded JARs are copied in
 - existing files are preserved
 
-## 5. Docker Compose quick start
+## 5. Run Loader Script Inside Container
+
+Start service container:
+
+```bash
+docker run --rm \
+  --name conveyor-service-demo \
+  -p 8080:8080 \
+  -v "$(pwd)/conveyor-service/upload:/opt/conveyor/upload" \
+  ghcr.io/aegisql/conveyor-service:local
+```
+
+In a second terminal, open shell in running container:
+
+```bash
+docker exec -it conveyor-service-demo bash
+```
+
+Run bundled loader script against local service inside container:
+
+```bash
+cd /opt/conveyor/scripts
+./test-part-loader.sh --file collector_part_loader_100_ids.psv
+```
+
+Useful examples:
+
+```bash
+# Single ID flow
+./test-part-loader.sh --conveyor collector --id 12345
+
+# Static parts sample
+./test-part-loader.sh --file collector_static_part_loader.psv
+```
+
+The script uses default demo REST credentials (`rest/rest`) and `BASE_URL=http://localhost:8080`.
+Override with env vars if needed.
+
+## 6. Docker Compose quick start
 
 From `conveyor-service` directory:
 
@@ -138,9 +178,9 @@ Stop:
 docker compose -f docker-compose.demo.yml down
 ```
 
-## 6. Image tagging and publish flow
+## 7. Image tagging and publish flow
 
-### 6.1 Local scripted build/push
+### 7.1 Local scripted build/push
 
 ```bash
 # Build tags:
@@ -154,7 +194,7 @@ PUSH=true \
 bash conveyor-service/scripts/build-container-image.sh
 ```
 
-### 6.2 CI workflow for propagation
+### 7.2 CI workflow for propagation
 
 Workflow file:
 
@@ -168,7 +208,7 @@ Behavior:
 
 This gives a controlled mechanism to propagate the next pool of changes into container images.
 
-## 7. Operational notes
+## 8. Operational notes
 
 - `demo` profile is for local/testing usage, not production IAM.
 - Keep host upload directory writable by container user (`uid 10001` in image).

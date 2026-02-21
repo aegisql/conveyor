@@ -30,18 +30,23 @@ FROM eclipse-temurin:21-jre-jammy AS runtime
 
 ARG APP_HOME=/opt/conveyor
 
-RUN groupadd --system --gid 10001 conveyor && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl jq && \
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd --system --gid 10001 conveyor && \
     useradd --system --uid 10001 --gid conveyor --home-dir "${APP_HOME}" --create-home conveyor && \
-    mkdir -p "${APP_HOME}/upload" && \
+    mkdir -p "${APP_HOME}/upload" "${APP_HOME}/scripts" && \
     chown -R conveyor:conveyor "${APP_HOME}"
 
 WORKDIR ${APP_HOME}
 
 COPY --from=build /workspace/conveyor-service.jar /opt/conveyor/app.jar
 COPY --from=build /workspace/upload-seed/ /opt/conveyor/upload-seed/
+COPY --from=build /workspace/conveyor-service/scripts/ /opt/conveyor/scripts/
 COPY --from=build /workspace/conveyor-service/scripts/container-entrypoint.sh /usr/local/bin/container-entrypoint.sh
 
-RUN chmod 0755 /usr/local/bin/container-entrypoint.sh
+RUN chmod 0755 /usr/local/bin/container-entrypoint.sh && \
+    find /opt/conveyor/scripts -maxdepth 1 -type f -name '*.sh' -exec chmod 0755 {} \;
 
 USER conveyor:conveyor
 
