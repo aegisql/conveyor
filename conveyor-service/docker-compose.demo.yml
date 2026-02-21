@@ -1,0 +1,16 @@
+services:
+  conveyor-service:
+    build:
+      context: ..
+      dockerfile: conveyor-service/Dockerfile
+    image: ghcr.io/aegisql/conveyor-service:demo-local
+    container_name: conveyor-service-demo
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: demo
+      SERVER_PORT: 8080
+      CONVEYOR_SERVICE_UPLOAD_DIR: /opt/conveyor/upload
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./upload:/opt/conveyor/upload

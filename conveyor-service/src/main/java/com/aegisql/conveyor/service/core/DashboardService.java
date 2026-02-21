@@ -55,6 +55,7 @@ public class DashboardService {
     private final List<String> loaderErrors = new ArrayList<>();
     private final Set<String> uploadedConveyorNames = Collections.synchronizedSet(new LinkedHashSet<>());
     private URLClassLoader uploadsClassLoader;
+    private int uploadsJarCount;
 
     public DashboardService(
             ObjectMapper objectMapper,
@@ -528,6 +529,7 @@ public class DashboardService {
                         }
                     });
         }
+        uploadsJarCount = urls.size();
         uploadsClassLoader = new URLClassLoader(urls.toArray(new URL[0]), Thread.currentThread().getContextClassLoader());
     }
 
@@ -540,6 +542,10 @@ public class DashboardService {
 
     private void loadUploadedConveyors() {
         if (uploadsClassLoader == null) {
+            return;
+        }
+        if (uploadsJarCount == 0) {
+            LOG.debug("No uploaded extension jars found in {}", uploadDir);
             return;
         }
         int providerCount = 0;

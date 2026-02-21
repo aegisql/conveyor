@@ -16,6 +16,7 @@
 
     <properties>
         <spring-boot.version>4.0.3</spring-boot.version>
+        <container.image.repo>ghcr.io/aegisql/conveyor-service</container.image.repo>
     </properties>
 
     <dependencyManagement>
@@ -122,8 +123,52 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>container</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.6.2</version>
+                        <executions>
+                            <execution>
+                                <id>build-container-image</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>bash</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}/scripts/build-container-image.sh</argument>
+                                    </arguments>
+                                    <environmentVariables>
+                                        <IMAGE_REPO>${container.image.repo}</IMAGE_REPO>
+                                        <IMAGE_TAG>${project.version}</IMAGE_TAG>
+                                        <IMAGE_TAG_LATEST>true</IMAGE_TAG_LATEST>
+                                        <DOCKERFILE_PATH>${project.basedir}/Dockerfile</DOCKERFILE_PATH>
+                                        <DOCKER_BUILD_CONTEXT>${project.parent.basedir}</DOCKER_BUILD_CONTEXT>
+                                    </environmentVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

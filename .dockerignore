@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+**/.idea
+**/.DS_Store
+**/target
+**/*.iml
+**/*.log
+**/DerbyEngineTest
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/*?cache=shared&mode=memory
+dash.hdr

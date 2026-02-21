@@ -67,6 +67,14 @@ You can override properties with environment variables, for example:
 
 Dashboard details view shows `Upload Dir` exactly as configured (for example `./upload`), not an expanded absolute path.
 
+## Container run (`demo`)
+
+Container instructions are in:
+
+- `docs/CONTAINER.md`
+
+This includes Docker build/run, bind-mount upload directory, Maven integration, and image propagation workflow.
+
 ## Build And Run
 
 From repository root:
