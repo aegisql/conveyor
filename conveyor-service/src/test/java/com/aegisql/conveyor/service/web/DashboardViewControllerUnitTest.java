@@ -258,6 +258,10 @@ class DashboardViewControllerUnitTest {
         verify(conveyorWatchService).registerWatch("alice", "main", "42", false, 2);
         verify(conveyorWatchService, never()).cancelWatch(anyString(), anyString(), anyString(), anyBoolean());
         assertThat(flash(success).get("message")).isEqualTo("Part test submitted");
+        Map<String, Object> successEvent = castMap(flash(success).get("dashboardOutputEvent"));
+        Map<String, Object> successStatus = castMap(successEvent.get("status"));
+        assertThat(successStatus.get("httpStatus")).isEqualTo(200);
+        assertThat(successStatus.get("status")).isEqualTo("COMPLETED");
 
         when(placementService.placePartForEach(eq("application/json"), eq("main"), eq("L1"), any(), anyMap()))
                 .thenThrow(new IllegalStateException("placement failed"));
@@ -288,6 +292,45 @@ class DashboardViewControllerUnitTest {
     }
 
     @Test
+    void placeTestPartUsesAcceptedHttpStatusWhenInProgress() {
+        when(dashboardService.isTopLevelConveyor("main")).thenReturn(true);
+        PlacementResult<Boolean> inProgress = PlacementResult.<Boolean>builder()
+                .status(PlacementStatus.IN_PROGRESS)
+                .label("L1")
+                .build();
+        when(placementService.placePart(eq("application/json"), eq("main"), eq("42"), eq("L1"), any(), anyMap()))
+                .thenReturn(inProgress);
+
+        var attrs = new RedirectAttributesModelMap();
+        assertThat(controller.placeTestPart(
+                "main",
+                "42",
+                null,
+                null,
+                null,
+                "L1",
+                "application/json",
+                "{\"v\":1}",
+                null,
+                "1 SECONDS",
+                null,
+                null,
+                null,
+                null,
+                List.of(),
+                List.of(),
+                "tab-tester",
+                adminAuth(),
+                attrs
+        )).isEqualTo("redirect:/dashboard");
+
+        Map<String, Object> event = castMap(attrs.getFlashAttributes().get("dashboardOutputEvent"));
+        Map<String, Object> status = castMap(event.get("status"));
+        assertThat(status.get("httpStatus")).isEqualTo(202);
+        assertThat(status.get("status")).isEqualTo("IN_PROGRESS");
+    }
+
+    @Test
     void placeStaticPartAndCommandHandleSuccessAndFailure() {
         PlacementResult<Boolean> staticResult = PlacementResult.<Boolean>builder()
                 .status(PlacementStatus.COMPLETED)
@@ -313,6 +356,10 @@ class DashboardViewControllerUnitTest {
                 staticSuccess
         )).isEqualTo("redirect:/dashboard");
         assertThat(flash(staticSuccess).get("message")).isEqualTo("Static part test submitted");
+        Map<String, Object> staticSuccessEvent = castMap(flash(staticSuccess).get("dashboardOutputEvent"));
+        Map<String, Object> staticSuccessStatus = castMap(staticSuccessEvent.get("status"));
+        assertThat(staticSuccessStatus.get("httpStatus")).isEqualTo(200);
+        assertThat(staticSuccessStatus.get("status")).isEqualTo("COMPLETED");
 
         doThrow(new UnsupportedMappingException("bad static"))
                 .when(staticPartService).placeStaticPart(eq("text/plain"), eq("main"), eq("S2"), any(), anyMap());
@@ -360,6 +407,10 @@ class DashboardViewControllerUnitTest {
                 commandSuccess
         )).isEqualTo("redirect:/dashboard");
         assertThat(flash(commandSuccess).get("message")).isEqualTo("Command submitted");
+        Map<String, Object> commandSuccessEvent = castMap(flash(commandSuccess).get("dashboardOutputEvent"));
+        Map<String, Object> commandSuccessStatus = castMap(commandSuccessEvent.get("status"));
+        assertThat(commandSuccessStatus.get("httpStatus")).isEqualTo(200);
+        assertThat(commandSuccessStatus.get("status")).isEqualTo("COMPLETED");
         verify(commandService).executeById(eq("main"), eq("42"), eq("cancel"), any(), anyMap());
 
         when(commandService.executeForEach(eq("main"), eq("cancel"), any(), anyMap()))
@@ -385,6 +436,72 @@ class DashboardViewControllerUnitTest {
         )).isEqualTo("redirect:/dashboard");
         verify(conveyorWatchService).cancelWatch("alice", "main", null, true);
         assertThat(flash(commandFailure).get("error")).isEqualTo("command failed");
+    }
+
+    @Test
+    void placeStaticPartUsesAcceptedHttpStatusWhenInProgress() {
+        PlacementResult<Boolean> inProgress = PlacementResult.<Boolean>builder()
+                .status(PlacementStatus.IN_PROGRESS)
+                .label("S1")
+                .build();
+        when(staticPartService.placeStaticPart(eq("text/plain"), eq("main"), eq("S1"), any(), anyMap()))
+                .thenReturn(inProgress);
+
+        var attrs = new RedirectAttributesModelMap();
+        assertThat(controller.placeTestStaticPart(
+                "main",
+                "S1",
+                "text/plain",
+                null,
+                "value",
+                null,
+                null,
+                null,
+                List.of(),
+                List.of(),
+                "tab-static",
+                attrs
+        )).isEqualTo("redirect:/dashboard");
+
+        Map<String, Object> event = castMap(attrs.getFlashAttributes().get("dashboardOutputEvent"));
+        Map<String, Object> status = castMap(event.get("status"));
+        assertThat(status.get("httpStatus")).isEqualTo(202);
+        assertThat(status.get("status")).isEqualTo("IN_PROGRESS");
+    }
+
+    @Test
+    void executeCommandUsesAcceptedHttpStatusWhenInProgress() {
+        PlacementResult<Object> inProgress = PlacementResult.builder()
+                .status(PlacementStatus.IN_PROGRESS)
+                .label("cancel")
+                .build();
+        when(commandService.executeById(eq("main"), eq("42"), eq("cancel"), any(), anyMap()))
+                .thenReturn(inProgress);
+
+        var attrs = new RedirectAttributesModelMap();
+        assertThat(controller.executeTestCommand(
+                "main",
+                "42",
+                null,
+                null,
+                null,
+                "cancel",
+                "payload",
+                null,
+                null,
+                null,
+                null,
+                List.of(),
+                List.of(),
+                "tab-commands",
+                adminAuth(),
+                attrs
+        )).isEqualTo("redirect:/dashboard");
+
+        Map<String, Object> event = castMap(attrs.getFlashAttributes().get("dashboardOutputEvent"));
+        Map<String, Object> status = castMap(event.get("status"));
+        assertThat(status.get("httpStatus")).isEqualTo(202);
+        assertThat(status.get("status")).isEqualTo("IN_PROGRESS");
     }
 
     @Test

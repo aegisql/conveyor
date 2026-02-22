@@ -404,7 +404,7 @@ public class DashboardViewController {
                 );
             }
             redirectAttributes.addFlashAttribute("dashboardOutputEvent",
-                    buildConveyorOutputEvent(name, HttpStatus.OK.value(), result, elapsedMillis(startedNanos)));
+                    buildConveyorOutputEvent(name, result, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("message", "Part test submitted");
             redirectAttributes.addFlashAttribute("testRequest",
                     buildTestRequest(
@@ -491,7 +491,7 @@ public class DashboardViewController {
                     requestParams
             );
             redirectAttributes.addFlashAttribute("dashboardOutputEvent",
-                    buildConveyorOutputEvent(name, HttpStatus.OK.value(), result, elapsedMillis(startedNanos)));
+                    buildConveyorOutputEvent(name, result, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("message", "Static part test submitted");
             redirectAttributes.addFlashAttribute("staticTestRequest",
                     buildStaticTestRequest(label, contentType, deleteMode, requestBody, priority, requestTtl, extraRows));
@@ -571,7 +571,7 @@ public class DashboardViewController {
             }
 
             redirectAttributes.addFlashAttribute("dashboardOutputEvent",
-                    buildConveyorOutputEvent(name, HttpStatus.OK.value(), result, elapsedMillis(startedNanos)));
+                    buildConveyorOutputEvent(name, result, elapsedMillis(startedNanos)));
             redirectAttributes.addFlashAttribute("message", "Command submitted");
             redirectAttributes.addFlashAttribute("commandTestRequest",
                     buildCommandTestRequest(
@@ -804,7 +804,6 @@ public class DashboardViewController {
 
     private Map<String, Object> buildConveyorOutputEvent(
             String conveyorName,
-            int httpStatus,
             PlacementResult<?> result,
             long responseMillis
     ) {
@@ -812,6 +811,7 @@ public class DashboardViewController {
         String placementStatus = result == null || result.getStatus() == null ? "UNKNOWN" : result.getStatus().name();
         String errorCode = result == null ? null : result.getErrorCode();
         String errorMessage = result == null ? null : result.getErrorMessage();
+        int httpStatus = mapHttpStatus(result);
 
         Map<String, Object> status = buildStatusPayload(
                 httpStatus,
@@ -854,6 +854,16 @@ public class DashboardViewController {
         payload.put("message", errorMessage);
 
         return buildOutputEvent("conveyor", conveyorName, conveyorName, status, payload);
+    }
+
+    private int mapHttpStatus(PlacementResult<?> result) {
+        if (result == null || result.getStatus() == null) {
+            return HttpStatus.OK.value();
+        }
+        return switch (result.getStatus()) {
+            case IN_PROGRESS, ACCEPTED -> HttpStatus.ACCEPTED.value();
+            default -> HttpStatus.OK.value();
+        };
     }
 
     private Map<String, Object> buildAdminOperationOutputEvent(

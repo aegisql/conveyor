@@ -405,6 +405,9 @@ Behavior:
   - source key/type
   - status line payload (`httpStatus`, `result`, `status`, `errorCode`, `errorMessage`, `responseTime`, `summaryLine`)
   - JSON payload body
+  - status `httpStatus` mapping must match placement status:
+    - `IN_PROGRESS` / `ACCEPTED` => `202`
+    - `COMPLETED` / other non-exception statuses => `200`
 - Admin reload/delete are asynchronous:
   - submit returns scheduled output event immediately
   - completion/failure events are polled from `/api/dashboard/admin/events`
