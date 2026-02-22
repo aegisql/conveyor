@@ -790,6 +790,28 @@
     return parts.join(' | ');
   }
 
+  function placementStatusToHttpStatus(status, hasError) {
+    const normalized = typeof status === 'string' ? status.trim().toUpperCase() : '';
+    if (!normalized) {
+      return hasError ? 500 : null;
+    }
+    switch (normalized) {
+      case 'IN_PROGRESS':
+      case 'ACCEPTED':
+        return 202;
+      case 'COMPLETED':
+        return 200;
+      case 'REJECTED':
+        return 400;
+      case 'TIMEOUT_WAITING_FOR_COMPLETION':
+        return 504;
+      case 'FAILED':
+        return 500;
+      default:
+        return hasError ? 500 : null;
+    }
+  }
+
   function watchEventKey(watch, payload) {
     const props = payload && payload.properties ? payload.properties : {};
     return [
@@ -839,6 +861,8 @@
     const cacheLimitInput = document.getElementById('output-cache-limit');
     const cacheLimitLabel = document.getElementById('output-cache-label');
     const jsonPathInput = document.getElementById('output-jsonpath');
+    const cacheControlGroup = cacheLimitInput ? cacheLimitInput.closest('.output-control-group') : null;
+    const jsonPathControlGroup = jsonPathInput ? jsonPathInput.closest('.output-control-group') : null;
     const watchLimitHiddenInputs = Array.from(document.querySelectorAll('input.watch-limit-hidden'));
     const configuredDefaultWatchHistory = dock && dock.dataset ? Number(dock.dataset.defaultWatchHistoryLimit) : NaN;
     const configuredDefaultConveyorHistory = dock && dock.dataset ? Number(dock.dataset.defaultConveyorHistoryLimit) : NaN;
@@ -868,15 +892,18 @@
       };
     }
 
+    const DEFAULT_TAB_JSON_PATH = '$.payload';
+
     const state = {
       tabs: new Map(),
+      tabPreferences: new Map(),
       selectedTabId: null,
       open: true,
       height: OUTPUT_DEFAULT_HEIGHT,
       fontSize: OUTPUT_DEFAULT_FONT_SIZE,
       defaultWatchHistoryLimit: defaultWatchHistoryLimit,
       defaultConveyorHistoryLimit: defaultConveyorHistoryLimit,
-      defaultJsonPath: '$.payload'
+      defaultJsonPath: DEFAULT_TAB_JSON_PATH
     };
 
     function maxDockHeight() {
@@ -1092,21 +1119,42 @@
       return normalizeJsonPath(tab.jsonPath);
     }
 
+    function rememberTabPreference(tab) {
+      if (!tab || !tab.tabId) {
+        return;
+      }
+      state.tabPreferences.set(tab.tabId, {
+        historyLimit: resolveTabHistoryLimit(tab),
+        jsonPath: resolveTabJsonPath(tab)
+      });
+    }
+
     function savePrefs() {
       const prefs = {
         open: state.open,
         height: state.height,
-        fontSize: state.fontSize,
-        jsonPath: state.defaultJsonPath
+        fontSize: state.fontSize
       };
       window.localStorage.setItem(OUTPUT_DOCK_PREFS_KEY, JSON.stringify(prefs));
     }
 
     function saveConveyorHistory() {
+      state.tabs.forEach(rememberTabPreference);
+      const tabPreferences = {};
+      state.tabPreferences.forEach(function (pref, tabId) {
+        if (!pref || !tabId) {
+          return;
+        }
+        tabPreferences[tabId] = {
+          historyLimit: clampWatchHistoryLimit(pref.historyLimit),
+          jsonPath: normalizeJsonPath(pref.jsonPath || state.defaultJsonPath)
+        };
+      });
       const payload = {
         selectedTabId: state.selectedTabId,
+        tabPreferences: tabPreferences,
         tabs: Array.from(state.tabs.values())
-          .filter(function (tab) { return tab.type === 'conveyor' || tab.type === 'admin'; })
+          .filter(function (tab) { return tab.type === 'conveyor' || tab.type === 'admin' || tab.type === 'watch'; })
           .map(function (tab) {
             return {
               tabId: tab.tabId,
@@ -1132,12 +1180,28 @@
       }
       try {
         const parsed = JSON.parse(raw);
-        const tabs = Array.isArray(parsed.tabs) ? parsed.tabs : [];
-        tabs.forEach(function (savedTab) {
-          if (!savedTab || !savedTab.tabId || (savedTab.type !== 'conveyor' && savedTab.type !== 'admin')) {
+        state.tabPreferences.clear();
+        const storedPreferences = parsed && typeof parsed.tabPreferences === 'object' && parsed.tabPreferences !== null
+          ? parsed.tabPreferences
+          : {};
+        Object.keys(storedPreferences).forEach(function (tabId) {
+          const pref = storedPreferences[tabId];
+          if (!pref || typeof pref !== 'object') {
             return;
           }
-          const restoredType = savedTab.type === 'admin' ? 'admin' : 'conveyor';
+          state.tabPreferences.set(tabId, {
+            historyLimit: clampWatchHistoryLimit(pref.historyLimit),
+            jsonPath: normalizeJsonPath(pref.jsonPath || state.defaultJsonPath)
+          });
+        });
+        const tabs = Array.isArray(parsed.tabs) ? parsed.tabs : [];
+        tabs.forEach(function (savedTab) {
+          if (!savedTab || !savedTab.tabId || (savedTab.type !== 'conveyor' && savedTab.type !== 'admin' && savedTab.type !== 'watch')) {
+            return;
+          }
+          const restoredType = savedTab.type === 'admin'
+            ? 'admin'
+            : (savedTab.type === 'watch' ? 'watch' : 'conveyor');
           const tab = ensureTab(
             savedTab.tabId,
             savedTab.title || savedTab.sourceKey || savedTab.tabId,
@@ -1157,6 +1221,7 @@
           tab.seeAll = savedTab.seeAll === true;
           tab.followTail = savedTab.followTail !== false;
           tab.jsonPath = normalizeJsonPath(savedTab.jsonPath || state.defaultJsonPath);
+          rememberTabPreference(tab);
           if (Number.isInteger(savedTab.selectedEventIndex)) {
             tab.selectedEventIndex = savedTab.selectedEventIndex;
           } else if (tab.events.length > 0) {
@@ -1192,12 +1257,12 @@
         }
         state.height = clampHeight(prefs.height);
         state.fontSize = clampFontSize(prefs.fontSize);
-        state.defaultJsonPath = normalizeJsonPath(prefs.jsonPath || '$.payload');
+        state.defaultJsonPath = DEFAULT_TAB_JSON_PATH;
       } catch (e) {
         state.open = true;
         state.height = OUTPUT_DEFAULT_HEIGHT;
         state.fontSize = OUTPUT_DEFAULT_FONT_SIZE;
-        state.defaultJsonPath = '$.payload';
+        state.defaultJsonPath = DEFAULT_TAB_JSON_PATH;
       }
     }
 
@@ -1211,10 +1276,22 @@
     function updateControlUi() {
       fontSizeLabel.textContent = state.fontSize + 'px';
       const tab = selectedTab();
+      const hasTab = Boolean(tab);
+      if (cacheControlGroup) {
+        cacheControlGroup.hidden = !hasTab;
+        cacheControlGroup.style.display = hasTab ? '' : 'none';
+      }
+      if (jsonPathControlGroup) {
+        jsonPathControlGroup.hidden = !hasTab;
+        jsonPathControlGroup.style.display = hasTab ? '' : 'none';
+      }
       cacheLimitLabel.textContent = tab ? tabCacheLabel(tab.type) : 'Cache';
       cacheLimitInput.value = tab ? String(resolveTabHistoryLimit(tab)) : '';
       cacheLimitInput.disabled = !tab;
-      jsonPathInput.value = tab ? resolveTabJsonPath(tab) : state.defaultJsonPath;
+      // Preserve in-progress typing while events stream in and render runs repeatedly.
+      if (document.activeElement !== jsonPathInput) {
+        jsonPathInput.value = tab ? resolveTabJsonPath(tab) : state.defaultJsonPath;
+      }
       jsonPathInput.disabled = !tab;
       syncWatchLimitHiddenInputs();
     }
@@ -1232,7 +1309,9 @@
 
     function ensureTab(tabId, title, type, sourceKey, historyLimit) {
       let tab = state.tabs.get(tabId);
+      const savedPreference = state.tabPreferences.get(tabId);
       if (!tab) {
+        const explicitHistory = Number(historyLimit);
         tab = {
           tabId: tabId,
           title: title,
@@ -1240,13 +1319,17 @@
           sourceKey: sourceKey,
           events: [],
           eventKeys: new Set(),
-          historyLimit: Number.isFinite(Number(historyLimit)) && Number(historyLimit) > 0
-            ? clampWatchHistoryLimit(historyLimit)
-            : resolveDefaultHistoryLimit(type),
+          historyLimit: (savedPreference && Number.isFinite(Number(savedPreference.historyLimit)) && Number(savedPreference.historyLimit) > 0)
+            ? clampWatchHistoryLimit(savedPreference.historyLimit)
+            : (Number.isFinite(explicitHistory) && explicitHistory > 0
+              ? clampWatchHistoryLimit(explicitHistory)
+              : resolveDefaultHistoryLimit(type)),
           selectedEventIndex: -1,
           seeAll: false,
           followTail: true,
-          jsonPath: state.defaultJsonPath
+          jsonPath: savedPreference && savedPreference.jsonPath
+            ? normalizeJsonPath(savedPreference.jsonPath)
+            : state.defaultJsonPath,
         };
         state.tabs.set(tabId, tab);
       } else {
@@ -1264,6 +1347,7 @@
         }
         tab.jsonPath = resolveTabJsonPath(tab);
       }
+      rememberTabPreference(tab);
       return tab;
     }
 
@@ -1297,6 +1381,10 @@
     }
 
     function closeTab(tabId) {
+      const tab = state.tabs.get(tabId);
+      if (tab) {
+        rememberTabPreference(tab);
+      }
       state.tabs.delete(tabId);
       if (state.selectedTabId === tabId) {
         state.selectedTabId = null;
@@ -1591,7 +1679,11 @@
         },
         payload: event.payload
       });
-      state.selectedTabId = tabId;
+      // Keep user-selected tab context (e.g. watch tab with custom JSONPath).
+      // Only auto-focus conveyor tab when there is no active tab yet.
+      if (!state.selectedTabId || !state.tabs.has(state.selectedTabId)) {
+        state.selectedTabId = tabId;
+      }
       state.open = true;
       render();
     }
@@ -1606,22 +1698,24 @@
         watch.displayName || watch.watchId,
         'watch',
         watch.watchId,
-        watch.foreach ? watch.historyLimit : 1
+        watch.foreach ? watch.historyLimit : resolveDefaultHistoryLimit('watch')
       );
 
       const props = payload.properties || {};
       const eventType = props.eventType || 'EVENT';
+      const placementStatus = payload.status || eventType;
+      const hasError = Boolean(payload.errorCode || payload.errorMessage);
       const status = {
-        httpStatus: null,
+        httpStatus: placementStatusToHttpStatus(placementStatus, hasError),
         result: payload.result,
-        status: payload.status || eventType,
+        status: placementStatus,
         errorCode: payload.errorCode || null,
         errorMessage: payload.errorMessage || null,
         responseTime: null,
         summaryLine: [
           'event=' + eventType,
           'time=' + formatClockTime(payload.timestamp),
-          payload.status ? 'status=' + payload.status : null,
+          placementStatus ? 'status=' + placementStatus : null,
           payload.correlationId ? 'id=' + payload.correlationId : null,
           payload.errorCode ? 'errorCode=' + payload.errorCode : null,
           payload.errorMessage ? 'errorMessage=' + payload.errorMessage : null
@@ -1659,6 +1753,14 @@
       render();
     }
 
+    function hasWatchHistory(watchId) {
+      if (!watchId) {
+        return false;
+      }
+      const tab = state.tabs.get('watch:' + watchId);
+      return !!(tab && Array.isArray(tab.events) && tab.events.length > 0);
+    }
+
     function openDock() {
       state.open = true;
       render();
@@ -1675,19 +1777,21 @@
         return;
       }
       tab.historyLimit = clampWatchHistoryLimit(value);
+      rememberTabPreference(tab);
       trimAllTabs();
       render();
     }
 
-    function setJsonPath(value) {
+    function setJsonPath(value, shouldRender) {
       const normalized = normalizeJsonPath(value);
       const tab = selectedTab();
-      if (!tab) {
-        state.defaultJsonPath = normalized;
-      } else {
+      if (tab) {
         tab.jsonPath = normalized;
+        rememberTabPreference(tab);
       }
-      render();
+      if (shouldRender !== false) {
+        render();
+      }
     }
 
     function navigateSelectedTab(offset) {
@@ -1775,6 +1879,10 @@
       setSelectedTabHistoryLimit(cacheLimitInput.value);
     });
 
+    jsonPathInput.addEventListener('input', function () {
+      setJsonPath(jsonPathInput.value, false);
+    });
+
     jsonPathInput.addEventListener('change', function () {
       setJsonPath(jsonPathInput.value);
     });
@@ -1833,6 +1941,7 @@
       pushWatchEvent: pushWatchEvent,
       focusWatchTab: focusWatchTab,
       open: openDock,
+      hasWatchHistory: hasWatchHistory,
       getDefaultWatchHistoryLimit: function () { return state.defaultWatchHistoryLimit; }
     };
   }
@@ -1952,11 +2061,14 @@
       if (!raw || !raw.watchId) {
         return;
       }
+      const shouldReplayHistory = !(outputDock.hasWatchHistory && outputDock.hasWatchHistory(raw.watchId));
       const existing = state.watches.get(raw.watchId);
       if (!existing) {
         const normalized = normalizeWatch(raw);
         state.watches.set(raw.watchId, normalized);
-        syncOutputHistory(normalized);
+        if (shouldReplayHistory) {
+          syncOutputHistory(normalized);
+        }
         return;
       }
       const normalized = normalizeWatch(raw);
@@ -1970,7 +2082,9 @@
       existing.lastDataAt = normalized.lastDataAt;
       existing.events = normalized.events;
       existing.eventKeys = normalized.eventKeys;
-      syncOutputHistory(existing);
+      if (shouldReplayHistory) {
+        syncOutputHistory(existing);
+      }
     }
 
     function renderTags() {

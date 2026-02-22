@@ -300,16 +300,12 @@ public class ConveyorWatchService {
             if (!subscription.matches(bin.key)) {
                 continue;
             }
-            boolean terminalWatchEvent = !subscription.forEach();
-            PlacementResult<Object> event = buildResultEvent(subscription, bin, !terminalWatchEvent && subscription.isActive());
+            PlacementResult<Object> event = buildResultEvent(subscription, bin, subscription.isActive());
             boolean accepted = subscription.recordDataEvent(event);
             if (!accepted) {
                 continue;
             }
             sendToUser(subscription.username(), event);
-            if (terminalWatchEvent) {
-                completeSubscription(subscription.username(), subscription.watchId());
-            }
         }
     }
 
@@ -329,16 +325,12 @@ public class ConveyorWatchService {
             if (!subscription.matches(bin.key)) {
                 continue;
             }
-            boolean terminalWatchEvent = !subscription.forEach();
-            PlacementResult<Object> event = buildScrapEvent(subscription, bin, !terminalWatchEvent && subscription.isActive());
+            PlacementResult<Object> event = buildScrapEvent(subscription, bin, subscription.isActive());
             boolean accepted = subscription.recordDataEvent(event);
             if (!accepted) {
                 continue;
             }
             sendToUser(subscription.username(), event);
-            if (terminalWatchEvent) {
-                completeSubscription(subscription.username(), subscription.watchId());
-            }
         }
     }
 
@@ -480,31 +472,6 @@ public class ConveyorWatchService {
                 .properties(props)
                 .status(PlacementStatus.COMPLETED)
                 .build();
-    }
-
-    private boolean completeSubscription(String username, String watchId) {
-        ConcurrentMap<String, WatchSubscription> userWatches = watchesByUser.get(username);
-        if (userWatches == null) {
-            return false;
-        }
-
-        WatchSubscription completed;
-        synchronized (userWatches) {
-            completed = userWatches.get(watchId);
-            if (completed == null || !completed.isActive()) {
-                return false;
-            }
-            completed.deactivate();
-        }
-
-        CopyOnWriteArraySet<WatchSubscription> conveyorWatches = watchesByConveyor.get(completed.conveyor());
-        if (conveyorWatches != null) {
-            conveyorWatches.remove(completed);
-            if (conveyorWatches.isEmpty()) {
-                watchesByConveyor.remove(completed.conveyor(), conveyorWatches);
-            }
-        }
-        return true;
     }
 
     private boolean removeSubscription(String username, String watchId, boolean emitCancelEvent) {

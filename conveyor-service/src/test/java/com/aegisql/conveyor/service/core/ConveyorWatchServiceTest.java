@@ -86,7 +86,7 @@ class ConveyorWatchServiceTest {
     }
 
     @Test
-    void byIdWatchEmitsResultEventAndAutoCompletesSubscription() throws Exception {
+    void byIdWatchEmitsResultEventAndRemainsActiveUntilCanceled() throws Exception {
         service = new ConveyorWatchService(mapper, 3);
         HookedConveyor hooked = registerHookedConveyor("watch-by-id-" + System.nanoTime(), null);
 
@@ -102,12 +102,21 @@ class ConveyorWatchServiceTest {
                 Map.of("creationTime", 100L, "tenant", "acme"),
                 null
         ));
+        hooked.resultConsumer().get().accept(new ProductBin<>(
+                hooked.conveyor(),
+                42,
+                Map.of("ok", true, "seq", 2),
+                0,
+                Status.READY,
+                Map.of("creationTime", 101L, "tenant", "acme"),
+                null
+        ));
 
         List<Map<String, Object>> active = service.activeWatchesForUser("alice");
         assertThat(active).hasSize(1);
         assertThat(active.get(0))
                 .containsEntry("foreach", false)
-                .containsEntry("active", false)
+                .containsEntry("active", true)
                 .containsEntry("correlationId", "42");
         @SuppressWarnings("unchecked")
         List<PlacementResult<Object>> events = (List<PlacementResult<Object>>) active.get(0).get("events");
@@ -115,9 +124,10 @@ class ConveyorWatchServiceTest {
         PlacementResult<Object> event = events.get(0);
         assertThat(event.getStatus()).isEqualTo(PlacementStatus.COMPLETED);
         assertThat(event.getCorrelationId()).isEqualTo("42");
+        assertThat(event.getResult()).isEqualTo(Map.of("ok", true, "seq", 2));
         assertThat(event.getProperties())
                 .containsEntry("eventType", "RESULT")
-                .containsEntry("watchActive", false)
+                .containsEntry("watchActive", true)
                 .containsEntry("tenant", "acme");
 
         String watchId = String.valueOf(active.get(0).get("watchId"));

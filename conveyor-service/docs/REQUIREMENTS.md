@@ -419,6 +419,7 @@ Behavior:
 - Per-user delivery model; session authentication ties events to the current dashboard user.
 - Uses `HttpSessionHandshakeInterceptor` so security context can be resolved during websocket handshake/session lifecycle.
 - Conveyor watch service registers bridge consumers (`ResultConsumer`, `ScrapConsumer`) on known/uploaded conveyors.
+- Non-foreach (ID-based) watches remain active after `RESULT`/`SCRAP` events and continue receiving future matching updates until explicitly canceled.
 - Watch events include metadata for UI routing:
   - `watchId`, `displayName`, `conveyor`, `sourceConveyor`, `foreach`, `historyLimit`, `watchActive`
   - `eventType` (`RESULT`, `SCRAP`, `PING`, `CANCELED`)
@@ -607,6 +608,7 @@ Behavior:
   - error style on scrap
   - click tag => open/focus corresponding watch output tab
   - inline `X` on tag cancels watch
+- Watcher event history shown in the Output dock must not double-append the same backend event (including after page reload when both session-restored output history and watch API snapshots are available).
 
 ### 9.7 Shared Output dock
 
@@ -615,14 +617,17 @@ Behavior:
   - vertically resizable
   - closable with `X`
   - reopen via `Open Output` button in workspace header
+  - closing the dock only hides it; tab state/history and tab-level preferences remain in session
 - Tab behavior:
   - tabs are created on demand per conveyor and per watch
   - tab content is isolated (no mixing between sources)
   - each tab is closable with `X`
   - closed tabs are recreated automatically when new events arrive
+  - closing a tab stores its UI preferences in session (JSONPath and cache limit) and restores them when the same tab reappears in that session
 - Event/timeline behavior:
   - left-side vertical timeline of cached events per selected tab
   - timeline item colors by status class (2xx/3xx/4xx/5xx style)
+  - watch and conveyor/admin tabs use the same status-to-color semantics
   - click timestamp to view one event
   - `Prev` / `Next` navigation
   - `Clear events` removes cached events for selected tab
@@ -634,6 +639,8 @@ Behavior:
     - empty value resolves to `$`
     - default value is `$.payload`
     - each tab can use a different JSONPath
+    - user-selected JSONPath is remembered per tab for the lifetime of the browser session, including close/reopen of the same tab
+  - when there is no open output tab, cache-limit and JSONPath controls are hidden
 - Cache controls:
   - one cache-limit input is shown for the selected Output tab
   - control label is dynamic:
@@ -643,6 +650,7 @@ Behavior:
     - watch tabs -> `default-watch-history-limit`
     - conveyor/admin tabs -> `default-conveyor-history-limit`
   - oldest cached entries are dropped when per-tab limit is reached
+  - user-selected cache limit is remembered per tab for the lifetime of the browser session, including close/reopen of the same tab
   - watch `PING` events update elapsed wait clock but are not added to event history
 
 
@@ -726,9 +734,11 @@ Basic smoke checks:
   - close and reopen dock
   - close/reopen per-source output tabs via new events
   - verify timeline navigation (`Prev`, `Next`, `See all`, `Clear events`)
+  - verify no duplicate watch events are shown after page reload + new websocket events
   - verify cache label/value switch per selected tab (`Watch Cache` vs `Conveyor Cache`)
   - verify per-tab cache limits trim oldest events
   - verify JSONPath is independent per selected output tab
+  - verify closing/reopening the same output tab in-session restores that tab's JSONPath and cache limit choices
 - Admin actions flow:
   - verify reload/delete controls stay visible with no conveyor selected
   - verify no-selection and non-top-level guidance is shown as neutral hint text

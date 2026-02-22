@@ -464,6 +464,10 @@ h1, h2, h3 {
   background: #f7faf5;
 }
 
+.output-control-group[hidden] {
+  display: none;
+}
+
 .output-control-value {
   min-width: 38px;
   text-align: center;
