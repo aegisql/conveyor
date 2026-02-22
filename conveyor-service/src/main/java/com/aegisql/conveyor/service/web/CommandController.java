@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.service.web;
 
 import com.aegisql.conveyor.service.api.PlacementResult;
+import com.aegisql.conveyor.service.api.PlacementStatus;
 import com.aegisql.conveyor.service.core.CommandService;
 import com.aegisql.conveyor.service.core.ConveyorWatchService;
 import jakarta.validation.constraints.NotBlank;
@@ -55,7 +56,7 @@ public class CommandController {
                     body == null ? new byte[0] : body,
                     forwardedParams
             );
-            return ResponseEntity.status(HttpStatus.OK).body(result);
+            return ResponseEntity.status(resolveHttpStatus(result.getStatus())).body(result);
         } catch (RuntimeException ex) {
             if (watchRequest.enabled()) {
                 conveyorWatchService.cancelWatch(username, conveyor, id, false);
@@ -91,7 +92,7 @@ public class CommandController {
                     body == null ? new byte[0] : body,
                     forwardedParams
             );
-            return ResponseEntity.status(HttpStatus.OK).body(result);
+            return ResponseEntity.status(resolveHttpStatus(result.getStatus())).body(result);
         } catch (RuntimeException ex) {
             if (watchRequest.enabled()) {
                 conveyorWatchService.cancelWatch(username, conveyor, null, true);
@@ -140,6 +141,13 @@ public class CommandController {
             throw new IllegalArgumentException("Authenticated user is required");
         }
         return authentication.getName();
+    }
+
+    private HttpStatus resolveHttpStatus(PlacementStatus status) {
+        if (status == PlacementStatus.IN_PROGRESS || status == PlacementStatus.ACCEPTED) {
+            return HttpStatus.ACCEPTED;
+        }
+        return HttpStatus.OK;
     }
 
     private record WatchRequest(boolean enabled, Integer limit) {

@@ -73,6 +73,75 @@ class CommandControllerTest {
     }
 
     @Test
+    void commandWithoutRequestTtlReturnsAcceptedWhenScheduled() throws Exception {
+        var response = PlacementResult.<Object>builder()
+                .status(PlacementStatus.IN_PROGRESS)
+                .timestamp(Instant.parse("2026-02-22T20:04:00Z"))
+                .correlationId("9")
+                .label("cancel")
+                .properties(Map.of("conveyor", "collector", "command", "cancel", "correlationId", "9", "foreach", false))
+                .build();
+        when(commandService.executeById(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(byte[].class),
+                ArgumentMatchers.anyMap())
+        ).thenReturn(response);
+
+        mockMvc.perform(post("/command/{conveyor}/{id}/{command}", "collector", "9", "cancel")
+                        .with(user("rest").roles("REST_USER"))
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content("ignored"))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+
+        verify(commandService).executeById(
+                eq("collector"),
+                eq("9"),
+                eq("cancel"),
+                ArgumentMatchers.any(byte[].class),
+                argThat(params -> !params.containsKey("requestTTL"))
+        );
+    }
+
+    @Test
+    void commandWithRequestTtlReturnsOkWhenCompleted() throws Exception {
+        var response = PlacementResult.<Object>builder()
+                .status(PlacementStatus.COMPLETED)
+                .result(Boolean.TRUE)
+                .timestamp(Instant.parse("2026-02-22T20:05:00Z"))
+                .correlationId("10")
+                .label("cancel")
+                .properties(Map.of("conveyor", "collector", "command", "cancel", "correlationId", "10", "foreach", false))
+                .build();
+        when(commandService.executeById(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(byte[].class),
+                ArgumentMatchers.anyMap())
+        ).thenReturn(response);
+
+        mockMvc.perform(post("/command/{conveyor}/{id}/{command}", "collector", "10", "cancel")
+                        .with(user("rest").roles("REST_USER"))
+                        .param("requestTTL", "1 SECONDS")
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content("ignored"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.result").value(true));
+
+        verify(commandService).executeById(
+                eq("collector"),
+                eq("10"),
+                eq("cancel"),
+                ArgumentMatchers.any(byte[].class),
+                argThat(params -> "1 SECONDS".equals(params.get("requestTTL")))
+        );
+    }
+
+    @Test
     void commandForeachReturnsKeyedMapResult() throws Exception {
         var response = PlacementResult.<Object>builder()
                 .status(PlacementStatus.COMPLETED)
@@ -168,7 +237,7 @@ class CommandControllerTest {
                         .param("ttl", "2 SECONDS")
                         .contentType(MediaType.TEXT_PLAIN)
                         .content(""))
-                .andExpect(status().isOk())
+                .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
 
         verify(conveyorWatchService).registerWatch("rest", "collector", null, true, 120);

@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.service.web;
 
 import com.aegisql.conveyor.service.api.PlacementResult;
+import com.aegisql.conveyor.service.api.PlacementStatus;
 import com.aegisql.conveyor.service.core.StaticPartService;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
@@ -39,6 +40,13 @@ public class StaticPartController {
                 value,
                 requestProperties
         );
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return ResponseEntity.status(resolveHttpStatus(result.getStatus())).body(result);
+    }
+
+    private HttpStatus resolveHttpStatus(PlacementStatus status) {
+        if (status == PlacementStatus.IN_PROGRESS || status == PlacementStatus.ACCEPTED) {
+            return HttpStatus.ACCEPTED;
+        }
+        return HttpStatus.OK;
     }
 }

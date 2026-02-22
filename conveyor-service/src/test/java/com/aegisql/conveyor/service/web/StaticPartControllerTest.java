@@ -19,6 +19,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -62,6 +64,73 @@ class StaticPartControllerTest {
                 .andExpect(jsonPath("$.status").value("COMPLETED"))
                 .andExpect(jsonPath("$.result").value(true))
                 .andExpect(jsonPath("$.label").value("CONFIG"));
+    }
+
+    @Test
+    void staticPartWithoutRequestTtlReturnsAcceptedWhenScheduled() throws Exception {
+        var response = PlacementResult.<Boolean>builder()
+                .status(PlacementStatus.IN_PROGRESS)
+                .timestamp(Instant.parse("2026-02-22T20:02:00Z"))
+                .label("CONFIG")
+                .properties(Map.of("conveyor", "collector", "label", "CONFIG"))
+                .build();
+        when(staticPartService.placeStaticPart(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(byte[].class),
+                ArgumentMatchers.anyMap())
+        ).thenReturn(response);
+
+        mockMvc.perform(post("/static-part/{conveyor}/{label}", "collector", "CONFIG")
+                        .with(user("rest").roles("REST_USER"))
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content("sample-value"))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+
+        verify(staticPartService).placeStaticPart(
+                ArgumentMatchers.startsWith(MediaType.TEXT_PLAIN_VALUE),
+                ArgumentMatchers.eq("collector"),
+                ArgumentMatchers.eq("CONFIG"),
+                ArgumentMatchers.any(byte[].class),
+                argThat(params -> !params.containsKey("requestTTL"))
+        );
+    }
+
+    @Test
+    void staticPartWithRequestTtlReturnsOkWhenCompleted() throws Exception {
+        var response = PlacementResult.<Boolean>builder()
+                .status(PlacementStatus.COMPLETED)
+                .result(true)
+                .timestamp(Instant.parse("2026-02-22T20:03:00Z"))
+                .label("CONFIG")
+                .properties(Map.of("conveyor", "collector", "label", "CONFIG"))
+                .build();
+        when(staticPartService.placeStaticPart(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(byte[].class),
+                ArgumentMatchers.anyMap())
+        ).thenReturn(response);
+
+        mockMvc.perform(post("/static-part/{conveyor}/{label}", "collector", "CONFIG")
+                        .with(user("rest").roles("REST_USER"))
+                        .queryParam("requestTTL", "1 SECONDS")
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content("sample-value"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.result").value(true));
+
+        verify(staticPartService).placeStaticPart(
+                ArgumentMatchers.startsWith(MediaType.TEXT_PLAIN_VALUE),
+                ArgumentMatchers.eq("collector"),
+                ArgumentMatchers.eq("CONFIG"),
+                ArgumentMatchers.any(byte[].class),
+                argThat(params -> "1 SECONDS".equals(params.get("requestTTL")))
+        );
     }
 
     @Test

@@ -81,6 +81,87 @@ class PartControllerTest {
     }
 
     @Test
+    void placePartWithoutRequestTtlReturnsAcceptedWhenScheduled() throws Exception {
+        var response = PlacementResult.<Boolean>builder()
+                .status(PlacementStatus.IN_PROGRESS)
+                .timestamp(Instant.parse("2026-02-22T20:00:00Z"))
+                .correlationId("7")
+                .label("USER")
+                .properties(new HashMap<>(Map.of(
+                        "conveyor", "collector",
+                        "correlationId", "7",
+                        "label", "USER"
+                )))
+                .build();
+        when(placementService.placePart(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(byte[].class),
+                ArgumentMatchers.anyMap())
+        ).thenReturn(response);
+
+        mockMvc.perform(post("/part/{conveyor}/{id}/{label}", "collector", "7", "USER")
+                        .with(user("rest").roles("REST_USER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Ann\",\"age\":42}"))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+
+        verify(placementService).placePart(
+                ArgumentMatchers.anyString(),
+                eq("collector"),
+                eq("7"),
+                eq("USER"),
+                ArgumentMatchers.any(byte[].class),
+                argThat(params -> !params.containsKey("requestTTL"))
+        );
+    }
+
+    @Test
+    void placePartWithRequestTtlReturnsOkWhenCompleted() throws Exception {
+        var response = PlacementResult.<Boolean>builder()
+                .status(PlacementStatus.COMPLETED)
+                .result(true)
+                .timestamp(Instant.parse("2026-02-22T20:01:00Z"))
+                .correlationId("8")
+                .label("USER")
+                .properties(new HashMap<>(Map.of(
+                        "conveyor", "collector",
+                        "correlationId", "8",
+                        "label", "USER"
+                )))
+                .build();
+        when(placementService.placePart(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(byte[].class),
+                ArgumentMatchers.anyMap())
+        ).thenReturn(response);
+
+        mockMvc.perform(post("/part/{conveyor}/{id}/{label}", "collector", "8", "USER")
+                        .with(user("rest").roles("REST_USER"))
+                        .param("requestTTL", "1 SECONDS")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Ann\",\"age\":42}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.result").value(true));
+
+        verify(placementService).placePart(
+                ArgumentMatchers.anyString(),
+                eq("collector"),
+                eq("8"),
+                eq("USER"),
+                ArgumentMatchers.any(byte[].class),
+                argThat(params -> "1 SECONDS".equals(params.get("requestTTL")))
+        );
+    }
+
+    @Test
     void placePartForeachWithLabelOnlyReturnsCompletedResult() throws Exception {
         var response = PlacementResult.<Boolean>builder()
                 .status(PlacementStatus.COMPLETED)
@@ -205,7 +286,7 @@ class PartControllerTest {
                         .param("ttl", "3 SECONDS")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Ann\"}"))
-                .andExpect(status().isOk())
+                .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
 
         verify(conveyorWatchService).registerWatch("rest", "collector", "6", false, 77);

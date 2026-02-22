@@ -250,6 +250,12 @@ If `requestTTL` is absent:
 
 Duplicates are accepted (no deduplication).
 
+HTTP status mapping for successful part/static-part/command placement responses:
+
+- If `requestTTL` is missing and the request is only scheduled (`status=IN_PROGRESS` or `status=ACCEPTED`) => HTTP `202 Accepted`
+- If `requestTTL` is present and request completion is obtained in-request (`status=COMPLETED`) => HTTP `200 OK`
+- Other non-exception result statuses continue to use HTTP `200 OK`, with detailed outcome carried in `PlacementResult.status`
+
 ### 7.8 Error mapping
 
 `RestExceptionHandler` maps:
