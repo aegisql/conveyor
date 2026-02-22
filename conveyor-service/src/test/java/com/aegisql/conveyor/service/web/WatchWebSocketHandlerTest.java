@@ -58,6 +58,19 @@ class WatchWebSocketHandlerTest {
     }
 
     @Test
+    void transportErrorDoesNotCloseAlreadyClosedSession() throws Exception {
+        ConveyorWatchService watchService = mock(ConveyorWatchService.class);
+        WatchWebSocketHandler handler = new WatchWebSocketHandler(watchService);
+        WebSocketSession session = mock(WebSocketSession.class);
+        when(session.isOpen()).thenReturn(false);
+
+        handler.handleTransportError(session, new RuntimeException("boom"));
+
+        verify(watchService).unregisterSession(session);
+        verify(session).isOpen();
+    }
+
+    @Test
     void handleTextMessageIgnoresClientPayloads() throws Exception {
         ConveyorWatchService watchService = mock(ConveyorWatchService.class);
         WatchWebSocketHandler handler = new WatchWebSocketHandler(watchService);
