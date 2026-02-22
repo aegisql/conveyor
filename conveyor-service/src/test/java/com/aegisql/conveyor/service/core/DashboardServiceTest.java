@@ -137,6 +137,63 @@ class DashboardServiceTest {
     }
 
     @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void inspectWithoutMBeanAndWithMetaInfoErrorReturnsSafeDefaults() {
+        DashboardService service = newService(false, tempDir.resolve("upload-inspect-no-mbean"), "1 MINUTES");
+        String conveyorName = "inspect-no-mbean-" + System.nanoTime();
+
+        Conveyor<Object, Object, Object> conveyor = mock(Conveyor.class);
+        when(conveyor.getName()).thenReturn(conveyorName);
+        when(conveyor.getEnclosingConveyor()).thenReturn(null);
+        when(conveyor.isRunning()).thenReturn(true);
+        when(conveyor.mBeanInterface()).thenReturn(null);
+        when(conveyor.getMetaInfo()).thenThrow(new IllegalStateException("meta unavailable"));
+        Conveyor.register(conveyor, conveyor);
+        try {
+            Map<String, Object> inspected = service.inspect(conveyorName);
+
+            assertThat(inspected).containsEntry("name", conveyorName);
+            assertThat(inspected).containsEntry("metaInfoAvailable", false);
+            assertThat(inspected).containsEntry("metaInfoError", "Meta info is not available");
+            assertThat((List<?>) inspected.get("attributes")).isEmpty();
+            assertThat((List<?>) inspected.get("operations")).isEmpty();
+            assertThat((List<?>) inspected.get("writableParameters")).isEmpty();
+        } finally {
+            safeUnregister(conveyorName);
+        }
+    }
+
+    @Test
+    void inspectHandlesGetterInvocationErrorsAndMarksStopOperations() {
+        DashboardService service = newService(false, tempDir.resolve("upload-inspect-throwing"), "1 MINUTES");
+        String conveyorName = "inspect-throwing-" + System.nanoTime();
+
+        ThrowingMBeanImpl proxy = new ThrowingMBeanImpl();
+        Conveyor<Object, Object, Object> conveyor = registerConveyor(conveyorName, null, true, false);
+        try {
+            when(conveyor.mBeanInterface()).thenReturn((Class) ThrowingMBean.class);
+            when(conveyor.getMBeanInstance(conveyorName)).thenReturn(proxy);
+
+            Map<String, Object> inspected = service.inspect(conveyorName);
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> attributes = (List<Map<String, Object>>) inspected.get("attributes");
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> operations = (List<Map<String, Object>>) inspected.get("operations");
+
+            assertThat(attributes).anyMatch(row ->
+                    "broken".equals(row.get("name"))
+                            && String.valueOf(row.get("value")).startsWith("<error:")
+            );
+            assertThat(operations).anyMatch(row ->
+                    "hardStop".equals(row.get("name")) && Boolean.TRUE.equals(row.get("stopOperation"))
+            );
+        } finally {
+            safeUnregister(conveyorName);
+        }
+    }
+
+    @Test
     void updateParameterAndInvokeMBeanWorkForRegisteredConveyor() {
         DashboardService service = newService(false, tempDir.resolve("upload-mbean"), "1 MINUTES");
         String conveyorName = "mbean-conveyor-" + System.nanoTime();
@@ -184,6 +241,150 @@ class DashboardServiceTest {
         try {
             service.reload(conveyorName, "1 MILLISECONDS");
             verify(conveyor).stop();
+        } finally {
+            safeUnregister(conveyorName);
+        }
+    }
+
+    @Test
+    void reloadRejectsInvalidStopTimeoutAndDeleteRejectsChildConveyor() {
+        DashboardService service = newService(true, tempDir.resolve("upload-invalid-stop"), "1 SECONDS");
+        String parentName = "reload-parent-" + System.nanoTime();
+        String childName = "reload-child-" + System.nanoTime();
+
+        Conveyor<Object, Object, Object> parent = registerConveyor(parentName, null, false, false);
+        Conveyor<Object, Object, Object> child = registerConveyor(childName, parent, false, false);
+        try {
+            assertThatThrownBy(() -> service.reload(parentName, "bad-timeout"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Invalid stopTimeout");
+
+            assertThatThrownBy(() -> service.delete(childName, "1 SECONDS"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("top-level conveyors");
+        } finally {
+            safeUnregister(childName);
+            safeUnregister(parentName);
+        }
+    }
+
+    @Test
+    void uploadValidationRejectsInvalidInput() {
+        DashboardService service = newService(true, tempDir.resolve("upload-validation"), "1 SECONDS");
+
+        MockMultipartFile empty = new MockMultipartFile(
+                "file",
+                "demo.jar",
+                "application/java-archive",
+                new byte[0]
+        );
+        assertThatThrownBy(() -> service.upload(empty))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("empty");
+
+        MockMultipartFile missingName = new MockMultipartFile(
+                "file",
+                "",
+                "application/java-archive",
+                new byte[]{1}
+        );
+        assertThatThrownBy(() -> service.upload(missingName))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("name is missing");
+
+        MockMultipartFile badExtension = new MockMultipartFile(
+                "file",
+                "demo.txt",
+                "text/plain",
+                new byte[]{1}
+        );
+        assertThatThrownBy(() -> service.upload(badExtension))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(".jar");
+    }
+
+    @Test
+    void updateParameterAndInvokeMBeanValidateInputs() {
+        DashboardService service = newService(false, tempDir.resolve("upload-mbean-fail"), "1 SECONDS");
+        String conveyorName = "mbean-invalid-" + System.nanoTime();
+
+        TestMBeanImpl proxy = new TestMBeanImpl();
+        Conveyor<Object, Object, Object> conveyor = registerConveyor(conveyorName, null, true, false);
+        try {
+            when(conveyor.mBeanInterface()).thenReturn((Class) TestMBean.class);
+            when(conveyor.getMBeanInstance(conveyorName)).thenReturn(proxy);
+
+            assertThatThrownBy(() -> service.updateParameter(conveyorName, "missing", "1"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Unknown writable parameter");
+
+            assertThatThrownBy(() -> service.invokeMBean(conveyorName, "missingOperation", null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Operation not found");
+
+            when(conveyor.mBeanInterface()).thenReturn(null);
+            assertThatThrownBy(() -> service.updateParameter(conveyorName, "limit", "1"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("No MBean interface");
+        } finally {
+            safeUnregister(conveyorName);
+        }
+    }
+
+    @Test
+    void updateParameterAndInvokeMBeanCoverPrimitiveEnumAndPojoConversions() {
+        DashboardService service = newService(false, tempDir.resolve("upload-mbean-convert"), "1 SECONDS");
+        String conveyorName = "mbean-convert-" + System.nanoTime();
+
+        ConversionMBeanImpl proxy = new ConversionMBeanImpl();
+        Conveyor<Object, Object, Object> conveyor = registerConveyor(conveyorName, null, true, false);
+        try {
+            when(conveyor.mBeanInterface()).thenReturn((Class) ConversionMBean.class);
+            when(conveyor.getMBeanInstance(conveyorName)).thenReturn(proxy);
+
+            service.updateParameter(conveyorName, "longValue", "12");
+            service.updateParameter(conveyorName, "enabled", "true");
+            service.updateParameter(conveyorName, "marker", "Z");
+            service.updateParameter(conveyorName, "level", "HIGH");
+
+            assertThat(proxy.getLongValue()).isEqualTo(12L);
+            assertThat(proxy.isEnabled()).isTrue();
+            assertThat(proxy.getMarker()).isEqualTo('Z');
+            assertThat(proxy.getLevel()).isEqualTo(Level.HIGH);
+
+            Object voidResult = service.invokeMBean(conveyorName, "reset", null);
+            assertThat(voidResult).isEqualTo("OK");
+
+            Object pojoResult = service.invokeMBean(
+                    conveyorName,
+                    "acceptPojo",
+                    Map.of("name", "n1", "count", 5)
+            );
+            assertThat(pojoResult).isEqualTo("accepted:n1:5");
+            assertThat(proxy.getPojo()).isEqualTo(new ConversionPojo("n1", 5));
+
+            assertThatThrownBy(() -> service.updateParameter(conveyorName, "marker", "ZZ"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Single character expected");
+        } finally {
+            safeUnregister(conveyorName);
+        }
+    }
+
+    @Test
+    void invokeMBeanRejectsOperationWhenArgumentPresenceDoesNotMatchSignature() {
+        DashboardService service = newService(false, tempDir.resolve("upload-mbean-arg-mismatch"), "1 SECONDS");
+        String conveyorName = "mbean-arg-mismatch-" + System.nanoTime();
+
+        ConversionMBeanImpl proxy = new ConversionMBeanImpl();
+        Conveyor<Object, Object, Object> conveyor = registerConveyor(conveyorName, null, true, false);
+        try {
+            when(conveyor.mBeanInterface()).thenReturn((Class) ConversionMBean.class);
+            when(conveyor.getMBeanInstance(conveyorName)).thenReturn(proxy);
+
+            assertThatThrownBy(() -> service.invokeMBean(conveyorName, "acceptPojo", null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Operation not found");
         } finally {
             safeUnregister(conveyorName);
         }
@@ -266,6 +467,126 @@ class DashboardServiceTest {
         @Override
         public String echo(String value) {
             return "echo:" + value;
+        }
+    }
+
+    public interface ThrowingMBean {
+        int getStableValue();
+        int getBroken();
+        void hardStop();
+        String alpha();
+    }
+
+    public static class ThrowingMBeanImpl implements ThrowingMBean {
+        @Override
+        public int getStableValue() {
+            return 11;
+        }
+
+        @Override
+        public int getBroken() {
+            throw new IllegalStateException("boom");
+        }
+
+        @Override
+        public void hardStop() {
+            // no-op
+        }
+
+        @Override
+        public String alpha() {
+            return "a";
+        }
+    }
+
+    enum Level {
+        LOW, HIGH
+    }
+
+    record ConversionPojo(String name, int count) {
+    }
+
+    public interface ConversionMBean {
+        long getLongValue();
+        void setLongValue(long value);
+        boolean isEnabled();
+        void setEnabled(boolean enabled);
+        char getMarker();
+        void setMarker(char marker);
+        Level getLevel();
+        void setLevel(Level level);
+        ConversionPojo getPojo();
+        void setPojo(ConversionPojo pojo);
+        void reset();
+        String acceptPojo(ConversionPojo pojo);
+    }
+
+    public static class ConversionMBeanImpl implements ConversionMBean {
+        private long longValue;
+        private boolean enabled;
+        private char marker;
+        private Level level = Level.LOW;
+        private ConversionPojo pojo;
+
+        @Override
+        public long getLongValue() {
+            return longValue;
+        }
+
+        @Override
+        public void setLongValue(long value) {
+            this.longValue = value;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        @Override
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        @Override
+        public char getMarker() {
+            return marker;
+        }
+
+        @Override
+        public void setMarker(char marker) {
+            this.marker = marker;
+        }
+
+        @Override
+        public Level getLevel() {
+            return level;
+        }
+
+        @Override
+        public void setLevel(Level level) {
+            this.level = level;
+        }
+
+        @Override
+        public ConversionPojo getPojo() {
+            return pojo;
+        }
+
+        @Override
+        public void setPojo(ConversionPojo pojo) {
+            this.pojo = pojo;
+        }
+
+        @Override
+        public void reset() {
+            this.longValue = 0L;
+        }
+
+        @Override
+        public String acceptPojo(ConversionPojo pojo) {
+            this.pojo = pojo;
+            return "accepted:" + pojo.name() + ":" + pojo.count();
         }
     }
 }

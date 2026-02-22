@@ -18,6 +18,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.lang.reflect.Method;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -241,6 +242,47 @@ class ConveyorWatchServiceTest {
 
         assertThat(hooked.resultSetCount().get()).isEqualTo(1);
         assertThat(hooked.scrapSetCount().get()).isEqualTo(1);
+    }
+
+    @Test
+    void privateHelpersMapStatusesSanitizePayloadsAndParseLongs() throws Exception {
+        service = new ConveyorWatchService(mapper, 3);
+
+        assertThat(invokePrivate(service, "mapStatus", new Class<?>[]{Status.class}, (Object) null))
+                .isEqualTo(PlacementStatus.COMPLETED);
+        assertThat(invokePrivate(service, "mapStatus", new Class<?>[]{Status.class}, Status.WAITING_DATA))
+                .isEqualTo(PlacementStatus.IN_PROGRESS);
+        assertThat(invokePrivate(service, "mapStatus", new Class<?>[]{Status.class}, Status.TIMED_OUT))
+                .isEqualTo(PlacementStatus.TIMEOUT_WAITING_FOR_COMPLETION);
+        assertThat(invokePrivate(service, "mapStatus", new Class<?>[]{Status.class}, Status.READY))
+                .isEqualTo(PlacementStatus.COMPLETED);
+        assertThat(invokePrivate(service, "mapStatus", new Class<?>[]{Status.class}, Status.CANCELED))
+                .isEqualTo(PlacementStatus.REJECTED);
+        assertThat(invokePrivate(service, "mapStatus", new Class<?>[]{Status.class}, Status.NOT_FOUND))
+                .isEqualTo(PlacementStatus.REJECTED);
+        assertThat(invokePrivate(service, "mapStatus", new Class<?>[]{Status.class}, Status.INVALID))
+                .isEqualTo(PlacementStatus.FAILED);
+
+        Object sanitizedMap = invokePrivate(service, "sanitizeForJson", new Class<?>[]{Object.class}, Map.of("k", 1));
+        assertThat(sanitizedMap).isInstanceOf(Map.class);
+        assertThat((Map<Object, Object>) sanitizedMap).containsEntry("k", 1);
+
+        class SelfRef {
+            Object self = this;
+        }
+        Object fallback = invokePrivate(service, "sanitizeForJson", new Class<?>[]{Object.class}, new SelfRef());
+        assertThat(fallback).isInstanceOf(String.class);
+
+        assertThat(invokePrivate(service, "parseLongValue", new Class<?>[]{Object.class}, 7)).isEqualTo(7L);
+        assertThat(invokePrivate(service, "parseLongValue", new Class<?>[]{Object.class}, " 9 ")).isEqualTo(9L);
+        assertThat(invokePrivate(service, "parseLongValue", new Class<?>[]{Object.class}, "not-a-number")).isNull();
+        assertThat(invokePrivate(service, "parseLongValue", new Class<?>[]{Object.class}, new Object())).isNull();
+    }
+
+    private static Object invokePrivate(Object target, String name, Class<?>[] types, Object... args) throws Exception {
+        Method method = target.getClass().getDeclaredMethod(name, types);
+        method.setAccessible(true);
+        return method.invoke(target, args);
     }
 
     private WebSocketSession openSession(String username, String id) {
