@@ -13,7 +13,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.version>1.7.3-SNAPSHOT</project.version>
 		<maven.compiler.release>21</maven.compiler.release>
-		<jacoco.version>0.8.13</jacoco.version>
+		<jacoco.version>0.8.14</jacoco.version>
 		<argLine></argLine>
 	</properties>
 
