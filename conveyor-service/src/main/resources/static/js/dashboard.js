@@ -2465,6 +2465,7 @@
         nameValue.textContent = asText(payload.name);
       }
       runningValue.textContent = asText(payload.running);
+      runningValue.classList.remove('details-running-unavailable');
       if (mbeanValue) {
         mbeanValue.textContent = asText(payload.mbeanInterface);
       }
@@ -2503,6 +2504,7 @@
       } catch (error) {
         console.error('Failed to refresh conveyor details', error);
         runningValue.textContent = DETAILS_SERVER_NOT_RESPONDING_TEXT;
+        runningValue.classList.add('details-running-unavailable');
       } finally {
         requestInFlight = false;
       }

@@ -683,6 +683,11 @@ h1, h2, h3 {
   border: 1px solid #ecefe8;
 }
 
+.details-running-unavailable {
+  color: var(--danger);
+  font-weight: 700;
+}
+
 .meta-panel {
   margin-top: 8px;
   border: 1px solid #d8e3d8;
