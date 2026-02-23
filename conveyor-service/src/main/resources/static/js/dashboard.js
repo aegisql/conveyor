@@ -15,6 +15,8 @@
   const OUTPUT_DEFAULT_FONT_SIZE = 12;
   const WATCH_HISTORY_MIN_LIMIT = 1;
   const WATCH_HISTORY_DEFAULT_LIMIT = 100;
+  const DETAILS_REFRESH_INTERVAL_MILLIS = 5_000;
+  const DETAILS_SERVER_NOT_RESPONDING_TEXT = 'server not responding';
 
   function initTabs() {
     const buttons = Array.from(document.querySelectorAll('.tab-button[data-tab-target]'));
@@ -2375,6 +2377,141 @@
     window.setInterval(pollAdminEvents, 1000);
   }
 
+  function initConveyorDetailsAutoRefresh() {
+    const detailsPanel = document.getElementById('tab-details');
+    const nameValue = document.getElementById('details-name');
+    const runningValue = document.getElementById('details-running');
+    const mbeanValue = document.getElementById('details-mbean-interface');
+    const metaInfoValue = document.getElementById('details-meta-info-available');
+    const generatedAtValue = document.getElementById('details-generated-at');
+    const uploadDirValue = document.getElementById('details-upload-dir');
+    const attributesBody = document.getElementById('details-attributes-body');
+
+    if (!detailsPanel || !runningValue) {
+      return;
+    }
+
+    let requestInFlight = false;
+
+    function detailsTabActive() {
+      return !detailsPanel.hidden;
+    }
+
+    function asText(value) {
+      if (value === null || value === undefined || value === '') {
+        return '-';
+      }
+      return String(value);
+    }
+
+    function attributeValueText(value) {
+      if (value === null || value === undefined) {
+        return 'null';
+      }
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        return String(value);
+      }
+      try {
+        return JSON.stringify(value);
+      } catch (error) {
+        return String(value);
+      }
+    }
+
+    function renderAttributes(attributes) {
+      if (!attributesBody) {
+        return;
+      }
+      const rows = Array.isArray(attributes) ? attributes : [];
+      attributesBody.innerHTML = '';
+      if (rows.length === 0) {
+        const emptyRow = document.createElement('tr');
+        const emptyCell = document.createElement('td');
+        emptyCell.colSpan = 4;
+        emptyCell.textContent = 'No parameters available.';
+        emptyRow.appendChild(emptyCell);
+        attributesBody.appendChild(emptyRow);
+        return;
+      }
+
+      rows.forEach(function (attr) {
+        const row = document.createElement('tr');
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = asText(attr && attr.name);
+
+        const valueCell = document.createElement('td');
+        valueCell.textContent = attributeValueText(attr ? attr.value : null);
+
+        const typeCell = document.createElement('td');
+        typeCell.textContent = asText(attr && attr.type);
+
+        const accessCell = document.createElement('td');
+        accessCell.textContent = attr && attr.writable ? 'Writable' : 'Read-only';
+
+        row.appendChild(nameCell);
+        row.appendChild(valueCell);
+        row.appendChild(typeCell);
+        row.appendChild(accessCell);
+        attributesBody.appendChild(row);
+      });
+    }
+
+    function applyPayload(payload) {
+      if (!payload || typeof payload !== 'object') {
+        return;
+      }
+      if (nameValue) {
+        nameValue.textContent = asText(payload.name);
+      }
+      runningValue.textContent = asText(payload.running);
+      if (mbeanValue) {
+        mbeanValue.textContent = asText(payload.mbeanInterface);
+      }
+      if (metaInfoValue) {
+        metaInfoValue.textContent = asText(payload.metaInfoAvailable);
+      }
+      if (generatedAtValue) {
+        generatedAtValue.textContent = asText(payload.generatedAt);
+      }
+      if (uploadDirValue) {
+        uploadDirValue.textContent = asText(payload.uploadDirectory);
+      }
+      renderAttributes(payload.attributes);
+    }
+
+    async function refreshDetails() {
+      if (requestInFlight || !detailsTabActive()) {
+        return;
+      }
+      const conveyorName = selectedName();
+      if (!conveyorName) {
+        return;
+      }
+
+      requestInFlight = true;
+      try {
+        const response = await fetch('/api/dashboard/' + encodeURIComponent(conveyorName), {
+          method: 'GET',
+          headers: { Accept: 'application/json' }
+        });
+        if (!response.ok) {
+          throw new Error('Details API returned status ' + response.status);
+        }
+        const payload = await response.json();
+        applyPayload(payload);
+      } catch (error) {
+        console.error('Failed to refresh conveyor details', error);
+        runningValue.textContent = DETAILS_SERVER_NOT_RESPONDING_TEXT;
+      } finally {
+        requestInFlight = false;
+      }
+    }
+
+    refreshDetails();
+    window.setInterval(refreshDetails, DETAILS_REFRESH_INTERVAL_MILLIS);
+  }
+
   async function loadTreeData() {
     const embedded = parseEmbeddedTree();
     try {
@@ -2441,6 +2578,7 @@
   const outputDock = initOutputDock();
   const watchPanel = initWatchPanel(outputDock);
   initAdminOperationEvents(outputDock);
+  initConveyorDetailsAutoRefresh();
 
   const outputEvent = parseEmbeddedOutputEvent();
   if (outputEvent) {

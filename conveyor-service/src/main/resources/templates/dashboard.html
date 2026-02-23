@@ -108,12 +108,12 @@
                      th:classappend="${activeTab == 'tab-details'} ? ' active'"
                      th:attr="hidden=${activeTab == 'tab-details'} ? null : 'hidden'">
                 <div class="kv">
-                    <div><strong>Name</strong><span th:text="${selected['name']}">-</span></div>
-                    <div><strong>Running</strong><span th:text="${selected['running']}">-</span></div>
-                    <div><strong>MBean</strong><span th:text="${selected['mbeanInterface']}">-</span></div>
-                    <div><strong>MetaInfo</strong><span th:text="${selected['metaInfoAvailable']}">-</span></div>
-                    <div><strong>Snapshot Time</strong><span th:text="${selected['generatedAt']}">-</span></div>
-                    <div><strong>Upload Dir</strong><span th:text="${selected['uploadDirectory']}">-</span></div>
+                    <div><strong>Name</strong><span id="details-name" th:text="${selected['name']}">-</span></div>
+                    <div><strong>Running</strong><span id="details-running" th:text="${selected['running']}">-</span></div>
+                    <div><strong>MBean</strong><span id="details-mbean-interface" th:text="${selected['mbeanInterface']}">-</span></div>
+                    <div><strong>MetaInfo</strong><span id="details-meta-info-available" th:text="${selected['metaInfoAvailable']}">-</span></div>
+                    <div><strong>Snapshot Time</strong><span id="details-generated-at" th:text="${selected['generatedAt']}">-</span></div>
+                    <div><strong>Upload Dir</strong><span id="details-upload-dir" th:text="${selected['uploadDirectory']}">-</span></div>
                 </div>
 
                 <h3>Meta Info</h3>
@@ -180,7 +180,7 @@
                         <th>Access</th>
                     </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="details-attributes-body">
                     <tr th:if="${#lists.isEmpty(selected['attributes'])}">
                         <td colspan="4">No parameters available.</td>
                     </tr>
