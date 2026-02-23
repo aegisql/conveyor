@@ -659,7 +659,17 @@ public abstract class ParallelConveyor<K, L, OUT> implements Conveyor<K, L, OUT>
 					return name;
 				}
 
-				@Override
+                @Override
+                public List<Long> getCartCounters() {
+                    return conveyors.stream().map(Conveyor::getCartCounter).toList();
+                }
+
+                @Override
+                public List<Integer> getCollectorSizes() {
+                    return conveyors.stream().map(Conveyor::getCollectorSize).toList();
+                }
+
+                @Override
 				public String getGenericName() {
 					return thisConv.getGenericName();
 				}

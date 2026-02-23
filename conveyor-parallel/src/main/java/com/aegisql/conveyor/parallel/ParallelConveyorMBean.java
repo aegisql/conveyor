@@ -5,95 +5,128 @@ package com.aegisql.conveyor.parallel;
 
 import com.aegisql.conveyor.Conveyor;
 
+import java.util.List;
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Interface ParallelConveyorMBean.
  */
 public interface ParallelConveyorMBean {
-	
-	/**
-	 * Gets the name.
-	 *
-	 * @return the name
-	 */
-	String getName();
 
-	String getGenericName();
-	
-	/**
-	 * Gets the type.
-	 *
-	 * @return the type
-	 */
-	String getType();
-	
-	/**
-	 * Gets the inner conveyors count.
-	 *
-	 * @return the inner conveyors count
-	 */
-	int getInnerConveyorsCount();
-	
-	/**
-	 * Checks if is running.
-	 *
-	 * @return true, if is running
-	 */
-	boolean isRunning();
+    /**
+     * Gets the name.
+     *
+     * @return the name
+     */
+    String getName();
 
-	/**
-	 * Conveyor.
-	 *
-	 * @param <K> the key type
-	 * @param <L> the generic type
-	 * @param <OUT> the generic type
-	 * @return the conveyor
-	 */
-	<K,L,OUT> Conveyor<K, L, OUT> conveyor();
-	
-	/**
-	 * Stop.
-	 */
-	void stop();
-	
-	/**
-	 * Complete and stop.
-	 */
-	void completeAndStop();
-	
-	/**
-	 * Sets the idle heart beat msec.
-	 *
-	 * @param msec the new idle heart beat msec
-	 */
-	void setIdleHeartBeatMsec(long msec);
-	
-	/**
-	 * Sets the default builder timeout msec.
-	 *
-	 * @param msec the new default builder timeout msec
-	 */
-	void setDefaultBuilderTimeoutMsec(long msec);
-	
-	/**
-	 * Reject unexpireable carts older than msec.
-	 *
-	 * @param msec the msec
-	 */
-	void setRejectUnexpireableCartsOlderThanMsec(long msec);
-	
-	/**
-	 * Sets the expiration postpone time msec.
-	 *
-	 * @param msec the new expiration postpone time msec
-	 */
-	void setExpirationPostponeTimeMsec(long msec);
-	
-	boolean isSuspended();
-	
-	void suspend();
-	
-	void resume();
+    /**
+     * Gets cart counters.
+     *
+     * @return the cart counters
+     */
+    List<Long> getCartCounters();
+
+    /**
+     * Gets collector sizes.
+     *
+     * @return the collector sizes
+     */
+    List<Integer> getCollectorSizes();
+
+    /**
+     * Gets generic name.
+     *
+     * @return the generic name
+     */
+    String getGenericName();
+
+    /**
+     * Gets the type.
+     *
+     * @return the type
+     */
+    String getType();
+
+    /**
+     * Gets the inner conveyors count.
+     *
+     * @return the inner conveyors count
+     */
+    int getInnerConveyorsCount();
+
+    /**
+     * Checks if is running.
+     *
+     * @return true, if is running
+     */
+    boolean isRunning();
+
+    /**
+     * Conveyor.
+     *
+     * @param <K>   the key type
+     * @param <L>   the generic type
+     * @param <OUT> the generic type
+     * @return the conveyor
+     */
+    <K,L,OUT> Conveyor<K, L, OUT> conveyor();
+
+    /**
+     * Stop.
+     */
+    void stop();
+
+    /**
+     * Complete and stop.
+     */
+    void completeAndStop();
+
+    /**
+     * Sets the idle heart beat msec.
+     *
+     * @param msec the new idle heart beat msec
+     */
+    void setIdleHeartBeatMsec(long msec);
+
+    /**
+     * Sets the default builder timeout msec.
+     *
+     * @param msec the new default builder timeout msec
+     */
+    void setDefaultBuilderTimeoutMsec(long msec);
+
+    /**
+     * Reject unexpireable carts older than msec.
+     *
+     * @param msec the msec
+     */
+    void setRejectUnexpireableCartsOlderThanMsec(long msec);
+
+    /**
+     * Sets the expiration postpone time msec.
+     *
+     * @param msec the new expiration postpone time msec
+     */
+    void setExpirationPostponeTimeMsec(long msec);
+
+    /**
+     * Is suspended boolean.
+     *
+     * @return the boolean
+     */
+    boolean isSuspended();
+
+    /**
+     * Suspend.
+     */
+    void suspend();
+
+    /**
+     * Resume.
+     */
+    void resume();
 
 	
 }
