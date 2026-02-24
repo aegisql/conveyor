@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <springProperty scope="context" name="rootLogLevel" source="logging.level.root" defaultValue="INFO"/>
+    <springProperty scope="context" name="auditLogFile" source="conveyor.service.audit.log-file"
+                    defaultValue="./logs/conveyor-rest-audit.log"/>
+    <springProperty scope="context" name="auditMaxFileSize" source="conveyor.service.audit.max-file-size"
+                    defaultValue="50MB"/>
+    <springProperty scope="context" name="auditMaxHistory" source="conveyor.service.audit.max-history"
+                    defaultValue="14"/>
+    <springProperty scope="context" name="auditTotalSizeCap" source="conveyor.service.audit.total-size-cap"
+                    defaultValue="1GB"/>
+    <springProperty scope="context" name="auditCleanHistoryOnStart"
+                    source="conveyor.service.audit.clean-history-on-start" defaultValue="false"/>
+    <springProperty scope="context" name="conveyorLogFile" source="conveyor.service.conveyor-log.log-file"
+                    defaultValue="./logs/conveyor.log"/>
+    <springProperty scope="context" name="conveyorMaxFileSize" source="conveyor.service.conveyor-log.max-file-size"
+                    defaultValue="100MB"/>
+    <springProperty scope="context" name="conveyorMaxHistory" source="conveyor.service.conveyor-log.max-history"
+                    defaultValue="14"/>
+    <springProperty scope="context" name="conveyorTotalSizeCap" source="conveyor.service.conveyor-log.total-size-cap"
+                    defaultValue="2GB"/>
+    <springProperty scope="context" name="conveyorCleanHistoryOnStart"
+                    source="conveyor.service.conveyor-log.clean-history-on-start" defaultValue="false"/>
+    <springProperty scope="context" name="conveyorLogLevel" source="conveyor.service.conveyor-log.level"
+                    defaultValue="INFO"/>
+
+    <appender name="REST_AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${auditLogFile}</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${auditLogFile}.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <maxFileSize>${auditMaxFileSize}</maxFileSize>
+            <maxHistory>${auditMaxHistory}</maxHistory>
+            <totalSizeCap>${auditTotalSizeCap}</totalSizeCap>
+            <cleanHistoryOnStart>${auditCleanHistoryOnStart}</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="conveyor.audit.rest" level="INFO" additivity="false">
+        <appender-ref ref="REST_AUDIT_FILE"/>
+    </logger>
+
+    <appender name="CONVEYOR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${conveyorLogFile}</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] %logger{60} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${conveyorLogFile}.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <maxFileSize>${conveyorMaxFileSize}</maxFileSize>
+            <maxHistory>${conveyorMaxHistory}</maxHistory>
+            <totalSizeCap>${conveyorTotalSizeCap}</totalSizeCap>
+            <cleanHistoryOnStart>${conveyorCleanHistoryOnStart}</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="com.aegisql.conveyor" level="${conveyorLogLevel}">
+        <appender-ref ref="CONVEYOR_FILE"/>
+    </logger>
+
+    <root level="${rootLogLevel}">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

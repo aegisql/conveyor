@@ -54,6 +54,18 @@ Required dependencies:
 - `conveyor.service.upload-enable` (default `true`)
 - `conveyor.service.oauth2-login-enable` (default `true`)
 - `conveyor.service.oauth2-resource-server-enable` (default `true`)
+- `conveyor.service.audit.enabled` (default `false`)
+- `conveyor.service.audit.log-file` (default `./logs/conveyor-rest-audit.log`)
+- `conveyor.service.audit.max-file-size` (default `50MB`)
+- `conveyor.service.audit.max-history` (default `14`)
+- `conveyor.service.audit.total-size-cap` (default `1GB`)
+- `conveyor.service.audit.clean-history-on-start` (default `false`)
+- `conveyor.service.conveyor-log.log-file` (default `./logs/conveyor.log`)
+- `conveyor.service.conveyor-log.max-file-size` (default `100MB`)
+- `conveyor.service.conveyor-log.max-history` (default `14`)
+- `conveyor.service.conveyor-log.total-size-cap` (default `2GB`)
+- `conveyor.service.conveyor-log.clean-history-on-start` (default `false`)
+- `conveyor.service.conveyor-log.level` (default `INFO`)
 - `conveyor.service.dashboard.default-watch-history-limit` (default `100`)
 - `conveyor.service.dashboard.default-conveyor-history-limit` (default `100`)
 - `conveyor.service.dashboard.default-admin-stop-timeout` (default `1 MINUTES`)
@@ -62,6 +74,8 @@ Required dependencies:
 - Logging:
   - default: `com.aegisql.conveyor=DEBUG`
   - `demo` profile: `com.aegisql.conveyor=DEBUG`
+  - dedicated REST audit logger name: `conveyor.audit.rest`
+  - dedicated rolling conveyor logger: `com.aegisql.conveyor` -> `conveyor.service.conveyor-log.log-file`
 
 `ConveyorServiceProperties`:
 
@@ -753,3 +767,56 @@ Basic smoke checks:
   - delete API remains forbidden (`403`)
   - API upload/delete endpoints return `403` with `errorCode=FORBIDDEN`
 - Check `/swagger-ui/index.html` and `/v3/api-docs`
+
+## 13. REST Audit Logging
+
+- Intercept all REST endpoints exposed by service paths:
+  - `/part/**`
+  - `/static-part/**`
+  - `/command/**`
+  - `/api/**`
+  - dashboard action POST endpoints used by UI forms:
+    - `/dashboard/watch`
+    - `/dashboard/test/**`
+    - `/dashboard/admin/**`
+- Exclude high-frequency dashboard admin polling endpoint from audit stream:
+  - `GET /api/dashboard/admin/events`
+- Exclude high-frequency dashboard polling endpoints from audit stream:
+  - `GET /api/dashboard/watch`
+  - `GET /api/dashboard/tree`
+- For each completed request, write one audit line to dedicated logger `conveyor.audit.rest`.
+- Each audit event must include:
+  - `timestamp`
+  - `userId` (authenticated username, otherwise `anonymous`)
+  - `endpoint` (`<HTTP_METHOD> <path>`)
+    - for dashboard tester/admin wrapper endpoints, `endpoint` must be rewritten to the equivalent underlying API/placement route (e.g. `/dashboard/test/place` -> `/part/{conveyor}/{id}/{label}`)
+  - `sourceEndpoint` when endpoint was rewritten from a dashboard wrapper path
+  - `requestKind` (e.g. `part`, `static-part`, `command`, `watch`, `admin-*`) when detectable
+  - `parameters`:
+    - `pathVariables` (e.g., conveyor/id/label/method/parameter)
+    - `requestParameters` (query/form params such as `ttl`, `requestTTL`, `properties`, etc.)
+    - request/form body carrier fields (`body`, `bodyFile`) must be excluded from logged parameters
+  - `bodySize` (content-length in bytes, `-1` when unavailable)
+  - `status` (HTTP response status code)
+- Request body content must never be logged.
+- Audit logging is controlled by configuration:
+  - `conveyor.service.audit.enabled` (default `false`)
+- Dedicated audit log file must use size/time rotation policy with limits controlled by:
+  - `conveyor.service.audit.log-file`
+  - `conveyor.service.audit.max-file-size`
+  - `conveyor.service.audit.max-history`
+  - `conveyor.service.audit.total-size-cap`
+  - `conveyor.service.audit.clean-history-on-start`
+
+## 14. Conveyor Log File Policy
+
+- Conveyor runtime logs (`com.aegisql.conveyor`) must also be written to dedicated rolling file output.
+- Conveyor rolling file must use size/time rotation policy.
+- Conveyor logger level is controlled by:
+  - `conveyor.service.conveyor-log.level`
+- Conveyor log file and rotation constraints are controlled by:
+  - `conveyor.service.conveyor-log.log-file`
+  - `conveyor.service.conveyor-log.max-file-size`
+  - `conveyor.service.conveyor-log.max-history`
+  - `conveyor.service.conveyor-log.total-size-cap`
+  - `conveyor.service.conveyor-log.clean-history-on-start`
