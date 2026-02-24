@@ -35,7 +35,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     groupadd --system --gid 10001 conveyor && \
     useradd --system --uid 10001 --gid conveyor --home-dir "${APP_HOME}" --create-home conveyor && \
-    mkdir -p "${APP_HOME}/upload" "${APP_HOME}/scripts" && \
+    mkdir -p "${APP_HOME}/upload" "${APP_HOME}/scripts" "${APP_HOME}/logs" && \
     chown -R conveyor:conveyor "${APP_HOME}"
 
 WORKDIR ${APP_HOME}
@@ -53,9 +53,10 @@ USER conveyor:conveyor
 ENV SPRING_PROFILES_ACTIVE=demo \
     SERVER_PORT=8080 \
     CONVEYOR_SERVICE_UPLOAD_DIR=/opt/conveyor/upload \
+    CONVEYOR_LOG_DIR=/opt/conveyor/logs \
     JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0"
 
 EXPOSE 8080
-VOLUME ["/opt/conveyor/upload"]
+VOLUME ["/opt/conveyor/upload", "/opt/conveyor/logs"]
 
 ENTRYPOINT ["/usr/local/bin/container-entrypoint.sh"]

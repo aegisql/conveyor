@@ -21,11 +21,13 @@ The container image is configured with:
 - `SPRING_PROFILES_ACTIVE=demo`
 - `SERVER_PORT=8080`
 - `CONVEYOR_SERVICE_UPLOAD_DIR=/opt/conveyor/upload`
+- `CONVEYOR_LOG_DIR=/opt/conveyor/logs`
 
 The image declares:
 
 - `EXPOSE 8080`
 - `VOLUME /opt/conveyor/upload`
+- `VOLUME /opt/conveyor/logs`
 - test helper files in `/opt/conveyor/scripts` (`test-part-loader.sh`, `*.psv`, docs)
 
 Seed behavior:
@@ -98,11 +100,13 @@ From repository root:
 
 ```bash
 mkdir -p conveyor-service/upload
+mkdir -p conveyor-service/logs
 
 docker run --rm \
   --name conveyor-service-demo \
   -p 8080:8080 \
   -v "$(pwd)/conveyor-service/upload:/opt/conveyor/upload" \
+  -v "$(pwd)/conveyor-service/logs:/opt/conveyor/logs" \
   ghcr.io/aegisql/conveyor-service:local
 ```
 
@@ -119,6 +123,16 @@ Demo users:
 
 Drop extension JAR files into `conveyor-service/upload` on the host.
 The service reads that mapped directory as `conveyor.service.upload-dir`.
+Runtime conveyor and REST audit logs are written to `conveyor-service/logs` on the host.
+
+If you want a different in-container log path, set:
+
+- `CONVEYOR_LOG_DIR=/any/container/path`
+
+Optional explicit file overrides:
+
+- `CONVEYOR_AUDIT_LOG_FILE=/path/to/conveyor-rest-audit.log`
+- `CONVEYOR_CONVEYOR_LOG_FILE=/path/to/conveyor.log`
 
 When the upload directory is mounted, startup seed-copy is non-destructive:
 
@@ -134,6 +148,7 @@ docker run --rm \
   --name conveyor-service-demo \
   -p 8080:8080 \
   -v "$(pwd)/conveyor-service/upload:/opt/conveyor/upload" \
+  -v "$(pwd)/conveyor-service/logs:/opt/conveyor/logs" \
   ghcr.io/aegisql/conveyor-service:local
 ```
 
@@ -169,6 +184,7 @@ From `conveyor-service` directory:
 
 ```bash
 mkdir -p upload
+mkdir -p logs
 docker compose -f docker-compose.demo.yml up --build -d
 ```
 

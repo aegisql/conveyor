@@ -3,9 +3,17 @@ set -euo pipefail
 
 APP_HOME="${APP_HOME:-/opt/conveyor}"
 UPLOAD_DIR="${CONVEYOR_SERVICE_UPLOAD_DIR:-${APP_HOME}/upload}"
+LOG_DIR="${CONVEYOR_LOG_DIR:-${APP_HOME}/logs}"
 SEED_DIR="${APP_HOME}/upload-seed"
 
-mkdir -p "${UPLOAD_DIR}"
+mkdir -p "${UPLOAD_DIR}" "${LOG_DIR}"
+
+if [[ -n "${CONVEYOR_AUDIT_LOG_FILE:-}" ]]; then
+  mkdir -p "$(dirname "${CONVEYOR_AUDIT_LOG_FILE}")"
+fi
+if [[ -n "${CONVEYOR_CONVEYOR_LOG_FILE:-}" ]]; then
+  mkdir -p "$(dirname "${CONVEYOR_CONVEYOR_LOG_FILE}")"
+fi
 
 if [[ -d "${SEED_DIR}" ]]; then
   shopt -s nullglob

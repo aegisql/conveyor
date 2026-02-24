@@ -10,7 +10,9 @@ services:
       SPRING_PROFILES_ACTIVE: demo
       SERVER_PORT: 8080
       CONVEYOR_SERVICE_UPLOAD_DIR: /opt/conveyor/upload
+      CONVEYOR_LOG_DIR: /opt/conveyor/logs
     ports:
       - "8080:8080"
     volumes:
       - ./upload:/opt/conveyor/upload
+      - ./logs:/opt/conveyor/logs
