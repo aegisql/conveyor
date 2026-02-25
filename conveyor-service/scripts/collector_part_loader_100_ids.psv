@@ -1,4 +1,5 @@
 CONVEYOR_NAME|ID|LABEL|BODY
+collector||SOURCE|{"file_name":"collector_part_loader_100_ids.psv"}
 collector|1001|USER|{"user_name":"Michael Taylor"}
 collector|1001|ADDRESS|{"zip_code":"17919"}
 collector|1001|DONE|{}

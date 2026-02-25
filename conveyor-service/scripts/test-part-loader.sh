@@ -31,9 +31,12 @@ Options:
   --file <path>       Play pipe-delimited file with header:
                       CONVEYOR_NAME|ID|LABEL|BODY (parts) or
                       CONVEYOR_NAME|LABEL|BODY (static parts)
+                      If ID is empty in parts header mode (CONVEYOR_NAME||LABEL|BODY),
+                      row is sent to static part endpoint.
                       Any columns after BODY are sent as request properties.
   --shuffle           Randomize order by blocks before sending:
-                      parts: CONVEYOR_NAME|ID, static: CONVEYOR_NAME|LABEL
+                      parts with ID: CONVEYOR_NAME|ID,
+                      static (or parts row with empty ID): CONVEYOR_NAME|LABEL
   -h, --help          Show help
 
 Notes:
@@ -356,8 +359,8 @@ load_file_records() {
       raw_id="${row_columns[1]}"
       raw_label="${row_columns[2]}"
       raw_body="${row_columns[3]}"
-      if [[ -z "${raw_conveyor:-}" || -z "${raw_id:-}" || -z "${raw_label:-}" || -z "${raw_body:-}" ]]; then
-        echo "Invalid record at ${INPUT_FILE}:${line_no}. Expected format: CONVEYOR_NAME|ID|LABEL|BODY[|...]" >&2
+      if [[ -z "${raw_conveyor:-}" || -z "${raw_label:-}" || -z "${raw_body:-}" ]]; then
+        echo "Invalid record at ${INPUT_FILE}:${line_no}. Expected format: CONVEYOR_NAME|ID|LABEL|BODY[|...] (ID may be empty)" >&2
         exit 1
       fi
       FILE_RECORDS+=("${raw_conveyor}|${raw_id}|${raw_label}|${raw_body}|${props_query}")
@@ -394,7 +397,11 @@ shuffle_file_records() {
   for record in "${FILE_RECORDS[@]}"; do
     IFS='|' read -r conveyor_name id label body props_query <<< "$record"
     if [[ "$FILE_MODE" == "parts" ]]; then
-      key="${conveyor_name}|${id}"
+      if [[ -n "${id}" ]]; then
+        key="${conveyor_name}|part|${id}"
+      else
+        key="${conveyor_name}|static|${label}"
+      fi
     else
       key="${conveyor_name}|${label}"
     fi
@@ -434,7 +441,7 @@ play_file_records() {
   local record conveyor_name id label body props_query
   for record in "${FILE_RECORDS[@]}"; do
     IFS='|' read -r conveyor_name id label body props_query <<< "$record"
-    if [[ "$FILE_MODE" == "parts" ]]; then
+    if [[ "$FILE_MODE" == "parts" && -n "${id}" ]]; then
       post_part "$conveyor_name" "$id" "$label" "$body" "$props_query"
     else
       post_static_part "$conveyor_name" "$label" "$body" "$props_query"

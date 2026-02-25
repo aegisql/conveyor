@@ -32,7 +32,8 @@ class DashboardViewControllerTest {
     void dashboardReturnsHtmlForViewer() throws Exception {
         mockMvc.perform(get("/dashboard").with(user("viewer").roles("DASHBOARD_VIEWER")))
                 .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith("text/html"));
+                .andExpect(content().contentTypeCompatibleWith("text/html"))
+                .andExpect(content().string(containsString("Version:")));
     }
 
     @Test

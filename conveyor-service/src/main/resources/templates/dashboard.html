@@ -15,7 +15,7 @@
     <header class="topbar">
         <div>
             <h1>Conveyor Service Dashboard</h1>
-            <p class="subtitle">Live hierarchy, runtime parameters, and controlled admin actions.</p>
+            <p class="subtitle">Version: <span th:text="${appVersion}">unknown</span></p>
         </div>
         <div class="badge-wrap">
             <span class="badge" th:text="${username}">user</span>
@@ -61,7 +61,6 @@
                     <h3>Watchers</h3>
                     <button id="watch-refresh" type="button" class="small-button refresh-button">Refresh</button>
                 </div>
-                <p class="meta">Tags are gray while waiting and turn green when a result or scrap arrives.</p>
                 <div id="watch-tags" class="watch-tags">
                     <p class="meta">No active watches.</p>
                 </div>

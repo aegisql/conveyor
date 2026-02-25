@@ -8,6 +8,7 @@ This script supports two modes:
    - `DONE` with `{}`
 2. File playback mode with header-based routing:
    - `CONVEYOR_NAME|ID|LABEL|BODY` -> Part Loader (`/part/...`)
+     - if `ID` is empty (`CONVEYOR_NAME||LABEL|BODY`), row is treated as static part and sent to `/static-part/...`
    - `CONVEYOR_NAME|LABEL|BODY` -> Static Part Loader (`/static-part/...`)
    - Any columns after `BODY` are sent as query properties by column name.
 
@@ -41,8 +42,8 @@ Options:
 - `--id <value>`: fixed-mode ID (string or number)
 - `--file <path>`: input file with header `CONVEYOR_NAME|ID|LABEL|BODY...` or `CONVEYOR_NAME|LABEL|BODY...`
 - `--shuffle`: randomize by build blocks:
-  - parts mode: by `CONVEYOR_NAME|ID`
-  - static mode: by `CONVEYOR_NAME|LABEL`
+  - parts rows with ID: by `CONVEYOR_NAME|ID`
+  - static rows (including parts header rows with empty ID): by `CONVEYOR_NAME|LABEL`
 - `-h`, `--help`: print usage
 
 ## Positional Parameters (Backward Compatible)
@@ -149,6 +150,7 @@ AUTH_MODE=cookie SESSION_COOKIE='JSESSIONID=<paste-cookie-value>' \
 - In file mode, header must be one of:
   - `CONVEYOR_NAME|ID|LABEL|BODY[|PROP_1|...]` (parts mode)
   - `CONVEYOR_NAME|LABEL|BODY[|PROP_1|...]` (static mode)
+- In parts-header mode, empty `ID` values are allowed and those rows are sent as static parts.
 - In file mode, conveyor name is taken from each row (`CONVEYOR_NAME` column).
 - In file mode, each property column value is sent as a query parameter with the same name.
 - In static mode, `ttl` is not sent (static part endpoint rejects it); `requestTTL` is still sent.

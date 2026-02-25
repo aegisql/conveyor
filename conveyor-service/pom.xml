@@ -125,6 +125,13 @@
                 <version>${spring-boot.version}</version>
                 <executions>
                     <execution>
+                        <id>build-info</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <goals>
                             <goal>repackage</goal>
                         </goals>

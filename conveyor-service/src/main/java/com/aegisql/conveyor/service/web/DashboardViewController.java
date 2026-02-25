@@ -13,7 +13,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.stereotype.Controller;
@@ -58,6 +60,7 @@ public class DashboardViewController {
     private final String defaultTtlInputValue;
     private final String defaultRequestTtlInputValue;
     private final String defaultAdminStopTimeoutInputValue;
+    private final String appVersion;
 
     public DashboardViewController(
             DashboardAdminOperationService dashboardAdminOperationService,
@@ -67,6 +70,7 @@ public class DashboardViewController {
             CommandService commandService,
             ConveyorWatchService conveyorWatchService,
             ObjectMapper objectMapper,
+            ObjectProvider<BuildProperties> buildPropertiesProvider,
             @Value("${conveyor.service.dashboard.default-watch-history-limit:100}") int watchHistoryLimitDefault,
             @Value("${conveyor.service.dashboard.default-conveyor-history-limit:100}") int conveyorHistoryLimitDefault,
             @Value("${conveyor.service.dashboard.default-ttl:}") String defaultTtlInputValue,
@@ -85,6 +89,7 @@ public class DashboardViewController {
         this.defaultTtlInputValue = sanitizeOptionalInput(defaultTtlInputValue);
         this.defaultRequestTtlInputValue = sanitizeOptionalInput(defaultRequestTtlInputValue);
         this.defaultAdminStopTimeoutInputValue = sanitizeOptionalInput(defaultAdminStopTimeoutInputValue);
+        this.appVersion = resolveAppVersion(buildPropertiesProvider.getIfAvailable());
     }
 
     @GetMapping("/")
@@ -118,6 +123,7 @@ public class DashboardViewController {
         model.addAttribute("username", displayUsername(authentication));
         model.addAttribute("isAdmin", hasRole(authentication, "ROLE_DASHBOARD_ADMIN"));
         model.addAttribute("uploadEnabled", dashboardService.isUploadEnabled());
+        model.addAttribute("appVersion", appVersion);
         model.addAttribute("watchHistoryLimitDefault", watchHistoryLimitDefault);
         model.addAttribute("conveyorHistoryLimitDefault", conveyorHistoryLimitDefault);
         model.addAttribute("defaultTtlInputValue", defaultTtlInputValue);
@@ -158,6 +164,13 @@ public class DashboardViewController {
             ));
         }
         return "dashboard";
+    }
+
+    private String resolveAppVersion(BuildProperties buildProperties) {
+        if (buildProperties == null || !StringUtils.hasText(buildProperties.getVersion())) {
+            return "unknown";
+        }
+        return buildProperties.getVersion();
     }
 
     @PostMapping("/dashboard/admin/upload")

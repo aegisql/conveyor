@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.support.StaticListableBeanFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -62,6 +63,8 @@ class DashboardViewControllerUnitTest {
 
     @BeforeEach
     void setUp() {
+        StaticListableBeanFactory beanFactory = new StaticListableBeanFactory();
+
         controller = new DashboardViewController(
                 dashboardAdminOperationService,
                 dashboardService,
@@ -70,6 +73,7 @@ class DashboardViewControllerUnitTest {
                 commandService,
                 conveyorWatchService,
                 new ObjectMapper(),
+                beanFactory.getBeanProvider(org.springframework.boot.info.BuildProperties.class),
                 5,
                 9,
                 " 10 SECONDS ",
