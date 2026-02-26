@@ -588,6 +588,50 @@
     });
   }
 
+  function updateOperationsActionLayout() {
+    const panel = document.getElementById('tab-operations');
+    const actionList = panel ? panel.querySelector('.action-list') : null;
+    if (!panel || !actionList || panel.hidden) {
+      return;
+    }
+
+    const names = Array.from(actionList.querySelectorAll('.action-name'));
+    if (!names.length) {
+      return;
+    }
+
+    let maxWidth = 0;
+    names.forEach(function (node) {
+      maxWidth = Math.max(maxWidth, Math.ceil(node.getBoundingClientRect().width));
+    });
+
+    if (maxWidth > 0) {
+      actionList.style.setProperty('--action-name-width', (maxWidth + 12) + 'px');
+    }
+  }
+
+  function initOperationsActionLayout() {
+    function refresh() {
+      window.requestAnimationFrame(updateOperationsActionLayout);
+    }
+
+    refresh();
+    window.setTimeout(refresh, 0);
+    window.setTimeout(refresh, 200);
+    window.addEventListener('resize', refresh);
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(refresh).catch(function () {});
+    }
+
+    const operationsTabButton = document.querySelector('.tab-button[data-tab-target="tab-operations"]');
+    if (operationsTabButton) {
+      operationsTabButton.addEventListener('click', function () {
+        window.setTimeout(refresh, 0);
+      });
+    }
+  }
+
   function initAdminUploadDropzone() {
     const fileInput = document.getElementById('admin-upload-file');
     const dropzone = document.getElementById('admin-upload-dropzone');
@@ -2576,6 +2620,7 @@
   initCommandTester();
   initAdminUploadDropzone();
   initStopOperationWarning();
+  initOperationsActionLayout();
 
   const outputDock = initOutputDock();
   const watchPanel = initWatchPanel(outputDock);

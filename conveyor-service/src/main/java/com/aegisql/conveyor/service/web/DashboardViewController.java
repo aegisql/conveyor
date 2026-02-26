@@ -45,7 +45,7 @@ public class DashboardViewController {
     private static final Logger LOG = LoggerFactory.getLogger(DashboardViewController.class);
     private static final String TAB_DETAILS = "tab-details";
     private static final Set<String> VALID_TABS = new HashSet<>(Set.of(
-            TAB_DETAILS, "tab-operations", "tab-tester", "tab-static", "tab-commands", "tab-admin"
+            TAB_DETAILS, "tab-operations", "tab-tester", "tab-static", "tab-commands", "tab-admin", "tab-help"
     ));
 
     private final DashboardAdminOperationService dashboardAdminOperationService;

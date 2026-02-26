@@ -138,6 +138,19 @@ class DashboardViewControllerUnitTest {
     }
 
     @Test
+    void dashboardAcceptsHelpTab() throws Exception {
+        when(dashboardService.conveyorTree()).thenReturn(Map.of());
+        when(dashboardService.drainLoaderErrors()).thenReturn(List.of());
+        when(dashboardService.isUploadEnabled()).thenReturn(true);
+
+        var model = new ExtendedModelMap();
+        String view = controller.dashboard(null, "tab-help", adminAuth(), model);
+
+        assertThat(view).isEqualTo("dashboard");
+        assertThat(model.getAttribute("activeTab")).isEqualTo("tab-help");
+    }
+
+    @Test
     void uploadHandlesSuccessAndFailure() throws Exception {
         var file = mockFile();
         var success = new RedirectAttributesModelMap();

@@ -7,7 +7,7 @@
     <link rel="stylesheet"
           th:href="@{/webjars/prismjs/1.30.0/themes/prism.min.css}"
           href="/webjars/prismjs/1.30.0/themes/prism.min.css"/>
-    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260222a')}" href="/css/dashboard.css?v=20260222a"/>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css(v='20260226d')}" href="/css/dashboard.css?v=20260226d"/>
 </head>
 <body>
 <div class="scene-bg"></div>
@@ -101,6 +101,10 @@
                    th:classappend="${activeTab == 'tab-admin'} ? ' active'"
                    th:attr="aria-selected=${activeTab == 'tab-admin'} ? 'true' : 'false'"
                    th:href="@{/dashboard(name=${selectedName},tab='tab-admin')}">Admin Actions</a>
+                <a class="tab-button" role="tab"
+                   th:classappend="${activeTab == 'tab-help'} ? ' active'"
+                   th:attr="aria-selected=${activeTab == 'tab-help'} ? 'true' : 'false'"
+                   th:href="@{/dashboard(name=${selectedName},tab='tab-help')}">Help</a>
             </nav>
 
             <section id="tab-details" class="tab-panel" role="tabpanel"
@@ -197,7 +201,6 @@
                      th:classappend="${activeTab == 'tab-operations'} ? ' active'"
                      th:attr="hidden=${activeTab == 'tab-operations'} ? null : 'hidden'">
                 <h3>Invoke Actions</h3>
-                <p class="meta">Writable parameters and MBean operations are invoked from this single list.</p>
 
                 <div class="action-list">
                     <article class="action-row" th:if="${#lists.isEmpty(selected['writableParameters']) and #lists.isEmpty(selected['operations'])}">
@@ -206,39 +209,42 @@
 
                     <article class="action-row" th:each="p : ${selected['writableParameters']}">
                         <div class="action-head">
-                            <strong class="action-name" th:text="${p['name']}">parameter</strong>
-                            <span class="chip action-kind">Parameter</span>
+                            <div class="action-meta-block">
+                                <strong class="action-name" th:text="${p['name']}">parameter</strong>
+                                <p class="meta action-inline-meta" th:text="${'expected type: ' + p['type']}">expected type: long</p>
+                            </div>
+                            <form th:if="${isAdmin}" th:action="@{/dashboard/admin/parameter}" method="post"
+                                  class="inline-form tab-preserve-form action-form action-form-inline">
+                                <input type="hidden" name="name" th:value="${selectedName}"/>
+                                <input type="hidden" name="tab" value="tab-operations"/>
+                                <input type="hidden" name="parameter" th:value="${p['name']}"/>
+                                <input type="text" name="value" placeholder="value" required
+                                       th:value="${p['value'] != null ? p['value'] : 'N/A'}"/>
+                                <button type="submit">Set</button>
+                            </form>
                         </div>
-                        <p class="meta" th:text="${p['value'] != null ? 'current value: ' + p['value'] : 'current value: n/a'}">current value: n/a</p>
-                        <form th:if="${isAdmin}" th:action="@{/dashboard/admin/parameter}" method="post" class="inline-form tab-preserve-form action-form">
-                            <input type="hidden" name="name" th:value="${selectedName}"/>
-                            <input type="hidden" name="tab" value="tab-operations"/>
-                            <input type="hidden" name="parameter" th:value="${p['name']}"/>
-                            <input type="text" name="value" placeholder="value" required/>
-                            <span class="meta" th:text="${'expected type: ' + p['type']}">expected type: long</span>
-                            <button type="submit">Invoke</button>
-                        </form>
-                        <p class="meta" th:unless="${isAdmin}" th:text="${'expected type: ' + p['type']}">expected type: long</p>
                     </article>
 
                     <article class="action-row" th:each="op : ${selected['operations']}">
                         <div class="action-head">
-                            <strong class="action-name" th:text="${op['name']}">operation</strong>
-                            <span class="chip action-kind">Operation</span>
+                            <div class="action-meta-block">
+                                <strong class="action-name" th:text="${op['name']}">operation</strong>
+                                <p class="meta action-inline-meta"
+                                   th:if="${op['argCount'] > 0}"
+                                   th:text="${'expected type: ' + op['argType']}">expected type: long</p>
+                                <p class="meta action-inline-meta"
+                                   th:if="${op['stopOperation']}">Warning: this operation is irreversible and may cause data loss.</p>
+                            </div>
+                            <form th:if="${isAdmin}" th:action="@{/dashboard/admin/mbean}" method="post"
+                                  class="inline-form tab-preserve-form action-form action-form-inline"
+                                  th:attr="data-stop-operation=${op['stopOperation']} ? 'true' : null">
+                                <input type="hidden" name="name" th:value="${selectedName}"/>
+                                <input type="hidden" name="tab" value="tab-operations"/>
+                                <input type="hidden" name="method" th:value="${op['name']}"/>
+                                <input th:if="${op['argCount'] > 0}" type="text" name="arg" placeholder="argument value" required/>
+                                <button type="submit">Invoke</button>
+                            </form>
                         </div>
-                        <form th:if="${isAdmin}" th:action="@{/dashboard/admin/mbean}" method="post" class="inline-form tab-preserve-form action-form"
-                              th:attr="data-stop-operation=${op['stopOperation']} ? 'true' : null">
-                            <input type="hidden" name="name" th:value="${selectedName}"/>
-                            <input type="hidden" name="tab" value="tab-operations"/>
-                            <input type="hidden" name="method" th:value="${op['name']}"/>
-                            <input th:if="${op['argCount'] > 0}" type="text" name="arg" placeholder="argument value" required/>
-                            <span class="meta" th:if="${op['argCount'] > 0}" th:text="${'expected type: ' + op['argType']}">expected type: long</span>
-                            <span class="meta" th:unless="${op['argCount'] > 0}">no arguments</span>
-                            <button type="submit">Invoke</button>
-                        </form>
-                        <p class="meta" th:if="${op['stopOperation']}">Warning: this operation is irreversible and may cause data loss.</p>
-                        <p class="meta" th:if="${!isAdmin and op['argCount'] > 0}" th:text="${'expected type: ' + op['argType']}">expected type: long</p>
-                        <p class="meta" th:if="${!isAdmin and op['argCount'] == 0}">no arguments</p>
                     </article>
                 </div>
 
@@ -391,7 +397,7 @@
                 <div th:if="${selectedName}">
                     <h3>Static Parts</h3>
                     <p class="meta" th:if="${selected['topLevel']}">
-                        Label is mandatory. Static parts support priority and custom properties. Use delete mode to remove a static part.
+                        Static parts support priority and custom properties. Use delete mode to remove a static part.
                     </p>
                     <p class="meta" th:unless="${selected['topLevel']}">
                         Tester is available only for top-level conveyors (without enclosing conveyor).
@@ -474,7 +480,6 @@
                                 <label>Additional Properties</label>
                                 <button type="button" id="add-static-extra-param" class="secondary-button small-button">+ Add property</button>
                             </div>
-                            <p class="meta">Optional static part properties.</p>
                             <div id="static-extra-param-list" class="property-list"
                                  th:with="extraProps=${staticTestRequest['extraProperties']}">
                                 <div class="property-row" th:each="prop : ${extraProps}">
@@ -533,7 +538,7 @@
 
                         <div class="field-group full-width">
                             <label for="command-body">Exception Message</label>
-                            <textarea id="command-body" name="body" rows="5"
+                            <textarea id="command-body" name="body" rows="2" class="command-exception-textarea"
                                       placeholder="Exception message for completeExceptionally"
                                       th:text="${commandTestRequest != null ? commandTestRequest['body'] : ''}"></textarea>
                         </div>
@@ -566,7 +571,6 @@
                                 <label>Additional Properties</label>
                                 <button type="button" id="add-command-extra-param" class="secondary-button small-button">+ Add property</button>
                             </div>
-                            <p class="meta">Used by <code>addProperties</code> only.</p>
                             <div id="command-extra-param-list" class="property-list">
                                 <div class="property-row" th:each="prop : ${commandTestRequest != null ? commandTestRequest['extraProperties'] : null}">
                                     <input type="text" name="commandExtraParamKey" placeholder="Property key"
@@ -703,6 +707,55 @@
                     Admin role is required to use upload, reload, and delete actions.
                 </p>
             </section>
+
+            <section id="tab-help" class="tab-panel" role="tabpanel"
+                     th:classappend="${activeTab == 'tab-help'} ? ' active'"
+                     th:attr="hidden=${activeTab == 'tab-help'} ? null : 'hidden'">
+                <h3>About Conveyor Service</h3>
+                <p>
+                    Conveyor Service provides REST and dashboard access to configured conveyors for placement,
+                    command execution, runtime inspection, and operational control.
+                </p>
+
+                <h3>Workspace Features</h3>
+                <ul class="help-list">
+                    <li><strong>Conveyors:</strong> tree view of loaded conveyors and hierarchy with live state styling (running, suspended, stopped).</li>
+                    <li><strong>Watchers:</strong> watch IDs or full conveyor streams, view timeline updates, and manage watches from tags and output tabs.</li>
+                    <li><strong>Conveyor Details:</strong> runtime state, MBean information, metadata, and parameters.</li>
+                    <li><strong>Operations:</strong> writable parameter updates and MBean method invocation.</li>
+                    <li><strong>Parts / Static Parts / Commands:</strong> request forms with optional watch output.</li>
+                    <li><strong>Admin Actions:</strong> upload JARs, controlled reload, and tree delete for top-level conveyors.</li>
+                    <li><strong>Output:</strong> tabbed events view with per-tab JSONPath and cache limits.</li>
+                </ul>
+
+                <h3>Documentation</h3>
+                <ul class="help-list">
+                    <li>
+                        <a class="link" target="_blank" rel="noopener noreferrer"
+                           href="https://github.com/aegisql/conveyor/wiki">Project Wiki</a>
+                    </li>
+                    <li>
+                        <a class="link" target="_blank" rel="noopener noreferrer"
+                           href="https://github.com/aegisql/conveyor/blob/master/README.md">Project README</a>
+                    </li>
+                    <li>
+                        <a class="link" target="_blank" rel="noopener noreferrer"
+                           href="https://github.com/aegisql/conveyor/blob/master/conveyor-service/README.md">Conveyor Service README</a>
+                    </li>
+                    <li>
+                        <a class="link" target="_blank" rel="noopener noreferrer"
+                           href="https://github.com/aegisql/conveyor/blob/master/conveyor-service/docs/AUTHENTICATION.md">Authentication Guide</a>
+                    </li>
+                    <li>
+                        <a class="link" target="_blank" rel="noopener noreferrer"
+                           href="https://github.com/aegisql/conveyor/blob/master/conveyor-service/docs/CONTAINER.md">Container Guide</a>
+                    </li>
+                    <li>
+                        <a class="link" target="_blank" rel="noopener noreferrer"
+                           href="https://github.com/aegisql/conveyor/blob/master/conveyor-service/scripts/test-part-loader.md">Testing</a>
+                    </li>
+                </ul>
+            </section>
         </section>
     </main>
 
@@ -764,6 +817,6 @@
         th:utext="${dashboardOutputEventJson}"></script>
 <script th:src="@{/webjars/prismjs/1.30.0/components/prism-core.min.js}" src="/webjars/prismjs/1.30.0/components/prism-core.min.js"></script>
 <script th:src="@{/webjars/prismjs/1.30.0/components/prism-json.min.js}" src="/webjars/prismjs/1.30.0/components/prism-json.min.js"></script>
-<script th:src="@{/js/dashboard.js(v='20260222f')}" src="/js/dashboard.js?v=20260222f"></script>
+<script th:src="@{/js/dashboard.js(v='20260226a')}" src="/js/dashboard.js?v=20260226a"></script>
 </body>
 </html>

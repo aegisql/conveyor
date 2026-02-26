@@ -33,7 +33,9 @@ class DashboardViewControllerTest {
         mockMvc.perform(get("/dashboard").with(user("viewer").roles("DASHBOARD_VIEWER")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("text/html"))
-                .andExpect(content().string(containsString("Version:")));
+                .andExpect(content().string(containsString("Version:")))
+                .andExpect(content().string(containsString("tab-help")))
+                .andExpect(content().string(containsString("About Conveyor Service")));
     }
 
     @Test

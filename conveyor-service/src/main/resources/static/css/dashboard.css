@@ -213,6 +213,18 @@ h1, h2, h3 {
   animation: reveal 220ms ease-out;
 }
 
+.help-list {
+  margin: 6px 0 14px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.help-list li {
+  line-height: 1.4;
+}
+
 .link {
   color: var(--brand);
   text-decoration: none;
@@ -768,6 +780,7 @@ h1, h2, h3 {
   flex-direction: column;
   gap: 10px;
   margin-top: 10px;
+  --action-name-width: 320px;
 }
 
 .action-row {
@@ -778,15 +791,32 @@ h1, h2, h3 {
 }
 
 .action-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: var(--action-name-width) auto;
+  align-items: start;
+  justify-content: start;
+  column-gap: 12px;
+  row-gap: 4px;
 }
 
 .action-name {
+  display: block;
   font-family: "IBM Plex Mono", "Menlo", "Consolas", monospace;
   font-size: 13px;
+  white-space: nowrap;
+}
+
+.action-meta-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  width: 100%;
+}
+
+.action-inline-meta {
+  margin: 0;
+  line-height: 1.25;
 }
 
 .action-kind {
@@ -801,6 +831,23 @@ h1, h2, h3 {
 
 .action-form input[type="text"] {
   min-width: 220px;
+}
+
+.action-form-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  margin: 0;
+  justify-self: start;
+}
+
+.action-form-inline input[type="text"] {
+  margin: 0;
+}
+
+.action-form-inline button {
+  min-width: 84px;
 }
 
 table {
@@ -1123,6 +1170,25 @@ th {
   font-weight: 700;
   letter-spacing: 0.02em;
   white-space: nowrap;
+}
+
+.inline-check input[type="checkbox"] {
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.field-group label.meta input[type="checkbox"] {
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  margin: 0 6px 0 0;
+  vertical-align: middle;
+}
+
+.command-exception-textarea {
+  min-height: 54px;
 }
 
 .body-header-row {
@@ -1458,6 +1524,16 @@ button[disabled] {
   .action-form input[type="text"] {
     min-width: 0;
     width: 100%;
+  }
+
+  .action-form-inline {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .action-head {
+    grid-template-columns: 1fr;
+    row-gap: 8px;
   }
 
   .property-row {
