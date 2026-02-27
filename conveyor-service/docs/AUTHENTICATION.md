@@ -209,10 +209,11 @@ Use this flow:
 2. Open `/dashboard` in browser and complete provider login.
 3. Copy the `JSESSIONID` cookie value for `http://localhost:8080`.
 4. Run script with cookie mode:
+   (assume `WORK_DIR` points to your workspace root, for example `/path/to/work`)
 
 ```bash
 AUTH_MODE=cookie SESSION_COOKIE='JSESSIONID=<cookie-value>' \
-/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh collector 2003
+$WORK_DIR/conveyor/conveyor-service/scripts/test-part-loader.sh collector 2003
 ```
 
 ### 5.8 Dashboard OAuth user display

@@ -66,11 +66,10 @@ Last version supporting Java 8 is 1.4.4
 ### 1.7.4-SNAPSHOT
 
 ### 1.7.3-SNAPSHOT
-* Add new Conveyor Service
+* Add new experimental Conveyor Service
 * Counters Aggregator utility conveyor
 * Extensions to the LabeledValueConsumer interface
 * Updated dependencies
-* Added experimental conveyor service
 * Bugfixes
 * Improved test coverage
 

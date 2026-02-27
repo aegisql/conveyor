@@ -16,24 +16,26 @@ In fixed mode, all three requests use the same conveyor name and ID.
 
 ## Script Location
 
-`/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh`
+`$WORK_DIR/conveyor/conveyor-service/scripts/test-part-loader.sh`
+
+Assume `WORK_DIR` points to your workspace root (for example `/path/to/work`).
 
 ## Basic Usage
 
 ```bash
-/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh [conveyor] [id]
+$WORK_DIR/conveyor/conveyor-service/scripts/test-part-loader.sh [conveyor] [id]
 ```
 
 Example:
 
 ```bash
-/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh collector 123
+$WORK_DIR/conveyor/conveyor-service/scripts/test-part-loader.sh collector 123
 ```
 
 ## Option Usage
 
 ```bash
-/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh [options]
+$WORK_DIR/conveyor/conveyor-service/scripts/test-part-loader.sh [options]
 ```
 
 Options:
@@ -70,16 +72,16 @@ Use generated dataset in scripts directory:
 
 ```bash
 AUTH_MODE=session REST_USER=rest REST_PASSWORD=rest \
-/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh \
-  --file /Users/mike/work/conveyor/conveyor-service/scripts/collector_part_loader_100_ids.psv
+$WORK_DIR/conveyor/conveyor-service/scripts/test-part-loader.sh \
+  --file $WORK_DIR/conveyor/conveyor-service/scripts/collector_part_loader_100_ids.psv
 ```
 
 Shuffle playback order:
 
 ```bash
 AUTH_MODE=session REST_USER=rest REST_PASSWORD=rest \
-/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh \
-  --file /Users/mike/work/conveyor/conveyor-service/scripts/collector_part_loader_100_ids.psv \
+$WORK_DIR/conveyor/conveyor-service/scripts/test-part-loader.sh \
+  --file $WORK_DIR/conveyor/conveyor-service/scripts/collector_part_loader_100_ids.psv \
   --shuffle
 ```
 
@@ -87,8 +89,8 @@ Recommended command (longer TTL + shuffle):
 
 ```bash
 TTL="30 SECONDS" AUTH_MODE=session REST_USER=rest REST_PASSWORD=rest \
-/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh \
-  --file /Users/mike/work/conveyor/conveyor-service/scripts/collector_part_loader_100_ids.psv \
+$WORK_DIR/conveyor/conveyor-service/scripts/test-part-loader.sh \
+  --file $WORK_DIR/conveyor/conveyor-service/scripts/collector_part_loader_100_ids.psv \
   --shuffle
 ```
 
@@ -96,8 +98,8 @@ Static parts file example (`CONVEYOR_NAME|LABEL|BODY`):
 
 ```bash
 AUTH_MODE=session REST_USER=rest REST_PASSWORD=rest \
-/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh \
-  --file /Users/mike/work/conveyor/conveyor-service/scripts/static_parts.psv
+$WORK_DIR/conveyor/conveyor-service/scripts/test-part-loader.sh \
+  --file $WORK_DIR/conveyor/conveyor-service/scripts/static_parts.psv
 ```
 
 File with extra properties (parts):
@@ -120,7 +122,7 @@ Demo/session mode:
 
 ```bash
 REST_USER=admin REST_PASSWORD=admin \
-/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh collector 2001
+$WORK_DIR/conveyor/conveyor-service/scripts/test-part-loader.sh collector 2001
 ```
 
 Basic auth mode:
@@ -128,7 +130,7 @@ Basic auth mode:
 ```bash
 AUTH_MODE=basic REST_USER=rest REST_PASSWORD=rest \
 TTL="2500" REQUEST_TTL="1 SECONDS" \
-/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh collector 2002
+$WORK_DIR/conveyor/conveyor-service/scripts/test-part-loader.sh collector 2002
 ```
 
 LinkedIn OAuth browser session mode:
@@ -139,7 +141,7 @@ LinkedIn OAuth browser session mode:
 
 ```bash
 AUTH_MODE=cookie SESSION_COOKIE='JSESSIONID=<paste-cookie-value>' \
-/Users/mike/work/conveyor/conveyor-service/scripts/test-part-loader.sh collector 2003
+$WORK_DIR/conveyor/conveyor-service/scripts/test-part-loader.sh collector 2003
 ```
 
 ## Notes
