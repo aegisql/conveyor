@@ -11,15 +11,15 @@ Spring Boot service for working with Conveyor instances over HTTP:
   - `prod` profile: OAuth2/OIDC with optional JWT resource-server mode.
 
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_details.png alt="Conveyor Service Dashboard">
+<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_details.png alt="Conveyor Details">
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_operations.png alt="Conveyor Service Dashboard">
+<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_operations.png alt="Conveyor Operations">
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/cs03.png alt="Conveyor Service Dashboard">
+<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_parts.png alt="Conveyor Parts">
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/cs04.png alt="Conveyor Service Dashboard">
+<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_static_parts.png alt="Conveyor Static Parts">
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/cs05.png alt="Conveyor Service Dashboard">
+<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_commands.png alt="Conveyor Commands">
 
 
 ## Configuration
