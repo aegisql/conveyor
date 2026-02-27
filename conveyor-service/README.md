@@ -16,7 +16,7 @@ The dashboard is organized around conveyor inspection and request testing. The s
 
 ### Conveyors and Watchers
 
-<img src="https://github.com/aegisql/conveyor/blob/master/doc/img/conveyors_and_watchers.png" alt="Conveyors and watchers" width="760">
+<img src="https://github.com/aegisql/conveyor/blob/master/doc/img/conveyors_and_watchers.png" alt="Conveyors and watchers" width="260">
 
 - `Conveyors` tree shows hierarchy and current state (`running`, `suspended`, `stopped`).
 - `Watchers` list tracks active watches and quick switching to output tabs.
