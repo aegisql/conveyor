@@ -21,6 +21,10 @@ Spring Boot service for working with Conveyor instances over HTTP:
 
 <img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_commands.png alt="Conveyor Commands">
 
+<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/admin_actions.png alt="Admin Actions">
+
+<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/watcher_output.png alt="Watcher Output">
+
 
 ## Configuration
 
