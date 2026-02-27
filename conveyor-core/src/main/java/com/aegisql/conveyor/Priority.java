@@ -32,7 +32,7 @@ public final class Priority {
         var ct1 = c1.getCreationTime();
         var ct2 = c2.getCreationTime();
         if(ct1==ct2) {
-            return Long.compare(c1.getCartCreationNanoTime(),c2.getCartCreationNanoTime());
+            return Long.compare(c2.getCartCreationNanoTime(),c1.getCartCreationNanoTime());
         } else {
             return Long.compare(ct2, ct1);
         }

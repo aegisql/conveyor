@@ -120,8 +120,8 @@ public class PrioritySupplierTest {
     }
 
     @Test
-    public void newestShouldBeFirstWithNanoResolutionTest() {
-        PriorityBlockingQueue<Cart> queue = Priority.NEWEST_FIRST.get();
+    public void oldestShouldBeFirstWithNanoResolutionTest() {
+        PriorityBlockingQueue<Cart> queue = Priority.OLDEST_FIRST.get();
 
         long now = System.currentTimeMillis();
 
@@ -136,6 +136,27 @@ public class PrioritySupplierTest {
         assertEquals(1,queue.poll().getKey());
         assertEquals(2,queue.poll().getKey());
         assertEquals(3,queue.poll().getKey());
+
+    }
+
+
+    @Test
+    public void newestShouldBeFirstWithNanoResolutionTest() {
+        PriorityBlockingQueue<Cart> queue = Priority.NEWEST_FIRST.get();
+
+        long now = System.currentTimeMillis();
+
+        Cart<Integer,String,String> c1 = new ShoppingCart<>(1,"v1","l1",now,0,0);
+        Cart<Integer,String,String> c2 = new ShoppingCart<>(2,"v2","l2",now,0,0);
+        Cart<Integer,String,String> c3 = new ShoppingCart<>(3,"v3","l3",now,0,0);
+
+        queue.add(c1);
+        queue.add(c2);
+        queue.add(c3);
+
+        assertEquals(3,queue.poll().getKey());
+        assertEquals(2,queue.poll().getKey());
+        assertEquals(1,queue.poll().getKey());
 
     }
 
