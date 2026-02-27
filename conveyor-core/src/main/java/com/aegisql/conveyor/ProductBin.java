@@ -48,6 +48,10 @@ public final class ProductBin<K,OUT> extends AbstractBin<K,Object,OUT>{
 		this.acknowledge    = acknowledge;
 	}
 
+    public <OUT2> ProductBin<K,OUT2> withNewValue(OUT2 value) {
+        var pb = new ProductBin(this.conveyor,this.key,value,this.expirationTime,this.status,this.properties,this.acknowledge);
+        return pb;
+    }
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
