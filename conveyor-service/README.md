@@ -62,6 +62,10 @@ The dashboard is organized around conveyor inspection and request testing. The s
 - Timing fields: `TTL`, `Creation Time`, `Expiration Time`, `Request TTL`.
 - Command actions include `CREATE`, `ADD PROPERTIES`, `RESCHEDULE`, `PEEK`, `PEEK ID`, `CANCEL`, `TIMEOUT`, and `COMPLETE EXCEPTIONALLY`.
 
+### Output
+
+<img src="https://github.com/aegisql/conveyor/blob/master/doc/img/watcher_output.png" alt="Output" width="760">
+
 
 ## Configuration
 
