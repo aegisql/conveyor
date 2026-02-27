@@ -66,6 +66,20 @@ The dashboard is organized around conveyor inspection and request testing. The s
 
 <img src="https://github.com/aegisql/conveyor/blob/master/doc/img/watcher_output.png" alt="Output" width="760">
 
+- Output is a shared event viewer for watcher streams, conveyor events, and admin operation status.
+- Each output source opens in its own tab, and tab settings are independent.
+
+How to use:
+
+1. Open a source:
+   `Submit and watch` from Parts/Commands, `Watch` from the conveyor tree/watchers, or run Admin reload/delete to see admin progress events.
+2. Select the output tab you want to inspect.
+3. Set `JSONPath` (for example `$.payload` or `$.payload.result`) to control rendered payload projection for the selected tab.
+4. Set `Cache` limit to keep only the latest N events in that selected tab.
+5. Use timeline controls:
+   `Prev` / `Next` moves between events, `See all` shows cached events in sequence, and `Clear events` resets selected tab history.
+6. Use `X` on Output to hide the panel; arriving events can reopen it and keep per-tab preferences for the session.
+
 
 ## Configuration
 
