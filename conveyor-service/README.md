@@ -10,22 +10,57 @@ Spring Boot service for working with Conveyor instances over HTTP:
   - `demo` profile: local in-memory users.
   - `prod` profile: OAuth2/OIDC with optional JWT resource-server mode.
 
+## Dashboard UI Overview
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyors_and_watchers.png alt="Conveyors and watchers">
+The dashboard is organized around conveyor inspection and request testing. The sections below use the built-in UI screenshots as a quick map.
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_details.png alt="Conveyor Details">
+### Conveyors and Watchers
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_operations.png alt="Conveyor Operations">
+<img src="https://github.com/aegisql/conveyor/blob/master/doc/img/conveyors_and_watchers.png" alt="Conveyors and watchers" width="760">
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_parts.png alt="Conveyor Parts">
+- `Conveyors` tree shows hierarchy and current state (`running`, `suspended`, `stopped`).
+- `Watchers` list tracks active watches and quick switching to output tabs.
+- Selecting a conveyor in the tree drives context for all workspace tabs.
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_static_parts.png alt="Conveyor Static Parts">
+### Conveyor Details
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_commands.png alt="Conveyor Commands">
+<img src="https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_details.png" alt="Conveyor Details" width="760">
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/admin_actions.png alt="Admin Actions">
+- Runtime summary fields: `Name`, `Running`, `MBean`, `MetaInfo`, `Snapshot Time`, `Upload Dir`.
+- Meta section lists key/label/product types, labels, and supported value types.
+- Parameter table shows current values, types, and writable/read-only access.
 
-<img src=https://github.com/aegisql/conveyor/blob/master/doc/img/watcher_output.png alt="Watcher Output">
+### Conveyor Operations
+
+<img src="https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_operations.png" alt="Conveyor Operations" width="760">
+
+- Set writable MBean parameters using `Set` with typed value input.
+- Invoke MBean operations with optional argument input for operations that require one.
+- Stop-related operations display an explicit warning before execution.
+
+### Conveyor Parts
+
+<img src="https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_parts.png" alt="Conveyor Parts" width="760">
+
+- Main controls: `ID`, `Label`, `Foreach`, request body, and content type.
+- Timing/priority fields: `TTL`, `Creation Time`, `Expiration Time`, `Priority`, `Request TTL`.
+- Supports additional custom properties and `Submit` / `Submit and watch` flows.
+
+### Conveyor Static Parts
+
+<img src="https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_static_parts.png" alt="Conveyor Static Parts" width="760">
+
+- Main controls: `Label`, `Content Type`, `Delete Mode`, request body (or file drop-in).
+- Timing fields: `Priority` and `Request TTL`.
+- Supports additional custom properties for static part placement.
+
+### Conveyor Commands
+
+<img src="https://github.com/aegisql/conveyor/blob/master/doc/img/conveyor_commands.png" alt="Conveyor Commands" width="760">
+
+- Main controls: `Watch results`, `ID`, `Foreach`, and command payload.
+- Timing fields: `TTL`, `Creation Time`, `Expiration Time`, `Request TTL`.
+- Command actions include `CREATE`, `ADD PROPERTIES`, `RESCHEDULE`, `PEEK`, `PEEK ID`, `CANCEL`, `TIMEOUT`, and `COMPLETE EXCEPTIONALLY`.
 
 
 ## Configuration
