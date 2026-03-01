@@ -29,6 +29,15 @@
 		<name>AEGIS DATA SOLUTIONS, LLC</name>
 		<url>http://www.aegisql.com</url>
 	</organization>
+    <contributors>
+        <contributor>
+            <name>Mikhail Teplitskiy</name>
+            <email>mvteplitsky@gmail.com</email>
+            <roles>
+                <role>Contributor</role>
+            </roles>
+        </contributor>
+    </contributors>
 
 	<description>Reactive Builder Framework</description>
 
