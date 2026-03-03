@@ -842,7 +842,7 @@
     let best = '';
     while (low <= high) {
       const mid = Math.floor((low + high) / 2);
-      const candidate = timeLabel + separator + '...' + eventId.slice(-mid);
+      const candidate = timeLabel + separator + '…' + eventId.slice(-mid);
       item.textContent = candidate;
       if (fitsTimelineItem(item)) {
         best = candidate;
@@ -1731,6 +1731,7 @@
 
       const selectedIndex = ensureSelectedEvent(tab);
       const seeAllEnabled = tab.seeAll === true;
+      const timelineItems = [];
 
       tab.events.forEach(function (entry, index) {
         const item = document.createElement('button');
@@ -1750,7 +1751,13 @@
           render();
         });
         timelineList.appendChild(item);
-        item.textContent = formatTimelineLabel(item, entry);
+        timelineItems.push({ item: item, entry: entry });
+      });
+
+      // Two-pass label formatting: compute final labels only after all items are mounted,
+      // so width calculations account for scrollbar presence and final layout.
+      timelineItems.forEach(function (timelineItem) {
+        timelineItem.item.textContent = formatTimelineLabel(timelineItem.item, timelineItem.entry);
       });
 
       const atStart = selectedIndex <= 0;
@@ -2117,6 +2124,11 @@
     loadConveyorHistory();
     trimAllTabs();
     render();
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        render();
+      }).catch(function () {});
+    }
 
     return {
       pushConveyorEvent: pushConveyorEvent,

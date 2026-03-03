@@ -567,7 +567,7 @@ h1, h2, h3 {
 
 .output-content-layout {
   display: grid;
-  grid-template-columns: minmax(170px, 220px) 1fr;
+  grid-template-columns: 220px minmax(0, 1fr);
   gap: 10px;
   min-height: 0;
   flex: 1 1 auto;
@@ -629,6 +629,7 @@ h1, h2, h3 {
   cursor: pointer;
   font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .output-timeline-item.active {
