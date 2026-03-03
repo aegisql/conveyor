@@ -615,15 +615,20 @@ h1, h2, h3 {
 }
 
 .output-timeline-item {
+  display: flex;
+  align-items: center;
   border: 1px solid #ced7cd;
   border-radius: 8px;
   background: #eef2ee;
   color: #2f3d34;
   padding: 5px 8px;
+  min-height: 30px;
   font-size: 12px;
+  line-height: 1.35;
   text-align: left;
   cursor: pointer;
   font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  white-space: nowrap;
 }
 
 .output-timeline-item.active {

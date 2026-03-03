@@ -796,6 +796,65 @@
     }).format(date);
   }
 
+  function resolveEventId(entry) {
+    if (!entry || typeof entry !== 'object') {
+      return '';
+    }
+    const meta = entry.meta && typeof entry.meta === 'object' ? entry.meta : {};
+    const payload = entry.payload && typeof entry.payload === 'object' ? entry.payload : {};
+    const props = payload.properties && typeof payload.properties === 'object' ? payload.properties : {};
+    const candidates = [
+      meta.correlationId,
+      payload.correlationId,
+      payload.id,
+      props.correlationId,
+      props.id
+    ];
+    for (let i = 0; i < candidates.length; i += 1) {
+      const candidate = candidates[i];
+      if (candidate !== null && candidate !== undefined && String(candidate).trim() !== '') {
+        return String(candidate).trim();
+      }
+    }
+    return '';
+  }
+
+  function fitsTimelineItem(item) {
+    return item.scrollWidth <= item.clientWidth;
+  }
+
+  function formatTimelineLabel(item, entry) {
+    const timeLabel = formatClockTime(entry && entry.timestamp ? entry.timestamp : new Date().toISOString());
+    const eventId = resolveEventId(entry);
+    if (!eventId) {
+      return timeLabel;
+    }
+
+    const separator = ' - ';
+    const fullLabel = timeLabel + separator + eventId;
+    item.textContent = fullLabel;
+    if (fitsTimelineItem(item)) {
+      return fullLabel;
+    }
+
+    let low = 1;
+    let high = eventId.length;
+    let best = '';
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const candidate = timeLabel + separator + '...' + eventId.slice(-mid);
+      item.textContent = candidate;
+      if (fitsTimelineItem(item)) {
+        best = candidate;
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+
+    return best || timeLabel;
+  }
+
   function toScalar(value) {
     if (value === null || value === undefined) {
       return 'null';
@@ -889,6 +948,7 @@
   function initOutputDock() {
     const dock = document.getElementById('output-dock');
     const openButton = document.getElementById('output-open-button');
+    const copyButton = document.getElementById('output-copy-button');
     const closeButton = document.getElementById('output-close-button');
     const resizeHandle = document.getElementById('output-resize-handle');
     const tabList = document.getElementById('output-tab-list');
@@ -928,7 +988,7 @@
       Number.isFinite(configuredDefaultConveyorHistory) ? configuredDefaultConveyorHistory : WATCH_HISTORY_DEFAULT_LIMIT
     );
 
-    if (!dock || !openButton || !closeButton || !resizeHandle || !tabList || !emptyPanel || !content || !timelineList || !seeAllCheckbox || !prevButton || !nextButton || !clearButton || !statusLine || !jsonCode || !fontDecreaseButton || !fontIncreaseButton || !fontSizeLabel || !cacheLimitInput || !cacheLimitLabel || !jsonPathInput) {
+    if (!dock || !openButton || !copyButton || !closeButton || !resizeHandle || !tabList || !emptyPanel || !content || !timelineList || !seeAllCheckbox || !prevButton || !nextButton || !clearButton || !statusLine || !jsonCode || !fontDecreaseButton || !fontIncreaseButton || !fontSizeLabel || !cacheLimitInput || !cacheLimitLabel || !jsonPathInput) {
       return {
         pushConveyorEvent: function () {},
         pushWatchEvent: function () {},
@@ -951,6 +1011,77 @@
       defaultConveyorHistoryLimit: defaultConveyorHistoryLimit,
       defaultJsonPath: DEFAULT_TAB_JSON_PATH
     };
+    let copyButtonResetTimer = null;
+
+    function setCopyButtonText(text, transient) {
+      copyButton.textContent = text;
+      if (copyButtonResetTimer) {
+        window.clearTimeout(copyButtonResetTimer);
+        copyButtonResetTimer = null;
+      }
+      if (transient) {
+        copyButtonResetTimer = window.setTimeout(function () {
+          copyButton.textContent = 'Copy';
+          copyButtonResetTimer = null;
+        }, 1400);
+      }
+    }
+
+    function visibleOutputText() {
+      if (dock.hidden) {
+        return '';
+      }
+      if (!content.hidden) {
+        const jsonText = (jsonCode.textContent || '').trim();
+        return jsonText;
+      }
+      return (emptyPanel.textContent || '').trim();
+    }
+
+    function fallbackCopyText(text) {
+      return new Promise(function (resolve, reject) {
+        const area = document.createElement('textarea');
+        area.value = text;
+        area.setAttribute('readonly', 'readonly');
+        area.style.position = 'fixed';
+        area.style.left = '-9999px';
+        area.style.top = '-9999px';
+        document.body.appendChild(area);
+        area.focus();
+        area.select();
+        try {
+          const copied = document.execCommand('copy');
+          document.body.removeChild(area);
+          if (copied) {
+            resolve();
+          } else {
+            reject(new Error('document.execCommand(\"copy\") returned false'));
+          }
+        } catch (error) {
+          document.body.removeChild(area);
+          reject(error);
+        }
+      });
+    }
+
+    function copyVisibleOutput() {
+      const text = visibleOutputText();
+      if (!text) {
+        setCopyButtonText('Empty', true);
+        return;
+      }
+      const canUseClipboardApi = navigator.clipboard && typeof navigator.clipboard.writeText === 'function';
+      const copyPromise = canUseClipboardApi
+        ? navigator.clipboard.writeText(text).catch(function () {
+            return fallbackCopyText(text);
+          })
+        : fallbackCopyText(text);
+      copyPromise.then(function () {
+        setCopyButtonText('Copied', true);
+      }).catch(function () {
+        setCopyButtonText('Failed', true);
+      });
+    }
 
     function maxDockHeight() {
       return Math.max(OUTPUT_MIN_HEIGHT, Math.floor(window.innerHeight * 0.75));
@@ -1339,6 +1470,7 @@
         jsonPathInput.value = tab ? resolveTabJsonPath(tab) : state.defaultJsonPath;
       }
       jsonPathInput.disabled = !tab;
+      copyButton.disabled = dock.hidden;
       syncWatchLimitHiddenInputs();
     }
 
@@ -1604,7 +1736,6 @@
         const item = document.createElement('button');
         item.type = 'button';
         item.className = 'output-timeline-item ' + eventStatusClass(entry);
-        item.textContent = formatClockTime(entry.timestamp || new Date().toISOString());
         item.title = entry.statusLine || 'output event';
         if (!seeAllEnabled && index === selectedIndex) {
           item.classList.add('active');
@@ -1619,6 +1750,7 @@
           render();
         });
         timelineList.appendChild(item);
+        item.textContent = formatTimelineLabel(item, entry);
       });
 
       const atStart = selectedIndex <= 0;
@@ -1658,7 +1790,7 @@
       let payloadForView;
       if (tab.seeAll === true) {
         const latest = tab.events[tab.events.length - 1];
-        statusLine.textContent = 'Showing all events (' + tab.events.length + '). Latest: ' + (latest ? latest.statusLine : 'n/a');
+        statusLine.textContent = latest ? latest.statusLine : '';
         payloadForView = tab.events.map(function (entry) {
           return {
             timestamp: entry.timestamp,
@@ -1867,6 +1999,10 @@
     closeButton.addEventListener('click', function () {
       state.open = false;
       render();
+    });
+
+    copyButton.addEventListener('click', function () {
+      copyVisibleOutput();
     });
 
     openButton.addEventListener('click', function () {
