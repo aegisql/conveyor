@@ -78,7 +78,9 @@ How to use:
 4. Set `Cache` limit to keep only the latest N events in that selected tab.
 5. Use timeline controls:
    `Prev` / `Next` moves between events, `See all` shows cached events in sequence, and `Clear events` resets selected tab history.
-6. Use `X` on Output to hide the panel; arriving events can reopen it and keep per-tab preferences for the session.
+   Timeline entries show event time and, when available, event/correlation ID. Long IDs are shown as a tail with `...`.
+6. Use `Copy` to copy currently visible JSON payload from Output (selected event or `See all` aggregate JSON). Status line text is not copied.
+7. Use `X` on Output to hide the panel; arriving events can reopen it and keep per-tab preferences for the session.
 
 
 ## Configuration

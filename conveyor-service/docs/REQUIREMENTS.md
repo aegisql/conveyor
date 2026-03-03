@@ -642,18 +642,23 @@ Behavior:
   - left-side vertical timeline of cached events per selected tab
   - timeline item colors by status class (2xx/3xx/4xx/5xx style)
   - watch and conveyor/admin tabs use the same status-to-color semantics
-  - click timestamp to view one event
+  - click timeline item to view one event
+  - timeline item label includes event time and, when available, correlation ID
+  - if correlation ID is too long for button width, show ID tail prefixed with `...` (example: `10:18:51 - ...a3d8f`)
   - `Prev` / `Next` navigation
   - `Clear events` removes cached events for selected tab
   - `See all` shows all tab events in aggregate view and disables per-event navigation
   - tail-follow behavior: if currently on latest event, new events auto-focus latest
 - Rendering behavior:
   - compact status line above payload area
+  - in `See all` mode, do not show synthetic banner text like `Showing all events (...)`; keep status line compact and event-based
   - JSONPath extraction input is per selected Output tab:
     - empty value resolves to `$`
     - default value is `$.payload`
     - each tab can use a different JSONPath
     - user-selected JSONPath is remembered per tab for the lifetime of the browser session, including close/reopen of the same tab
+  - `Copy` button copies only currently visible JSON payload content from Output view (selected event or `See all` aggregate JSON)
+  - `Copy` action must not include status line text in clipboard content
   - when there is no open output tab, cache-limit and JSONPath controls are hidden
 - Cache controls:
   - one cache-limit input is shown for the selected Output tab
@@ -748,6 +753,8 @@ Basic smoke checks:
   - close and reopen dock
   - close/reopen per-source output tabs via new events
   - verify timeline navigation (`Prev`, `Next`, `See all`, `Clear events`)
+  - verify timeline label shows time and ID tail (`...`) when ID is long
+  - verify `Copy` copies only visible JSON payload and excludes status line text
   - verify no duplicate watch events are shown after page reload + new websocket events
   - verify cache label/value switch per selected tab (`Watch Cache` vs `Conveyor Cache`)
   - verify per-tab cache limits trim oldest events
