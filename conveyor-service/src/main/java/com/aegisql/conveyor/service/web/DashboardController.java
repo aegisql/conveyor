@@ -2,6 +2,11 @@ package com.aegisql.conveyor.service.web;
 
 import com.aegisql.conveyor.service.core.DashboardAdminOperationService;
 import com.aegisql.conveyor.service.core.DashboardService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/dashboard")
+@Tag(name = "Dashboard API", description = "Runtime inspection and admin operations for dashboard integration")
 public class DashboardController {
 
     private static final Logger LOG = LoggerFactory.getLogger(DashboardController.class);
@@ -31,25 +37,50 @@ public class DashboardController {
     }
 
     @GetMapping("/tree")
+    @Operation(summary = "Get conveyor tree")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Tree returned"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public Map<String, Map<String, ?>> tree() {
         return dashboardService.conveyorTree();
     }
 
     @GetMapping("/{name}")
+    @Operation(summary = "Inspect conveyor details by name")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Conveyor details returned"),
+            @ApiResponse(responseCode = "404", description = "Conveyor not found"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public Map<String, Object> inspect(@PathVariable("name") String name) {
         return dashboardService.inspect(name);
     }
 
     @PostMapping("/admin/upload")
+    @Operation(summary = "Upload or replace conveyor extension jar")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Upload processed"),
+            @ApiResponse(responseCode = "400", description = "Invalid upload"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public ResponseEntity<Void> upload(@RequestParam("file") MultipartFile file) throws IOException {
         dashboardService.upload(file);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/admin/reload/{name}")
+    @Operation(summary = "Schedule controlled reload for top-level conveyor")
+    @ApiResponses({
+            @ApiResponse(responseCode = "202", description = "Reload scheduled"),
+            @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Conveyor not found")
+    })
     public ResponseEntity<Void> reload(
             @PathVariable("name") String name,
             @RequestParam(name = "stopTimeout", required = false) String stopTimeout,
+            @Parameter(hidden = true)
             Authentication authentication
     ) {
         LOG.info("API admin reload requested: name='{}', stopTimeout='{}'", name, stopTimeout);
@@ -58,9 +89,17 @@ public class DashboardController {
     }
 
     @DeleteMapping("/admin/{name}")
+    @Operation(summary = "Schedule controlled delete for top-level conveyor tree")
+    @ApiResponses({
+            @ApiResponse(responseCode = "202", description = "Delete scheduled"),
+            @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Conveyor not found")
+    })
     public ResponseEntity<Void> delete(
             @PathVariable("name") String name,
             @RequestParam(name = "stopTimeout", required = false) String stopTimeout,
+            @Parameter(hidden = true)
             Authentication authentication
     ) {
         LOG.info("API admin delete requested: name='{}', stopTimeout='{}'", name, stopTimeout);
@@ -69,11 +108,23 @@ public class DashboardController {
     }
 
     @GetMapping("/admin/events")
+    @Operation(summary = "Drain admin output events for current user")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Events returned"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public List<Map<String, Object>> adminEvents(Authentication authentication) {
         return dashboardAdminOperationService.drainEvents(authenticatedUsername(authentication));
     }
 
     @PostMapping("/admin/{name}/mbean/{method}")
+    @Operation(summary = "Invoke writable MBean operation")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Invocation result returned"),
+            @ApiResponse(responseCode = "400", description = "Invalid operation payload"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Conveyor not found")
+    })
     public ResponseEntity<Object> invoke(
             @PathVariable("name") String name,
             @PathVariable("method") String method,
@@ -84,6 +135,13 @@ public class DashboardController {
     }
 
     @PostMapping("/admin/{name}/parameter/{parameter}")
+    @Operation(summary = "Set writable MBean parameter")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Parameter updated"),
+            @ApiResponse(responseCode = "400", description = "Invalid parameter value"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Conveyor not found")
+    })
     public ResponseEntity<Void> updateParameter(
             @PathVariable("name") String name,
             @PathVariable("parameter") String parameter,

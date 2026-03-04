@@ -1,6 +1,11 @@
 package com.aegisql.conveyor.service.web;
 
 import com.aegisql.conveyor.service.core.ConveyorWatchService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/dashboard/watch")
+@Tag(name = "Watch API", description = "Manage user watch registrations and limits")
 public class WatchController {
 
     private final ConveyorWatchService conveyorWatchService;
@@ -24,13 +30,25 @@ public class WatchController {
     }
 
     @GetMapping
+    @Operation(summary = "List active watch registrations for current user")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Active watches returned"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public List<Map<String, Object>> activeWatches(Authentication authentication) {
         return conveyorWatchService.activeWatchesForUser(authenticatedUsername(authentication));
     }
 
     @PostMapping("/cancel")
+    @Operation(summary = "Cancel watch by watchId or by conveyor/correlationId/foreach tuple")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Cancel processed"),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public Map<String, Object> cancelWatch(
             @RequestBody(required = false) Map<String, Object> request,
+            @Parameter(hidden = true)
             Authentication authentication
     ) {
         String username = authenticatedUsername(authentication);
@@ -55,8 +73,15 @@ public class WatchController {
     }
 
     @PostMapping("/history-limit")
+    @Operation(summary = "Update foreach watch history limit for current user")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "History limit updated"),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public Map<String, Object> updateHistoryLimit(
             @RequestBody(required = false) Map<String, Object> request,
+            @Parameter(hidden = true)
             Authentication authentication
     ) {
         Integer historyLimit = parsePositiveInt(request == null ? null : request.get("historyLimit"), "historyLimit");

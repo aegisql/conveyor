@@ -11,6 +11,7 @@ import com.aegisql.conveyor.service.error.ConveyorNotFoundException;
 import com.aegisql.conveyor.service.error.UnsupportedMappingException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Hidden;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -41,6 +42,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Controller
+@Hidden
 public class DashboardViewController {
     private static final Logger LOG = LoggerFactory.getLogger(DashboardViewController.class);
     private static final String TAB_DETAILS = "tab-details";

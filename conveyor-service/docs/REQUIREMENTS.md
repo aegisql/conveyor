@@ -31,7 +31,7 @@ Required dependencies:
 - `spring-boot-starter-actuator`
 - `spring-boot-starter-validation`
 - `spring-boot-starter-websocket`
-- `org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0`
+- `org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2`
 - `org.webjars.npm:prismjs:1.30.0`
 - Conveyor modules:
   - `com.aegisql:conveyor-core`
@@ -711,6 +711,9 @@ Error handling:
 - Swagger UI path: `/swagger-ui/index.html`
 - OpenAPI JSON path: `/v3/api-docs`
 - Swagger endpoints are publicly readable (security permitAll)
+- OpenAPI must describe REST endpoints only; server-rendered dashboard form handlers (`/dashboard/**`) are hidden.
+- Placement/command/static-part OpenAPI operations must expose both `200` (completed synchronously) and `202` (accepted/in-progress) responses.
+- Common placement query parameters (`ttl`, `expirationTime`, `creationTime`, `priority`, `requestTTL`, `watchResults`, `watchLimit`) must be documented in OpenAPI.
 
 
 ## 12. Build, Run, and Verification Commands
