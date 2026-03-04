@@ -51,8 +51,8 @@ public class PartController {
             @Parameter(name = "creationTime", description = "Explicit cart creation timestamp"),
             @Parameter(name = "priority", description = "Optional cart priority"),
             @Parameter(name = "requestTTL", description = "Optional request wait timeout. If omitted, async scheduling typically returns HTTP 202."),
-            @Parameter(name = "watchResults", description = "When true, registers watch updates for this request"),
-            @Parameter(name = "watchLimit", description = "Optional watch history limit (positive integer)")
+            @Parameter(name = "watchResults", description = "Endpoint control flag: when true, registers watch updates for this request. Not forwarded as a conveyor property."),
+            @Parameter(name = "watchLimit", description = "Endpoint control value for watch history limit (positive integer). Not forwarded as a conveyor property.")
     })
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Part processed synchronously",
@@ -117,8 +117,8 @@ public class PartController {
             @Parameter(name = "creationTime", description = "Explicit cart creation timestamp"),
             @Parameter(name = "priority", description = "Optional cart priority"),
             @Parameter(name = "requestTTL", description = "Optional request wait timeout"),
-            @Parameter(name = "watchResults", description = "When true, registers foreach watch updates"),
-            @Parameter(name = "watchLimit", description = "Optional watch history limit (positive integer)")
+            @Parameter(name = "watchResults", description = "Endpoint control flag: when true, registers foreach watch updates. Not forwarded as a conveyor property."),
+            @Parameter(name = "watchLimit", description = "Endpoint control value for watch history limit (positive integer). Not forwarded as a conveyor property.")
     })
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Part processed synchronously",
