@@ -84,8 +84,12 @@ public interface Cart <K,V,L> extends Expireable, Serializable, Comparable<Cart<
 	 * @return the future
 	 */
 	CompletableFuture<Boolean> getFuture();
-	
-	/**
+
+    CompletableFuture<Boolean> getCompletedFuture(boolean result);
+
+    CompletableFuture<Boolean> getCompletedFuture(Throwable error);
+
+    /**
 	 * Gets the scrap consumer.
 	 *
 	 * @return the scrap consumer

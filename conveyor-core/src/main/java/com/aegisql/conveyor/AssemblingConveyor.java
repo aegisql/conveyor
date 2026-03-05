@@ -6,6 +6,7 @@ package com.aegisql.conveyor;
 import com.aegisql.conveyor.BuildingSite.Memento;
 import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.cart.*;
+import com.aegisql.conveyor.cart.command.CreateCommand;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ForwardResult.ForwardingConsumer;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
@@ -100,12 +101,15 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	/** The ready. */
 	protected BiPredicate<State<K, L>, Supplier<? extends OUT>> readiness = null;
 
-	/** The builder supplier. */
-	protected BuilderSupplier<OUT> builderSupplier = () -> {
+	/** The default builder supplier. */
+	protected final BuilderSupplier<OUT> defaultBuilderSupplier = () -> {
 		throw new IllegalStateException("Builder Supplier is not set");
 	};
 
-	/** The cart before placement validator. */
+    /** The builder supplier. */
+    protected BuilderSupplier<OUT> builderSupplier = defaultBuilderSupplier;
+
+    /** The cart before placement validator. */
 	protected Consumer<Cart<K, ?, L>> cartBeforePlacementValidator = cart -> {
 		if (cart == null)
 			throw new NullPointerException("Cart is null");
@@ -839,8 +843,8 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@Override
 	public <V> CompletableFuture<Boolean> command(GeneralCommand<K, V> cart) {
+        var future = cart.getFuture();
 		try {
-			var future = cart.getFuture();
 			commandBeforePlacementValidator.accept(cart);
 			var r = mQueue.add(cart);
 			if (!r) {
@@ -850,6 +854,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		} catch (RuntimeException e) {
 			cart.getScrapConsumer().andThen((ScrapConsumer)scrapConsumer).accept(
 					new ScrapBin(this, cart.getKey(), cart, e.getMessage(), e, FailureType.COMMAND_REJECTED,cart.getAllProperties(), null));
+            future.completeExceptionally(e);
 			throw e;
 		} finally {
 			lock.tell();
@@ -1457,8 +1462,20 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static void createNow(AssemblingConveyor conveyor, Cart cart) {
-		conveyor.getBuildingSite(cart);
-		cart.getFuture().complete(true);
+        if(conveyor.defaultBuilderSupplier != conveyor.builderSupplier  || cart.getValue() != null) {
+            conveyor.getBuildingSite(cart);
+        } else {
+            try {
+                var metaInfo = conveyor.getMetaInfo();
+                if(metaInfo != null && metaInfo.builderSupplierFactory() != null) {
+                    conveyor.getBuildingSite(new CreateCommand<>(cart.getKey(), metaInfo.builderSupplierFactory(), cart.getCreationTime(), cart.getExpirationTime()));
+                }
+            } catch (Exception e){
+                cart.getCompletedFuture(e);
+                throw new ConveyorRuntimeException("Builder Supplier Factory required",e);
+            }
+        }
+        cart.getCompletedFuture(true);
 	}
 
 	/**
@@ -1478,7 +1495,7 @@ public class AssemblingConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 			bs.cancelFutures();
 			bs.setStatus(Status.CANCELED);
 		}
-		cart.getFuture().complete(true);
+        cart.getCompletedFuture(true);
 	}
 
 	/**

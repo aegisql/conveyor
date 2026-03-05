@@ -198,8 +198,22 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 		}
 		return future;
 	}
-	
-	/*
+
+    @Override
+    public CompletableFuture<Boolean> getCompletedFuture(boolean result) {
+        var future = getFuture();
+        future.complete(result);
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> getCompletedFuture(Throwable error) {
+        var future = getFuture();
+        future.completeExceptionally(error);
+        return future;
+    }
+
+    /*
 	 * (non-Javadoc)
 	 * 
 	 * @see java.lang.Object#toString()

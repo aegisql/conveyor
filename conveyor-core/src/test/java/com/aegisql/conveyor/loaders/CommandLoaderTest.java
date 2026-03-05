@@ -4,6 +4,9 @@ import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.ProductBin;
 import com.aegisql.conveyor.consumers.result.LogResult;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
+import com.aegisql.conveyor.meta.ConveyorMetaInfo;
+import com.aegisql.conveyor.meta.ConveyorMetaInfoBuilder;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
 import com.aegisql.conveyor.user.UserBuilderEvents;
@@ -289,7 +292,38 @@ public class CommandLoaderTest {
 		assertEquals("B", bin2.properties.get("b"));
 	}
 
-	
-	
-	
+    @Test
+    public void testCreateCommand() throws InterruptedException, ExecutionException {
+        AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>();
+        c.setName("testCreateCommand");
+//        c.setBuilderSupplier(UserBuilder::new); // No Builder Supplier
+        c.resultConsumer().first(LogResult.stdOut(c)).set();
+        assertThrows(Exception.class,()->c.command().id(1).create().join());
+    }
+
+    @Test
+    public void testCreateCommandWithMetaInfo() throws InterruptedException, ExecutionException {
+        AssemblingConveyor<Integer, UserBuilderEvents, User> c = new AssemblingConveyor<>(){
+            @Override
+            public ConveyorMetaInfo<Integer, UserBuilderEvents, User> getMetaInfo() {
+                return ConveyorMetaInfoBuilder.of(this)
+                        .keyType(Integer.class)
+                        .labelType(UserBuilderEvents.class)
+                        .productType(User.class)
+                        .supportedTypes(UserBuilderEvents.CREATE,Object.class)
+                        .supportedTypes(UserBuilderEvents.FAILURE,Object.class)
+                        .supportedTypes(UserBuilderEvents.PRINT,Object.class)
+                        .supportedTypes(UserBuilderEvents.SET_FIRST,Object.class)
+                        .supportedTypes(UserBuilderEvents.SET_LAST,Object.class)
+                        .supportedTypes(UserBuilderEvents.SET_YEAR,Object.class)
+                        .builderSupplier(UserBuilder::new)
+                        .get();
+            }
+        };
+        c.setName("testCreateCommandWithMetaInfo");
+        c.resultConsumer().first(LogResult.stdOut(c)).set();
+        assertTrue(c.command().id(1).create().join());
+    }
+
+
 }
