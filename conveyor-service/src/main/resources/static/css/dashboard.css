@@ -668,7 +668,7 @@ h1, h2, h3 {
   margin: 0;
   padding: 0 0 6px;
   border-bottom: 1px solid #dbe2da;
-  font-size: var(--output-font-size, 12px);
+  font-size: 12px;
   line-height: 1.4;
   font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
   white-space: normal;
@@ -681,6 +681,11 @@ h1, h2, h3 {
   min-height: 140px;
   max-height: none;
   font-size: var(--output-font-size, 12px);
+  line-height: 1.4;
+}
+
+.output-content .json-result code {
+  font-size: var(--output-font-size, 12px) !important;
   line-height: 1.4;
 }
 

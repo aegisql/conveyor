@@ -10,8 +10,9 @@
 
   const OUTPUT_MIN_HEIGHT = 170;
   const OUTPUT_DEFAULT_HEIGHT = 260;
-  const OUTPUT_MIN_FONT_SIZE = 8;
-  const OUTPUT_MAX_FONT_SIZE = 24;
+  const OUTPUT_FONT_LEVELS = [8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+  const OUTPUT_MIN_FONT_SIZE = OUTPUT_FONT_LEVELS[0];
+  const OUTPUT_MAX_FONT_SIZE = OUTPUT_FONT_LEVELS[OUTPUT_FONT_LEVELS.length - 1];
   const OUTPUT_DEFAULT_FONT_SIZE = 12;
   const WATCH_HISTORY_MIN_LIMIT = 1;
   const WATCH_HISTORY_DEFAULT_LIMIT = 100;
@@ -1100,7 +1101,39 @@
       if (!Number.isFinite(numeric)) {
         return OUTPUT_DEFAULT_FONT_SIZE;
       }
-      return Math.min(Math.max(Math.round(numeric), OUTPUT_MIN_FONT_SIZE), OUTPUT_MAX_FONT_SIZE);
+      let nearest = OUTPUT_DEFAULT_FONT_SIZE;
+      let smallestDistance = Number.POSITIVE_INFINITY;
+      OUTPUT_FONT_LEVELS.forEach(function (level) {
+        const distance = Math.abs(level - numeric);
+        if (distance < smallestDistance || (distance === smallestDistance && level > nearest)) {
+          nearest = level;
+          smallestDistance = distance;
+        }
+      });
+      return nearest;
+    }
+
+    function formatFontSizeLabel(size) {
+      const normalized = clampFontSize(size);
+      if (Number.isInteger(normalized)) {
+        return String(normalized) + 'px';
+      }
+      return normalized.toFixed(1).replace(/\.0$/, '') + 'px';
+    }
+
+    function nextFontSizeLevel(size, direction) {
+      const normalized = clampFontSize(size);
+      let index = OUTPUT_FONT_LEVELS.indexOf(normalized);
+      if (index < 0) {
+        index = OUTPUT_FONT_LEVELS.indexOf(OUTPUT_DEFAULT_FONT_SIZE);
+      }
+      const delta = direction < 0 ? -1 : 1;
+      const nextIndex = Math.min(Math.max(index + delta, 0), OUTPUT_FONT_LEVELS.length - 1);
+      return OUTPUT_FONT_LEVELS[nextIndex];
+    }
+
+    function effectiveFontSizePx(size) {
+      return clampFontSize(size);
     }
 
     function normalizeJsonPath(path) {
@@ -1451,7 +1484,7 @@
     }
 
     function updateControlUi() {
-      fontSizeLabel.textContent = state.fontSize + 'px';
+      fontSizeLabel.textContent = formatFontSizeLabel(state.fontSize);
       const tab = selectedTab();
       const hasTab = Boolean(tab);
       if (cacheControlGroup) {
@@ -1480,7 +1513,7 @@
       if (state.open) {
         dock.style.height = state.height + 'px';
       }
-      dock.style.setProperty('--output-font-size', state.fontSize + 'px');
+      dock.style.setProperty('--output-font-size', effectiveFontSizePx(state.fontSize) + 'px');
       updateControlUi();
       savePrefs();
     }
@@ -2017,11 +2050,11 @@
     });
 
     fontDecreaseButton.addEventListener('click', function () {
-      setFontSize(state.fontSize - 1);
+      setFontSize(nextFontSizeLevel(state.fontSize, -1));
     });
 
     fontIncreaseButton.addEventListener('click', function () {
-      setFontSize(state.fontSize + 1);
+      setFontSize(nextFontSizeLevel(state.fontSize, 1));
     });
 
     seeAllCheckbox.addEventListener('change', function () {
