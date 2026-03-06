@@ -27,8 +27,18 @@ public class DerbyEngine <K> extends GenericEngine<K> {
 		setField(CREATION_TIME, "TIMESTAMP");
 		setField(EXPIRATION_TIME, "TIMESTAMP");
 		setConnectionUrlTemplateForInitDatabase("");
-		setConnectionUrlTemplateForInitSchema("jdbc:derby:{schema};create=true");
-		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:derby:{schema};create=true");
-		setConnectionUrlTemplate("jdbc:derby:{schema};");
+		setConnectionUrlTemplateForInitSchema("jdbc:derby:{database};create=true");
+		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:derby:{database};create=true");
+		setConnectionUrlTemplate("jdbc:derby:{database};");
+	}
+
+	@Override
+	protected boolean switchUrlTemplae(String temlate) {
+		if ((connectionFactory.getDatabase() == null || connectionFactory.getDatabase().isBlank())
+				&& connectionFactory.getSchema() != null
+				&& !connectionFactory.getSchema().isBlank()) {
+			connectionFactory.setDatabase(connectionFactory.getSchema());
+		}
+		return super.switchUrlTemplae(temlate);
 	}
 }

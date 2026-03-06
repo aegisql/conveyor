@@ -9,6 +9,7 @@ conveyor:
       - com.aegisql.conveyor.config.harness.NameLabel.FIRST
       - com.aegisql.conveyor.config.harness.NameLabel.LAST
     persistence:
+      db_path: test-artifacts/persistence
       derby.c9.parts:
         keyClass: java.lang.Integer
         archiveStrategy:

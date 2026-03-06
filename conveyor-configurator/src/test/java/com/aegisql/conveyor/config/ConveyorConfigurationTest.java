@@ -46,50 +46,55 @@ import static org.mockito.Mockito.*;
 @RestoreSystemProperties
 @RestoreEnvironmentVariables
 public class ConveyorConfigurationTest {
+
+	private static final String TEST_ARTIFACTS_DIR = "test-artifacts";
+	private static final String TEST_PERSISTENCE_DIR = TEST_ARTIFACTS_DIR + "/persistence";
 	
 	@BeforeAll
 	public static void setUpBeforeClass() throws Exception {
 		tearDownAfterClass();
 
 		ConveyorConfiguration.DEFAULT_TIMEOUT_MSEC = 5 * 1000;
-		
-		try {
-			File dir = new File("./");
-			
-			Arrays.stream(dir.listFiles()).map(f->f.getName()).filter(f->(f.endsWith(".blog")||f.endsWith(".blog.zip"))).forEach(f->new File(f).delete());
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
+		deleteLegacyPersistenceArtifacts();
+		FileUtils.deleteDirectory(new File(TEST_ARTIFACTS_DIR));
 
-		String conveyor_db_path = "testConv";
-		File f = new File(conveyor_db_path);
-		try {
-			// Deleting the directory recursively using FileUtils.
-			FileUtils.deleteDirectory(f);
-			System.out.println("Directory has been deleted recursively !");
-		} catch (IOException e) {
-			System.err.println("Problem occurs when deleting the directory : " + conveyor_db_path);
-			e.printStackTrace();
-		}
-
-		JdbcPersistenceBuilder.presetInitializer("derby",Integer.class).autoInit(true).schema("testConv").partTable("test2")
+		JdbcPersistenceBuilder.presetInitializer("derby",Integer.class).autoInit(true)
+				.database(new File(TEST_PERSISTENCE_DIR, "testConv").getPath())
+				.schema("testConv").partTable("test2")
 				.completedLogTable("test2Completed").setArchived().maxBatchSize(3).build();
-		JdbcPersistenceBuilder.presetInitializer("derby",Integer.class).autoInit(true).schema("testConv").partTable("persistent")
+		JdbcPersistenceBuilder.presetInitializer("derby",Integer.class).autoInit(true)
+				.database(new File(TEST_PERSISTENCE_DIR, "testConv").getPath())
+				.schema("testConv").partTable("persistent")
 				.completedLogTable("persistentCompleted").setArchived().maxBatchSize(3).build();
 	}
 
 	@AfterAll
 	public static void tearDownAfterClass() {
 		try {
-			File dir = new File("./");
-			
-			Arrays.stream(dir.listFiles()).map(f->f.getName()).filter(f->(f.endsWith(".blog")||f.endsWith(".blog.zip"))).forEach(f->new File(f).delete());
-			
+			deleteLegacyPersistenceArtifacts();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static void deleteLegacyPersistenceArtifacts() throws IOException {
+		FileUtils.deleteDirectory(new File("testConv"));
+		FileUtils.deleteDirectory(new File("test"));
+		FileUtils.deleteDirectory(new File("c9"));
+		FileUtils.deleteDirectory(new File("p11"));
+		FileUtils.deleteQuietly(new File("derby.log"));
+		File dir = new File("./");
+		File[] files = dir.listFiles();
+		if (files == null) {
+			return;
+		}
+		Arrays.stream(files)
+				.filter(file ->
+						file.getName().startsWith("conveyor.db")
+								|| file.getName().endsWith(".blog")
+								|| file.getName().endsWith(".blog.zip"))
+				.forEach(FileUtils::deleteQuietly);
 	}
 
 	@BeforeEach
@@ -303,26 +308,6 @@ public class ConveyorConfigurationTest {
 
 	@Test
 	public void testYampFileWithPersistence() throws Exception {
-		
-		String conveyor_db_path = "c9";
-		String blog_db_path = "parts.blog";
-		File f = new File(conveyor_db_path);
-		try {
-			FileUtils.deleteDirectory(f);
-			System.out.println("Directory c9 has been deleted!");
-		} catch (IOException e) {
-			System.err.println("Problem occurs when deleting the directory : " + conveyor_db_path);
-			e.printStackTrace();
-		}
-		f = new File(blog_db_path);
-		try {
-			f.delete();
-			System.out.println("Directory backup has been deleted!");
-		} catch (Exception e) {
-			System.err.println("Problem occurs when deleting the directory : " + blog_db_path);
-			e.printStackTrace();
-		}
-		
 		ConveyorConfiguration.build("CLASSPATH:test9.yml");
 		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c9-1");
 		assertNotNull(c);
@@ -337,44 +322,22 @@ public class ConveyorConfigurationTest {
 		assertTrue(lastPart.get());
 
 		Thread.sleep(1000);
-		File dir = new File("./");
-		
+
 		AtomicInteger found = new AtomicInteger(0);
-		
-		Arrays.stream(dir.listFiles())
-			.map(file->file.getName())
-			.filter(name->(name.endsWith(".blog")||name.endsWith(".blog.zip")))
-			.forEach(
-				file->{
-					System.out.println("Found "+file);
+		FileUtils.listFiles(new File(TEST_PERSISTENCE_DIR), null, true).stream()
+				.map(File::getName)
+				.filter(name -> name.endsWith(".blog") || name.endsWith(".blog.zip"))
+				.forEach(file -> {
+					System.out.println("Found " + file);
 					found.incrementAndGet();
-				}
-				);
+				});
 		assertEquals(2, found.get());
+		assertTrue(new File(TEST_PERSISTENCE_DIR).isDirectory());
+		assertFalse(new File("c9").exists());
 	}
 
 	@Test
 	public void testYampFileWithCompaction() throws Exception {
-		
-		String conveyor_db_path = "p11";
-		String blog_db_path = "parts11";
-		File f = new File(conveyor_db_path);
-		try {
-			FileUtils.deleteDirectory(f);
-			System.out.println("Directory p11 has been deleted!");
-		} catch (IOException e) {
-			System.err.println("Problem occurs when deleting the directory : " + conveyor_db_path);
-			e.printStackTrace();
-		}
-		f = new File(blog_db_path+".blog");
-		try {
-			f.delete();
-			System.out.println("Directory backup has been deleted!");
-		} catch (Exception e) {
-			System.err.println("Problem occurs when deleting the directory : " + blog_db_path);
-			e.printStackTrace();
-		}
-		
 		ConveyorConfiguration.build("CLASSPATH:test11.yml");
 		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c11");
 		Persistence<Integer> p = Persistence.byName("derby.p11.parts11").copy();
@@ -391,9 +354,11 @@ public class ConveyorConfigurationTest {
 		
 		assertTrue(lastPart.join());
 
-		Collection<Cart<Integer, ?, Object>> carts = p.getAllParts();
+		Collection<Cart<Integer, ?, Object>> carts = waitForPartCount(p, 100, Duration.ofSeconds(5));
 
 		assertEquals(100,carts.size());
+		assertTrue(new File(TEST_PERSISTENCE_DIR).isDirectory());
+		assertFalse(new File("p11").exists());
 		for(int i = 0; i < 100; i++) {
 			lastPart = c.part().id(i).label(NameLabel.END).place();
 		}
@@ -401,6 +366,20 @@ public class ConveyorConfigurationTest {
 		assertTrue(lastPart.get());
 		
 	}
+
+	private static Collection<Cart<Integer, ?, Object>> waitForPartCount(Persistence<Integer> persistence, int expectedCount, Duration timeout) throws InterruptedException {
+		long deadline = System.nanoTime() + timeout.toNanos();
+		Collection<Cart<Integer, ?, Object>> carts = persistence.getAllParts();
+		while (System.nanoTime() < deadline) {
+			if (carts.size() == expectedCount) {
+				return carts;
+			}
+			Thread.sleep(50);
+			carts = persistence.getAllParts();
+		}
+		return carts;
+	}
+
 	@Test
 	public void testYampFile12WithDbcp() throws Exception {
 		ConveyorConfiguration.build("CP:test12.yml","JP:com.aegisql.conveyor.config.harness.TestBean");

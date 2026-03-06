@@ -11,6 +11,7 @@ conveyor.c7_1.readyWhenAccepted: com.aegisql.conveyor.config.harness.NameLabel.E
 conveyor.c7_1.persistence: com.aegisql.conveyor.persistence.derby.test:type=c7_persist
 
 persistence.derby.test:
+  db_path: test-artifacts/persistence
   c7a_persist.keyClass: java.lang.Integer
 persistence.derby.test.c7a_persist:
   labelConverter: com.aegisql.conveyor.config.harness.NameLabel

@@ -1357,7 +1357,11 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 		engine.buildPartTableQueries(partTable);
 		engine.buildCompletedLogTableQueries(completedLogTable);
 		ConnectionFactory connectionFactory = engine.getConnectionFactory();
-		if(database != null && ! database.isBlank())connectionFactory.setDatabase(database);
+		if(database != null && ! database.isBlank()) {
+			connectionFactory.setDatabase(database);
+		} else if (("derby".equals(type) || "derby-client".equals(type)) && schema != null && !schema.isBlank()) {
+			connectionFactory.setDatabase(schema);
+		}
 		if(schema != null && ! schema.isBlank())connectionFactory.setSchema(schema);
 		if(user != null && ! user.isBlank())connectionFactory.setUser(user);
 		if(password != null && ! password.isBlank())connectionFactory.setPassword(password);

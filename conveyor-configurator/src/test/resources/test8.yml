@@ -16,6 +16,7 @@ conveyor.c8_1.readyWhenAccepted: com.aegisql.conveyor.config.harness.NameLabel.F
 conveyor.c8_1.readyWhenAccepted: com.aegisql.conveyor.config.harness.NameLabel.END
 
 conveyor.c8_1.persistence:
+  db_path: test-artifacts/persistence
   derby.test.c8_persist.keyClass: java.lang.Integer
   derby.test.embedded: true
   derby.test.c8_persist.completedLogTable: c8_complete
@@ -53,4 +54,3 @@ conveyor.c8_1.persistence:
     - com.aegisql.conveyor.config.harness.NameLabel.FIRST, new com.aegisql.conveyor.persistence.converters.BooleanToBytesConverter();
   derby.test.c8_persist.labelConverter: new com.aegisql.conveyor.persistence.jdbc.converters.EnumConverter(com.aegisql.conveyor.config.harness.NameLabel.class);
   derby.test.c8_persist.labelConverter: com.aegisql.conveyor.config.harness.NameLabel
-

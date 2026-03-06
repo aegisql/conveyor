@@ -12,6 +12,7 @@ conveyor:
       - 2 com.aegisql.conveyor.config.harness.NameLabel.LAST
       - com.aegisql.conveyor.config.harness.NameLabel.END
     persistence:
+      db_path: test-artifacts/persistence
       sqlite-memory.p12.parts12:
         dbcp2: true
         poolConnection: true

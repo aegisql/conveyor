@@ -1,8 +1,2 @@
 /target/
-/derby.log
-/testConv/
-/test/
-/c9/
-/p11/
-/conveyor.db
-/conveyor.db*
+/test-artifacts/

@@ -74,6 +74,17 @@ public class PersistencePropertyTest {
 	}
 
 	@Test
+	public void testDbPathPropertyUsesDotNotation() {
+		PersistenceProperty cp1 = PersistenceProperty.evalProperty("persistence.derby.db_path","test-artifacts/persistence");
+		assertNotNull(cp1);
+		assertTrue(cp1.isPersistenceProperty());
+		assertTrue(cp1.isDefaultProperty());
+		assertEquals("derby", cp1.getType());
+		assertEquals("db.path", cp1.getProperty());
+		assertEquals("test-artifacts/persistence", cp1.getValue());
+	}
+
+	@Test
 	public void testDefaultLevel0Property() {
 		PersistenceProperty cp1 = PersistenceProperty.evalProperty("persistence.property",1);
 		assertNotNull(cp1);

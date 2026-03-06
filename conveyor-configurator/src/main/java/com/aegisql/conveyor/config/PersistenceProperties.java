@@ -12,6 +12,7 @@ import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFacto
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.*;
 import java.util.function.Function;
 
@@ -164,6 +165,7 @@ public class PersistenceProperties {
 					.schema(getSchema())
 					.partTable(getName());
 			pb = applyDatabase(pb);
+			pb = applyDbPath(pb);
 			pb = applyDriverClass(pb);
 			pb = applyAutoInit(pb);
 			pb = applyRestoreOrder(pb);
@@ -342,14 +344,14 @@ public class PersistenceProperties {
 
 	private JdbcPersistenceBuilder applyArchiveStrategyMoveTo(final JdbcPersistenceBuilder pb, final BinaryLogConfigurationBuilder bLogConf) {
 		return apply("archiveStrategy.moveTo",pb,p->{
-			bLogConf.moveToPath(p.getValueAsString());
+			bLogConf.moveToPath(resolveDbRelativePath(p.getValueAsString()));
 			return pb.archiver(bLogConf.build());
 		});
 	}
 
 	private JdbcPersistenceBuilder applyArchiveStrategyPath(final JdbcPersistenceBuilder pb, final BinaryLogConfigurationBuilder bLogConf) {
 		return apply("archiveStrategy.path",pb,p->{
-			bLogConf.path(p.getValueAsString());
+			bLogConf.path(resolveDbRelativePath(p.getValueAsString()));
 			return pb.archiver(bLogConf.build());
 		});
 	}
@@ -427,6 +429,56 @@ public class PersistenceProperties {
 
 	private JdbcPersistenceBuilder applyDatabase(final JdbcPersistenceBuilder pb) {
 		return apply("database",pb,p->pb.database(p.getValueAsString()));
+	}
+
+	private JdbcPersistenceBuilder applyDbPath(final JdbcPersistenceBuilder pb) {
+		return apply("db.path", pb, p -> {
+			File dbRoot = new File(p.getValueAsString());
+			if (!dbRoot.exists() && !dbRoot.mkdirs()) {
+				throw new ConveyorConfigurationException("Failed creating db.path directory " + dbRoot.getPath());
+			}
+			String databaseName = resolveConfiguredDatabaseName();
+			if (databaseName == null || databaseName.isBlank()) {
+				return pb;
+			}
+			File databaseFile = new File(databaseName);
+			if (databaseFile.isAbsolute()) {
+				return pb.database(databaseFile.getPath());
+			}
+			File resolvedDatabaseFile = new File(dbRoot, databaseName);
+			File parent = resolvedDatabaseFile.getParentFile();
+			if (parent != null && !parent.exists() && !parent.mkdirs()) {
+				throw new ConveyorConfigurationException("Failed creating database parent directory " + parent.getPath());
+			}
+			return pb.database(resolvedDatabaseFile.getPath());
+		});
+	}
+
+	private String resolveConfiguredDatabaseName() {
+		LinkedList<PersistenceProperty> databaseProperties = properties.get("database");
+		if (databaseProperties != null && !databaseProperties.isEmpty()) {
+			return databaseProperties.getLast().getValueAsString();
+		}
+		return getSchema();
+	}
+
+	private String resolveDbRelativePath(String path) {
+		if (path == null || path.isBlank()) {
+			return path;
+		}
+		File configuredPath = new File(path);
+		if (configuredPath.isAbsolute()) {
+			return configuredPath.getPath();
+		}
+		LinkedList<PersistenceProperty> dbPathProperties = properties.get("db.path");
+		if (dbPathProperties == null || dbPathProperties.isEmpty()) {
+			return path;
+		}
+		File resolvedPath = new File(dbPathProperties.getLast().getValueAsString(), path);
+		if (!resolvedPath.exists() && !resolvedPath.mkdirs()) {
+			throw new ConveyorConfigurationException("Failed creating archive path " + resolvedPath.getPath());
+		}
+		return resolvedPath.getPath();
 	}
 
 	private JdbcPersistenceBuilder apply(String key, JdbcPersistenceBuilder pb, Function<PersistenceProperty,JdbcPersistenceBuilder> pbf) {
