@@ -23,6 +23,14 @@
 					</filesets>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<polyglot.engine.WarnInterpreterOnly>false</polyglot.engine.WarnInterpreterOnly>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
