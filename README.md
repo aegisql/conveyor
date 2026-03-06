@@ -74,6 +74,8 @@ Last version supporting Java 8 is 1.4.4
 * Updated dependencies
 * Bugfixes
 * Improved test coverage
+* Cleanup
+* Minor improvements
 
 ### 1.7.2
 * Switch deployment plugins to Maven Central
