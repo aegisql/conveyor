@@ -94,6 +94,51 @@ The default value codec automatically chooses:
 - `text/plain; charset=UTF-8` for plain strings
 - `application/octet-stream` for `byte[]`
 
+## 4.1 Client Logging
+
+The client uses JDK logging (`java.util.logging`) only.
+
+Two logger names are available:
+
+- `com.aegisql.conveyor.utils.http.ConveyorServiceClient`
+- `conveyor.audit.client`
+
+Recommended usage:
+
+- enable `FINE` for `com.aegisql.conveyor.utils.http.ConveyorServiceClient` when troubleshooting request flow
+- enable `INFO` for `conveyor.audit.client` when you need a structured audit trail
+
+What the audit logger records:
+
+- timestamp
+- user id, when the selected authentication mode provides one
+- HTTP method
+- full URL
+- sanitized request parameters
+- body size
+- HTTP status
+
+What is intentionally not logged:
+
+- passwords
+- bearer tokens
+- cookie values and session ids
+- request body contents
+- arbitrary property values that are not explicitly safe for audit
+
+Redaction rules:
+
+- safe operational query fields such as `ttl`, `requestTTL`, `creationTime`, `expirationTime`, `priority`, `delete`, `watchResults`, and `watchLimit` keep their values
+- query keys containing markers such as `password`, `token`, `secret`, `cookie`, `session`, `authorization`, or `auth` are logged as `REDACTED`
+- all other custom query values are logged as `PRESENT`
+
+Example `logging.properties` snippet:
+
+```properties
+com.aegisql.conveyor.utils.http.ConveyorServiceClient.level=FINE
+conveyor.audit.client.level=INFO
+```
+
 ## 5. Sending Parts
 
 ### 5.1 Regular part placement
