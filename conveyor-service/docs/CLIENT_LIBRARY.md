@@ -23,7 +23,6 @@ Instead of placing directly into a local conveyor, these loaders call the REST e
 This is useful when:
 
 - the service is running remotely
-- the caller should stay in Java instead of using shell scripts
 - you want loader-style request construction with HTTP transport hidden behind it
 
 ## 2. Artifact
