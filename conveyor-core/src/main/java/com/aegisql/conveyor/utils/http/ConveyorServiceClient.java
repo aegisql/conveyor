@@ -9,6 +9,8 @@ import com.aegisql.conveyor.loaders.MultiKeyCommandLoader;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
 import com.aegisql.conveyor.serial.SerializablePredicate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -28,8 +30,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public final class ConveyorServiceClient {
 
@@ -60,8 +60,8 @@ public final class ConveyorServiceClient {
             "authorization",
             "auth"
     );
-    private static final Logger LOG = Logger.getLogger(ConveyorServiceClient.class.getName());
-    private static final Logger AUDIT_LOG = Logger.getLogger(AUDIT_LOGGER_NAME);
+    private static final Logger LOG = LoggerFactory.getLogger(ConveyorServiceClient.class);
+    private static final Logger AUDIT_LOG = LoggerFactory.getLogger(AUDIT_LOGGER_NAME);
 
     private final URI baseUri;
     private final CookieManager cookieManager;
@@ -81,9 +81,12 @@ public final class ConveyorServiceClient {
         this.authentication = builder.authentication;
         this.valueCodec = builder.valueCodec;
         this.requestTimeout = builder.requestTimeout;
-        LOG.fine(() -> "Created ConveyorServiceClient baseUrl=" + this.baseUri
-                + " authMode=" + authentication.auditAuthMode()
-                + " userId=" + safeUserId(authentication.auditUserId()));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Created ConveyorServiceClient baseUrl={} authMode={} userId={}",
+                    this.baseUri,
+                    authentication.auditAuthMode(),
+                    safeUserId(authentication.auditUserId()));
+        }
     }
 
     public static Builder builder(String baseUrl) {
@@ -117,9 +120,12 @@ public final class ConveyorServiceClient {
         ));
         URI uri = resolveUri("/login", Map.of());
         int bodySize = body.getBytes(StandardCharsets.UTF_8).length;
-        LOG.fine(() -> "Starting session login url=" + sanitizeUrl(uri, Map.of())
-                + " authMode=session userId=" + safeUserId(username)
-                + " bodySize=" + bodySize);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Starting session login url={} authMode=session userId={} bodySize={}",
+                    sanitizeUrl(uri, Map.of()),
+                    safeUserId(username),
+                    bodySize);
+        }
         HttpRequest request = HttpRequest.newBuilder(uri)
                 .timeout(requestTimeout)
                 .header("Content-Type", "application/x-www-form-urlencoded")
@@ -129,21 +135,26 @@ public final class ConveyorServiceClient {
                 .whenComplete((response, error) -> {
                     if (error != null) {
                         audit("POST", uri, Map.of(), bodySize, -1, username);
-                        LOG.warning(() -> "Session login transport failure url=" + sanitizeUrl(uri, Map.of())
-                                + " authMode=session userId=" + safeUserId(username)
-                                + " error=" + error.getClass().getSimpleName());
+                        LOG.warn("Session login transport failure url={} authMode=session userId={} error={}",
+                                sanitizeUrl(uri, Map.of()),
+                                safeUserId(username),
+                                error.getClass().getSimpleName());
                         return;
                     }
                     audit("POST", uri, Map.of(), bodySize, response.statusCode(), username);
-                    LOG.fine(() -> "Received session login response url=" + sanitizeUrl(uri, Map.of())
-                            + " authMode=session userId=" + safeUserId(username)
-                            + " status=" + response.statusCode());
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Received session login response url={} authMode=session userId={} status={}",
+                                sanitizeUrl(uri, Map.of()),
+                                safeUserId(username),
+                                response.statusCode());
+                    }
                 })
                 .thenApply(response -> {
                     if (response.statusCode() != 200 && response.statusCode() != 302) {
-                        LOG.warning(() -> "Session login rejected url=" + sanitizeUrl(uri, Map.of())
-                                + " authMode=session userId=" + safeUserId(username)
-                                + " status=" + response.statusCode());
+                        LOG.warn("Session login rejected url={} authMode=session userId={} status={}",
+                                sanitizeUrl(uri, Map.of()),
+                                safeUserId(username),
+                                response.statusCode());
                         throw new ConveyorServiceException(
                                 "Session authentication failed with HTTP " + response.statusCode(),
                                 response.statusCode(),
@@ -272,17 +283,21 @@ public final class ConveyorServiceClient {
         return authentication.prepare(this)
                 .whenComplete((ignored, error) -> {
                     if (error != null) {
-                        LOG.warning(() -> "Authentication preparation failed url=" + sanitizeUrl(uri, query)
-                                + " authMode=" + authentication.auditAuthMode()
-                                + " userId=" + safeUserId(authentication.auditUserId())
-                                + " error=" + error.getClass().getSimpleName());
+                        LOG.warn("Authentication preparation failed url={} authMode={} userId={} error={}",
+                                sanitizeUrl(uri, query),
+                                authentication.auditAuthMode(),
+                                safeUserId(authentication.auditUserId()),
+                                error.getClass().getSimpleName());
                     }
                 })
                 .thenCompose(ignored -> {
-            LOG.fine(() -> "Sending request method=POST url=" + sanitizeUrl(uri, query)
-                    + " authMode=" + authentication.auditAuthMode()
-                    + " userId=" + safeUserId(authentication.auditUserId())
-                    + " bodySize=" + bodySize);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Sending request method=POST url={} authMode={} userId={} bodySize={}",
+                        sanitizeUrl(uri, query),
+                        authentication.auditAuthMode(),
+                        safeUserId(authentication.auditUserId()),
+                        bodySize);
+            }
             HttpRequest.Builder builder = HttpRequest.newBuilder(uri)
                     .timeout(requestTimeout);
             authentication.apply(builder);
@@ -296,33 +311,41 @@ public final class ConveyorServiceClient {
                     .whenComplete((response, error) -> {
                         if (error != null) {
                             audit("POST", uri, query, bodySize, -1, authentication.auditUserId());
-                            LOG.warning(() -> "Request transport failure method=POST url=" + sanitizeUrl(uri, query)
-                                    + " authMode=" + authentication.auditAuthMode()
-                                    + " userId=" + safeUserId(authentication.auditUserId())
-                                    + " error=" + error.getClass().getSimpleName());
+                            LOG.warn("Request transport failure method=POST url={} authMode={} userId={} error={}",
+                                    sanitizeUrl(uri, query),
+                                    authentication.auditAuthMode(),
+                                    safeUserId(authentication.auditUserId()),
+                                    error.getClass().getSimpleName());
                             return;
                         }
                         audit("POST", uri, query, bodySize, response.statusCode(), authentication.auditUserId());
-                        LOG.fine(() -> "Received response method=POST url=" + sanitizeUrl(uri, query)
-                                + " authMode=" + authentication.auditAuthMode()
-                                + " userId=" + safeUserId(authentication.auditUserId())
-                                + " status=" + response.statusCode());
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Received response method=POST url={} authMode={} userId={} status={}",
+                                    sanitizeUrl(uri, query),
+                                    authentication.auditAuthMode(),
+                                    safeUserId(authentication.auditUserId()),
+                                    response.statusCode());
+                        }
                     })
                     .thenApply(response -> {
                         try {
                             RemoteResponse remoteResponse = parseResponse(response);
-                            LOG.fine(() -> "Parsed response method=POST url=" + sanitizeUrl(uri, query)
-                                    + " authMode=" + authentication.auditAuthMode()
-                                    + " userId=" + safeUserId(authentication.auditUserId())
-                                    + " httpStatus=" + response.statusCode()
-                                    + " placementStatus=" + remoteResponse.placementStatus());
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("Parsed response method=POST url={} authMode={} userId={} httpStatus={} placementStatus={}",
+                                        sanitizeUrl(uri, query),
+                                        authentication.auditAuthMode(),
+                                        safeUserId(authentication.auditUserId()),
+                                        response.statusCode(),
+                                        remoteResponse.placementStatus());
+                            }
                             return remoteResponse;
                         } catch (RuntimeException ex) {
-                            LOG.warning(() -> "Request processing failed method=POST url=" + sanitizeUrl(uri, query)
-                                    + " authMode=" + authentication.auditAuthMode()
-                                    + " userId=" + safeUserId(authentication.auditUserId())
-                                    + " httpStatus=" + response.statusCode()
-                                    + " error=" + ex.getClass().getSimpleName());
+                            LOG.warn("Request processing failed method=POST url={} authMode={} userId={} httpStatus={} error={}",
+                                    sanitizeUrl(uri, query),
+                                    authentication.auditAuthMode(),
+                                    safeUserId(authentication.auditUserId()),
+                                    response.statusCode(),
+                                    ex.getClass().getSimpleName());
                             throw ex;
                         }
                     });

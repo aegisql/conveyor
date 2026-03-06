@@ -6,6 +6,9 @@ import com.aegisql.conveyor.serial.SerializablePredicate;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.Level;
+import org.apache.log4j.spi.LoggingEvent;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -32,10 +35,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 import java.util.Optional;
 import javax.net.ssl.SSLSession;
 
@@ -80,7 +79,7 @@ class ConveyorServiceClientTest {
 
     @Test
     void debugLogsCaptureMainLifecycleWithoutLeakingSecrets() throws Exception {
-        try (LogCapture capture = new LogCapture(ConveyorServiceClient.class.getName(), Level.FINE);
+        try (LogCapture capture = new LogCapture(ConveyorServiceClient.class.getName(), Level.DEBUG);
              TestHttpServer server = new TestHttpServer(exchange ->
                      JsonResponse.ok(202, payload("IN_PROGRESS", null)))) {
             ConveyorServiceClient client = ConveyorServiceClient.builder(server.baseUri())
@@ -697,39 +696,43 @@ class ConveyorServiceClientTest {
         return query;
     }
 
-    private static final class LogCapture extends Handler implements AutoCloseable {
-        private final Logger logger;
+    private static final class LogCapture extends AppenderSkeleton implements AutoCloseable {
+        private final org.apache.log4j.Logger logger;
         private final Level originalLevel;
-        private final boolean originalUseParentHandlers;
+        private final boolean originalAdditivity;
         private final List<String> messages = new ArrayList<>();
 
         private LogCapture(String loggerName, Level level) {
-            this.logger = Logger.getLogger(loggerName);
+            this.logger = org.apache.log4j.Logger.getLogger(loggerName);
             this.originalLevel = logger.getLevel();
-            this.originalUseParentHandlers = logger.getUseParentHandlers();
-            setLevel(level);
-            logger.setUseParentHandlers(false);
+            this.originalAdditivity = logger.getAdditivity();
+            logger.setAdditivity(false);
             logger.setLevel(level);
-            logger.addHandler(this);
+            logger.addAppender(this);
         }
 
         @Override
-        public void publish(LogRecord record) {
-            if (isLoggable(record)) {
-                messages.add(record.getMessage());
+        protected void append(LoggingEvent event) {
+            if (event.getRenderedMessage() != null) {
+                messages.add(event.getRenderedMessage());
             }
         }
 
         @Override
-        public void flush() {
-            // no-op
+        public void close() {
+            logger.removeAppender(this);
+            logger.setLevel(originalLevel);
+            logger.setAdditivity(originalAdditivity);
         }
 
         @Override
-        public void close() {
-            logger.removeHandler(this);
-            logger.setLevel(originalLevel);
-            logger.setUseParentHandlers(originalUseParentHandlers);
+        public boolean requiresLayout() {
+            return false;
+        }
+
+        @Override
+        public void activateOptions() {
+            // no-op
         }
 
         private String joinedMessages() {

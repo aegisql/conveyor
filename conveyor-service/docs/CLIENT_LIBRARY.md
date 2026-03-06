@@ -95,7 +95,13 @@ The default value codec automatically chooses:
 
 ## 4.1 Client Logging
 
-The client uses JDK logging (`java.util.logging`) only.
+The client uses SLF4J.
+
+This means:
+
+- the client code logs through the same API used in the rest of the project
+- the concrete backend is chosen by the application that includes `conveyor-core`
+- in this repository, tests and default runtime wiring use the existing SLF4J backend already present in the project
 
 Two logger names are available:
 
@@ -104,7 +110,7 @@ Two logger names are available:
 
 Recommended usage:
 
-- enable `FINE` for `com.aegisql.conveyor.utils.http.ConveyorServiceClient` when troubleshooting request flow
+- enable `DEBUG` for `com.aegisql.conveyor.utils.http.ConveyorServiceClient` when troubleshooting request flow
 - enable `INFO` for `conveyor.audit.client` when you need a structured audit trail
 
 What the audit logger records:
@@ -131,11 +137,11 @@ Redaction rules:
 - query keys containing markers such as `password`, `token`, `secret`, `cookie`, `session`, `authorization`, or `auth` are logged as `REDACTED`
 - all other custom query values are logged as `PRESENT`
 
-Example `logging.properties` snippet:
+Example `log4j.properties` snippet when using the project defaults:
 
 ```properties
-com.aegisql.conveyor.utils.http.ConveyorServiceClient.level=FINE
-conveyor.audit.client.level=INFO
+log4j.logger.com.aegisql.conveyor.utils.http.ConveyorServiceClient=DEBUG
+log4j.logger.conveyor.audit.client=INFO
 ```
 
 ## 5. Sending Parts
