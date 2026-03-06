@@ -24,7 +24,7 @@ public class PrintStreamResultTest {
     public void ofTest() throws IOException {
         Tester.removeFile("print_stream_out.txt");
         PrintStreamResult<Integer,String> sr =
-                PrintStreamResult.of(null,new File("print_stream_out.txt"));
+                PrintStreamResult.of(null,Tester.testFile("print_stream_out.txt"));
         sr.accept(ResultConsumerTest.getProductBin(1,"test"));
         sr.close();
     }
@@ -33,7 +33,7 @@ public class PrintStreamResultTest {
     public void ofUpperTest() throws IOException {
         Tester.removeFile("print_stream_up.txt");
         PrintStreamResult<Integer,String> sr =
-                PrintStreamResult.of(null,new File("print_stream_up.txt"),v->v.toString().toUpperCase());
+                PrintStreamResult.of(null,Tester.testFile("print_stream_up.txt"),v->v.toString().toUpperCase());
         sr.accept(ResultConsumerTest.getProductBin(1,"test"));
         sr.close();
     }
@@ -42,7 +42,7 @@ public class PrintStreamResultTest {
     public void ofStrTest() throws IOException {
         Tester.removeFile("print_stream_out_str.txt");
         PrintStreamResult<Integer,String> sr =
-                PrintStreamResult.of(null,"print_stream_out_str.txt");
+                PrintStreamResult.of(null,Tester.testFile("print_stream_out_str.txt"));
         sr.accept(ResultConsumerTest.getProductBin(1,"test"));
         sr.close();
     }
@@ -51,7 +51,7 @@ public class PrintStreamResultTest {
     public void ofUpperStrTest() throws IOException {
         Tester.removeFile("print_stream_up_str.txt");
         PrintStreamResult<Integer,String> sr =
-                PrintStreamResult.of(null,"print_stream_up_str.txt",v->v.toString().toUpperCase());
+                PrintStreamResult.of(null,Tester.testFile("print_stream_up_str.txt"),v->v.toString().toUpperCase());
         sr.accept(ResultConsumerTest.getProductBin(1,"test"));
         sr.close();
     }

@@ -3,4 +3,4 @@
 /.settings/
 .classpath
 .project
-*.txt
+/test-artifacts/

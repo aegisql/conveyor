@@ -30,7 +30,7 @@ public class PrintStreamScrapTest {
     public void ofMethodsTest() throws Exception {
         Tester.removeFile("scrap.txt");
         Conveyor<Integer,String,String> c = new AssemblingConveyor<>();
-        PrintStreamScrap<Integer> pss = PrintStreamScrap.of(c,"scrap.txt");
+        PrintStreamScrap<Integer> pss = PrintStreamScrap.of(c,Tester.testFile("scrap.txt"));
         pss.accept((ScrapBin)ScrapConsumerTest.getScrapBin(1,"test"));
         pss.close();
         assertNotNull(pss);
@@ -40,7 +40,7 @@ public class PrintStreamScrapTest {
     public void ofMethodsFileTest() throws Exception {
         Tester.removeFile("scrap3.txt");
         Conveyor<Integer,String,String> c = new AssemblingConveyor<>();
-        PrintStreamScrap<Integer> pss = PrintStreamScrap.of(c,new File("scrap3.txt"));
+        PrintStreamScrap<Integer> pss = PrintStreamScrap.of(c,Tester.testFile("scrap3.txt"));
         pss.accept((ScrapBin)ScrapConsumerTest.getScrapBin(1,"test"));
         pss.close();
         assertNotNull(pss);
@@ -50,7 +50,7 @@ public class PrintStreamScrapTest {
     public void ofMethodsTest2() throws Exception {
         Tester.removeFile("scrap2.txt");
         Conveyor<Integer,String,String> c = new AssemblingConveyor<>();
-        PrintStreamScrap<Integer> pss = PrintStreamScrap.of(c,"scrap2.txt",txt->txt.toString().toUpperCase());
+        PrintStreamScrap<Integer> pss = PrintStreamScrap.of(c,Tester.testFile("scrap2.txt"),txt->txt.toString().toUpperCase());
         pss.accept((ScrapBin)ScrapConsumerTest.getScrapBin(1,"test"));
         pss.close();
         assertNotNull(pss);

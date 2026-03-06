@@ -39,7 +39,8 @@ public class StreamResultTest {
         sr.close();
 
         Tester.removeFile("res_out_test.dat");
-        StreamResult<Integer,String> sr2 = StreamResult.of(null,new File("res_out_test.dat"));
+        StreamResult<Integer,String> sr2 = StreamResult.of(null,Tester.testFile("res_out_test.dat"));
+        sr2.close();
     }
 
 }
