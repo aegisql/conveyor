@@ -1,0 +1,80 @@
+name: conveyor-service-container
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - pom.xml
+      - conveyor-core/**
+      - conveyor-parallel/**
+      - conveyor-configurator/**
+      - conveyor-persistence/**
+      - conveyor-service/**
+      - .github/workflows/conveyor-service-container.yml
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      push_image:
+        description: Push image to GHCR
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Decide whether to push
+        id: push
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "value=true" >> "${GITHUB_OUTPUT}"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.push_image }}" == "true" ]]; then
+            echo "value=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "value=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Login to GHCR
+        if: steps.push.outputs.value == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/conveyor-service
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha,format=short
+
+      - name: Build and optionally push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: conveyor-service/Dockerfile
+          pull: true
+          push: ${{ steps.push.outputs.value }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
