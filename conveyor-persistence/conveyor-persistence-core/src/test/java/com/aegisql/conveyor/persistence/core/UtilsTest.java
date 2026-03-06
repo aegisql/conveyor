@@ -2,6 +2,7 @@ package com.aegisql.conveyor.persistence.core;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.persistence.core.harness.TestArtifacts;
 import com.aegisql.conveyor.persistence.utils.PersistUtils;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.*;
@@ -45,11 +46,11 @@ public class UtilsTest {
 	public void testSaveAndReadCarts() throws IOException, ClassNotFoundException {
 		Cart<Integer,String,String> c1 = new ShoppingCart<>(1, "test", "label");
 		System.out.println("C1="+c1);
-		String cartFile = "./test.cart";
-		FileUtils.deleteQuietly(new File(cartFile));
-		System.out.println(cartFile);
-		PersistUtils.saveCart(cartFile, c1);
-		Cart<Integer,?,String> c2 = PersistUtils.readCart(cartFile);
+		File cartFile = TestArtifacts.file("test.cart");
+		FileUtils.deleteQuietly(cartFile);
+		System.out.println(cartFile.getPath());
+		PersistUtils.saveCart(cartFile.getPath(), c1);
+		Cart<Integer,?,String> c2 = PersistUtils.readCart(cartFile.getPath());
 		System.out.println("C2="+c2);
 		assertEquals(c1.getKey(),c2.getKey());
 		assertEquals(c1.getLabel(),c2.getLabel());
@@ -60,17 +61,19 @@ public class UtilsTest {
 	
 	@Test
 	public void testZip() throws Exception {
-		FileUtils.deleteQuietly(new File("testZip"));
-		File test = new File("testZip");
+		File test = TestArtifacts.file("testZip");
+		FileUtils.deleteQuietly(test);
 		assertTrue(test.mkdirs());
+		File zipFile = TestArtifacts.file("test.zip");
+		FileUtils.deleteQuietly(zipFile);
 		Cart<Integer, String, String> c1 = new ShoppingCart<>(1, "test1", "label1");
 		Cart<Integer,String,String> c2;
 		c2 = new ShoppingCart<>(2, "test2", "label2");
-		String cartFile1 = "./testZip/test1.cart";
+		String cartFile1 = new File(test, "test1.cart").getPath();
 		PersistUtils.saveCart(cartFile1, c1);
-		String cartFile2 = "./testZip/test2.cart";
+		String cartFile2 = new File(test, "test2.cart").getPath();
 		PersistUtils.saveCart(cartFile2, c2);
-		PersistUtils.zipDirectory("testZip", "test.zip");
+		PersistUtils.zipDirectory(test.getPath(), zipFile.getPath());
 	}
 	
 	@Test

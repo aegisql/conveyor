@@ -47,7 +47,7 @@ public class SqliteEngineTest {
 
 		GenericEngine<Integer> de = new SqliteEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance(), false);
 		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
-		de.connectionFactory.setDatabase(SCHEMA+".db");
+		de.connectionFactory.setDatabase(Tester.testDbPath(SCHEMA + ".db"));
 		de.setSortingOrder(order);
 		String PARTS = "PART";
 		de.buildPartTableQueries(PARTS);

@@ -14,6 +14,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Tester {
 
+	private static final String TEST_DB_DIRECTORY_PROPERTY = "conveyor.persistence.test.db.dir";
+	private static final File TEST_DB_ROOT = initializeTestDbRoot();
 
 	//MYSQL_URL=jdbc:mysql://closet:3306/ MYSQL_HOST=closet MYSQL_USER=tester MYSQL_PASSWORD=root mvn test
 
@@ -21,6 +23,34 @@ public class Tester {
 	}
 
 	private final static AtomicInteger idGen = new AtomicInteger(0);
+
+	private static File initializeTestDbRoot() {
+		String configuredDirectory = getEnvOrDefaultString(TEST_DB_DIRECTORY_PROPERTY, "test-dbs");
+		File root = new File(configuredDirectory).getAbsoluteFile();
+		if (!root.exists() && !root.mkdirs()) {
+			throw new PersistenceException("Cannot create test database directory " + root.getAbsolutePath());
+		}
+		System.setProperty("derby.system.home", root.getAbsolutePath());
+		System.setProperty("derby.stream.error.file", new File(root, "derby.log").getAbsolutePath());
+		return root;
+	}
+
+	private static File resolveTestDbArtifact(String path) {
+		String normalized = path == null ? "" : path.replaceFirst("^\\./", "");
+		File file = new File(normalized);
+		if (file.isAbsolute()) {
+			return file;
+		}
+		return new File(TEST_DB_ROOT, normalized);
+	}
+
+	public static String testDbPath(String path) {
+		return resolveTestDbArtifact(path).getPath();
+	}
+
+	public static String sqliteJdbcUrl(String path) {
+		return "jdbc:sqlite:" + testDbPath(path);
+	}
 
 	public static void waitUntilArchived(Persistence<Integer> p, int testSize) {
 		long prevParts = 0;
@@ -273,21 +303,24 @@ public class Tester {
 	}
 
 	public static void removeDirectory(String directory) {
-		File f = new File(directory);
+		File f = resolveTestDbArtifact(directory);
 		try {
 			FileUtils.deleteDirectory(f);
-			System.out.println("Directory "+directory+" has been deleted!");
+			System.out.println("Directory "+f.getPath()+" has been deleted!");
 		} catch (IOException e) {
-			System.err.println("Problem occured when deleting the directory : " + directory);
+			System.err.println("Problem occured when deleting the directory : " + f.getPath());
 			e.printStackTrace();
 		}
 
 	}
 
 	public static void removeFile(String directory) {
-		File f = new File(directory);
+		File f = resolveTestDbArtifact(directory);
 		FileUtils.deleteQuietly(f);
-		System.out.println("File "+directory+" has been deleted!");
+		FileUtils.deleteQuietly(new File(f.getPath() + "-wal"));
+		FileUtils.deleteQuietly(new File(f.getPath() + "-shm"));
+		FileUtils.deleteQuietly(new File(f.getPath() + "?cache=shared&mode=memory"));
+		System.out.println("File "+f.getPath()+" has been deleted!");
 	}
 
 	public static String getTestMethod() {

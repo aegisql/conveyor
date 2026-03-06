@@ -7,8 +7,10 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.converters.EnumToBytesConverter;
+import com.aegisql.conveyor.persistence.core.harness.TestArtifacts;
 import com.aegisql.conveyor.persistence.utils.CartInputStream;
 import com.aegisql.conveyor.persistence.utils.CartOutputStream;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.*;
 
 import java.io.*;
@@ -200,8 +202,10 @@ public class CartConverterTest {
 		ConverterAdviser<String> ca = new ConverterAdviser<>();
 		
 		CartToBytesConverter<Integer, String, String> cc = new CartToBytesConverter<>(ca);
-		
-		FileOutputStream fos = new FileOutputStream("cartOSStream.bin");
+
+		File artifact = TestArtifacts.file("cartOSStream.bin");
+		FileUtils.deleteQuietly(artifact);
+		FileOutputStream fos = new FileOutputStream(artifact);
 		CartOutputStream<Integer, String> cos = new CartOutputStream<>(cc, fos);
 		
 		cos.writeCart(c1);
@@ -209,7 +213,7 @@ public class CartConverterTest {
 		cos.writeCart(c3);
 		cos.close();
 		
-		FileInputStream fis = new FileInputStream("cartOSStream.bin");
+		FileInputStream fis = new FileInputStream(artifact);
 		BufferedInputStream bis = new BufferedInputStream(fis);
 		
 		CartInputStream<Integer, String> cis = new CartInputStream<>(cc, bis);

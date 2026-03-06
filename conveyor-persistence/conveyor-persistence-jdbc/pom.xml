@@ -1,10 +1,6 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-    <build>
-        <plugins>
-        </plugins>
-    </build>
     <parent>
 		<groupId>com.aegisql.persistence</groupId>
 		<artifactId>conveyor-persistence</artifactId>
@@ -16,7 +12,30 @@
 	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<test.db.dir>${project.basedir}/test-dbs</test.db.dir>
 	</properties>
+    <build>
+        <plugins>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<conveyor.persistence.test.db.dir>${test.db.dir}</conveyor.persistence.test.db.dir>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>${test.db.dir}</directory>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+        </plugins>
+    </build>
 	<dependencies>
 		<dependency>
 			<groupId>com.aegisql.persistence</groupId>

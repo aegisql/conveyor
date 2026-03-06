@@ -20,7 +20,7 @@ public class SqlitePersistenceTest {
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("sqlite", Integer.class)
 			.autoInit(true)
-			.database("conveyor_db_sqlite");
+			.database(Tester.testDbPath("conveyor_db_sqlite"));
 	
 	@BeforeAll
 	public static void setUpBeforeClass() {
@@ -157,7 +157,7 @@ public class SqlitePersistenceTest {
 	public void testSaveAndRead() throws Exception {
 		JdbcPersistenceBuilder<Integer> jpb = JdbcPersistenceBuilder.presetInitializer("sqlite", Integer.class)
 				.autoInit(true)
-				.database("./conveyor_db_sqlite")
+				.database(Tester.testDbPath("conveyor_db_sqlite"))
 				.partTable("PART2")
 				.completedLogTable("COMPLETED_LOG2")
 				;
@@ -179,7 +179,7 @@ public class SqlitePersistenceTest {
 	public void testSaveAndReadInMemory() throws Exception {
 		JdbcPersistenceBuilder<Integer> jpb = JdbcPersistenceBuilder.presetInitializer("sqlite-memory", Integer.class)
 				.autoInit(true)
-				.database("conveyor_db_sqlite_mem")
+				.database(Tester.testDbPath("conveyor_db_sqlite_mem"))
 				.partTable("PART_MEM")
 				.completedLogTable("COMPLETED_LOG_MEM")
 				;
@@ -206,7 +206,7 @@ public class SqlitePersistenceTest {
 
 		ConnectionFactory cf = ConnectionFactory.cachingExternalConnectionFactoryInstance(()->{
 			try {
-				return config.createConnection("jdbc:sqlite:pragma_test");
+				return config.createConnection(Tester.sqliteJdbcUrl("pragma_test"));
 			} catch (SQLException e) {
 				throw new RuntimeException(e);
 			}

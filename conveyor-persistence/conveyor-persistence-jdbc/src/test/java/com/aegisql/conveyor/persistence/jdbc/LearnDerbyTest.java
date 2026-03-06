@@ -54,7 +54,7 @@ public class LearnDerbyTest {
 
 	@Test
 	public void testDbConnection() throws Exception {
-		String connectionURL = "jdbc:derby:testDb1;create=true";
+		String connectionURL = "jdbc:derby:" + Tester.testDbPath("testDb1") + ";create=true";
 
 	    Connection conn = DriverManager.getConnection(connectionURL);
 	    Statement st = conn.createStatement();

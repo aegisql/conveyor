@@ -76,7 +76,7 @@ public class SqliteMemoryPerfTest {
 			Thread.sleep(1000);
 			
 			return persistenceBuilder
-				.database(schema)
+				.database(Tester.testDbPath(schema))
 				.partTable(table)
 				.completedLogTable(table + "Completed")
 				.labelConverter(TrioPart.class)
@@ -94,7 +94,7 @@ public class SqliteMemoryPerfTest {
 			Thread.sleep(1000);
 			
 			return persistenceBuilder
-				.database("perfConv.db")
+				.database(Tester.testDbPath("perfConv.db"))
 				.partTable(table)
 				.completedLogTable(table + "Completed")
 				.labelConverter(TrioPart.class)
@@ -112,7 +112,7 @@ public class SqliteMemoryPerfTest {
 			Thread.sleep(1000);
 
 			return persistenceBuilder
-					.database("perfConv.db")
+					.database(Tester.testDbPath("perfConv.db"))
 					.partTable(table)
 					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPartExpireable.class)
@@ -130,7 +130,7 @@ public class SqliteMemoryPerfTest {
 			Thread.sleep(1000);
 
 			return persistenceBuilder
-					.database("perfConv.db")
+					.database(Tester.testDbPath("perfConv.db"))
 					.partTable(table)
 					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPart.class)
@@ -155,7 +155,7 @@ public class SqliteMemoryPerfTest {
 			Thread.sleep(1000);
 
 			Persistence<Integer> archive = persistenceBuilder
-					.database("perfConvArchive.db")
+					.database(Tester.testDbPath("perfConvArchive.db"))
 					.partTable(table)
 					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPart.class)
@@ -163,7 +163,7 @@ public class SqliteMemoryPerfTest {
 					.build();
 
 			return archive = persistenceBuilder
-					.database("perfConv.db")
+					.database(Tester.testDbPath("perfConv.db"))
 					.partTable(table)
 					.completedLogTable(table + "Completed")
 					.labelConverter(TrioPart.class)

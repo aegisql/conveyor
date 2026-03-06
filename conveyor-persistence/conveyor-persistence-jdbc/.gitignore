@@ -1,13 +1,2 @@
 /target/
-/derby.log
-/conveyor_db/
-/carts_db/
-/testConv/
-/perfConv/
-/testDb1/
-/perfConvArchive/
-/test/
-/test_engine/
-/*.db
-/*.sqlite
-/conveyor_db_sqlite
+/test-dbs/
