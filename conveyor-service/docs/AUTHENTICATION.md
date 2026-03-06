@@ -2,6 +2,8 @@
 
 This document describes the authentication model currently implemented in `conveyor-service` and how to run each supported mode.
 
+For Java client usage against the service, see `CLIENT_LIBRARY.md`.
+
 ## 1. Implemented approach
 
 The service supports two runtime security profiles:
