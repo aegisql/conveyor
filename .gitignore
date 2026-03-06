@@ -18,3 +18,5 @@
 README_DO_NOT_TOUCH_FILES.txt
 local_materials/
 logs/
+/conveyor.iml
+/conveyor-service/conveyor-service.iml
