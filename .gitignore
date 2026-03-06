@@ -3,10 +3,17 @@
 /.settings/
 .classpath
 .project
+.run/
 .idea/
 .gradle/
 /conveyor-service/target/
 /conveyor-service/upload/
+/parallel/
+/persistence/
+/persistence/jdbc/
+/service/
+/service/core/
+/PUSH=*/
 .DS_Store
 README_DO_NOT_TOUCH_FILES.txt
 local_materials/
