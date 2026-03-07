@@ -17,9 +17,10 @@ The script will:
   4. set the root project.version property to <release-version>
   5. commit and tag the release
   6. deploy signed artifacts with Maven
-  7. bump to the next patch snapshot automatically
-  8. commit the next snapshot
-  9. push the current branch and the release tag
+  7. set all Maven project versions to <next-patch-version>-SNAPSHOT
+  8. set the root project.version property to <next-patch-version>-SNAPSHOT
+  9. commit the next snapshot
+  10. push the current branch and the release tag
 EOF
 }
 
@@ -51,6 +52,34 @@ run_step() {
     return 0
   fi
   "$@"
+}
+
+show_plan() {
+  local release_version=$1
+  local next_snapshot=$2
+  local current_branch=$3
+  local release_tag=$4
+
+  cat <<EOF
+Planned release:
+  release version: ${release_version}
+  next snapshot:   ${next_snapshot}
+  branch:          ${current_branch}
+  tag:             ${release_tag}
+
+Planned commands:
+EOF
+
+  print_command mvn -q versions:set -DnewVersion="${release_version}" -DprocessAllModules=true -DgenerateBackupPoms=false
+  print_command mvn -q versions:set-property -Dproperty=project.version -DnewVersion="${release_version}" -DgenerateBackupPoms=false
+  print_command git commit -m "Release ${release_version}"
+  print_command git tag -a "${release_tag}" -m "Release ${release_version}"
+  print_command mvn -DskipTests -Psign-artifacts clean deploy
+  print_command mvn -q versions:set -DnewVersion="${next_snapshot}" -DprocessAllModules=true -DgenerateBackupPoms=false
+  print_command mvn -q versions:set-property -Dproperty=project.version -DnewVersion="${next_snapshot}" -DgenerateBackupPoms=false
+  print_command git commit -m "Prepare ${next_snapshot}"
+  print_command git push origin "${current_branch}"
+  print_command git push origin "${release_tag}"
 }
 
 require_clean_worktree() {
@@ -108,6 +137,9 @@ main() {
   local release_tag="v${release_version}"
 
   run_step_always "Show git status" git status --short --branch
+  if [[ "${DRY_RUN}" == "true" ]]; then
+    show_plan "${release_version}" "${next_snapshot}" "${current_branch}" "${release_tag}"
+  fi
   require_clean_worktree
 
   run_step "Set project version to ${release_version}" \
