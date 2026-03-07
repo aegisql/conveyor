@@ -65,7 +65,7 @@ Last version supporting Java 8 is 1.4.4
 
 ### 1.7.4-SNAPSHOT
 
-### 1.7.3-SNAPSHOT
+### 1.7.3
 * Add new experimental Conveyor Service
 * Simple client library for the Conveyor Service
 * Counters Aggregator utility conveyor
