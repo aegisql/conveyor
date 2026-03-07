@@ -33,7 +33,7 @@ The client is part of the `conveyor-core` artifact:
 <dependency>
   <groupId>com.aegisql</groupId>
   <artifactId>conveyor-core</artifactId>
-  <version>1.7.3-SNAPSHOT</version>
+  <version>1.7.3</version>
 </dependency>
 ```
 

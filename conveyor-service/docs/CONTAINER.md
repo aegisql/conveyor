@@ -204,7 +204,7 @@ docker compose -f docker-compose.demo.yml down
 # - <repo>:<project.version>-<git-sha>
 # - <repo>:latest
 IMAGE_REPO=ghcr.io/<org-or-user>/conveyor-service \
-IMAGE_TAG=1.7.3-SNAPSHOT \
+IMAGE_TAG=1.7.3 \
 SEED_UPLOAD_DIR=~/work/tmp/upload \
 PUSH=true \
 bash conveyor-service/scripts/build-container-image.sh
