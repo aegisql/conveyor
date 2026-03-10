@@ -123,10 +123,10 @@ Set:
   - `application-dev.yml`
 - For LinkedIn, use `client-authentication-method=client_secret_post`
 - For local LinkedIn callback, register exact redirect URI: `http://localhost:8080/login/oauth2/code/linkedin`
-- LinkedIn example config is available in `docs/application-prod-linkedin.example.yml`
+- LinkedIn example config is available in `doc/application-prod-linkedin.example.yml`
 - For Facebook, use `client-authentication-method=client_secret_post`
 - For local Facebook callback, register exact redirect URI: `http://localhost:8080/login/oauth2/code/facebook`
-- Facebook example config is available in `docs/application-prod-facebook.example.yml`
+- Facebook example config is available in `doc/application-prod-facebook.example.yml`
 
 ### 5.2 Start
 

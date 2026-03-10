@@ -132,7 +132,7 @@ Dashboard details view shows `Upload Dir` exactly as configured (for example `./
 
 Container instructions are in:
 
-- `docs/CONTAINER.md`
+- `doc/CONTAINER.md`
 
 This includes Docker build/run, bind-mount upload directory, Maven integration, and image propagation workflow.
 
