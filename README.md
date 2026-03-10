@@ -64,6 +64,7 @@ Last version supporting Java 8 is 1.4.4
 ## Release History
 
 ### 1.7.4-SNAPSHOT
+* Make the project AI-aware
 
 ### 1.7.3
 * Add new experimental Conveyor Service
