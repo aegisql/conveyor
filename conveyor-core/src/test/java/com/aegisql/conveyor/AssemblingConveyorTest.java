@@ -897,7 +897,7 @@ public class AssemblingConveyorTest {
 		assertThrows(ConveyorRuntimeException.class,()->ac1.getMetaInfo());
 	}
 
-    @Disabled("Temporarily disabled")
+    //@Disabled("Temporarily disabled")
 	@Test
 	public void autoShutdownTest() throws InterruptedException {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
@@ -911,7 +911,7 @@ public class AssemblingConveyorTest {
 		assertThrows(CompletionException.class,()->ac1.part().id(1).label("label").value("value").place().join());
 	}
 
-    @Disabled("Temporarily disabled")
+    //@Disabled("Temporarily disabled")
     @Test
 	public void noAutoShutdownTest() throws InterruptedException {
 		AssemblingConveyor<Integer,String,User> ac1 = new AssemblingConveyor<>();
@@ -919,11 +919,14 @@ public class AssemblingConveyorTest {
 		ac1.setDefaultCartConsumer((a,b,c)->{});
 		ac1.setReadinessEvaluator(Conveyor.getTesterFor(ac1).accepted("done"));
 		ac1.resultConsumer(LogResult.debug(ac1)).set();
-		ac1.setLongInactivityAction(ac1::stop, Duration.ofSeconds(3));
 		ac1.part().id(1).label("label").value("value").place().join();
+		ac1.setLongInactivityAction(ac1::stop, Duration.ofSeconds(3));
 		Thread.sleep(4000);
 		assertDoesNotThrow(()->ac1.part().id(1).label("done").value("value").place().join());
-		Thread.sleep(4000);
+		for(int i = 0; i < 10; i++) {
+			Thread.sleep(1000);
+			if(!ac1.isRunning())break;
+		}
 		assertThrows(CompletionException.class,()->ac1.part().id(1).label("label").value("value").place().join());
 	}
 

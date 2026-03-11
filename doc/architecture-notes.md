@@ -31,9 +31,6 @@
 ## Architectural Constraints
 - Multiple modules share the `com.aegisql.conveyor` package root, so package changes can ripple across modules.
 - `conveyor-core` should keep external dependencies to a minimum. Adding a new dependency there needs stronger justification than in adapter/application modules because it affects every downstream consumer.
-- Persistence support is split across different Maven group IDs:
-  - `com.aegisql.persistence:*`
-  - `com.aegisql.conveyor-persistence-jdbc:*`
 - The repository contains both framework code and a runnable Spring application; not every module should inherit service-oriented assumptions.
 
 ## Notable Documentation/Structure Mismatches

@@ -38,7 +38,7 @@ Required dependencies:
   - `com.aegisql:conveyor-parallel`
   - `com.aegisql:conveyor-configurator`
   - `com.aegisql.persistence:conveyor-persistence-core`
-  - `com.aegisql.conveyor-persistence-jdbc:conveyor-persistence-jdbc`
+  - `com.aegisql.persistence:conveyor-persistence-jdbc`
 - Test:
   - `spring-boot-starter-test`
   - `spring-boot-webmvc-test`
