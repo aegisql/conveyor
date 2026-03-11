@@ -1,7 +1,7 @@
 # Open Questions
 
 ## Version line for "current" docs
-- **Observed evidence:** root `pom.xml` is `1.7.4-SNAPSHOT`, while several user-facing docs/wiki pages were normalized to the `1.7.3` release line.
+- **Observed evidence:** root `pom.xml` is `1.8.0-SNAPSHOT`, while several user-facing docs/wiki pages were normalized to the `1.7.3` release line.
 - **Why ambiguous:** it is unclear whether future docs should describe the released line or the current development branch.
 - **Suggested human follow-up:** decide whether repo docs should track the branch version or the last published release.
 

@@ -12,14 +12,10 @@
 
 ## Responsibilities
 - Translate carts and metadata into relational tables.
-- Support multiple databases: Derby, SQLite, MySQL, PostgreSQL, MariaDB (inferred from dependencies and tests).
+- Support JDBC persistence through the shared builder/runtime; Derby, SQLite, MySQL, MariaDB, Oracle, and PostgreSQL support are provided through companion helper modules (inferred from current module structure and tests).
 - Manage archive operations, completed logs, and restore ordering.
 - Provide engine-specific DDL/DML and statement execution strategies.
 
 ## Key Tests
-- `DerbyEngineTest`
-- `SqliteEngineTest`
-- `DerbyPersistenceTest`
-- `SqlitePersistenceTest`
 - `ConnectionFactoryTest`
 - `FileArchiverTest`

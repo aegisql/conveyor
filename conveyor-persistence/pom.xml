@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.aegisql</groupId>
 		<artifactId>conveyor</artifactId>
-		<version>1.7.4-SNAPSHOT</version>
+		<version>1.8.0-SNAPSHOT</version>
 	</parent>
 	<groupId>com.aegisql.persistence</groupId>
 	<artifactId>conveyor-persistence</artifactId>
@@ -45,8 +45,14 @@
 		
 	</dependencies>
 	<packaging>pom</packaging>
-	<modules>
+  <modules>
     <module>conveyor-persistence-core</module>
     <module>conveyor-persistence-jdbc</module>
+    <module>conveyor-persistence-jdbc-postgres</module>
+    <module>conveyor-persistence-jdbc-sqlite</module>
+    <module>conveyor-persistence-jdbc-derby</module>
+    <module>conveyor-persistence-jdbc-mysql</module>
+    <module>conveyor-persistence-jdbc-mariadb</module>
+    <module>conveyor-persistence-jdbc-oracle</module>
   </modules>
 </project>

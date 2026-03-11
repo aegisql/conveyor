@@ -11,7 +11,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.version>1.7.4-SNAPSHOT</project.version>
+		<project.version>1.8.0-SNAPSHOT</project.version>
 		<maven.compiler.release>21</maven.compiler.release>
 		<jacoco.version>0.8.14</jacoco.version>
 		<argLine></argLine>
@@ -19,7 +19,7 @@
 
 	<groupId>com.aegisql</groupId>
 	<artifactId>conveyor</artifactId>
-	<version>1.7.4-SNAPSHOT</version>
+	<version>1.8.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>conveyor</name>

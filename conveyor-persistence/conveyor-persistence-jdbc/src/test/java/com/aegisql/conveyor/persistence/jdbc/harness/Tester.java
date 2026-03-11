@@ -73,6 +73,7 @@ public class Tester {
 
 	private static String LOCAL_MYSQL_URL = "jdbc:mysql://localhost:3306/";
 	private static String LOCAL_MARIADB_URL = "jdbc:mariadb://localhost:3306/";
+	private static String LOCAL_ORACLE_URL = "jdbc:oracle:thin:@//localhost:1521/FREEPDB1";
 	private static String LOCAL_POSTGRES_URL = "jdbc:postgresql://localhost:5432/";
 
 	private static String getEnvOrDefaultString(String param, String defValue) {
@@ -135,6 +136,34 @@ public class Tester {
 	}
 	public static int getMariadbPort() {
 		return getEnvOrDefaultInteger("MARIADB_PORT",3306);
+	}
+
+	public static String getOracleUrl() {
+		return getEnvOrDefaultString("ORACLE_URL", LOCAL_ORACLE_URL);
+	}
+
+	public static String getOracleHost() {
+		return getEnvOrDefaultString("ORACLE_HOST", "localhost");
+	}
+
+	public static int getOraclePort() {
+		return getEnvOrDefaultInteger("ORACLE_PORT", 1521);
+	}
+
+	public static String getOracleServiceName() {
+		return getEnvOrDefaultString("ORACLE_SERVICE", "FREEPDB1");
+	}
+
+	public static String getOracleUser() {
+		return getEnvOrDefaultString("ORACLE_USER", "system");
+	}
+
+	public static String getOraclePassword() {
+		return getEnvOrDefaultString("ORACLE_PASSWORD", "root");
+	}
+
+	public static String getOracleSchema() {
+		return getEnvOrDefaultString("ORACLE_SCHEMA", getOracleUser().toUpperCase());
 	}
 
 	public static String getPostgresUrl() {
@@ -237,6 +266,31 @@ public class Tester {
 		}
 	}
 
+	public static Connection getOracleConnection() {
+		try {
+			Class.forName("oracle.jdbc.OracleDriver");
+			return getConnection(getOracleUrl(), getOracleUser(), getOraclePassword());
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static boolean testOracleConnection() {
+		try {
+			Connection c = getOracleConnection();
+			if(c != null) {
+				c.close();
+				return true;
+			} else {
+				return false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
 	public static void sleep(long msec) {
 		try {
 			Thread.sleep(msec);
@@ -300,6 +354,31 @@ public class Tester {
 			throw new RuntimeException(e);
 		}
 
+	}
+
+	public static void removeLocalOracleTables(String... tables) {
+		try {
+			Class.forName("oracle.jdbc.OracleDriver");
+			Connection connection = DriverManager.getConnection(getOracleUrl(), getOracleUser(), getOraclePassword());
+			Statement st = connection.createStatement();
+			for (String table : tables) {
+				if (table == null || table.isBlank()) {
+					continue;
+				}
+				try {
+					st.execute("DROP TABLE " + table + " CASCADE CONSTRAINTS PURGE");
+				} catch (SQLException e) {
+					if (e.getErrorCode() != 942) {
+						throw e;
+					}
+				}
+			}
+			st.close();
+			connection.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static void removeDirectory(String directory) {

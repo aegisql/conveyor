@@ -51,6 +51,8 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	/** The map converter. */
 	private final MapToJsonConverter mapConverter;
 
+	private final Class<K> keyClass;
+
 	/** The load type converter. */
 	private final EnumConverter<LoadType> loadTypeConverter = new EnumConverter<>(LoadType.class);
 
@@ -104,10 +106,11 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 * @param additionalFields        the additional fields
 	 * @param persistentPartFilter    the filter for parts that should or should not be persisted
 	 */
-	public JdbcPersistence(EngineDepo<K> engine, LongSupplier idSupplier,
+	public JdbcPersistence(Class<K> keyClass, EngineDepo<K> engine, LongSupplier idSupplier,
                            Archiver<K> archiver,
                            ObjectConverter<?, String> labelConverter, ConverterAdviser<?> converterAdviser, int maxBatchSize,
                            long maxBatchTime, String info, Set<String> nonPersistentProperties, int minCompactSize, List<Field<?>> additionalFields, Predicate<Cart<K, ?, ?>> persistentPartFilter) {
+		this.keyClass = keyClass;
 		this.idSupplier = idSupplier;
 		this.converterAdviser = castConverterAdviser(converterAdviser);
 		this.archiver = archiver;
@@ -131,7 +134,7 @@ public class JdbcPersistence<K> implements Persistence<K> {
 	 */
 	@Override
 	public Persistence<K> copy() {
-		return new JdbcPersistence<>(engine, idSupplier, archiver, labelConverter,
+		return new JdbcPersistence<>(keyClass, engine, idSupplier, archiver, labelConverter,
 				converterAdviser, maxBatchSize, maxBatchTime, info, nonPersistentProperties, minCompactSize, new ArrayList<>(additionalFields), persistentPartFilter);
 	}
 
@@ -497,6 +500,38 @@ public class JdbcPersistence<K> implements Persistence<K> {
 
 	@SuppressWarnings("unchecked")
 	private K castKey(Object key) {
+		if (key == null) {
+			return null;
+		}
+		if (keyClass.isInstance(key)) {
+			return (K) key;
+		}
+		if (key instanceof Number number) {
+			if (keyClass == Integer.class) {
+				return (K) Integer.valueOf(number.intValue());
+			}
+			if (keyClass == Long.class) {
+				return (K) Long.valueOf(number.longValue());
+			}
+			if (keyClass == Short.class) {
+				return (K) Short.valueOf(number.shortValue());
+			}
+			if (keyClass == Byte.class) {
+				return (K) Byte.valueOf(number.byteValue());
+			}
+			if (keyClass == Double.class) {
+				return (K) Double.valueOf(number.doubleValue());
+			}
+			if (keyClass == Float.class) {
+				return (K) Float.valueOf(number.floatValue());
+			}
+		}
+		if (keyClass == UUID.class && key instanceof String stringKey) {
+			return (K) UUID.fromString(stringKey);
+		}
+		if (keyClass == String.class) {
+			return (K) key.toString();
+		}
 		return (K) key;
 	}
 

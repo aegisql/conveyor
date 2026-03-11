@@ -22,14 +22,6 @@ import com.aegisql.conveyor.persistence.jdbc.converters.StringLabelConverter;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
-import com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyClientEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyMemoryEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.mariadb.MariaDbEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.mysql.MysqlEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.postgres.PostgresqlEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.sqlite.SqliteEngine;
-import com.aegisql.conveyor.persistence.jdbc.engine.sqlite.SqliteMemoryEngine;
 import com.aegisql.id_builder.impl.BinaryIdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +30,7 @@ import javax.crypto.SecretKey;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 import javax.sql.DataSource;
+import java.lang.reflect.Constructor;
 import java.sql.Connection;
 import java.time.Duration;
 import java.util.*;
@@ -1201,7 +1194,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 
 		
 		JdbcPersistence<K> persistence = new JdbcPersistence<>(
-				  sqlEngine  
+				  keyClass
+				, sqlEngine  
 				, idSupplier
 				, archiver
 				, labelConverter
@@ -1341,14 +1335,69 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	private EngineDepo<K> buildPresetSqlEngine(String type, Class<K> kClass) {
 		boolean isCached = ! poolConnection;
 		EngineDepo<K> engine = switch (type) {
-			case "derby" -> new DerbyEngine<>(kClass, connectionFactory,isCached);
-			case "derby-client" -> new DerbyClientEngine<>(kClass, connectionFactory,isCached);
-			case "derby-memory" -> new DerbyMemoryEngine<>(kClass, connectionFactory,isCached);
-			case "mysql" -> new MysqlEngine<>(kClass, connectionFactory,isCached);
-			case "mariadb" -> new MariaDbEngine<>(kClass, connectionFactory,isCached);
-			case "postgres" -> new PostgresqlEngine<>(kClass, connectionFactory,isCached);
-			case "sqlite" -> new SqliteEngine<>(kClass, connectionFactory,isCached);
-			case "sqlite-memory" -> new SqliteMemoryEngine<>(kClass, connectionFactory,isCached);
+			case "derby" -> instantiateOptionalEngine(
+					"com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyEngine",
+					"derby",
+					kClass,
+					connectionFactory,
+					isCached
+			);
+			case "derby-client" -> instantiateOptionalEngine(
+					"com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyClientEngine",
+					"derby-client",
+					kClass,
+					connectionFactory,
+					isCached
+			);
+			case "derby-memory" -> instantiateOptionalEngine(
+					"com.aegisql.conveyor.persistence.jdbc.engine.derby.DerbyMemoryEngine",
+					"derby-memory",
+					kClass,
+					connectionFactory,
+					isCached
+			);
+			case "mysql" -> instantiateOptionalEngine(
+					"com.aegisql.conveyor.persistence.jdbc.engine.mysql.MysqlEngine",
+					"mysql",
+					kClass,
+					connectionFactory,
+					isCached
+			);
+			case "mariadb" -> instantiateOptionalEngine(
+					"com.aegisql.conveyor.persistence.jdbc.engine.mariadb.MariaDbEngine",
+					"mariadb",
+					kClass,
+					connectionFactory,
+					isCached
+			);
+			case "oracle" -> instantiateOptionalEngine(
+					"com.aegisql.conveyor.persistence.jdbc.engine.oracle.OracleEngine",
+					"oracle",
+					kClass,
+					connectionFactory,
+					isCached
+			);
+			case "postgres" -> instantiateOptionalEngine(
+					"com.aegisql.conveyor.persistence.jdbc.engine.postgres.PostgresqlEngine",
+					"postgres",
+					kClass,
+					connectionFactory,
+					isCached
+			);
+			case "sqlite" -> instantiateOptionalEngine(
+					"com.aegisql.conveyor.persistence.jdbc.engine.sqlite.SqliteEngine",
+					"sqlite",
+					kClass,
+					connectionFactory,
+					isCached
+			);
+			case "sqlite-memory" -> instantiateOptionalEngine(
+					"com.aegisql.conveyor.persistence.jdbc.engine.sqlite.SqliteMemoryEngine",
+					"sqlite-memory",
+					kClass,
+					connectionFactory,
+					isCached
+			);
 			case "jdbc" -> Objects.requireNonNull(jdbcEngine,"Custom JDBC GenericEngin is not defined");
 			default -> throw new PersistenceException("pre-setted sql engine is not available for type " + type + ".");
 		};
@@ -1369,6 +1418,40 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 		if(port > 0) connectionFactory.setPort(port);
 		connectionFactory.setProperties(properties);
 		return engine;
+	}
+
+	@SuppressWarnings("unchecked")
+	private EngineDepo<K> instantiateOptionalEngine(
+			String className,
+			String type,
+			Class<K> kClass,
+			ConnectionFactory connectionFactory,
+			boolean isCached
+	) {
+		try {
+			Class<?> engineClass = Class.forName(className);
+			Constructor<?> constructor = engineClass.getConstructor(Class.class, ConnectionFactory.class, boolean.class);
+			return (EngineDepo<K>) constructor.newInstance(kClass, connectionFactory, isCached);
+		} catch (ClassNotFoundException e) {
+			throw new PersistenceException(
+					"Engine type '" + type + "' requires optional module " + requiredModuleFor(type),
+					e
+			);
+		} catch (ReflectiveOperationException e) {
+			throw new PersistenceException("Failed creating SQL engine for type " + type, e);
+		}
+	}
+
+	private String requiredModuleFor(String type) {
+		return switch (type) {
+			case "derby", "derby-client", "derby-memory" -> "com.aegisql.persistence:conveyor-persistence-jdbc-derby";
+			case "mysql" -> "com.aegisql.persistence:conveyor-persistence-jdbc-mysql";
+			case "mariadb" -> "com.aegisql.persistence:conveyor-persistence-jdbc-mariadb";
+			case "oracle" -> "com.aegisql.persistence:conveyor-persistence-jdbc-oracle";
+			case "postgres" -> "com.aegisql.persistence:conveyor-persistence-jdbc-postgres";
+			case "sqlite", "sqlite-memory" -> "com.aegisql.persistence:conveyor-persistence-jdbc-sqlite";
+			default -> "the matching optional JDBC helper module";
+		};
 	}
 
 	/**
@@ -1393,6 +1476,7 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 		return switch (type) {
 			case "derby", "derby-client", "derby-memory" -> pi.schema("conveyor_db");
 			case "mysql", "mariadb" -> pi.database("conveyor_db");
+			case "oracle" -> pi.database("FREEPDB1");
 			case "postgres" -> pi.database("conveyor_db").schema("conveyor_db");
 			case "sqlite", "sqlite-memory" -> pi.database("conveyor.db");
 			case "jdbc" -> pi;

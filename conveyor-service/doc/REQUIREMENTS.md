@@ -39,6 +39,12 @@ Required dependencies:
   - `com.aegisql:conveyor-configurator`
   - `com.aegisql.persistence:conveyor-persistence-core`
   - `com.aegisql.persistence:conveyor-persistence-jdbc`
+  - `com.aegisql.persistence:conveyor-persistence-jdbc-derby`
+  - `com.aegisql.persistence:conveyor-persistence-jdbc-mariadb`
+  - `com.aegisql.persistence:conveyor-persistence-jdbc-mysql`
+  - `com.aegisql.persistence:conveyor-persistence-jdbc-oracle`
+  - `com.aegisql.persistence:conveyor-persistence-jdbc-postgres`
+  - `com.aegisql.persistence:conveyor-persistence-jdbc-sqlite`
 - Test:
   - `spring-boot-starter-test`
   - `spring-boot-webmvc-test`
