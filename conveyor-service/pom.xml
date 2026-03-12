@@ -126,6 +126,11 @@
         </dependency>
         <dependency>
             <groupId>com.aegisql.persistence</groupId>
+            <artifactId>conveyor-persistence-jdbc-sqlserver</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aegisql.persistence</groupId>
             <artifactId>conveyor-persistence-jdbc-postgres</artifactId>
             <version>${project.version}</version>
         </dependency>

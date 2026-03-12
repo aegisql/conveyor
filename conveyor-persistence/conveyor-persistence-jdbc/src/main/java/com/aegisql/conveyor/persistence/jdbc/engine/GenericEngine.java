@@ -407,7 +407,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 					boolean indexExists = false;
 					while(indexRs.next()) {
 						String idxName = indexRs.getString("INDEX_NAME");
-						if(idxName.equalsIgnoreCase(indexName)) {
+						if(idxName != null && idxName.equalsIgnoreCase(indexName)) {
 							indexExists = true;
 							break;
 						}

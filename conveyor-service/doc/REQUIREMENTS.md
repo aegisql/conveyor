@@ -44,6 +44,7 @@ Required dependencies:
   - `com.aegisql.persistence:conveyor-persistence-jdbc-mysql`
   - `com.aegisql.persistence:conveyor-persistence-jdbc-oracle`
   - `com.aegisql.persistence:conveyor-persistence-jdbc-postgres`
+  - `com.aegisql.persistence:conveyor-persistence-jdbc-sqlserver`
   - `com.aegisql.persistence:conveyor-persistence-jdbc-sqlite`
 - Test:
   - `spring-boot-starter-test`

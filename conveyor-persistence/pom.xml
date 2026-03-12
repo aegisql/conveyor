@@ -54,5 +54,6 @@
     <module>conveyor-persistence-jdbc-mysql</module>
     <module>conveyor-persistence-jdbc-mariadb</module>
     <module>conveyor-persistence-jdbc-oracle</module>
+    <module>conveyor-persistence-jdbc-sqlserver</module>
   </modules>
 </project>

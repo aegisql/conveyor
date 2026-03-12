@@ -1377,6 +1377,13 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 					connectionFactory,
 					isCached
 			);
+			case "sqlserver" -> instantiateOptionalEngine(
+					"com.aegisql.conveyor.persistence.jdbc.engine.sqlserver.SqlServerEngine",
+					"sqlserver",
+					kClass,
+					connectionFactory,
+					isCached
+			);
 			case "postgres" -> instantiateOptionalEngine(
 					"com.aegisql.conveyor.persistence.jdbc.engine.postgres.PostgresqlEngine",
 					"postgres",
@@ -1448,6 +1455,7 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 			case "mysql" -> "com.aegisql.persistence:conveyor-persistence-jdbc-mysql";
 			case "mariadb" -> "com.aegisql.persistence:conveyor-persistence-jdbc-mariadb";
 			case "oracle" -> "com.aegisql.persistence:conveyor-persistence-jdbc-oracle";
+			case "sqlserver" -> "com.aegisql.persistence:conveyor-persistence-jdbc-sqlserver";
 			case "postgres" -> "com.aegisql.persistence:conveyor-persistence-jdbc-postgres";
 			case "sqlite", "sqlite-memory" -> "com.aegisql.persistence:conveyor-persistence-jdbc-sqlite";
 			default -> "the matching optional JDBC helper module";
@@ -1477,6 +1485,7 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 			case "derby", "derby-client", "derby-memory" -> pi.schema("conveyor_db");
 			case "mysql", "mariadb" -> pi.database("conveyor_db");
 			case "oracle" -> pi.database("FREEPDB1");
+			case "sqlserver" -> pi.database("conveyor_db");
 			case "postgres" -> pi.database("conveyor_db").schema("conveyor_db");
 			case "sqlite", "sqlite-memory" -> pi.database("conveyor.db");
 			case "jdbc" -> pi;

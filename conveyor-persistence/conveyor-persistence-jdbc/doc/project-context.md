@@ -12,7 +12,7 @@
 
 ## Responsibilities
 - Translate carts and metadata into relational tables.
-- Support JDBC persistence through the shared builder/runtime; Derby, SQLite, MySQL, MariaDB, Oracle, and PostgreSQL support are provided through companion helper modules (inferred from current module structure and tests).
+- Support JDBC persistence through the shared builder/runtime; Derby, SQLite, MySQL, MariaDB, Oracle, PostgreSQL, and Microsoft SQL Server support are provided through companion helper modules (inferred from current module structure and tests).
 - Manage archive operations, completed logs, and restore ordering.
 - Provide engine-specific DDL/DML and statement execution strategies.
 

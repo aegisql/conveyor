@@ -75,6 +75,7 @@ public class Tester {
 	private static String LOCAL_MARIADB_URL = "jdbc:mariadb://localhost:3306/";
 	private static String LOCAL_ORACLE_URL = "jdbc:oracle:thin:@//localhost:1521/FREEPDB1";
 	private static String LOCAL_POSTGRES_URL = "jdbc:postgresql://localhost:5432/";
+	private static String LOCAL_SQLSERVER_URL = "jdbc:sqlserver://localhost:1433;databaseName=master;encrypt=false;trustServerCertificate=true";
 
 	private static String getEnvOrDefaultString(String param, String defValue) {
 		String value = System.getenv(param);
@@ -180,6 +181,26 @@ public class Tester {
 	}
 	public static int getPostgresPort() {
 		return getEnvOrDefaultInteger("POSTGRES_PORT",5432);
+	}
+
+	public static String getSqlServerUrl() {
+		return getEnvOrDefaultString("SQLSERVER_URL", LOCAL_SQLSERVER_URL);
+	}
+
+	public static String getSqlServerHost() {
+		return getEnvOrDefaultString("SQLSERVER_HOST", "localhost");
+	}
+
+	public static int getSqlServerPort() {
+		return getEnvOrDefaultInteger("SQLSERVER_PORT", 1433);
+	}
+
+	public static String getSqlServerUser() {
+		return getEnvOrDefaultString("SQLSERVER_USER", "sa");
+	}
+
+	public static String getSqlServerPassword() {
+		return getEnvOrDefaultString("SQLSERVER_PASSWORD", "root2026!");
 	}
 
 	public static Connection getConnection(String url, String user, String password) {
@@ -291,6 +312,31 @@ public class Tester {
 		}
 	}
 
+	public static Connection getSqlServerConnection() {
+		try {
+			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			return getConnection(getSqlServerUrl(), getSqlServerUser(), getSqlServerPassword());
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static boolean testSqlServerConnection() {
+		try {
+			Connection c = getSqlServerConnection();
+			if(c != null) {
+				c.close();
+				return true;
+			} else {
+				return false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
 	public static void sleep(long msec) {
 		try {
 			Thread.sleep(msec);
@@ -373,6 +419,26 @@ public class Tester {
 					}
 				}
 			}
+			st.close();
+			connection.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static void removeLocalSqlServerDatabase(String database) {
+		try {
+			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			Connection connection = DriverManager.getConnection(getSqlServerUrl(), getSqlServerUser(), getSqlServerPassword());
+			Statement st = connection.createStatement();
+			String db = database.replace("]", "]]");
+			st.execute(
+					"IF DB_ID(N'" + db + "') IS NOT NULL BEGIN "
+							+ "ALTER DATABASE [" + db + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; "
+							+ "DROP DATABASE [" + db + "]; "
+							+ "END"
+			);
 			st.close();
 			connection.close();
 		} catch (Exception e) {
