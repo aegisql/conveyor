@@ -1,12 +1,12 @@
 package com.aegisql.conveyor.persistence.jdbc.engine.oracle;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
 import java.sql.SQLException;
 import java.util.Locale;
+import java.util.UUID;
 
 public class OracleEngine<K> extends GenericEngine<K> {
 
@@ -148,7 +148,7 @@ public class OracleEngine<K> extends GenericEngine<K> {
 	@Override
 	protected void init() {
 		setField(ID, "NUMBER(19) PRIMARY KEY");
-		setField(CART_KEY, mapFieldTypeForOracle(fields.get(CART_KEY)));
+		setField(CART_KEY, getKeyFieldType());
 		setField(LOAD_TYPE, "VARCHAR2(15 CHAR)");
 		setField(CART_LABEL, "VARCHAR2(100 CHAR)");
 		setField(CREATION_TIME, "TIMESTAMP");
@@ -165,45 +165,44 @@ public class OracleEngine<K> extends GenericEngine<K> {
 	}
 
 	@Override
-	protected String getCreatePartTableSql(String partTable) {
-		StringBuilder sb = new StringBuilder("CREATE TABLE ")
-				.append(partTable)
-				.append(" (");
-
-		fields.forEach((col, type) -> sb.append(col).append(" ").append(mapFieldTypeForOracle(type)).append(","));
-		additionalFields.forEach(f -> sb.append(oracleAdditionalFieldType(f)).append(","));
-		sb.deleteCharAt(sb.lastIndexOf(","));
-		sb.append(")");
-		return sb.toString();
-	}
-
-	@Override
 	protected String getCompletedLogTableSql(String completedLogTable) {
 		return "CREATE TABLE "
 				+ completedLogTable + " ("
-				+ CART_KEY + " " + mapFieldTypeForOracle(fields.get(CART_KEY)) + " PRIMARY KEY"
+				+ CART_KEY + " " + fields.get(CART_KEY) + " PRIMARY KEY"
 				+ ",COMPLETION_TIME TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL"
 				+ ")";
 	}
 
-	private String oracleAdditionalFieldType(Field<?> field) {
-		return field.getName() + " " + mapFieldTypeForOracle(getFieldType(field.getFieldClass()));
+	@Override
+	protected String getFieldType(Class<?> fieldClass) {
+		if(fieldClass.isEnum()) {
+			int maxLength = 0;
+			for(Object constant : fieldClass.getEnumConstants()) {
+				maxLength = Math.max(maxLength, constant.toString().length());
+			}
+			return "CHAR(" + maxLength + ") NOT NULL";
+		}
+		return switch (fieldClass.getName()) {
+			case "java.lang.Integer" -> "NUMBER(10) NOT NULL";
+			case "java.lang.Long" -> "NUMBER(19) NOT NULL";
+			case "java.util.UUID" -> "CHAR(36) NOT NULL";
+			default -> "VARCHAR2(255 CHAR) NOT NULL";
+		};
 	}
 
-	private String mapFieldTypeForOracle(String fieldType) {
-		if (fieldType == null) {
-			return "VARCHAR2(255 CHAR)";
+	private String getKeyFieldType() {
+		if(keyClass.isEnum()) {
+			int maxLength = 0;
+			for(Object constant : keyClass.getEnumConstants()) {
+				maxLength = Math.max(maxLength, constant.toString().length());
+			}
+			return "CHAR(" + maxLength + ")";
 		}
-		String mapped = fieldType
-				.replaceAll("\\bBIGINT\\b", "NUMBER(19)")
-				.replaceAll("\\bSMALLINT\\b", "NUMBER(5)")
-				.replaceAll("\\bTINYINT\\b", "NUMBER(3)")
-				.replaceAll("\\bINT\\b", "NUMBER(10)")
-				.replace("VARCHAR(", "VARCHAR2(");
-		if (mapped.contains(" NOT NULL DEFAULT ")) {
-			String[] parts = mapped.split(" NOT NULL DEFAULT ", 2);
-			return parts[0] + " DEFAULT " + parts[1] + " NOT NULL";
-		}
-		return mapped;
+		return switch (keyClass.getName()) {
+			case "java.lang.Integer" -> "NUMBER(10)";
+			case "java.lang.Long" -> "NUMBER(19)";
+			case "java.util.UUID" -> "CHAR(36)";
+			default -> "VARCHAR2(255 CHAR)";
+		};
 	}
 }

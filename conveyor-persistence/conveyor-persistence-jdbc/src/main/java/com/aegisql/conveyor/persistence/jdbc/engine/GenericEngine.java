@@ -898,7 +898,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param f the f
 	 * @return the string
 	 */
-	protected static String sqlFieldType(Field<?> f) {
+	protected String sqlFieldType(Field<?> f) {
 		return f.getName()+" "+getFieldType(f.getFieldClass());
 	}
 
@@ -909,25 +909,7 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param kClass the k class
 	 * @return the field type
 	 */
-	protected static <K> String getFieldType(Class<K> kClass) {
-		String keyType;
-		if(kClass == Integer.class) {
-			keyType = "INT NOT NULL";
-		} else if(kClass == Long.class) {
-			keyType = "BIGINT NOT NULL";
-		} else if(kClass == UUID.class) {
-			keyType = "CHAR(36) NOT NULL";
-		} else if(kClass.isEnum()) {
-			int maxLength = 0;
-			for(Object o:kClass.getEnumConstants()) {
-				maxLength = Math.max(maxLength, o.toString().length());
-			}
-			keyType = "CHAR("+maxLength+") NOT NULL";
-		} else {
-			keyType = "VARCHAR(255) NOT NULL";
-		}
-		return keyType;
-	}
+	protected abstract String getFieldType(Class<?> fieldClass);
 
 	/* (non-Javadoc)
 	 * @see com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo#deleteFromCompletedLog(java.util.Collection)

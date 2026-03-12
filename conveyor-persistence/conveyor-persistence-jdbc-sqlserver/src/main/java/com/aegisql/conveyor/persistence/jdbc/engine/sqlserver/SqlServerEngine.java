@@ -6,6 +6,7 @@ import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFacto
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.UUID;
 import java.util.function.Function;
 
 public class SqlServerEngine<K> extends GenericEngine<K> {
@@ -93,5 +94,22 @@ public class SqlServerEngine<K> extends GenericEngine<K> {
 		setConnectionUrlTemplateForInitSchema("");
 		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:sqlserver://{host}:{port};databaseName={database};encrypt=false;trustServerCertificate=true");
 		setConnectionUrlTemplate("jdbc:sqlserver://{host}:{port};databaseName={database};encrypt=false;trustServerCertificate=true");
+	}
+
+	@Override
+	protected String getFieldType(Class<?> fieldClass) {
+		if(fieldClass.isEnum()) {
+			int maxLength = 0;
+			for(Object constant : fieldClass.getEnumConstants()) {
+				maxLength = Math.max(maxLength, constant.toString().length());
+			}
+			return "CHAR(" + maxLength + ") NOT NULL";
+		}
+		return switch (fieldClass.getName()) {
+			case "java.lang.Integer" -> "INT NOT NULL";
+			case "java.lang.Long" -> "BIGINT NOT NULL";
+			case "java.util.UUID" -> "CHAR(36) NOT NULL";
+			default -> "VARCHAR(255) NOT NULL";
+		};
 	}
 }

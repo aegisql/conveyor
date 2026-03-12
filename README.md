@@ -65,6 +65,11 @@ Last version supporting Java 8 is 1.4.4
 
 ### 1.8.0-SNAPSHOT
 * Make the project AI-aware
+* Re-packsged persistence modules
+* Added support for OracleDB in persistence
+* Added support for SQL Server in persistence
+* Code refactoring and cleanup
+* Tests and bugfixes
 
 ### 1.7.3
 * Add new experimental Conveyor Service

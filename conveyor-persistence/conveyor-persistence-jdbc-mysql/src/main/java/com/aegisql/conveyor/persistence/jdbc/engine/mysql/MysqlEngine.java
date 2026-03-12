@@ -5,6 +5,8 @@ package com.aegisql.conveyor.persistence.jdbc.engine.mysql;
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
+import java.util.UUID;
+
 /**
  * The Class MysqlEngine.
  *
@@ -37,6 +39,23 @@ public class MysqlEngine <K> extends GenericEngine<K> {
 		setConnectionUrlTemplateForInitSchema("");
 		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:mysql://{host}:{port}/{database}");
 		setConnectionUrlTemplate("jdbc:mysql://{host}:{port}/{database}");
+	}
+
+	@Override
+	protected String getFieldType(Class<?> fieldClass) {
+		if(fieldClass.isEnum()) {
+			int maxLength = 0;
+			for(Object constant : fieldClass.getEnumConstants()) {
+				maxLength = Math.max(maxLength, constant.toString().length());
+			}
+			return "CHAR(" + maxLength + ") NOT NULL";
+		}
+		return switch (fieldClass.getName()) {
+			case "java.lang.Integer" -> "INT NOT NULL";
+			case "java.lang.Long" -> "BIGINT NOT NULL";
+			case "java.util.UUID" -> "CHAR(36) NOT NULL";
+			default -> "VARCHAR(255) NOT NULL";
+		};
 	}
 
 }

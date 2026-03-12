@@ -5,6 +5,8 @@ package com.aegisql.conveyor.persistence.jdbc.engine.derby;
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
+import java.util.UUID;
+
 /**
  * The Class DerbyEngine.
  *
@@ -40,5 +42,22 @@ public class DerbyEngine <K> extends GenericEngine<K> {
 			connectionFactory.setDatabase(connectionFactory.getSchema());
 		}
 		return super.switchUrlTemplae(temlate);
+	}
+
+	@Override
+	protected String getFieldType(Class<?> fieldClass) {
+		if(fieldClass.isEnum()) {
+			int maxLength = 0;
+			for(Object constant : fieldClass.getEnumConstants()) {
+				maxLength = Math.max(maxLength, constant.toString().length());
+			}
+			return "CHAR(" + maxLength + ") NOT NULL";
+		}
+		return switch (fieldClass.getName()) {
+			case "java.lang.Integer" -> "INT NOT NULL";
+			case "java.lang.Long" -> "BIGINT NOT NULL";
+			case "java.util.UUID" -> "CHAR(36) NOT NULL";
+			default -> "VARCHAR(255) NOT NULL";
+		};
 	}
 }

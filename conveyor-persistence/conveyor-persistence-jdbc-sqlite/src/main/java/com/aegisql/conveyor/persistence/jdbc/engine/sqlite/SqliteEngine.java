@@ -9,6 +9,7 @@ import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.WrappedExternal
 import org.sqlite.SQLiteConfig;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 /**
  * The Class SqliteEngine.
@@ -62,6 +63,23 @@ public class SqliteEngine <K> extends GenericEngine<K> {
 		setConnectionUrlTemplateForInitSchema("");
 		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:sqlite:{database}");
 		setConnectionUrlTemplate("jdbc:sqlite:{database}");
+	}
+
+	@Override
+	protected String getFieldType(Class<?> fieldClass) {
+		if(fieldClass.isEnum()) {
+			int maxLength = 0;
+			for(Object constant : fieldClass.getEnumConstants()) {
+				maxLength = Math.max(maxLength, constant.toString().length());
+			}
+			return "CHAR(" + maxLength + ") NOT NULL";
+		}
+		return switch (fieldClass.getName()) {
+			case "java.lang.Integer" -> "INT NOT NULL";
+			case "java.lang.Long" -> "BIGINT NOT NULL";
+			case "java.util.UUID" -> "CHAR(36) NOT NULL";
+			default -> "VARCHAR(255) NOT NULL";
+		};
 	}
 
 }

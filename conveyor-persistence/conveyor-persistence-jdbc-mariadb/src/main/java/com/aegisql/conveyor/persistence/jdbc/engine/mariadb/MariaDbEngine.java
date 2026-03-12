@@ -5,6 +5,8 @@ package com.aegisql.conveyor.persistence.jdbc.engine.mariadb;
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
+import java.util.UUID;
+
 /**
  * The Class MariaDbEngine.
  *
@@ -35,6 +37,23 @@ public class MariaDbEngine <K> extends GenericEngine<K> {
 		setConnectionUrlTemplateForInitSchema("");
 		setConnectionUrlTemplateForInitTablesAndIndexes("jdbc:mariadb://{host}:{port}/{database}");
 		setConnectionUrlTemplate("jdbc:mariadb://{host}:{port}/{database}");
+	}
+
+	@Override
+	protected String getFieldType(Class<?> fieldClass) {
+		if(fieldClass.isEnum()) {
+			int maxLength = 0;
+			for(Object constant : fieldClass.getEnumConstants()) {
+				maxLength = Math.max(maxLength, constant.toString().length());
+			}
+			return "CHAR(" + maxLength + ") NOT NULL";
+		}
+		return switch (fieldClass.getName()) {
+			case "java.lang.Integer" -> "INT NOT NULL";
+			case "java.lang.Long" -> "BIGINT NOT NULL";
+			case "java.util.UUID" -> "CHAR(36) NOT NULL";
+			default -> "VARCHAR(255) NOT NULL";
+		};
 	}
 
 }
