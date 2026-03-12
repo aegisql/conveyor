@@ -9,6 +9,7 @@
 - engine types under `engine/*`
 - connectivity helpers under `engine/connectivity`
 - archivers under `archive/*`
+- integration-test deployment notes in `./doc/integration-tests.md`
 
 ## Responsibilities
 - Translate carts and metadata into relational tables.
