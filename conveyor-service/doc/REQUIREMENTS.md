@@ -18,7 +18,7 @@ The module is a Spring Boot application that provides:
 - Module name: `conveyor-service`
 - Parent: `com.aegisql:conveyor:1.7.3`
 - Spring Boot: `4.0.2`
-- Java version: inherited from parent (`maven.compiler.release=21`)
+- Java version: inherited from parent (`maven.compiler.release=25`)
 - Packaging: `jar`
 
 Required dependencies:

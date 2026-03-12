@@ -1,7 +1,7 @@
 # Project Context
 
 ## What This Repository Is
-- A Java 21, Maven-based multi-module codebase for the Conveyor framework and adjacent tooling (found in root `pom.xml`, wiki, and module POMs).
+- A Java 25, Maven-based multi-module codebase for the Conveyor framework and adjacent tooling (found in root `pom.xml`, wiki, and module POMs).
 - Primary purpose: build asynchronous, stateful aggregators around a "conveyor" abstraction, then expose them through configuration, persistence, parallel composition, and an HTTP/dashboard service (found in wiki and code).
 
 ## Major Sub-Projects
@@ -36,7 +36,7 @@
 - Docker/demo packaging for `conveyor-service` (service docs).
 
 ## Tech Stack
-- Java 21, Maven multi-module build (root `pom.xml`).
+- Java 25, Maven multi-module build (root `pom.xml`).
 - SLF4J logging across code; concrete backend chosen by runtime/module (inferred from code and service config).
 - Spring Boot 4 in `conveyor-service`.
 - SnakeYAML and GraalJS in `conveyor-configurator`.
