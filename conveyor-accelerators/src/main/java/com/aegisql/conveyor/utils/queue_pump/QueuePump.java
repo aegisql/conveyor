@@ -60,5 +60,4 @@ public class QueuePump <OUT> extends AssemblingConveyor<PumpId,PumpLabel,OUT> {
     public FutureLoader<PumpId, OUT> future() {
         return super.future().id(PUMP_ID);
     }
-
 }

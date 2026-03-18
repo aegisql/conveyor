@@ -3,6 +3,7 @@
 ## Module Boundaries
 - `conveyor-core` defines the public framework vocabulary and most downstream contracts.
 - Current repository practice, reflected in the module graph, is that dependency direction flows outward from `conveyor-core`; downstream modules may depend on it, but `conveyor-core` should not depend on downstream sub-projects.
+- `conveyor-accelerators` is an extension module for specialized conveyors extracted from `conveyor-core`.
 - `conveyor-parallel` depends on `conveyor-core` and composes multiple conveyors rather than redefining the core API.
 - `conveyor-configurator` depends on core/parallel/persistence modules and is responsible for runtime assembly from config files.
 - `conveyor-persistence-core` defines persistence SPI and byte-conversion/archive concepts.
@@ -23,6 +24,7 @@
 
 ## Shared Integration Points
 - `Conveyor`, loader types, and consumer interfaces are the main cross-module contracts.
+- `conveyor-accelerators` currently reuses the `com.aegisql.conveyor.utils.*` package root for extracted classes while moving artifact ownership out of `conveyor-core`.
 - `PersistentConveyor` bridges core and persistence modules.
 - `ConveyorConfiguration` bridges config files to runtime module composition.
 - `conveyor-service` bridges HTTP/UI concerns onto named conveyors and MBeans.

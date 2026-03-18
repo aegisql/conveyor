@@ -4,6 +4,8 @@
 
 - **`conveyor-core`**
   - Core framework module. Defines the main conveyor API, loader model, carts, bins, consumers, and utility helpers (found in code, tests, and wiki).
+- **`conveyor-accelerators`**
+  - Extension module for specialized conveyor implementations extracted from `conveyor-core` while preserving compatibility-oriented package names where needed (inferred from code and docs).
 - **`conveyor-parallel`**
   - Extension module that composes multiple conveyors and distributes work across them (inferred from code and tests).
 - **`conveyor-configurator`**

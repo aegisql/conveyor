@@ -8,6 +8,8 @@
 - `conveyor-core`
   - Core conveyor API, loaders, carts, bins, consumers, utility conveyors, Java HTTP client, and JDBC result-consumer helpers (inferred from code and tests).
   - Foundational module. It can be used on its own; other modules extend or adapt it.
+- `conveyor-accelerators`
+  - Specialized conveyor implementations extracted from `conveyor-core` when they do not need to remain part of the dependency floor (inferred from module docs and code).
 - `conveyor-parallel`
   - Parallel conveyor implementations and balancing strategies over multiple child conveyors (inferred from code and tests).
 - `conveyor-configurator`

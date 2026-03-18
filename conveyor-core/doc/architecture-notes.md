@@ -17,3 +17,4 @@
 - The Java HTTP client for `conveyor-service` lives here, not in `conveyor-service`.
 - JDBC result-consumer support also lives here, while full JDBC cart persistence lives in the persistence sub-project.
 - Some `utils/*` packages are reused directly by users or other modules; others remain more experimental and are better treated as incubating helpers unless tests/docs say otherwise.
+- Specialized utility conveyors are beginning to move into `conveyor-accelerators`, while some shared base classes such as `CommonBuilder` remain in `conveyor-core`.

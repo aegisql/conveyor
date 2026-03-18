@@ -29,6 +29,4 @@ public class ScalarHolder <OUT> implements Supplier<OUT>, Testing {
     public boolean test() {
         return true;
     }
-
-
 }
