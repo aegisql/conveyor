@@ -1,12 +1,10 @@
-package com.aegisql.conveyor.utils;
+package com.aegisql.conveyor.utils.scalar;
 
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
 import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder;
-import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 import org.junit.jupiter.api.*;
 
 import java.time.Duration;

@@ -6,7 +6,7 @@ import com.aegisql.conveyor.ScrapBin.FailureType;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.consumers.scrap.*;
 import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuilder;
+import com.aegisql.conveyor.utils.TestStringToUserBuilder;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 import org.junit.jupiter.api.*;
 
@@ -52,7 +52,7 @@ public class ResultConsumerTest {
 	@Test
 	public void testLogConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		sc.resultConsumer().first(LogResult.info(sc,"UnitTestLogger").andThen(b->usr.set(b.product))).set();
 		sc.scrapConsumer(LogScrap.error(sc,"UnitTestLogger")).set();
@@ -67,7 +67,7 @@ public class ResultConsumerTest {
 	@Test
 	public void testAsynchResultConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		AtomicLong threadId = new AtomicLong();
 		CompletableFuture<Object> f = new CompletableFuture<Object>();
@@ -90,7 +90,7 @@ public class ResultConsumerTest {
 	@Test
 	public void testAsynchScrapConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		AtomicLong threadId = new AtomicLong();
 		CompletableFuture<Object> f = new CompletableFuture<Object>();
@@ -116,7 +116,7 @@ public class ResultConsumerTest {
 	@Test
 	public void testCountConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		ResultCounter<String,User> rc = ResultCounter.of(sc); 
 		sc.resultConsumer().first(rc.andThen(b->usr.set(b.product))).set();
@@ -134,7 +134,7 @@ public class ResultConsumerTest {
 	@Test
 	public void testCountFilterConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		ResultCounter<String,User> rc = ResultCounter.of(sc);
 		
@@ -157,7 +157,7 @@ public class ResultConsumerTest {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		LastResultReference<String,User> q = LastResultReference.of(sc);
 		LastScrapReference<String> s = LastScrapReference.of(sc);
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		sc.resultConsumer().first(q).set();
 		sc.scrapConsumer(s).set();
 		String csv = "John,Dow,1990";
@@ -178,7 +178,7 @@ public class ResultConsumerTest {
 		sc.setDefaultBuilderTimeout(Duration.ofMillis(100));
 		FirstResults<String,User> q = FirstResults.of(sc,2);
 		FirstScraps<String> s = FirstScraps.of(sc,2);
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		sc.resultConsumer().first(q).set();
 		sc.scrapConsumer(s).set();
 		String csv = "John,Dow,199";
@@ -207,7 +207,7 @@ public class ResultConsumerTest {
 		assertNotNull(q);
 		assertNotNull(s);
 
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		sc.resultConsumer().first(q).set();
 		sc.scrapConsumer(s).set();
 		String csv = "John,Dow,199";
@@ -240,7 +240,7 @@ public class ResultConsumerTest {
 		sc.setDefaultBuilderTimeout(Duration.ofMillis(100));
 		LastResults<String,User> q = LastResults.of(sc,2);
 		LastScraps<String> s = LastScraps.of(sc,2);
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		sc.resultConsumer().first(q).set();
 		sc.scrapConsumer(s).set();
 		String csv = "John,Dow,199";
@@ -265,7 +265,7 @@ public class ResultConsumerTest {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		ResultQueue<String,User> q = ResultQueue.of(sc);
 		ScrapQueue<String> s = ScrapQueue.of(sc);
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		sc.resultConsumer().first(q).set();
 		sc.scrapConsumer(s).set();
 		String csv = "John,Dow,1990";
@@ -285,7 +285,7 @@ public class ResultConsumerTest {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
 		ResultMap<String,User> q = ResultMap.of(sc);
 		ScrapMap<String> m = ScrapMap.of(sc);
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		sc.resultConsumer().first(q).set();
 		sc.scrapConsumer(m).set();
 		String csv = "John,Dow,1990";
@@ -308,7 +308,7 @@ public class ResultConsumerTest {
 	@Test
 	public void testPrintStreamConsumers() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		sc.resultConsumer().first(PrintStreamResult.of(sc,System.out).andThen(PrintStreamResult.of(sc,System.out,u->u.getFirst()+" "+u.getLast())).andThen(b->usr.set(b.product))).set();
 		sc.scrapConsumer(PrintStreamScrap.of(sc,System.err).andThen(PrintStreamScrap.of(sc,System.err,o->{
@@ -325,7 +325,7 @@ public class ResultConsumerTest {
 	@Test
 	public void testStreamConsumers() throws InterruptedException, ExecutionException, IOException {
 		ScalarConvertingConveyor<String, String, User> sc = new ScalarConvertingConveyor<>();
-		sc.setBuilderSupplier(StringToUserBuilder::new);
+		sc.setBuilderSupplier(TestStringToUserBuilder::new);
 		AtomicReference<User> usr = new AtomicReference<User>(null);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		sc.resultConsumer().first(StreamResult.of(sc,"/tmp/testStreamConsumers.out").andThen(StreamResult.of(sc,bos,b->b.product.getFirst()+" "+b.product.getLast())).andThen(b->usr.set(b.product))).set();

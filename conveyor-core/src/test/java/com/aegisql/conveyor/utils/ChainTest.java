@@ -2,7 +2,6 @@ package com.aegisql.conveyor.utils;
 
 import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.utils.ScalarConvertingConveyorTest.StringToUserBuilder;
 import com.aegisql.conveyor.utils.batch.BatchCollectingBuilder;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
@@ -63,7 +62,7 @@ public class ChainTest {
 	@Test
 	public void testChain() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> scalarConveyor = new ScalarConvertingConveyor<>();
-		scalarConveyor.setBuilderSupplier(StringToUserBuilder::new);
+		scalarConveyor.setBuilderSupplier(TestStringToUserBuilder::new);
 		scalarConveyor.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);	
 		
 		AtomicReference<User> usr = new AtomicReference<User>(null);
@@ -104,7 +103,7 @@ public class ChainTest {
 	@Test
 	public void testChainForEach() throws InterruptedException, ExecutionException {
 		ScalarConvertingConveyor<String, String, User> scalarConveyor = new ScalarConvertingConveyor<>();
-		scalarConveyor.setBuilderSupplier(StringToUserBuilder::new);
+		scalarConveyor.setBuilderSupplier(TestStringToUserBuilder::new);
 		scalarConveyor.setIdleHeartBeat(10, TimeUnit.MILLISECONDS);	
 		
 		AtomicReference<User> usr = new AtomicReference<User>(null);

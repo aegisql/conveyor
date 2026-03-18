@@ -16,7 +16,7 @@
 - Cart and command submission model.
 - Product/scrap emission and consumer chaining.
 - Delay, readiness, priority, and lifecycle management.
-- Helper implementations such as batch and scalar utilities.
+- Helper implementations such as batch utilities.
 - Provide the smallest practical dependency base for downstream modules and external users of the framework.
 
 ## Current Extraction Boundary
@@ -26,6 +26,7 @@
 - `DelayLineBuilder` and `DelayLineConveyor` now live in `conveyor-accelerators`.
 - `MapBuilder` and `MapConveyor` now live in `conveyor-accelerators`.
 - `QueuePump`, `PumpId`, `PumpLabel`, and the queue-pump `ScalarHolder` now live in `conveyor-accelerators`.
+- `ScalarConvertingBuilder` and `ScalarConvertingConveyor` now live in `conveyor-accelerators`.
 - `SchedulableClosure`, `Schedule`, `ScheduleBuilder`, and `SimpleScheduler` now live in `conveyor-accelerators`.
 - `conveyor-core` still provides the shared base types those specialized implementations build on, including `CommonBuilder`.
 

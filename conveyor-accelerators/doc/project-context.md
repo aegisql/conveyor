@@ -21,6 +21,8 @@
   - `com.aegisql.conveyor.utils.queue_pump.PumpLabel`
   - `com.aegisql.conveyor.utils.queue_pump.ScalarHolder`
   - `com.aegisql.conveyor.utils.queue_pump.QueuePump`
+  - `com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder`
+  - `com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor`
   - `com.aegisql.conveyor.utils.schedule.SchedulableClosure`
   - `com.aegisql.conveyor.utils.schedule.Schedule`
   - `com.aegisql.conveyor.utils.schedule.ScheduleBuilder`
@@ -34,6 +36,7 @@
 - `com.aegisql.conveyor.utils.map.MapBuilder`
 - `com.aegisql.conveyor.utils.map.MapConveyor`
 - `com.aegisql.conveyor.utils.queue_pump.QueuePump`
+- `com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor`
 - `com.aegisql.conveyor.utils.schedule.SimpleScheduler`
 
 ## Responsibilities
