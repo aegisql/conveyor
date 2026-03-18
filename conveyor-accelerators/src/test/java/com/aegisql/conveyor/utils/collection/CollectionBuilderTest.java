@@ -1,67 +1,24 @@
-package com.aegisql.conveyor.utils;
+package com.aegisql.conveyor.utils.collection;
 
 import com.aegisql.conveyor.BuilderSupplier;
-import com.aegisql.conveyor.utils.collection.CollectionBuilder;
-import com.aegisql.conveyor.utils.collection.CollectionConveyor;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-// TODO: Auto-generated Javadoc
-/**
- * The Class CollectionBuilderTest.
- */
 public class CollectionBuilderTest {
 
-	/**
-	 * Sets the up before class.
-	 *
-	 */
-	@BeforeAll
-	public static void setUpBeforeClass() {
-	}
-
-	/**
-	 * Tear down after class.
-	 *
-	 */
-	@AfterAll
-	public static void tearDownAfterClass() {
-	}
-
-	/**
-	 * Sets the up.
-	 *
-	 */
-	@BeforeEach
-	public void setUp() {
-	}
-
-	/**
-	 * Tear down.
-	 *
-	 */
-	@AfterEach
-	public void tearDown() {
-	}
-
-	/**
-	 * Test collection conveyor.
-	 *
-	 * @throws InterruptedException the interrupted exception
-	 */
 	@Test
 	public void testCollectionConveyor() throws InterruptedException {
 
 		CollectionConveyor<Integer,Integer> b = new CollectionConveyor<>();
-		
+
 		AtomicInteger ai = new AtomicInteger(0);
 		AtomicInteger aii = new AtomicInteger(0);
-		
-		b.setBuilderSupplier( () -> new CollectionBuilder<>() );
+
+		b.setBuilderSupplier(CollectionBuilder::new);
 		b.scrapConsumer((obj)->{
 			System.out.println(obj);
 			ai.decrementAndGet();
@@ -92,20 +49,15 @@ public class CollectionBuilderTest {
 		assertEquals(0,b.getInputQueueSize());
 	}
 
-	/**
-	 * Test collection conveyor expire.
-	 *
-	 * @throws InterruptedException the interrupted exception
-	 */
 	@Test
 	public void testCollectionConveyorExpire() throws InterruptedException {
 
 		CollectionConveyor<Integer,Integer> b = new CollectionConveyor<>();
-		
+
 		AtomicInteger ai = new AtomicInteger(0);
 		AtomicInteger aii = new AtomicInteger(0);
-		
-		b.setBuilderSupplier( BuilderSupplier.of(new CollectionBuilder<Integer>()).expire(100, TimeUnit.MILLISECONDS) );
+
+		b.setBuilderSupplier(BuilderSupplier.of(new CollectionBuilder<Integer>()).expire(100, TimeUnit.MILLISECONDS));
 		b.scrapConsumer((obj)->{
 			System.out.println(obj);
 			ai.decrementAndGet();
@@ -131,5 +83,4 @@ public class CollectionBuilderTest {
 		assertEquals(0,b.getDelayedQueueSize());
 		assertEquals(0,b.getInputQueueSize());
 	}
-
 }

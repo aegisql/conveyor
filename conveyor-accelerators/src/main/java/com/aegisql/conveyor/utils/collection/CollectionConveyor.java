@@ -7,7 +7,6 @@ import com.aegisql.conveyor.loaders.PartLoader;
 
 import java.util.Collection;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class CollectionConveyor.
  *
@@ -16,9 +15,6 @@ import java.util.Collection;
  */
 public class CollectionConveyor <K,V> extends AssemblingConveyor<K, SmartLabel<CollectionBuilder<V>>, Collection<V>> {
 
-	/**
-	 * Instantiates a new collection conveyor.
-	 */
 	public CollectionConveyor() {
 		super();
 		this.setName("CollectionConveyor");
@@ -33,6 +29,4 @@ public class CollectionConveyor <K,V> extends AssemblingConveyor<K, SmartLabel<C
 	public PartLoader<K, SmartLabel<CollectionBuilder<V>>> part() {
 		return super.part().label(ITEM);
 	}
-
-	
 }

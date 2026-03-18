@@ -3,6 +3,8 @@
 ## Purpose
 - Houses specialized conveyor implementations that are useful to framework users but do not have to remain in `conveyor-core`.
 - Current extracted surface:
+  - `com.aegisql.conveyor.utils.collection.CollectionBuilder`
+  - `com.aegisql.conveyor.utils.collection.CollectionConveyor`
   - `com.aegisql.conveyor.utils.map.MapBuilder`
   - `com.aegisql.conveyor.utils.map.MapConveyor`
   - `com.aegisql.conveyor.utils.queue_pump.PumpId`
@@ -11,6 +13,7 @@
   - `com.aegisql.conveyor.utils.queue_pump.QueuePump`
 
 ## Main Entry Points
+- `com.aegisql.conveyor.utils.collection.CollectionConveyor`
 - `com.aegisql.conveyor.utils.map.MapBuilder`
 - `com.aegisql.conveyor.utils.map.MapConveyor`
 - `com.aegisql.conveyor.utils.queue_pump.QueuePump`

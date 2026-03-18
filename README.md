@@ -67,6 +67,7 @@ Last version supporting Java 8 is 1.4.4
 * Switch to Java 25
 * Make the project AI-aware
 * Re-packaged persistence modules
+* Moved utils conveyors to the conveyor-accelerators project
 * Added support for OracleDB in persistence
 * Added support for SQL Server in persistence
 * Code refactoring and cleanup
