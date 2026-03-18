@@ -3,9 +3,6 @@ package com.aegisql.conveyor.service.config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.servlet.HandlerMapping;
@@ -14,18 +11,16 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.Arrays;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(OutputCaptureExtension.class)
 class RestAuditInterceptorTest {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Test
-    void logsAuditEventWithoutBodyContent(CapturedOutput output) throws Exception {
+    void logsAuditEventWithoutBodyContent() throws Exception {
         Clock fixedClock = Clock.fixed(Instant.parse("2026-02-24T15:00:00Z"), ZoneOffset.UTC);
         RestAuditInterceptor interceptor = new RestAuditInterceptor(true, fixedClock);
 
@@ -46,22 +41,22 @@ class RestAuditInterceptorTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(202);
 
-        interceptor.afterCompletion(request, response, new Object(), null);
+        Map<String, Object> payload = interceptor.buildAuditPayload(request, response, null);
 
-        String json = lastAuditJson(output);
+        String json = interceptor.formatAuditPayload(payload);
         assertThat(json).doesNotContain("secret");
         assertThat(json).doesNotContain("token");
 
-        Map<String, Object> payload = OBJECT_MAPPER.readValue(json, new TypeReference<>() {
+        Map<String, Object> parsed = OBJECT_MAPPER.readValue(json, new TypeReference<>() {
         });
-        assertThat(payload.get("timestamp")).isEqualTo("2026-02-24T15:00:00Z");
-        assertThat(payload.get("userId")).isEqualTo("admin");
-        assertThat(payload.get("endpoint")).isEqualTo("POST /part/collector/1/A");
-        assertThat(payload.get("bodySize")).isEqualTo(body.length);
-        assertThat(payload.get("status")).isEqualTo(202);
+        assertThat(parsed.get("timestamp")).isEqualTo("2026-02-24T15:00:00Z");
+        assertThat(parsed.get("userId")).isEqualTo("admin");
+        assertThat(parsed.get("endpoint")).isEqualTo("POST /part/collector/1/A");
+        assertThat(parsed.get("bodySize")).isEqualTo(body.length);
+        assertThat(parsed.get("status")).isEqualTo(202);
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> parameters = (Map<String, Object>) payload.get("parameters");
+        Map<String, Object> parameters = (Map<String, Object>) parsed.get("parameters");
         assertThat(parameters).containsKeys("pathVariables", "requestParameters");
 
         @SuppressWarnings("unchecked")
@@ -77,19 +72,17 @@ class RestAuditInterceptorTest {
     }
 
     @Test
-    void skipsLoggingWhenDisabled(CapturedOutput output) {
+    void skipsLoggingWhenDisabled() {
         RestAuditInterceptor interceptor = new RestAuditInterceptor(false, Clock.systemUTC());
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/dashboard/tree");
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(200);
 
-        interceptor.afterCompletion(request, response, new Object(), null);
-
-        assertThat(lastAuditJson(output)).isNull();
+        assertThat(interceptor.buildAuditPayload(request, response, null)).isNull();
     }
 
     @Test
-    void usesAnonymousAndUnknownBodySizeWhenNotAvailable(CapturedOutput output) throws Exception {
+    void usesAnonymousAndUnknownBodySizeWhenNotAvailable() throws Exception {
         Clock fixedClock = Clock.fixed(Instant.parse("2026-02-24T16:30:00Z"), ZoneOffset.UTC);
         RestAuditInterceptor interceptor = new RestAuditInterceptor(true, fixedClock);
 
@@ -97,55 +90,43 @@ class RestAuditInterceptorTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(200);
 
-        interceptor.afterCompletion(request, response, new Object(), null);
-
-        Map<String, Object> payload = OBJECT_MAPPER.readValue(
-                lastAuditJson(output),
-                new TypeReference<>() {
-                }
-        );
+        Map<String, Object> payload = interceptor.buildAuditPayload(request, response, null);
         assertThat(payload.get("userId")).isEqualTo("anonymous");
-        assertThat(payload.get("bodySize")).isEqualTo(-1);
+        assertThat(payload.get("bodySize")).isEqualTo(-1L);
     }
 
     @Test
-    void skipsAdminEventsPollingNoise(CapturedOutput output) {
+    void skipsAdminEventsPollingNoise() {
         RestAuditInterceptor interceptor = new RestAuditInterceptor(true, Clock.systemUTC());
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/dashboard/admin/events");
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(200);
 
-        interceptor.afterCompletion(request, response, new Object(), null);
-
-        assertThat(lastAuditJson(output)).isNull();
+        assertThat(interceptor.buildAuditPayload(request, response, null)).isNull();
     }
 
     @Test
-    void skipsWatchPollingNoise(CapturedOutput output) {
+    void skipsWatchPollingNoise() {
         RestAuditInterceptor interceptor = new RestAuditInterceptor(true, Clock.systemUTC());
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/dashboard/watch");
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(200);
 
-        interceptor.afterCompletion(request, response, new Object(), null);
-
-        assertThat(lastAuditJson(output)).isNull();
+        assertThat(interceptor.buildAuditPayload(request, response, null)).isNull();
     }
 
     @Test
-    void skipsTreePollingNoise(CapturedOutput output) {
+    void skipsTreePollingNoise() {
         RestAuditInterceptor interceptor = new RestAuditInterceptor(true, Clock.systemUTC());
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/dashboard/tree");
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(200);
 
-        interceptor.afterCompletion(request, response, new Object(), null);
-
-        assertThat(lastAuditJson(output)).isNull();
+        assertThat(interceptor.buildAuditPayload(request, response, null)).isNull();
     }
 
     @Test
-    void rewritesDashboardPlaceEndpointAndRedactsBodyParameter(CapturedOutput output) throws Exception {
+    void rewritesDashboardPlaceEndpointAndRedactsBodyParameter() {
         Clock fixedClock = Clock.fixed(Instant.parse("2026-02-24T16:45:00Z"), ZoneOffset.UTC);
         RestAuditInterceptor interceptor = new RestAuditInterceptor(true, fixedClock);
 
@@ -162,13 +143,7 @@ class RestAuditInterceptorTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(302);
 
-        interceptor.afterCompletion(request, response, new Object(), null);
-
-        Map<String, Object> payload = OBJECT_MAPPER.readValue(
-                lastAuditJson(output),
-                new TypeReference<>() {
-                }
-        );
+        Map<String, Object> payload = interceptor.buildAuditPayload(request, response, null);
 
         assertThat(payload.get("endpoint")).isEqualTo("POST /part/collector/1/TEST");
         assertThat(payload.get("sourceEndpoint")).isEqualTo("/dashboard/test/place");
@@ -186,7 +161,7 @@ class RestAuditInterceptorTest {
     }
 
     @Test
-    void rewritesDashboardStaticPartEndpointAndRedactsBodyFileParameter(CapturedOutput output) throws Exception {
+    void rewritesDashboardStaticPartEndpointAndRedactsBodyFileParameter() {
         Clock fixedClock = Clock.fixed(Instant.parse("2026-02-24T16:46:00Z"), ZoneOffset.UTC);
         RestAuditInterceptor interceptor = new RestAuditInterceptor(true, fixedClock);
 
@@ -201,13 +176,7 @@ class RestAuditInterceptorTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(200);
 
-        interceptor.afterCompletion(request, response, new Object(), null);
-
-        Map<String, Object> payload = OBJECT_MAPPER.readValue(
-                lastAuditJson(output),
-                new TypeReference<>() {
-                }
-        );
+        Map<String, Object> payload = interceptor.buildAuditPayload(request, response, null);
 
         assertThat(payload.get("endpoint")).isEqualTo("POST /static-part/collector/USER");
         assertThat(payload.get("sourceEndpoint")).isEqualTo("/dashboard/test/static-part");
@@ -223,7 +192,7 @@ class RestAuditInterceptorTest {
     }
 
     @Test
-    void rewritesDashboardCommandEndpoint(CapturedOutput output) throws Exception {
+    void rewritesDashboardCommandEndpoint() {
         Clock fixedClock = Clock.fixed(Instant.parse("2026-02-24T16:47:00Z"), ZoneOffset.UTC);
         RestAuditInterceptor interceptor = new RestAuditInterceptor(true, fixedClock);
 
@@ -236,25 +205,10 @@ class RestAuditInterceptorTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         response.setStatus(200);
 
-        interceptor.afterCompletion(request, response, new Object(), null);
-
-        Map<String, Object> payload = OBJECT_MAPPER.readValue(
-                lastAuditJson(output),
-                new TypeReference<>() {
-                }
-        );
+        Map<String, Object> payload = interceptor.buildAuditPayload(request, response, null);
 
         assertThat(payload.get("endpoint")).isEqualTo("POST /command/collector/9/cancel");
         assertThat(payload.get("sourceEndpoint")).isEqualTo("/dashboard/test/command");
         assertThat(payload.get("requestKind")).isEqualTo("command");
-    }
-
-    private String lastAuditJson(CapturedOutput output) {
-        return Arrays.stream(output.getAll().split("\\R"))
-                .map(String::trim)
-                .filter(line -> line.contains("\"timestamp\"") && line.contains("\"status\""))
-                .reduce((first, second) -> second)
-                .map(line -> line.substring(line.indexOf('{')))
-                .orElse(null);
     }
 }

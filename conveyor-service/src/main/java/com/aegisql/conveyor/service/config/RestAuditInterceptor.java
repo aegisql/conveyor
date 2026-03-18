@@ -67,8 +67,20 @@ public class RestAuditInterceptor implements HandlerInterceptor {
             Object handler,
             Exception ex
     ) {
-        if (!enabled || shouldSkip(request)) {
+        Map<String, Object> payload = buildAuditPayload(request, response, ex);
+        if (payload == null) {
             return;
+        }
+        writeAuditPayload(payload);
+    }
+
+    Map<String, Object> buildAuditPayload(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Exception ex
+    ) {
+        if (!enabled || shouldSkip(request)) {
+            return null;
         }
 
         Map<String, Object> payload = new LinkedHashMap<>();
@@ -88,8 +100,15 @@ public class RestAuditInterceptor implements HandlerInterceptor {
         if (ex != null) {
             payload.put("exception", ex.getClass().getName());
         }
+        return payload;
+    }
 
-        AUDIT_LOG.info(toJson(payload));
+    void writeAuditPayload(Map<String, Object> payload) {
+        AUDIT_LOG.info(formatAuditPayload(payload));
+    }
+
+    String formatAuditPayload(Map<String, Object> payload) {
+        return toJson(payload);
     }
 
     private boolean shouldSkip(HttpServletRequest request) {
