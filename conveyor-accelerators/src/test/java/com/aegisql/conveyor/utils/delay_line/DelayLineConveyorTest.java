@@ -1,6 +1,5 @@
-package com.aegisql.conveyor.utils;
+package com.aegisql.conveyor.utils.delay_line;
 
-import com.aegisql.conveyor.utils.delay_line.DelayLineConveyor;
 import org.junit.jupiter.api.*;
 
 import java.time.Duration;

@@ -8,6 +8,8 @@
   - `com.aegisql.conveyor.utils.counter.Counter`
   - `com.aegisql.conveyor.utils.counter.CountersAggregator`
   - `com.aegisql.conveyor.utils.counter.CounterAggregatorConveyor`
+  - `com.aegisql.conveyor.utils.delay_line.DelayLineBuilder`
+  - `com.aegisql.conveyor.utils.delay_line.DelayLineConveyor`
   - `com.aegisql.conveyor.utils.map.MapBuilder`
   - `com.aegisql.conveyor.utils.map.MapConveyor`
   - `com.aegisql.conveyor.utils.queue_pump.PumpId`
@@ -18,6 +20,7 @@
 ## Main Entry Points
 - `com.aegisql.conveyor.utils.collection.CollectionConveyor`
 - `com.aegisql.conveyor.utils.counter.CounterAggregatorConveyor`
+- `com.aegisql.conveyor.utils.delay_line.DelayLineConveyor`
 - `com.aegisql.conveyor.utils.map.MapBuilder`
 - `com.aegisql.conveyor.utils.map.MapConveyor`
 - `com.aegisql.conveyor.utils.queue_pump.QueuePump`
