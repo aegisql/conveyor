@@ -5,6 +5,11 @@
 - Current extracted surface:
   - `com.aegisql.conveyor.utils.collection.CollectionBuilder`
   - `com.aegisql.conveyor.utils.collection.CollectionConveyor`
+  - `com.aegisql.conveyor.utils.caching.CachingConveyor`
+  - `com.aegisql.conveyor.utils.caching.ImmutableReference`
+  - `com.aegisql.conveyor.utils.caching.ImmutableValueConsumer`
+  - `com.aegisql.conveyor.utils.caching.MutableReference`
+  - `com.aegisql.conveyor.utils.caching.MutableValueConsumer`
   - `com.aegisql.conveyor.utils.counter.Counter`
   - `com.aegisql.conveyor.utils.counter.CountersAggregator`
   - `com.aegisql.conveyor.utils.counter.CounterAggregatorConveyor`
@@ -16,14 +21,20 @@
   - `com.aegisql.conveyor.utils.queue_pump.PumpLabel`
   - `com.aegisql.conveyor.utils.queue_pump.ScalarHolder`
   - `com.aegisql.conveyor.utils.queue_pump.QueuePump`
+  - `com.aegisql.conveyor.utils.schedule.SchedulableClosure`
+  - `com.aegisql.conveyor.utils.schedule.Schedule`
+  - `com.aegisql.conveyor.utils.schedule.ScheduleBuilder`
+  - `com.aegisql.conveyor.utils.schedule.SimpleScheduler`
 
 ## Main Entry Points
 - `com.aegisql.conveyor.utils.collection.CollectionConveyor`
+- `com.aegisql.conveyor.utils.caching.CachingConveyor`
 - `com.aegisql.conveyor.utils.counter.CounterAggregatorConveyor`
 - `com.aegisql.conveyor.utils.delay_line.DelayLineConveyor`
 - `com.aegisql.conveyor.utils.map.MapBuilder`
 - `com.aegisql.conveyor.utils.map.MapConveyor`
 - `com.aegisql.conveyor.utils.queue_pump.QueuePump`
+- `com.aegisql.conveyor.utils.schedule.SimpleScheduler`
 
 ## Responsibilities
 - Carry specialized utility conveyors and adjacent builders after they are extracted from `conveyor-core`.

@@ -867,7 +867,7 @@ public class SmartConveyorTest {
 		}
 		
 		Future<?> f = conveyor.completeAndStop();
-		assertThrows(IllegalStateException.class,()->conveyor.command().id(102).create());
+		assertThrows(IllegalStateException.class,()->conveyor.command().id(1002).create());
 		f.get();
 		conveyor.completeAndStop().get();
 	}

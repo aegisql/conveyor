@@ -1,11 +1,10 @@
-package com.aegisql.conveyor.utils;
+package com.aegisql.conveyor.utils.caching;
 
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.user.User;
 import com.aegisql.conveyor.user.UserBuilder;
-import com.aegisql.conveyor.utils.caching.*;
 import org.junit.jupiter.api.*;
 
 import java.util.Map;
