@@ -60,6 +60,8 @@ public class PBalancedConvTest {
 		ResultMap<Integer, String> results = new ResultMap<>();
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(StringConcatBuilder1::new);
 		SimpleConveyor<Integer, String> c2 = new SimpleConveyor<>(StringConcatBuilder2::new);
+		c1.setDefaultCartConsumer(concatConsumer());
+		c2.setDefaultCartConsumer(concatConsumer());
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("first", "second"));
 		c2.setReadinessEvaluator(Conveyor.getTesterFor(c2).accepted("first", "second"));
 		c1.setName("C1");
@@ -86,6 +88,8 @@ public class PBalancedConvTest {
 		ResultMap<Integer, String> results = new ResultMap<>();
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(StringConcatBuilder1::new);
 		SimpleConveyor<Integer, String> c2 = new SimpleConveyor<>(StringConcatBuilder2::new);
+		c1.setDefaultCartConsumer(concatConsumer());
+		c2.setDefaultCartConsumer(concatConsumer());
 		
 		ConveyorAcceptor<Integer, String, String> t1 = new ConveyorAcceptor<>(c1);
 		t1.expectsValue("version", 1);
@@ -124,6 +128,10 @@ public class PBalancedConvTest {
 		SimpleConveyor<Integer, String> c3 = new SimpleConveyor<>(StringConcatBuilder1::new);
 		//V2,B
 		SimpleConveyor<Integer, String> c4 = new SimpleConveyor<>(StringConcatBuilder2::new);
+		c1.setDefaultCartConsumer(concatConsumer());
+		c2.setDefaultCartConsumer(concatConsumer());
+		c3.setDefaultCartConsumer(concatConsumer());
+		c4.setDefaultCartConsumer(concatConsumer());
 		//assign predicates
 		ConveyorAcceptor<Integer, String, String> t1 = new ConveyorAcceptor<>(c1);
 		t1.expectsValue("version", 1).expectsValue("abtest", "A");
@@ -190,6 +198,10 @@ public class PBalancedConvTest {
 		SimpleConveyor<Integer, String> c3 = new SimpleConveyor<>(StringConcatBuilder1::new);
 		//V2,B
 		SimpleConveyor<Integer, String> c4 = new SimpleConveyor<>(StringConcatBuilder2::new);
+		c1.setDefaultCartConsumer(concatConsumer());
+		c2.setDefaultCartConsumer(concatConsumer());
+		c3.setDefaultCartConsumer(concatConsumer());
+		c4.setDefaultCartConsumer(concatConsumer());
 		//assign predicates
 		ConveyorAcceptor<Integer, String, String> t1 = new ConveyorAcceptor<>(c1);
 		t1.expectsValue("version", 1).expectsValue("abtest", "A");
@@ -212,6 +224,10 @@ public class PBalancedConvTest {
 		SimpleConveyor<Integer, String> c3 = new SimpleConveyor<>(StringConcatBuilder1::new);
 		//V2,B
 		SimpleConveyor<Integer, String> c4 = new SimpleConveyor<>(StringConcatBuilder2::new);
+		c1.setDefaultCartConsumer(concatConsumer());
+		c2.setDefaultCartConsumer(concatConsumer());
+		c3.setDefaultCartConsumer(concatConsumer());
+		c4.setDefaultCartConsumer(concatConsumer());
 		//assign predicates
 		ConveyorAcceptor<Integer, String, String> t1 = new ConveyorAcceptor<>(c1);
 		ConveyorAcceptor<Integer, String, String> t2 = new ConveyorAcceptor<>(c2);
@@ -235,6 +251,18 @@ public class PBalancedConvTest {
 	public void constructorTest() {
 		ConveyorAcceptor<Integer, String, String> t1 = new ConveyorAcceptor<>();
 		assertNotNull(t1.getConveyor());
+	}
+
+	private static com.aegisql.conveyor.LabeledValueConsumer<String, Object, AbstractConcatBuilder> concatConsumer() {
+		return (label, value, builder) -> {
+			switch (label) {
+				case "first" -> builder.first = (String) value;
+				case "second" -> builder.second = (String) value;
+				case "del" -> builder.del = (String) value;
+				case "random" -> builder.random = (String) value;
+				default -> throw new IllegalArgumentException("Unknown label " + label);
+			}
+		};
 	}
 
 }

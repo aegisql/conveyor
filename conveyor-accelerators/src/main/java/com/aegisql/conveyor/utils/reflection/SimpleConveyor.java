@@ -1,4 +1,4 @@
-package com.aegisql.conveyor.reflection;
+package com.aegisql.conveyor.utils.reflection;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;

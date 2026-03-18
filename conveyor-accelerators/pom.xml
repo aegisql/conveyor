@@ -22,5 +22,10 @@
             <artifactId>conveyor-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.aegisql</groupId>
+            <artifactId>java-path</artifactId>
+            <version>0.2.3</version>
+        </dependency>
     </dependencies>
 </project>

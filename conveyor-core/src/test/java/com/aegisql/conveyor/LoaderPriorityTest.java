@@ -1,7 +1,7 @@
 package com.aegisql.conveyor;
 
+import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
-import com.aegisql.java_path.PathElement;
 import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
@@ -24,14 +24,12 @@ public class LoaderPriorityTest {
 			this.order = order;
 		}
 
-		@PathElement("partA")
 		public void setPartA(String partA) {
 			this.partA = partA;
 			order.add(partA);
 			sleep(100);
 		}
 
-		@PathElement("partB")
 		public void setPartB(String partB) {
 			this.partB = partB;
 			order.add(partB);
@@ -70,6 +68,7 @@ public class LoaderPriorityTest {
 	public synchronized void testRegularPartPriority() throws InterruptedException, ExecutionException {
 		List<String> order = new ArrayList<>();
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(()->new PriorityBlockingQueue(),()-> new TestStringBuilder(order));
+		c1.setDefaultCartConsumer(testStringBuilderConsumer());
 		c1.resultConsumer(System.out::println).set();
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
 		c1.part().id(1).label("partA").value("A").place();
@@ -88,6 +87,7 @@ public class LoaderPriorityTest {
 		
 		
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(()->new PriorityBlockingQueue(),()-> new TestStringBuilder(order));
+		c1.setDefaultCartConsumer(testStringBuilderConsumer());
 		c1.resultConsumer(System.out::println).set();
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
 		c1.command().id(1).create().get();
@@ -103,6 +103,7 @@ public class LoaderPriorityTest {
 	public synchronized void testStaticPartPriority() throws InterruptedException, ExecutionException {
 		List<String> order = new ArrayList<>();
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(()->new PriorityBlockingQueue(),()-> new TestStringBuilder(order));
+		c1.setDefaultCartConsumer(testStringBuilderConsumer());
 		c1.resultConsumer(System.out::println).set();
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
 		c1.command().suspend().join();
@@ -122,6 +123,7 @@ public class LoaderPriorityTest {
 	public void testAccumulationWithoutPriority() throws InterruptedException, ExecutionException {
 		List<String> order = new ArrayList<>();
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(()-> new TestStringBuilder(order));
+		c1.setDefaultCartConsumer(testStringBuilderConsumer());
 		c1.resultConsumer(bin->{}).set();
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
 
@@ -142,6 +144,7 @@ public class LoaderPriorityTest {
 	public void testAccumulationWithPriority() throws InterruptedException, ExecutionException {
 		List<String> order = new ArrayList<>();
 		SimpleConveyor<Integer, String> c1 = new SimpleConveyor<>(()->new PriorityBlockingQueue(),()-> new TestStringBuilder(order));
+		c1.setDefaultCartConsumer(testStringBuilderConsumer());
 		c1.resultConsumer(bin->{}).set();
 		c1.setReadinessEvaluator(Conveyor.getTesterFor(c1).accepted("partA", "partB"));
 
@@ -155,6 +158,16 @@ public class LoaderPriorityTest {
 		
 		c1.completeAndStop().get();
 		
+	}
+
+	private LabeledValueConsumer<String, Object, TestStringBuilder> testStringBuilderConsumer() {
+		return (label, value, builder) -> {
+			switch (label) {
+				case "partA" -> builder.setPartA((String) value);
+				case "partB" -> builder.setPartB((String) value);
+				default -> throw new IllegalArgumentException("Unknown label " + label);
+			}
+		};
 	}
 	
 	

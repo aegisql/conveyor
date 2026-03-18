@@ -1,8 +1,10 @@
-package com.aegisql.conveyor;
+package com.aegisql.conveyor.utils.builder;
 
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.consumers.scrap.LastScrapReference;
-import com.aegisql.conveyor.utils.BuilderUtils;
 import com.aegisql.conveyor.utils.Wrapped;
 import org.junit.jupiter.api.Test;
 

@@ -1,9 +1,10 @@
-package com.aegisql.conveyor.utils;
+package com.aegisql.conveyor.utils.builder;
 
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.State;
 import com.aegisql.conveyor.TestingState;
 import com.aegisql.conveyor.TimeoutAction;
+import com.aegisql.conveyor.utils.Wrapped;
 import com.aegisql.java_path.PathElement;
 
 import java.util.Objects;

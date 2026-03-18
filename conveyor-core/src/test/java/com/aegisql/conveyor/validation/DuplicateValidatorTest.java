@@ -83,6 +83,7 @@ public class DuplicateValidatorTest {
     public void duplicateValueWithConveyor() {
         SimpleConveyor<Integer,Integer> sc = new SimpleConveyor<>();
         sc.setBuilderSupplier(SummaBuilder::new);
+        sc.setDefaultCartConsumer(summaConsumer());
         LastResultReference<Integer,Integer> res = LastResultReference.of(sc);
         sc.resultConsumer(res).set();
         LastScrapReference<Integer> scrap = LastScrapReference.of(sc);
@@ -114,6 +115,7 @@ public class DuplicateValidatorTest {
     public void duplicateValueWithConveyorCustomPropertyName() {
         SimpleConveyor<Integer,Integer> sc = new SimpleConveyor<>();
         sc.setBuilderSupplier(SummaBuilder::new);
+        sc.setDefaultCartConsumer(summaConsumer());
         LastScrapReference<Integer> scrap = LastScrapReference.of(sc);
         sc.scrapConsumer(scrap).set();
         sc.setReadinessEvaluator(Conveyor.getTesterFor(sc).accepted("done"));
@@ -127,6 +129,16 @@ public class DuplicateValidatorTest {
         assertNotNull(scrap.getCurrent());
         assertEquals(DuplicateValueException.class, scrap.getCurrent().error.getClass());
         sc.completeAndStop().join();
+    }
+
+    private static com.aegisql.conveyor.LabeledValueConsumer<String, Object, SummaBuilder> summaConsumer() {
+        return (label, value, builder) -> {
+            switch (label) {
+                case "add" -> builder.add((Integer) value);
+                case "done" -> builder.done();
+                default -> throw new IllegalArgumentException("Unknown label " + label);
+            }
+        };
     }
 
 }

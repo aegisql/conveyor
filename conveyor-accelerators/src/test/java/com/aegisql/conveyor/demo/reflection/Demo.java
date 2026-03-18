@@ -6,7 +6,7 @@ package com.aegisql.conveyor.demo.reflection;
 import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.consumers.result.LastResultReference;
 import com.aegisql.conveyor.demo.ThreadPool;
-import com.aegisql.conveyor.reflection.SimpleConveyor;
+import com.aegisql.conveyor.utils.reflection.SimpleConveyor;
 import org.junit.jupiter.api.Test;
 
 import java.text.SimpleDateFormat;

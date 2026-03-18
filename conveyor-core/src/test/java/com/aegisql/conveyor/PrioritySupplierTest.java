@@ -5,6 +5,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.reflection.SimpleConveyor;
+import com.aegisql.conveyor.LabeledValueConsumer;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.PriorityBlockingQueue;
@@ -284,6 +285,7 @@ public class PrioritySupplierTest {
     @Test
     public void testPropertyPriorityWithConveyor() {
         SimpleConveyor<Integer,A> c = new SimpleConveyor(Priority.prioritizedByProperty("TEST_PRIORITY"),ABuilder::new);
+        c.setDefaultCartConsumer(aBuilderConsumer());
         c.suspend();
         ResultQueue<Integer, A> results = ResultQueue.of(c);
         c.resultConsumer(results).set();
@@ -324,6 +326,7 @@ public class PrioritySupplierTest {
     public void testExistingPriorityWithConveyor() {
 
         SimpleConveyor<Integer,B> c = new SimpleConveyor(Priority.EXISTING_BUILDS_FIRST,BBuilder::new);
+        c.setDefaultCartConsumer(bBuilderConsumer());
 
         ResultQueue<Integer, B> results = ResultQueue.of(c);
         c.resultConsumer(results).set();
@@ -341,6 +344,26 @@ public class PrioritySupplierTest {
         B r2 = results.poll();
         assertEquals("v1-1 v1-2",r1.toString());
         assertEquals("v2-1 v2-2",r2.toString());// 1 completed before 2
+    }
+
+    private LabeledValueConsumer<String, Object, ABuilder> aBuilderConsumer() {
+        return (label, value, builder) -> {
+            if ("val".equals(label)) {
+                builder.val = (String) value;
+                return;
+            }
+            throw new IllegalArgumentException("Unknown label " + label);
+        };
+    }
+
+    private LabeledValueConsumer<String, Object, BBuilder> bBuilderConsumer() {
+        return (label, value, builder) -> {
+            switch (label) {
+                case "val1" -> builder.val1 = (String) value;
+                case "val2" -> builder.val2 = (String) value;
+                default -> throw new IllegalArgumentException("Unknown label " + label);
+            }
+        };
     }
 
     @Test

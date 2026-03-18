@@ -3,7 +3,7 @@ package com.aegisql.conveyor.utils.scalar;
 import com.aegisql.conveyor.Testing;
 import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.consumers.result.LogResult;
-import com.aegisql.conveyor.reflection.SimpleConveyor;
+import com.aegisql.conveyor.utils.reflection.SimpleConveyor;
 import com.aegisql.conveyor.user.User;
 import org.junit.jupiter.api.*;
 

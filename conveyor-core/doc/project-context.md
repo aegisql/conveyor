@@ -25,8 +25,10 @@
 - `CachingConveyor`, `ImmutableReference`, `ImmutableValueConsumer`, `MutableReference`, and `MutableValueConsumer` now live in `conveyor-accelerators`.
 - `Counter`, `CountersAggregator`, and `CounterAggregatorConveyor` now live in `conveyor-accelerators`.
 - `DelayLineBuilder` and `DelayLineConveyor` now live in `conveyor-accelerators`.
+- `BuilderUtils` now lives in `conveyor-accelerators`.
 - `MapBuilder` and `MapConveyor` now live in `conveyor-accelerators`.
 - `QueuePump`, `PumpId`, `PumpLabel`, and the queue-pump `ScalarHolder` now live in `conveyor-accelerators`.
+- `ReflectingValueConsumer` and `SimpleConveyor` now live in `conveyor-accelerators`.
 - `ScalarConvertingBuilder` and `ScalarConvertingConveyor` now live in `conveyor-accelerators`.
 - `SchedulableClosure`, `Schedule`, `ScheduleBuilder`, and `SimpleScheduler` now live in `conveyor-accelerators`.
 - `conveyor-core` still provides the shared base types those specialized implementations build on, including `CommonBuilder`.

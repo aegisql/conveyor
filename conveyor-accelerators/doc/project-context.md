@@ -7,6 +7,7 @@
   - `com.aegisql.conveyor.utils.collection.CollectionConveyor`
   - `com.aegisql.conveyor.utils.batch.BatchCollectingBuilder`
   - `com.aegisql.conveyor.utils.batch.BatchConveyor`
+  - `com.aegisql.conveyor.utils.builder.BuilderUtils`
   - `com.aegisql.conveyor.utils.caching.CachingConveyor`
   - `com.aegisql.conveyor.utils.caching.ImmutableReference`
   - `com.aegisql.conveyor.utils.caching.ImmutableValueConsumer`
@@ -23,6 +24,8 @@
   - `com.aegisql.conveyor.utils.queue_pump.PumpLabel`
   - `com.aegisql.conveyor.utils.queue_pump.ScalarHolder`
   - `com.aegisql.conveyor.utils.queue_pump.QueuePump`
+  - `com.aegisql.conveyor.utils.reflection.ReflectingValueConsumer`
+  - `com.aegisql.conveyor.utils.reflection.SimpleConveyor`
   - `com.aegisql.conveyor.utils.scalar.ScalarConvertingBuilder`
   - `com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor`
   - `com.aegisql.conveyor.utils.schedule.SchedulableClosure`
@@ -39,6 +42,7 @@
 - `com.aegisql.conveyor.utils.map.MapBuilder`
 - `com.aegisql.conveyor.utils.map.MapConveyor`
 - `com.aegisql.conveyor.utils.queue_pump.QueuePump`
+- `com.aegisql.conveyor.utils.reflection.SimpleConveyor`
 - `com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor`
 - `com.aegisql.conveyor.utils.schedule.SimpleScheduler`
 

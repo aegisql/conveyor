@@ -1,12 +1,12 @@
-package com.aegisql.conveyor;
+package com.aegisql.conveyor.utils.reflection;
 
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.Conveyor;
 import com.aegisql.conveyor.consumers.result.ObservableResultConsumer;
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.loaders.StaticPartLoader;
-import com.aegisql.conveyor.reflection.ReflectingValueConsumer;
-import com.aegisql.conveyor.reflection.SimpleConveyor;
-import com.aegisql.conveyor.utils.BuilderUtils;
+import com.aegisql.conveyor.utils.builder.BuilderUtils;
 import com.aegisql.conveyor.utils.MultiValue;
 import com.aegisql.java_path.*;
 import org.junit.jupiter.api.*;
@@ -18,7 +18,7 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static com.aegisql.conveyor.ReflectingValueConsumerTest.PhoneType.*;
+import static com.aegisql.conveyor.utils.reflection.ReflectingValueConsumerTest.PhoneType.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ReflectingValueConsumerTest {
