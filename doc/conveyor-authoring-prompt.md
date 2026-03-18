@@ -27,8 +27,11 @@
 - Builder implements `Supplier<OUT>`.
 - Builder fields/methods should reflect part labels clearly.
 - Prefer explicit label handling over reflection unless reflection is the requested feature.
-- Prefer enum or `SmartLabel` labels when the label vocabulary is fixed and type safety matters.
-- Prefer string labels plus explicit `LabeledValueConsumer` when labels must stay readable or externally configurable.
+- If the user did not define the label type explicitly, and there is no reason to think the label set is open-ended, use enum-based `SmartLabel` labels as the first choice.
+- Prefer string labels plus explicit `LabeledValueConsumer` only when at least one of these is true:
+  - the user explicitly asks for string labels
+  - the label set is open-ended or only partially known up front
+  - the user explicitly wants `SimpleConveyor`
 - Keep result consumers non-blocking where possible.
 - Always define what happens on timeout, invalid data, and incomplete builds.
 - Do not introduce dependencies from `conveyor-core` to downstream modules.
@@ -97,8 +100,8 @@
 - Use builder-implemented `Testing` or `TestingState` only when readiness belongs naturally inside the builder itself.
 
 ### 3. Keep label handling obvious
-- For fixed business labels, use an enum `SmartLabel<B>` if compile-time safety matters.
-- For external/configurable labels, use string labels and an explicit `LabeledValueConsumer`.
+- For fixed business labels, default to an enum `SmartLabel<B>`.
+- For external/configurable/open-ended labels, use string labels and an explicit `LabeledValueConsumer`.
 - For reflection labels, document that JavaPath semantics are in use.
 
 ### 4. Separate concerns cleanly
