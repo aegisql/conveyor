@@ -1,9 +1,7 @@
-package com.aegisql.conveyor.utils;
+package com.aegisql.conveyor.utils.batch;
 
 import com.aegisql.conveyor.consumers.result.ForwardResult;
 import com.aegisql.conveyor.user.User;
-import com.aegisql.conveyor.utils.batch.BatchCollectingBuilder;
-import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor;
 import org.junit.jupiter.api.*;
 

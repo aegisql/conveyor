@@ -5,6 +5,8 @@
 - Current extracted surface:
   - `com.aegisql.conveyor.utils.collection.CollectionBuilder`
   - `com.aegisql.conveyor.utils.collection.CollectionConveyor`
+  - `com.aegisql.conveyor.utils.batch.BatchCollectingBuilder`
+  - `com.aegisql.conveyor.utils.batch.BatchConveyor`
   - `com.aegisql.conveyor.utils.caching.CachingConveyor`
   - `com.aegisql.conveyor.utils.caching.ImmutableReference`
   - `com.aegisql.conveyor.utils.caching.ImmutableValueConsumer`
@@ -29,6 +31,7 @@
   - `com.aegisql.conveyor.utils.schedule.SimpleScheduler`
 
 ## Main Entry Points
+- `com.aegisql.conveyor.utils.batch.BatchConveyor`
 - `com.aegisql.conveyor.utils.collection.CollectionConveyor`
 - `com.aegisql.conveyor.utils.caching.CachingConveyor`
 - `com.aegisql.conveyor.utils.counter.CounterAggregatorConveyor`

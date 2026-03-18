@@ -16,10 +16,11 @@
 - Cart and command submission model.
 - Product/scrap emission and consumer chaining.
 - Delay, readiness, priority, and lifecycle management.
-- Helper implementations such as batch utilities.
+- Shared builder/helper infrastructure used by the framework and extracted accelerator modules.
 - Provide the smallest practical dependency base for downstream modules and external users of the framework.
 
 ## Current Extraction Boundary
+- `BatchCollectingBuilder` and `BatchConveyor` now live in `conveyor-accelerators`.
 - `CollectionBuilder` and `CollectionConveyor` now live in `conveyor-accelerators`.
 - `CachingConveyor`, `ImmutableReference`, `ImmutableValueConsumer`, `MutableReference`, and `MutableValueConsumer` now live in `conveyor-accelerators`.
 - `Counter`, `CountersAggregator`, and `CounterAggregatorConveyor` now live in `conveyor-accelerators`.

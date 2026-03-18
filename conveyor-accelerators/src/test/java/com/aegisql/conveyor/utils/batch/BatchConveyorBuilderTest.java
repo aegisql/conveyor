@@ -1,10 +1,8 @@
-package com.aegisql.conveyor.utils;
+package com.aegisql.conveyor.utils.batch;
 
 import com.aegisql.conveyor.consumers.result.LogResult;
 import com.aegisql.conveyor.consumers.result.ResultQueue;
 import com.aegisql.conveyor.consumers.scrap.ScrapQueue;
-import com.aegisql.conveyor.utils.batch.BatchCollectingBuilder;
-import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
