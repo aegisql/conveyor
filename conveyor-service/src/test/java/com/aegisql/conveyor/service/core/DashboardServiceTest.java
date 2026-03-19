@@ -9,11 +9,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;
 
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,6 +49,23 @@ class DashboardServiceTest {
         ))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("default-admin-stop-timeout");
+    }
+
+    @Test
+    void constructorRecordsLoaderErrorAndContinuesWhenUploadedProviderHasMissingDependency() throws Exception {
+        Path uploadDir = tempDir.resolve("upload-broken-provider");
+        Files.createDirectories(uploadDir);
+        createBrokenInitiatingServiceJar(uploadDir.resolve("broken-provider.jar"));
+
+        DashboardService service = newService(true, uploadDir, "1 MINUTES");
+
+        assertThat(service.getLoaderErrors())
+                .anyMatch(message ->
+                        message.contains("Cannot load uploaded ConveyorInitiatingService provider")
+                                && message.contains("ClassNotFoundException")
+                                && message.contains("broken.MissingBase")
+                );
+        assertThat(service.conveyorTree()).isNotNull();
     }
 
     @Test
@@ -429,6 +452,72 @@ class DashboardServiceTest {
                 mock(ConveyorWatchService.class),
                 defaultStopTimeout
         );
+    }
+
+    private void createBrokenInitiatingServiceJar(Path jarPath) throws Exception {
+        Path sourceDir = tempDir.resolve("broken-service-src");
+        Path classesDir = tempDir.resolve("broken-service-classes");
+        Files.createDirectories(sourceDir.resolve("broken"));
+        Files.createDirectories(classesDir);
+
+        Path missingBaseSource = sourceDir.resolve("broken/MissingBase.java");
+        Path providerSource = sourceDir.resolve("broken/BrokenInitiatingService.java");
+
+        Files.writeString(
+                missingBaseSource,
+                """
+                        package broken;
+
+                        public class MissingBase {
+                        }
+                        """,
+                StandardCharsets.UTF_8
+        );
+        Files.writeString(
+                providerSource,
+                """
+                        package broken;
+
+                        import com.aegisql.conveyor.Conveyor;
+                        import com.aegisql.conveyor.ConveyorInitiatingService;
+
+                        public class BrokenInitiatingService extends MissingBase implements ConveyorInitiatingService {
+                            @Override
+                            public Conveyor<?, ?, ?> getConveyor() {
+                                return null;
+                            }
+                        }
+                        """,
+                StandardCharsets.UTF_8
+        );
+
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        assertThat(compiler).as("system java compiler").isNotNull();
+        int exitCode = compiler.run(
+                null,
+                null,
+                null,
+                "-classpath",
+                System.getProperty("java.class.path"),
+                "-d",
+                classesDir.toString(),
+                missingBaseSource.toString(),
+                providerSource.toString()
+        );
+        assertThat(exitCode).isZero();
+
+        Path providerClass = classesDir.resolve("broken/BrokenInitiatingService.class");
+        assertThat(Files.exists(providerClass)).isTrue();
+
+        try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(jarPath))) {
+            jarOutputStream.putNextEntry(new JarEntry("broken/BrokenInitiatingService.class"));
+            jarOutputStream.write(Files.readAllBytes(providerClass));
+            jarOutputStream.closeEntry();
+
+            jarOutputStream.putNextEntry(new JarEntry("META-INF/services/com.aegisql.conveyor.ConveyorInitiatingService"));
+            jarOutputStream.write("broken.BrokenInitiatingService\n".getBytes(StandardCharsets.UTF_8));
+            jarOutputStream.closeEntry();
+        }
     }
 
     private void safeUnregister(String name) {

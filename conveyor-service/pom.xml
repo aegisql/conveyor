@@ -90,6 +90,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.aegisql</groupId>
+            <artifactId>conveyor-accelerators</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.aegisql.persistence</groupId>
             <artifactId>conveyor-persistence-core</artifactId>
             <version>${project.version}</version>

@@ -77,6 +77,10 @@ public class DashboardService {
             refreshUploadsClassLoader();
             try {
                 loadUploadedConveyors();
+            } catch (LinkageError e) {
+                String message = buildServiceLoaderErrorMessage(e);
+                recordLoaderError(message);
+                LOG.warn(message, e);
             } catch (RuntimeException e) {
                 // loadUploadedConveyors already records detailed loader errors.
             }
@@ -759,7 +763,7 @@ public class DashboardService {
         return objectMapper.convertValue(source, targetType);
     }
 
-    private String buildServiceLoaderErrorMessage(ServiceConfigurationError e) {
+    private String buildServiceLoaderErrorMessage(Throwable e) {
         String detail = rootCauseMessage(e);
         return "Cannot load uploaded ConveyorInitiatingService provider. " +
                 "Likely causes: missing no-arg constructor, missing dependency jar, or class initialization failure. " +
