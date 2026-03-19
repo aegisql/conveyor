@@ -1,0 +1,3 @@
+conveyor:
+  service:
+    upload-dir: ./target/test-upload/${random.uuid}
