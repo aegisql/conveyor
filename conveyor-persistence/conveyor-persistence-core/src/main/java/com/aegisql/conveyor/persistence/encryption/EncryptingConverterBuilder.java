@@ -3,7 +3,6 @@ package com.aegisql.conveyor.persistence.encryption;
 import com.aegisql.conveyor.persistence.converters.EncryptingConverter;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 
-import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +11,10 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class EncryptingConverterBuilder implements Supplier<EncryptingConverter> {
+
+	private static final String LEGACY_DEFAULT_ALGORITHM = "AES";
+	private static final String LEGACY_DEFAULT_TRANSFORMATION = "AES/ECB/PKCS5Padding";
+	private static final int LEGACY_DEFAULT_KEY_LENGTH = 16;
 	
 	/** The encryption secret. */
 	private final String encryptionSecret;
@@ -33,8 +36,8 @@ public class EncryptingConverterBuilder implements Supplier<EncryptingConverter>
 			null
 			,null
 			,"AES"
-			,"AES/ECB/PKCS5Padding"
-			,16);
+			,AesGcmPayloadProtector.TRANSFORMATION
+			,32);
 	}
 	
 	private EncryptingConverterBuilder(String encryptionSecret, SecretKey secretKey, String encryptionAlgorithm,
@@ -71,20 +74,43 @@ public class EncryptingConverterBuilder implements Supplier<EncryptingConverter>
 		if(encryptionSecret == null && secretKey == null) {
 			return null;
 		}
-		try {
-			Cipher encryptionCipher = Cipher.getInstance(encryptionTransformation);
-			if(secretKey == null) {
-				byte[] key = encryptionSecret.getBytes(StandardCharsets.UTF_8);
-				MessageDigest sha = MessageDigest.getInstance("SHA-1");
-				key = sha.digest(key);
-				key = Arrays.copyOf(key, encryptionKeyLength);
-				return new EncryptingConverter(new SecretKeySpec(key, encryptionAlgorithm), encryptionCipher);
-			} else {
-				return new EncryptingConverter(secretKey, encryptionCipher);
-			}
-		} catch (Exception e) {
-			throw new PersistenceException("Encryption Builder error",e);
+		if (isManagedModernMode()) {
+			return new EncryptingConverter(new AesGcmPayloadProtector(
+					encryptionSecret,
+					secretKey,
+					encryptionKeyLength,
+					buildLegacyDefaultFallback()
+			));
 		}
+		return new EncryptingConverter(buildRawProtector(encryptionAlgorithm, encryptionTransformation, encryptionKeyLength));
+	}
+
+	private boolean isManagedModernMode() {
+		return LEGACY_DEFAULT_ALGORITHM.equalsIgnoreCase(encryptionAlgorithm)
+				&& AesGcmPayloadProtector.TRANSFORMATION.equalsIgnoreCase(encryptionTransformation);
+	}
+
+	private PayloadProtector buildLegacyDefaultFallback() {
+		return buildRawProtector(LEGACY_DEFAULT_ALGORITHM, LEGACY_DEFAULT_TRANSFORMATION, LEGACY_DEFAULT_KEY_LENGTH);
+	}
+
+	private PayloadProtector buildRawProtector(String algorithm, String transformation, int keyLength) {
+		try {
+			return new RawCipherPayloadProtector(resolveLegacyKey(algorithm, keyLength), transformation);
+		} catch (Exception e) {
+			throw new PersistenceException("Encryption Builder error", e);
+		}
+	}
+
+	private SecretKey resolveLegacyKey(String algorithm, int keyLength) throws Exception {
+		if (secretKey != null) {
+			return secretKey;
+		}
+		byte[] key = encryptionSecret.getBytes(StandardCharsets.UTF_8);
+		MessageDigest sha = MessageDigest.getInstance("SHA-1");
+		key = sha.digest(key);
+		key = Arrays.copyOf(key, keyLength);
+		return new SecretKeySpec(key, algorithm);
 	}
 
 }

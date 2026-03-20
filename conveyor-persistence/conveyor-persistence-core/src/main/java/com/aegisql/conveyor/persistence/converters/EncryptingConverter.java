@@ -1,10 +1,12 @@
 package com.aegisql.conveyor.persistence.converters;
 
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
-import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.encryption.PayloadProtector;
+import com.aegisql.conveyor.persistence.encryption.RawCipherPayloadProtector;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import java.util.Objects;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -12,53 +14,26 @@ import javax.crypto.SecretKey;
  */
 public class EncryptingConverter implements ObjectConverter<byte[], byte[]> {
 
-	/** The key. */
-	private final SecretKey key;
+	private final PayloadProtector protector;
 	
-	/** The cipher. */
-	private final Cipher cipher;
-	
-	/**
-	 * Instantiates a new encrypting converter.
-	 *
-	 * @param key the key
-	 * @param cipher the cipher
-	 */
 	public EncryptingConverter(SecretKey key, Cipher cipher) {
-		this.key    = key;
-		this.cipher = cipher;
+		this(new RawCipherPayloadProtector(key, cipher.getAlgorithm()));
+	}
+
+	public EncryptingConverter(PayloadProtector protector) {
+		this.protector = Objects.requireNonNull(protector, "protector");
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#toPersistence(java.lang.Object)
-	 */
 	@Override
 	public byte[] toPersistence(byte[] obj) {
-		try {
-			cipher.init(Cipher.ENCRYPT_MODE, key);
-			return cipher.doFinal( obj );
-		} catch (Exception e) {
-			throw new PersistenceException("Encryption Exception",e);
-		}
-
+		return protector.encrypt(obj);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#fromPersistence(java.lang.Object)
-	 */
 	@Override
 	public byte[] fromPersistence(byte[] p) {
-		try {
-			cipher.init(Cipher.DECRYPT_MODE, key);
-			return cipher.doFinal(p);
-		} catch (Exception e) {
-			throw new PersistenceException("Decryption Exception",e);
-		}
+		return protector.decrypt(p);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aegisql.conveyor.persistence.core.ObjectConverter#conversionHint()
-	 */
 	@Override
 	public String conversionHint() {
 		return "byte[]:Encrypted(byte[])";

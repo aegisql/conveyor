@@ -2,6 +2,7 @@ package com.aegisql.conveyor.persistence.redis;
 
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.LoadType;
+import com.aegisql.conveyor.persistence.converters.EncryptingConverter;
 import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
@@ -26,6 +27,7 @@ public class RedisPersistence<K> implements Persistence<K> {
     private static final Logger LOG = LoggerFactory.getLogger(RedisPersistence.class);
     private static final String BACKEND_VERSION = "1";
 
+    private final RedisClientHandle clientHandle;
     private final JedisPooled jedis;
     private final String redisUri;
     private final String name;
@@ -36,8 +38,15 @@ public class RedisPersistence<K> implements Persistence<K> {
     private final Set<String> nonPersistentProperties;
     private final Predicate<Cart<K, ?, ?>> persistentPartFilter;
     private final SerializableToBytesConverter<Serializable> serializableConverter = new SerializableToBytesConverter<>();
+    private final EncryptingConverter payloadEncryptor;
 
     RedisPersistence(RedisPersistenceBuilder<K> builder) {
+        this(builder, builder.jedis() == null
+                ? RedisClientHandle.owned(RedisConnectionFactory.open(builder.redisUri()))
+                : RedisClientHandle.external(builder.jedis()));
+    }
+
+    private RedisPersistence(RedisPersistenceBuilder<K> builder, RedisClientHandle clientHandle) {
         this.redisUri = builder.redisUri();
         this.name = builder.name();
         this.namespace = "conv:{" + name + "}";
@@ -46,7 +55,23 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.maxArchiveBatchTime = builder.maxArchiveBatchTime();
         this.nonPersistentProperties = builder.nonPersistentProperties();
         this.persistentPartFilter = builder.persistentPartFilter();
-        this.jedis = RedisConnectionFactory.open(redisUri);
+        this.payloadEncryptor = builder.encryptionBuilder().get();
+        this.clientHandle = clientHandle;
+        this.jedis = clientHandle.jedis();
+    }
+
+    private RedisPersistence(RedisPersistence<K> source) {
+        this.redisUri = source.redisUri;
+        this.name = source.name;
+        this.namespace = source.namespace;
+        this.minCompactSize = source.minCompactSize;
+        this.maxArchiveBatchSize = source.maxArchiveBatchSize;
+        this.maxArchiveBatchTime = source.maxArchiveBatchTime;
+        this.nonPersistentProperties = source.nonPersistentProperties;
+        this.persistentPartFilter = source.persistentPartFilter;
+        this.payloadEncryptor = source.payloadEncryptor;
+        this.clientHandle = source.clientHandle.retain();
+        this.jedis = clientHandle.jedis();
     }
 
     void init() {
@@ -87,7 +112,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         trackKey(staticIdsKey());
         trackKey(expiringIdsKey());
 
-        jedis.set(payloadKey, encodeSerializable(cart));
+        jedis.set(payloadKey, encodePayload(cart));
         jedis.hset(metaKey, Map.of(
                 "id", idMember,
                 "loadType", cart.getLoadType().name(),
@@ -342,17 +367,7 @@ public class RedisPersistence<K> implements Persistence<K> {
     @Override
     public Persistence<K> copy() {
         LOG.debug("Copying Redis persistence namespace={}", namespace);
-        RedisPersistenceBuilder<K> builder = new RedisPersistenceBuilder<K>(name)
-                .redisUri(redisUri)
-                .autoInit(true)
-                .minCompactSize(minCompactSize)
-                .maxArchiveBatchSize(maxArchiveBatchSize)
-                .maxArchiveBatchTime(maxArchiveBatchTime)
-                .persistentPartFilter(persistentPartFilter);
-        for (String property : nonPersistentProperties) {
-            builder = builder.nonPersistentProperty(property);
-        }
-        return builder.build();
+        return new RedisPersistence<>(this);
     }
 
     @Override
@@ -364,8 +379,9 @@ public class RedisPersistence<K> implements Persistence<K> {
 
     @Override
     public void close() throws IOException {
-        LOG.debug("Closing Redis persistence namespace={}", namespace);
-        jedis.close();
+        LOG.debug("Closing Redis persistence namespace={} ownsClient={} refs={}",
+                namespace, clientHandle.closesUnderlying(), clientHandle.referenceCount());
+        clientHandle.close();
     }
 
     @Override
@@ -407,7 +423,16 @@ public class RedisPersistence<K> implements Persistence<K> {
             LOG.trace("No cart payload found for id={} namespace={}", id, namespace);
             return null;
         }
-        return (Cart<K, ?, L>) decodeSerializable(encoded);
+        return (Cart<K, ?, L>) decodePayload(encoded);
+    }
+
+    private String encodePayload(Serializable value) {
+        byte[] bytes = serializableConverter.toPersistence(value);
+        if (payloadEncryptor != null) {
+            LOG.trace("Encrypting Redis payload namespace={} valueType={}", namespace, value.getClass().getName());
+            bytes = payloadEncryptor.toPersistence(bytes);
+        }
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
     private String encodeSerializable(Object value) {
@@ -418,6 +443,15 @@ public class RedisPersistence<K> implements Persistence<K> {
             throw new PersistenceException("Value is not serializable: " + value.getClass().getName());
         }
         return Base64.getUrlEncoder().withoutPadding().encodeToString(serializableConverter.toPersistence(serializable));
+    }
+
+    private Serializable decodePayload(String encodedValue) {
+        byte[] bytes = Base64.getUrlDecoder().decode(encodedValue);
+        if (payloadEncryptor != null) {
+            LOG.trace("Decrypting Redis payload namespace={}", namespace);
+            bytes = payloadEncryptor.fromPersistence(bytes);
+        }
+        return serializableConverter.fromPersistence(bytes);
     }
 
     private Serializable decodeSerializable(String encodedValue) {

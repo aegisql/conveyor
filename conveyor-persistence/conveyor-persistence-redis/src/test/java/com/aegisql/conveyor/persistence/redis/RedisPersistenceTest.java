@@ -9,12 +9,17 @@ import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.serial.SerializablePredicate;
 import org.junit.jupiter.api.Test;
+import redis.clients.jedis.JedisPooled;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -24,9 +29,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RedisPersistenceTest extends RedisTestSupport {
+
+    private final SerializableToBytesConverter<Serializable> serializableConverter = new SerializableToBytesConverter<>();
 
     @Test
     void supportsBasicPersistenceContractMethods() throws Exception {
@@ -250,6 +258,73 @@ class RedisPersistenceTest extends RedisTestSupport {
             assertNotNull(wrapped);
             assertNotNull(defaultConveyor);
             assertNotNull(suppliedConveyor);
+        }
+    }
+
+    @Test
+    void supportsEncryptedPayloadsWhileKeepingIndexesReadable() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("encrypted-payload");
+        long id;
+
+        try (Persistence<Integer> writer = new RedisPersistenceBuilder<Integer>(name)
+                .encryptionSecret("redis modern secret")
+                .build()) {
+            writer.archiveAll();
+            id = writer.nextUniquePartId();
+
+            ShoppingCart<Integer, String, String> cart = new ShoppingCart<>(77, "alpha", "PAYLOAD");
+            writer.savePart(id, cart);
+            writer.saveCompletedBuildKey(77);
+
+            try (JedisPooled jedis = RedisConnectionFactory.openDefault()) {
+                String rawPayload = jedis.get("conv:{" + name + "}:part:" + id + ":payload");
+                String unencryptedPayload = Base64.getUrlEncoder().withoutPadding()
+                        .encodeToString(serializableConverter.toPersistence(cart));
+                assertNotNull(rawPayload);
+                assertFalse(rawPayload.equals(unencryptedPayload));
+            }
+        }
+
+        try (Persistence<Integer> reader = new RedisPersistenceBuilder<Integer>(name)
+                .encryptionSecret("redis modern secret")
+                .build()) {
+            assertEquals(List.of(id), new ArrayList<>(reader.getAllPartIds(77)));
+            assertEquals(Set.of(77), reader.getCompletedKeys());
+            assertEquals("alpha", reader.getPart(id).getValue());
+        }
+
+        try (Persistence<Integer> wrongReader = new RedisPersistenceBuilder<Integer>(name)
+                .encryptionSecret("redis wrong secret")
+                .build()) {
+            assertEquals(List.of(id), new ArrayList<>(wrongReader.getAllPartIds(77)));
+            assertThrows(PersistenceException.class, () -> wrongReader.getPart(id));
+        }
+    }
+
+    @Test
+    void modernRedisPayloadEncryptionReadsLegacyDefaultPayloads() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("encrypted-legacy");
+        long id;
+
+        try (Persistence<Integer> legacyWriter = new RedisPersistenceBuilder<Integer>(name)
+                .encryptionSecret("redis legacy secret")
+                .encryptionAlgorithm("AES")
+                .encryptionTransformation("AES/ECB/PKCS5Padding")
+                .encryptionKeyLength(16)
+                .build()) {
+            legacyWriter.archiveAll();
+            id = legacyWriter.nextUniquePartId();
+            legacyWriter.savePart(id, new ShoppingCart<>(31, "legacy", "PAYLOAD"));
+        }
+
+        try (Persistence<Integer> modernReader = new RedisPersistenceBuilder<Integer>(name)
+                .encryptionSecret("redis legacy secret")
+                .build()) {
+            assertEquals("legacy", modernReader.getPart(id).getValue());
         }
     }
 }

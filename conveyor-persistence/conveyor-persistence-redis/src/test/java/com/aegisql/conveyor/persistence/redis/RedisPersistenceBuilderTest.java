@@ -4,6 +4,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import org.junit.jupiter.api.Test;
+import redis.clients.jedis.JedisPooled;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -15,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,6 +28,7 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
 
         RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(testNamespace("builder-validation"));
         assertThrows(NullPointerException.class, () -> builder.redisUri(null));
+        assertThrows(NullPointerException.class, () -> builder.jedis(null));
         assertThrows(NullPointerException.class, () -> builder.nonPersistentProperty(null));
         assertThrows(NullPointerException.class, () -> builder.persistentPartFilter(null));
 
@@ -104,5 +107,52 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
             assertInstanceOf(PersistenceException.class, cause);
             assertEquals("Redis persistence cannot encode null values as indexed keys", cause.getMessage());
         }
+    }
+
+    @Test
+    void copySharesOwnedRedisClientAndRemainsUsableAfterOriginalClose() throws Exception {
+        openRedis().close();
+
+        RedisPersistence<Integer> original =
+                (RedisPersistence<Integer>) new RedisPersistenceBuilder<Integer>(testNamespace("builder-shared-copy")).build();
+        original.archiveAll();
+
+        RedisPersistence<Integer> copy = (RedisPersistence<Integer>) original.copy();
+
+        try {
+            assertSame(readClientHandle(original), readClientHandle(copy));
+
+            original.close();
+
+            assertEquals(1L, copy.nextUniquePartId());
+        } finally {
+            copy.close();
+        }
+    }
+
+    @Test
+    void externalJedisClientIsNotClosedWhenPersistenceCloses() throws Exception {
+        openRedis().close();
+
+        JedisPooled external = RedisConnectionFactory.openDefault();
+        try {
+            RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(testNamespace("builder-external-jedis"))
+                    .jedis(external);
+
+            try (Persistence<Integer> persistence = builder.build()) {
+                persistence.archiveAll();
+                assertEquals(1L, persistence.nextUniquePartId());
+            }
+
+            assertEquals("PONG", external.ping());
+        } finally {
+            external.close();
+        }
+    }
+
+    private static Object readClientHandle(RedisPersistence<?> persistence) throws Exception {
+        var field = RedisPersistence.class.getDeclaredField("clientHandle");
+        field.setAccessible(true);
+        return field.get(persistence);
     }
 }

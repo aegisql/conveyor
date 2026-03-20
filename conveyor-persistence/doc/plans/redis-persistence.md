@@ -129,6 +129,18 @@ Proposed SPI mapping:
 - `archiveKeys/archiveParts/archiveExpiredParts`
   - Redis script/function updates all related keys atomically
 
+## Payload Protection Direction
+
+- Redis payload protection should reuse the shared persistence-core encryption path rather than inventing a Redis-only mechanism.
+- Current implementation direction:
+  - protect serialized cart payload bytes only
+  - leave Redis key/index encoding deterministic in v1
+  - keep indexed-key protection as a later design decision
+- This matches the current JDBC direction after the shared encryption core was modernized:
+  - managed default `AES/GCM/NoPadding`
+  - legacy-default decrypt fallback for historical payloads
+  - per-operation cipher creation instead of a shared mutable cipher instance
+
 ## Restore Order
 Current JDBC behavior supports:
 - `NO_ORDER`
@@ -219,6 +231,7 @@ Otherwise, completed-log and stored-cart correctness can be lost.
   - `archiveExpiredParts`
   - `archiveAll`
 - Add Redis-native init/bootstrap.
+- Reuse the shared payload-protection abstraction for optional payload encryption.
 
 ### Phase 2: Integration Tests
 - Add Docker-backed integration tests for Redis.
