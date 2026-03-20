@@ -107,8 +107,9 @@ public class PrintStreamResult <K,V> implements ResultConsumer<K,V>, Closeable {
 	 * @throws FileNotFoundException the file not found exception
 	 */
 	public static <K,V> PrintStreamResult<K,V> of(Conveyor<K, ?, V> conv, File file, Function<V,String> toString) throws FileNotFoundException {
-		FileOutputStream os = new FileOutputStream(file);
-		return of(conv,os,toString);
+		try (FileOutputStream os = new FileOutputStream(file)) {
+					return of(conv,os,toString);
+		}
 	}
 
 	/**
