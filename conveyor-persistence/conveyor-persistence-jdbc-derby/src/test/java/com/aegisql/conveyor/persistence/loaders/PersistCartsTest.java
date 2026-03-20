@@ -17,8 +17,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class PersistCartsTest {
 
+	private static final String DERBY_DATABASE = Tester.testDbPath("carts_db");
+	private static final String DERBY_SCHEMA = "carts_schema";
+
 	@BeforeAll
 	public static void setUpBeforeClass() {
+		Tester.removeDirectory(DERBY_DATABASE);
 		Tester.removeDirectory("carts_db");
 	}
 
@@ -35,7 +39,7 @@ public class PersistCartsTest {
 	}
 	
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", Integer.class)
-			.database("carts_db").schema("carts_schema").autoInit(true).setArchived();
+			.database(DERBY_DATABASE).schema(DERBY_SCHEMA).autoInit(true).setArchived();
 
 	
 	public JdbcPersistenceBuilder<Integer> getPersistence(String table) {

@@ -14,6 +14,7 @@ import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.jupiter.api.*;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,14 +27,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class PersistentConveyorTest {
 
+	private static final String DERBY_SCHEMA = "testConv";
+	private static final String DERBY_DATABASE = Tester.testDbPath(DERBY_SCHEMA);
 
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", Integer.class)
-			.schema("testConv").autoInit(true).setArchived();
+			.database(DERBY_DATABASE).schema(DERBY_SCHEMA).autoInit(true).setArchived();
 
 	@BeforeAll
 	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
-		Tester.removeDirectory("testConv");
+		Tester.removeDirectory(DERBY_DATABASE);
+		Tester.removeDirectory(new File(DERBY_SCHEMA).getAbsolutePath());
+		Tester.removeFile(new File("derby.log").getAbsolutePath());
 	}
 
 	@AfterAll

@@ -8,6 +8,7 @@ import com.aegisql.conveyor.persistence.jdbc.builders.RestoreOrder;
 import com.aegisql.conveyor.persistence.jdbc.harness.Tester;
 import org.junit.jupiter.api.*;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -16,12 +17,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class DerbyPersistenceTest {
 
+	private static final String DERBY_SCHEMA = "conveyor_db";
+	private static final String DERBY_DATABASE = Tester.testDbPath(DERBY_SCHEMA);
+
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", Integer.class)
+			.database(DERBY_DATABASE)
+			.schema(DERBY_SCHEMA)
 			.autoInit(true);
 	
 	@BeforeAll
 	public static void setUpBeforeClass() {
-		Tester.removeDirectory("conveyor_db");
+		Tester.removeDirectory(DERBY_DATABASE);
+		Tester.removeDirectory(new File(DERBY_SCHEMA).getAbsolutePath());
+		Tester.removeFile(new File("derby.log").getAbsolutePath());
 	}
 
 	@AfterAll
@@ -150,6 +158,56 @@ public class DerbyPersistenceTest {
 		assertNull(rc12);
 		assertNotNull(rc22);
 		
+	}
+
+	@Test
+	public void testJdbcBuilderReadsModernAndLegacyEncryptedPayloads() throws Exception {
+		String secret = "compatible secret";
+
+		Persistence<Integer> modernWriter = persistenceBuilder
+				.partTable("modern_encryption_parts")
+				.completedLogTable("modern_encryption_completed")
+				.encryptionSecret(secret)
+				.build();
+		modernWriter.archiveAll();
+		modernWriter.savePart(1, new ShoppingCart<>(101, "modern payload", "label"));
+		modernWriter.saveCompletedBuildKey(101);
+
+		Persistence<Integer> modernReader = persistenceBuilder
+				.partTable("modern_encryption_parts")
+				.completedLogTable("modern_encryption_completed")
+				.encryptionSecret(secret)
+				.build();
+
+		Cart<Integer, ?, String> modernCart = modernReader.getPart(1);
+		assertNotNull(modernCart);
+		assertEquals(101, modernCart.getKey());
+		assertEquals("modern payload", modernCart.getValue());
+		assertTrue(modernReader.getCompletedKeys().contains(101));
+
+		Persistence<Integer> legacyWriter = persistenceBuilder
+				.partTable("legacy_encryption_parts")
+				.completedLogTable("legacy_encryption_completed")
+				.encryptionSecret(secret)
+				.encryptionAlgorithm("AES")
+				.encryptionTransformation("AES/ECB/PKCS5Padding")
+				.encryptionKeyLength(16)
+				.build();
+		legacyWriter.archiveAll();
+		legacyWriter.savePart(2, new ShoppingCart<>(202, "legacy payload", "label"));
+		legacyWriter.saveCompletedBuildKey(202);
+
+		Persistence<Integer> legacyReaderWithModernDefaults = persistenceBuilder
+				.partTable("legacy_encryption_parts")
+				.completedLogTable("legacy_encryption_completed")
+				.encryptionSecret(secret)
+				.build();
+
+		Cart<Integer, ?, String> legacyCart = legacyReaderWithModernDefaults.getPart(2);
+		assertNotNull(legacyCart);
+		assertEquals(202, legacyCart.getKey());
+		assertEquals("legacy payload", legacyCart.getValue());
+		assertTrue(legacyReaderWithModernDefaults.getCompletedKeys().contains(202));
 	}
 
 	

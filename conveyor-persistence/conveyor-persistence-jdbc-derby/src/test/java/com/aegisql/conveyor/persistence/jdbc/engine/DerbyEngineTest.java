@@ -18,11 +18,13 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DerbyEngineTest {
 
 	private static final String SCHEMA = Tester.getTestClass();
+	private static final String DATABASE = Tester.testDbPath(SCHEMA);
 	private static final String PARTS = "PART";
 	private static final String LOGS = "COMPLETED_LOG";
 	
 	@BeforeAll
 	public static void setUpBeforeClass() {
+		Tester.removeDirectory(DATABASE);
 		Tester.removeDirectory(SCHEMA);
 	}
 
@@ -47,8 +49,9 @@ public class DerbyEngineTest {
 		
 		GenericEngine<Integer> de = new DerbyEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance(), false);
 		de.setAdditionalFields(Arrays.asList(new Field(UUID.class,"ADDON")));
+		de.connectionFactory.setDatabase(DATABASE);
 		de.connectionFactory.setSchema(SCHEMA);
-		assertTrue(de.databaseExists(SCHEMA));
+		assertTrue(de.databaseExists(DATABASE));
 		assertFalse(de.schemaExists(SCHEMA));
 		de.createSchema(SCHEMA);
 		de.createPartTable(PARTS);

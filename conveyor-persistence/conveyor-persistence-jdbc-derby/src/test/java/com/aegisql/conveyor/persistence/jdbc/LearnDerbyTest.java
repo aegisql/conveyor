@@ -16,9 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class LearnDerbyTest {
 
+	private static final String DERBY_SCHEMA = "testDb1";
+	private static final String DERBY_DATABASE = Tester.testDbPath(DERBY_SCHEMA);
+
 	@BeforeAll
 	public static void setUpBeforeClass() {
-		Tester.removeDirectory("testDb1");
+		Tester.removeDirectory(DERBY_DATABASE);
+		Tester.removeDirectory(DERBY_SCHEMA);
 	}
 
 	@AfterAll
@@ -35,7 +39,7 @@ public class LearnDerbyTest {
 	}
 		
 	JdbcPersistenceBuilder<String> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", String.class)
-			.schema("testDb1").autoInit(true).setArchived().labelConverter(new StringConverter<String>(){
+			.database(DERBY_DATABASE).schema(DERBY_SCHEMA).autoInit(true).setArchived().labelConverter(new StringConverter<String>(){
 				@Override
 				public String fromPersistence(String p) {
 					return p;

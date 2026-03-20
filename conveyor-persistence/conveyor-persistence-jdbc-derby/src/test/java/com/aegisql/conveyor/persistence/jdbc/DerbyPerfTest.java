@@ -23,12 +23,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DerbyPerfTest {
 
+	private static final String DERBY_DATABASE = Tester.testDbPath("perfConvDb");
+
 	JdbcPersistenceBuilder<Integer> persistenceBuilder = JdbcPersistenceBuilder.presetInitializer("derby", Integer.class)
-			.autoInit(true).setArchived();
+			.database(DERBY_DATABASE).autoInit(true).setArchived();
 	
 	@BeforeAll
 	public static void setUpBeforeClass() {
 		BasicConfigurator.configure();
+		Tester.removeDirectory(DERBY_DATABASE);
 		Tester.removeDirectory("perfConv");
 		Tester.removeDirectory("perfConvArchive");
 	}
