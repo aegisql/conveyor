@@ -7,6 +7,7 @@
 - Child module instructions:
   - `./conveyor-persistence-core/AGENTS.md`
   - `./conveyor-persistence-jdbc/AGENTS.md`
+  - `./conveyor-persistence-redis/AGENTS.md`
 
 ## Local Rules
 - There is no production code here; treat this module as build and coordination only.

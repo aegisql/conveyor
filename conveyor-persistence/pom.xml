@@ -45,15 +45,16 @@
 		
 	</dependencies>
 	<packaging>pom</packaging>
-  <modules>
-    <module>conveyor-persistence-core</module>
-    <module>conveyor-persistence-jdbc</module>
-    <module>conveyor-persistence-jdbc-postgres</module>
-    <module>conveyor-persistence-jdbc-sqlite</module>
-    <module>conveyor-persistence-jdbc-derby</module>
-    <module>conveyor-persistence-jdbc-mysql</module>
-    <module>conveyor-persistence-jdbc-mariadb</module>
-    <module>conveyor-persistence-jdbc-oracle</module>
-    <module>conveyor-persistence-jdbc-sqlserver</module>
-  </modules>
-</project>
+	  <modules>
+	    <module>conveyor-persistence-core</module>
+	    <module>conveyor-persistence-jdbc</module>
+	    <module>conveyor-persistence-jdbc-postgres</module>
+	    <module>conveyor-persistence-jdbc-sqlite</module>
+	    <module>conveyor-persistence-jdbc-derby</module>
+	    <module>conveyor-persistence-jdbc-mysql</module>
+	    <module>conveyor-persistence-jdbc-mariadb</module>
+	    <module>conveyor-persistence-jdbc-oracle</module>
+	    <module>conveyor-persistence-jdbc-sqlserver</module>
+	    <module>conveyor-persistence-redis</module>
+	  </modules>
+	</project>

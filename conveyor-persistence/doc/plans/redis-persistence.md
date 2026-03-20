@@ -1,6 +1,7 @@
 # Redis Persistence Research And Plan
 
 ## Verdict
+
 - Do not implement Redis as another `engineType` inside `conveyor-persistence-jdbc`.
 - Create a sibling module instead:
   - `conveyor-persistence-redis`
@@ -10,9 +11,11 @@
 This is an architectural recommendation inferred from current code, tests, and official Redis documentation.
 
 ## Why The JDBC Module Is The Wrong Layer
+
 The current JDBC persistence implementation is explicitly relational, not just "simple storage with a connection".
 
 Current evidence in code:
+
 - `conveyor-persistence/conveyor-persistence-jdbc/src/main/java/com/aegisql/conveyor/persistence/jdbc/builders/JdbcPersistenceBuilder.java`
   - `init()` creates database, schema, part table, indexes, and completed-log table.
 - `conveyor-persistence/conveyor-persistence-jdbc/src/main/java/com/aegisql/conveyor/persistence/jdbc/engine/EngineDepo.java`
@@ -26,7 +29,9 @@ Current evidence in code:
 Redis can satisfy the persistence SPI, but it does not naturally satisfy the JDBC engine contract.
 
 ## Redis Capabilities Relevant To This Design
+
 Official Redis documentation confirms the relevant primitives:
+
 - Java integration is client-based, not JDBC:
   - [Jedis Java connect docs](https://redis.io/docs/latest/develop/clients/jedis/connect/)
 - Redis scripting/functions can maintain a data model across multiple keys and data structures, with atomic execution:
