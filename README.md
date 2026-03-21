@@ -70,6 +70,7 @@ Last version supporting Java 8 is 1.4.4
 * Moved utils conveyors to the conveyor-accelerators project
 * Added support for OracleDB in persistence
 * Added support for SQL Server in persistence
+* Added support for no-sql REDIS in persistence
 * Code refactoring and cleanup
 * Tests and bugfixes
 
