@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.persistence.redis;
 
 import com.aegisql.conveyor.persistence.core.Persistence;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Assumptions;
 import redis.clients.jedis.JedisPooled;
 
@@ -8,6 +9,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.UUID;
 
 abstract class RedisTestSupport {
+
+    @BeforeAll
+    static void requireRedisAvailability() {
+        try (JedisPooled ignored = openRedis()) {
+            // Availability check only. Tests open their own clients as needed.
+        }
+    }
 
     protected static JedisPooled openRedis() {
         String redisUri = RedisConnectionFactory.resolveRedisUri();
