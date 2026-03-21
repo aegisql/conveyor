@@ -31,6 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
@@ -46,6 +47,7 @@ public class RedisPersistence<K> implements Persistence<K> {
     private final String redisUri;
     private final String name;
     private final String namespace;
+    private final RestoreOrder restoreOrder;
     private final int minCompactSize;
     private final int maxArchiveBatchSize;
     private final long maxArchiveBatchTime;
@@ -67,6 +69,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.redisUri = builder.redisUri();
         this.name = builder.name();
         this.namespace = "conv:{" + name + "}";
+        this.restoreOrder = builder.restoreOrder();
         this.minCompactSize = builder.minCompactSize();
         this.maxArchiveBatchSize = builder.maxArchiveBatchSize();
         this.maxArchiveBatchTime = builder.maxArchiveBatchTime();
@@ -83,6 +86,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.redisUri = source.redisUri;
         this.name = source.name;
         this.namespace = source.namespace;
+        this.restoreOrder = source.restoreOrder;
         this.minCompactSize = source.minCompactSize;
         this.maxArchiveBatchSize = source.maxArchiveBatchSize;
         this.maxArchiveBatchTime = source.maxArchiveBatchTime;
@@ -250,20 +254,23 @@ public class RedisPersistence<K> implements Persistence<K> {
             return List.of();
         }
         ensureInitialized();
-        Collection<Long> ids = jedis.zrange(partIdsByKeyKey(encodeSerializable(key)), 0, -1)
+        Collection<String> ids = jedis.zrange(partIdsByKeyKey(encodeSerializable(key)), 0, -1)
+                .stream()
+                .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+        Collection<Long> orderedIds = orderedIdMembers(ids)
                 .stream()
                 .map(Long::parseLong)
                 .toList();
-        LOG.debug("Loaded {} part ids for key={} namespace={}", ids.size(), key, namespace);
-        LOG.trace("Part ids for key={} => {}", key, ids);
-        return ids;
+        LOG.debug("Loaded {} part ids for key={} namespace={} restoreOrder={}", orderedIds.size(), key, namespace, restoreOrder);
+        LOG.trace("Part ids for key={} => {}", key, orderedIds);
+        return orderedIds;
     }
 
     @Override
     public <L> Collection<Cart<K, ?, L>> getAllParts() {
         ensureInitialized();
-        Collection<Cart<K, ?, L>> carts = loadCarts(jedis.zrange(activeIdsKey(), 0, -1));
-        LOG.debug("Loaded {} active carts from namespace={}", carts.size(), namespace);
+        Collection<Cart<K, ?, L>> carts = loadCarts(orderedIdMembers(jedis.zrange(activeIdsKey(), 0, -1)));
+        LOG.debug("Loaded {} active carts from namespace={} restoreOrder={}", carts.size(), namespace, restoreOrder);
         LOG.trace("Active carts={}", carts);
         return carts;
     }
@@ -271,8 +278,8 @@ public class RedisPersistence<K> implements Persistence<K> {
     @Override
     public <L> Collection<Cart<K, ?, L>> getExpiredParts() {
         ensureInitialized();
-        Collection<Cart<K, ?, L>> carts = loadCarts(jedis.zrangeByScore(expiringIdsKey(), Double.NEGATIVE_INFINITY, System.currentTimeMillis()));
-        LOG.debug("Loaded {} expired carts from namespace={}", carts.size(), namespace);
+        Collection<Cart<K, ?, L>> carts = loadCarts(orderedIdMembers(jedis.zrangeByScore(expiringIdsKey(), Double.NEGATIVE_INFINITY, System.currentTimeMillis())));
+        LOG.debug("Loaded {} expired carts from namespace={} restoreOrder={}", carts.size(), namespace, restoreOrder);
         LOG.trace("Expired carts={}", carts);
         return carts;
     }
@@ -280,8 +287,8 @@ public class RedisPersistence<K> implements Persistence<K> {
     @Override
     public <L> Collection<Cart<K, ?, L>> getAllStaticParts() {
         ensureInitialized();
-        Collection<Cart<K, ?, L>> carts = loadCarts(jedis.zrange(staticIdsKey(), 0, -1));
-        LOG.debug("Loaded {} static carts from namespace={}", carts.size(), namespace);
+        Collection<Cart<K, ?, L>> carts = loadCarts(orderedIdMembers(jedis.zrange(staticIdsKey(), 0, -1)));
+        LOG.debug("Loaded {} static carts from namespace={} restoreOrder={}", carts.size(), namespace, restoreOrder);
         LOG.trace("Static carts={}", carts);
         return carts;
     }
@@ -514,6 +521,24 @@ public class RedisPersistence<K> implements Persistence<K> {
         }
         LOG.trace("Loaded {} carts for id members {}", carts.size(), idMembers);
         return carts;
+    }
+
+    private List<String> orderedIdMembers(Collection<String> idMembers) {
+        ArrayList<String> ordered = new ArrayList<>(idMembers);
+        switch (restoreOrder) {
+            case NO_ORDER -> {
+                return ordered;
+            }
+            case BY_ID -> ordered.sort(Comparator.comparingLong(Long::parseLong));
+            case BY_PRIORITY_AND_ID -> ordered.sort(Comparator
+                    .comparingLong(this::priorityOfIdMember).reversed()
+                    .thenComparingLong(Long::parseLong));
+        }
+        return ordered;
+    }
+
+    private long priorityOfIdMember(String idMember) {
+        return parseLong(jedis.hget(metaKey(Long.parseLong(idMember)), "priority"));
     }
 
     @SuppressWarnings("unchecked")

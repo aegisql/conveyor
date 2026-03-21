@@ -147,12 +147,12 @@ Current JDBC behavior supports:
 - `BY_ID`
 - `BY_PRIORITY_AND_ID`
 
-Recommended Redis plan:
+Current Redis implementation:
 - v1:
-  - support `BY_ID` natively with sorted-set score = id
-  - support `NO_ORDER`
-  - support `BY_PRIORITY_AND_ID` by sorting in Java after fetch if needed
-- v2:
+  - supports `BY_ID` natively with sorted-set score = id
+  - supports `NO_ORDER` as backend iteration order with no extra re-sorting
+  - supports `BY_PRIORITY_AND_ID` by sorting in Java after fetch
+- future optimization only if needed:
   - add an optimized priority+id index if performance requires it
 
 This is a deliberate tradeoff to reduce index complexity in the first implementation.

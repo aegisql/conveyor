@@ -17,7 +17,12 @@
 - The storage model now uses itemized cart metadata plus value payload bytes instead of storing the whole cart as one blob.
 - Current Redis archiving is delete-oriented only.
 - Current Redis writes are multi-command operations, not Lua/function-backed atomic units.
-- Current Redis restore behavior is now explicitly proven for the current id-ordered active/static/per-key paths, for one recovered command-cart path, and for restart-and-finish `PersistentConveyor` recovery.
+- Current Redis restore behavior is now explicitly configurable and proven for:
+  - `BY_ID`
+  - `NO_ORDER`
+  - Java-side `BY_PRIORITY_AND_ID`
+  - one recovered command-cart path
+  - restart-and-finish `PersistentConveyor` recovery
 - Recovery cleanup proof now includes the recovered `CANCELED` status path in addition to the earlier `READY` paths.
 - A first compatible slice of the JDBC-style performance tests now exists for Redis.
 
@@ -186,13 +191,18 @@ Important note:
 - JDBC today:
   - explicitly supports restore-order policies such as `NO_ORDER`, `BY_ID`, and `BY_PRIORITY_AND_ID`.
 - Redis today:
-  - effectively restores active and static carts in sorted-set order by stored score.
-  - current code uses part id as the active/static sorted-set score.
+  - explicitly supports:
+    - `BY_ID` as the default
+    - `NO_ORDER` as backend iteration order with no extra re-sorting
+    - Java-side `BY_PRIORITY_AND_ID`
+  - active/static indexes still store part id as their native sorted-set score
 - Status:
-  - partial
-  - current tests now prove the effective `BY_ID` behavior for active parts, static parts, and per-key indexes
-  - explicit restore-order policy selection is not implemented
-  - `BY_PRIORITY_AND_ID` parity is not implemented
+  - implemented
+  - current tests now prove:
+    - `BY_ID` behavior for active parts, static parts, expired parts, and per-key indexes
+    - `NO_ORDER` behavior for expired-part reads
+    - Java-side `BY_PRIORITY_AND_ID` for active parts, static parts, expired parts, and per-key indexes
+    - `BY_PRIORITY_AND_ID` replay behavior on a recovered `PersistentConveyor` flow
 
 ### Archive Strategies
 
@@ -512,7 +522,8 @@ This is meaningful because it shows the current itemized storage and reconstruct
   - covers wrong-secret failure for payload reads
   - covers modern reader compatibility with legacy-default payloads
   - covers static and expired-part queries
-  - covers current restore-order assumptions for active, static, and per-key retrieval
+  - covers explicit restore-order policies for active, static, expired, and per-key retrieval
+  - covers recovered replay order with `BY_PRIORITY_AND_ID`
   - covers persisted command-cart save, reload, and replay into a wrapped conveyor
   - covers incomplete-build replay across `PersistentConveyor` restart
   - covers recovered explicit-acknowledge handle delivery
@@ -543,7 +554,6 @@ This is meaningful because it shows the current itemized storage and reconstruct
 
 ### Missing Or Partial Compared To JDBC
 
-- explicit restore-order strategy support
 - broader command-cart coverage beyond the currently proven replay path
 - archive strategy parity beyond delete behavior
 - stronger atomic update behavior for multi-key writes
@@ -581,13 +591,12 @@ Complexity here means engineering effort plus semantic risk relative to the curr
   - Why medium:
     - the namespace semantics are now in place, but deeper compatibility checks still need to be decided carefully
 
-- Introduce explicit restore-order support.
+- Optimize `BY_PRIORITY_AND_ID` if Redis replay volume makes the current Java-side sort too expensive.
   - Candidate scope:
-    - `NO_ORDER`
-    - `BY_ID`
-    - Java-side `BY_PRIORITY_AND_ID`
+    - dedicated priority+id index
+    - reduced metadata lookups during replay-oriented reads
   - Why medium:
-    - requires builder/configuration growth and compatibility decisions
+    - the current behavior is correct, but it may become a tuning target under larger recovery loads
 
 - Improve current data layout so metadata stays intentionally queryable without growing redundant mirrors again.
   - Candidate scope:
@@ -666,18 +675,17 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ## Recommended Next Sequence
 
-1. Introduce explicit restore-order configuration.
-2. Broaden recovery and cleanup proof beyond the currently covered READY and CANCELED paths.
-3. Clarify and then prove timeout-driven recovery semantics, including whether additional timeout-action wiring is required for Redis `PersistentConveyor` cleanup.
-4. Extend bootstrap semantics with Redis server-version and required-feature validation.
-5. Move save/archive operations toward Lua or Redis Functions for atomicity.
+1. Broaden recovery and cleanup proof beyond the currently covered READY and CANCELED paths.
+2. Clarify and then prove timeout-driven recovery semantics, including whether additional timeout-action wiring is required for Redis `PersistentConveyor` cleanup.
+3. Extend bootstrap semantics with Redis server-version and required-feature validation.
+4. Move save/archive operations toward Lua or Redis Functions for atomicity.
+5. Revisit whether `BY_PRIORITY_AND_ID` needs an optimized Redis-side index or if the current Java-side sort remains sufficient.
 
 ## Bottom Line
 
 - Redis persistence is no longer just a plan. It is a real first backend with working SPI coverage and good early test evidence.
 - The biggest remaining gap is not basic CRUD. The biggest gap is maturity compared to JDBC:
   - archive strategy breadth
-  - restore-order semantics
   - recovery breadth beyond the currently proven flows
   - atomic multi-key correctness
 - The module is in a solid v1 development state, but not yet in JDBC-level production-parity territory.

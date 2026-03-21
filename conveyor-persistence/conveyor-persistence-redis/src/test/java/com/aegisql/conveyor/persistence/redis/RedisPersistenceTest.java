@@ -452,30 +452,125 @@ class RedisPersistenceTest extends RedisTestSupport {
     }
 
     @Test
-    void returnsPartsInCurrentRedisIdOrderAssumptions() throws Exception {
+    void supportsExplicitRestoreOrderPoliciesForRecoveryFacingReads() throws Exception {
         openRedis().close();
 
-        try (Persistence<Integer> persistence = newPersistence("restore-order")) {
-            persistence.archiveAll();
+        String name = testNamespace("restore-order");
+        try (Persistence<Integer> writer = new RedisPersistenceBuilder<Integer>(name).build()) {
+            writer.archiveAll();
 
             long now = System.currentTimeMillis();
-            persistence.savePart(30L, new ShoppingCart<>(7, "third", "A30", now, 0, null, LoadType.PART, 500));
-            persistence.savePart(10L, new ShoppingCart<>(7, "first", "A10", now, 0, null, LoadType.PART, -100));
-            persistence.savePart(20L, new ShoppingCart<>(7, "second", "A20", now, 0, null, LoadType.PART, 999));
+            writer.savePart(30L, new ShoppingCart<>(7, "third", "A30", now, 0, null, LoadType.PART, 500));
+            writer.savePart(10L, new ShoppingCart<>(7, "first", "A10", now, 0, null, LoadType.PART, -100));
+            writer.savePart(20L, new ShoppingCart<>(7, "second", "A20", now, 0, null, LoadType.PART, 999));
 
-            persistence.savePart(40L, new ShoppingCart<>(null, "static-fourth", "S40", now, 0, null, LoadType.STATIC_PART, -10));
-            persistence.savePart(5L, new ShoppingCart<>(null, "static-first", "S05", now, 0, null, LoadType.STATIC_PART, 700));
-            persistence.savePart(25L, new ShoppingCart<>(null, "static-second", "S25", now, 0, null, LoadType.STATIC_PART, 0));
+            writer.savePart(40L, new ShoppingCart<>(null, "static-fourth", "S40", now, 0, null, LoadType.STATIC_PART, 700));
+            writer.savePart(5L, new ShoppingCart<>(null, "static-first", "S05", now, 0, null, LoadType.STATIC_PART, -10));
+            writer.savePart(25L, new ShoppingCart<>(null, "static-second", "S25", now, 0, null, LoadType.STATIC_PART, 0));
+        }
 
-            assertEquals(List.of(10L, 20L, 30L), new ArrayList<>(persistence.getAllPartIds(7)));
+        try (Persistence<Integer> byId = new RedisPersistenceBuilder<Integer>(name)
+                .restoreOrder(RestoreOrder.BY_ID)
+                .build()) {
+            assertEquals(List.of(10L, 20L, 30L), new ArrayList<>(byId.getAllPartIds(7)));
             assertEquals(
                     List.of("first", "second", "third"),
-                    persistence.getAllParts().stream().map(Cart::getValue).toList()
+                    byId.getAllParts().stream().map(Cart::getValue).toList()
             );
             assertEquals(
                     List.of("static-first", "static-second", "static-fourth"),
-                    persistence.getAllStaticParts().stream().map(Cart::getValue).toList()
+                    byId.getAllStaticParts().stream().map(Cart::getValue).toList()
             );
+        }
+
+        try (Persistence<Integer> byPriority = new RedisPersistenceBuilder<Integer>(name)
+                .restoreOrder(RestoreOrder.BY_PRIORITY_AND_ID)
+                .build()) {
+            assertEquals(List.of(20L, 30L, 10L), new ArrayList<>(byPriority.getAllPartIds(7)));
+            assertEquals(
+                    List.of("second", "third", "first"),
+                    byPriority.getAllParts().stream().map(Cart::getValue).toList()
+            );
+            assertEquals(
+                    List.of("static-fourth", "static-second", "static-first"),
+                    byPriority.getAllStaticParts().stream().map(Cart::getValue).toList()
+            );
+        }
+    }
+
+    @Test
+    void supportsNoOrderByIdAndPriorityPoliciesForExpiredReads() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("restore-order-expired");
+        long now = System.currentTimeMillis();
+        try (Persistence<Integer> writer = new RedisPersistenceBuilder<Integer>(name).build()) {
+            writer.archiveAll();
+            writer.savePart(30L, new ShoppingCart<>(9, "expire-first", "E30", now, now - 300, null, LoadType.PART, 5));
+            writer.savePart(10L, new ShoppingCart<>(9, "expire-third", "E10", now, now - 100, null, LoadType.PART, 100));
+            writer.savePart(20L, new ShoppingCart<>(9, "expire-second", "E20", now, now - 200, null, LoadType.PART, -5));
+        }
+
+        try (Persistence<Integer> noOrder = new RedisPersistenceBuilder<Integer>(name)
+                .restoreOrder(RestoreOrder.NO_ORDER)
+                .build()) {
+            assertEquals(
+                    List.of("expire-first", "expire-second", "expire-third"),
+                    noOrder.getExpiredParts().stream().map(Cart::getValue).toList()
+            );
+        }
+
+        try (Persistence<Integer> byId = new RedisPersistenceBuilder<Integer>(name)
+                .restoreOrder(RestoreOrder.BY_ID)
+                .build()) {
+            assertEquals(
+                    List.of("expire-third", "expire-second", "expire-first"),
+                    byId.getExpiredParts().stream().map(Cart::getValue).toList()
+            );
+        }
+
+        try (Persistence<Integer> byPriority = new RedisPersistenceBuilder<Integer>(name)
+                .restoreOrder(RestoreOrder.BY_PRIORITY_AND_ID)
+                .build()) {
+            assertEquals(
+                    List.of("expire-third", "expire-first", "expire-second"),
+                    byPriority.getExpiredParts().stream().map(Cart::getValue).toList()
+            );
+        }
+    }
+
+    @Test
+    void replaysRecoveredPartsInConfiguredPriorityOrder() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("recovery-restore-order");
+        try (Persistence<Integer> cleanup = newRecoveryPersistence(name, RestoreOrder.BY_PRIORITY_AND_ID)) {
+            cleanup.archiveAll();
+        }
+
+        Map<Integer, String> firstResults = new ConcurrentHashMap<>();
+        Persistence<Integer> firstPersistence = newRecoveryPersistence(name, RestoreOrder.BY_PRIORITY_AND_ID);
+        PersistentConveyor<Integer, SmartLabel<OrderedReplayBuilder>, String> first =
+                firstPersistence.wrapConveyor(newOrderedReplayConveyor("redis-ordered-replay-first", firstResults));
+        try {
+            first.part().id(11).label(OrderedReplayPart.STEP).value("low").priority(1).place().join();
+            first.part().id(11).label(OrderedReplayPart.STEP).value("high").priority(50).place().join();
+        } finally {
+            first.stop();
+        }
+
+        assertTrue(firstResults.isEmpty(), "The first conveyor should stop before the ordered build is complete");
+
+        Map<Integer, String> recoveredResults = new ConcurrentHashMap<>();
+        Persistence<Integer> secondPersistence = newRecoveryPersistence(name, RestoreOrder.BY_PRIORITY_AND_ID);
+        PersistentConveyor<Integer, SmartLabel<OrderedReplayBuilder>, String> second =
+                secondPersistence.wrapConveyor(newOrderedReplayConveyor("redis-ordered-replay-second", recoveredResults));
+        try {
+            second.part().id(11).label(OrderedReplayPart.STEP).value("new").priority(0).place().join();
+            awaitTrue(() -> "high>low>new".equals(recoveredResults.get(11)),
+                    "Recovered conveyor should replay higher-priority persisted carts before lower-priority ones");
+        } finally {
+            second.completeAndStop().join();
         }
     }
 
@@ -775,6 +870,25 @@ class RedisPersistenceTest extends RedisTestSupport {
                 .build();
     }
 
+    private static Persistence<Integer> newRecoveryPersistence(String name, RestoreOrder restoreOrder) {
+        return new RedisPersistenceBuilder<Integer>(name)
+                .maxArchiveBatchSize(4)
+                .restoreOrder(restoreOrder)
+                .build();
+    }
+
+    private static AssemblingConveyor<Integer, SmartLabel<OrderedReplayBuilder>, String> newOrderedReplayConveyor(
+            String name,
+            Map<Integer, String> results) {
+        AssemblingConveyor<Integer, SmartLabel<OrderedReplayBuilder>, String> conveyor = new AssemblingConveyor<>();
+        conveyor.setName(name);
+        conveyor.setBuilderSupplier(OrderedReplayBuilder::new);
+        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor).accepted(3));
+        conveyor.autoAcknowledgeOnStatus(Status.READY);
+        conveyor.resultConsumer(bin -> results.put(bin.key, bin.product)).set();
+        return conveyor;
+    }
+
     private static final class RecoveryBuilder implements Supplier<String>, Serializable {
         private String prefix = "no-prefix";
         private String left;
@@ -817,6 +931,34 @@ class RedisPersistenceTest extends RedisTestSupport {
 
         @Override
         public BiConsumer<RecoveryBuilder, Object> get() {
+            return inner.get();
+        }
+    }
+
+    private static final class OrderedReplayBuilder implements Supplier<String>, Serializable {
+        private final List<String> steps = new ArrayList<>();
+
+        @Override
+        public String get() {
+            return String.join(">", steps);
+        }
+
+        static void addStep(OrderedReplayBuilder builder, String step) {
+            builder.steps.add(step);
+        }
+    }
+
+    private enum OrderedReplayPart implements SmartLabel<OrderedReplayBuilder> {
+        STEP(SmartLabel.of(OrderedReplayBuilder::addStep));
+
+        private final SmartLabel<OrderedReplayBuilder> inner;
+
+        OrderedReplayPart(SmartLabel<OrderedReplayBuilder> inner) {
+            this.inner = inner;
+        }
+
+        @Override
+        public BiConsumer<OrderedReplayBuilder, Object> get() {
             return inner.get();
         }
     }

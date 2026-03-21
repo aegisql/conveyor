@@ -306,7 +306,10 @@ Current differences from JDBC:
 
 - current archive behavior is delete-oriented
 - Redis intentionally does not implement `uniqueFields`; if you need database-enforced uniqueness constraints, choose a JDBC backend
-- restore-order support is partial
+- restore-order support now includes:
+  - `BY_ID` as the default
+  - `NO_ORDER` as backend iteration order
+  - Java-side `BY_PRIORITY_AND_ID`
 - command-cart behavior still needs broader proof
 - current writes are multi-command operations, not yet Lua/function-backed atomic units
 

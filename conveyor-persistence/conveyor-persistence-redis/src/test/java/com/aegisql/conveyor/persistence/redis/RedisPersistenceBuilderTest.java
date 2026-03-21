@@ -32,10 +32,12 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
 
         String name = testNamespace("builder-validation");
         RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(name);
+        assertEquals(RestoreOrder.BY_ID, builder.restoreOrder());
         assertThrows(NullPointerException.class, () -> builder.redisUri(null));
         assertThrows(NullPointerException.class, () -> builder.jedis(null));
         assertThrows(NullPointerException.class, () -> builder.nonPersistentProperty(null));
         assertThrows(NullPointerException.class, () -> builder.persistentPartFilter(null));
+        assertThrows(NullPointerException.class, () -> builder.restoreOrder(null));
         assertThrows(NullPointerException.class, () -> builder.clientName(null));
         assertThrows(NullPointerException.class, () -> builder.user(null));
         assertThrows(NullPointerException.class, () -> builder.password(null));
@@ -46,6 +48,7 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         assertThrows(IllegalArgumentException.class, () -> builder.socketTimeoutMillis(0));
         assertThrows(IllegalArgumentException.class, () -> builder.blockingSocketTimeoutMillis(0));
         assertThrows(IllegalArgumentException.class, () -> builder.database(-1));
+        assertEquals(RestoreOrder.BY_PRIORITY_AND_ID, builder.restoreOrder(RestoreOrder.BY_PRIORITY_AND_ID).restoreOrder());
 
         String namespaceMetaKey = namespaceMetaKey(name);
         try (JedisPooled jedis = openRedis()) {

@@ -50,7 +50,10 @@ Tests currently cover:
 - recovered explicit-acknowledge handle delivery for completed builds
 - recovered cleanup for the current READY-path auto-ack and explicit-ack completed builds when the recovered conveyor is allowed to drain cleanly
 - recovered cleanup for the current CANCELED path when a recovered build is explicitly canceled and the conveyor is allowed to drain cleanly
-- current Redis restore-order assumptions for active, static, and per-key lookups
+- explicit Redis restore-order support:
+  - `BY_ID` as the default
+  - `NO_ORDER` as backend iteration order with no extra re-sorting
+  - Java-side `BY_PRIORITY_AND_ID` for active, static, expired, and per-key reads
 - itemized Redis storage shape and legacy whole-cart read compatibility
 - stabilized itemized Redis payload layout for new writes:
   - `valueHint` stays in metadata
@@ -89,7 +92,10 @@ Override options:
 - Current persistence behavior is intentionally delete-oriented; archive-to-other-persistence behavior is not implemented yet.
 - Command-cart replay is now explicitly covered for the current recovered-command path.
 - End-to-end recovery is now explicitly covered for the current restart-and-finish path, for recovered explicit acknowledgments, and for the current recovered cleanup paths.
-- Current restore behavior is explicitly proven as id-ordered for active parts, static parts, and per-key indexes.
+- Current restore behavior is explicitly configurable and proven:
+  - `BY_ID` is the default
+  - `NO_ORDER` leaves Redis iteration order untouched
+  - `BY_PRIORITY_AND_ID` re-sorts recovered carts in Java by priority descending and id ascending
 - Cleanup and acknowledgment parity are still not as broad as JDBC:
   - the current READY-path recovery and cleanup behavior is now proven
   - the current recovered CANCELED cleanup behavior is now proven
