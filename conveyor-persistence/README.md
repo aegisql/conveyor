@@ -479,6 +479,19 @@ Notes:
   - `conv:{name}:part:{id}:meta` for cart metadata
   - `conv:{name}:part:{id}:payload` for the cart value bytes
 - if you do not inject a `JedisPooled`, the builder can create its own client from the configured Redis URI
+- when the builder owns the Redis client, it can now tune pool and client settings directly, for example:
+  - `maxTotal(...)`
+  - `maxIdle(...)`
+  - `minIdle(...)`
+  - `connectionTimeoutMillis(...)`
+  - `socketTimeoutMillis(...)`
+  - `blockingSocketTimeoutMillis(...)`
+  - `database(...)`
+  - `clientName(...)`
+  - `user(...)`
+  - `password(...)`
+  - `ssl(...)`
+- externally supplied `JedisPooled` clients remain the right option when the host application already owns Redis connection infrastructure
 - current Redis encryption protects value payload bytes, not Redis lookup/index keys
 
 ## Concept Mapping

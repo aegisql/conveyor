@@ -59,7 +59,7 @@ public class RedisPersistence<K> implements Persistence<K> {
 
     RedisPersistence(RedisPersistenceBuilder<K> builder) {
         this(builder, builder.jedis() == null
-                ? RedisClientHandle.owned(RedisConnectionFactory.open(builder.redisUri()))
+                ? RedisClientHandle.owned(RedisConnectionFactory.open(builder.connectionSettings()))
                 : RedisClientHandle.external(builder.jedis()));
     }
 

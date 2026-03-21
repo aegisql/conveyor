@@ -22,6 +22,18 @@ The current implementation:
 - maintains Redis-native indexes for active parts, static parts, expirations, per-key part ids, and completed keys
 - implements delete-style archive operations
 - supports both internally managed and externally supplied `JedisPooled` clients
+- supports builder-level Redis pool and client tuning for owned clients:
+  - `maxTotal`
+  - `maxIdle`
+  - `minIdle`
+  - `connectionTimeoutMillis`
+  - `socketTimeoutMillis`
+  - `blockingSocketTimeoutMillis`
+  - `database`
+  - `clientName`
+  - `user`
+  - `password`
+  - `ssl`
 - relies on Jedis pooled borrow/return semantics for per-operation connection use
 - validates namespace bootstrap metadata before using an existing Redis namespace
 - bootstraps Redis namespace metadata lazily on first use when `autoInit(false)`
@@ -71,6 +83,9 @@ Override options:
   - namespace metadata is created once and then validated instead of being blindly rewritten
   - existing Redis namespace metadata must match the expected backend, backend version, and configured persistence name
   - `autoInit(false)` now means "skip upfront bootstrap, then validate or bootstrap lazily on first use"
+- Builder-level connection configuration is now broader than URI-only setup:
+  - owned clients can be tuned through pool sizing, timeouts, database selection, client name, authentication, and SSL flags
+  - externally supplied `JedisPooled` clients are still supported and remain the right choice when the host application owns Redis infrastructure configuration
 - Current persistence behavior is intentionally delete-oriented; archive-to-other-persistence behavior is not implemented yet.
 - Command-cart replay is now explicitly covered for the current recovered-command path.
 - End-to-end recovery is now explicitly covered for the current restart-and-finish path, for recovered explicit acknowledgments, and for the current recovered cleanup paths.

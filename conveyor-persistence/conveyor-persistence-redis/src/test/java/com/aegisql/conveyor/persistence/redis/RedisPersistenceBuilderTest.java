@@ -3,7 +3,10 @@ package com.aegisql.conveyor.persistence.redis;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
+import redis.clients.jedis.ConnectionPoolConfig;
+import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.JedisPooled;
 
 import java.lang.reflect.InvocationTargetException;
@@ -33,6 +36,16 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         assertThrows(NullPointerException.class, () -> builder.jedis(null));
         assertThrows(NullPointerException.class, () -> builder.nonPersistentProperty(null));
         assertThrows(NullPointerException.class, () -> builder.persistentPartFilter(null));
+        assertThrows(NullPointerException.class, () -> builder.clientName(null));
+        assertThrows(NullPointerException.class, () -> builder.user(null));
+        assertThrows(NullPointerException.class, () -> builder.password(null));
+        assertThrows(IllegalArgumentException.class, () -> builder.maxTotal(0));
+        assertThrows(IllegalArgumentException.class, () -> builder.maxIdle(-1));
+        assertThrows(IllegalArgumentException.class, () -> builder.minIdle(-1));
+        assertThrows(IllegalArgumentException.class, () -> builder.connectionTimeoutMillis(0));
+        assertThrows(IllegalArgumentException.class, () -> builder.socketTimeoutMillis(0));
+        assertThrows(IllegalArgumentException.class, () -> builder.blockingSocketTimeoutMillis(0));
+        assertThrows(IllegalArgumentException.class, () -> builder.database(-1));
 
         String namespaceMetaKey = namespaceMetaKey(name);
         try (JedisPooled jedis = openRedis()) {
@@ -246,10 +259,88 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         }
     }
 
+    @Test
+    void capturesExplicitPoolAndClientSettingsInBuilderConnectionSettings() {
+        RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(testNamespace("builder-config-surface"))
+                .maxTotal(12)
+                .maxIdle(7)
+                .minIdle(3)
+                .connectionTimeoutMillis(1_100)
+                .socketTimeoutMillis(2_200)
+                .blockingSocketTimeoutMillis(3_300)
+                .database(5)
+                .clientName("builder-client")
+                .user("builder-user")
+                .password("builder-pass")
+                .ssl(true);
+
+        RedisConnectionSettings settings = builder.connectionSettings();
+        ConnectionPoolConfig poolConfig = RedisConnectionFactory.createPoolConfig(settings);
+        DefaultJedisClientConfig clientConfig = RedisConnectionFactory.createClientConfig(settings);
+
+        assertEquals(12, settings.maxTotal());
+        assertEquals(7, settings.maxIdle());
+        assertEquals(3, settings.minIdle());
+        assertEquals(1_100, settings.connectionTimeoutMillis());
+        assertEquals(2_200, settings.socketTimeoutMillis());
+        assertEquals(3_300, settings.blockingSocketTimeoutMillis());
+        assertEquals(5, settings.database());
+        assertEquals("builder-client", settings.clientName());
+        assertEquals("builder-user", settings.user());
+        assertEquals("builder-pass", settings.password());
+        assertTrue(settings.ssl());
+
+        assertEquals(12, poolConfig.getMaxTotal());
+        assertEquals(7, poolConfig.getMaxIdle());
+        assertEquals(3, poolConfig.getMinIdle());
+
+        assertEquals(1_100, clientConfig.getConnectionTimeoutMillis());
+        assertEquals(2_200, clientConfig.getSocketTimeoutMillis());
+        assertEquals(3_300, clientConfig.getBlockingSocketTimeoutMillis());
+        assertEquals(5, clientConfig.getDatabase());
+        assertEquals("builder-client", clientConfig.getClientName());
+        assertEquals("builder-user", clientConfig.getUser());
+        assertEquals("builder-pass", clientConfig.getPassword());
+        assertTrue(clientConfig.isSsl());
+    }
+
+    @Test
+    void ownedBuilderConnectionsHonorLivePoolTuning() throws Exception {
+        openRedis().close();
+
+        try (Persistence<Integer> rawPersistence = new RedisPersistenceBuilder<Integer>(testNamespace("builder-live-settings"))
+                .maxTotal(5)
+                .maxIdle(3)
+                .minIdle(1)
+                .connectionTimeoutMillis(2_000)
+                .socketTimeoutMillis(2_500)
+                .blockingSocketTimeoutMillis(3_000)
+                .clientName("redis-builder-live")
+                .database(0)
+                .ssl(false)
+                .build()) {
+            rawPersistence.archiveAll();
+            assertEquals(1L, rawPersistence.nextUniquePartId());
+
+            RedisPersistence<Integer> persistence = (RedisPersistence<Integer>) rawPersistence;
+            JedisPooled jedis = readJedis(persistence);
+            assertEquals(5, jedis.getPool().getMaxTotal());
+            assertEquals(3, jedis.getPool().getMaxIdle());
+            assertEquals(1, jedis.getPool().getMinIdle());
+            Assumptions.assumeTrue("PONG".equals(jedis.ping()));
+        }
+    }
+
     private static Object readClientHandle(RedisPersistence<?> persistence) throws Exception {
         var field = RedisPersistence.class.getDeclaredField("clientHandle");
         field.setAccessible(true);
         return field.get(persistence);
+    }
+
+    private static JedisPooled readJedis(RedisPersistence<?> persistence) throws Exception {
+        var field = RedisPersistence.class.getDeclaredField("jedis");
+        field.setAccessible(true);
+        return (JedisPooled) field.get(persistence);
     }
 
     private static String namespaceMetaKey(String name) {

@@ -127,7 +127,7 @@ Important note:
 - Status:
   - semantically correct for pooled Redis usage
   - much better for long-lived applications after shared-copy client support
-  - still worth improving further with explicit pool tuning and richer client configuration
+  - now improved with explicit pool tuning and richer client configuration for owned clients
 
 ### Initialization
 
@@ -302,6 +302,30 @@ Important note:
   - the first persistence operation bootstraps it
 - Incompatible or incomplete namespace metadata is now rejected with `PersistenceException`.
 
+### Done: builder-level pool tuning and explicit client configuration
+
+- The Redis builder now supports explicit tuning for internally managed Redis clients:
+  - `maxTotal`
+  - `maxIdle`
+  - `minIdle`
+  - `connectionTimeoutMillis`
+  - `socketTimeoutMillis`
+  - `blockingSocketTimeoutMillis`
+  - `database`
+  - `clientName`
+  - `user`
+  - `password`
+  - `ssl`
+- `RedisConnectionFactory` now creates owned `JedisPooled` clients through explicit pool and client config objects instead of URI-only construction.
+- URI configuration is still supported and remains the default.
+- Explicit builder settings override URI-derived client settings where both are present.
+- Externally supplied `JedisPooled` clients remain supported and are still not closed by `RedisPersistence.close()`.
+- Current tests prove:
+  - pool config materialization
+  - client config materialization
+  - live owned-client pool tuning
+  - external client ownership semantics still hold
+
 ### Done: Redis connectivity
 
 - `RedisConnectionFactory` resolves Redis URI from:
@@ -320,6 +344,19 @@ Important note:
   - `minCompactSize`
   - `maxArchiveBatchSize`
   - `maxArchiveBatchTime`
+  - owned-client pool sizing:
+    - `maxTotal`
+    - `maxIdle`
+    - `minIdle`
+  - owned-client config:
+    - `connectionTimeoutMillis`
+    - `socketTimeoutMillis`
+    - `blockingSocketTimeoutMillis`
+    - `database`
+    - `clientName`
+    - `user`
+    - `password`
+    - `ssl`
   - non-persistent property set
   - persistent-part filter
 - Builder immutability style matches the broader builder approach used elsewhere in persistence.
@@ -559,17 +596,6 @@ Complexity here means engineering effort plus semantic risk relative to the curr
   - Why medium:
     - affects persistence format and future compatibility
 
-- Add builder-level pool tuning and explicit client configuration options.
-  - Candidate scope:
-    - pool sizing
-    - connection timeout
-    - socket timeout
-    - authentication and SSL configuration beyond URI-only usage
-  - Why medium:
-    - operationally useful, but not a fundamental architecture change
-  - Why important:
-    - long-running applications will need pool sizing and timeout control
-
 - Extend Redis performance coverage toward JDBC parity.
   - Candidate scope:
     - parallel persistent perf flows
@@ -641,11 +667,10 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 ## Recommended Next Sequence
 
 1. Introduce explicit restore-order configuration.
-2. Add builder-level pool tuning and explicit client configuration options.
-3. Broaden recovery and cleanup proof beyond the currently covered READY and CANCELED paths.
-4. Clarify and then prove timeout-driven recovery semantics, including whether additional timeout-action wiring is required for Redis `PersistentConveyor` cleanup.
-5. Extend bootstrap semantics with Redis server-version and required-feature validation.
-6. Move save/archive operations toward Lua or Redis Functions for atomicity.
+2. Broaden recovery and cleanup proof beyond the currently covered READY and CANCELED paths.
+3. Clarify and then prove timeout-driven recovery semantics, including whether additional timeout-action wiring is required for Redis `PersistentConveyor` cleanup.
+4. Extend bootstrap semantics with Redis server-version and required-feature validation.
+5. Move save/archive operations toward Lua or Redis Functions for atomicity.
 
 ## Bottom Line
 
