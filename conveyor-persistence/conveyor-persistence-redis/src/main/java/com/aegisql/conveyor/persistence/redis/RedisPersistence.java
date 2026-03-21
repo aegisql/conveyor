@@ -1,9 +1,20 @@
 package com.aegisql.conveyor.persistence.redis;
 
+import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.cart.CreatingCart;
+import com.aegisql.conveyor.cart.Load;
 import com.aegisql.conveyor.cart.LoadType;
+import com.aegisql.conveyor.cart.MultiKeyCart;
+import com.aegisql.conveyor.cart.ResultConsumerCart;
+import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.converters.EncryptingConverter;
 import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
+import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import org.slf4j.Logger;
@@ -15,6 +26,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +51,8 @@ public class RedisPersistence<K> implements Persistence<K> {
     private final Predicate<Cart<K, ?, ?>> persistentPartFilter;
     private final SerializableToBytesConverter<Serializable> serializableConverter = new SerializableToBytesConverter<>();
     private final EncryptingConverter payloadEncryptor;
+    private final ConverterAdviser<Object> plainConverterAdviser = new ConverterAdviser<>();
+    private final ConverterAdviser<Object> payloadConverterAdviser;
 
     RedisPersistence(RedisPersistenceBuilder<K> builder) {
         this(builder, builder.jedis() == null
@@ -56,6 +70,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.nonPersistentProperties = builder.nonPersistentProperties();
         this.persistentPartFilter = builder.persistentPartFilter();
         this.payloadEncryptor = builder.encryptionBuilder().get();
+        this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor);
         this.clientHandle = clientHandle;
         this.jedis = clientHandle.jedis();
     }
@@ -70,8 +85,15 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.nonPersistentProperties = source.nonPersistentProperties;
         this.persistentPartFilter = source.persistentPartFilter;
         this.payloadEncryptor = source.payloadEncryptor;
+        this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor);
         this.clientHandle = source.clientHandle.retain();
         this.jedis = clientHandle.jedis();
+    }
+
+    private static ConverterAdviser<Object> newPayloadConverterAdviser(EncryptingConverter payloadEncryptor) {
+        ConverterAdviser<Object> adviser = new ConverterAdviser<>();
+        adviser.setEncryptor(payloadEncryptor);
+        return adviser;
     }
 
     void init() {
@@ -98,7 +120,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         }
         LOG.debug("Saving cart id={} loadType={} key={} label={} namespace={}",
                 id, cart.getLoadType(), cart.getKey(), cart.getLabel(), namespace);
-        LOG.trace("Saving full cart payload id={} cart={}", id, cart);
+        LOG.trace("Saving itemized cart state id={} cart={}", id, cart);
 
         String payloadKey = payloadKey(id);
         String metaKey = metaKey(id);
@@ -112,15 +134,36 @@ public class RedisPersistence<K> implements Persistence<K> {
         trackKey(staticIdsKey());
         trackKey(expiringIdsKey());
 
-        jedis.set(payloadKey, encodePayload(cart));
-        jedis.hset(metaKey, Map.of(
-                "id", idMember,
-                "loadType", cart.getLoadType().name(),
-                "creationTime", Long.toString(cart.getCreationTime()),
-                "expirationTime", Long.toString(cart.getExpirationTime()),
-                "priority", Long.toString(cart.getPriority()),
-                "staticPart", Boolean.toString(cart.getLoadType() == LoadType.STATIC_PART)
-        ));
+        Map<String, Object> persistentProperties = extractPersistentProperties(cart);
+        FieldEncoding keyEncoding = encodePlainField(cart.getKey());
+        FieldEncoding labelEncoding = encodePlainField(cart.getLabel());
+        FieldEncoding valueEncoding = encodePayloadField(cart.getLabel(), cart.getValue());
+        FieldEncoding propertiesEncoding = encodePlainField(persistentProperties.isEmpty() ? null : (Serializable) persistentProperties);
+
+        Map<String, String> meta = new HashMap<>();
+        meta.put("id", idMember);
+        meta.put("loadType", cart.getLoadType().name());
+        meta.put("creationTime", Long.toString(cart.getCreationTime()));
+        meta.put("expirationTime", Long.toString(cart.getExpirationTime()));
+        meta.put("priority", Long.toString(cart.getPriority()));
+        keyEncoding.put(meta, "keyHint", "keyData", false);
+        labelEncoding.put(meta, "labelHint", "labelData", false);
+        valueEncoding.put(meta, "valueHint", "valueData", true);
+        propertiesEncoding.put(meta, "propertiesHint", "propertiesData", false);
+
+        if (cart instanceof GeneralCommand<?, ?> command && cart.getKey() == null) {
+            FieldEncoding filterEncoding = encodePlainField(command.getFilter());
+            filterEncoding.put(meta, "commandFilterHint", "commandFilterData", false);
+        }
+
+        jedis.del(metaKey);
+        jedis.hset(metaKey, meta);
+
+        if (valueEncoding.encoded() != null) {
+            jedis.set(payloadKey, valueEncoding.encoded());
+        } else {
+            jedis.del(payloadKey);
+        }
 
         if (cart.getLoadType() == LoadType.STATIC_PART) {
             jedis.zadd(staticIdsKey(), id, idMember);
@@ -404,6 +447,16 @@ public class RedisPersistence<K> implements Persistence<K> {
         LOG.trace("Ensured Redis namespace bootstrap for {}", namespace);
     }
 
+    private Map<String, Object> extractPersistentProperties(Cart<K, ?, ?> cart) {
+        Map<String, Object> properties = new HashMap<>();
+        cart.getAllProperties().forEach((key, value) -> {
+            if (isPersistentProperty(key)) {
+                properties.put(key, value);
+            }
+        });
+        return properties;
+    }
+
     private <L> Collection<Cart<K, ?, L>> loadCarts(Collection<String> idMembers) {
         ArrayList<Cart<K, ?, L>> carts = new ArrayList<>();
         for (String idMember : idMembers) {
@@ -418,21 +471,123 @@ public class RedisPersistence<K> implements Persistence<K> {
 
     @SuppressWarnings("unchecked")
     private <L> Cart<K, ?, L> loadCart(long id) {
-        String encoded = jedis.get(payloadKey(id));
-        if (encoded == null) {
-            LOG.trace("No cart payload found for id={} namespace={}", id, namespace);
+        Map<String, String> meta = jedis.hgetAll(metaKey(id));
+        String encodedPayload = jedis.get(payloadKey(id));
+        if (meta.isEmpty() && encodedPayload == null) {
+            LOG.trace("No cart data found for id={} namespace={}", id, namespace);
             return null;
         }
-        return (Cart<K, ?, L>) decodePayload(encoded);
+        if (isLegacyWholeCartFormat(meta, encodedPayload)) {
+            LOG.trace("Decoding legacy whole-cart payload for id={} namespace={}", id, namespace);
+            return (Cart<K, ?, L>) decodeLegacyWholeCart(encodedPayload);
+        }
+
+        try {
+            LoadType loadType = LoadType.valueOf(meta.get("loadType"));
+            long creationTime = parseLong(meta.get("creationTime"));
+            long expirationTime = parseLong(meta.get("expirationTime"));
+            long priority = parseLong(meta.get("priority"));
+            K key = castKey(decodePlainField(meta.get("keyHint"), meta.get("keyData")));
+            Object label = decodePlainField(meta.get("labelHint"), meta.get("labelData"));
+            Object value = decodePayloadField(label, meta.get("valueHint"), encodedPayload);
+            Map<String, Object> properties = decodeProperties(meta.get("propertiesHint"), meta.get("propertiesData"));
+
+            if (loadType == LoadType.COMMAND) {
+                CommandLabel commandLabel = (CommandLabel) label;
+                GeneralCommand<K, Object> command;
+                if (key != null) {
+                    command = new GeneralCommand<>(key, value, commandLabel, creationTime, expirationTime);
+                } else {
+                    Predicate<K> filter = castFilter(decodePlainField(meta.get("commandFilterHint"), meta.get("commandFilterData")));
+                    command = new GeneralCommand<>(filter, value, commandLabel, creationTime, expirationTime);
+                }
+                command.putAllProperties(properties);
+                return castCart(command);
+            }
+
+            if (loadType == LoadType.BUILDER) {
+                CreatingCart<K, Object, L> cart = new CreatingCart<>(key, asBuilderSupplier(value), creationTime, expirationTime, properties, priority);
+                return castCart(cart);
+            }
+
+            if (loadType == LoadType.RESULT_CONSUMER) {
+                ResultConsumerCart<K, Object, L> cart = new ResultConsumerCart<>(key, asResultConsumer(value), creationTime, expirationTime, priority);
+                cart.putAllProperties(properties);
+                return castCart(cart);
+            }
+
+            if (loadType == LoadType.MULTI_KEY_PART) {
+                Load<K, Object> load = asLoad(value);
+                return castCart(new MultiKeyCart<>(load.getFilter(), load.getValue(), castLabel(label), creationTime,
+                        expirationTime, load.getLoadType(), properties, priority));
+            }
+
+            return castCart(new ShoppingCart<>(key, value, castLabel(label), creationTime, expirationTime, properties, loadType, priority));
+        } catch (Exception e) {
+            LOG.error("Failed to decode Redis cart id={} namespace={} meta={}", id, namespace, meta, e);
+            throw new PersistenceException("Failed to read Redis part cart", e);
+        }
     }
 
-    private String encodePayload(Serializable value) {
-        byte[] bytes = serializableConverter.toPersistence(value);
-        if (payloadEncryptor != null) {
-            LOG.trace("Encrypting Redis payload namespace={} valueType={}", namespace, value.getClass().getName());
-            bytes = payloadEncryptor.toPersistence(bytes);
+    private boolean isLegacyWholeCartFormat(Map<String, String> meta, String encodedPayload) {
+        return encodedPayload != null
+                && !meta.isEmpty()
+                && !meta.containsKey("valueHint")
+                && !meta.containsKey("keyHint")
+                && !meta.containsKey("labelHint");
+    }
+
+    private long parseLong(String value) {
+        return value == null ? 0L : Long.parseLong(value);
+    }
+
+    private FieldEncoding encodePayloadField(Object label, Object value) {
+        return encodeField(payloadConverterAdviser, label, value, true);
+    }
+
+    private FieldEncoding encodePlainField(Object value) {
+        return encodeField(plainConverterAdviser, null, value, false);
+    }
+
+    private FieldEncoding encodeField(ConverterAdviser<Object> adviser, Object label, Object value, boolean includeNullHint) {
+        String typeHint = value == null ? null : value.getClass().getTypeName();
+        ObjectConverter<Object, byte[]> converter = adviser.getConverter(label, typeHint);
+        byte[] bytes = converter.toPersistence(value);
+        if (value == null && !includeNullHint) {
+            return FieldEncoding.empty();
         }
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        return new FieldEncoding(converter.conversionHint(), encodeBytes(bytes));
+    }
+
+    private Serializable decodeLegacyWholeCart(String encodedValue) {
+        byte[] bytes = Base64.getUrlDecoder().decode(encodedValue);
+        if (payloadEncryptor != null) {
+            LOG.trace("Decrypting legacy whole-cart Redis payload namespace={}", namespace);
+            bytes = payloadEncryptor.fromPersistence(bytes);
+        }
+        return serializableConverter.fromPersistence(bytes);
+    }
+
+    private Object decodePayloadField(Object label, String hint, String encodedValue) {
+        if (encodedValue == null) {
+            return null;
+        }
+        ObjectConverter<Object, byte[]> converter = payloadConverterAdviser.getConverter(label, hint);
+        return converter.fromPersistence(decodeBytes(encodedValue));
+    }
+
+    private Object decodePlainField(String hint, String encodedValue) {
+        if (hint == null && encodedValue == null) {
+            return null;
+        }
+        ObjectConverter<Object, byte[]> converter = plainConverterAdviser.getConverter(null, hint);
+        return converter.fromPersistence(decodeBytes(encodedValue));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> decodeProperties(String hint, String encodedValue) {
+        Map<String, Object> properties = (Map<String, Object>) decodePlainField(hint, encodedValue);
+        return properties == null ? new HashMap<>() : properties;
     }
 
     private String encodeSerializable(Object value) {
@@ -442,25 +597,54 @@ public class RedisPersistence<K> implements Persistence<K> {
         if (!(value instanceof Serializable serializable)) {
             throw new PersistenceException("Value is not serializable: " + value.getClass().getName());
         }
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(serializableConverter.toPersistence(serializable));
-    }
-
-    private Serializable decodePayload(String encodedValue) {
-        byte[] bytes = Base64.getUrlDecoder().decode(encodedValue);
-        if (payloadEncryptor != null) {
-            LOG.trace("Decrypting Redis payload namespace={}", namespace);
-            bytes = payloadEncryptor.fromPersistence(bytes);
-        }
-        return serializableConverter.fromPersistence(bytes);
+        return encodeBytes(serializableConverter.toPersistence(serializable));
     }
 
     private Serializable decodeSerializable(String encodedValue) {
-        return serializableConverter.fromPersistence(Base64.getUrlDecoder().decode(encodedValue));
+        return serializableConverter.fromPersistence(decodeBytes(encodedValue));
+    }
+
+    private String encodeBytes(byte[] bytes) {
+        return bytes == null ? null : Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private byte[] decodeBytes(String encodedValue) {
+        return encodedValue == null ? null : Base64.getUrlDecoder().decode(encodedValue);
     }
 
     @SuppressWarnings("unchecked")
     private K castKey(Object key) {
         return (K) key;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <L> L castLabel(Object label) {
+        return (L) label;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Predicate<K> castFilter(Object filter) {
+        return (Predicate<K>) filter;
+    }
+
+    @SuppressWarnings("unchecked")
+    private BuilderSupplier<Object> asBuilderSupplier(Object value) {
+        return (BuilderSupplier<Object>) value;
+    }
+
+    @SuppressWarnings("unchecked")
+    private ResultConsumer<K, Object> asResultConsumer(Object value) {
+        return (ResultConsumer<K, Object>) value;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Load<K, Object> asLoad(Object value) {
+        return (Load<K, Object>) value;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <L> Cart<K, ?, L> castCart(Cart<K, ?, ?> cart) {
+        return (Cart<K, ?, L>) cart;
     }
 
     private void trackKey(String key) {
@@ -511,5 +695,20 @@ public class RedisPersistence<K> implements Persistence<K> {
 
     private String partIdsByKeyKey(String encodedKey) {
         return namespace + ":parts:key:" + encodedKey;
+    }
+
+    private record FieldEncoding(String hint, String encoded) {
+        static FieldEncoding empty() {
+            return new FieldEncoding(null, null);
+        }
+
+        void put(Map<String, String> meta, String hintField, String dataField, boolean includeNullHint) {
+            if (hint != null && (includeNullHint || encoded != null)) {
+                meta.put(hintField, hint);
+            }
+            if (encoded != null) {
+                meta.put(dataField, encoded);
+            }
+        }
     }
 }

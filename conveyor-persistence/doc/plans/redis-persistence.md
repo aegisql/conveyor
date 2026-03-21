@@ -88,7 +88,7 @@ Suggested key layout:
     - properties
     - archived flag
     - additional fields
-- `conv:{name}:part:{id}:value`
+- `conv:{name}:part:{id}:payload`
   - binary payload for cart value
 - `conv:{name}:parts:active`
   - sorted set of active part ids
@@ -133,7 +133,7 @@ Proposed SPI mapping:
 
 - Redis payload protection should reuse the shared persistence-core encryption path rather than inventing a Redis-only mechanism.
 - Current implementation direction:
-  - protect serialized cart payload bytes only
+  - protect serialized cart value payload bytes only
   - leave Redis key/index encoding deterministic in v1
   - keep indexed-key protection as a later design decision
 - This matches the current JDBC direction after the shared encryption core was modernized:

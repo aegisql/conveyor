@@ -15,7 +15,9 @@ Production code currently includes:
 
 The current implementation:
 
-- stores serialized carts as Redis payloads
+- stores itemized cart state in Redis hashes and indexes
+- keeps the cart value bytes in `conv:{name}:part:{id}:payload`
+- keeps the authoritative cart metadata in `conv:{name}:part:{id}:meta`
 - supports optional payload encryption through the same shared encryption builder pattern used by JDBC
 - maintains Redis-native indexes for active parts, static parts, expirations, per-key part ids, and completed keys
 - implements delete-style archive operations
@@ -28,6 +30,10 @@ Tests currently cover:
 - `Persistence` contract methods with local Redis evidence
 - Redis client ownership behavior for `copy()` and externally supplied clients
 - encrypted payload round-trip, wrong-secret failure, and legacy-default compatibility
+- direct `SecretKey`-based payload encryption
+- persisted command-cart replay during `PersistentConveyor` startup
+- current Redis restore-order assumptions for active, static, and per-key lookups
+- itemized Redis storage shape and legacy whole-cart read compatibility
 
 ## Runtime Assumptions
 
@@ -45,6 +51,8 @@ Override options:
   - managed default `AES/GCM/NoPadding`
   - legacy-default decrypt fallback for historical `AES/ECB/PKCS5Padding` payloads
 - Current persistence behavior is intentionally delete-oriented; archive-to-other-persistence behavior is not implemented yet.
-- Command-cart support is not explicitly covered yet by Redis tests.
+- Command-cart replay is now explicitly covered for the current recovered-command path.
+- Current restore behavior is explicitly proven as id-ordered for active parts, static parts, and per-key indexes.
+- The current reader still accepts the earlier whole-cart Redis format for backward compatibility.
 - See `../doc/plans/redis-persistence.md` for the planned direction.
 - See `./progress-report.md` for the current implementation status and JDBC comparison.

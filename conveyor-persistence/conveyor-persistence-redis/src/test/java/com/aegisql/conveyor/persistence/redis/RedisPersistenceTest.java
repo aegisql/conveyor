@@ -2,12 +2,14 @@ package com.aegisql.conveyor.persistence.redis;
 
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.LoadType;
 import com.aegisql.conveyor.cart.MultiKeyCart;
 import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
@@ -18,11 +20,16 @@ import org.junit.jupiter.api.Test;
 import redis.clients.jedis.JedisPooled;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -214,6 +221,39 @@ class RedisPersistenceTest extends RedisTestSupport {
     }
 
     @Test
+    void replaysPersistedCommandCartsWhenWrappingPersistentConveyor() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("command-replay");
+        long commandId;
+
+        try (Persistence<Integer> writer = new RedisPersistenceBuilder<Integer>(name).build()) {
+            writer.archiveAll();
+            commandId = writer.nextUniquePartId();
+
+            GeneralCommand<Integer, Boolean> suspendCommand =
+                    new GeneralCommand<>((SerializablePredicate<Integer>) key -> true, true, CommandLabel.SUSPEND, System.currentTimeMillis(), 0);
+            writer.savePart(commandId, suspendCommand);
+
+            Cart<Integer, ?, ?> persistedCommand = writer.getPart(commandId);
+            assertNotNull(persistedCommand);
+            assertEquals(LoadType.COMMAND, persistedCommand.getLoadType());
+            assertInstanceOf(GeneralCommand.class, persistedCommand);
+        }
+
+        try (Persistence<Integer> reader = new RedisPersistenceBuilder<Integer>(name).build()) {
+            AssemblingConveyor<Integer, String, String> forward = new AssemblingConveyor<>();
+            forward.setName("redis-command-replay");
+            PersistentConveyor<Integer, String, String> persistent = reader.wrapConveyor(forward);
+            try {
+                awaitTrue(forward::isSuspended, "Persisted SUSPEND command should suspend the wrapped conveyor when recovered");
+            } finally {
+                persistent.stop();
+            }
+        }
+    }
+
+    @Test
     void supportsAbsorbDefaultMethod() throws Exception {
         openRedis().close();
 
@@ -258,6 +298,129 @@ class RedisPersistenceTest extends RedisTestSupport {
             assertNotNull(wrapped);
             assertNotNull(defaultConveyor);
             assertNotNull(suppliedConveyor);
+        }
+    }
+
+    @Test
+    void returnsPartsInCurrentRedisIdOrderAssumptions() throws Exception {
+        openRedis().close();
+
+        try (Persistence<Integer> persistence = newPersistence("restore-order")) {
+            persistence.archiveAll();
+
+            long now = System.currentTimeMillis();
+            persistence.savePart(30L, new ShoppingCart<>(7, "third", "A30", now, 0, null, LoadType.PART, 500));
+            persistence.savePart(10L, new ShoppingCart<>(7, "first", "A10", now, 0, null, LoadType.PART, -100));
+            persistence.savePart(20L, new ShoppingCart<>(7, "second", "A20", now, 0, null, LoadType.PART, 999));
+
+            persistence.savePart(40L, new ShoppingCart<>(null, "static-fourth", "S40", now, 0, null, LoadType.STATIC_PART, -10));
+            persistence.savePart(5L, new ShoppingCart<>(null, "static-first", "S05", now, 0, null, LoadType.STATIC_PART, 700));
+            persistence.savePart(25L, new ShoppingCart<>(null, "static-second", "S25", now, 0, null, LoadType.STATIC_PART, 0));
+
+            assertEquals(List.of(10L, 20L, 30L), new ArrayList<>(persistence.getAllPartIds(7)));
+            assertEquals(
+                    List.of("first", "second", "third"),
+                    persistence.getAllParts().stream().map(Cart::getValue).toList()
+            );
+            assertEquals(
+                    List.of("static-first", "static-second", "static-fourth"),
+                    persistence.getAllStaticParts().stream().map(Cart::getValue).toList()
+            );
+        }
+    }
+
+    @Test
+    void storesItemizedRedisCartStructureInsteadOfWholeCartPayloads() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("itemized-structure");
+        long id;
+        ShoppingCart<Integer, String, String> cart = new ShoppingCart<>(41, "alpha", "LBL");
+        cart.addProperty("KEEP", "yes");
+
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(name).build()) {
+            persistence.archiveAll();
+            id = persistence.nextUniquePartId();
+            persistence.savePart(id, cart);
+        }
+
+        String namespace = "conv:{" + name + "}";
+        try (JedisPooled jedis = RedisConnectionFactory.openDefault()) {
+            Map<String, String> meta = jedis.hgetAll(namespace + ":part:" + id + ":meta");
+            String rawPayload = jedis.get(namespace + ":part:" + id + ":payload");
+            String legacyWholeCartPayload = Base64.getUrlEncoder().withoutPadding()
+                    .encodeToString(serializableConverter.toPersistence(cart));
+
+            assertEquals("PART", meta.get("loadType"));
+            assertTrue(meta.get("keyHint").contains("Integer"));
+            assertNotNull(meta.get("keyData"));
+            assertNotNull(meta.get("labelHint"));
+            assertNotNull(meta.get("labelData"));
+            assertNotNull(meta.get("valueHint"));
+            assertNotNull(meta.get("propertiesHint"));
+            assertNotNull(meta.get("propertiesData"));
+            assertNotNull(rawPayload);
+            assertFalse(rawPayload.equals(legacyWholeCartPayload));
+        }
+    }
+
+    @Test
+    void readsLegacyWholeCartPayloadStructure() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("legacy-whole-cart");
+        String namespace = "conv:{" + name + "}";
+        long id = 12L;
+        ShoppingCart<Integer, String, String> cart =
+                new ShoppingCart<>(55, "legacy-cart", "LEGACY", System.currentTimeMillis(), 0);
+        String encodedKey = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(serializableConverter.toPersistence(cart.getKey()));
+        String partIndexKey = namespace + ":parts:key:" + encodedKey;
+
+        try (JedisPooled jedis = RedisConnectionFactory.openDefault()) {
+            jedis.del(
+                    namespace + ":tracker",
+                    namespace + ":meta",
+                    namespace + ":seq",
+                    namespace + ":parts:active",
+                    namespace + ":parts:static",
+                    namespace + ":parts:expires",
+                    namespace + ":completed",
+                    namespace + ":part:" + id + ":payload",
+                    namespace + ":part:" + id + ":meta",
+                    namespace + ":part:" + id + ":keys",
+                    partIndexKey
+            );
+            jedis.sadd(namespace + ":tracker",
+                    namespace + ":part:" + id + ":payload",
+                    namespace + ":part:" + id + ":meta",
+                    namespace + ":part:" + id + ":keys",
+                    namespace + ":parts:active",
+                    partIndexKey
+            );
+            jedis.hset(namespace + ":part:" + id + ":meta", Map.of(
+                    "id", Long.toString(id),
+                    "loadType", cart.getLoadType().name(),
+                    "creationTime", Long.toString(cart.getCreationTime()),
+                    "expirationTime", Long.toString(cart.getExpirationTime()),
+                    "priority", Long.toString(cart.getPriority()),
+                    "staticPart", Boolean.toString(false)
+            ));
+            jedis.set(namespace + ":part:" + id + ":payload",
+                    Base64.getUrlEncoder().withoutPadding().encodeToString(serializableConverter.toPersistence(cart)));
+            jedis.zadd(namespace + ":parts:active", id, Long.toString(id));
+            jedis.sadd(namespace + ":part:" + id + ":keys", encodedKey);
+            jedis.zadd(partIndexKey, id, Long.toString(id));
+        }
+
+        try (Persistence<Integer> reader = new RedisPersistenceBuilder<Integer>(name).build()) {
+            Cart<Integer, ?, String> restored = reader.getPart(id);
+            assertNotNull(restored);
+            assertEquals(55, restored.getKey());
+            assertEquals("legacy-cart", restored.getValue());
+            assertEquals("LEGACY", restored.getLabel());
+            assertEquals(List.of(id), new ArrayList<>(reader.getAllPartIds(55)));
+            assertEquals(List.of("legacy-cart"), reader.getAllParts().stream().map(Cart::getValue).toList());
         }
     }
 
@@ -326,5 +489,59 @@ class RedisPersistenceTest extends RedisTestSupport {
                 .build()) {
             assertEquals("legacy", modernReader.getPart(id).getValue());
         }
+    }
+
+    @Test
+    void supportsSecretKeyPayloadEncryption() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("encrypted-secret-key");
+        SecretKey key = new SecretKeySpec("0123456789abcdef".getBytes(StandardCharsets.UTF_8), "AES");
+        SecretKey wrongKey = new SecretKeySpec("fedcba9876543210".getBytes(StandardCharsets.UTF_8), "AES");
+        long id;
+
+        try (Persistence<Integer> writer = new RedisPersistenceBuilder<Integer>(name)
+                .encryptionSecret(key)
+                .build()) {
+            writer.archiveAll();
+            id = writer.nextUniquePartId();
+
+            ShoppingCart<Integer, String, String> cart = new ShoppingCart<>(91, "secret-key-payload", "PAYLOAD");
+            writer.savePart(id, cart);
+            writer.saveCompletedBuildKey(91);
+
+            try (JedisPooled jedis = RedisConnectionFactory.openDefault()) {
+                String rawPayload = jedis.get("conv:{" + name + "}:part:" + id + ":payload");
+                String unencryptedPayload = Base64.getUrlEncoder().withoutPadding()
+                        .encodeToString(serializableConverter.toPersistence(cart));
+                assertNotNull(rawPayload);
+                assertFalse(rawPayload.equals(unencryptedPayload));
+            }
+        }
+
+        try (Persistence<Integer> reader = new RedisPersistenceBuilder<Integer>(name)
+                .encryptionSecret(key)
+                .build()) {
+            assertEquals(List.of(id), new ArrayList<>(reader.getAllPartIds(91)));
+            assertEquals(Set.of(91), reader.getCompletedKeys());
+            assertEquals("secret-key-payload", reader.getPart(id).getValue());
+        }
+
+        try (Persistence<Integer> wrongReader = new RedisPersistenceBuilder<Integer>(name)
+                .encryptionSecret(wrongKey)
+                .build()) {
+            assertThrows(PersistenceException.class, () -> wrongReader.getPart(id));
+        }
+    }
+
+    private static void awaitTrue(java.util.function.BooleanSupplier condition, String message) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + 2_000L;
+        while (System.currentTimeMillis() < deadline) {
+            if (condition.getAsBoolean()) {
+                return;
+            }
+            Thread.sleep(25L);
+        }
+        assertTrue(condition.getAsBoolean(), message);
     }
 }
