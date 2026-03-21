@@ -32,12 +32,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
 public class RedisPersistence<K> implements Persistence<K> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RedisPersistence.class);
-    private static final String BACKEND_VERSION = "1";
+    static final String BACKEND_NAME = "redis";
+    static final String BACKEND_VERSION = "1";
 
     private final RedisClientHandle clientHandle;
     private final JedisPooled jedis;
@@ -53,6 +55,7 @@ public class RedisPersistence<K> implements Persistence<K> {
     private final EncryptingConverter payloadEncryptor;
     private final ConverterAdviser<Object> plainConverterAdviser = new ConverterAdviser<>();
     private final ConverterAdviser<Object> payloadConverterAdviser;
+    private final AtomicBoolean initialized;
 
     RedisPersistence(RedisPersistenceBuilder<K> builder) {
         this(builder, builder.jedis() == null
@@ -73,6 +76,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor);
         this.clientHandle = clientHandle;
         this.jedis = clientHandle.jedis();
+        this.initialized = new AtomicBoolean(false);
     }
 
     private RedisPersistence(RedisPersistence<K> source) {
@@ -88,6 +92,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor);
         this.clientHandle = source.clientHandle.retain();
         this.jedis = clientHandle.jedis();
+        this.initialized = source.initialized;
     }
 
     private static ConverterAdviser<Object> newPayloadConverterAdviser(EncryptingConverter payloadEncryptor) {
@@ -148,7 +153,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         meta.put("priority", Long.toString(cart.getPriority()));
         keyEncoding.put(meta, "keyHint", "keyData", false);
         labelEncoding.put(meta, "labelHint", "labelData", false);
-        valueEncoding.put(meta, "valueHint", "valueData", true);
+        valueEncoding.put(meta, "valueHint", null, true);
         propertiesEncoding.put(meta, "propertiesHint", "propertiesData", false);
 
         if (cart instanceof GeneralCommand<?, ?> command && cart.getKey() == null) {
@@ -382,6 +387,7 @@ public class RedisPersistence<K> implements Persistence<K> {
             jedis.del(trackedKeys.toArray(String[]::new));
         }
         jedis.del(trackerKey());
+        initialized.set(false);
     }
 
     @Override
@@ -433,18 +439,59 @@ public class RedisPersistence<K> implements Persistence<K> {
     }
 
     private void ensureInitialized() {
-        trackKey(metaKey());
-        trackKey(seqKey());
-        trackKey(activeIdsKey());
-        trackKey(staticIdsKey());
-        trackKey(expiringIdsKey());
-        trackKey(completedKeysKey());
+        if (initialized.get()) {
+            return;
+        }
+        synchronized (initialized) {
+            if (initialized.get()) {
+                return;
+            }
+            Map<String, String> namespaceMeta = jedis.hgetAll(metaKey());
+            if (namespaceMeta.isEmpty()) {
+                bootstrapNamespaceMetadata();
+            } else {
+                validateNamespaceMetadata(namespaceMeta);
+            }
+            trackKey(metaKey());
+            trackKey(seqKey());
+            trackKey(activeIdsKey());
+            trackKey(staticIdsKey());
+            trackKey(expiringIdsKey());
+            trackKey(completedKeysKey());
+            initialized.set(true);
+            LOG.trace("Ensured Redis namespace bootstrap for {}", namespace);
+        }
+    }
+
+    private void bootstrapNamespaceMetadata() {
+        LOG.debug("Bootstrapping Redis namespace metadata for {}", namespace);
         jedis.hset(metaKey(), Map.of(
-                "backend", "redis",
+                "backend", BACKEND_NAME,
                 "version", BACKEND_VERSION,
                 "name", name
         ));
-        LOG.trace("Ensured Redis namespace bootstrap for {}", namespace);
+    }
+
+    private void validateNamespaceMetadata(Map<String, String> namespaceMeta) {
+        String backend = namespaceMeta.get("backend");
+        String version = namespaceMeta.get("version");
+        String existingName = namespaceMeta.get("name");
+        if (backend == null || version == null || existingName == null) {
+            throw new PersistenceException("Redis namespace metadata is incomplete for " + namespace
+                    + ". Expected backend, version, and name markers.");
+        }
+        if (!BACKEND_NAME.equals(backend)) {
+            throw new PersistenceException("Redis namespace " + namespace + " belongs to backend '" + backend
+                    + "', expected '" + BACKEND_NAME + "'");
+        }
+        if (!BACKEND_VERSION.equals(version)) {
+            throw new PersistenceException("Redis namespace " + namespace + " uses version '" + version
+                    + "', expected '" + BACKEND_VERSION + "'");
+        }
+        if (!name.equals(existingName)) {
+            throw new PersistenceException("Redis namespace " + namespace + " is bound to name '" + existingName
+                    + "', expected '" + name + "'");
+        }
     }
 
     private Map<String, Object> extractPersistentProperties(Cart<K, ?, ?> cart) {
@@ -489,7 +536,7 @@ public class RedisPersistence<K> implements Persistence<K> {
             long priority = parseLong(meta.get("priority"));
             K key = castKey(decodePlainField(meta.get("keyHint"), meta.get("keyData")));
             Object label = decodePlainField(meta.get("labelHint"), meta.get("labelData"));
-            Object value = decodePayloadField(label, meta.get("valueHint"), encodedPayload);
+            Object value = decodePayloadField(label, meta.get("valueHint"), encodedPayload, meta.get("valueData"));
             Map<String, Object> properties = decodeProperties(meta.get("propertiesHint"), meta.get("propertiesData"));
 
             if (loadType == LoadType.COMMAND) {
@@ -568,9 +615,13 @@ public class RedisPersistence<K> implements Persistence<K> {
         return serializableConverter.fromPersistence(bytes);
     }
 
-    private Object decodePayloadField(Object label, String hint, String encodedValue) {
+    private Object decodePayloadField(Object label, String hint, String encodedPayload, String legacyEncodedValue) {
+        String encodedValue = encodedPayload != null ? encodedPayload : legacyEncodedValue;
         if (encodedValue == null) {
             return null;
+        }
+        if (encodedPayload == null && legacyEncodedValue != null) {
+            LOG.trace("Decoding payload from legacy mirrored valueData field namespace={}", namespace);
         }
         ObjectConverter<Object, byte[]> converter = payloadConverterAdviser.getConverter(label, hint);
         return converter.fromPersistence(decodeBytes(encodedValue));
@@ -706,7 +757,7 @@ public class RedisPersistence<K> implements Persistence<K> {
             if (hint != null && (includeNullHint || encoded != null)) {
                 meta.put(hintField, hint);
             }
-            if (encoded != null) {
+            if (dataField != null && encoded != null) {
                 meta.put(dataField, encoded);
             }
         }

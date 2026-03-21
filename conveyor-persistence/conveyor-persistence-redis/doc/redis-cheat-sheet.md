@@ -141,12 +141,14 @@ What these mean:
     - `valueHint`
     - `propertiesHint` / `propertiesData`
     - `commandFilterHint` / `commandFilterData` for filter-based commands
+  - new writes do not store mirrored `valueData`; the value bytes live in `:payload`
 - `:keys`
   - encoded build keys this part is linked to
 
 Legacy note:
 
 - older Redis records may still have a whole serialized cart in `:payload`
+- older itemized Redis records may still have mirrored `valueData` inside `:meta`
 - the current implementation still reads that older format, but new writes use the itemized metadata layout above
 
 ## Look Up Parts For One Build Key

@@ -23,6 +23,8 @@ The current implementation:
 - implements delete-style archive operations
 - supports both internally managed and externally supplied `JedisPooled` clients
 - relies on Jedis pooled borrow/return semantics for per-operation connection use
+- validates namespace bootstrap metadata before using an existing Redis namespace
+- bootstraps Redis namespace metadata lazily on first use when `autoInit(false)`
 
 Tests currently cover:
 
@@ -32,8 +34,20 @@ Tests currently cover:
 - encrypted payload round-trip, wrong-secret failure, and legacy-default compatibility
 - direct `SecretKey`-based payload encryption
 - persisted command-cart replay during `PersistentConveyor` startup
+- incomplete-build replay across `PersistentConveyor` restart
+- recovered explicit-acknowledge handle delivery for completed builds
+- recovered cleanup for the current READY-path auto-ack and explicit-ack completed builds when the recovered conveyor is allowed to drain cleanly
+- recovered cleanup for the current CANCELED path when a recovered build is explicitly canceled and the conveyor is allowed to drain cleanly
 - current Redis restore-order assumptions for active, static, and per-key lookups
 - itemized Redis storage shape and legacy whole-cart read compatibility
+- stabilized itemized Redis payload layout for new writes:
+  - `valueHint` stays in metadata
+  - value bytes live only in `:payload`
+  - older mirrored `valueData` records still read correctly
+- first reproduced performance-test scenarios compatible with the current Redis state:
+  - direct conveyor baseline
+  - persistent conveyor shuffled load
+  - persistent conveyor sorted load
 
 ## Runtime Assumptions
 
@@ -43,6 +57,9 @@ Override options:
 
 - system property `conveyor.persistence.redis.uri`
 - env var `CONVEYOR_PERSISTENCE_REDIS_URI`
+- perf-test size can be scaled with:
+  - env var `REDIS_PERF_TEST_SIZE`
+  - fallback env/system property `PERF_TEST_SIZE`
 
 ## Notes
 
@@ -50,9 +67,30 @@ Override options:
 - Redis payload encryption now reuses the same modernized shared protection path as JDBC:
   - managed default `AES/GCM/NoPadding`
   - legacy-default decrypt fallback for historical `AES/ECB/PKCS5Padding` payloads
+- Current bootstrap semantics are now stronger than the initial stub:
+  - namespace metadata is created once and then validated instead of being blindly rewritten
+  - existing Redis namespace metadata must match the expected backend, backend version, and configured persistence name
+  - `autoInit(false)` now means "skip upfront bootstrap, then validate or bootstrap lazily on first use"
 - Current persistence behavior is intentionally delete-oriented; archive-to-other-persistence behavior is not implemented yet.
 - Command-cart replay is now explicitly covered for the current recovered-command path.
+- End-to-end recovery is now explicitly covered for the current restart-and-finish path, for recovered explicit acknowledgments, and for the current recovered cleanup paths.
 - Current restore behavior is explicitly proven as id-ordered for active parts, static parts, and per-key indexes.
+- Cleanup and acknowledgment parity are still not as broad as JDBC:
+  - the current READY-path recovery and cleanup behavior is now proven
+  - the current recovered CANCELED cleanup behavior is now proven
+  - timeout-driven recovery cleanup is still not proven
+  - broader status coverage and recovery modes still need evidence
 - The current reader still accepts the earlier whole-cart Redis format for backward compatibility.
+- New itemized writes no longer mirror value bytes into `:meta.valueData`.
+- The reader still accepts the earlier mirrored itemized value layout when older Redis data contains `valueData`.
+- Redis performance coverage currently follows the JDBC perf style only where that matches the current Redis maturity:
+  - reproduced now:
+    - direct conveyor baseline
+    - persistent conveyor shuffled load
+    - persistent conveyor sorted load
+  - not reproduced yet:
+    - parallel persistent perf flows
+    - archive-to-file or archive-to-persistence perf flows
+    - broader unload/expiration perf scenarios
 - See `../doc/plans/redis-persistence.md` for the planned direction.
 - See `./progress-report.md` for the current implementation status and JDBC comparison.

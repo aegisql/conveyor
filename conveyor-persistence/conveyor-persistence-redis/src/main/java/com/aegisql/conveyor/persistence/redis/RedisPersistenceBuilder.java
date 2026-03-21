@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPooled;
 
+import java.io.IOException;
 import javax.crypto.SecretKey;
 import java.util.HashSet;
 import java.util.Objects;
@@ -262,7 +263,16 @@ public class RedisPersistenceBuilder<K> {
         );
         RedisPersistence<K> persistence = new RedisPersistence<>(this);
         if (autoInit) {
-            persistence.init();
+            try {
+                persistence.init();
+            } catch (RuntimeException e) {
+                try {
+                    persistence.close();
+                } catch (IOException closeError) {
+                    e.addSuppressed(closeError);
+                }
+                throw e;
+            }
         }
         return persistence;
     }

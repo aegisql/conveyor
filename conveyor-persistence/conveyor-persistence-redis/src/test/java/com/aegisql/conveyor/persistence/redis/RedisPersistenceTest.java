@@ -1,8 +1,12 @@
 package com.aegisql.conveyor.persistence.redis;
 
+import com.aegisql.conveyor.Acknowledge;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
+import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.CreatingCart;
 import com.aegisql.conveyor.cart.LoadType;
@@ -21,12 +25,17 @@ import redis.clients.jedis.JedisPooled;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -254,6 +263,147 @@ class RedisPersistenceTest extends RedisTestSupport {
     }
 
     @Test
+    void replaysIncompleteBuildsAcrossPersistentConveyorRestart() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("persistent-replay");
+        try (Persistence<Integer> cleanup = newRecoveryPersistence(name)) {
+            cleanup.archiveAll();
+        }
+
+        Map<Integer, String> firstResults = new ConcurrentHashMap<>();
+        Persistence<Integer> firstPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> first =
+                firstPersistence.wrapConveyor(newRecoveryConveyor("redis-replay-first", firstResults, null, false));
+        try {
+            first.part().id(1).label(RecoveryPart.LEFT).value("alpha").place().join();
+            first.part().id(1).label(RecoveryPart.RIGHT).value("beta").place().join();
+        } finally {
+            first.stop();
+        }
+
+        assertTrue(firstResults.isEmpty(), "The first conveyor should stop before the build is complete");
+
+        Map<Integer, String> recoveredResults = new ConcurrentHashMap<>();
+        Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
+                secondPersistence.wrapConveyor(newRecoveryConveyor("redis-replay-second", recoveredResults, null, true));
+        try {
+            second.part().id(1).label(RecoveryPart.NUMBER).value(7).place().join();
+            awaitTrue(() -> "no-prefix:alpha:beta:7".equals(recoveredResults.get(1)),
+                    "Recovered conveyor should complete the replayed build when the missing part arrives");
+        } finally {
+            second.completeAndStop().join();
+        }
+
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
+            awaitTrue(() -> inspector.getAllPartIds(1).isEmpty()
+                            && inspector.getAllParts().isEmpty()
+                            && inspector.getCompletedKeys().isEmpty()
+                            && inspector.getAllStaticParts().isEmpty(),
+                    "Recovered auto-ack build should eventually drain its Redis state after completion");
+        }
+    }
+
+    @Test
+    void recoveredBuildProvidesExplicitAcknowledgeHandle() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("persistent-ack");
+        try (Persistence<Integer> cleanup = newRecoveryPersistence(name)) {
+            cleanup.archiveAll();
+        }
+
+        Persistence<Integer> firstPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> first =
+                firstPersistence.wrapConveyor(newRecoveryConveyor("redis-ack-first", new ConcurrentHashMap<>(), null, false));
+        try {
+            first.part().id(3).label(RecoveryPart.LEFT).value("left").place().join();
+            first.part().id(3).label(RecoveryPart.RIGHT).value("right").place().join();
+        } finally {
+            first.stop();
+        }
+
+        Map<Integer, String> recoveredResults = new ConcurrentHashMap<>();
+        AtomicReference<Acknowledge> acknowledgeRef = new AtomicReference<>();
+        Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
+                secondPersistence.wrapConveyor(newRecoveryConveyor("redis-ack-second", recoveredResults, acknowledgeRef, false));
+        boolean stopped = false;
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
+            second.part().id(3).label(RecoveryPart.NUMBER).value(9).place().join();
+
+            awaitTrue(() -> "no-prefix:left:right:9".equals(recoveredResults.get(3)),
+                    "Recovered build should complete once the missing part is supplied");
+            awaitTrue(() -> acknowledgeRef.get() != null,
+                    "Recovered completion should expose an acknowledge handle when auto-acknowledge is disabled");
+            assertFalse(acknowledgeRef.get().isAcknowledged(),
+                    "Recovered build should remain unacknowledged until the test calls ack()");
+            awaitTrue(() -> inspector.getNumberOfParts() > 0,
+                    "Recovered Redis state should remain populated while the acknowledge handle is still pending");
+
+            acknowledgeRef.get().ack();
+            assertTrue(acknowledgeRef.get().isAcknowledged(),
+                    "Calling ack() should update the recovered acknowledge handle");
+            second.completeAndStop().join();
+            stopped = true;
+
+            awaitTrue(() -> inspector.getCompletedKeys().isEmpty()
+                            && inspector.getAllParts().isEmpty()
+                            && inspector.getAllStaticParts().isEmpty()
+                            && inspector.getNumberOfParts() == 0,
+                    "Explicit acknowledge followed by conveyor drain should cleanup recovered Redis persistence state");
+        } finally {
+            if (!stopped) {
+                second.stop();
+            }
+        }
+    }
+
+    @Test
+    void recoveredBuildCanceledStatusCleansRedisState() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("persistent-cancel-cleanup");
+        try (Persistence<Integer> cleanup = newRecoveryPersistence(name)) {
+            cleanup.archiveAll();
+        }
+
+        Persistence<Integer> firstPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> first =
+                firstPersistence.wrapConveyor(newRecoveryConveyor("redis-cancel-first", new ConcurrentHashMap<>(), null, false));
+        try {
+            first.part().id(5).label(RecoveryPart.LEFT).value("cancel-left").place().join();
+            first.part().id(5).label(RecoveryPart.RIGHT).value("cancel-right").place().join();
+        } finally {
+            first.stop();
+        }
+
+        Map<Integer, String> recoveredResults = new ConcurrentHashMap<>();
+        AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> recoveredForward =
+                newRecoveryConveyor("redis-cancel-second", recoveredResults, null, null, Status.CANCELED);
+        Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
+                secondPersistence.wrapConveyor(recoveredForward);
+        try {
+            second.command().id(5).cancel().join();
+            awaitTrue(() -> recoveredForward.getCollectorSize() == 0,
+                    "Recovered canceled build should leave the working conveyor");
+            assertTrue(recoveredResults.isEmpty(), "Canceled recovered build should not produce a READY result");
+        } finally {
+            second.completeAndStop().join();
+        }
+
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
+            awaitTrue(() -> inspector.getAllPartIds(5).isEmpty()
+                            && inspector.getAllParts().isEmpty()
+                            && inspector.getCompletedKeys().isEmpty()
+                            && inspector.getAllStaticParts().isEmpty(),
+                    "Recovered canceled build should cleanup Redis persistence state");
+        }
+    }
+
+    @Test
     void supportsAbsorbDefaultMethod() throws Exception {
         openRedis().close();
 
@@ -357,6 +507,7 @@ class RedisPersistenceTest extends RedisTestSupport {
             assertNotNull(meta.get("labelHint"));
             assertNotNull(meta.get("labelData"));
             assertNotNull(meta.get("valueHint"));
+            assertNull(meta.get("valueData"));
             assertNotNull(meta.get("propertiesHint"));
             assertNotNull(meta.get("propertiesData"));
             assertNotNull(rawPayload);
@@ -421,6 +572,43 @@ class RedisPersistenceTest extends RedisTestSupport {
             assertEquals("LEGACY", restored.getLabel());
             assertEquals(List.of(id), new ArrayList<>(reader.getAllPartIds(55)));
             assertEquals(List.of("legacy-cart"), reader.getAllParts().stream().map(Cart::getValue).toList());
+        }
+    }
+
+    @Test
+    void readsLegacyItemizedPayloadStructureWithMirroredValueData() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("legacy-itemized-value");
+        String namespace = "conv:{" + name + "}";
+        long id;
+        ShoppingCart<Integer, String, String> cart =
+                new ShoppingCart<>(77, "mirrored-value", "MIRROR", System.currentTimeMillis(), 0);
+
+        try (Persistence<Integer> writer = new RedisPersistenceBuilder<Integer>(name).build()) {
+            writer.archiveAll();
+            id = writer.nextUniquePartId();
+            writer.savePart(id, cart);
+        }
+
+        try (JedisPooled jedis = RedisConnectionFactory.openDefault()) {
+            String metaKey = namespace + ":part:" + id + ":meta";
+            String payloadKey = namespace + ":part:" + id + ":payload";
+            String rawPayload = jedis.get(payloadKey);
+            assertNotNull(rawPayload);
+
+            jedis.hset(metaKey, "valueData", rawPayload);
+            jedis.del(payloadKey);
+        }
+
+        try (Persistence<Integer> reader = new RedisPersistenceBuilder<Integer>(name).build()) {
+            Cart<Integer, ?, String> restored = reader.getPart(id);
+            assertNotNull(restored);
+            assertEquals(77, restored.getKey());
+            assertEquals("mirrored-value", restored.getValue());
+            assertEquals("MIRROR", restored.getLabel());
+            assertEquals(List.of(id), new ArrayList<>(reader.getAllPartIds(77)));
+            assertEquals(List.of("mirrored-value"), reader.getAllParts().stream().map(Cart::getValue).toList());
         }
     }
 
@@ -543,5 +731,93 @@ class RedisPersistenceTest extends RedisTestSupport {
             Thread.sleep(25L);
         }
         assertTrue(condition.getAsBoolean(), message);
+    }
+
+    private static AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> newRecoveryConveyor(
+            String name,
+            Map<Integer, String> results,
+            AtomicReference<Acknowledge> acknowledgeRef,
+            boolean autoAcknowledge) {
+        return newRecoveryConveyor(name, results, acknowledgeRef, null, autoAcknowledge ? new Status[]{Status.READY} : new Status[0]);
+    }
+
+    private static AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> newRecoveryConveyor(
+            String name,
+            Map<Integer, String> results,
+            AtomicReference<Acknowledge> acknowledgeRef,
+            Duration builderTimeout,
+            Status... autoAcknowledgeStatuses) {
+        AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> conveyor = new AssemblingConveyor<>();
+        conveyor.setName(name);
+        conveyor.setBuilderSupplier(RecoveryBuilder::new);
+        if (builderTimeout != null) {
+            conveyor.setDefaultBuilderTimeout(builderTimeout);
+        }
+        conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor)
+                .accepted(RecoveryPart.LEFT, RecoveryPart.RIGHT, RecoveryPart.NUMBER));
+        if (autoAcknowledgeStatuses != null && autoAcknowledgeStatuses.length > 0) {
+            conveyor.autoAcknowledgeOnStatus(autoAcknowledgeStatuses[0], java.util.Arrays.copyOfRange(autoAcknowledgeStatuses, 1, autoAcknowledgeStatuses.length));
+        } else {
+            conveyor.setAutoAcknowledge(false);
+        }
+        conveyor.resultConsumer(bin -> {
+            results.put(bin.key, bin.product);
+            if (acknowledgeRef != null) {
+                acknowledgeRef.set(bin.acknowledge);
+            }
+        }).set();
+        return conveyor;
+    }
+
+    private static Persistence<Integer> newRecoveryPersistence(String name) {
+        return new RedisPersistenceBuilder<Integer>(name)
+                .maxArchiveBatchSize(4)
+                .build();
+    }
+
+    private static final class RecoveryBuilder implements Supplier<String>, Serializable {
+        private String prefix = "no-prefix";
+        private String left;
+        private String right;
+        private Integer number;
+
+        @Override
+        public String get() {
+            return prefix + ":" + left + ":" + right + ":" + number;
+        }
+
+        static void setPrefix(RecoveryBuilder builder, String prefix) {
+            builder.prefix = prefix;
+        }
+
+        static void setLeft(RecoveryBuilder builder, String left) {
+            builder.left = left;
+        }
+
+        static void setRight(RecoveryBuilder builder, String right) {
+            builder.right = right;
+        }
+
+        static void setNumber(RecoveryBuilder builder, Integer number) {
+            builder.number = number;
+        }
+    }
+
+    private enum RecoveryPart implements SmartLabel<RecoveryBuilder> {
+        PREFIX(SmartLabel.of(RecoveryBuilder::setPrefix)),
+        LEFT(SmartLabel.of(RecoveryBuilder::setLeft)),
+        RIGHT(SmartLabel.of(RecoveryBuilder::setRight)),
+        NUMBER(SmartLabel.of(RecoveryBuilder::setNumber));
+
+        private final SmartLabel<RecoveryBuilder> inner;
+
+        RecoveryPart(SmartLabel<RecoveryBuilder> inner) {
+            this.inner = inner;
+        }
+
+        @Override
+        public BiConsumer<RecoveryBuilder, Object> get() {
+            return inner.get();
+        }
     }
 }

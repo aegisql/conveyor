@@ -17,7 +17,9 @@
 - The storage model now uses itemized cart metadata plus value payload bytes instead of storing the whole cart as one blob.
 - Current Redis archiving is delete-oriented only.
 - Current Redis writes are multi-command operations, not Lua/function-backed atomic units.
-- Current Redis restore behavior is now explicitly proven for the current id-ordered active/static/per-key paths and for one recovered command-cart path.
+- Current Redis restore behavior is now explicitly proven for the current id-ordered active/static/per-key paths, for one recovered command-cart path, and for restart-and-finish `PersistentConveyor` recovery.
+- Recovery cleanup proof now includes the recovered `CANCELED` status path in addition to the earlier `READY` paths.
+- A first compatible slice of the JDBC-style performance tests now exists for Redis.
 
 ## Current Implemented Scope
 
@@ -35,6 +37,12 @@ Test evidence currently includes:
 - `src/test/java/com/aegisql/conveyor/persistence/redis/RedisConnectionFactoryTest.java`
 - `src/test/java/com/aegisql/conveyor/persistence/redis/RedisPersistenceBuilderTest.java`
 - `src/test/java/com/aegisql/conveyor/persistence/redis/RedisPersistenceTest.java`
+- `src/test/java/com/aegisql/conveyor/persistence/redis/RedisPerfTest.java`
+- `src/test/java/com/aegisql/conveyor/persistence/redis/harness/Trio.java`
+- `src/test/java/com/aegisql/conveyor/persistence/redis/harness/TrioBuilder.java`
+- `src/test/java/com/aegisql/conveyor/persistence/redis/harness/TrioConveyor.java`
+- `src/test/java/com/aegisql/conveyor/persistence/redis/harness/TrioPart.java`
+- `src/test/java/com/aegisql/conveyor/persistence/redis/harness/ThreadPool.java`
 
 ## Redis Data Model In Code Today
 
@@ -63,7 +71,9 @@ The current code creates and maintains these key groups:
   - authoritative cart metadata hash
   - includes core fields such as `id`, `loadType`, `creationTime`, `expirationTime`, and `priority`
   - includes encoded cart fields such as `keyHint` / `keyData`, `labelHint` / `labelData`, `propertiesHint` / `propertiesData`
-  - includes `valueHint` and currently mirrors `valueData`, while the main read path for the value remains `:payload`
+  - includes `valueHint` for payload decoding
+  - new writes no longer mirror payload bytes into `valueData`
+  - the reader still accepts older itemized records that contain mirrored `valueData`
   - includes `commandFilterHint` / `commandFilterData` for filter-based command carts
 - `conv:{name}:part:{id}:keys`
   - reverse index from part id to encoded key values
@@ -77,6 +87,7 @@ Important note:
 - The current implementation no longer stores the whole cart as a single serialized payload.
 - The current restore path reconstructs carts from itemized metadata plus the value payload key.
 - The reader still detects and reads the legacy whole-cart Redis format for backward compatibility.
+- The reader also still accepts the earlier itemized form where value bytes were mirrored in `:meta.valueData`.
 
 ## Comparison With The JDBC Pattern
 
@@ -123,10 +134,15 @@ Important note:
 - JDBC today:
   - `autoInit(true)` creates or validates relational structures such as database, schema, tables, indexes, and completed log storage.
 - Redis today:
-  - `init()` only bootstraps namespace metadata and the tracked key set lazily through `ensureInitialized()`.
+  - `init()` bootstraps Redis namespace metadata when missing and validates existing namespace metadata when present.
+  - `autoInit(false)` now skips upfront bootstrap but still performs lazy bootstrap or validation on first use.
+  - existing namespace metadata must match:
+    - backend=`redis`
+    - backend version=`1`
+    - configured persistence name
 - Status:
-  - implemented in a minimal form
-  - not yet expanded into full Redis bootstrap semantics such as version checks, script registration, or stronger compatibility validation
+  - implemented in a stronger v1 form
+  - not yet expanded into Redis server-version checks, script registration, or broader feature validation
 
 ### Storage Model
 
@@ -203,6 +219,24 @@ Important note:
 - Status:
   - implemented
 
+### End-To-End Recovery
+
+- JDBC today:
+  - has mature `PersistentConveyor` replay behavior and older tests around replay, acknowledgment, and cleanup.
+- Redis today:
+  - now has end-to-end restart recovery evidence for an incomplete build that is replayed and completed after restart
+  - now has explicit recovered-acknowledgment evidence for a completed build
+  - now has recovered cleanup evidence for the current READY-path auto-ack and explicit-ack flows when the recovered conveyor is allowed to drain cleanly
+  - now has recovered cleanup evidence for the current CANCELED path when a recovered build is explicitly canceled and the conveyor is allowed to drain cleanly
+- Status:
+  - partial
+  - restart-and-finish recovery is proven
+  - recovered explicit acknowledge delivery is proven
+  - recovered READY-path cleanup is proven
+  - recovered CANCELED cleanup is proven
+  - timeout-driven recovery cleanup is still not proven
+  - broader recovery and cleanup coverage is still incomplete
+
 ### Unique Field Constraints
 
 - JDBC today:
@@ -252,6 +286,19 @@ Important note:
 
 - New module created and added under `conveyor-persistence`.
 - Local instructions and module context docs exist.
+
+### Done: stronger namespace bootstrap semantics
+
+- Redis namespace metadata is no longer blindly rewritten on every operation.
+- Namespace metadata is now bootstrapped once and then validated.
+- Current validation requires:
+  - backend=`redis`
+  - backend version=`1`
+  - configured persistence name match
+- `autoInit(false)` is now explicitly proven as a lazy-bootstrap path:
+  - building the persistence does not create namespace metadata immediately
+  - the first persistence operation bootstraps it
+- Incompatible or incomplete namespace metadata is now rejected with `PersistenceException`.
 
 ### Done: Redis connectivity
 
@@ -338,6 +385,12 @@ This is meaningful because it shows the current itemized storage and reconstruct
   - new writes use the itemized structure instead of legacy whole-cart payload storage
   - the current reader can still read the earlier whole-cart Redis format
 
+### Done: stabilized itemized payload layout
+
+- New writes now keep payload bytes only in `conv:{name}:part:{id}:payload`.
+- Metadata keeps `valueHint` but no longer stores mirrored `valueData`.
+- The reader still supports the earlier mirrored itemized form so previously written Redis data remains readable.
+
 ### Done: current logging
 
 - `RedisConnectionFactory`, `RedisPersistenceBuilder`, and `RedisPersistence` use SLF4J.
@@ -362,6 +415,18 @@ This is meaningful because it shows the current itemized storage and reconstruct
   - completed-key indexes
   - other Redis key names
 
+### Done: first compatible performance-test slice
+
+- Redis now has a first reproduced subset of the JDBC-style performance suite.
+- Current reproduced scenarios:
+  - direct conveyor baseline
+  - persistent conveyor shuffled load
+  - persistent conveyor sorted load
+- The Redis perf harness is intentionally local to the Redis module and mirrors the familiar trio-style JDBC perf shape closely enough to compare behavior without overstating parity.
+- Performance-test size is currently controlled by:
+  - `REDIS_PERF_TEST_SIZE`
+  - fallback `PERF_TEST_SIZE`
+
 ## Test Evidence By Area
 
 ### Learn Redis Tests
@@ -383,7 +448,9 @@ This is meaningful because it shows the current itemized storage and reconstruct
 
 - `RedisPersistenceBuilderTest`
   - covers null validation
-  - covers lazy initialization through `autoInit(false)`
+  - covers lazy bootstrap semantics through `autoInit(false)`
+  - covers acceptance of valid pre-bootstrapped namespace metadata
+  - covers rejection of incompatible namespace metadata
   - covers non-persistent filter behavior
   - covers archive and no-op branches
   - covers serializability enforcement for encoded keys
@@ -398,7 +465,9 @@ This is meaningful because it shows the current itemized storage and reconstruct
   - covers manual key indexing
   - covers completed-key tracking
   - covers the itemized Redis storage shape used by new writes
+  - covers the stabilized itemized layout with no mirrored `valueData` on new writes
   - covers legacy whole-cart Redis compatibility for reads
+  - covers legacy itemized mirrored-`valueData` compatibility for reads
   - covers encrypted payload storage and read-back
   - covers direct `SecretKey` payload encryption
   - covers wrong-secret failure for payload reads
@@ -406,24 +475,44 @@ This is meaningful because it shows the current itemized storage and reconstruct
   - covers static and expired-part queries
   - covers current restore-order assumptions for active, static, and per-key retrieval
   - covers persisted command-cart save, reload, and replay into a wrapped conveyor
+  - covers incomplete-build replay across `PersistentConveyor` restart
+  - covers recovered explicit-acknowledge handle delivery
+  - covers recovered cleanup for the current READY-path auto-ack flow when the recovered conveyor drains through `completeAndStop()`
+  - covers recovered cleanup for the current explicit-acknowledge flow when the recovered conveyor drains through `completeAndStop()`
+  - covers recovered cleanup for the current CANCELED path when the recovered conveyor drains through `completeAndStop()`
   - covers delete-style archive methods
   - covers `copy()`
   - covers `absorb(...)`
   - covers helper methods that produce `PersistentConveyor`
+
+### Performance Compatibility Tests
+
+- `RedisPerfTest`
+  - reproduces the current JDBC-style direct conveyor baseline
+  - reproduces persistent shuffled-load coverage
+  - reproduces persistent sorted-load coverage
+  - uses Redis-local harness classes modeled after the JDBC perf-test trio harness
+  - scales via:
+    - `REDIS_PERF_TEST_SIZE`
+    - fallback `PERF_TEST_SIZE`
+  - intentionally does not yet reproduce:
+    - parallel persistent perf flows
+    - archive-to-file or archive-to-persistence perf flows
+    - broader unload or expiration perf scenarios
 
 ## What Still Needs To Be Done
 
 ### Missing Or Partial Compared To JDBC
 
 - explicit restore-order strategy support
-- stronger Redis bootstrap semantics
 - broader command-cart coverage beyond the currently proven replay path
 - archive strategy parity beyond delete behavior
 - uniqueness enforcement similar to JDBC `uniqueFields`
 - stronger atomic update behavior for multi-key writes
-- end-to-end persistent recovery tests on top of `PersistentConveyor`
-- stabilization of the new itemized Redis record format
 - indexed-key protection if the project decides Redis needs more than payload-only protection
+- broader recovery and cleanup coverage beyond the currently proven READY and CANCELED paths
+- timeout-driven recovery cleanup and replay semantics are still not proven end to end
+- broader performance parity beyond the currently reproduced direct, shuffled persistent, and sorted persistent scenarios
 
 ## Ranked Backlog By Complexity
 
@@ -446,13 +535,13 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ### Medium Complexity
 
-- Formalize Redis bootstrap semantics.
+- Extend bootstrap semantics beyond namespace metadata validation.
   - Candidate scope:
-    - namespace metadata version checks
-    - explicit bootstrap marker validation
-    - clearer init behavior when `autoInit(false)`
+    - Redis server-version checks
+    - required command/feature validation
+    - script/function registration
   - Why medium:
-    - the code is simple now, but semantics need to be nailed down carefully
+    - the namespace semantics are now in place, but deeper compatibility checks still need to be decided carefully
 
 - Introduce explicit restore-order support.
   - Candidate scope:
@@ -462,16 +551,12 @@ Complexity here means engineering effort plus semantic risk relative to the curr
   - Why medium:
     - requires builder/configuration growth and compatibility decisions
 
-- Improve current data layout so metadata is more intentionally queryable.
+- Improve current data layout so metadata stays intentionally queryable without growing redundant mirrors again.
   - Candidate scope:
-    - stabilize the new itemized record format
-    - decide whether redundant mirrored fields remain in metadata or move to payload-only storage
+    - keep value bytes payload-only unless a future query case clearly requires duplication
+    - decide whether any remaining metadata fields should be normalized further or dropped
   - Why medium:
     - affects persistence format and future compatibility
-
-- Add end-to-end `PersistentConveyor` recovery tests using Redis.
-  - Why medium:
-    - touches higher-level persistence behavior, not just the SPI
 
 - Add builder-level pool tuning and explicit client configuration options.
   - Candidate scope:
@@ -483,6 +568,16 @@ Complexity here means engineering effort plus semantic risk relative to the curr
     - operationally useful, but not a fundamental architecture change
   - Why important:
     - long-running applications will need pool sizing and timeout control
+
+- Extend Redis performance coverage toward JDBC parity.
+  - Candidate scope:
+    - parallel persistent perf flows
+    - unload and expiration perf scenarios
+    - archive-oriented perf scenarios where Redis feature maturity makes them meaningful
+  - Why medium:
+    - requires more harness growth and careful alignment with still-changing Redis semantics
+  - Why important:
+    - keeps Redis comparable to the established JDBC development baseline without pretending parity too early
 
 - Decide whether Redis needs explicit builder docs mirroring the JDBC encryption options.
   - Why medium:
@@ -507,7 +602,13 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 - Define and prove compatibility with the acknowledgment and cleanup flows behind `PersistentConveyor`.
   - Why high:
-    - JDBC persistence is mature here, and Redis has not reached that level of evidence yet
+    - JDBC persistence is mature here, and Redis is only partially proven so far
+  - Current state:
+    - restart replay is covered
+    - recovered explicit acknowledgment is covered
+    - recovered cleanup is covered for the current READY-path auto-ack and explicit-ack flows when the recovered conveyor drains cleanly
+    - recovered cleanup is covered for the current CANCELED path when the recovered conveyor drains cleanly
+    - broader status and recovery-mode coverage is still not proven
 
 - Decide whether library-level reconnect or retry behavior should exist at all.
   - Current recommendation:
@@ -544,11 +645,11 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ## Recommended Next Sequence
 
-1. Add end-to-end `PersistentConveyor` recovery tests on Redis.
-2. Define and implement stronger Redis bootstrap semantics.
-3. Introduce explicit restore-order configuration.
-4. Add builder-level pool tuning and explicit client configuration options.
-5. Stabilize the new itemized record format and remove redundant mirrored fields if they do not serve future queries.
+1. Introduce explicit restore-order configuration.
+2. Add builder-level pool tuning and explicit client configuration options.
+3. Broaden recovery and cleanup proof beyond the currently covered READY and CANCELED paths.
+4. Clarify and then prove timeout-driven recovery semantics, including whether additional timeout-action wiring is required for Redis `PersistentConveyor` cleanup.
+5. Extend bootstrap semantics with Redis server-version and required-feature validation.
 6. Move save/archive operations toward Lua or Redis Functions for atomicity.
 7. Decide whether `uniqueFields` is a v1 gap to document or a v2 feature to implement.
 
@@ -558,7 +659,7 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 - The biggest remaining gap is not basic CRUD. The biggest gap is maturity compared to JDBC:
   - archive strategy breadth
   - restore-order semantics
-  - command/recovery proof
+  - recovery breadth beyond the currently proven flows
   - atomic multi-key correctness
   - uniqueness enforcement
 - The module is in a solid v1 development state, but not yet in JDBC-level production-parity territory.

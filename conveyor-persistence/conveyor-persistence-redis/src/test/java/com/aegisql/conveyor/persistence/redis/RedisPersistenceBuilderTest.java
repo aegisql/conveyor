@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,15 +27,110 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
     void validatesBuilderArgumentsAndSupportsLazyInitialization() throws Exception {
         assertThrows(NullPointerException.class, () -> new RedisPersistenceBuilder<>(null));
 
-        RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(testNamespace("builder-validation"));
+        String name = testNamespace("builder-validation");
+        RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(name);
         assertThrows(NullPointerException.class, () -> builder.redisUri(null));
         assertThrows(NullPointerException.class, () -> builder.jedis(null));
         assertThrows(NullPointerException.class, () -> builder.nonPersistentProperty(null));
         assertThrows(NullPointerException.class, () -> builder.persistentPartFilter(null));
 
-        try (Persistence<Integer> persistence = builder.autoInit(false).build()) {
+        String namespaceMetaKey = namespaceMetaKey(name);
+        try (JedisPooled jedis = openRedis()) {
+            jedis.del(namespaceMetaKey);
+        }
+
+        try (Persistence<Integer> persistence = builder.autoInit(false).build();
+             JedisPooled jedis = openRedis()) {
+            assertTrue(jedis.hgetAll(namespaceMetaKey).isEmpty(),
+                    "autoInit(false) should not bootstrap the namespace before the first persistence operation");
             persistence.archiveAll();
             assertEquals(1L, persistence.nextUniquePartId());
+            assertEquals(
+                    Map.of("backend", RedisPersistence.BACKEND_NAME, "version", RedisPersistence.BACKEND_VERSION, "name", name),
+                    jedis.hgetAll(namespaceMetaKey),
+                    "The first persistence operation should lazily bootstrap compatible namespace metadata"
+            );
+        }
+    }
+
+    @Test
+    void acceptsPreBootstrappedNamespaceMetadataAndRejectsIncompatibleMetadata() throws Exception {
+        openRedis().close();
+
+        String validName = testNamespace("builder-bootstrap-valid");
+        String validMetaKey = namespaceMetaKey(validName);
+        try (JedisPooled jedis = openRedis()) {
+            jedis.hset(validMetaKey, Map.of(
+                    "backend", RedisPersistence.BACKEND_NAME,
+                    "version", RedisPersistence.BACKEND_VERSION,
+                    "name", validName,
+                    "marker", "keep-me"
+            ));
+        }
+
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(validName).autoInit(true).build();
+             JedisPooled jedis = openRedis()) {
+            assertEquals(1L, persistence.nextUniquePartId());
+            assertEquals("keep-me", jedis.hget(validMetaKey, "marker"),
+                    "Valid namespace bootstrap metadata should be validated, not overwritten");
+        }
+
+        String wrongBackendName = testNamespace("builder-bootstrap-wrong-backend");
+        try (JedisPooled jedis = openRedis()) {
+            jedis.hset(namespaceMetaKey(wrongBackendName), Map.of(
+                    "backend", "jdbc",
+                    "version", RedisPersistence.BACKEND_VERSION,
+                    "name", wrongBackendName
+            ));
+        }
+        PersistenceException wrongBackendError = assertThrows(
+                PersistenceException.class,
+                () -> new RedisPersistenceBuilder<Integer>(wrongBackendName).autoInit(true).build()
+        );
+        assertTrue(wrongBackendError.getMessage().contains("belongs to backend"),
+                "Unexpected error for incompatible backend metadata: " + wrongBackendError.getMessage());
+
+        String wrongVersionName = testNamespace("builder-bootstrap-wrong-version");
+        try (JedisPooled jedis = openRedis()) {
+            jedis.hset(namespaceMetaKey(wrongVersionName), Map.of(
+                    "backend", RedisPersistence.BACKEND_NAME,
+                    "version", "999",
+                    "name", wrongVersionName
+            ));
+        }
+        PersistenceException wrongVersionError = assertThrows(
+                PersistenceException.class,
+                () -> new RedisPersistenceBuilder<Integer>(wrongVersionName).autoInit(true).build()
+        );
+        assertTrue(wrongVersionError.getMessage().contains("uses version"),
+                "Unexpected error for incompatible version metadata: " + wrongVersionError.getMessage());
+
+        String wrongName = testNamespace("builder-bootstrap-wrong-name");
+        try (JedisPooled jedis = openRedis()) {
+            jedis.hset(namespaceMetaKey(wrongName), Map.of(
+                    "backend", RedisPersistence.BACKEND_NAME,
+                    "version", RedisPersistence.BACKEND_VERSION,
+                    "name", "some-other-name"
+            ));
+        }
+        PersistenceException wrongNameError = assertThrows(
+                PersistenceException.class,
+                () -> new RedisPersistenceBuilder<Integer>(wrongName).autoInit(true).build()
+        );
+        assertTrue(wrongNameError.getMessage().contains("is bound to name"),
+                "Unexpected error for incompatible namespace name metadata: " + wrongNameError.getMessage());
+
+        String incompleteName = testNamespace("builder-bootstrap-incomplete");
+        try (JedisPooled jedis = openRedis()) {
+            jedis.hset(namespaceMetaKey(incompleteName), Map.of(
+                    "backend", RedisPersistence.BACKEND_NAME,
+                    "name", incompleteName
+            ));
+        }
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(incompleteName).autoInit(false).build()) {
+            PersistenceException incompleteError = assertThrows(PersistenceException.class, persistence::nextUniquePartId);
+            assertTrue(incompleteError.getMessage().contains("metadata is incomplete"),
+                    "Unexpected error for incomplete namespace metadata: " + incompleteError.getMessage());
         }
     }
 
@@ -154,5 +250,9 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         var field = RedisPersistence.class.getDeclaredField("clientHandle");
         field.setAccessible(true);
         return field.get(persistence);
+    }
+
+    private static String namespaceMetaKey(String name) {
+        return "conv:{" + name + "}:meta";
     }
 }
