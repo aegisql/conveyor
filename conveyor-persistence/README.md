@@ -305,7 +305,7 @@ Use it when:
 Current differences from JDBC:
 
 - current archive behavior is delete-oriented
-- explicit `uniqueFields` parity is not implemented
+- Redis intentionally does not implement `uniqueFields`; if you need database-enforced uniqueness constraints, choose a JDBC backend
 - restore-order support is partial
 - command-cart behavior still needs broader proof
 - current writes are multi-command operations, not yet Lua/function-backed atomic units

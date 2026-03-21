@@ -242,9 +242,11 @@ Important note:
 - JDBC today:
   - has builder/configuration support for unique fields and can rely on database-level enforcement.
 - Redis today:
-  - has no `uniqueFields` feature or equivalent uniqueness-key enforcement.
+  - does not implement `uniqueFields`.
+  - treats database-enforced uniqueness as a JDBC-specific capability rather than a Redis parity goal.
 - Status:
-  - not implemented
+  - intentional non-goal
+  - users who need uniqueness constraints should choose a JDBC backend
 
 ### Command Carts
 
@@ -507,7 +509,6 @@ This is meaningful because it shows the current itemized storage and reconstruct
 - explicit restore-order strategy support
 - broader command-cart coverage beyond the currently proven replay path
 - archive strategy parity beyond delete behavior
-- uniqueness enforcement similar to JDBC `uniqueFields`
 - stronger atomic update behavior for multi-key writes
 - indexed-key protection if the project decides Redis needs more than payload-only protection
 - broader recovery and cleanup coverage beyond the currently proven READY and CANCELED paths
@@ -620,12 +621,6 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ### Very High Complexity
 
-- Add uniqueness enforcement comparable to JDBC `uniqueFields`.
-  - Likely shape:
-    - dedicated uniqueness keys plus Lua or function-backed atomic checks
-  - Why very high:
-    - correctness and race behavior matter more than syntax here
-
 - Add Redis Cluster-safe semantics.
   - Candidate scope:
     - key-slot discipline
@@ -651,7 +646,6 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 4. Clarify and then prove timeout-driven recovery semantics, including whether additional timeout-action wiring is required for Redis `PersistentConveyor` cleanup.
 5. Extend bootstrap semantics with Redis server-version and required-feature validation.
 6. Move save/archive operations toward Lua or Redis Functions for atomicity.
-7. Decide whether `uniqueFields` is a v1 gap to document or a v2 feature to implement.
 
 ## Bottom Line
 
@@ -661,5 +655,4 @@ Complexity here means engineering effort plus semantic risk relative to the curr
   - restore-order semantics
   - recovery breadth beyond the currently proven flows
   - atomic multi-key correctness
-  - uniqueness enforcement
 - The module is in a solid v1 development state, but not yet in JDBC-level production-parity territory.

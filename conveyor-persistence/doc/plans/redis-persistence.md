@@ -162,16 +162,17 @@ Current JDBC persistence can create unique indexes.
 
 Redis equivalent is not automatic.
 
-Recommended plan:
-- v1:
-  - either do not support `uniqueFields`, or support only a minimal subset
-- v2:
-  - enforce uniqueness with dedicated uniqueness keys and Lua
-  - example pattern:
-    - `conv:{name}:uniq:{field-set}:{normalizedComposite}`
-  - use `SET NX` or equivalent atomic logic inside a script/function
+Decision:
+- Redis persistence will not implement `uniqueFields`.
+- This is an intentional feature boundary, not a deferred parity item.
+- If users need database-enforced uniqueness semantics, they should choose a JDBC backend that naturally supports unique indexes and constraints.
 
-This difference should be explicit in docs and builder behavior.
+Rationale:
+- Redis does not provide this semantic naturally in the same way relational databases do.
+- Recreating it in the library would add significant complexity and race-handling burden for a feature that is already well served by JDBC backends.
+- The Redis backend should stay Redis-native rather than imitating relational constraints where that stops being a natural fit.
+
+This difference should be explicit in docs, plans, and backend-selection guidance.
 
 ## Initialization Semantics
 For Redis, `autoInit(true)` should be reinterpreted.
@@ -214,7 +215,7 @@ Otherwise, completed-log and stored-cart correctness can be lost.
   - `BY_ID` required
   - `DELETE` archive required
   - decide whether `SET_ARCHIVED` is v1 or v2
-  - decide whether `uniqueFields` is v1 or v2
+  - explicitly document that Redis does not support `uniqueFields`
 
 ### Phase 1: Minimal Working Backend
 - Implement:
@@ -246,19 +247,17 @@ Otherwise, completed-log and stored-cart correctness can be lost.
 ### Phase 3: Advanced Parity
 - `SET_ARCHIVED`
 - optimized `BY_PRIORITY_AND_ID`
-- `uniqueFields`
 - cluster support
 - broader archiver parity
 
 ## What Not To Do
 - Do not add `redis` as another `JdbcPersistenceBuilder.engineType(...)`.
 - Do not create fake schema/table/index APIs over Redis.
-- Do not hide semantic differences such as `uniqueFields`.
+- Do not hide semantic differences such as the lack of Redis `uniqueFields` support.
 - Do not target Redis Cluster in v1.
 
 ## Open Questions
 - Should v1 support only `DELETE` archive, or also `SET_ARCHIVED`?
-- Should `uniqueFields` be unsupported in v1, or partially supported?
 - Should cart values be stored as binary strings directly, or split into metadata hash plus separate binary value key as proposed here?
 - Should standalone Redis logical database selection be supported, or should the builder use only URI + namespace?
 - Is Redis intended here as durable persistence, fast recovery cache, or both?
