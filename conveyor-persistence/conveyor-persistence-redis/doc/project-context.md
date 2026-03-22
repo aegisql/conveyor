@@ -22,6 +22,12 @@ The current implementation:
 - supports optional payload encryption through the same shared encryption builder pattern used by JDBC
 - maintains Redis-native indexes for active parts, static parts, expirations, per-key part ids, and completed keys
 - commits itemized cart writes through a Lua-backed atomic `savePart`
+- uses Lua-backed cleanup for:
+  - `archiveParts` delete operations
+  - `archiveKeys` under the `DELETE` strategy
+  - `archiveCompleteKeys`
+  - `archiveExpiredParts` under the `DELETE` strategy
+  - `archiveAll`
 - supports Redis-appropriate archive strategies:
   - `DELETE`
   - `NO_ACTION`
@@ -52,6 +58,7 @@ Tests currently cover:
 - basic Redis connectivity and CRUD
 - basic Lua scripting proof with `EVAL`, `SCRIPT LOAD`, and `EVALSHA`
 - `Persistence` contract methods with local Redis evidence
+- `SCRIPT FLUSH` recovery for Lua-backed save and delete/archive cleanup paths
 - Redis client ownership behavior for `copy()` and externally supplied clients
 - encrypted payload round-trip, wrong-secret failure, and legacy-default compatibility
 - direct `SecretKey`-based payload encryption
@@ -143,7 +150,8 @@ Override options:
     - parallel persistent perf flows
     - archive-to-file or archive-to-persistence perf flows
     - broader unload/expiration perf scenarios
-- Archive and cleanup operations are still Java multi-command flows.
-- The remaining atomicity work is now concentrated around archive and cleanup operations rather than `savePart`.
+- Delete-style archive and cleanup operations are now Lua-backed.
+- `MOVE_TO_PERSISTENCE` and `MOVE_TO_FILE` still use Java orchestration to export carts before Redis-side cleanup.
+- The remaining atomicity work is now concentrated around move-style archive orchestration rather than basic Redis delete cleanup.
 - See `../doc/plans/redis-persistence.md` for the planned direction.
 - See `./progress-report.md` for the current implementation status and JDBC comparison.

@@ -22,13 +22,16 @@ public class DeleteRedisArchiver<K> extends AbstractRedisArchiver<K> {
         if (keys == null || keys.isEmpty()) {
             return;
         }
-        LinkedHashSet<Long> ids = new LinkedHashSet<>();
+        LinkedHashSet<K> uniqueKeys = new LinkedHashSet<>();
         for (K key : keys) {
             if (key != null) {
-                ids.addAll(persistence.getAllPartIds(key));
+                uniqueKeys.add(key);
             }
         }
-        archiveAccess.deleteParts(ids);
+        if (uniqueKeys.isEmpty()) {
+            return;
+        }
+        archiveAccess.deleteKeys(uniqueKeys);
     }
 
     @Override
@@ -41,7 +44,7 @@ public class DeleteRedisArchiver<K> extends AbstractRedisArchiver<K> {
 
     @Override
     public void archiveExpiredParts() {
-        archiveAccess.deleteParts(archiveAccess.expiredPartIds());
+        archiveAccess.deleteExpiredParts();
     }
 
     @Override

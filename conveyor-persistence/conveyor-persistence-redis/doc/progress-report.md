@@ -22,7 +22,8 @@
   - `MOVE_TO_FILE`
   - `SET_ARCHIVED` is intentionally unsupported
 - Current Redis `savePart` writes are now Lua-backed atomic units.
-- Current Redis archive and cleanup flows are still multi-command Java operations.
+- Current Redis delete-style archive and cleanup flows are now Lua-backed atomic units.
+- Current Redis move-style archive flows still use Java orchestration to export carts before Redis-side cleanup.
 - Current Redis restore behavior is now explicitly configurable and proven for:
   - `BY_ID`
   - `NO_ORDER`
@@ -457,6 +458,21 @@ Redis should not be judged by whether it can imitate each JDBC strategy literall
 - Current tests also prove the operational reload path:
   - after `SCRIPT FLUSH`
   - the next `savePart(...)` reloads the script on `NOSCRIPT` and still succeeds
+  - the next Lua-backed delete/archive cleanup operation also reloads and still succeeds
+
+### Done: Lua-backed delete-style archive and cleanup operations
+
+- Redis delete-style cleanup now goes through the Lua bundle for:
+  - `archiveParts`
+  - `archiveCompleteKeys`
+  - `archiveAll`
+- The `DELETE` archive strategy now also uses Redis-native Lua cleanup for:
+  - `archiveKeys`
+  - `archiveExpiredParts`
+- This moves the current Redis delete path away from Java multi-command cleanup and into Redis-side atomic execution.
+- Current tests prove:
+  - delete-style archive behavior still matches prior observable semantics
+  - `SCRIPT FLUSH` followed by delete/archive cleanup reloads the Lua bundle and still succeeds
 
 ### Done: builder-level pool tuning and explicit client configuration
 
@@ -714,7 +730,7 @@ This is meaningful because it shows the current itemized storage and reconstruct
 ### Missing Or Partial Compared To JDBC
 
 - broader command-cart coverage beyond the currently proven replay path
-- stronger atomic update behavior for archive and cleanup flows
+- stronger atomic behavior for move-style archive orchestration
 - indexed-key protection if the project decides Redis needs more than payload-only protection
 - broader recovery-mode coverage beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths
 - broader performance parity beyond the currently reproduced direct, shuffled persistent, and sorted persistent scenarios
@@ -772,11 +788,11 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ### High Complexity
 
-- Replace the remaining multi-command archive/cleanup flows with Redis scripts or functions.
+- Replace the remaining move-style archive orchestration with stronger Redis-native atomic boundaries where feasible.
   - Why high:
-    - requires careful atomic update design across payload, indexes, and completed-key state
+    - `MOVE_TO_PERSISTENCE` and `MOVE_TO_FILE` still need Java to read carts and hand them off before Redis-side cleanup
   - Why important:
-    - `savePart(...)` is now atomic, but archiving and cleanup still need the same hardening
+    - delete-style cleanup is now atomic, but export-and-then-delete flows still have wider interruption windows
 
 - Keep archive strategy documentation and test evidence current.
   - Current state:
@@ -800,9 +816,9 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 - Decide whether library-level reconnect or retry behavior should exist at all.
   - Current recommendation:
-    - do not add automatic retries before save/archive operations are made atomic
+    - do not add automatic retries before the remaining move-style archive flows have safer atomic boundaries
   - Why high:
-    - blind retries on today's multi-command Redis writes can create partial-write ambiguity
+    - blind retries around export-and-then-delete Redis flows can create partial-write ambiguity
   - Why important:
     - long-running applications will see network interruptions, but retry policy must respect persistence correctness
 
@@ -827,15 +843,15 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ## Recommended Next Sequence
 
-1. Move archive and cleanup operations toward Lua for atomicity.
-2. Revisit whether `BY_PRIORITY_AND_ID` needs an optimized Redis-side index or if the current Java-side sort remains sufficient.
-3. Broaden recovery proof into additional recovery modes beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths.
-4. Decide whether any later Redis Function work is worth the required minimum-version jump beyond the current Lua-compatible floor.
+1. Revisit whether `BY_PRIORITY_AND_ID` needs an optimized Redis-side index or if the current Java-side sort remains sufficient.
+2. Broaden recovery proof into additional recovery modes beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths.
+3. Decide whether any later Redis Function work is worth the required minimum-version jump beyond the current Lua-compatible floor.
+4. Tighten move-style archive orchestration if the current interruption window proves too wide in practice.
 
 ## Bottom Line
 
 - Redis persistence is no longer just a plan. It is a real first backend with working SPI coverage and good early test evidence.
 - The biggest remaining gap is not basic CRUD. The biggest gap is maturity compared to JDBC:
   - recovery breadth beyond the currently proven flows
-  - archive and cleanup atomicity beyond the now-scripted `savePart(...)`
+  - move-style archive orchestration beyond the now-scripted save and delete cleanup paths
 - The module is in a solid v1 development state, but not yet in JDBC-level production-parity territory.

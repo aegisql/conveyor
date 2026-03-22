@@ -431,8 +431,18 @@ public class RedisPersistence<K> implements Persistence<K> {
             }
 
             @Override
+            public void deleteKeys(Collection<K> keys) {
+                deleteKeysInternal(keys);
+            }
+
+            @Override
             public void deleteCompletedKeys(Collection<K> keys) {
                 deleteCompletedKeysInternal(keys);
+            }
+
+            @Override
+            public void deleteExpiredParts() {
+                deleteExpiredPartsInternal();
             }
 
             @Override
@@ -546,6 +556,32 @@ public class RedisPersistence<K> implements Persistence<K> {
         return args;
     }
 
+    private List<String> deleteOperationKeys() {
+        return List.of(trackerKey(), activeIdsKey(), staticIdsKey(), expiringIdsKey());
+    }
+
+    private List<String> deletePartArgs(Collection<Long> ids) {
+        ArrayList<String> args = new ArrayList<>();
+        args.add(partPrefix());
+        args.add(partIdsPrefix());
+        ids.stream()
+                .map(String::valueOf)
+                .forEach(args::add);
+        return args;
+    }
+
+    private List<String> deleteKeyArgs(Collection<String> encodedKeys) {
+        ArrayList<String> args = new ArrayList<>();
+        args.add(partPrefix());
+        args.add(partIdsPrefix());
+        args.addAll(encodedKeys);
+        return args;
+    }
+
+    private List<String> deleteExpiredArgs(long now) {
+        return List.of(partPrefix(), partIdsPrefix(), Long.toString(now));
+    }
+
     private void deletePartsInternal(Collection<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             LOG.trace("archiveParts called with no ids for namespace={}", namespace);
@@ -554,22 +590,27 @@ public class RedisPersistence<K> implements Persistence<K> {
         LinkedHashSet<Long> uniqueIds = new LinkedHashSet<>(ids);
         LOG.debug("Deleting {} archived parts by id from namespace={} strategy={}", uniqueIds.size(), namespace, archiveOptions.archiveStrategy());
         LOG.trace("Deleting archived part ids={}", uniqueIds);
-        for (Long id : uniqueIds) {
-            String idMember = Long.toString(id);
-            String reverseIndexKey = reverseKeyIndexKey(id);
-            for (String encodedKey : jedis.smembers(reverseIndexKey)) {
-                String partIdsKey = partIdsByKeyKey(encodedKey);
-                jedis.zrem(partIdsKey, idMember);
-                if (jedis.zcard(partIdsKey) == 0) {
-                    jedis.del(partIdsKey);
-                }
-            }
-            jedis.del(reverseIndexKey);
-            jedis.zrem(activeIdsKey(), idMember);
-            jedis.zrem(staticIdsKey(), idMember);
-            jedis.zrem(expiringIdsKey(), idMember);
-            jedis.del(payloadKey(id), metaKey(id));
+        luaScripts.deleteParts(deleteOperationKeys(), deletePartArgs(uniqueIds));
+    }
+
+    private void deleteKeysInternal(Collection<K> keys) {
+        if (keys == null || keys.isEmpty()) {
+            LOG.trace("archiveKeys called with no keys for namespace={}", namespace);
+            return;
         }
+        LinkedHashSet<String> encodedKeys = new LinkedHashSet<>();
+        for (K key : keys) {
+            if (key != null) {
+                encodedKeys.add(encodeSerializable(key));
+            }
+        }
+        if (encodedKeys.isEmpty()) {
+            LOG.trace("archiveKeys resolved to no non-null keys for namespace={}", namespace);
+            return;
+        }
+        LOG.debug("Deleting archived keys count={} from namespace={} strategy={}", encodedKeys.size(), namespace, archiveOptions.archiveStrategy());
+        LOG.trace("Deleting archived encoded keys={}", encodedKeys);
+        luaScripts.deleteKeys(deleteOperationKeys(), deleteKeyArgs(encodedKeys));
     }
 
     private void deleteCompletedKeysInternal(Collection<K> keys) {
@@ -583,7 +624,7 @@ public class RedisPersistence<K> implements Persistence<K> {
                 .toArray(String[]::new);
         if (encodedKeys.length > 0) {
             LOG.debug("Deleting {} completed keys from namespace={} strategy={}", encodedKeys.length, namespace, archiveOptions.archiveStrategy());
-            jedis.srem(completedKeysKey(), encodedKeys);
+            luaScripts.deleteCompletedKeys(List.of(completedKeysKey()), List.of(encodedKeys));
         }
     }
 
@@ -597,14 +638,16 @@ public class RedisPersistence<K> implements Persistence<K> {
         return ids;
     }
 
+    private void deleteExpiredPartsInternal() {
+        LOG.debug("Deleting expired parts from namespace={} strategy={}", namespace, archiveOptions.archiveStrategy());
+        luaScripts.deleteExpiredParts(deleteOperationKeys(), deleteExpiredArgs(System.currentTimeMillis()));
+    }
+
     private void deleteAllInternal() {
         Set<String> trackedKeys = jedis.smembers(trackerKey());
         LOG.debug("Deleting all Redis persistence data for namespace={} trackedKeys={} strategy={}", namespace, trackedKeys.size(), archiveOptions.archiveStrategy());
         LOG.trace("Tracked Redis keys scheduled for deletion={}", trackedKeys);
-        if (!trackedKeys.isEmpty()) {
-            jedis.del(trackedKeys.toArray(String[]::new));
-        }
-        jedis.del(trackerKey());
+        luaScripts.deleteAll(List.of(trackerKey()));
         initialized.set(false);
     }
 
@@ -830,6 +873,14 @@ public class RedisPersistence<K> implements Persistence<K> {
         return namespace + ":tracker";
     }
 
+    private String partPrefix() {
+        return namespace + ":part:";
+    }
+
+    private String partIdsPrefix() {
+        return namespace + ":parts:key:";
+    }
+
     private String metaKey() {
         return namespace + ":meta";
     }
@@ -855,19 +906,19 @@ public class RedisPersistence<K> implements Persistence<K> {
     }
 
     private String payloadKey(long id) {
-        return namespace + ":part:" + id + ":payload";
+        return partPrefix() + id + ":payload";
     }
 
     private String metaKey(long id) {
-        return namespace + ":part:" + id + ":meta";
+        return partPrefix() + id + ":meta";
     }
 
     private String reverseKeyIndexKey(long id) {
-        return namespace + ":part:" + id + ":keys";
+        return partPrefix() + id + ":keys";
     }
 
     private String partIdsByKeyKey(String encodedKey) {
-        return namespace + ":parts:key:" + encodedKey;
+        return partIdsPrefix() + encodedKey;
     }
 
     private record FieldEncoding(String hint, String encoded) {

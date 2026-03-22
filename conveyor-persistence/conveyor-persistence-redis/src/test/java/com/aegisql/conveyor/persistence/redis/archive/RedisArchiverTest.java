@@ -31,13 +31,9 @@ class RedisArchiverTest {
     @Test
     void deleteArchiverDelegatesToArchiveAccessAcrossAllEntryPoints() {
         RecordingArchiveAccess<Integer> access = new RecordingArchiveAccess<>();
-        access.expiredPartIds = List.of(7L, 8L);
-
-        RecordingPersistence persistence = new RecordingPersistence();
-        persistence.idsByKey.put(11, List.of(1L, 2L, 2L));
 
         DeleteRedisArchiver<Integer> archiver = new DeleteRedisArchiver<>(access);
-        archiver.setPersistence(persistence);
+        archiver.setPersistence(new RecordingPersistence());
 
         archiver.archiveParts(List.of(1L, 1L, 2L));
         archiver.archiveKeys(java.util.Arrays.asList(null, 11));
@@ -45,8 +41,10 @@ class RedisArchiverTest {
         archiver.archiveExpiredParts();
         archiver.archiveAll();
 
-        assertEquals(List.of(List.of(1L, 2L), List.of(1L, 2L), List.of(7L, 8L)), access.deletedPartsCalls);
+        assertEquals(List.of(List.of(1L, 2L)), access.deletedPartsCalls);
+        assertEquals(List.of(List.of(11)), access.deletedKeysCalls);
         assertEquals(List.of(List.of(3, 4)), access.deletedCompletedKeysCalls);
+        assertEquals(1, access.deleteExpiredPartsCalls);
         assertEquals(1, access.deleteAllCalls);
     }
 
@@ -200,8 +198,10 @@ class RedisArchiverTest {
 
     private static final class RecordingArchiveAccess<K> implements RedisArchiveAccess<K> {
         private final ArrayList<List<Long>> deletedPartsCalls = new ArrayList<>();
+        private final ArrayList<List<K>> deletedKeysCalls = new ArrayList<>();
         private final ArrayList<List<K>> deletedCompletedKeysCalls = new ArrayList<>();
         private Collection<Long> expiredPartIds = List.of();
+        private int deleteExpiredPartsCalls;
         private int deleteAllCalls;
 
         @Override
@@ -210,8 +210,18 @@ class RedisArchiverTest {
         }
 
         @Override
+        public void deleteKeys(Collection<K> keys) {
+            deletedKeysCalls.add(List.copyOf(keys));
+        }
+
+        @Override
         public void deleteCompletedKeys(Collection<K> keys) {
             deletedCompletedKeysCalls.add(List.copyOf(keys));
+        }
+
+        @Override
+        public void deleteExpiredParts() {
+            deleteExpiredPartsCalls++;
         }
 
         @Override

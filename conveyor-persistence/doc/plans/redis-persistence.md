@@ -128,6 +128,8 @@ Proposed SPI mapping:
   - `SMEMBERS conv:{name}:completed`
 - `archiveKeys/archiveParts/archiveExpiredParts`
   - Redis script/function updates all related keys atomically
+  - current implementation now does this for delete-style cleanup paths
+  - move-style archive flows still need Java orchestration to export carts before Redis-side cleanup
 
 ## Payload Protection Direction
 
@@ -203,6 +205,17 @@ Recommended direction:
 - treat `CUSTOM` as an expert path that still needs Redis-aware cleanup discipline
 - treat `SET_ARCHIVED` as a non-goal unless a strong Redis-native requirement appears
 
+Current implementation note:
+
+- delete-style archive cleanup is now Lua-backed for:
+  - `archiveParts`
+  - `archiveCompleteKeys`
+  - `archiveAll`
+- the `DELETE` archive strategy also uses Lua-backed Redis-native cleanup for:
+  - `archiveKeys`
+  - `archiveExpiredParts`
+- `MOVE_TO_PERSISTENCE` and `MOVE_TO_FILE` still need Java orchestration to export carts before Redis-side cleanup
+
 ## Initialization Semantics
 For Redis, `autoInit(true)` should be reinterpreted.
 
@@ -219,10 +232,11 @@ Current implementation status:
 - Redis version parsing and conservative minimum-version validation are implemented
 - required command-family probes for the current backend are implemented
 - current Lua bundle registration is implemented for the atomic `savePart(...)` path
+- current Lua bundle also covers delete-style archive and cleanup operations
 - current namespace metadata includes Lua bundle markers:
   - `scriptMode=lua`
   - `scriptBundleVersion=1`
-- remaining script/function bootstrap work is concentrated around future archive-side atomic operations
+- remaining script/function bootstrap work is concentrated around move-style archive orchestration and any future broader atomic bundles
 
 It should not mean:
 - create database

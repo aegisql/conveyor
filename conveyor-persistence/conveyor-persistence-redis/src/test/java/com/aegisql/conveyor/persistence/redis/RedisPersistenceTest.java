@@ -150,6 +150,55 @@ class RedisPersistenceTest extends RedisTestSupport {
     }
 
     @Test
+    void reloadsLuaArchiveCleanupScriptsAfterScriptFlush() throws Exception {
+        openRedis().close();
+
+        try (Persistence<Integer> persistence = newPersistence("lua-archive-reload");
+             JedisPooled jedis = openRedis()) {
+            persistence.archiveAll();
+
+            long byIdPart = persistence.nextUniquePartId();
+            long byKeyPart = persistence.nextUniquePartId();
+            long expiredPart = persistence.nextUniquePartId();
+
+            persistence.savePart(byIdPart, new ShoppingCart<>(101, "by-id", "ID"));
+            persistence.savePart(byKeyPart, new ShoppingCart<>(102, "by-key", "KEY"));
+            persistence.savePart(expiredPart, new ShoppingCart<>(103, "expired", "EXP",
+                    System.currentTimeMillis(), System.currentTimeMillis() - 10, null, LoadType.PART, 0));
+            persistence.saveCompletedBuildKey(101);
+            persistence.saveCompletedBuildKey(102);
+
+            jedis.scriptFlush();
+            persistence.archiveCompleteKeys(Set.of(101));
+            assertEquals(Set.of(102), persistence.getCompletedKeys());
+
+            jedis.scriptFlush();
+            persistence.archiveParts(List.of(byIdPart));
+            assertNull(persistence.getPart(byIdPart));
+
+            jedis.scriptFlush();
+            persistence.archiveKeys(List.of(102));
+            assertNull(persistence.getPart(byKeyPart));
+            assertTrue(persistence.getAllPartIds(102).isEmpty());
+
+            jedis.scriptFlush();
+            persistence.archiveExpiredParts();
+            assertNull(persistence.getPart(expiredPart));
+            assertEquals(0L, persistence.getNumberOfParts());
+
+            long finalPart = persistence.nextUniquePartId();
+            persistence.savePart(finalPart, new ShoppingCart<>(104, "final", "FINAL"));
+            persistence.saveCompletedBuildKey(104);
+
+            jedis.scriptFlush();
+            persistence.archiveAll();
+            assertTrue(persistence.getAllParts().isEmpty());
+            assertTrue(persistence.getCompletedKeys().isEmpty());
+            assertEquals(1L, persistence.nextUniquePartId());
+        }
+    }
+
+    @Test
     void supportsManualKeyIndexCompletedKeysAndArchiveOperations() throws Exception {
         openRedis().close();
 
