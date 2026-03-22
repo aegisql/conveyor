@@ -42,6 +42,7 @@ The current implementation:
 - relies on Jedis pooled borrow/return semantics for per-operation connection use
 - validates namespace bootstrap metadata before using an existing Redis namespace
 - bootstraps Redis namespace metadata lazily on first use when `autoInit(false)`
+- validates Redis server version and required Redis command features during bootstrap
 
 Tests currently cover:
 
@@ -90,7 +91,15 @@ Override options:
 - Current bootstrap semantics are now stronger than the initial stub:
   - namespace metadata is created once and then validated instead of being blindly rewritten
   - existing Redis namespace metadata must match the expected backend, backend version, and configured persistence name
+  - Redis server version must be present, parseable, and above the current conservative minimum support floor
+  - required Redis command families are probed during bootstrap:
+    - sequence/increment
+    - string
+    - hash
+    - set
+    - sorted-set
   - `autoInit(false)` now means "skip upfront bootstrap, then validate or bootstrap lazily on first use"
+  - script/function registration is still a later step; the current bootstrap only validates readiness for the current non-Lua implementation
 - Builder-level connection configuration is now broader than URI-only setup:
   - owned clients can be tuned through pool sizing, timeouts, database selection, client name, authentication, and SSL flags
   - externally supplied `JedisPooled` clients are still supported and remain the right choice when the host application owns Redis infrastructure configuration

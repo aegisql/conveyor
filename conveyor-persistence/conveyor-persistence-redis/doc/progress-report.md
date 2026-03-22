@@ -150,9 +150,18 @@ Important note:
     - backend=`redis`
     - backend version=`1`
     - configured persistence name
+  - bootstrap now also validates:
+    - Redis server version is present, parseable, and above the current conservative minimum support floor
+    - required command families for the current backend are available through live probe operations:
+      - sequence/increment
+      - string
+      - hash
+      - set
+      - sorted-set
 - Status:
   - implemented in a stronger v1 form
-  - not yet expanded into Redis server-version checks, script registration, or broader feature validation
+  - expanded into Redis server-version checks and required-feature validation
+  - not yet expanded into script registration
 
 ### Storage Model
 
@@ -411,6 +420,21 @@ Redis should not be judged by whether it can imitate each JDBC strategy literall
   - the first persistence operation bootstraps it
 - Incompatible or incomplete namespace metadata is now rejected with `PersistenceException`.
 
+### Done: Redis server-version and required-feature validation
+
+- Bootstrap now validates Redis server compatibility before namespace use.
+- Current validation proves:
+  - `INFO server` contains a parseable `redis_version`
+  - the version is above the current conservative minimum support floor
+  - the Redis instance supports the command families the current backend actively uses:
+    - sequence/increment
+    - string
+    - hash
+    - set
+    - sorted-set
+- These checks are run on eager init and on lazy first-use init.
+- Current bootstrap still does not register Lua scripts or Redis Functions; that remains a later atomicity step.
+
 ### Done: builder-level pool tuning and explicit client configuration
 
 - The Redis builder now supports explicit tuning for internally managed Redis clients:
@@ -606,6 +630,13 @@ This is meaningful because it shows the current itemized storage and reconstruct
   - covers shared-client behavior for `copy()`
   - covers externally supplied `JedisPooled` ownership semantics
 
+- `RedisBootstrapValidatorTest`
+  - covers version parsing
+  - covers malformed and missing version info
+  - covers minimum-version rejection
+  - covers required-feature probe success and failure cleanup behavior
+  - covers live Redis compatibility validation
+
 ### Persistence Contract Tests
 
 - `RedisPersistenceTest`
@@ -684,13 +715,13 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ### Medium Complexity
 
-- Extend bootstrap semantics beyond namespace metadata validation.
+- Extend bootstrap semantics from current compatibility validation into script/function bootstrap.
   - Candidate scope:
-    - Redis server-version checks
-    - required command/feature validation
     - script/function registration
+    - script/function version markers in namespace metadata
+    - validation that expected loaded scripts/functions are present
   - Why medium:
-    - the namespace semantics are now in place, but deeper compatibility checks still need to be decided carefully
+    - the current compatibility checks are now in place, but atomic-operation infrastructure still needs a bootstrap home
 
 - Optimize `BY_PRIORITY_AND_ID` if Redis replay volume makes the current Java-side sort too expensive.
   - Candidate scope:
@@ -779,7 +810,7 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 1. Broaden recovery and cleanup proof beyond the currently covered READY and CANCELED paths.
 2. Clarify and then prove timeout-driven recovery semantics, including whether additional timeout-action wiring is required for Redis `PersistentConveyor` cleanup.
-3. Extend bootstrap semantics with Redis server-version and required-feature validation.
+3. Extend bootstrap semantics into script/function registration once the atomic Redis operations are designed.
 4. Move save/archive operations toward Lua or Redis Functions for atomicity.
 5. Revisit whether `BY_PRIORITY_AND_ID` needs an optimized Redis-side index or if the current Java-side sort remains sufficient.
 

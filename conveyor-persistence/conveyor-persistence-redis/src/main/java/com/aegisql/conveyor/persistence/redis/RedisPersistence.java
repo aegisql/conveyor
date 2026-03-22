@@ -407,6 +407,7 @@ public class RedisPersistence<K> implements Persistence<K> {
             if (initialized.get()) {
                 return;
             }
+            RedisBootstrapValidator.RedisServerVersion serverVersion = RedisBootstrapValidator.validate(jedis, namespace);
             Map<String, String> namespaceMeta = jedis.hgetAll(metaKey());
             if (namespaceMeta.isEmpty()) {
                 bootstrapNamespaceMetadata();
@@ -420,7 +421,7 @@ public class RedisPersistence<K> implements Persistence<K> {
             trackKey(expiringIdsKey());
             trackKey(completedKeysKey());
             initialized.set(true);
-            LOG.trace("Ensured Redis namespace bootstrap for {}", namespace);
+            LOG.trace("Ensured Redis namespace bootstrap for {} on server {}", namespace, serverVersion);
         }
     }
 

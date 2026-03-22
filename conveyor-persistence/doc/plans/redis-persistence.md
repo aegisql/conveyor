@@ -214,6 +214,12 @@ It should mean:
 - load/register scripts or functions
 - validate Redis version and required commands/features
 
+Current implementation status:
+- namespace bootstrap is implemented
+- Redis version parsing and conservative minimum-version validation are implemented
+- required command-family probes for the current backend are implemented
+- script/function registration is not implemented yet
+
 It should not mean:
 - create database
 - create schema
