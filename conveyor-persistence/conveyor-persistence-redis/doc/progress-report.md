@@ -15,7 +15,12 @@
 - The implementation is not yet at JDBC parity.
 - Payload encryption now uses the same modernized shared protection core as JDBC.
 - The storage model now uses itemized cart metadata plus value payload bytes instead of storing the whole cart as one blob.
-- Current Redis archiving is delete-oriented only.
+- Current Redis archiving now supports:
+  - `DELETE`
+  - `NO_ACTION`
+  - `MOVE_TO_PERSISTENCE`
+  - `MOVE_TO_FILE`
+  - `SET_ARCHIVED` is intentionally unsupported
 - Current Redis writes are multi-command operations, not Lua/function-backed atomic units.
 - Current Redis restore behavior is now explicitly configurable and proven for:
   - `BY_ID`
@@ -209,7 +214,7 @@ Important note:
 - JDBC today:
   - supports richer archive strategies, including delete-style archiving and other archiver integrations.
 - Redis today:
-  - implements delete-style operations only:
+  - now supports Redis-appropriate archive strategies:
     - `archiveParts`
     - `archiveKeys`
     - `archiveCompleteKeys`
@@ -218,7 +223,101 @@ Important note:
 - Status:
   - partial
   - SPI methods are implemented
-  - strategy parity with JDBC is not implemented
+  - builder-exposed archive support now covers:
+    - `DELETE`
+    - `NO_ACTION`
+    - `MOVE_TO_PERSISTENCE`
+    - `MOVE_TO_FILE`
+  - `CUSTOM` is exposed as an expert path with Redis-specific cleanup caveats
+  - `SET_ARCHIVED` is intentionally unsupported
+
+### Archive Strategy Analysis
+
+The JDBC builder exposes these archive-strategy shapes:
+
+- `DELETE`
+- `NO_ACTION`
+- `SET_ARCHIVED`
+- `MOVE_TO_PERSISTENCE`
+- `MOVE_TO_FILE`
+- `CUSTOM`
+
+Redis should not be judged by whether it can imitate each JDBC strategy literally. The better question is whether the strategy fits the Redis data model cleanly.
+
+#### Clean fit
+
+- `DELETE`
+  - Status:
+    - implemented
+  - Why it fits:
+    - Redis persistence already tracks active/static/expiration/per-key indexes and can remove all related keys directly.
+    - The current Redis record model is built around active data plus deletion, not retained archived state.
+
+- `NO_ACTION`
+  - Status:
+    - implemented
+    - covered by builder and persistence tests
+  - Why it fits:
+    - a no-op archiver is backend-neutral.
+    - It does not fight the Redis data model.
+
+#### Implemented through Redis-specific low-level archive hooks
+
+- `MOVE_TO_PERSISTENCE`
+  - Status:
+    - implemented
+    - covered by persistence tests
+  - Why it fits:
+    - Redis can read carts, write them to another `Persistence<K>`, and then delete from the Redis namespace.
+    - This is a natural non-delete extension when users want hot Redis recovery plus colder long-term persistence.
+  - Implementation note:
+    - Redis now uses Redis-specific low-level archive hooks so move-style archivers can export carts and then delete without recursively calling back into `Persistence.archive...()`.
+
+- `MOVE_TO_FILE`
+  - Status:
+    - implemented
+    - covered by persistence tests
+  - Why it fits:
+    - Redis can stream carts to a binary log or other file sink and then delete them.
+    - The file-format concept is not inherently relational.
+  - Implementation note:
+    - Redis now uses a Redis-specific file archiver built on the same low-level archive hooks as `MOVE_TO_PERSISTENCE`.
+
+- `CUSTOM`
+  - Status:
+    - exposed with caveats
+    - not yet deeply covered by dedicated tests
+  - Why it fits:
+    - the core `Archiver<K>` SPI is backend-neutral.
+  - Main implementation constraint:
+    - a custom Redis archiver still cannot safely call back into `Persistence.archive...()` for final deletion without risking recursion.
+    - In practice this means custom archivers are useful only if they:
+      - are true terminal/no-op behaviors, or
+      - have Redis-aware low-level delete helpers available.
+
+#### Poor fit for the current Redis model
+
+- `SET_ARCHIVED`
+  - Status:
+    - technically possible
+    - not recommended for the current Redis backend
+  - Why it is a poor fit:
+    - the current Redis data layout is organized around active/static/expiration indexes plus deletion.
+    - Supporting retained archived state would require new semantics and likely new indexes for:
+      - archived membership
+      - read filtering
+      - expiration/archive interaction
+      - `archiveAll()` meaning under retained state
+    - That adds complexity without leveraging a natural Redis capability the way relational `ARCHIVED` columns do in JDBC.
+  - Recommendation:
+    - treat `SET_ARCHIVED` as a non-goal unless a strong Redis-native use case appears.
+
+#### Recommended Redis stance
+
+- Keep `DELETE` as the default and primary Redis archive strategy.
+- Support `NO_ACTION`, `MOVE_TO_PERSISTENCE`, and `MOVE_TO_FILE` where they fit the user's lifecycle.
+- Keep `CUSTOM` available as an expert path, with explicit caution around Redis-aware cleanup.
+- Do not plan `SET_ARCHIVED` as parity work for Redis.
 
 ### Completed Build Tracking
 
@@ -501,7 +600,7 @@ This is meaningful because it shows the current itemized storage and reconstruct
   - covers acceptance of valid pre-bootstrapped namespace metadata
   - covers rejection of incompatible namespace metadata
   - covers non-persistent filter behavior
-  - covers archive and no-op branches
+  - covers archive-strategy builder branches, including `NO_ACTION`
   - covers serializability enforcement for encoded keys
   - covers the defensive null branch inside internal Redis key encoding
   - covers shared-client behavior for `copy()`
@@ -531,6 +630,9 @@ This is meaningful because it shows the current itemized storage and reconstruct
   - covers recovered cleanup for the current explicit-acknowledge flow when the recovered conveyor drains through `completeAndStop()`
   - covers recovered cleanup for the current CANCELED path when the recovered conveyor drains through `completeAndStop()`
   - covers delete-style archive methods
+  - covers `NO_ACTION`
+  - covers `MOVE_TO_PERSISTENCE`
+  - covers `MOVE_TO_FILE`
   - covers `copy()`
   - covers `absorb(...)`
   - covers helper methods that produce `PersistentConveyor`
@@ -555,7 +657,6 @@ This is meaningful because it shows the current itemized storage and reconstruct
 ### Missing Or Partial Compared To JDBC
 
 - broader command-cart coverage beyond the currently proven replay path
-- archive strategy parity beyond delete behavior
 - stronger atomic update behavior for multi-key writes
 - indexed-key protection if the project decides Redis needs more than payload-only protection
 - broader recovery and cleanup coverage beyond the currently proven READY and CANCELED paths
@@ -629,12 +730,13 @@ Complexity here means engineering effort plus semantic risk relative to the curr
   - Why important:
     - this is the main durability/correctness hardening step
 
-- Add archive strategy parity beyond delete behavior.
-  - Candidate scope:
-    - Redis-native equivalent of `SET_ARCHIVED`
-    - archive-to-other-persistence behavior if desired
+- Keep archive strategy documentation and test evidence current.
+  - Current state:
+    - `DELETE`, `NO_ACTION`, `MOVE_TO_PERSISTENCE`, and `MOVE_TO_FILE` are implemented
+    - `CUSTOM` is exposed but still an expert path
+    - `SET_ARCHIVED` is intentionally unsupported and should stay documented as a Redis non-goal
   - Why high:
-    - the current Redis model is built around deletion, not archived-state transitions
+    - archive semantics are easy to misstate because JDBC and Redis are intentionally different here
 
 - Define and prove compatibility with the acknowledgment and cleanup flows behind `PersistentConveyor`.
   - Why high:
@@ -685,7 +787,6 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 - Redis persistence is no longer just a plan. It is a real first backend with working SPI coverage and good early test evidence.
 - The biggest remaining gap is not basic CRUD. The biggest gap is maturity compared to JDBC:
-  - archive strategy breadth
   - recovery breadth beyond the currently proven flows
   - atomic multi-key correctness
 - The module is in a solid v1 development state, but not yet in JDBC-level production-parity territory.

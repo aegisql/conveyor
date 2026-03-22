@@ -304,7 +304,12 @@ Use it when:
 
 Current differences from JDBC:
 
-- current archive behavior is delete-oriented
+- Redis archive behavior now supports:
+  - `DELETE` as the default
+  - `NO_ACTION`
+  - `MOVE_TO_PERSISTENCE`
+  - `MOVE_TO_FILE`
+  - `SET_ARCHIVED` is intentionally unsupported because retained archived-state updates are a poor fit for the current Redis model
 - Redis intentionally does not implement `uniqueFields`; if you need database-enforced uniqueness constraints, choose a JDBC backend
 - restore-order support now includes:
   - `BY_ID` as the default

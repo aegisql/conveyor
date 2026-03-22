@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.persistence.redis;
 
 import com.aegisql.conveyor.cart.ShoppingCart;
+import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import org.junit.jupiter.api.Assumptions;
@@ -33,6 +34,7 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         String name = testNamespace("builder-validation");
         RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(name);
         assertEquals(RestoreOrder.BY_ID, builder.restoreOrder());
+        assertEquals(ArchiveStrategy.DELETE, builder.archiveStrategy());
         assertThrows(NullPointerException.class, () -> builder.redisUri(null));
         assertThrows(NullPointerException.class, () -> builder.jedis(null));
         assertThrows(NullPointerException.class, () -> builder.nonPersistentProperty(null));
@@ -49,6 +51,7 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         assertThrows(IllegalArgumentException.class, () -> builder.blockingSocketTimeoutMillis(0));
         assertThrows(IllegalArgumentException.class, () -> builder.database(-1));
         assertEquals(RestoreOrder.BY_PRIORITY_AND_ID, builder.restoreOrder(RestoreOrder.BY_PRIORITY_AND_ID).restoreOrder());
+        assertEquals(ArchiveStrategy.NO_ACTION, builder.noArchiving().archiveStrategy());
 
         String namespaceMetaKey = namespaceMetaKey(name);
         try (JedisPooled jedis = openRedis()) {

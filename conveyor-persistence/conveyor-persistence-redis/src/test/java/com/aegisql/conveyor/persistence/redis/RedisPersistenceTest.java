@@ -15,16 +15,23 @@ import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
+import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
+import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
+import com.aegisql.conveyor.persistence.utils.CartInputStream;
 import com.aegisql.conveyor.serial.SerializablePredicate;
 import org.junit.jupiter.api.Test;
 import redis.clients.jedis.JedisPooled;
 
+import java.io.FileInputStream;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -191,6 +198,113 @@ class RedisPersistenceTest extends RedisTestSupport {
             assertEquals(0L, persistence.getNumberOfParts());
             assertEquals(1L, persistence.nextUniquePartId());
         }
+    }
+
+    @Test
+    void supportsNoActionArchiveStrategy() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("no-action-archive");
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(name).noArchiving().build()) {
+            long now = System.currentTimeMillis();
+            persistence.archiveAll();
+
+            long activeId = persistence.nextUniquePartId();
+            long expiredId = persistence.nextUniquePartId();
+            persistence.savePart(activeId, new ShoppingCart<>(11, "active", "A"));
+            persistence.savePart(expiredId, new ShoppingCart<>(12, "expired", "E", now, now - 10, null, LoadType.PART, 0));
+            persistence.saveCompletedBuildKey(11);
+
+            persistence.archiveParts(List.of(activeId));
+            persistence.archiveCompleteKeys(Set.of(11));
+            persistence.archiveExpiredParts();
+            persistence.archiveAll();
+
+            assertNotNull(persistence.getPart(activeId));
+            assertNotNull(persistence.getPart(expiredId));
+            assertEquals(Set.of(11), persistence.getCompletedKeys());
+            assertEquals(2L, persistence.getNumberOfParts());
+        } finally {
+            try (Persistence<Integer> cleanup = new RedisPersistenceBuilder<Integer>(name).build()) {
+                cleanup.archiveAll();
+            }
+        }
+    }
+
+    @Test
+    void movesArchivedDataToAnotherPersistence() throws Exception {
+        openRedis().close();
+
+        String sourceName = testNamespace("move-to-persistence-source");
+        String targetName = testNamespace("move-to-persistence-target");
+
+        try (Persistence<Integer> target = new RedisPersistenceBuilder<Integer>(targetName).build();
+             Persistence<Integer> source = new RedisPersistenceBuilder<Integer>(sourceName).archiver(target).build()) {
+            source.archiveAll();
+            target.archiveAll();
+
+            long activeId = source.nextUniquePartId();
+            long staticId = source.nextUniquePartId();
+            source.savePart(activeId, new ShoppingCart<>(21, "active-value", "ACTIVE"));
+            source.savePart(staticId, new ShoppingCart<>(null, "static-value", "STATIC",
+                    System.currentTimeMillis(), 0, null, LoadType.STATIC_PART, 0));
+            source.saveCompletedBuildKey(21);
+
+            source.archiveAll();
+
+            assertTrue(source.getAllParts().isEmpty());
+            assertTrue(source.getAllStaticParts().isEmpty());
+            assertTrue(source.getCompletedKeys().isEmpty());
+            assertEquals(0L, source.getNumberOfParts());
+
+            assertEquals(List.of("active-value"), target.getAllParts().stream().map(Cart::getValue).toList());
+            assertEquals(List.of("static-value"), target.getAllStaticParts().stream().map(Cart::getValue).toList());
+            assertTrue(target.getCompletedKeys().isEmpty());
+            assertEquals(2L, target.getNumberOfParts());
+        }
+    }
+
+    @Test
+    void movesArchivedDataToBinaryLogFile() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("move-to-file");
+        Path archiveDir = Path.of("target", "redis-archive-tests", name);
+        BinaryLogConfiguration configuration = BinaryLogConfiguration.builder()
+                .path(archiveDir.toString())
+                .moveToPath(archiveDir.toString())
+                .partTableName("redis-file")
+                .maxFileSize("10MB")
+                .build();
+
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(name).archiver(configuration).build()) {
+            persistence.archiveAll();
+            persistence.savePart(persistence.nextUniquePartId(), new ShoppingCart<>(31, "first-file-value", "F1"));
+            persistence.savePart(persistence.nextUniquePartId(), new ShoppingCart<>(32, "second-file-value", "F2"));
+            persistence.saveCompletedBuildKey(31);
+
+            persistence.archiveAll();
+
+            assertTrue(persistence.getAllParts().isEmpty());
+            assertTrue(persistence.getCompletedKeys().isEmpty());
+            assertEquals(0L, persistence.getNumberOfParts());
+        }
+
+        Path archiveFile = archiveDir.resolve("redis-file.blog");
+        assertTrue(Files.exists(archiveFile));
+        assertTrue(Files.size(archiveFile) > 0L);
+
+        ArrayList<Cart<Integer, ?, Object>> carts = new ArrayList<>();
+        try (FileInputStream fileInputStream = new FileInputStream(archiveFile.toFile());
+             CartInputStream<Integer, Object> cartInputStream =
+                     new CartInputStream<>(castCartConverter(new ConverterAdviser<>()), fileInputStream)) {
+            Cart<Integer, ?, Object> cart;
+            while ((cart = cartInputStream.readCart()) != null) {
+                carts.add(cart);
+            }
+        }
+
+        assertEquals(List.of("first-file-value", "second-file-value"), carts.stream().map(Cart::getValue).toList());
     }
 
     @Test
@@ -961,5 +1075,10 @@ class RedisPersistenceTest extends RedisTestSupport {
         public BiConsumer<OrderedReplayBuilder, Object> get() {
             return inner.get();
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static CartToBytesConverter<Integer, ?, Object> castCartConverter(ConverterAdviser<?> adviser) {
+        return (CartToBytesConverter<Integer, ?, Object>) (CartToBytesConverter<?, ?, ?>) new CartToBytesConverter<>(adviser);
     }
 }

@@ -20,7 +20,12 @@ The current implementation:
 - keeps the authoritative cart metadata in `conv:{name}:part:{id}:meta`
 - supports optional payload encryption through the same shared encryption builder pattern used by JDBC
 - maintains Redis-native indexes for active parts, static parts, expirations, per-key part ids, and completed keys
-- implements delete-style archive operations
+- supports Redis-appropriate archive strategies:
+  - `DELETE`
+  - `NO_ACTION`
+  - `MOVE_TO_PERSISTENCE`
+  - `MOVE_TO_FILE`
+- intentionally does not support `SET_ARCHIVED`
 - supports both internally managed and externally supplied `JedisPooled` clients
 - supports builder-level Redis pool and client tuning for owned clients:
   - `maxTotal`
@@ -89,7 +94,11 @@ Override options:
 - Builder-level connection configuration is now broader than URI-only setup:
   - owned clients can be tuned through pool sizing, timeouts, database selection, client name, authentication, and SSL flags
   - externally supplied `JedisPooled` clients are still supported and remain the right choice when the host application owns Redis infrastructure configuration
-- Current persistence behavior is intentionally delete-oriented; archive-to-other-persistence behavior is not implemented yet.
+- Archive behavior is now broader than the initial delete-only Redis stub:
+  - `DELETE` remains the default
+  - `NO_ACTION` is exposed through the builder
+  - `MOVE_TO_PERSISTENCE` and `MOVE_TO_FILE` are implemented through Redis-specific low-level archive hooks
+  - `SET_ARCHIVED` is intentionally unsupported because retained archived-state updates are a poor fit for the current Redis model
 - Command-cart replay is now explicitly covered for the current recovered-command path.
 - End-to-end recovery is now explicitly covered for the current restart-and-finish path, for recovered explicit acknowledgments, and for the current recovered cleanup paths.
 - Current restore behavior is explicitly configurable and proven:

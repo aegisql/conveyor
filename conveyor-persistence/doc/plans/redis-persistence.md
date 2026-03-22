@@ -174,6 +174,35 @@ Rationale:
 
 This difference should be explicit in docs, plans, and backend-selection guidance.
 
+## Archive Strategy Analysis
+
+- `DELETE`
+  - clean Redis fit
+  - already implemented
+- `NO_ACTION`
+  - clean fit
+  - implemented
+- `MOVE_TO_PERSISTENCE`
+  - feasible and meaningful for Redis
+  - implemented through Redis-specific low-level archive hooks
+- `MOVE_TO_FILE`
+  - feasible and meaningful for Redis
+  - implemented through the same Redis-specific low-level archive hooks
+- `CUSTOM`
+  - feasible with caveats
+  - safe only when the custom implementation has Redis-aware low-level cleanup, or when it is truly terminal/no-op
+- `SET_ARCHIVED`
+  - technically possible but a poor fit for the current Redis model
+  - should not be treated as required parity
+
+Recommended direction:
+
+- keep `DELETE` as the primary Redis archive strategy
+- support `NO_ACTION` where users want Redis persistence to remain untouched
+- support `MOVE_TO_PERSISTENCE` and `MOVE_TO_FILE` through Redis-specific low-level archive hooks
+- treat `CUSTOM` as an expert path that still needs Redis-aware cleanup discipline
+- treat `SET_ARCHIVED` as a non-goal unless a strong Redis-native requirement appears
+
 ## Initialization Semantics
 For Redis, `autoInit(true)` should be reinterpreted.
 
@@ -214,7 +243,8 @@ Otherwise, completed-log and stored-cart correctness can be lost.
   - no cluster support in v1
   - `BY_ID` required
   - `DELETE` archive required
-  - decide whether `SET_ARCHIVED` is v1 or v2
+  - keep `DELETE` as the required default archive strategy
+  - treat `SET_ARCHIVED` as a non-goal for the current Redis model
   - explicitly document that Redis does not support `uniqueFields`
 
 ### Phase 1: Minimal Working Backend
@@ -245,10 +275,13 @@ Otherwise, completed-log and stored-cart correctness can be lost.
   - restore order
 
 ### Phase 3: Advanced Parity
-- `SET_ARCHIVED`
 - optimized `BY_PRIORITY_AND_ID`
 - cluster support
-- broader archiver parity
+- broader archiver support where it fits Redis naturally:
+  - `NO_ACTION`
+  - `MOVE_TO_PERSISTENCE`
+  - `MOVE_TO_FILE`
+  - `CUSTOM` with Redis-aware cleanup discipline
 
 ## What Not To Do
 - Do not add `redis` as another `JdbcPersistenceBuilder.engineType(...)`.
@@ -257,7 +290,6 @@ Otherwise, completed-log and stored-cart correctness can be lost.
 - Do not target Redis Cluster in v1.
 
 ## Open Questions
-- Should v1 support only `DELETE` archive, or also `SET_ARCHIVED`?
 - Should cart values be stored as binary strings directly, or split into metadata hash plus separate binary value key as proposed here?
 - Should standalone Redis logical database selection be supported, or should the builder use only URI + namespace?
 - Is Redis intended here as durable persistence, fast recovery cache, or both?

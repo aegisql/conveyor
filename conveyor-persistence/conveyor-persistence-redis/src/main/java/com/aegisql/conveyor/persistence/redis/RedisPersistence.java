@@ -11,12 +11,19 @@ import com.aegisql.conveyor.cart.ResultConsumerCart;
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
 import com.aegisql.conveyor.consumers.result.ResultConsumer;
+import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
+import com.aegisql.conveyor.persistence.archive.Archiver;
+import com.aegisql.conveyor.persistence.archive.DoNothingArchiver;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.converters.EncryptingConverter;
 import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.redis.archive.DeleteRedisArchiver;
+import com.aegisql.conveyor.persistence.redis.archive.FileRedisArchiver;
+import com.aegisql.conveyor.persistence.redis.archive.PersistenceRedisArchiver;
+import com.aegisql.conveyor.persistence.redis.archive.RedisArchiveAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPooled;
@@ -53,11 +60,13 @@ public class RedisPersistence<K> implements Persistence<K> {
     private final long maxArchiveBatchTime;
     private final Set<String> nonPersistentProperties;
     private final Predicate<Cart<K, ?, ?>> persistentPartFilter;
+    private final RedisPersistenceBuilder.ArchiveOptions<K> archiveOptions;
     private final SerializableToBytesConverter<Serializable> serializableConverter = new SerializableToBytesConverter<>();
     private final EncryptingConverter payloadEncryptor;
     private final ConverterAdviser<Object> plainConverterAdviser = new ConverterAdviser<>();
     private final ConverterAdviser<Object> payloadConverterAdviser;
     private final AtomicBoolean initialized;
+    private final Archiver<K> archiver;
 
     RedisPersistence(RedisPersistenceBuilder<K> builder) {
         this(builder, builder.jedis() == null
@@ -75,11 +84,14 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.maxArchiveBatchTime = builder.maxArchiveBatchTime();
         this.nonPersistentProperties = builder.nonPersistentProperties();
         this.persistentPartFilter = builder.persistentPartFilter();
+        this.archiveOptions = builder.archiveOptions();
         this.payloadEncryptor = builder.encryptionBuilder().get();
         this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor);
         this.clientHandle = clientHandle;
         this.jedis = clientHandle.jedis();
         this.initialized = new AtomicBoolean(false);
+        this.archiver = buildArchiver();
+        this.archiver.setPersistence(this);
     }
 
     private RedisPersistence(RedisPersistence<K> source) {
@@ -92,11 +104,14 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.maxArchiveBatchTime = source.maxArchiveBatchTime;
         this.nonPersistentProperties = source.nonPersistentProperties;
         this.persistentPartFilter = source.persistentPartFilter;
+        this.archiveOptions = source.archiveOptions;
         this.payloadEncryptor = source.payloadEncryptor;
         this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor);
         this.clientHandle = source.clientHandle.retain();
         this.jedis = clientHandle.jedis();
         this.initialized = source.initialized;
+        this.archiver = buildArchiver();
+        this.archiver.setPersistence(this);
     }
 
     private static ConverterAdviser<Object> newPayloadConverterAdviser(EncryptingConverter payloadEncryptor) {
@@ -309,92 +324,31 @@ public class RedisPersistence<K> implements Persistence<K> {
     @Override
     public void archiveParts(Collection<Long> ids) {
         ensureInitialized();
-        if (ids == null || ids.isEmpty()) {
-            LOG.trace("archiveParts called with no ids for namespace={}", namespace);
-            return;
-        }
-        LinkedHashSet<Long> uniqueIds = new LinkedHashSet<>(ids);
-        LOG.debug("Archiving {} parts by id from namespace={}", uniqueIds.size(), namespace);
-        LOG.trace("Archiving part ids={}", uniqueIds);
-        for (Long id : uniqueIds) {
-            String idMember = Long.toString(id);
-            String reverseIndexKey = reverseKeyIndexKey(id);
-            for (String encodedKey : jedis.smembers(reverseIndexKey)) {
-                String partIdsKey = partIdsByKeyKey(encodedKey);
-                jedis.zrem(partIdsKey, idMember);
-                if (jedis.zcard(partIdsKey) == 0) {
-                    jedis.del(partIdsKey);
-                }
-            }
-            jedis.del(reverseIndexKey);
-            jedis.zrem(activeIdsKey(), idMember);
-            jedis.zrem(staticIdsKey(), idMember);
-            jedis.zrem(expiringIdsKey(), idMember);
-            jedis.del(payloadKey(id), metaKey(id));
-        }
+        archiver.archiveParts(ids);
     }
 
     @Override
     public void archiveKeys(Collection<K> keys) {
         ensureInitialized();
-        if (keys == null || keys.isEmpty()) {
-            LOG.trace("archiveKeys called with no keys for namespace={}", namespace);
-            return;
-        }
-        LinkedHashSet<Long> ids = new LinkedHashSet<>();
-        LOG.debug("Archiving {} cart keys from namespace={}", keys.size(), namespace);
-        LOG.trace("Archiving cart keys={}", keys);
-        for (K key : keys) {
-            if (key == null) {
-                continue;
-            }
-            String encodedKey = encodeSerializable(key);
-            ids.addAll(getAllPartIds(key));
-            jedis.del(partIdsByKeyKey(encodedKey));
-        }
-        archiveParts(ids);
+        archiver.archiveKeys(keys);
     }
 
     @Override
     public void archiveCompleteKeys(Collection<K> keys) {
         ensureInitialized();
-        if (keys == null || keys.isEmpty()) {
-            LOG.trace("archiveCompleteKeys called with no keys for namespace={}", namespace);
-            return;
-        }
-        String[] encodedKeys = keys.stream()
-                .filter(Objects::nonNull)
-                .map(this::encodeSerializable)
-                .toArray(String[]::new);
-        if (encodedKeys.length > 0) {
-            LOG.debug("Archiving {} completed keys from namespace={}", encodedKeys.length, namespace);
-            jedis.srem(completedKeysKey(), encodedKeys);
-        }
+        archiver.archiveCompleteKeys(keys);
     }
 
     @Override
     public void archiveExpiredParts() {
         ensureInitialized();
-        List<Long> ids = jedis.zrangeByScore(expiringIdsKey(), Double.NEGATIVE_INFINITY, System.currentTimeMillis())
-                .stream()
-                .map(Long::parseLong)
-                .toList();
-        LOG.debug("Archiving expired parts count={} namespace={}", ids.size(), namespace);
-        LOG.trace("Expired part ids to archive={}", ids);
-        archiveParts(ids);
+        archiver.archiveExpiredParts();
     }
 
     @Override
     public void archiveAll() {
         ensureInitialized();
-        Set<String> trackedKeys = jedis.smembers(trackerKey());
-        LOG.debug("Archiving all Redis persistence data for namespace={} trackedKeys={}", namespace, trackedKeys.size());
-        LOG.trace("Tracked Redis keys scheduled for deletion={}", trackedKeys);
-        if (!trackedKeys.isEmpty()) {
-            jedis.del(trackedKeys.toArray(String[]::new));
-        }
-        jedis.del(trackerKey());
-        initialized.set(false);
+        archiver.archiveAll();
     }
 
     @Override
@@ -470,6 +424,45 @@ public class RedisPersistence<K> implements Persistence<K> {
         }
     }
 
+    private Archiver<K> buildArchiver() {
+        Archiver<K> builtArchiver = switch (archiveOptions.archiveStrategy()) {
+            case CUSTOM -> archiveOptions.customArchiver();
+            case DELETE -> new DeleteRedisArchiver<>(newArchiveAccess());
+            case MOVE_TO_PERSISTENCE -> new PersistenceRedisArchiver<>(newArchiveAccess(), archiveOptions.archivingPersistence());
+            case MOVE_TO_FILE -> new FileRedisArchiver<>(newArchiveAccess(), archiveOptions.binaryLogConfiguration());
+            case NO_ACTION -> new DoNothingArchiver<>();
+            case SET_ARCHIVED -> throw new PersistenceException("SET_ARCHIVED is intentionally unsupported for Redis persistence");
+        };
+        if (builtArchiver == null) {
+            throw new PersistenceException("Redis archive strategy " + archiveOptions.archiveStrategy() + " is not configured correctly");
+        }
+        return builtArchiver;
+    }
+
+    private RedisArchiveAccess<K> newArchiveAccess() {
+        return new RedisArchiveAccess<>() {
+            @Override
+            public void deleteParts(Collection<Long> ids) {
+                deletePartsInternal(ids);
+            }
+
+            @Override
+            public void deleteCompletedKeys(Collection<K> keys) {
+                deleteCompletedKeysInternal(keys);
+            }
+
+            @Override
+            public void deleteAll() {
+                deleteAllInternal();
+            }
+
+            @Override
+            public Collection<Long> expiredPartIds() {
+                return expiredPartIdsInternal();
+            }
+        };
+    }
+
     private void bootstrapNamespaceMetadata() {
         LOG.debug("Bootstrapping Redis namespace metadata for {}", namespace);
         jedis.hset(metaKey(), Map.of(
@@ -509,6 +502,68 @@ public class RedisPersistence<K> implements Persistence<K> {
             }
         });
         return properties;
+    }
+
+    private void deletePartsInternal(Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            LOG.trace("archiveParts called with no ids for namespace={}", namespace);
+            return;
+        }
+        LinkedHashSet<Long> uniqueIds = new LinkedHashSet<>(ids);
+        LOG.debug("Deleting {} archived parts by id from namespace={} strategy={}", uniqueIds.size(), namespace, archiveOptions.archiveStrategy());
+        LOG.trace("Deleting archived part ids={}", uniqueIds);
+        for (Long id : uniqueIds) {
+            String idMember = Long.toString(id);
+            String reverseIndexKey = reverseKeyIndexKey(id);
+            for (String encodedKey : jedis.smembers(reverseIndexKey)) {
+                String partIdsKey = partIdsByKeyKey(encodedKey);
+                jedis.zrem(partIdsKey, idMember);
+                if (jedis.zcard(partIdsKey) == 0) {
+                    jedis.del(partIdsKey);
+                }
+            }
+            jedis.del(reverseIndexKey);
+            jedis.zrem(activeIdsKey(), idMember);
+            jedis.zrem(staticIdsKey(), idMember);
+            jedis.zrem(expiringIdsKey(), idMember);
+            jedis.del(payloadKey(id), metaKey(id));
+        }
+    }
+
+    private void deleteCompletedKeysInternal(Collection<K> keys) {
+        if (keys == null || keys.isEmpty()) {
+            LOG.trace("archiveCompleteKeys called with no keys for namespace={}", namespace);
+            return;
+        }
+        String[] encodedKeys = keys.stream()
+                .filter(Objects::nonNull)
+                .map(this::encodeSerializable)
+                .toArray(String[]::new);
+        if (encodedKeys.length > 0) {
+            LOG.debug("Deleting {} completed keys from namespace={} strategy={}", encodedKeys.length, namespace, archiveOptions.archiveStrategy());
+            jedis.srem(completedKeysKey(), encodedKeys);
+        }
+    }
+
+    private Collection<Long> expiredPartIdsInternal() {
+        List<Long> ids = jedis.zrangeByScore(expiringIdsKey(), Double.NEGATIVE_INFINITY, System.currentTimeMillis())
+                .stream()
+                .map(Long::parseLong)
+                .toList();
+        LOG.debug("Collected {} expired part ids from namespace={} strategy={}", ids.size(), namespace, archiveOptions.archiveStrategy());
+        LOG.trace("Expired part ids={}", ids);
+        return ids;
+    }
+
+    private void deleteAllInternal() {
+        Set<String> trackedKeys = jedis.smembers(trackerKey());
+        LOG.debug("Deleting all Redis persistence data for namespace={} trackedKeys={} strategy={}", namespace, trackedKeys.size(), archiveOptions.archiveStrategy());
+        LOG.trace("Tracked Redis keys scheduled for deletion={}", trackedKeys);
+        if (!trackedKeys.isEmpty()) {
+            jedis.del(trackedKeys.toArray(String[]::new));
+        }
+        jedis.del(trackerKey());
+        initialized.set(false);
     }
 
     private <L> Collection<Cart<K, ?, L>> loadCarts(Collection<String> idMembers) {
