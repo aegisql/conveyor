@@ -56,6 +56,8 @@ Tests currently cover:
 - recovered explicit-acknowledge handle delivery for completed builds
 - recovered cleanup for the current READY-path auto-ack and explicit-ack completed builds when the recovered conveyor is allowed to drain cleanly
 - recovered cleanup for the current CANCELED path when a recovered build is explicitly canceled and the conveyor is allowed to drain cleanly
+- recovered cleanup for the current TIMED_OUT path when the recovered conveyor auto-acknowledges `TIMED_OUT` and is allowed to drain cleanly
+- recovered cleanup for the current timeout-action `INVALID` path when the recovered conveyor auto-acknowledges `INVALID` and is allowed to drain cleanly
 - explicit Redis restore-order support:
   - `BY_ID` as the default
   - `NO_ORDER` as backend iteration order with no extra re-sorting
@@ -117,8 +119,9 @@ Override options:
 - Cleanup and acknowledgment parity are still not as broad as JDBC:
   - the current READY-path recovery and cleanup behavior is now proven
   - the current recovered CANCELED cleanup behavior is now proven
-  - timeout-driven recovery cleanup is still not proven
-  - broader status coverage and recovery modes still need evidence
+  - the current recovered TIMED_OUT cleanup behavior is now proven when the recovered conveyor auto-acknowledges `TIMED_OUT`
+  - the current recovered timeout-action `INVALID` cleanup behavior is now proven when the recovered conveyor auto-acknowledges `INVALID`
+  - broader recovery-mode coverage still needs evidence
 - The current reader still accepts the earlier whole-cart Redis format for backward compatibility.
 - New itemized writes no longer mirror value bytes into `:meta.valueData`.
 - The reader still accepts the earlier mirrored itemized value layout when older Redis data contains `valueData`.

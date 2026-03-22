@@ -1,10 +1,12 @@
 package com.aegisql.conveyor.persistence.redis;
 
 import com.aegisql.conveyor.Acknowledge;
+import com.aegisql.conveyor.AcknowledgeStatus;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.CommandLabel;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.SmartLabel;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
@@ -36,12 +38,14 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javax.crypto.SecretKey;
@@ -518,6 +522,119 @@ class RedisPersistenceTest extends RedisTestSupport {
     }
 
     @Test
+    void recoveredBuildTimedOutStatusCleansRedisState() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("persistent-timeout-cleanup");
+        try (Persistence<Integer> cleanup = newRecoveryPersistence(name)) {
+            cleanup.archiveAll();
+        }
+
+        Persistence<Integer> firstPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> first =
+                firstPersistence.wrapConveyor(newRecoveryConveyor("redis-timeout-first", new ConcurrentHashMap<>(), null, false));
+        try {
+            first.part().id(7).label(RecoveryPart.LEFT).value("timeout-left").place().join();
+            first.part().id(7).label(RecoveryPart.RIGHT).value("timeout-right").place().join();
+        } finally {
+            first.stop();
+        }
+
+        Map<Integer, String> recoveredResults = new ConcurrentHashMap<>();
+        List<AcknowledgeStatus<Integer>> statuses = Collections.synchronizedList(new ArrayList<>());
+        List<ScrapBin<Integer, ?>> scraps = Collections.synchronizedList(new ArrayList<>());
+        AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> recoveredForward =
+                newRecoveryConveyor("redis-timeout-second", recoveredResults, null, Duration.ofMillis(250), Status.TIMED_OUT);
+        recoveredForward.addBeforeKeyEvictionAction(statuses::add);
+        recoveredForward.scrapConsumer(scrap -> scraps.add((ScrapBin<Integer, ?>) scrap)).set();
+
+        Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
+                secondPersistence.wrapConveyor(recoveredForward);
+        try {
+            awaitTrue(() -> statuses.stream().anyMatch(status -> status.getKey() == 7 && status.getStatus() == Status.TIMED_OUT),
+                    "Recovered incomplete build should eventually expire with TIMED_OUT status");
+            awaitTrue(() -> scraps.stream().anyMatch(scrap ->
+                            scrap.key.equals(7)
+                                    && scrap.failureType == ScrapBin.FailureType.BUILD_EXPIRED
+                                    && scrap.comment.startsWith("Site expired. No timeout action")),
+                    "Recovered timed out build should publish BUILD_EXPIRED scrap without a timeout action");
+            assertTrue(recoveredResults.isEmpty(), "Recovered timed out build should not produce a READY result");
+        } finally {
+            second.completeAndStop().join();
+        }
+
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
+            awaitTrue(() -> inspector.getAllPartIds(7).isEmpty()
+                            && inspector.getAllParts().isEmpty()
+                            && inspector.getCompletedKeys().isEmpty()
+                            && inspector.getAllStaticParts().isEmpty(),
+                    "Recovered timed out build should cleanup Redis persistence state after the conveyor drains cleanly");
+        }
+    }
+
+    @Test
+    void recoveredBuildInvalidStatusCleansRedisStateWhenTimeoutActionFails() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("persistent-invalid-cleanup");
+        try (Persistence<Integer> cleanup = newRecoveryPersistence(name)) {
+            cleanup.archiveAll();
+        }
+
+        Persistence<Integer> firstPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> first =
+                firstPersistence.wrapConveyor(newRecoveryConveyor("redis-invalid-first", new ConcurrentHashMap<>(), null, false));
+        try {
+            first.part().id(8).label(RecoveryPart.LEFT).value("invalid-left").place().join();
+            first.part().id(8).label(RecoveryPart.RIGHT).value("invalid-right").place().join();
+        } finally {
+            first.stop();
+        }
+
+        Map<Integer, String> recoveredResults = new ConcurrentHashMap<>();
+        List<AcknowledgeStatus<Integer>> statuses = Collections.synchronizedList(new ArrayList<>());
+        List<ScrapBin<Integer, ?>> scraps = Collections.synchronizedList(new ArrayList<>());
+        AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> recoveredForward =
+                newRecoveryConveyor(
+                        "redis-invalid-second",
+                        recoveredResults,
+                        null,
+                        Duration.ofMillis(250),
+                        supplier -> {
+                            throw new IllegalStateException("recovered timeout failure");
+                        },
+                        Status.INVALID);
+        recoveredForward.addBeforeKeyEvictionAction(statuses::add);
+        recoveredForward.scrapConsumer(scrap -> scraps.add((ScrapBin<Integer, ?>) scrap)).set();
+
+        Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
+                secondPersistence.wrapConveyor(recoveredForward);
+        try {
+            awaitTrue(() -> statuses.stream().anyMatch(status -> status.getKey() == 8 && status.getStatus() == Status.INVALID),
+                    "Recovered timeout-action failure should eventually mark the build INVALID");
+            awaitTrue(() -> scraps.stream().anyMatch(scrap ->
+                            scrap.key.equals(8)
+                                    && scrap.failureType == ScrapBin.FailureType.BUILD_EXPIRED
+                                    && scrap.comment.startsWith("Timeout processor failed ")
+                                    && scrap.error instanceof IllegalStateException),
+                    "Recovered timeout-action failure should publish BUILD_EXPIRED scrap with the thrown error");
+            assertTrue(recoveredResults.isEmpty(), "Recovered invalid build should not produce a READY result");
+        } finally {
+            second.completeAndStop().join();
+        }
+
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
+            awaitTrue(() -> inspector.getAllPartIds(8).isEmpty()
+                            && inspector.getAllParts().isEmpty()
+                            && inspector.getCompletedKeys().isEmpty()
+                            && inspector.getAllStaticParts().isEmpty(),
+                    "Recovered invalid build should cleanup Redis persistence state after the conveyor drains cleanly");
+        }
+    }
+
+    @Test
     void supportsAbsorbDefaultMethod() throws Exception {
         openRedis().close();
 
@@ -956,11 +1073,24 @@ class RedisPersistenceTest extends RedisTestSupport {
             AtomicReference<Acknowledge> acknowledgeRef,
             Duration builderTimeout,
             Status... autoAcknowledgeStatuses) {
+        return newRecoveryConveyor(name, results, acknowledgeRef, builderTimeout, null, autoAcknowledgeStatuses);
+    }
+
+    private static AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> newRecoveryConveyor(
+            String name,
+            Map<Integer, String> results,
+            AtomicReference<Acknowledge> acknowledgeRef,
+            Duration builderTimeout,
+            Consumer<Supplier<? extends String>> timeoutAction,
+            Status... autoAcknowledgeStatuses) {
         AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> conveyor = new AssemblingConveyor<>();
         conveyor.setName(name);
         conveyor.setBuilderSupplier(RecoveryBuilder::new);
         if (builderTimeout != null) {
             conveyor.setDefaultBuilderTimeout(builderTimeout);
+        }
+        if (timeoutAction != null) {
+            conveyor.setOnTimeoutAction(timeoutAction);
         }
         conveyor.setReadinessEvaluator(Conveyor.getTesterFor(conveyor)
                 .accepted(RecoveryPart.LEFT, RecoveryPart.RIGHT, RecoveryPart.NUMBER));
@@ -981,12 +1111,14 @@ class RedisPersistenceTest extends RedisTestSupport {
     private static Persistence<Integer> newRecoveryPersistence(String name) {
         return new RedisPersistenceBuilder<Integer>(name)
                 .maxArchiveBatchSize(4)
+                .maxArchiveBatchTime(100L)
                 .build();
     }
 
     private static Persistence<Integer> newRecoveryPersistence(String name, RestoreOrder restoreOrder) {
         return new RedisPersistenceBuilder<Integer>(name)
                 .maxArchiveBatchSize(4)
+                .maxArchiveBatchTime(100L)
                 .restoreOrder(restoreOrder)
                 .build();
     }

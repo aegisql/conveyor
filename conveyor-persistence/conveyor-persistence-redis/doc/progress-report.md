@@ -28,7 +28,7 @@
   - Java-side `BY_PRIORITY_AND_ID`
   - one recovered command-cart path
   - restart-and-finish `PersistentConveyor` recovery
-- Recovery cleanup proof now includes the recovered `CANCELED` status path in addition to the earlier `READY` paths.
+- Recovery cleanup proof now includes the recovered `CANCELED`, `TIMED_OUT`, and timeout-action `INVALID` status paths in addition to the earlier `READY` paths.
 - A first compatible slice of the JDBC-style performance tests now exists for Redis.
 
 ## Current Implemented Scope
@@ -346,14 +346,17 @@ Redis should not be judged by whether it can imitate each JDBC strategy literall
   - now has explicit recovered-acknowledgment evidence for a completed build
   - now has recovered cleanup evidence for the current READY-path auto-ack and explicit-ack flows when the recovered conveyor is allowed to drain cleanly
   - now has recovered cleanup evidence for the current CANCELED path when a recovered build is explicitly canceled and the conveyor is allowed to drain cleanly
+  - now has recovered cleanup evidence for the current TIMED_OUT path when the recovered conveyor auto-acknowledges `TIMED_OUT`
+  - now has recovered cleanup evidence for the current timeout-action `INVALID` path when the recovered conveyor auto-acknowledges `INVALID`
 - Status:
   - partial
   - restart-and-finish recovery is proven
   - recovered explicit acknowledge delivery is proven
   - recovered READY-path cleanup is proven
   - recovered CANCELED cleanup is proven
-  - timeout-driven recovery cleanup is still not proven
-  - broader recovery and cleanup coverage is still incomplete
+  - recovered TIMED_OUT cleanup is proven when the recovered conveyor auto-acknowledges `TIMED_OUT`
+  - recovered timeout-action `INVALID` cleanup is proven when the recovered conveyor auto-acknowledges `INVALID`
+  - broader recovery-mode coverage is still incomplete
 
 ### Unique Field Constraints
 
@@ -660,6 +663,8 @@ This is meaningful because it shows the current itemized storage and reconstruct
   - covers recovered cleanup for the current READY-path auto-ack flow when the recovered conveyor drains through `completeAndStop()`
   - covers recovered cleanup for the current explicit-acknowledge flow when the recovered conveyor drains through `completeAndStop()`
   - covers recovered cleanup for the current CANCELED path when the recovered conveyor drains through `completeAndStop()`
+  - covers recovered cleanup for the current TIMED_OUT path when the recovered conveyor auto-acknowledges `TIMED_OUT`
+  - covers recovered cleanup for the current timeout-action `INVALID` path when the recovered conveyor auto-acknowledges `INVALID`
   - covers delete-style archive methods
   - covers `NO_ACTION`
   - covers `MOVE_TO_PERSISTENCE`
@@ -690,8 +695,7 @@ This is meaningful because it shows the current itemized storage and reconstruct
 - broader command-cart coverage beyond the currently proven replay path
 - stronger atomic update behavior for multi-key writes
 - indexed-key protection if the project decides Redis needs more than payload-only protection
-- broader recovery and cleanup coverage beyond the currently proven READY and CANCELED paths
-- timeout-driven recovery cleanup and replay semantics are still not proven end to end
+- broader recovery-mode coverage beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths
 - broader performance parity beyond the currently reproduced direct, shuffled persistent, and sorted persistent scenarios
 
 ## Ranked Backlog By Complexity
@@ -777,7 +781,9 @@ Complexity here means engineering effort plus semantic risk relative to the curr
     - recovered explicit acknowledgment is covered
     - recovered cleanup is covered for the current READY-path auto-ack and explicit-ack flows when the recovered conveyor drains cleanly
     - recovered cleanup is covered for the current CANCELED path when the recovered conveyor drains cleanly
-    - broader status and recovery-mode coverage is still not proven
+    - recovered cleanup is covered for the current TIMED_OUT path when the recovered conveyor auto-acknowledges `TIMED_OUT`
+    - recovered cleanup is covered for the current timeout-action `INVALID` path when the recovered conveyor auto-acknowledges `INVALID`
+    - broader recovery-mode coverage is still not proven
 
 - Decide whether library-level reconnect or retry behavior should exist at all.
   - Current recommendation:
@@ -808,11 +814,10 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ## Recommended Next Sequence
 
-1. Broaden recovery and cleanup proof beyond the currently covered READY and CANCELED paths.
-2. Clarify and then prove timeout-driven recovery semantics, including whether additional timeout-action wiring is required for Redis `PersistentConveyor` cleanup.
-3. Extend bootstrap semantics into script/function registration once the atomic Redis operations are designed.
-4. Move save/archive operations toward Lua or Redis Functions for atomicity.
-5. Revisit whether `BY_PRIORITY_AND_ID` needs an optimized Redis-side index or if the current Java-side sort remains sufficient.
+1. Extend bootstrap semantics into script/function registration once the atomic Redis operations are designed.
+2. Move save/archive operations toward Lua or Redis Functions for atomicity.
+3. Revisit whether `BY_PRIORITY_AND_ID` needs an optimized Redis-side index or if the current Java-side sort remains sufficient.
+4. Broaden recovery proof into additional recovery modes beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths.
 
 ## Bottom Line
 
