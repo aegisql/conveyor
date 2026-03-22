@@ -72,7 +72,10 @@ Tests currently cover:
 - explicit Redis restore-order support:
   - `BY_ID` as the default
   - `NO_ORDER` as backend iteration order with no extra re-sorting
-  - Java-side `BY_PRIORITY_AND_ID` for active, static, expired, and per-key reads
+  - builder-selected `BY_PRIORITY_AND_ID` implementation:
+    - `JAVA_SORT` as the default
+    - `REDIS_INDEX` for Redis-side priority indexes on active, static, per-key, and replay-facing reads
+    - expired reads still use the expiration index first and then Java-side priority sort
 - itemized Redis storage shape and legacy whole-cart read compatibility
 - stabilized itemized Redis payload layout for new writes:
   - `valueHint` stays in metadata
@@ -104,6 +107,7 @@ Override options:
 - Current bootstrap semantics are now stronger than the initial stub:
   - namespace metadata is created once and then validated instead of being blindly rewritten
   - existing Redis namespace metadata must match the expected backend, backend version, and configured persistence name
+  - existing Redis namespace metadata must also match the configured `priorityRestoreStrategy`
   - Redis server version must be present, parseable, and above the current conservative minimum support floor
   - required Redis command families are probed during bootstrap:
     - sequence/increment
@@ -116,6 +120,11 @@ Override options:
   - bootstrap now records and validates the current Lua bundle metadata:
     - `scriptMode=lua`
     - `scriptBundleVersion=1`
+  - bootstrap now records and validates the current priority-restore implementation choice:
+    - `priorityRestoreStrategy=JAVA_SORT` or `REDIS_INDEX`
+  - when older namespaces are missing `priorityRestoreStrategy`:
+    - `JAVA_SORT` is adopted in place
+    - `REDIS_INDEX` triggers a one-time rebuild of Redis priority indexes for existing active/static/per-key data
   - the current Lua bundle is loaded during bootstrap and reloaded automatically on `NOSCRIPT`
 - Builder-level connection configuration is now broader than URI-only setup:
   - owned clients can be tuned through pool sizing, timeouts, database selection, client name, authentication, and SSL flags
@@ -130,7 +139,10 @@ Override options:
 - Current restore behavior is explicitly configurable and proven:
   - `BY_ID` is the default
   - `NO_ORDER` leaves Redis iteration order untouched
-  - `BY_PRIORITY_AND_ID` re-sorts recovered carts in Java by priority descending and id ascending
+  - `BY_PRIORITY_AND_ID` now has an initialization-stage implementation choice:
+    - `JAVA_SORT` re-sorts recovered carts in Java by priority descending and id ascending
+    - `REDIS_INDEX` uses Redis priority indexes for active/static/per-key and replay-facing reads
+    - expired reads still use Java-side sorting after expiration filtering
 - Cleanup and acknowledgment parity are still not as broad as JDBC:
   - the current READY-path recovery and cleanup behavior is now proven
   - the current recovered CANCELED cleanup behavior is now proven

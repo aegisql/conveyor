@@ -43,12 +43,14 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         String name = testNamespace("builder-validation");
         RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(name);
         assertEquals(RestoreOrder.BY_ID, builder.restoreOrder());
+        assertEquals(PriorityRestoreStrategy.JAVA_SORT, builder.priorityRestoreStrategy());
         assertEquals(ArchiveStrategy.DELETE, builder.archiveStrategy());
         assertThrows(NullPointerException.class, () -> builder.redisUri(null));
         assertThrows(NullPointerException.class, () -> builder.jedis(null));
         assertThrows(NullPointerException.class, () -> builder.nonPersistentProperty(null));
         assertThrows(NullPointerException.class, () -> builder.persistentPartFilter(null));
         assertThrows(NullPointerException.class, () -> builder.restoreOrder(null));
+        assertThrows(NullPointerException.class, () -> builder.priorityRestoreStrategy(null));
         assertThrows(NullPointerException.class, () -> builder.clientName(null));
         assertThrows(NullPointerException.class, () -> builder.user(null));
         assertThrows(NullPointerException.class, () -> builder.password(null));
@@ -60,6 +62,8 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         assertThrows(IllegalArgumentException.class, () -> builder.blockingSocketTimeoutMillis(0));
         assertThrows(IllegalArgumentException.class, () -> builder.database(-1));
         assertEquals(RestoreOrder.BY_PRIORITY_AND_ID, builder.restoreOrder(RestoreOrder.BY_PRIORITY_AND_ID).restoreOrder());
+        assertEquals(PriorityRestoreStrategy.REDIS_INDEX,
+                builder.priorityRestoreStrategy(PriorityRestoreStrategy.REDIS_INDEX).priorityRestoreStrategy());
         assertEquals(ArchiveStrategy.NO_ACTION, builder.noArchiving().archiveStrategy());
 
         String namespaceMetaKey = namespaceMetaKey(name);
@@ -204,6 +208,23 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
                 () -> new RedisPersistenceBuilder<Integer>(incompleteScriptMetaName).autoInit(true).build()
         );
         assertTrue(incompleteScriptMetaError.getMessage().contains("scriptMode and scriptBundleVersion"));
+
+        String wrongPriorityStrategyName = testNamespace("builder-bootstrap-wrong-priority-restore-strategy");
+        try (JedisPooled jedis = openRedis()) {
+            jedis.hset(namespaceMetaKey(wrongPriorityStrategyName), Map.of(
+                    "backend", RedisPersistence.BACKEND_NAME,
+                    "version", RedisPersistence.BACKEND_VERSION,
+                    "name", wrongPriorityStrategyName,
+                    "scriptMode", RedisLuaScriptBundle.SCRIPT_MODE,
+                    "scriptBundleVersion", RedisLuaScriptBundle.BUNDLE_VERSION,
+                    "priorityRestoreStrategy", PriorityRestoreStrategy.REDIS_INDEX.name()
+            ));
+        }
+        PersistenceException wrongPriorityStrategyError = assertThrows(
+                PersistenceException.class,
+                () -> new RedisPersistenceBuilder<Integer>(wrongPriorityStrategyName).autoInit(true).build()
+        );
+        assertTrue(wrongPriorityStrategyError.getMessage().contains("priority restore strategy"));
     }
 
     @Test
@@ -474,6 +495,7 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         assertEquals(RedisPersistence.BACKEND_NAME, namespaceMeta.get("backend"));
         assertEquals(RedisPersistence.BACKEND_VERSION, namespaceMeta.get("version"));
         assertEquals(name, namespaceMeta.get("name"));
+        assertEquals(PriorityRestoreStrategy.JAVA_SORT.name(), namespaceMeta.get("priorityRestoreStrategy"));
         assertEquals(RedisLuaScriptBundle.SCRIPT_MODE, namespaceMeta.get("scriptMode"));
         assertEquals(RedisLuaScriptBundle.BUNDLE_VERSION, namespaceMeta.get("scriptBundleVersion"));
     }

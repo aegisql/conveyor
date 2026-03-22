@@ -17,9 +17,11 @@ final class RedisLuaScriptBundle {
     static final String BUNDLE_VERSION = "1";
 
     private static final String DELETE_PART_HELPER = """
-            local function delete_parts(trackerKey, activeIdsKey, staticIdsKey, expiringIdsKey, partPrefix, partIdsPrefix, idMembers)
+            local function delete_parts(trackerKey, activeIdsKey, staticIdsKey, expiringIdsKey, activePriorityIdsKey, staticPriorityIdsKey, partPrefix, partIdsPrefix, partPriorityIdsPrefix, idMembers)
               local deletedCount = 0
               for _, idMember in ipairs(idMembers) do
+                local metaKey = partPrefix .. idMember .. ':meta'
+                local priorityMember = redis.call('HGET', metaKey, 'priorityIndexMember')
                 local reverseIndexKey = partPrefix .. idMember .. ':keys'
                 local encodedKeys = redis.call('SMEMBERS', reverseIndexKey)
                 for _, encodedKey in ipairs(encodedKeys) do
@@ -29,6 +31,14 @@ final class RedisLuaScriptBundle {
                     redis.call('DEL', partIdsKey)
                     redis.call('SREM', trackerKey, partIdsKey)
                   end
+                  if priorityMember then
+                    local partPriorityIdsKey = partPriorityIdsPrefix .. encodedKey
+                    redis.call('ZREM', partPriorityIdsKey, priorityMember)
+                    if redis.call('ZCARD', partPriorityIdsKey) == 0 then
+                      redis.call('DEL', partPriorityIdsKey)
+                      redis.call('SREM', trackerKey, partPriorityIdsKey)
+                    end
+                  end
                 end
 
                 redis.call('DEL', reverseIndexKey)
@@ -36,9 +46,12 @@ final class RedisLuaScriptBundle {
                 redis.call('ZREM', activeIdsKey, idMember)
                 redis.call('ZREM', staticIdsKey, idMember)
                 redis.call('ZREM', expiringIdsKey, idMember)
+                if priorityMember then
+                  redis.call('ZREM', activePriorityIdsKey, priorityMember)
+                  redis.call('ZREM', staticPriorityIdsKey, priorityMember)
+                end
 
                 local payloadKey = partPrefix .. idMember .. ':payload'
-                local metaKey = partPrefix .. idMember .. ':meta'
                 redis.call('DEL', payloadKey, metaKey)
                 redis.call('SREM', trackerKey, payloadKey, metaKey)
                 deletedCount = deletedCount + 1
@@ -59,7 +72,8 @@ final class RedisLuaScriptBundle {
             local activeIdsKey = KEYS[5]
             local staticIdsKey = KEYS[6]
             local expiringIdsKey = KEYS[7]
-            local partIdsKey = KEYS[8]
+            local activePriorityIdsKey = KEYS[8]
+            local staticPriorityIdsKey = KEYS[9]
 
             local cursor = 1
             local idMember = ARGV[cursor]
@@ -77,8 +91,21 @@ final class RedisLuaScriptBundle {
             cursor = cursor + 1
             local encodedKey = ARGV[cursor]
             cursor = cursor + 1
+            local usePriorityIndexes = ARGV[cursor] == '1'
+            cursor = cursor + 1
+            local priorityMember = ARGV[cursor]
+            cursor = cursor + 1
             local metaPairsCount = tonumber(ARGV[cursor])
             cursor = cursor + 1
+
+            local partIdsKey = nil
+            local partPriorityIdsKey = nil
+            if hasIndexedKey then
+              partIdsKey = KEYS[10]
+              if usePriorityIndexes then
+                partPriorityIdsKey = KEYS[11]
+              end
+            end
 
             local metaPairs = {}
             for i = 1, metaPairsCount * 2 do
@@ -100,9 +127,17 @@ final class RedisLuaScriptBundle {
             if isStaticPart then
               redis.call('ZADD', staticIdsKey, idScore, idMember)
               redis.call('ZREM', activeIdsKey, idMember)
+              if usePriorityIndexes then
+                redis.call('ZADD', staticPriorityIdsKey, 0, priorityMember)
+                redis.call('ZREM', activePriorityIdsKey, priorityMember)
+              end
             else
               redis.call('ZADD', activeIdsKey, idScore, idMember)
               redis.call('ZREM', staticIdsKey, idMember)
+              if usePriorityIndexes then
+                redis.call('ZADD', activePriorityIdsKey, 0, priorityMember)
+                redis.call('ZREM', staticPriorityIdsKey, priorityMember)
+              end
             end
 
             if expirationTime > 0 then
@@ -114,6 +149,9 @@ final class RedisLuaScriptBundle {
             if hasIndexedKey then
               redis.call('ZADD', partIdsKey, idScore, idMember)
               redis.call('SADD', reverseIndexKey, encodedKey)
+              if usePriorityIndexes then
+                redis.call('ZADD', partPriorityIdsKey, 0, priorityMember)
+              end
             end
 
             return idMember
@@ -124,15 +162,18 @@ final class RedisLuaScriptBundle {
             local activeIdsKey = KEYS[2]
             local staticIdsKey = KEYS[3]
             local expiringIdsKey = KEYS[4]
+            local activePriorityIdsKey = KEYS[5]
+            local staticPriorityIdsKey = KEYS[6]
 
             local partPrefix = ARGV[1]
             local partIdsPrefix = ARGV[2]
+            local partPriorityIdsPrefix = ARGV[3]
             local idMembers = {}
-            for i = 3, #ARGV do
+            for i = 4, #ARGV do
               table.insert(idMembers, ARGV[i])
             end
 
-            return delete_parts(trackerKey, activeIdsKey, staticIdsKey, expiringIdsKey, partPrefix, partIdsPrefix, idMembers)
+            return delete_parts(trackerKey, activeIdsKey, staticIdsKey, expiringIdsKey, activePriorityIdsKey, staticPriorityIdsKey, partPrefix, partIdsPrefix, partPriorityIdsPrefix, idMembers)
             """;
 
     private static final String DELETE_KEYS_SCRIPT = DELETE_PART_HELPER + """
@@ -140,13 +181,16 @@ final class RedisLuaScriptBundle {
             local activeIdsKey = KEYS[2]
             local staticIdsKey = KEYS[3]
             local expiringIdsKey = KEYS[4]
+            local activePriorityIdsKey = KEYS[5]
+            local staticPriorityIdsKey = KEYS[6]
 
             local partPrefix = ARGV[1]
             local partIdsPrefix = ARGV[2]
+            local partPriorityIdsPrefix = ARGV[3]
             local seen = {}
             local idMembers = {}
 
-            for i = 3, #ARGV do
+            for i = 4, #ARGV do
               local encodedKey = ARGV[i]
               local partIdsKey = partIdsPrefix .. encodedKey
               local idsForKey = redis.call('ZRANGE', partIdsKey, 0, -1)
@@ -158,7 +202,7 @@ final class RedisLuaScriptBundle {
               end
             end
 
-            return delete_parts(trackerKey, activeIdsKey, staticIdsKey, expiringIdsKey, partPrefix, partIdsPrefix, idMembers)
+            return delete_parts(trackerKey, activeIdsKey, staticIdsKey, expiringIdsKey, activePriorityIdsKey, staticPriorityIdsKey, partPrefix, partIdsPrefix, partPriorityIdsPrefix, idMembers)
             """;
 
     private static final String DELETE_COMPLETED_KEYS_SCRIPT = """
@@ -173,13 +217,16 @@ final class RedisLuaScriptBundle {
             local activeIdsKey = KEYS[2]
             local staticIdsKey = KEYS[3]
             local expiringIdsKey = KEYS[4]
+            local activePriorityIdsKey = KEYS[5]
+            local staticPriorityIdsKey = KEYS[6]
 
             local partPrefix = ARGV[1]
             local partIdsPrefix = ARGV[2]
-            local now = tonumber(ARGV[3])
+            local partPriorityIdsPrefix = ARGV[3]
+            local now = tonumber(ARGV[4])
             local idMembers = redis.call('ZRANGEBYSCORE', expiringIdsKey, '-inf', now)
 
-            return delete_parts(trackerKey, activeIdsKey, staticIdsKey, expiringIdsKey, partPrefix, partIdsPrefix, idMembers)
+            return delete_parts(trackerKey, activeIdsKey, staticIdsKey, expiringIdsKey, activePriorityIdsKey, staticPriorityIdsKey, partPrefix, partIdsPrefix, partPriorityIdsPrefix, idMembers)
             """;
 
     private static final String DELETE_ALL_SCRIPT = """

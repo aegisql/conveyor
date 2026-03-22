@@ -55,6 +55,7 @@ public class RedisPersistence<K> implements Persistence<K> {
     private final String name;
     private final String namespace;
     private final RestoreOrder restoreOrder;
+    private final PriorityRestoreStrategy priorityRestoreStrategy;
     private final int minCompactSize;
     private final int maxArchiveBatchSize;
     private final long maxArchiveBatchTime;
@@ -80,6 +81,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.name = builder.name();
         this.namespace = "conv:{" + name + "}";
         this.restoreOrder = builder.restoreOrder();
+        this.priorityRestoreStrategy = builder.priorityRestoreStrategy();
         this.minCompactSize = builder.minCompactSize();
         this.maxArchiveBatchSize = builder.maxArchiveBatchSize();
         this.maxArchiveBatchTime = builder.maxArchiveBatchTime();
@@ -101,6 +103,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.name = source.name;
         this.namespace = source.namespace;
         this.restoreOrder = source.restoreOrder;
+        this.priorityRestoreStrategy = source.priorityRestoreStrategy;
         this.minCompactSize = source.minCompactSize;
         this.maxArchiveBatchSize = source.maxArchiveBatchSize;
         this.maxArchiveBatchTime = source.maxArchiveBatchTime;
@@ -160,6 +163,10 @@ public class RedisPersistence<K> implements Persistence<K> {
         trackKey(activeIdsKey());
         trackKey(staticIdsKey());
         trackKey(expiringIdsKey());
+        if (useRedisPriorityIndex()) {
+            trackKey(activePriorityIdsKey());
+            trackKey(staticPriorityIdsKey());
+        }
 
         Map<String, Object> persistentProperties = extractPersistentProperties(cart);
         FieldEncoding keyEncoding = encodePlainField(cart.getKey());
@@ -173,6 +180,9 @@ public class RedisPersistence<K> implements Persistence<K> {
         meta.put("creationTime", Long.toString(cart.getCreationTime()));
         meta.put("expirationTime", Long.toString(cart.getExpirationTime()));
         meta.put("priority", Long.toString(cart.getPriority()));
+        if (useRedisPriorityIndex()) {
+            meta.put("priorityIndexMember", priorityIndexMember(cart.getPriority(), id));
+        }
         keyEncoding.put(meta, "keyHint", "keyData", false);
         labelEncoding.put(meta, "labelHint", "labelData", false);
         valueEncoding.put(meta, "valueHint", null, true);
@@ -184,6 +194,9 @@ public class RedisPersistence<K> implements Persistence<K> {
         }
 
         String encodedIndexedKey = cart.getKey() == null ? null : encodeSerializable(cart.getKey());
+        if (useRedisPriorityIndex() && encodedIndexedKey != null) {
+            trackKey(partIdsByKeyPriorityKey(encodedIndexedKey));
+        }
         luaScripts.savePart(
                 savePartKeys(payloadKey, metaKey, reverseKeyIndex, encodedIndexedKey),
                 savePartArgs(idMember, cart, valueEncoding.encoded(), encodedIndexedKey, meta)
@@ -211,9 +224,18 @@ public class RedisPersistence<K> implements Persistence<K> {
 
         trackKey(partIdsKey);
         trackKey(reverseIndexKey);
+        if (useRedisPriorityIndex()) {
+            trackKey(partIdsByKeyPriorityKey(encodedKey));
+        }
         LOG.debug("Linking part id={} to cart key={} namespace={}", partId, key, namespace);
         jedis.zadd(partIdsKey, partId, idMember);
         jedis.sadd(reverseIndexKey, encodedKey);
+        if (useRedisPriorityIndex()) {
+            String priorityMember = jedis.hget(metaKey(partId), "priorityIndexMember");
+            if (priorityMember != null) {
+                jedis.zadd(partIdsByKeyPriorityKey(encodedKey), 0, priorityMember);
+            }
+        }
     }
 
     @Override
@@ -250,13 +272,15 @@ public class RedisPersistence<K> implements Persistence<K> {
             return List.of();
         }
         ensureInitialized();
-        Collection<String> ids = jedis.zrange(partIdsByKeyKey(encodeSerializable(key)), 0, -1)
+        String encodedKey = encodeSerializable(key);
+        Collection<String> ids = restoreOrder == RestoreOrder.BY_PRIORITY_AND_ID && useRedisPriorityIndex()
+                ? jedis.zrange(partIdsByKeyPriorityKey(encodedKey), 0, -1).stream().map(this::idMemberFromPriorityIndexMember).toList()
+                : jedis.zrange(partIdsByKeyKey(encodedKey), 0, -1)
                 .stream()
                 .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
-        Collection<Long> orderedIds = orderedIdMembers(ids)
-                .stream()
-                .map(Long::parseLong)
-                .toList();
+        Collection<Long> orderedIds = restoreOrder == RestoreOrder.BY_PRIORITY_AND_ID && useRedisPriorityIndex()
+                ? ids.stream().map(Long::parseLong).toList()
+                : orderedIdMembers(ids).stream().map(Long::parseLong).toList();
         LOG.debug("Loaded {} part ids for key={} namespace={} restoreOrder={}", orderedIds.size(), key, namespace, restoreOrder);
         LOG.trace("Part ids for key={} => {}", key, orderedIds);
         return orderedIds;
@@ -265,7 +289,10 @@ public class RedisPersistence<K> implements Persistence<K> {
     @Override
     public <L> Collection<Cart<K, ?, L>> getAllParts() {
         ensureInitialized();
-        Collection<Cart<K, ?, L>> carts = loadCarts(orderedIdMembers(jedis.zrange(activeIdsKey(), 0, -1)));
+        Collection<String> idMembers = restoreOrder == RestoreOrder.BY_PRIORITY_AND_ID && useRedisPriorityIndex()
+                ? jedis.zrange(activePriorityIdsKey(), 0, -1).stream().map(this::idMemberFromPriorityIndexMember).toList()
+                : orderedIdMembers(jedis.zrange(activeIdsKey(), 0, -1));
+        Collection<Cart<K, ?, L>> carts = loadCarts(idMembers);
         LOG.debug("Loaded {} active carts from namespace={} restoreOrder={}", carts.size(), namespace, restoreOrder);
         LOG.trace("Active carts={}", carts);
         return carts;
@@ -283,7 +310,10 @@ public class RedisPersistence<K> implements Persistence<K> {
     @Override
     public <L> Collection<Cart<K, ?, L>> getAllStaticParts() {
         ensureInitialized();
-        Collection<Cart<K, ?, L>> carts = loadCarts(orderedIdMembers(jedis.zrange(staticIdsKey(), 0, -1)));
+        Collection<String> idMembers = restoreOrder == RestoreOrder.BY_PRIORITY_AND_ID && useRedisPriorityIndex()
+                ? jedis.zrange(staticPriorityIdsKey(), 0, -1).stream().map(this::idMemberFromPriorityIndexMember).toList()
+                : orderedIdMembers(jedis.zrange(staticIdsKey(), 0, -1));
+        Collection<Cart<K, ?, L>> carts = loadCarts(idMembers);
         LOG.debug("Loaded {} static carts from namespace={} restoreOrder={}", carts.size(), namespace, restoreOrder);
         LOG.trace("Static carts={}", carts);
         return carts;
@@ -396,6 +426,7 @@ public class RedisPersistence<K> implements Persistence<K> {
                 validateNamespaceMetadata(namespaceMeta);
             }
             ensureScriptBundleMetadata(jedis.hgetAll(metaKey()));
+            ensurePriorityRestoreStrategyMetadata(jedis.hgetAll(metaKey()));
             luaScripts.ensureLoaded();
             trackKey(metaKey());
             trackKey(seqKey());
@@ -403,6 +434,10 @@ public class RedisPersistence<K> implements Persistence<K> {
             trackKey(staticIdsKey());
             trackKey(expiringIdsKey());
             trackKey(completedKeysKey());
+            if (useRedisPriorityIndex()) {
+                trackKey(activePriorityIdsKey());
+                trackKey(staticPriorityIdsKey());
+            }
             initialized.set(true);
             LOG.trace("Ensured Redis namespace bootstrap for {} on server {}", namespace, serverVersion);
         }
@@ -463,6 +498,7 @@ public class RedisPersistence<K> implements Persistence<K> {
                 "backend", BACKEND_NAME,
                 "version", BACKEND_VERSION,
                 "name", name,
+                "priorityRestoreStrategy", priorityRestoreStrategy.name(),
                 "scriptMode", RedisLuaScriptBundle.SCRIPT_MODE,
                 "scriptBundleVersion", RedisLuaScriptBundle.BUNDLE_VERSION
         ));
@@ -514,6 +550,71 @@ public class RedisPersistence<K> implements Persistence<K> {
         }
     }
 
+    private void ensurePriorityRestoreStrategyMetadata(Map<String, String> namespaceMeta) {
+        String storedStrategy = namespaceMeta.get("priorityRestoreStrategy");
+        String expectedStrategy = priorityRestoreStrategy.name();
+        if (storedStrategy == null) {
+            if (useRedisPriorityIndex()) {
+                rebuildPriorityRestoreIndexes();
+            }
+            jedis.hset(metaKey(), "priorityRestoreStrategy", expectedStrategy);
+            return;
+        }
+        if (!expectedStrategy.equals(storedStrategy)) {
+            throw new PersistenceException("Redis namespace " + namespace + " uses priority restore strategy '" + storedStrategy
+                    + "', expected '" + expectedStrategy + "'");
+        }
+    }
+
+    private boolean useRedisPriorityIndex() {
+        return priorityRestoreStrategy == PriorityRestoreStrategy.REDIS_INDEX;
+    }
+
+    private void rebuildPriorityRestoreIndexes() {
+        LOG.debug("Rebuilding Redis priority restore indexes for namespace={}", namespace);
+        removeTrackedPriorityIndexKeys();
+
+        trackKey(activePriorityIdsKey());
+        trackKey(staticPriorityIdsKey());
+
+        for (String idMember : jedis.zrange(activeIdsKey(), 0, -1)) {
+            rebuildPriorityIndexForPart(idMember, false);
+        }
+        for (String idMember : jedis.zrange(staticIdsKey(), 0, -1)) {
+            rebuildPriorityIndexForPart(idMember, true);
+        }
+    }
+
+    private void removeTrackedPriorityIndexKeys() {
+        ArrayList<String> staleKeys = new ArrayList<>();
+        for (String key : jedis.smembers(trackerKey())) {
+            if (key.equals(activePriorityIdsKey()) || key.equals(staticPriorityIdsKey()) || key.startsWith(partIdsByKeyPriorityPrefix())) {
+                staleKeys.add(key);
+            }
+        }
+        if (!staleKeys.isEmpty()) {
+            jedis.del(staleKeys.toArray(String[]::new));
+            jedis.srem(trackerKey(), staleKeys.toArray(String[]::new));
+        }
+    }
+
+    private void rebuildPriorityIndexForPart(String idMember, boolean staticPart) {
+        long id = Long.parseLong(idMember);
+        String metaKey = metaKey(id);
+        Map<String, String> meta = jedis.hgetAll(metaKey);
+        if (meta.isEmpty()) {
+            return;
+        }
+        String priorityMember = priorityIndexMember(parseLong(meta.get("priority")), id);
+        jedis.hset(metaKey, "priorityIndexMember", priorityMember);
+        jedis.zadd(staticPart ? staticPriorityIdsKey() : activePriorityIdsKey(), 0, priorityMember);
+        for (String encodedKey : jedis.smembers(reverseKeyIndexKey(id))) {
+            String priorityKey = partIdsByKeyPriorityKey(encodedKey);
+            trackKey(priorityKey);
+            jedis.zadd(priorityKey, 0, priorityMember);
+        }
+    }
+
     private Map<String, Object> extractPersistentProperties(Cart<K, ?, ?> cart) {
         Map<String, Object> properties = new HashMap<>();
         cart.getAllProperties().forEach((key, value) -> {
@@ -533,8 +634,13 @@ public class RedisPersistence<K> implements Persistence<K> {
         keys.add(activeIdsKey());
         keys.add(staticIdsKey());
         keys.add(expiringIdsKey());
+        keys.add(activePriorityIdsKey());
+        keys.add(staticPriorityIdsKey());
         if (encodedKey != null) {
             keys.add(partIdsByKeyKey(encodedKey));
+            if (useRedisPriorityIndex()) {
+                keys.add(partIdsByKeyPriorityKey(encodedKey));
+            }
         }
         return keys;
     }
@@ -548,6 +654,8 @@ public class RedisPersistence<K> implements Persistence<K> {
         args.add(encodedPayload == null ? "" : encodedPayload);
         args.add(encodedKey == null ? "0" : "1");
         args.add(encodedKey == null ? "" : encodedKey);
+        args.add(useRedisPriorityIndex() ? "1" : "0");
+        args.add(meta.getOrDefault("priorityIndexMember", ""));
         args.add(Integer.toString(meta.size()));
         meta.forEach((field, value) -> {
             args.add(field);
@@ -557,13 +665,14 @@ public class RedisPersistence<K> implements Persistence<K> {
     }
 
     private List<String> deleteOperationKeys() {
-        return List.of(trackerKey(), activeIdsKey(), staticIdsKey(), expiringIdsKey());
+        return List.of(trackerKey(), activeIdsKey(), staticIdsKey(), expiringIdsKey(), activePriorityIdsKey(), staticPriorityIdsKey());
     }
 
     private List<String> deletePartArgs(Collection<Long> ids) {
         ArrayList<String> args = new ArrayList<>();
         args.add(partPrefix());
         args.add(partIdsPrefix());
+        args.add(partIdsByKeyPriorityPrefix());
         ids.stream()
                 .map(String::valueOf)
                 .forEach(args::add);
@@ -574,12 +683,13 @@ public class RedisPersistence<K> implements Persistence<K> {
         ArrayList<String> args = new ArrayList<>();
         args.add(partPrefix());
         args.add(partIdsPrefix());
+        args.add(partIdsByKeyPriorityPrefix());
         args.addAll(encodedKeys);
         return args;
     }
 
     private List<String> deleteExpiredArgs(long now) {
-        return List.of(partPrefix(), partIdsPrefix(), Long.toString(now));
+        return List.of(partPrefix(), partIdsPrefix(), partIdsByKeyPriorityPrefix(), Long.toString(now));
     }
 
     private void deletePartsInternal(Collection<Long> ids) {
@@ -679,6 +789,26 @@ public class RedisPersistence<K> implements Persistence<K> {
 
     private long priorityOfIdMember(String idMember) {
         return parseLong(jedis.hget(metaKey(Long.parseLong(idMember)), "priority"));
+    }
+
+    private String priorityIndexMember(long priority, long id) {
+        return descendingSortableLongToken(priority) + ":" + ascendingSortableLongToken(id) + ":" + id;
+    }
+
+    private String idMemberFromPriorityIndexMember(String priorityIndexMember) {
+        int separator = priorityIndexMember.lastIndexOf(':');
+        if (separator < 0 || separator == priorityIndexMember.length() - 1) {
+            throw new PersistenceException("Invalid Redis priority index member: " + priorityIndexMember);
+        }
+        return priorityIndexMember.substring(separator + 1);
+    }
+
+    private String ascendingSortableLongToken(long value) {
+        return String.format("%016x", value ^ Long.MIN_VALUE);
+    }
+
+    private String descendingSortableLongToken(long value) {
+        return String.format("%016x", ~(value ^ Long.MIN_VALUE));
     }
 
     @SuppressWarnings("unchecked")
@@ -893,8 +1023,16 @@ public class RedisPersistence<K> implements Persistence<K> {
         return namespace + ":parts:active";
     }
 
+    private String activePriorityIdsKey() {
+        return namespace + ":parts:active:priority";
+    }
+
     private String staticIdsKey() {
         return namespace + ":parts:static";
+    }
+
+    private String staticPriorityIdsKey() {
+        return namespace + ":parts:static:priority";
     }
 
     private String expiringIdsKey() {
@@ -919,6 +1057,14 @@ public class RedisPersistence<K> implements Persistence<K> {
 
     private String partIdsByKeyKey(String encodedKey) {
         return partIdsPrefix() + encodedKey;
+    }
+
+    private String partIdsByKeyPriorityKey(String encodedKey) {
+        return partIdsByKeyPriorityPrefix() + encodedKey;
+    }
+
+    private String partIdsByKeyPriorityPrefix() {
+        return namespace + ":parts:key-priority:";
     }
 
     private record FieldEncoding(String hint, String encoded) {

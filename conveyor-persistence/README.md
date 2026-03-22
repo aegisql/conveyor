@@ -314,9 +314,13 @@ Current differences from JDBC:
 - restore-order support now includes:
   - `BY_ID` as the default
   - `NO_ORDER` as backend iteration order
-  - Java-side `BY_PRIORITY_AND_ID`
+  - `BY_PRIORITY_AND_ID` with an initialization-stage choice:
+    - `JAVA_SORT` as the default
+    - `REDIS_INDEX` when you want Redis to maintain extra priority indexes for active/static/per-key and replay-facing reads
+    - expired reads still use the expiration index first and then Java-side priority sorting
 - command-cart behavior still needs broader proof
-- current writes are multi-command operations, not yet Lua/function-backed atomic units
+- current save and delete-style cleanup paths are Lua-backed atomic units
+- move-style archive flows still use Java orchestration before Redis-side cleanup
 
 Read before choosing Redis:
 

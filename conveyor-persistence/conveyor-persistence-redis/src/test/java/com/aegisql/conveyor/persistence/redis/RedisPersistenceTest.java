@@ -134,6 +134,7 @@ class RedisPersistenceTest extends RedisTestSupport {
             assertEquals(RedisPersistence.BACKEND_NAME, namespaceMeta.get("backend"));
             assertEquals(RedisPersistence.BACKEND_VERSION, namespaceMeta.get("version"));
             assertEquals(name, namespaceMeta.get("name"));
+            assertEquals(PriorityRestoreStrategy.JAVA_SORT.name(), namespaceMeta.get("priorityRestoreStrategy"));
             assertEquals(RedisLuaScriptBundle.SCRIPT_MODE, namespaceMeta.get("scriptMode"));
             assertEquals(RedisLuaScriptBundle.BUNDLE_VERSION, namespaceMeta.get("scriptBundleVersion"));
 
@@ -808,6 +809,92 @@ class RedisPersistenceTest extends RedisTestSupport {
                     byPriority.getAllStaticParts().stream().map(Cart::getValue).toList()
             );
         }
+
+    }
+
+    @Test
+    void supportsRedisPriorityIndexAsInitializationChoiceForPriorityRestoreOrder() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("restore-order-redis-index");
+        try (Persistence<Integer> writer = new RedisPersistenceBuilder<Integer>(name)
+                .priorityRestoreStrategy(PriorityRestoreStrategy.REDIS_INDEX)
+                .build()) {
+            writer.archiveAll();
+
+            long now = System.currentTimeMillis();
+            writer.savePart(30L, new ShoppingCart<>(7, "third", "A30", now, 0, null, LoadType.PART, 500));
+            writer.savePart(10L, new ShoppingCart<>(7, "first", "A10", now, 0, null, LoadType.PART, -100));
+            writer.savePart(20L, new ShoppingCart<>(7, "second", "A20", now, 0, null, LoadType.PART, 999));
+
+            writer.savePart(40L, new ShoppingCart<>(null, "static-fourth", "S40", now, 0, null, LoadType.STATIC_PART, 700));
+            writer.savePart(5L, new ShoppingCart<>(null, "static-first", "S05", now, 0, null, LoadType.STATIC_PART, -10));
+            writer.savePart(25L, new ShoppingCart<>(null, "static-second", "S25", now, 0, null, LoadType.STATIC_PART, 0));
+        }
+
+        try (Persistence<Integer> byPriorityRedisIndex = new RedisPersistenceBuilder<Integer>(name)
+                .restoreOrder(RestoreOrder.BY_PRIORITY_AND_ID)
+                .priorityRestoreStrategy(PriorityRestoreStrategy.REDIS_INDEX)
+                .build();
+             JedisPooled jedis = openRedis()) {
+            assertEquals(List.of(20L, 30L, 10L), new ArrayList<>(byPriorityRedisIndex.getAllPartIds(7)));
+            assertEquals(
+                    List.of("second", "third", "first"),
+                    byPriorityRedisIndex.getAllParts().stream().map(Cart::getValue).toList()
+            );
+            assertEquals(
+                    List.of("static-fourth", "static-second", "static-first"),
+                    byPriorityRedisIndex.getAllStaticParts().stream().map(Cart::getValue).toList()
+            );
+
+            String namespace = "conv:{" + name + "}";
+            assertEquals(PriorityRestoreStrategy.REDIS_INDEX.name(), jedis.hget(namespace + ":meta", "priorityRestoreStrategy"));
+            assertEquals(
+                    List.of(20L, 30L, 10L),
+                    jedis.zrange(namespace + ":parts:key-priority:" + encodeSerializable(7), 0, -1)
+                            .stream()
+                            .map(RedisPersistenceTest::decodePriorityIndexMember)
+                            .toList()
+            );
+        }
+    }
+
+    @Test
+    void upgradesLegacyNamespaceToRedisPriorityIndexWhenMetadataIsMissing() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("restore-order-legacy-upgrade");
+        String namespace = "conv:{" + name + "}";
+        try (Persistence<Integer> writer = new RedisPersistenceBuilder<Integer>(name).build();
+             JedisPooled jedis = openRedis()) {
+            writer.archiveAll();
+
+            long now = System.currentTimeMillis();
+            writer.savePart(30L, new ShoppingCart<>(7, "third", "A30", now, 0, null, LoadType.PART, 500));
+            writer.savePart(10L, new ShoppingCart<>(7, "first", "A10", now, 0, null, LoadType.PART, -100));
+            writer.savePart(20L, new ShoppingCart<>(7, "second", "A20", now, 0, null, LoadType.PART, 999));
+
+            jedis.hdel(namespace + ":meta", "priorityRestoreStrategy");
+        }
+
+        try (Persistence<Integer> upgraded = new RedisPersistenceBuilder<Integer>(name)
+                .restoreOrder(RestoreOrder.BY_PRIORITY_AND_ID)
+                .priorityRestoreStrategy(PriorityRestoreStrategy.REDIS_INDEX)
+                .build();
+             JedisPooled jedis = openRedis()) {
+            assertEquals(
+                    List.of("second", "third", "first"),
+                    upgraded.getAllParts().stream().map(Cart::getValue).toList()
+            );
+            assertEquals(PriorityRestoreStrategy.REDIS_INDEX.name(), jedis.hget(namespace + ":meta", "priorityRestoreStrategy"));
+            assertEquals(
+                    List.of(20L, 30L, 10L),
+                    jedis.zrange(namespace + ":parts:active:priority", 0, -1)
+                            .stream()
+                            .map(RedisPersistenceTest::decodePriorityIndexMember)
+                            .toList()
+            );
+        }
     }
 
     @Test
@@ -881,6 +968,41 @@ class RedisPersistenceTest extends RedisTestSupport {
             second.part().id(11).label(OrderedReplayPart.STEP).value("new").priority(0).place().join();
             awaitTrue(() -> "high>low>new".equals(recoveredResults.get(11)),
                     "Recovered conveyor should replay higher-priority persisted carts before lower-priority ones");
+        } finally {
+            second.completeAndStop().join();
+        }
+    }
+
+    @Test
+    void replaysRecoveredPartsInConfiguredPriorityOrderUsingRedisIndex() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("recovery-restore-order-redis-index");
+        try (Persistence<Integer> cleanup = newRecoveryPersistence(name, RestoreOrder.BY_PRIORITY_AND_ID, PriorityRestoreStrategy.REDIS_INDEX)) {
+            cleanup.archiveAll();
+        }
+
+        Map<Integer, String> firstResults = new ConcurrentHashMap<>();
+        Persistence<Integer> firstPersistence = newRecoveryPersistence(name, RestoreOrder.BY_PRIORITY_AND_ID, PriorityRestoreStrategy.REDIS_INDEX);
+        PersistentConveyor<Integer, SmartLabel<OrderedReplayBuilder>, String> first =
+                firstPersistence.wrapConveyor(newOrderedReplayConveyor("redis-ordered-replay-index-first", firstResults));
+        try {
+            first.part().id(12).label(OrderedReplayPart.STEP).value("low").priority(1).place().join();
+            first.part().id(12).label(OrderedReplayPart.STEP).value("high").priority(50).place().join();
+        } finally {
+            first.stop();
+        }
+
+        assertTrue(firstResults.isEmpty());
+
+        Map<Integer, String> recoveredResults = new ConcurrentHashMap<>();
+        Persistence<Integer> secondPersistence = newRecoveryPersistence(name, RestoreOrder.BY_PRIORITY_AND_ID, PriorityRestoreStrategy.REDIS_INDEX);
+        PersistentConveyor<Integer, SmartLabel<OrderedReplayBuilder>, String> second =
+                secondPersistence.wrapConveyor(newOrderedReplayConveyor("redis-ordered-replay-index-second", recoveredResults));
+        try {
+            second.part().id(12).label(OrderedReplayPart.STEP).value("new").priority(0).place().join();
+            awaitTrue(() -> "high>low>new".equals(recoveredResults.get(12)),
+                    "Recovered conveyor should replay higher-priority persisted carts before lower-priority ones when Redis priority indexes are enabled");
         } finally {
             second.completeAndStop().join();
         }
@@ -1202,6 +1324,27 @@ class RedisPersistenceTest extends RedisTestSupport {
                 .maxArchiveBatchTime(100L)
                 .restoreOrder(restoreOrder)
                 .build();
+    }
+
+    private static Persistence<Integer> newRecoveryPersistence(
+            String name,
+            RestoreOrder restoreOrder,
+            PriorityRestoreStrategy priorityRestoreStrategy) {
+        return new RedisPersistenceBuilder<Integer>(name)
+                .maxArchiveBatchSize(4)
+                .maxArchiveBatchTime(100L)
+                .restoreOrder(restoreOrder)
+                .priorityRestoreStrategy(priorityRestoreStrategy)
+                .build();
+    }
+
+    private static String encodeSerializable(Serializable value) {
+        return Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(new SerializableToBytesConverter<Serializable>().toPersistence(value));
+    }
+
+    private static long decodePriorityIndexMember(String member) {
+        return Long.parseLong(member.substring(member.lastIndexOf(':') + 1));
     }
 
     private static AssemblingConveyor<Integer, SmartLabel<OrderedReplayBuilder>, String> newOrderedReplayConveyor(

@@ -153,9 +153,17 @@ Current Redis implementation:
 - v1:
   - supports `BY_ID` natively with sorted-set score = id
   - supports `NO_ORDER` as backend iteration order with no extra re-sorting
-  - supports `BY_PRIORITY_AND_ID` by sorting in Java after fetch
-- future optimization only if needed:
-  - add an optimized priority+id index if performance requires it
+  - supports `BY_PRIORITY_AND_ID` with an initialization-stage choice:
+    - `JAVA_SORT` as the default
+    - `REDIS_INDEX` for Redis-side priority indexes on active/static/per-key reads and replay-facing recovery
+  - expired reads still use the expiration index first and then Java-side sorting
+
+Current bootstrap implication:
+- the selected `priorityRestoreStrategy` is now part of namespace metadata
+- fresh namespaces record that choice during bootstrap
+- older namespaces missing the field can be upgraded:
+  - `JAVA_SORT` is recorded directly
+  - `REDIS_INDEX` triggers a one-time priority-index rebuild for existing active/static/per-key data
 
 This is a deliberate tradeoff to reduce index complexity in the first implementation.
 

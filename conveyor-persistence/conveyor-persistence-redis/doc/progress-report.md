@@ -27,7 +27,9 @@
 - Current Redis restore behavior is now explicitly configurable and proven for:
   - `BY_ID`
   - `NO_ORDER`
-  - Java-side `BY_PRIORITY_AND_ID`
+  - `BY_PRIORITY_AND_ID` with a builder-selected implementation:
+    - `JAVA_SORT`
+    - `REDIS_INDEX`
   - one recovered command-cart path
   - restart-and-finish `PersistentConveyor` recovery
 - Recovery cleanup proof now includes the recovered `CANCELED`, `TIMED_OUT`, and timeout-action `INVALID` status paths in addition to the earlier `READY` paths.
@@ -155,6 +157,7 @@ Important note:
     - backend=`redis`
     - backend version=`1`
     - configured persistence name
+    - priority restore strategy
     - script mode=`lua`
     - script bundle version=`1`
   - bootstrap now also validates:
@@ -217,15 +220,24 @@ Important note:
   - explicitly supports:
     - `BY_ID` as the default
     - `NO_ORDER` as backend iteration order with no extra re-sorting
-    - Java-side `BY_PRIORITY_AND_ID`
+    - `BY_PRIORITY_AND_ID` with a builder-selected implementation:
+      - `JAVA_SORT` as the default
+      - `REDIS_INDEX` as an initialization-stage choice
   - active/static indexes still store part id as their native sorted-set score
+  - when `REDIS_INDEX` is selected, Redis also maintains priority indexes for:
+    - active parts
+    - static parts
+    - per-key part lookups
+  - expired reads still use the expiration index first and then Java-side priority sorting
 - Status:
   - implemented
   - current tests now prove:
     - `BY_ID` behavior for active parts, static parts, expired parts, and per-key indexes
     - `NO_ORDER` behavior for expired-part reads
-    - Java-side `BY_PRIORITY_AND_ID` for active parts, static parts, expired parts, and per-key indexes
-    - `BY_PRIORITY_AND_ID` replay behavior on a recovered `PersistentConveyor` flow
+    - `JAVA_SORT` `BY_PRIORITY_AND_ID` for active parts, static parts, expired parts, and per-key indexes
+    - `REDIS_INDEX` `BY_PRIORITY_AND_ID` for active parts, static parts, and per-key indexes
+    - legacy namespace upgrade into `REDIS_INDEX` when `priorityRestoreStrategy` metadata is missing
+    - `BY_PRIORITY_AND_ID` replay behavior on a recovered `PersistentConveyor` flow for both `JAVA_SORT` and `REDIS_INDEX`
 
 ### Archive Strategies
 
@@ -756,12 +768,12 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ### Medium Complexity
 
-- Optimize `BY_PRIORITY_AND_ID` if Redis replay volume makes the current Java-side sort too expensive.
+- Benchmark and document when `JAVA_SORT` vs `REDIS_INDEX` is the better initialization-stage choice for `BY_PRIORITY_AND_ID`.
   - Candidate scope:
-    - dedicated priority+id index
-    - reduced metadata lookups during replay-oriented reads
+    - compare recovery and replay costs under both strategies
+    - compare Redis memory overhead for maintained priority indexes
   - Why medium:
-    - the current behavior is correct, but it may become a tuning target under larger recovery loads
+    - the feature is implemented, but the operational tradeoff still needs clearer guidance
 
 - Improve current data layout so metadata stays intentionally queryable without growing redundant mirrors again.
   - Candidate scope:
@@ -843,8 +855,8 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ## Recommended Next Sequence
 
-1. Revisit whether `BY_PRIORITY_AND_ID` needs an optimized Redis-side index or if the current Java-side sort remains sufficient.
-2. Broaden recovery proof into additional recovery modes beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths.
+1. Broaden recovery proof into additional recovery modes beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths.
+2. Benchmark and document when `JAVA_SORT` vs `REDIS_INDEX` should be chosen.
 3. Decide whether any later Redis Function work is worth the required minimum-version jump beyond the current Lua-compatible floor.
 4. Tighten move-style archive orchestration if the current interruption window proves too wide in practice.
 
