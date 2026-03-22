@@ -2,6 +2,8 @@ package com.aegisql.conveyor.persistence.redis;
 
 import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
+import com.aegisql.conveyor.persistence.archive.Archiver;
+import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import org.junit.jupiter.api.Assumptions;
@@ -15,11 +17,18 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Collection;
+import java.util.Set;
+import java.util.function.Supplier;
+
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -311,6 +320,52 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
     }
 
     @Test
+    void capturesArchiveAndEncryptionBuilderSurface() throws Exception {
+        String name = testNamespace("builder-surface");
+        SecretKey secretKey = KeyGenerator.getInstance("AES").generateKey();
+        BinaryLogConfiguration binaryLogConfiguration = BinaryLogConfiguration.builder()
+                .path("target/redis-builder-surface")
+                .moveToPath("target/redis-builder-surface")
+                .partTableName("builder")
+                .build();
+        RecordingArchiver customArchiver = new RecordingArchiver();
+
+        try (Persistence<Integer> archivePersistence = new RedisPersistenceBuilder<Integer>(testNamespace("builder-archive-target")).build()) {
+            RedisPersistenceBuilder<Integer> base = new RedisPersistenceBuilder<Integer>(name);
+            RedisPersistenceBuilder<Integer> configured = base
+                    .minCompactSize(7)
+                    .maxArchiveBatchSize(17)
+                    .maxArchiveBatchTime(19_000L)
+                    .nonPersistentProperty("TMP")
+                    .deleteArchiving();
+
+            assertEquals(7, configured.minCompactSize());
+            assertEquals(17, configured.maxArchiveBatchSize());
+            assertEquals(19_000L, configured.maxArchiveBatchTime());
+            assertTrue(configured.nonPersistentProperties().contains("TMP"));
+            assertEquals(ArchiveStrategy.DELETE, configured.archiveStrategy());
+
+            assertNotNull(base.encryptionSecret("builder-secret").encryptionBuilder().get());
+            assertNotNull(base.encryptionSecret(secretKey).encryptionBuilder().get());
+            assertNotNull(base.encryptionAlgorithm("AES")
+                    .encryptionTransformation("AES/ECB/PKCS5Padding")
+                    .encryptionKeyLength(16)
+                    .encryptionSecret("legacy-secret")
+                    .encryptionBuilder()
+                    .get());
+
+            assertThrows(NullPointerException.class, () -> base.archiver((Persistence<Integer>) null));
+            assertThrows(NullPointerException.class, () -> base.archiver((BinaryLogConfiguration) null));
+            assertThrows(NullPointerException.class, () -> base.archiver((Archiver<Integer>) null));
+
+            assertEquals(ArchiveStrategy.MOVE_TO_PERSISTENCE, base.archiver(archivePersistence).archiveStrategy());
+            assertEquals(ArchiveStrategy.MOVE_TO_FILE, base.archiver(binaryLogConfiguration).archiveStrategy());
+            assertEquals(ArchiveStrategy.CUSTOM, base.archiver(customArchiver).archiveStrategy());
+            assertEquals(ArchiveStrategy.DELETE, base.noArchiving().deleteArchiving().archiveStrategy());
+        }
+    }
+
+    @Test
     void ownedBuilderConnectionsHonorLivePoolTuning() throws Exception {
         openRedis().close();
 
@@ -337,6 +392,24 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         }
     }
 
+    @Test
+    void usesCustomArchiverWhenConfigured() throws Exception {
+        RecordingArchiver customArchiver = new RecordingArchiver();
+
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(testNamespace("builder-custom-archiver"))
+                .archiver(customArchiver)
+                .build()) {
+            persistence.archiveParts(List.of(1L, 2L));
+            persistence.archiveKeys(List.of(10));
+            persistence.archiveCompleteKeys(List.of(20));
+            persistence.archiveExpiredParts();
+            persistence.archiveAll();
+        }
+
+        assertEquals(List.of("parts", "keys", "complete", "expired", "all"), customArchiver.calls);
+        assertNotNull(customArchiver.persistence);
+    }
+
     private static Object readClientHandle(RedisPersistence<?> persistence) throws Exception {
         var field = RedisPersistence.class.getDeclaredField("clientHandle");
         field.setAccessible(true);
@@ -351,5 +424,40 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
 
     private static String namespaceMetaKey(String name) {
         return "conv:{" + name + "}:meta";
+    }
+
+    private static final class RecordingArchiver implements Archiver<Integer> {
+        private final java.util.ArrayList<String> calls = new java.util.ArrayList<>();
+        private Persistence<Integer> persistence;
+
+        @Override
+        public void setPersistence(Persistence<Integer> persistence) {
+            this.persistence = persistence;
+        }
+
+        @Override
+        public void archiveParts(Collection<Long> ids) {
+            calls.add("parts");
+        }
+
+        @Override
+        public void archiveKeys(Collection<Integer> keys) {
+            calls.add("keys");
+        }
+
+        @Override
+        public void archiveCompleteKeys(Collection<Integer> keys) {
+            calls.add("complete");
+        }
+
+        @Override
+        public void archiveExpiredParts() {
+            calls.add("expired");
+        }
+
+        @Override
+        public void archiveAll() {
+            calls.add("all");
+        }
     }
 }
