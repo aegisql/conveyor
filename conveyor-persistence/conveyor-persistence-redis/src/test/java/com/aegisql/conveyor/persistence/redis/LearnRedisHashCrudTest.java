@@ -8,8 +8,20 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+/**
+ * Learn-by-example test for Redis hash values.
+ *
+ * <p>This test demonstrates the record-like shape that matters to this module:
+ * a hash can hold multiple named fields, those fields can be read back
+ * individually or as a map, and an existing field can be updated without
+ * recreating the whole hash in test code.</p>
+ */
 class LearnRedisHashCrudTest extends RedisTestSupport {
 
+    /**
+     * Creates a small hash, verifies the stored fields, updates one field, and
+     * then deletes the whole hash so the key no longer exists.
+     */
     @Test
     void demonstratesHashCreateReadUpdateDelete() {
         String key = testKey("hash");

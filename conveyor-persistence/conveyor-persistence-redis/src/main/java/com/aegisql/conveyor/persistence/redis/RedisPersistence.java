@@ -65,6 +65,7 @@ public class RedisPersistence<K> implements Persistence<K> {
     private final EncryptingConverter payloadEncryptor;
     private final ConverterAdviser<Object> plainConverterAdviser = new ConverterAdviser<>();
     private final ConverterAdviser<Object> payloadConverterAdviser;
+    private final RedisLuaScriptBundle luaScripts;
     private final AtomicBoolean initialized;
     private final Archiver<K> archiver;
 
@@ -89,6 +90,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor);
         this.clientHandle = clientHandle;
         this.jedis = clientHandle.jedis();
+        this.luaScripts = new RedisLuaScriptBundle(jedis);
         this.initialized = new AtomicBoolean(false);
         this.archiver = buildArchiver();
         this.archiver.setPersistence(this);
@@ -109,6 +111,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor);
         this.clientHandle = source.clientHandle.retain();
         this.jedis = clientHandle.jedis();
+        this.luaScripts = new RedisLuaScriptBundle(jedis);
         this.initialized = source.initialized;
         this.archiver = buildArchiver();
         this.archiver.setPersistence(this);
@@ -180,33 +183,11 @@ public class RedisPersistence<K> implements Persistence<K> {
             filterEncoding.put(meta, "commandFilterHint", "commandFilterData", false);
         }
 
-        jedis.del(metaKey);
-        jedis.hset(metaKey, meta);
-
-        if (valueEncoding.encoded() != null) {
-            jedis.set(payloadKey, valueEncoding.encoded());
-        } else {
-            jedis.del(payloadKey);
-        }
-
-        if (cart.getLoadType() == LoadType.STATIC_PART) {
-            jedis.zadd(staticIdsKey(), id, idMember);
-            jedis.zrem(activeIdsKey(), idMember);
-        } else {
-            jedis.zadd(activeIdsKey(), id, idMember);
-            jedis.zrem(staticIdsKey(), idMember);
-        }
-
-        long expirationTime = cart.getExpirationTime();
-        if (expirationTime > 0) {
-            jedis.zadd(expiringIdsKey(), expirationTime, idMember);
-        } else {
-            jedis.zrem(expiringIdsKey(), idMember);
-        }
-
-        if (cart.getKey() != null) {
-            savePartId(cart.getKey(), id);
-        }
+        String encodedIndexedKey = cart.getKey() == null ? null : encodeSerializable(cart.getKey());
+        luaScripts.savePart(
+                savePartKeys(payloadKey, metaKey, reverseKeyIndex, encodedIndexedKey),
+                savePartArgs(idMember, cart, valueEncoding.encoded(), encodedIndexedKey, meta)
+        );
     }
 
     @Override
@@ -414,6 +395,8 @@ public class RedisPersistence<K> implements Persistence<K> {
             } else {
                 validateNamespaceMetadata(namespaceMeta);
             }
+            ensureScriptBundleMetadata(jedis.hgetAll(metaKey()));
+            luaScripts.ensureLoaded();
             trackKey(metaKey());
             trackKey(seqKey());
             trackKey(activeIdsKey());
@@ -469,7 +452,9 @@ public class RedisPersistence<K> implements Persistence<K> {
         jedis.hset(metaKey(), Map.of(
                 "backend", BACKEND_NAME,
                 "version", BACKEND_VERSION,
-                "name", name
+                "name", name,
+                "scriptMode", RedisLuaScriptBundle.SCRIPT_MODE,
+                "scriptBundleVersion", RedisLuaScriptBundle.BUNDLE_VERSION
         ));
     }
 
@@ -495,6 +480,30 @@ public class RedisPersistence<K> implements Persistence<K> {
         }
     }
 
+    private void ensureScriptBundleMetadata(Map<String, String> namespaceMeta) {
+        String scriptMode = namespaceMeta.get("scriptMode");
+        String scriptBundleVersion = namespaceMeta.get("scriptBundleVersion");
+        if (scriptMode == null && scriptBundleVersion == null) {
+            jedis.hset(metaKey(), Map.of(
+                    "scriptMode", RedisLuaScriptBundle.SCRIPT_MODE,
+                    "scriptBundleVersion", RedisLuaScriptBundle.BUNDLE_VERSION
+            ));
+            return;
+        }
+        if (scriptMode == null || scriptBundleVersion == null) {
+            throw new PersistenceException("Redis namespace metadata is incomplete for " + namespace
+                    + ". Expected scriptMode and scriptBundleVersion markers once Lua bootstrap metadata is present.");
+        }
+        if (!RedisLuaScriptBundle.SCRIPT_MODE.equals(scriptMode)) {
+            throw new PersistenceException("Redis namespace " + namespace + " uses script mode '" + scriptMode
+                    + "', expected '" + RedisLuaScriptBundle.SCRIPT_MODE + "'");
+        }
+        if (!RedisLuaScriptBundle.BUNDLE_VERSION.equals(scriptBundleVersion)) {
+            throw new PersistenceException("Redis namespace " + namespace + " uses script bundle version '" + scriptBundleVersion
+                    + "', expected '" + RedisLuaScriptBundle.BUNDLE_VERSION + "'");
+        }
+    }
+
     private Map<String, Object> extractPersistentProperties(Cart<K, ?, ?> cart) {
         Map<String, Object> properties = new HashMap<>();
         cart.getAllProperties().forEach((key, value) -> {
@@ -503,6 +512,38 @@ public class RedisPersistence<K> implements Persistence<K> {
             }
         });
         return properties;
+    }
+
+    private List<String> savePartKeys(String payloadKey, String metaKey, String reverseKeyIndex, String encodedKey) {
+        ArrayList<String> keys = new ArrayList<>();
+        keys.add(trackerKey());
+        keys.add(metaKey);
+        keys.add(payloadKey);
+        keys.add(reverseKeyIndex);
+        keys.add(activeIdsKey());
+        keys.add(staticIdsKey());
+        keys.add(expiringIdsKey());
+        if (encodedKey != null) {
+            keys.add(partIdsByKeyKey(encodedKey));
+        }
+        return keys;
+    }
+
+    private List<String> savePartArgs(String idMember, Cart<K, ?, ?> cart, String encodedPayload, String encodedKey, Map<String, String> meta) {
+        ArrayList<String> args = new ArrayList<>();
+        args.add(idMember);
+        args.add(Long.toString(cart.getExpirationTime()));
+        args.add(cart.getLoadType() == LoadType.STATIC_PART ? "1" : "0");
+        args.add(encodedPayload == null ? "0" : "1");
+        args.add(encodedPayload == null ? "" : encodedPayload);
+        args.add(encodedKey == null ? "0" : "1");
+        args.add(encodedKey == null ? "" : encodedKey);
+        args.add(Integer.toString(meta.size()));
+        meta.forEach((field, value) -> {
+            args.add(field);
+            args.add(value);
+        });
+        return args;
     }
 
     private void deletePartsInternal(Collection<Long> ids) {

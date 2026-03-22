@@ -118,6 +118,38 @@ class RedisPersistenceTest extends RedisTestSupport {
     }
 
     @Test
+    void bootstrapsLuaScriptMetadataAndReloadsAfterScriptFlush() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("lua-bootstrap");
+        String namespaceMetaKey = "conv:{" + name + "}:meta";
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(name).build();
+             JedisPooled jedis = openRedis()) {
+            persistence.archiveAll();
+
+            long firstId = persistence.nextUniquePartId();
+            persistence.savePart(firstId, new ShoppingCart<>(1, "first", "L1"));
+
+            Map<String, String> namespaceMeta = jedis.hgetAll(namespaceMetaKey);
+            assertEquals(RedisPersistence.BACKEND_NAME, namespaceMeta.get("backend"));
+            assertEquals(RedisPersistence.BACKEND_VERSION, namespaceMeta.get("version"));
+            assertEquals(name, namespaceMeta.get("name"));
+            assertEquals(RedisLuaScriptBundle.SCRIPT_MODE, namespaceMeta.get("scriptMode"));
+            assertEquals(RedisLuaScriptBundle.BUNDLE_VERSION, namespaceMeta.get("scriptBundleVersion"));
+
+            jedis.scriptFlush();
+
+            long secondId = persistence.nextUniquePartId();
+            persistence.savePart(secondId, new ShoppingCart<>(2, "second", "L2"));
+
+            assertEquals(
+                    List.of("first", "second"),
+                    persistence.getAllParts().stream().map(Cart::getValue).toList()
+            );
+        }
+    }
+
+    @Test
     void supportsManualKeyIndexCompletedKeysAndArchiveOperations() throws Exception {
         openRedis().close();
 

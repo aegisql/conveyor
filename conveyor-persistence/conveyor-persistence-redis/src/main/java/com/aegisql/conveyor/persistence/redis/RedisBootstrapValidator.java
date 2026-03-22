@@ -76,6 +76,9 @@ final class RedisBootstrapValidator {
 
             probeKeys.add(probePrefix + ":zset");
             access.validateSortedSetProbe(probeKeys.getLast());
+
+            probeKeys.add(probePrefix + ":lua");
+            access.validateLuaScriptingProbe(probeKeys.getLast());
         } catch (RuntimeException e) {
             throw new PersistenceException("Redis required feature validation failed for namespace " + namespace, e);
         } finally {
@@ -110,6 +113,8 @@ final class RedisBootstrapValidator {
         void validateSetProbe(String key);
 
         void validateSortedSetProbe(String key);
+
+        void validateLuaScriptingProbe(String key);
 
         void cleanupProbeKeys(Collection<String> keys);
     }
@@ -169,6 +174,18 @@ final class RedisBootstrapValidator {
             if (!List.of("one", "two").equals(ordered) || !List.of("one").equals(byScore) || size != 2L) {
                 throw new PersistenceException("Redis sorted-set probe returned unexpected values for " + key
                         + ": ordered=" + ordered + ", byScore=" + byScore + ", size=" + size);
+            }
+        }
+
+        @Override
+        public void validateLuaScriptingProbe(String key) {
+            String sha = jedis.scriptLoad("return {KEYS[1],ARGV[1]}");
+            Object result = jedis.evalsha(sha, List.of(key), List.of("value"));
+            if (!(result instanceof List<?> values)
+                    || values.size() != 2
+                    || !key.equals(String.valueOf(values.getFirst()))
+                    || !"value".equals(String.valueOf(values.get(1)))) {
+                throw new PersistenceException("Redis Lua probe returned unexpected values for " + key + ": " + result);
             }
         }
 

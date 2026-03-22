@@ -218,7 +218,11 @@ Current implementation status:
 - namespace bootstrap is implemented
 - Redis version parsing and conservative minimum-version validation are implemented
 - required command-family probes for the current backend are implemented
-- script/function registration is not implemented yet
+- current Lua bundle registration is implemented for the atomic `savePart(...)` path
+- current namespace metadata includes Lua bundle markers:
+  - `scriptMode=lua`
+  - `scriptBundleVersion=1`
+- remaining script/function bootstrap work is concentrated around future archive-side atomic operations
 
 It should not mean:
 - create database

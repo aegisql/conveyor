@@ -12,6 +12,7 @@ Production code currently includes:
 - `RedisConnectionFactory`
 - `RedisPersistenceBuilder`
 - `RedisPersistence`
+- `RedisLuaScriptBundle`
 
 The current implementation:
 
@@ -20,6 +21,7 @@ The current implementation:
 - keeps the authoritative cart metadata in `conv:{name}:part:{id}:meta`
 - supports optional payload encryption through the same shared encryption builder pattern used by JDBC
 - maintains Redis-native indexes for active parts, static parts, expirations, per-key part ids, and completed keys
+- commits itemized cart writes through a Lua-backed atomic `savePart`
 - supports Redis-appropriate archive strategies:
   - `DELETE`
   - `NO_ACTION`
@@ -43,10 +45,12 @@ The current implementation:
 - validates namespace bootstrap metadata before using an existing Redis namespace
 - bootstraps Redis namespace metadata lazily on first use when `autoInit(false)`
 - validates Redis server version and required Redis command features during bootstrap
+- registers the current Lua script bundle during bootstrap and reloads it on `NOSCRIPT`
 
 Tests currently cover:
 
 - basic Redis connectivity and CRUD
+- basic Lua scripting proof with `EVAL`, `SCRIPT LOAD`, and `EVALSHA`
 - `Persistence` contract methods with local Redis evidence
 - Redis client ownership behavior for `copy()` and externally supplied clients
 - encrypted payload round-trip, wrong-secret failure, and legacy-default compatibility
@@ -100,8 +104,12 @@ Override options:
     - hash
     - set
     - sorted-set
+    - Lua scripting through `SCRIPT LOAD` and `EVALSHA`
   - `autoInit(false)` now means "skip upfront bootstrap, then validate or bootstrap lazily on first use"
-  - script/function registration is still a later step; the current bootstrap only validates readiness for the current non-Lua implementation
+  - bootstrap now records and validates the current Lua bundle metadata:
+    - `scriptMode=lua`
+    - `scriptBundleVersion=1`
+  - the current Lua bundle is loaded during bootstrap and reloaded automatically on `NOSCRIPT`
 - Builder-level connection configuration is now broader than URI-only setup:
   - owned clients can be tuned through pool sizing, timeouts, database selection, client name, authentication, and SSL flags
   - externally supplied `JedisPooled` clients are still supported and remain the right choice when the host application owns Redis infrastructure configuration
@@ -124,6 +132,7 @@ Override options:
   - broader recovery-mode coverage still needs evidence
 - The current reader still accepts the earlier whole-cart Redis format for backward compatibility.
 - New itemized writes no longer mirror value bytes into `:meta.valueData`.
+- New itemized writes now reach Redis through a Lua-backed atomic `savePart`.
 - The reader still accepts the earlier mirrored itemized value layout when older Redis data contains `valueData`.
 - Redis performance coverage currently follows the JDBC perf style only where that matches the current Redis maturity:
   - reproduced now:
@@ -134,5 +143,7 @@ Override options:
     - parallel persistent perf flows
     - archive-to-file or archive-to-persistence perf flows
     - broader unload/expiration perf scenarios
+- Archive and cleanup operations are still Java multi-command flows.
+- The remaining atomicity work is now concentrated around archive and cleanup operations rather than `savePart`.
 - See `../doc/plans/redis-persistence.md` for the planned direction.
 - See `./progress-report.md` for the current implementation status and JDBC comparison.

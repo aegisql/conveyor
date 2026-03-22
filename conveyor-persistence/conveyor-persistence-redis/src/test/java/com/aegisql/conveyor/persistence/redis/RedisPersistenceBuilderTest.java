@@ -73,11 +73,7 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
                     "autoInit(false) should not bootstrap the namespace before the first persistence operation");
             persistence.archiveAll();
             assertEquals(1L, persistence.nextUniquePartId());
-            assertEquals(
-                    Map.of("backend", RedisPersistence.BACKEND_NAME, "version", RedisPersistence.BACKEND_VERSION, "name", name),
-                    jedis.hgetAll(namespaceMetaKey),
-                    "The first persistence operation should lazily bootstrap compatible namespace metadata"
-            );
+            assertNamespaceMetadata(jedis.hgetAll(namespaceMetaKey), name);
         }
     }
 
@@ -101,6 +97,7 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
             assertEquals(1L, persistence.nextUniquePartId());
             assertEquals("keep-me", jedis.hget(validMetaKey, "marker"),
                     "Valid namespace bootstrap metadata should be validated, not overwritten");
+            assertNamespaceMetadata(jedis.hgetAll(validMetaKey), validName);
         }
 
         String wrongBackendName = testNamespace("builder-bootstrap-wrong-backend");
@@ -160,6 +157,53 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
             assertTrue(incompleteError.getMessage().contains("metadata is incomplete"),
                     "Unexpected error for incomplete namespace metadata: " + incompleteError.getMessage());
         }
+
+        String wrongScriptModeName = testNamespace("builder-bootstrap-wrong-script-mode");
+        try (JedisPooled jedis = openRedis()) {
+            jedis.hset(namespaceMetaKey(wrongScriptModeName), Map.of(
+                    "backend", RedisPersistence.BACKEND_NAME,
+                    "version", RedisPersistence.BACKEND_VERSION,
+                    "name", wrongScriptModeName,
+                    "scriptMode", "functions",
+                    "scriptBundleVersion", RedisLuaScriptBundle.BUNDLE_VERSION
+            ));
+        }
+        PersistenceException wrongScriptModeError = assertThrows(
+                PersistenceException.class,
+                () -> new RedisPersistenceBuilder<Integer>(wrongScriptModeName).autoInit(true).build()
+        );
+        assertTrue(wrongScriptModeError.getMessage().contains("script mode"));
+
+        String wrongScriptBundleName = testNamespace("builder-bootstrap-wrong-script-bundle");
+        try (JedisPooled jedis = openRedis()) {
+            jedis.hset(namespaceMetaKey(wrongScriptBundleName), Map.of(
+                    "backend", RedisPersistence.BACKEND_NAME,
+                    "version", RedisPersistence.BACKEND_VERSION,
+                    "name", wrongScriptBundleName,
+                    "scriptMode", RedisLuaScriptBundle.SCRIPT_MODE,
+                    "scriptBundleVersion", "999"
+            ));
+        }
+        PersistenceException wrongScriptBundleError = assertThrows(
+                PersistenceException.class,
+                () -> new RedisPersistenceBuilder<Integer>(wrongScriptBundleName).autoInit(true).build()
+        );
+        assertTrue(wrongScriptBundleError.getMessage().contains("script bundle version"));
+
+        String incompleteScriptMetaName = testNamespace("builder-bootstrap-incomplete-script-meta");
+        try (JedisPooled jedis = openRedis()) {
+            jedis.hset(namespaceMetaKey(incompleteScriptMetaName), Map.of(
+                    "backend", RedisPersistence.BACKEND_NAME,
+                    "version", RedisPersistence.BACKEND_VERSION,
+                    "name", incompleteScriptMetaName,
+                    "scriptMode", RedisLuaScriptBundle.SCRIPT_MODE
+            ));
+        }
+        PersistenceException incompleteScriptMetaError = assertThrows(
+                PersistenceException.class,
+                () -> new RedisPersistenceBuilder<Integer>(incompleteScriptMetaName).autoInit(true).build()
+        );
+        assertTrue(incompleteScriptMetaError.getMessage().contains("scriptMode and scriptBundleVersion"));
     }
 
     @Test
@@ -424,6 +468,14 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
 
     private static String namespaceMetaKey(String name) {
         return "conv:{" + name + "}:meta";
+    }
+
+    private static void assertNamespaceMetadata(Map<String, String> namespaceMeta, String name) {
+        assertEquals(RedisPersistence.BACKEND_NAME, namespaceMeta.get("backend"));
+        assertEquals(RedisPersistence.BACKEND_VERSION, namespaceMeta.get("version"));
+        assertEquals(name, namespaceMeta.get("name"));
+        assertEquals(RedisLuaScriptBundle.SCRIPT_MODE, namespaceMeta.get("scriptMode"));
+        assertEquals(RedisLuaScriptBundle.BUNDLE_VERSION, namespaceMeta.get("scriptBundleVersion"));
     }
 
     private static final class RecordingArchiver implements Archiver<Integer> {

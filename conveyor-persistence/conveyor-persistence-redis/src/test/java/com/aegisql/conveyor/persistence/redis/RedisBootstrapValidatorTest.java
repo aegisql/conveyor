@@ -53,16 +53,16 @@ class RedisBootstrapValidatorTest extends RedisTestSupport {
         RecordingFeatureAccess access = new RecordingFeatureAccess();
         RedisBootstrapValidator.validateRequiredFeatures(access, "conv:{validator-success}");
 
-        assertEquals(List.of("sequence", "string", "hash", "set", "sorted-set"), access.calls);
+        assertEquals(List.of("sequence", "string", "hash", "set", "sorted-set", "lua"), access.calls);
         assertEquals(1, access.cleanupCalls);
-        assertEquals(5, access.cleanedKeys.size());
+        assertEquals(6, access.cleanedKeys.size());
         assertTrue(access.cleanedKeys.stream().allMatch(key -> key.startsWith("conv:{validator-success}:bootstrap:probe:")));
     }
 
     @Test
     void wrapsFeatureProbeFailuresAndStillCleansUpProbeKeys() {
         RecordingFeatureAccess access = new RecordingFeatureAccess();
-        access.failOn = "set";
+        access.failOn = "lua";
 
         PersistenceException error = assertThrows(
                 PersistenceException.class,
@@ -70,9 +70,9 @@ class RedisBootstrapValidatorTest extends RedisTestSupport {
         );
 
         assertTrue(error.getMessage().contains("required feature validation failed"));
-        assertEquals(List.of("sequence", "string", "hash", "set"), access.calls);
+        assertEquals(List.of("sequence", "string", "hash", "set", "sorted-set", "lua"), access.calls);
         assertEquals(1, access.cleanupCalls);
-        assertEquals(4, access.cleanedKeys.size());
+        assertEquals(6, access.cleanedKeys.size());
     }
 
     @Test
@@ -115,6 +115,11 @@ class RedisBootstrapValidatorTest extends RedisTestSupport {
         @Override
         public void validateSortedSetProbe(String key) {
             record("sorted-set");
+        }
+
+        @Override
+        public void validateLuaScriptingProbe(String key) {
+            record("lua");
         }
 
         @Override

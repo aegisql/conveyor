@@ -21,7 +21,8 @@
   - `MOVE_TO_PERSISTENCE`
   - `MOVE_TO_FILE`
   - `SET_ARCHIVED` is intentionally unsupported
-- Current Redis writes are multi-command operations, not Lua/function-backed atomic units.
+- Current Redis `savePart` writes are now Lua-backed atomic units.
+- Current Redis archive and cleanup flows are still multi-command Java operations.
 - Current Redis restore behavior is now explicitly configurable and proven for:
   - `BY_ID`
   - `NO_ORDER`
@@ -38,12 +39,14 @@ Production code currently includes:
 - `src/main/java/com/aegisql/conveyor/persistence/redis/RedisConnectionFactory.java`
 - `src/main/java/com/aegisql/conveyor/persistence/redis/RedisPersistenceBuilder.java`
 - `src/main/java/com/aegisql/conveyor/persistence/redis/RedisPersistence.java`
+- `src/main/java/com/aegisql/conveyor/persistence/redis/RedisLuaScriptBundle.java`
 
 Test evidence currently includes:
 
 - `src/test/java/com/aegisql/conveyor/persistence/redis/LearnRedisConnectionTest.java`
 - `src/test/java/com/aegisql/conveyor/persistence/redis/LearnRedisStringCrudTest.java`
 - `src/test/java/com/aegisql/conveyor/persistence/redis/LearnRedisHashCrudTest.java`
+- `src/test/java/com/aegisql/conveyor/persistence/redis/LearnRedisLuaScriptTest.java`
 - `src/test/java/com/aegisql/conveyor/persistence/redis/RedisConnectionFactoryTest.java`
 - `src/test/java/com/aegisql/conveyor/persistence/redis/RedisPersistenceBuilderTest.java`
 - `src/test/java/com/aegisql/conveyor/persistence/redis/RedisPersistenceTest.java`
@@ -63,7 +66,7 @@ The current implementation uses a namespace rooted at:
 The current code creates and maintains these key groups:
 
 - `conv:{name}:meta`
-  - namespace bootstrap marker with backend name and version
+  - namespace bootstrap marker with backend name, backend version, configured persistence name, and current Lua bundle markers
 - `conv:{name}:seq`
   - Redis `INCR` source for part ids
 - `conv:{name}:parts:active`
@@ -98,6 +101,7 @@ Important note:
 - The current restore path reconstructs carts from itemized metadata plus the value payload key.
 - The reader still detects and reads the legacy whole-cart Redis format for backward compatibility.
 - The reader also still accepts the earlier itemized form where value bytes were mirrored in `:meta.valueData`.
+- The current `savePart(...)` path is now executed by a Lua script so the itemized write lands atomically.
 
 ## Comparison With The JDBC Pattern
 
@@ -150,6 +154,8 @@ Important note:
     - backend=`redis`
     - backend version=`1`
     - configured persistence name
+    - script mode=`lua`
+    - script bundle version=`1`
   - bootstrap now also validates:
     - Redis server version is present, parseable, and above the current conservative minimum support floor
     - required command families for the current backend are available through live probe operations:
@@ -158,10 +164,11 @@ Important note:
       - hash
       - set
       - sorted-set
+      - Lua scripting through `SCRIPT LOAD` and `EVALSHA`
+  - bootstrap now loads the current Lua script bundle used by the atomic `savePart(...)` path
 - Status:
   - implemented in a stronger v1 form
-  - expanded into Redis server-version checks and required-feature validation
-  - not yet expanded into script registration
+  - expanded into Redis server-version checks, required-feature validation, and current Lua script registration
 
 ### Storage Model
 
@@ -172,11 +179,12 @@ Important note:
   - maintains lookup/index structures with sets and sorted sets.
   - keeps legacy whole-cart read fallback so previously written Redis data is still readable.
   - can now protect serialized value payload bytes with the same shared encryptor used by JDBC.
+  - now commits itemized cart writes through a Lua-backed atomic `savePart(...)` operation
 - Status:
   - implemented
   - intentionally Redis-native
   - closer to the JDBC mental model than the initial Redis version
-  - still less mature than JDBC around ordering, atomicity, and archive strategy breadth
+  - still less mature than JDBC around archive atomicity and broader operational parity
 
 ### Payload Protection
 
@@ -435,8 +443,20 @@ Redis should not be judged by whether it can imitate each JDBC strategy literall
     - hash
     - set
     - sorted-set
+    - Lua scripting
 - These checks are run on eager init and on lazy first-use init.
-- Current bootstrap still does not register Lua scripts or Redis Functions; that remains a later atomicity step.
+
+### Done: Lua bootstrap registration for the current atomic write bundle
+
+- Redis namespace bootstrap metadata now includes:
+  - `scriptMode=lua`
+  - `scriptBundleVersion=1`
+- Existing namespaces that predate the Lua bundle are upgraded in place by adding the current script metadata markers.
+- Incompatible or incomplete Lua bundle metadata is rejected with `PersistenceException`.
+- The current Lua bundle is loaded during bootstrap and is therefore ready before the first script-backed persistence write.
+- Current tests also prove the operational reload path:
+  - after `SCRIPT FLUSH`
+  - the next `savePart(...)` reloads the script on `NOSCRIPT` and still succeeds
 
 ### Done: builder-level pool tuning and explicit client configuration
 
@@ -556,6 +576,7 @@ This is meaningful because it shows the current itemized storage and reconstruct
   - an itemized metadata hash at `conv:{name}:part:{id}:meta`
   - value payload bytes at `conv:{name}:part:{id}:payload`
   - the existing active/static/expiration/per-key indexes
+- The current itemized `savePart(...)` write is now committed through Lua rather than a Java multi-command sequence.
 - Current tests prove:
   - new writes use the itemized structure instead of legacy whole-cart payload storage
   - the current reader can still read the earlier whole-cart Redis format
@@ -693,7 +714,7 @@ This is meaningful because it shows the current itemized storage and reconstruct
 ### Missing Or Partial Compared To JDBC
 
 - broader command-cart coverage beyond the currently proven replay path
-- stronger atomic update behavior for multi-key writes
+- stronger atomic update behavior for archive and cleanup flows
 - indexed-key protection if the project decides Redis needs more than payload-only protection
 - broader recovery-mode coverage beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths
 - broader performance parity beyond the currently reproduced direct, shuffled persistent, and sorted persistent scenarios
@@ -718,14 +739,6 @@ Complexity here means engineering effort plus semantic risk relative to the curr
   - the remaining low-complexity work is mostly documentation hygiene as the module evolves
 
 ### Medium Complexity
-
-- Extend bootstrap semantics from current compatibility validation into script/function bootstrap.
-  - Candidate scope:
-    - script/function registration
-    - script/function version markers in namespace metadata
-    - validation that expected loaded scripts/functions are present
-  - Why medium:
-    - the current compatibility checks are now in place, but atomic-operation infrastructure still needs a bootstrap home
 
 - Optimize `BY_PRIORITY_AND_ID` if Redis replay volume makes the current Java-side sort too expensive.
   - Candidate scope:
@@ -759,11 +772,11 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ### High Complexity
 
-- Replace multi-command save/archive flows with Redis scripts or functions.
+- Replace the remaining multi-command archive/cleanup flows with Redis scripts or functions.
   - Why high:
     - requires careful atomic update design across payload, indexes, and completed-key state
   - Why important:
-    - this is the main durability/correctness hardening step
+    - `savePart(...)` is now atomic, but archiving and cleanup still need the same hardening
 
 - Keep archive strategy documentation and test evidence current.
   - Current state:
@@ -814,15 +827,15 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ## Recommended Next Sequence
 
-1. Extend bootstrap semantics into script/function registration once the atomic Redis operations are designed.
-2. Move save/archive operations toward Lua or Redis Functions for atomicity.
-3. Revisit whether `BY_PRIORITY_AND_ID` needs an optimized Redis-side index or if the current Java-side sort remains sufficient.
-4. Broaden recovery proof into additional recovery modes beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths.
+1. Move archive and cleanup operations toward Lua for atomicity.
+2. Revisit whether `BY_PRIORITY_AND_ID` needs an optimized Redis-side index or if the current Java-side sort remains sufficient.
+3. Broaden recovery proof into additional recovery modes beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths.
+4. Decide whether any later Redis Function work is worth the required minimum-version jump beyond the current Lua-compatible floor.
 
 ## Bottom Line
 
 - Redis persistence is no longer just a plan. It is a real first backend with working SPI coverage and good early test evidence.
 - The biggest remaining gap is not basic CRUD. The biggest gap is maturity compared to JDBC:
   - recovery breadth beyond the currently proven flows
-  - atomic multi-key correctness
+  - archive and cleanup atomicity beyond the now-scripted `savePart(...)`
 - The module is in a solid v1 development state, but not yet in JDBC-level production-parity territory.
