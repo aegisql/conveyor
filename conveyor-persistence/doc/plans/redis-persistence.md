@@ -223,6 +223,10 @@ Current implementation note:
   - `archiveKeys`
   - `archiveExpiredParts`
 - `MOVE_TO_PERSISTENCE` and `MOVE_TO_FILE` still need Java orchestration to export carts before Redis-side cleanup
+- current implementation now narrows the interruption window by deleting each successfully exported batch immediately:
+  - `MOVE_TO_PERSISTENCE` uses `Persistence.getMaxArchiveBatchSize()`
+  - `MOVE_TO_FILE` uses `BinaryLogConfiguration.getBucketSize()`
+- the remaining gap is cross-system atomicity, not oversized Redis-side cleanup batches
 
 ## Initialization Semantics
 For Redis, `autoInit(true)` should be reinterpreted.

@@ -14,4 +14,8 @@ public interface RedisArchiveAccess<K> {
     void deleteAll();
 
     Collection<Long> expiredPartIds();
+
+    Collection<Long> activePartIds();
+
+    Collection<Long> staticPartIds();
 }

@@ -23,7 +23,7 @@
   - `SET_ARCHIVED` is intentionally unsupported
 - Current Redis `savePart` writes are now Lua-backed atomic units.
 - Current Redis delete-style archive and cleanup flows are now Lua-backed atomic units.
-- Current Redis move-style archive flows still use Java orchestration to export carts before Redis-side cleanup.
+- Current Redis move-style archive flows still use Java orchestration to export carts before Redis-side cleanup, but now delete each successfully exported batch immediately instead of waiting for the whole request.
 - Current Redis restore behavior is now explicitly configurable and proven for:
   - `BY_ID`
   - `NO_ORDER`
@@ -302,6 +302,7 @@ Redis should not be judged by whether it can imitate each JDBC strategy literall
     - This is a natural non-delete extension when users want hot Redis recovery plus colder long-term persistence.
   - Implementation note:
     - Redis now uses Redis-specific low-level archive hooks so move-style archivers can export carts and then delete without recursively calling back into `Persistence.archive...()`.
+    - Successful batches are now deleted immediately after export using `Persistence.getMaxArchiveBatchSize()` as the commit/delete unit.
 
 - `MOVE_TO_FILE`
   - Status:
@@ -312,6 +313,7 @@ Redis should not be judged by whether it can imitate each JDBC strategy literall
     - The file-format concept is not inherently relational.
   - Implementation note:
     - Redis now uses a Redis-specific file archiver built on the same low-level archive hooks as `MOVE_TO_PERSISTENCE`.
+    - Successful batches are now deleted immediately after export using `BinaryLogConfiguration.getBucketSize()` as the commit/delete unit.
 
 - `CUSTOM`
   - Status:
@@ -800,11 +802,11 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ### High Complexity
 
-- Replace the remaining move-style archive orchestration with stronger Redis-native atomic boundaries where feasible.
+- Replace the remaining move-style archive orchestration with stronger cross-system atomic boundaries where feasible.
   - Why high:
     - `MOVE_TO_PERSISTENCE` and `MOVE_TO_FILE` still need Java to read carts and hand them off before Redis-side cleanup
   - Why important:
-    - delete-style cleanup is now atomic, but export-and-then-delete flows still have wider interruption windows
+    - delete-style cleanup is now atomic, and move-style flows now narrow duplicate risk to one successful batch, but there is still no true cross-system transaction
 
 - Keep archive strategy documentation and test evidence current.
   - Current state:
@@ -828,9 +830,9 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 - Decide whether library-level reconnect or retry behavior should exist at all.
   - Current recommendation:
-    - do not add automatic retries before the remaining move-style archive flows have safer atomic boundaries
+    - do not add automatic retries before the remaining move-style archive flows have a clearer cross-system idempotence or transaction story
   - Why high:
-    - blind retries around export-and-then-delete Redis flows can create partial-write ambiguity
+    - blind retries around export-and-then-delete Redis flows can still create partial-write ambiguity across systems
   - Why important:
     - long-running applications will see network interruptions, but retry policy must respect persistence correctness
 
@@ -858,12 +860,12 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 1. Broaden recovery proof into additional recovery modes beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths.
 2. Benchmark and document when `JAVA_SORT` vs `REDIS_INDEX` should be chosen.
 3. Decide whether any later Redis Function work is worth the required minimum-version jump beyond the current Lua-compatible floor.
-4. Tighten move-style archive orchestration if the current interruption window proves too wide in practice.
+4. Decide whether the remaining move-style cross-system gap needs idempotence markers or is acceptable as a documented batch-level tradeoff.
 
 ## Bottom Line
 
 - Redis persistence is no longer just a plan. It is a real first backend with working SPI coverage and good early test evidence.
 - The biggest remaining gap is not basic CRUD. The biggest gap is maturity compared to JDBC:
   - recovery breadth beyond the currently proven flows
-  - move-style archive orchestration beyond the now-scripted save and delete cleanup paths
+  - move-style archive orchestration beyond the now-batched save/export/delete paths
 - The module is in a solid v1 development state, but not yet in JDBC-level production-parity territory.

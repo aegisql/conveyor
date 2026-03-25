@@ -489,6 +489,16 @@ public class RedisPersistence<K> implements Persistence<K> {
             public Collection<Long> expiredPartIds() {
                 return expiredPartIdsInternal();
             }
+
+            @Override
+            public Collection<Long> activePartIds() {
+                return activePartIdsInternal();
+            }
+
+            @Override
+            public Collection<Long> staticPartIds() {
+                return staticPartIdsInternal();
+            }
         };
     }
 
@@ -745,6 +755,26 @@ public class RedisPersistence<K> implements Persistence<K> {
                 .toList();
         LOG.debug("Collected {} expired part ids from namespace={} strategy={}", ids.size(), namespace, archiveOptions.archiveStrategy());
         LOG.trace("Expired part ids={}", ids);
+        return ids;
+    }
+
+    private Collection<Long> activePartIdsInternal() {
+        List<Long> ids = jedis.zrange(activeIdsKey(), 0, -1)
+                .stream()
+                .map(Long::parseLong)
+                .toList();
+        LOG.debug("Collected {} active part ids from namespace={} strategy={}", ids.size(), namespace, archiveOptions.archiveStrategy());
+        LOG.trace("Active part ids={}", ids);
+        return ids;
+    }
+
+    private Collection<Long> staticPartIdsInternal() {
+        List<Long> ids = jedis.zrange(staticIdsKey(), 0, -1)
+                .stream()
+                .map(Long::parseLong)
+                .toList();
+        LOG.debug("Collected {} static part ids from namespace={} strategy={}", ids.size(), namespace, archiveOptions.archiveStrategy());
+        LOG.trace("Static part ids={}", ids);
         return ids;
     }
 

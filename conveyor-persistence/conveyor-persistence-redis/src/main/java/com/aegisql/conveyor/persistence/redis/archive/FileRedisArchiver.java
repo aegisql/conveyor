@@ -5,7 +5,6 @@ import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.utils.CartOutputStream;
-import com.aegisql.conveyor.persistence.utils.PersistUtils;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -13,9 +12,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -34,13 +33,12 @@ public class FileRedisArchiver<K> extends AbstractRedisArchiver<K> {
             return;
         }
         try {
-            Collection<Collection<Long>> balanced = PersistUtils.balanceIdList(new LinkedHashSet<>(ids), binaryLogConfiguration.getBucketSize());
-            ArrayList<Cart<K, ?, Object>> carts = new ArrayList<>();
+            Collection<Collection<Long>> balanced = balanceIds(ids, binaryLogConfiguration.getBucketSize());
             for (Collection<Long> bucket : balanced) {
-                carts.addAll(persistence.getParts(bucket));
+                Collection<Cart<K, ?, Object>> carts = persistence.getParts(bucket);
+                archiveCarts(carts);
+                archiveAccess.deleteParts(bucket);
             }
-            archiveCarts(carts);
-            archiveAccess.deleteParts(ids);
         } catch (IOException e) {
             throw new PersistenceException("Error saving carts to Redis archive file", e);
         }
@@ -70,16 +68,24 @@ public class FileRedisArchiver<K> extends AbstractRedisArchiver<K> {
 
     @Override
     public void archiveExpiredParts() {
-        Collection<Long> ids = archiveAccess.expiredPartIds();
-        archiveParts(ids);
+        archiveParts(archiveAccess.expiredPartIds());
     }
 
     @Override
     public void archiveAll() {
         try {
-            ArrayList<Cart<K, ?, Object>> carts = new ArrayList<>(persistence.getAllParts());
-            carts.addAll(persistence.getAllStaticParts());
-            archiveCarts(carts);
+            for (Collection<Long> bucket : balanceIds(archiveAccess.activePartIds(), binaryLogConfiguration.getBucketSize())) {
+                Collection<Cart<K, ?, Object>> carts = persistence.getParts(bucket);
+                archiveCarts(carts);
+                archiveAccess.deleteParts(bucket);
+            }
+            for (Collection<Long> bucket : balanceIds(archiveAccess.staticPartIds(), binaryLogConfiguration.getBucketSize())) {
+                Collection<Cart<K, ?, Object>> carts = persistence.getParts(bucket);
+                archiveCarts(carts);
+                archiveAccess.deleteParts(bucket);
+            }
+            Set<K> completedKeys = persistence.getCompletedKeys();
+            archiveCompleteKeys(completedKeys);
             archiveAccess.deleteAll();
         } catch (IOException e) {
             throw new PersistenceException("Error saving carts to Redis archive file", e);

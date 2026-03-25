@@ -164,6 +164,10 @@ Override options:
     - broader unload/expiration perf scenarios
 - Delete-style archive and cleanup operations are now Lua-backed.
 - `MOVE_TO_PERSISTENCE` and `MOVE_TO_FILE` still use Java orchestration to export carts before Redis-side cleanup.
-- The remaining atomicity work is now concentrated around move-style archive orchestration rather than basic Redis delete cleanup.
+- Move-style archivers now tighten the interruption window by deleting each successfully exported batch immediately:
+  - `MOVE_TO_PERSISTENCE` uses `Persistence.getMaxArchiveBatchSize()` as the move/delete batch size
+  - `MOVE_TO_FILE` uses `BinaryLogConfiguration.getBucketSize()` as the move/delete batch size
+  - `archiveAll()` now exports active/static ids incrementally, deletes completed keys, and only then clears the remaining namespace metadata/tracker keys
+- The remaining atomicity work is now concentrated on the final cross-system gap for move-style archiving rather than on oversized delete windows inside Redis cleanup.
 - See `../doc/plans/redis-persistence.md` for the planned direction.
 - See `./progress-report.md` for the current implementation status and JDBC comparison.

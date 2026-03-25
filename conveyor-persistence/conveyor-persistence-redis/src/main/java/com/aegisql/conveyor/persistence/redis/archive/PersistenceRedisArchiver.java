@@ -3,9 +3,9 @@ package com.aegisql.conveyor.persistence.redis.archive;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.Persistence;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class PersistenceRedisArchiver<K> extends AbstractRedisArchiver<K> {
 
@@ -21,9 +21,11 @@ public class PersistenceRedisArchiver<K> extends AbstractRedisArchiver<K> {
         if (ids == null || ids.isEmpty()) {
             return;
         }
-        Collection<Cart<K, ?, Object>> parts = persistence.getParts(new LinkedHashSet<>(ids));
-        persist(parts);
-        archiveAccess.deleteParts(ids);
+        for (Collection<Long> bucket : balanceIds(ids, persistence.getMaxArchiveBatchSize())) {
+            Collection<Cart<K, ?, Object>> parts = persistence.getParts(bucket);
+            persist(parts);
+            archiveAccess.deleteParts(bucket);
+        }
     }
 
     @Override
@@ -50,17 +52,15 @@ public class PersistenceRedisArchiver<K> extends AbstractRedisArchiver<K> {
 
     @Override
     public void archiveExpiredParts() {
-        Collection<Long> ids = archiveAccess.expiredPartIds();
-        Collection<Cart<K, ?, Object>> parts = persistence.getParts(ids);
-        persist(parts);
-        archiveAccess.deleteParts(ids);
+        archiveParts(archiveAccess.expiredPartIds());
     }
 
     @Override
     public void archiveAll() {
-        ArrayList<Cart<K, ?, Object>> parts = new ArrayList<>(persistence.getAllParts());
-        parts.addAll(persistence.getAllStaticParts());
-        persist(parts);
+        archiveParts(archiveAccess.activePartIds());
+        archiveParts(archiveAccess.staticPartIds());
+        Set<K> completedKeys = persistence.getCompletedKeys();
+        archiveCompleteKeys(completedKeys);
         archiveAccess.deleteAll();
     }
 

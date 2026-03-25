@@ -1,0 +1,36 @@
+# Diagram
+
+```mermaid
+sequenceDiagram
+    autonumber
+
+    actor User
+    participant Loader as Part Loader
+    participant Queue as Balancing Queue
+    participant Thread as Conveyor Worker Thread
+    participant Builder as Builder (per key)
+    participant Consumer as Result Consumer
+    participant Destination as Result Destination
+
+    loop Multiple user calls
+        User->>Loader: place(key, label, value)
+        Loader->>Queue: enqueue Place event
+    end
+
+    loop Event processing
+        Thread->>Queue: poll next event
+        Queue-->>Thread: Place event
+
+        Thread->>Builder: route event by key
+        Builder->>Builder: apply part (label/value)
+        Builder->>Builder: check readiness
+
+        alt Not ready
+            Builder-->>Thread: waiting for more parts
+        else Ready to build
+            Builder->>Builder: build product
+            Builder->>Consumer: accept(product)
+            Consumer->>Destination: forward product
+        end
+    end
+```

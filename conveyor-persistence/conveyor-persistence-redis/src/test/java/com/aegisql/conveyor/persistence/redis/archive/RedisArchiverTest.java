@@ -24,6 +24,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RedisArchiverTest {
@@ -52,6 +53,8 @@ class RedisArchiverTest {
     void persistenceArchiverMovesThenDeletesAcrossSupportedEntryPoints() {
         RecordingArchiveAccess<Integer> access = new RecordingArchiveAccess<>();
         access.expiredPartIds = List.of(3L);
+        access.activePartIds = List.of(1L, 2L);
+        access.staticPartIds = List.of(4L);
 
         ShoppingCart<Integer, String, String> cart1 = new ShoppingCart<>(11, "value-1", "L1");
         ShoppingCart<Integer, String, String> cart2 = new ShoppingCart<>(11, "value-2", "L2");
@@ -62,6 +65,7 @@ class RedisArchiverTest {
         source.cartsById.put(1L, rawCart(cart1));
         source.cartsById.put(2L, rawCart(cart2));
         source.cartsById.put(3L, rawCart(cart3));
+        source.cartsById.put(4L, rawCart(staticCart));
         source.idsByKey.put(11, List.of(1L, 2L));
         source.allParts.add(rawCart(cart1));
         source.allParts.add(rawCart(cart2));
@@ -78,15 +82,84 @@ class RedisArchiverTest {
         archiver.archiveAll();
 
         assertEquals(List.of(
-                List.of(1L, 2L),
-                List.of(1L, 2L),
-                List.of(3L)
+                List.of(1L),
+                List.of(2L),
+                List.of(1L),
+                List.of(2L),
+                List.of(3L),
+                List.of(1L),
+                List.of(2L),
+                List.of(4L)
         ), access.deletedPartsCalls);
         assertEquals(List.of(List.of(90)), access.deletedCompletedKeysCalls);
         assertEquals(1, access.deleteAllCalls);
         assertEquals(8, target.savedCarts.size());
         assertEquals(List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L), target.savedIds);
         assertEquals(List.of(cart1, cart2, cart1, cart2, cart3, cart1, cart2, staticCart), target.savedCarts);
+    }
+
+    @Test
+    void persistenceArchiverDeletesEachSuccessfulBatchBeforeFailure() {
+        RecordingArchiveAccess<Integer> access = new RecordingArchiveAccess<>();
+
+        ShoppingCart<Integer, String, String> cart1 = new ShoppingCart<>(11, "value-1", "L1");
+        ShoppingCart<Integer, String, String> cart2 = new ShoppingCart<>(11, "value-2", "L2");
+        ShoppingCart<Integer, String, String> cart3 = new ShoppingCart<>(12, "value-3", "L3");
+        ShoppingCart<Integer, String, String> cart4 = new ShoppingCart<>(12, "value-4", "L4");
+
+        RecordingPersistence source = new RecordingPersistence();
+        source.maxArchiveBatchSize = 2;
+        source.cartsById.put(1L, rawCart(cart1));
+        source.cartsById.put(2L, rawCart(cart2));
+        source.cartsById.put(3L, rawCart(cart3));
+        source.cartsById.put(4L, rawCart(cart4));
+
+        RecordingPersistence target = new RecordingPersistence();
+        target.failAfterSaveCount = 2;
+
+        PersistenceRedisArchiver<Integer> archiver = new PersistenceRedisArchiver<>(access, target);
+        archiver.setPersistence(source);
+
+        IllegalStateException error = assertThrows(IllegalStateException.class,
+                () -> archiver.archiveParts(List.of(1L, 2L, 3L, 4L)));
+        assertTrue(error.getMessage().contains("save failure"));
+        assertEquals(List.of(List.of(1L, 2L)), access.deletedPartsCalls);
+        assertEquals(List.of(cart1, cart2), target.savedCarts);
+    }
+
+    @Test
+    void persistenceArchiverArchiveAllMovesInBatchesBeforeFinalDeleteAll() {
+        RecordingArchiveAccess<Integer> access = new RecordingArchiveAccess<>();
+        access.activePartIds = List.of(1L, 2L, 3L);
+        access.staticPartIds = List.of(4L);
+
+        ShoppingCart<Integer, String, String> cart1 = new ShoppingCart<>(11, "value-1", "L1");
+        ShoppingCart<Integer, String, String> cart2 = new ShoppingCart<>(11, "value-2", "L2");
+        ShoppingCart<Integer, String, String> cart3 = new ShoppingCart<>(12, "value-3", "L3");
+        ShoppingCart<Integer, String, String> cart4 = new ShoppingCart<>(13, "value-4", "L4");
+
+        RecordingPersistence source = new RecordingPersistence();
+        source.maxArchiveBatchSize = 2;
+        source.cartsById.put(1L, rawCart(cart1));
+        source.cartsById.put(2L, rawCart(cart2));
+        source.cartsById.put(3L, rawCart(cart3));
+        source.cartsById.put(4L, rawCart(cart4));
+        source.completedKeys.add(90);
+
+        RecordingPersistence target = new RecordingPersistence();
+        PersistenceRedisArchiver<Integer> archiver = new PersistenceRedisArchiver<>(access, target);
+        archiver.setPersistence(source);
+
+        archiver.archiveAll();
+
+        assertEquals(List.of(
+                List.of(1L, 2L),
+                List.of(3L),
+                List.of(4L)
+        ), access.deletedPartsCalls);
+        assertEquals(List.of(List.of(90)), access.deletedCompletedKeysCalls);
+        assertEquals(1, access.deleteAllCalls);
+        assertEquals(List.of(cart1, cart2, cart3, cart4), target.savedCarts);
     }
 
     @Test
@@ -124,8 +197,10 @@ class RedisArchiverTest {
         assertTrue(Files.exists(archiveFile));
         assertTrue(Files.size(archiveFile) > 0L);
         assertEquals(List.of(
-                List.of(1L, 2L),
-                List.of(1L, 2L),
+                List.of(1L),
+                List.of(2L),
+                List.of(1L),
+                List.of(2L),
                 List.of(3L)
         ), access.deletedPartsCalls);
         assertEquals(List.of(List.of(99)), access.deletedCompletedKeysCalls);
@@ -142,15 +217,17 @@ class RedisArchiverTest {
     @Test
     void fileArchiverRollsAndZipsWhenConfigured() throws Exception {
         RecordingArchiveAccess<Integer> access = new RecordingArchiveAccess<>();
+        access.activePartIds = List.of(1L, 2L);
+        access.staticPartIds = List.of(3L);
         String large = "value-".repeat(40);
         ShoppingCart<Integer, String, String> cart1 = new ShoppingCart<>(21, large + "1", "L1");
         ShoppingCart<Integer, String, String> cart2 = new ShoppingCart<>(22, large + "2", "L2");
         ShoppingCart<Integer, String, String> staticCart = new ShoppingCart<>(23, large + "3", "L3");
 
         RecordingPersistence source = new RecordingPersistence();
-        source.allParts.add(rawCart(cart1));
-        source.allParts.add(rawCart(cart2));
-        source.staticParts.add(rawCart(staticCart));
+        source.cartsById.put(1L, rawCart(cart1));
+        source.cartsById.put(2L, rawCart(cart2));
+        source.cartsById.put(3L, rawCart(staticCart));
 
         Path archiveDir = Files.createTempDirectory("redis-archiver-roll");
         Path movedDir = archiveDir.resolve("rolled");
@@ -172,6 +249,86 @@ class RedisArchiverTest {
         try (var stream = Files.list(movedDir)) {
             assertTrue(stream.anyMatch(path -> path.getFileName().toString().endsWith(".zip")));
         }
+    }
+
+    @Test
+    void fileArchiverDeletesEachSuccessfulBucketBeforeFailure() throws Exception {
+        RecordingArchiveAccess<Integer> access = new RecordingArchiveAccess<>();
+
+        ShoppingCart<Integer, String, String> cart1 = new ShoppingCart<>(11, "value-1", "L1");
+        ShoppingCart<Integer, String, String> cart2 = new ShoppingCart<>(11, "value-2", "L2");
+        ShoppingCart<Integer, String, String> cart3 = new ShoppingCart<>(12, "value-3", "L3");
+        ShoppingCart<Integer, String, String> cart4 = new ShoppingCart<>(12, "value-4", "L4");
+
+        RecordingPersistence source = new RecordingPersistence();
+        source.cartsById.put(1L, rawCart(cart1));
+        source.cartsById.put(2L, rawCart(cart2));
+        source.cartsById.put(3L, rawCart(cart3));
+        source.cartsById.put(4L, rawCart(cart4));
+        source.failOnGetPartsCall = 2;
+
+        Path archiveDir = Files.createTempDirectory("redis-archiver-file-failure");
+        BinaryLogConfiguration configuration = BinaryLogConfiguration.builder()
+                .path(archiveDir.toString())
+                .moveToPath(archiveDir.toString())
+                .partTableName("redis-file-failure")
+                .bucketSize(2)
+                .build();
+
+        FileRedisArchiver<Integer> archiver = new FileRedisArchiver<>(access, configuration);
+        archiver.setPersistence(source);
+
+        IllegalStateException error = assertThrows(IllegalStateException.class,
+                () -> archiver.archiveParts(List.of(1L, 2L, 3L, 4L)));
+        assertTrue(error.getMessage().contains("getParts failure"));
+        assertEquals(List.of(List.of(1L, 2L)), access.deletedPartsCalls);
+
+        List<Cart<Integer, ?, Object>> carts = readCarts(Path.of(configuration.getFilePath()));
+        assertEquals(2, carts.size());
+        assertEquals("value-1", carts.get(0).getValue());
+        assertEquals("value-2", carts.get(1).getValue());
+    }
+
+    @Test
+    void fileArchiverArchiveAllNarrowsFailureWindowToCompletedBuckets() throws Exception {
+        RecordingArchiveAccess<Integer> access = new RecordingArchiveAccess<>();
+        access.activePartIds = List.of(1L, 2L);
+        access.staticPartIds = List.of(3L, 4L);
+
+        ShoppingCart<Integer, String, String> cart1 = new ShoppingCart<>(11, "value-1", "L1");
+        ShoppingCart<Integer, String, String> cart2 = new ShoppingCart<>(11, "value-2", "L2");
+        ShoppingCart<Integer, String, String> cart3 = new ShoppingCart<>(12, "value-3", "L3");
+        ShoppingCart<Integer, String, String> cart4 = new ShoppingCart<>(12, "value-4", "L4");
+
+        RecordingPersistence source = new RecordingPersistence();
+        source.cartsById.put(1L, rawCart(cart1));
+        source.cartsById.put(2L, rawCart(cart2));
+        source.cartsById.put(3L, rawCart(cart3));
+        source.cartsById.put(4L, rawCart(cart4));
+        source.completedKeys.add(77);
+        source.failOnGetPartsCall = 2;
+
+        Path archiveDir = Files.createTempDirectory("redis-archiver-all-failure");
+        BinaryLogConfiguration configuration = BinaryLogConfiguration.builder()
+                .path(archiveDir.toString())
+                .moveToPath(archiveDir.toString())
+                .partTableName("redis-archive-all-failure")
+                .bucketSize(2)
+                .build();
+
+        FileRedisArchiver<Integer> archiver = new FileRedisArchiver<>(access, configuration);
+        archiver.setPersistence(source);
+
+        IllegalStateException error = assertThrows(IllegalStateException.class, archiver::archiveAll);
+        assertTrue(error.getMessage().contains("getParts failure"));
+        assertEquals(List.of(List.of(1L, 2L)), access.deletedPartsCalls);
+        assertTrue(access.deletedCompletedKeysCalls.isEmpty());
+        assertEquals(0, access.deleteAllCalls);
+
+        List<Cart<Integer, ?, Object>> carts = readCarts(Path.of(configuration.getFilePath()));
+        assertEquals(2, carts.size());
+        assertEquals("value-1", carts.get(0).getValue());
+        assertEquals("value-2", carts.get(1).getValue());
     }
 
     private static List<Cart<Integer, ?, Object>> readCarts(Path archiveFile) throws IOException {
@@ -201,6 +358,8 @@ class RedisArchiverTest {
         private final ArrayList<List<K>> deletedKeysCalls = new ArrayList<>();
         private final ArrayList<List<K>> deletedCompletedKeysCalls = new ArrayList<>();
         private Collection<Long> expiredPartIds = List.of();
+        private Collection<Long> activePartIds = List.of();
+        private Collection<Long> staticPartIds = List.of();
         private int deleteExpiredPartsCalls;
         private int deleteAllCalls;
 
@@ -233,6 +392,16 @@ class RedisArchiverTest {
         public Collection<Long> expiredPartIds() {
             return expiredPartIds;
         }
+
+        @Override
+        public Collection<Long> activePartIds() {
+            return activePartIds;
+        }
+
+        @Override
+        public Collection<Long> staticPartIds() {
+            return staticPartIds;
+        }
     }
 
     private static final class RecordingPersistence implements Persistence<Integer> {
@@ -242,6 +411,11 @@ class RedisArchiverTest {
         private final ArrayList<Cart<Integer, ?, Object>> staticParts = new ArrayList<>();
         private final ArrayList<Long> savedIds = new ArrayList<>();
         private final ArrayList<Cart<Integer, ?, Object>> savedCarts = new ArrayList<>();
+        private final LinkedHashSet<Integer> completedKeys = new LinkedHashSet<>();
+        private int maxArchiveBatchSize = 1;
+        private int failAfterSaveCount = Integer.MAX_VALUE;
+        private int failOnGetPartsCall = Integer.MAX_VALUE;
+        private int getPartsCallCount;
         private long nextId = 1L;
 
         @Override
@@ -251,6 +425,9 @@ class RedisArchiverTest {
 
         @Override
         public <L> void savePart(long id, Cart<Integer, ?, L> cart) {
+            if (savedCarts.size() >= failAfterSaveCount) {
+                throw new IllegalStateException("save failure");
+            }
             savedIds.add(id);
             savedCarts.add(castCart(cart));
         }
@@ -270,6 +447,10 @@ class RedisArchiverTest {
 
         @Override
         public <L> Collection<Cart<Integer, ?, L>> getParts(Collection<Long> ids) {
+            getPartsCallCount++;
+            if (getPartsCallCount == failOnGetPartsCall) {
+                throw new IllegalStateException("getParts failure");
+            }
             ArrayList<Cart<Integer, ?, L>> result = new ArrayList<>();
             for (Long id : ids) {
                 Cart<Integer, ?, Object> cart = cartsById.get(id);
@@ -302,7 +483,7 @@ class RedisArchiverTest {
 
         @Override
         public Set<Integer> getCompletedKeys() {
-            return Set.of();
+            return completedKeys;
         }
 
         @Override
@@ -327,7 +508,7 @@ class RedisArchiverTest {
 
         @Override
         public int getMaxArchiveBatchSize() {
-            return 0;
+            return maxArchiveBatchSize;
         }
 
         @Override

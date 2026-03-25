@@ -320,7 +320,7 @@ Current differences from JDBC:
     - expired reads still use the expiration index first and then Java-side priority sorting
 - command-cart behavior still needs broader proof
 - current save and delete-style cleanup paths are Lua-backed atomic units
-- move-style archive flows still use Java orchestration before Redis-side cleanup
+- move-style archive flows still use Java orchestration before Redis-side cleanup, but they now delete each successfully exported batch immediately so interruption risk is bounded by the configured batch size rather than the whole request
 
 Read before choosing Redis:
 
