@@ -319,6 +319,9 @@ Current differences from JDBC:
 - Redis now does support JDBC-style custom binary converter registration
   - class-based and label-based `addBinaryConverter(...)` registration are available in the Redis builder
   - custom converters are used for payload values and for Redis additional-field metadata
+- Redis now registers a basic persistence MBean during `build()`
+  - the builder exposes `getJMXObjName()`
+  - `Persistence.byName(...)` can resolve the registered Redis persistence by that JMX name
 - restore-order support now includes:
   - `BY_ID` as the default
   - `NO_ORDER` as backend iteration order

@@ -7,11 +7,15 @@ import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
+import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.encryption.EncryptingConverterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPooled;
 
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
+import java.net.URI;
 import java.io.IOException;
 import javax.crypto.SecretKey;
 import java.util.ArrayList;
@@ -807,7 +811,12 @@ public class RedisPersistenceBuilder<K> {
                 throw e;
             }
         }
+        registerMBean(persistence);
         return persistence;
+    }
+
+    public String getJMXObjName() {
+        return "com.aegisql.conveyor.persistence.redis." + name + ":type=" + name;
     }
 
     String redisUri() {
@@ -885,6 +894,112 @@ public class RedisPersistenceBuilder<K> {
 
     ArchiveStrategy archiveStrategy() {
         return archiveOptions.archiveStrategy();
+    }
+
+    private void registerMBean(Persistence<K> persistence) {
+        try {
+            String objName = getJMXObjName();
+            LOG.debug("Redis JMX name {}", objName);
+            ObjectName objectName = new ObjectName(objName);
+            synchronized (RedisPersistenceMBean.mBeanServer) {
+                if (!RedisPersistenceMBean.mBeanServer.isRegistered(objectName)) {
+                    RedisPersistenceMBean<K> redisMBean = new RedisPersistenceMBean<>() {
+                        @Override
+                        public String getBackend() {
+                            return RedisPersistence.BACKEND_NAME;
+                        }
+
+                        @Override
+                        public String getRedisUri() {
+                            return sanitizedRedisUri();
+                        }
+
+                        @Override
+                        public String getName() {
+                            return name;
+                        }
+
+                        @Override
+                        public String getNamespace() {
+                            return "conv:{" + name + "}";
+                        }
+
+                        @Override
+                        public String getArchiveStrategy() {
+                            return archiveOptions.archiveStrategy().name();
+                        }
+
+                        @Override
+                        public boolean isEncrypted() {
+                            return encryptionBuilder.get() != null;
+                        }
+
+                        @Override
+                        public String getRestoreOrder() {
+                            return restoreOrder.name();
+                        }
+
+                        @Override
+                        public String getPriorityRestoreStrategy() {
+                            return priorityRestoreStrategy.name();
+                        }
+
+                        @Override
+                        public int getMaxBatchSize() {
+                            return maxArchiveBatchSize;
+                        }
+
+                        @Override
+                        public long getMaxBatchTime() {
+                            return maxArchiveBatchTime;
+                        }
+
+                        @Override
+                        public int minCompactSize() {
+                            return minCompactSize;
+                        }
+
+                        @Override
+                        public boolean isAutoInit() {
+                            return autoInit;
+                        }
+
+                        @Override
+                        public boolean isExternalClient() {
+                            return jedis != null;
+                        }
+
+                        @Override
+                        public int getAdditionalFieldCount() {
+                            return additionalFields.size();
+                        }
+
+                        @Override
+                        public int getConverterCount() {
+                            return converterRegistrations.size();
+                        }
+
+                        @Override
+                        public Persistence<K> get() {
+                            return persistence;
+                        }
+                    };
+                    StandardMBean mbean = new StandardMBean(redisMBean, RedisPersistenceMBean.class);
+                    RedisPersistenceMBean.mBeanServer.registerMBean(mbean, objectName);
+                }
+            }
+        } catch (Exception e) {
+            throw new PersistenceException("Failed to register Redis persistence MBean", e);
+        }
+    }
+
+    private String sanitizedRedisUri() {
+        URI uri = URI.create(redisUri);
+        int port = uri.getPort() > 0 ? uri.getPort() : 6379;
+        String path = uri.getRawPath() == null ? "" : uri.getRawPath();
+        String query = uri.getRawQuery() == null ? "" : "?" + uri.getRawQuery();
+        String fragment = uri.getRawFragment() == null ? "" : "#" + uri.getRawFragment();
+        return uri.getScheme() + "://" + uri.getHost() + ":" + port + path + query + fragment;
     }
 
     private static List<AdditionalField<?>> validatedAdditionalFields(List<AdditionalField<?>> fields) {

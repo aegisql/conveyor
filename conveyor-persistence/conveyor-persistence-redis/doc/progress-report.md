@@ -17,6 +17,7 @@ Implemented behavior and current semantics live in:
 - `conveyor-persistence-redis` is a real backend, not just a design spike.
 - The `Persistence<K>` surface is implemented and covered by Redis-local tests.
 - Redis-specific bootstrap, Lua-backed atomic paths, payload encryption reuse, restore-order configuration, and Redis-native archivers are implemented.
+- Basic Redis MBean registration is implemented.
 - The module is usable for development and targeted integration work.
 - The module is not yet at JDBC maturity.
 
@@ -71,7 +72,7 @@ Primary test evidence currently lives in:
   - It does not yet cover the broader JDBC-style perf matrix.
 
 - Broader operational surface.
-  - Redis currently has logging and test visibility.
+  - Redis now has basic MBean registration plus logging and test visibility.
   - It does not yet have the richer operational tooling shape that the JDBC side accumulated over time.
 
 - Shared descriptor cleanup.

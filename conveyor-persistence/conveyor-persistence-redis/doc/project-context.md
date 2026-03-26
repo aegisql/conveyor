@@ -61,6 +61,9 @@ The current implementation:
   - `user`
   - `password`
   - `ssl`
+- registers a basic Redis persistence MBean during `build()`
+  - builder now exposes `getJMXObjName()`
+  - `Persistence.byName(...)` can resolve the registered Redis persistence through that JMX name
 - relies on Jedis pooled borrow/return semantics for per-operation connection use
 - validates namespace bootstrap metadata before using an existing Redis namespace
 - bootstraps Redis namespace metadata lazily on first use when `autoInit(false)`
@@ -72,6 +75,7 @@ Tests currently cover:
 - basic Redis connectivity and CRUD
 - basic Lua scripting proof with `EVAL`, `SCRIPT LOAD`, and `EVALSHA`
 - `Persistence` contract methods with local Redis evidence
+- Redis MBean registration and lookup by JMX name
 - `SCRIPT FLUSH` recovery for Lua-backed save and delete/archive cleanup paths
 - Redis client ownership behavior for `copy()` and externally supplied clients
 - encrypted payload round-trip, wrong-secret failure, and legacy-default compatibility

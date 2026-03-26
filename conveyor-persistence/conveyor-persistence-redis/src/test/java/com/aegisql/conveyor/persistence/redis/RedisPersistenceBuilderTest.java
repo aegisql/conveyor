@@ -13,6 +13,7 @@ import redis.clients.jedis.ConnectionPoolConfig;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.JedisPooled;
 
+import javax.management.ObjectName;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -465,6 +466,40 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
             assertEquals(ArchiveStrategy.MOVE_TO_FILE, base.archiver(binaryLogConfiguration).archiveStrategy());
             assertEquals(ArchiveStrategy.CUSTOM, base.archiver(customArchiver).archiveStrategy());
             assertEquals(ArchiveStrategy.DELETE, base.noArchiving().deleteArchiving().archiveStrategy());
+        }
+    }
+
+    @Test
+    void registersRedisPersistenceMBeanAndAllowsLookupByName() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("builder-jmx");
+        RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(name)
+                .addField(String.class, "AUDIT")
+                .addBinaryConverter(String.class, new TestStringConverter());
+        ObjectName objectName = new ObjectName(builder.getJMXObjName());
+
+        if (RedisPersistenceMBean.mBeanServer.isRegistered(objectName)) {
+            RedisPersistenceMBean.mBeanServer.unregisterMBean(objectName);
+        }
+
+        try (Persistence<Integer> persistence = builder.build()) {
+            assertTrue(RedisPersistenceMBean.mBeanServer.isRegistered(objectName));
+            assertEquals("redis", RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Backend"));
+            assertEquals(name, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Name"));
+            assertEquals("conv:{" + name + "}", RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Namespace"));
+            assertEquals(ArchiveStrategy.DELETE.name(), RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ArchiveStrategy"));
+            assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Encrypted"));
+            assertEquals(Boolean.TRUE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "AutoInit"));
+            assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ExternalClient"));
+            assertEquals(1, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "AdditionalFieldCount"));
+            assertEquals(1, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ConverterCount"));
+            assertEquals(builder.getJMXObjName(), objectName.toString());
+            assertSame(persistence, Persistence.byName(builder.getJMXObjName()));
+        } finally {
+            if (RedisPersistenceMBean.mBeanServer.isRegistered(objectName)) {
+                RedisPersistenceMBean.mBeanServer.unregisterMBean(objectName);
+            }
         }
     }
 

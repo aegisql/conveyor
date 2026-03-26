@@ -241,6 +241,7 @@ Current implemented behavior:
 Current comparison to JDBC:
 
 - the core converter-registration capability is now present in Redis
+- basic MBean registration is now present in Redis
 - Redis still does not expose all of the older JDBC builder convenience helpers around persistence filters
 - Redis still does not have the richer operational/JMX-style surface that the JDBC stack accumulated over time
 
