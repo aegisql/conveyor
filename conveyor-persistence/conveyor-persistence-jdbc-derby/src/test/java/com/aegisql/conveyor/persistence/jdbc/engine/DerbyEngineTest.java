@@ -48,7 +48,7 @@ public class DerbyEngineTest {
 		order.put("ID", "ASC");
 		
 		GenericEngine<Integer> de = new DerbyEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance(), false);
-		de.setAdditionalFields(Arrays.asList(new Field(UUID.class,"ADDON")));
+		de.setAdditionalFields(Arrays.asList(new Field<>(UUID.class,"ADDON")));
 		de.connectionFactory.setDatabase(DATABASE);
 		de.connectionFactory.setSchema(SCHEMA);
 		assertTrue(de.databaseExists(DATABASE));
@@ -186,7 +186,7 @@ public class DerbyEngineTest {
 		order.put("ID", "ASC");
 		
 		GenericEngine<Integer> de = new DerbyMemoryEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance(), false);
-		de.setAdditionalFields(Arrays.asList(new Field(UUID.class,"ADDON")));
+		de.setAdditionalFields(Arrays.asList(new Field<>(UUID.class,"ADDON")));
 		de.connectionFactory.setSchema(SCHEMA);
 		assertTrue(de.databaseExists(SCHEMA));
 		assertFalse(de.schemaExists(SCHEMA));

@@ -1,6 +1,6 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
-import com.aegisql.conveyor.persistence.jdbc.builders.Field;
+import com.aegisql.conveyor.persistence.core.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionDefaults;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
@@ -447,7 +447,7 @@ public interface EngineDepo <K> extends Closeable, ConnectionDefaults {
 	 */
 	long getNumberOfParts();
 
-	void setAdditionalFields(List<Field<?>> additionalFields);
+	void setAdditionalFields(List<? extends Field<?>> additionalFields);
 
 	ConnectionFactory<?> getConnectionFactory();
 

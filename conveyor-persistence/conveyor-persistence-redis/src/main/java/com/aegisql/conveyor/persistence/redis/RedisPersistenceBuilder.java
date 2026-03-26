@@ -5,6 +5,7 @@ import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
+import com.aegisql.conveyor.persistence.core.Field;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
@@ -42,7 +43,7 @@ public class RedisPersistenceBuilder<K> {
     private final Predicate<Cart<K, ?, ?>> persistentPartFilter;
     private final RestoreOrder restoreOrder;
     private final PriorityRestoreStrategy priorityRestoreStrategy;
-    private final List<AdditionalField<?>> additionalFields;
+    private final List<Field<?>> additionalFields;
     private final List<ConverterRegistration> converterRegistrations;
     private final ArchiveOptions<K> archiveOptions;
     private final Integer maxTotal;
@@ -101,7 +102,7 @@ public class RedisPersistenceBuilder<K> {
             Predicate<Cart<K, ?, ?>> persistentPartFilter,
             RestoreOrder restoreOrder,
             PriorityRestoreStrategy priorityRestoreStrategy,
-            List<AdditionalField<?>> additionalFields,
+            List<Field<?>> additionalFields,
             List<ConverterRegistration> converterRegistrations,
             ArchiveOptions<K> archiveOptions,
             Integer maxTotal,
@@ -550,7 +551,7 @@ public class RedisPersistenceBuilder<K> {
         );
     }
 
-    public RedisPersistenceBuilder<K> fields(List<AdditionalField<?>> fields) {
+    public RedisPersistenceBuilder<K> fields(List<? extends Field<?>> fields) {
         return new RedisPersistenceBuilder<>(
                 redisUri,
                 jedis,
@@ -582,13 +583,13 @@ public class RedisPersistenceBuilder<K> {
     }
 
     public <T> RedisPersistenceBuilder<K> addField(Class<T> fieldClass, String name) {
-        ArrayList<AdditionalField<?>> updated = new ArrayList<>(additionalFields);
+        ArrayList<Field<?>> updated = new ArrayList<>(additionalFields);
         updated.add(new AdditionalField<>(fieldClass, name));
         return fields(updated);
     }
 
     public <T> RedisPersistenceBuilder<K> addField(Class<T> fieldClass, String name, Function<Cart<?, ?, ?>, T> accessor) {
-        ArrayList<AdditionalField<?>> updated = new ArrayList<>(additionalFields);
+        ArrayList<Field<?>> updated = new ArrayList<>(additionalFields);
         updated.add(new AdditionalField<>(fieldClass, name, accessor));
         return fields(updated);
     }
@@ -880,7 +881,7 @@ public class RedisPersistenceBuilder<K> {
         return priorityRestoreStrategy;
     }
 
-    List<AdditionalField<?>> additionalFields() {
+    List<Field<?>> additionalFields() {
         return new ArrayList<>(additionalFields);
     }
 
@@ -1002,11 +1003,11 @@ public class RedisPersistenceBuilder<K> {
         return uri.getScheme() + "://" + uri.getHost() + ":" + port + path + query + fragment;
     }
 
-    private static List<AdditionalField<?>> validatedAdditionalFields(List<AdditionalField<?>> fields) {
+    private static List<Field<?>> validatedAdditionalFields(List<? extends Field<?>> fields) {
         Objects.requireNonNull(fields, "fields must not be null");
-        ArrayList<AdditionalField<?>> validated = new ArrayList<>();
+        ArrayList<Field<?>> validated = new ArrayList<>();
         HashSet<String> names = new HashSet<>();
-        for (AdditionalField<?> field : fields) {
+        for (Field<?> field : fields) {
             Objects.requireNonNull(field, "field must not be null");
             validateFieldName(field.getName());
             if (!names.add(field.getName())) {

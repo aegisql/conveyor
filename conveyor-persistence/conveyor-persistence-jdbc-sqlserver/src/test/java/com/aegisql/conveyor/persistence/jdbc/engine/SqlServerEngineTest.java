@@ -63,7 +63,7 @@ public class SqlServerEngineTest {
 		cf.setHost(Tester.getSqlServerHost());
 		cf.setPort(Tester.getSqlServerPort());
 		GenericEngine<Integer> de = new SqlServerEngine<>(Integer.class, cf, false);
-		de.setAdditionalFields(Arrays.asList(new Field(Long.class, "ADDON")));
+		de.setAdditionalFields(Arrays.asList(new Field<>(Long.class, "ADDON")));
 		de.connectionFactory.setDatabase(DATABASE);
 		assertFalse(de.databaseExists(DATABASE));
 		de.createDatabaseIfNotExists(DATABASE);

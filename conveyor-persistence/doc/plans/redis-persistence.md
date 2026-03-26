@@ -196,7 +196,7 @@ Redis now supports the JDBC-like `additionalFields` idea in a Redis-native form.
 Current implemented behavior:
 
 - builder-declared additional fields are configured through:
-  - `fields(List<AdditionalField<?>>)`
+  - `fields(List<Field<?>>)` or compatibility wrapper instances
   - `addField(Class<T>, String)`
   - `addField(Class<T>, String, Function<Cart<?,?,?>,T>)`
 - selected fields are stored as explicit metadata inside `conv:{name}:part:{id}:meta`
@@ -217,7 +217,6 @@ This remains intentionally metadata-oriented:
 Remaining follow-up worth considering later:
 
 - opt-in Redis-native secondary indexes for selected fields if a concrete filtering or recovery use case appears
-- eventual extraction of the field descriptor into `conveyor-persistence-core` if we want JDBC and Redis to share one abstraction
 
 ## Custom Converter Registration
 

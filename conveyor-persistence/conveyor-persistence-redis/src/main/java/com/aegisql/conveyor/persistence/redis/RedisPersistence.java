@@ -17,6 +17,7 @@ import com.aegisql.conveyor.persistence.archive.DoNothingArchiver;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.converters.EncryptingConverter;
 import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
+import com.aegisql.conveyor.persistence.core.Field;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
@@ -61,7 +62,7 @@ public class RedisPersistence<K> implements Persistence<K> {
     private final long maxArchiveBatchTime;
     private final Set<String> nonPersistentProperties;
     private final Predicate<Cart<K, ?, ?>> persistentPartFilter;
-    private final List<AdditionalField<?>> additionalFields;
+    private final List<Field<?>> additionalFields;
     private final List<RedisPersistenceBuilder.ConverterRegistration> converterRegistrations;
     private final RedisPersistenceBuilder.ArchiveOptions<K> archiveOptions;
     private final SerializableToBytesConverter<Serializable> serializableConverter = new SerializableToBytesConverter<>();
@@ -657,7 +658,7 @@ public class RedisPersistence<K> implements Persistence<K> {
     }
 
     private void putAdditionalFieldMetadata(Cart<K, ?, ?> cart, Map<String, String> meta) {
-        for (AdditionalField<?> field : additionalFields) {
+        for (Field<?> field : additionalFields) {
             Object fieldValue;
             try {
                 fieldValue = field.getAccessor().apply(cart);

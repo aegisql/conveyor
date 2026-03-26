@@ -59,7 +59,7 @@ public class OracleEngineTest {
 		cf.setPassword(Tester.getOraclePassword());
 
 		GenericEngine<Integer> de = new OracleEngine<>(Integer.class, cf, false);
-		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
+		de.setAdditionalFields(Arrays.asList(new Field<>(Long.class,"ADDON")));
 		de.connectionFactory.setDatabase(DATABASE);
 		de.connectionFactory.setSchema(SCHEMA);
 		de.connectionFactory.setHost(Tester.getOracleHost());

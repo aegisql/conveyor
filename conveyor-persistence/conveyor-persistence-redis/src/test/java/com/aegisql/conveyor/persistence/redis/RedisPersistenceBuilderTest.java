@@ -92,11 +92,14 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         RedisPersistenceBuilder<Integer> configured = builder
                 .addField(String.class, "AUDIT")
                 .addField(Integer.class, "VALUE_LENGTH", cart -> ((String) cart.getValue()).length());
+        RedisPersistenceBuilder<Integer> coreConfigured =
+                builder.fields(List.of(new com.aegisql.conveyor.persistence.core.Field<>(String.class, "CORE_AUDIT")));
 
         assertTrue(builder.additionalFields().isEmpty());
         assertEquals(2, configured.additionalFields().size());
         assertEquals("AUDIT", configured.additionalFields().get(0).getName());
         assertEquals("VALUE_LENGTH", configured.additionalFields().get(1).getName());
+        assertEquals("CORE_AUDIT", coreConfigured.additionalFields().get(0).getName());
 
         assertThrows(NullPointerException.class, () -> builder.fields(null));
         assertThrows(NullPointerException.class, () -> builder.addField(null, "AUDIT"));

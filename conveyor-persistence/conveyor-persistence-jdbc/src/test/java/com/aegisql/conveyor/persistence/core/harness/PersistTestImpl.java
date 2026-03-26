@@ -1,8 +1,8 @@
 package com.aegisql.conveyor.persistence.core.harness;
 
 import com.aegisql.conveyor.cart.Cart;
+import com.aegisql.conveyor.persistence.core.Field;
 import com.aegisql.conveyor.persistence.core.Persistence;
-import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
@@ -210,7 +210,7 @@ public class PersistTestImpl implements Persistence<Integer>{
 		}
 
 		@Override
-		public void setAdditionalFields(List<Field<?>> additionalFields) {
+		public void setAdditionalFields(List<? extends Field<?>> additionalFields) {
 
 		}
 

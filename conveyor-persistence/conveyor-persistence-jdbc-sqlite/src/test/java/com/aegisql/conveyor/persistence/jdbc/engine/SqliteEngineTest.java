@@ -46,7 +46,7 @@ public class SqliteEngineTest {
 		order.put("ID", "ASC");
 
 		GenericEngine<Integer> de = new SqliteEngine<>(Integer.class, ConnectionFactory.driverManagerFactoryInstance(), false);
-		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
+		de.setAdditionalFields(Arrays.asList(new Field<>(Long.class,"ADDON")));
 		de.connectionFactory.setDatabase(Tester.testDbPath(SCHEMA + ".db"));
 		de.setSortingOrder(order);
 		String PARTS = "PART";

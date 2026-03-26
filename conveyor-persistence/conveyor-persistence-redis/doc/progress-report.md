@@ -75,11 +75,6 @@ Primary test evidence currently lives in:
   - Redis now has basic MBean registration plus logging and test visibility.
   - It does not yet have the richer operational tooling shape that the JDBC side accumulated over time.
 
-- Shared descriptor cleanup.
-  - Redis currently uses its own `AdditionalField` descriptor.
-  - JDBC still uses its older `Field<?>` abstraction.
-  - Functionally this is acceptable, but the concept is still duplicated instead of shared in persistence core.
-
 - Retry and reconnect policy.
   - Long-running Redis deployments will see interruptions.
   - The library should not grow blind retry behavior before the remaining move-style export semantics are considered stable enough.

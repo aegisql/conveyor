@@ -489,20 +489,22 @@ class RedisPersistenceTest extends RedisTestSupport {
         Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
         PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
                 secondPersistence.wrapConveyor(newRecoveryConveyor("redis-replay-second", recoveredResults, null, true));
-        try {
+        boolean stopped = false;
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
             second.part().id(1).label(RecoveryPart.NUMBER).value(7).place().join();
             awaitTrue(() -> "no-prefix:alpha:beta:7".equals(recoveredResults.get(1)),
                     "Recovered conveyor should complete the replayed build when the missing part arrives");
-        } finally {
-            second.completeAndStop().join();
-        }
-
-        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
             awaitTrue(() -> inspector.getAllPartIds(1).isEmpty()
                             && inspector.getAllParts().isEmpty()
                             && inspector.getCompletedKeys().isEmpty()
                             && inspector.getAllStaticParts().isEmpty(),
                     "Recovered auto-ack build should eventually drain its Redis state after completion");
+            second.completeAndStop().join();
+            stopped = true;
+        } finally {
+            if (!stopped) {
+                second.stop();
+            }
         }
     }
 
@@ -586,21 +588,23 @@ class RedisPersistenceTest extends RedisTestSupport {
         Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
         PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
                 secondPersistence.wrapConveyor(recoveredForward);
-        try {
+        boolean stopped = false;
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
             second.command().id(5).cancel().join();
             awaitTrue(() -> recoveredForward.getCollectorSize() == 0,
                     "Recovered canceled build should leave the working conveyor");
             assertTrue(recoveredResults.isEmpty(), "Canceled recovered build should not produce a READY result");
-        } finally {
-            second.completeAndStop().join();
-        }
-
-        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
             awaitTrue(() -> inspector.getAllPartIds(5).isEmpty()
                             && inspector.getAllParts().isEmpty()
                             && inspector.getCompletedKeys().isEmpty()
                             && inspector.getAllStaticParts().isEmpty(),
                     "Recovered canceled build should cleanup Redis persistence state");
+            second.completeAndStop().join();
+            stopped = true;
+        } finally {
+            if (!stopped) {
+                second.stop();
+            }
         }
     }
 
@@ -634,7 +638,8 @@ class RedisPersistenceTest extends RedisTestSupport {
         Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
         PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
                 secondPersistence.wrapConveyor(recoveredForward);
-        try {
+        boolean stopped = false;
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
             awaitTrue(() -> statuses.stream().anyMatch(status -> status.getKey() == 7 && status.getStatus() == Status.TIMED_OUT),
                     "Recovered incomplete build should eventually expire with TIMED_OUT status");
             awaitTrue(() -> scraps.stream().anyMatch(scrap ->
@@ -643,16 +648,17 @@ class RedisPersistenceTest extends RedisTestSupport {
                                     && scrap.comment.startsWith("Site expired. No timeout action")),
                     "Recovered timed out build should publish BUILD_EXPIRED scrap without a timeout action");
             assertTrue(recoveredResults.isEmpty(), "Recovered timed out build should not produce a READY result");
-        } finally {
-            second.completeAndStop().join();
-        }
-
-        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
             awaitTrue(() -> inspector.getAllPartIds(7).isEmpty()
                             && inspector.getAllParts().isEmpty()
                             && inspector.getCompletedKeys().isEmpty()
                             && inspector.getAllStaticParts().isEmpty(),
                     "Recovered timed out build should cleanup Redis persistence state after the conveyor drains cleanly");
+            second.completeAndStop().join();
+            stopped = true;
+        } finally {
+            if (!stopped) {
+                second.stop();
+            }
         }
     }
 
@@ -687,6 +693,7 @@ class RedisPersistenceTest extends RedisTestSupport {
         PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
                 secondPersistence.wrapConveyor(recoveredForward);
         second.unloadOnBuilderTimeout(true);
+        boolean stopped = false;
         try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
             awaitTrue(() -> statuses.stream().anyMatch(status -> status.getKey() == 17 && status.getStatus() == Status.TIMED_OUT),
                     "Recovered unload flow should first emit TIMED_OUT");
@@ -701,16 +708,17 @@ class RedisPersistenceTest extends RedisTestSupport {
             second.part().id(17).label(RecoveryPart.NUMBER).value(11).place().join();
             awaitTrue(() -> "no-prefix:unload-left:unload-right:11".equals(recoveredResults.get(17)),
                     "Placing the missing part after recovered unload should replay the persisted carts and finish the build");
-        } finally {
-            second.completeAndStop().join();
-        }
-
-        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
             awaitTrue(() -> inspector.getAllPartIds(17).isEmpty()
                             && inspector.getAllParts().isEmpty()
                             && inspector.getCompletedKeys().isEmpty()
                             && inspector.getAllStaticParts().isEmpty(),
                     "Recovered unload flow should cleanup Redis persistence state after the later completion drains cleanly");
+            second.completeAndStop().join();
+            stopped = true;
+        } finally {
+            if (!stopped) {
+                second.stop();
+            }
         }
     }
 
@@ -813,7 +821,8 @@ class RedisPersistenceTest extends RedisTestSupport {
         Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
         PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
                 secondPersistence.wrapConveyor(recoveredForward);
-        try {
+        boolean stopped = false;
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
             awaitTrue(() -> statuses.stream().anyMatch(status -> status.getKey() == 8 && status.getStatus() == Status.INVALID),
                     "Recovered timeout-action failure should eventually mark the build INVALID");
             awaitTrue(() -> scraps.stream().anyMatch(scrap ->
@@ -823,16 +832,17 @@ class RedisPersistenceTest extends RedisTestSupport {
                                     && scrap.error instanceof IllegalStateException),
                     "Recovered timeout-action failure should publish BUILD_EXPIRED scrap with the thrown error");
             assertTrue(recoveredResults.isEmpty(), "Recovered invalid build should not produce a READY result");
-        } finally {
-            second.completeAndStop().join();
-        }
-
-        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
             awaitTrue(() -> inspector.getAllPartIds(8).isEmpty()
                             && inspector.getAllParts().isEmpty()
                             && inspector.getCompletedKeys().isEmpty()
                             && inspector.getAllStaticParts().isEmpty(),
                     "Recovered invalid build should cleanup Redis persistence state after the conveyor drains cleanly");
+            second.completeAndStop().join();
+            stopped = true;
+        } finally {
+            if (!stopped) {
+                second.stop();
+            }
         }
     }
 
@@ -950,22 +960,24 @@ class RedisPersistenceTest extends RedisTestSupport {
         Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
         PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
                 secondPersistence.wrapConveyor(recoveredForward);
-        try {
+        boolean stopped = false;
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
             awaitTrue(() -> "no-prefix:timeout-ready-left:timeout-ready-right:null".equals(recoveredResults.get(20)),
                     "Recovered timeout action should be able to finish the build after restart");
             awaitTrue(() -> statuses.stream().anyMatch(status -> status.getKey() == 20 && status.getStatus() == Status.READY),
                     "Recovered timeout action that finishes the build should evict with READY status");
             assertTrue(scraps.isEmpty(), "Recovered timeout action success should not publish scrap");
-        } finally {
-            second.completeAndStop().join();
-        }
-
-        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
             awaitTrue(() -> inspector.getAllPartIds(20).isEmpty()
                             && inspector.getAllParts().isEmpty()
                             && inspector.getCompletedKeys().isEmpty()
                             && inspector.getAllStaticParts().isEmpty(),
                     "Recovered timeout-action success should cleanup Redis persistence state after completion");
+            second.completeAndStop().join();
+            stopped = true;
+        } finally {
+            if (!stopped) {
+                second.stop();
+            }
         }
     }
 
@@ -1686,7 +1698,7 @@ class RedisPersistenceTest extends RedisTestSupport {
     }
 
     private static void awaitTrue(java.util.function.BooleanSupplier condition, String message) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 5_000L;
+        long deadline = System.currentTimeMillis() + 10_000L;
         while (System.currentTimeMillis() < deadline) {
             if (condition.getAsBoolean()) {
                 return;

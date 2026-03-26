@@ -136,7 +136,7 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	private final Properties properties;
 	
 	/** The additionalFields. */
-	private final List<Field<?>> additionalFields;
+	private final List<com.aegisql.conveyor.persistence.core.Field<?>> additionalFields;
 	
 	/** The additional additionalFields. */
 	private final List<List<String>> uniqueFields;
@@ -227,7 +227,7 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	 */
 	private JdbcPersistenceBuilder(LongSupplier idSupplier, boolean autoInit, Class<K> keyClass, String type, String host, int port,
 			String database, String schema, String partTable, String completedLogTable, String user, String password,
-			Properties properties, List<Field<?>> fields,
+			Properties properties, List<com.aegisql.conveyor.persistence.core.Field<?>> fields,
 			ArchiveStrategy archiveStrategy, Archiver<K> customArchiver, Persistence<K> archivingPersistence, BinaryLogConfiguration bLogConf,
 			ObjectConverter<?,String> labelConverter, EncryptingConverterBuilder encryptionBuilder,
 			int minCompactSize, int maxBatchSize, long maxBatchTime, Set<String> nonPersistentProperties
@@ -513,7 +513,7 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	 * @param f the f
 	 * @return the jdbc persistence builder
 	 */
-	public JdbcPersistenceBuilder<K> fields(List<Field<?>> f) {
+	public JdbcPersistenceBuilder<K> fields(List<? extends com.aegisql.conveyor.persistence.core.Field<?>> f) {
 		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new ArrayList<>(f), 
@@ -532,8 +532,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	 * @return the jdbc persistence builder
 	 */
 	public <T> JdbcPersistenceBuilder<K> addField(Class<T> fieldClass, String name) {
-		ArrayList<Field<?>> f = new ArrayList<>(additionalFields);
-		f.add( new Field<>(fieldClass,name));
+		ArrayList<com.aegisql.conveyor.persistence.core.Field<?>> f = new ArrayList<>(additionalFields);
+		f.add(new Field<>(fieldClass,name));
 		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new ArrayList<>(f), 
@@ -553,8 +553,8 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 	 * @return the jdbc persistence builder
 	 */
 	public <T> JdbcPersistenceBuilder<K> addField(Class<T> fieldClass, String name, Function<Cart<?,?,?>,T> accessor) {
-		ArrayList<Field<?>> f = new ArrayList<>(additionalFields);
-		f.add( new Field<>(fieldClass,name,accessor));
+		ArrayList<com.aegisql.conveyor.persistence.core.Field<?>> f = new ArrayList<>(additionalFields);
+		f.add(new Field<>(fieldClass,name,accessor));
 		return new JdbcPersistenceBuilder<>(idSupplier, autoInit, keyClass, engineType, host, port,
 				database, schema, partTable, completedLogTable, user, password,
 				new Properties(properties), new ArrayList<>(f), 

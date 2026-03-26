@@ -1,7 +1,7 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
+import com.aegisql.conveyor.persistence.core.Field;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.builders.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.StatementExecutor;
 import org.slf4j.Logger;
@@ -1161,8 +1161,8 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 	 * @param additionalFields the new additional fields
 	 */
 	@Override
-	public void setAdditionalFields(List<Field<?>> additionalFields) {
-		this.additionalFields = additionalFields;
+	public void setAdditionalFields(List<? extends Field<?>> additionalFields) {
+		this.additionalFields = new ArrayList<>(additionalFields);
 	}
 
 	/* (non-Javadoc)

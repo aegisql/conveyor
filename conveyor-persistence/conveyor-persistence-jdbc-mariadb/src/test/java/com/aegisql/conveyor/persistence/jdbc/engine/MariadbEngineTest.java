@@ -56,7 +56,7 @@ public class MariadbEngineTest {
 		cf.setPassword(Tester.getMariadbPassword());
 
 		GenericEngine<Integer> de = new MariaDbEngine<>(Integer.class, cf, false);
-		de.setAdditionalFields(Arrays.asList(new Field(String.class,"ADDON")));
+		de.setAdditionalFields(Arrays.asList(new Field<>(String.class,"ADDON")));
 		de.connectionFactory.setDatabase(SCHEMA);
 		assertFalse(de.databaseExists(SCHEMA));
 		assertTrue(de.schemaExists(SCHEMA));

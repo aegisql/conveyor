@@ -55,7 +55,7 @@ public class PostgresEngineTest {
 		cf.setPassword(Tester.getPostgresPassword());
 
 		GenericEngine<Integer> de = new PostgresqlEngine<>(Integer.class, cf, false);
-		de.setAdditionalFields(Arrays.asList(new Field(Long.class,"ADDON")));
+		de.setAdditionalFields(Arrays.asList(new Field<>(Long.class,"ADDON")));
 		de.connectionFactory.setDatabase(SCHEMA);
 		de.connectionFactory.setSchema(SCHEMA);
 		de.setSortingOrder(order);
