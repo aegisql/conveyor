@@ -330,7 +330,10 @@ Current differences from JDBC:
     - `REDIS_INDEX` when you want Redis to maintain extra priority indexes for active/static/per-key and replay-facing reads
     - expired reads still use the expiration index first and then Java-side priority sorting
     - the better choice is workload-dependent, so users should evaluate it on their own real data loads when tuning matters
-- command-cart behavior still needs broader proof
+- representative command-cart recovery is covered for:
+  - filter-based `SUSPEND`
+  - keyed `CANCEL_BUILD`
+  - keyed `PEEK_KEY` callback commands
 - Redis now exposes the main JDBC-style persistence-filter convenience methods, though the JDBC stack still has a broader accumulated operational surface
 - current save and delete-style cleanup paths are Lua-backed atomic units
 - move-style archive flows still use Java orchestration before Redis-side cleanup, but they now delete each successfully exported batch immediately so interruption risk is bounded by the configured batch size rather than the whole request

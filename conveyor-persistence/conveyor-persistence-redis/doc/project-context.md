@@ -80,7 +80,10 @@ Tests currently cover:
 - Redis client ownership behavior for `copy()` and externally supplied clients
 - encrypted payload round-trip, wrong-secret failure, and legacy-default compatibility
 - direct `SecretKey`-based payload encryption
-- persisted command-cart replay during `PersistentConveyor` startup
+- persisted command-cart replay during `PersistentConveyor` startup, including:
+  - filter-based `SUSPEND`
+  - keyed `CANCEL_BUILD`
+  - keyed `PEEK_KEY` callback commands
 - incomplete-build replay across `PersistentConveyor` restart
 - class-based and label-based custom converter round-trip
 - custom converter use for additional-field metadata round-trip

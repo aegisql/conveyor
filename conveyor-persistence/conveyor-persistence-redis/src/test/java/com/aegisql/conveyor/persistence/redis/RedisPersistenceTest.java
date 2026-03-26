@@ -63,6 +63,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RedisPersistenceTest extends RedisTestSupport {
 
     private final SerializableToBytesConverter<Serializable> serializableConverter = new SerializableToBytesConverter<>();
+    private static final ConcurrentHashMap<String, Integer> RECOVERED_PEEK_KEYS = new ConcurrentHashMap<>();
 
     @Test
     void supportsBasicPersistenceContractMethods() throws Exception {
@@ -459,6 +460,79 @@ class RedisPersistenceTest extends RedisTestSupport {
                 awaitTrue(forward::isSuspended, "Persisted SUSPEND command should suspend the wrapped conveyor when recovered");
             } finally {
                 persistent.stop();
+            }
+        }
+    }
+
+    @Test
+    void replaysPersistedCancelCommandCartsWhenWrappingPersistentConveyor() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("command-cancel-replay");
+        try (Persistence<Integer> writer = newRecoveryPersistence(name)) {
+            writer.archiveAll();
+            writer.savePart(writer.nextUniquePartId(), new ShoppingCart<>(22, "cancel-left", RecoveryPart.LEFT));
+            writer.savePart(writer.nextUniquePartId(), new ShoppingCart<>(22, "cancel-right", RecoveryPart.RIGHT));
+            writer.savePart(writer.nextUniquePartId(),
+                    new GeneralCommand<>(22, "CANCEL", CommandLabel.CANCEL_BUILD, System.currentTimeMillis(), 0));
+        }
+
+        Map<Integer, String> recoveredResults = new ConcurrentHashMap<>();
+        List<AcknowledgeStatus<Integer>> statuses = Collections.synchronizedList(new ArrayList<>());
+        AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> recoveredForward =
+                newRecoveryConveyor("redis-command-cancel-second", recoveredResults, null, null, Status.CANCELED);
+        recoveredForward.addBeforeKeyEvictionAction(statuses::add);
+
+        Persistence<Integer> reader = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> persistent =
+                reader.wrapConveyor(recoveredForward);
+        boolean stopped = false;
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
+            awaitTrue(() -> statuses.stream().anyMatch(status -> status.getKey() == 22 && status.getStatus() == Status.CANCELED),
+                    "Recovered CANCEL_BUILD command should cancel the replayed build");
+            assertTrue(recoveredResults.isEmpty(), "Recovered CANCEL_BUILD command should not produce a READY result");
+            awaitTrue(() -> inspector.getAllPartIds(22).isEmpty()
+                            && inspector.getAllParts().isEmpty()
+                            && inspector.getCompletedKeys().isEmpty()
+                            && inspector.getAllStaticParts().isEmpty(),
+                    "Recovered CANCEL_BUILD command should cleanup Redis persistence state");
+            persistent.stop();
+            stopped = true;
+        } finally {
+            if (!stopped) {
+                persistent.stop();
+            }
+        }
+    }
+
+    @Test
+    void replaysPersistedPeekKeyCommandCartsWhenWrappingPersistentConveyor() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("command-peek-key-replay");
+        String token = name + "-peek";
+        RECOVERED_PEEK_KEYS.remove(token);
+        try (Persistence<Integer> writer = newRecoveryPersistence(name)) {
+            writer.archiveAll();
+            writer.savePart(writer.nextUniquePartId(), new ShoppingCart<>(23, "peek-left", RecoveryPart.LEFT));
+            writer.savePart(writer.nextUniquePartId(),
+                    new GeneralCommand<>(23, new RecordedKeyConsumer(token), CommandLabel.PEEK_KEY, System.currentTimeMillis(), 0));
+        }
+
+        Persistence<Integer> reader = newRecoveryPersistence(name);
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
+            AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> forward =
+                    newRecoveryConveyor("redis-command-peek-key-second", new ConcurrentHashMap<>(), null, false);
+            PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> persistent =
+                    reader.wrapConveyor(forward);
+            try {
+                awaitTrue(() -> Integer.valueOf(23).equals(RECOVERED_PEEK_KEYS.get(token)),
+                        "Recovered PEEK_KEY command should call its serialized consumer");
+                assertEquals(List.of(1L, 2L), new ArrayList<>(inspector.getAllPartIds(23)),
+                        "Recovered PEEK_KEY command should not remove the underlying persisted carts");
+            } finally {
+                persistent.stop();
+                RECOVERED_PEEK_KEYS.remove(token);
             }
         }
     }
@@ -1943,6 +2017,19 @@ class RedisPersistenceTest extends RedisTestSupport {
         @Override
         public BiConsumer<OrderedReplayBuilder, Object> get() {
             return inner.get();
+        }
+    }
+
+    private static final class RecordedKeyConsumer implements Consumer<Integer>, Serializable {
+        private final String token;
+
+        private RecordedKeyConsumer(String token) {
+            this.token = token;
+        }
+
+        @Override
+        public void accept(Integer key) {
+            RECOVERED_PEEK_KEYS.put(token, key);
         }
     }
 

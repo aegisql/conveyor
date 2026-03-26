@@ -58,9 +58,12 @@ Primary test evidence currently lives in:
   - Redis now has the main JDBC-style convenience surface around cart-property and label-persistence filters.
   - The remaining differences are smaller API-shape details rather than missing practical filter support.
 
-- Broader command-cart recovery coverage.
-  - One recovered command path is proven.
-  - Command behavior is not yet as broadly evidenced as the JDBC persistence stack.
+- Representative command-cart recovery coverage.
+  - Redis now has direct recovery evidence for:
+    - filter-based `SUSPEND`
+    - keyed `CANCEL_BUILD`
+    - keyed `PEEK_KEY` callback commands
+  - A larger command matrix is now optional extra evidence, not a primary v1 gap.
 
 - Move-style export coordination beyond the current batched export/delete model.
   - Current semantics are acceptable for Redis v1.
@@ -107,7 +110,6 @@ What remains is narrow:
 
 ### Medium Complexity
 
-- Broaden command-cart recovery proof.
 - Extend performance coverage toward the useful JDBC comparison cases.
 - Decide whether Redis needs more explicit user-facing docs for the shared encryption builder surface.
 - Keep the `JAVA_SORT` vs `REDIS_INDEX` choice documented as a user-side operational choice rather than a project-side benchmark target.
@@ -125,18 +127,16 @@ What remains is narrow:
 
 ## Recommended Next Sequence
 
-1. Broaden command-cart recovery proof if we still want wider v1 recovery evidence.
-2. Decide later whether Redis-tracked batch manifests and processing status would materially improve move-style export coordination.
-3. Extend performance coverage only where comparison to JDBC remains meaningful for the current Redis design.
-4. Revisit retry and reconnect policy only after move-style export semantics are considered settled enough.
-5. Leave any Redis Function migration for v2.
+1. Decide later whether Redis-tracked batch manifests and processing status would materially improve move-style export coordination.
+2. Extend performance coverage only where comparison to JDBC remains meaningful for the current Redis design.
+3. Revisit retry and reconnect policy only after move-style export semantics are considered settled enough.
+4. Leave any Redis Function migration for v2.
 
 ## Bottom Line
 
 - Redis persistence is in a solid v1 development state.
 - The main remaining work is no longer basic CRUD or basic recovery.
 - The main remaining work is maturity:
-  - broader command recovery proof
   - move-style export coordination and bookkeeping
   - performance and operational depth
   - long-term cluster and ecosystem parity
