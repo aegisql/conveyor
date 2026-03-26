@@ -19,6 +19,13 @@ The current implementation:
 - stores itemized cart state in Redis hashes and indexes
 - keeps the cart value bytes in `conv:{name}:part:{id}:payload`
 - keeps the authoritative cart metadata in `conv:{name}:part:{id}:meta`
+- supports builder-declared additional fields through:
+  - `fields(...)`
+  - `addField(Class<T>, String)`
+  - `addField(Class<T>, String, accessor)`
+- persists configured additional fields as explicit entries inside the Redis `:meta` hash
+- rehydrates stored additional fields back into cart properties on Redis reads
+- preserves additional fields through move-style archiving because archived carts now carry them as normal cart properties
 - supports optional payload encryption through the same shared encryption builder pattern used by JDBC
 - maintains Redis-native indexes for active parts, static parts, expirations, per-key part ids, and completed keys
 - commits itemized cart writes through a Lua-backed atomic `savePart`
@@ -86,6 +93,8 @@ Tests currently cover:
   - `valueHint` stays in metadata
   - value bytes live only in `:payload`
   - older mirrored `valueData` records still read correctly
+- configured additional-field metadata written independently from the generic `propertiesData` blob
+- configured additional fields restored into cart properties on reads and preserved through move-to-persistence and move-to-file archiving
 - first reproduced performance-test scenarios compatible with the current Redis state:
   - direct conveyor baseline
   - persistent conveyor shuffled load
@@ -134,6 +143,10 @@ Override options:
 - Builder-level connection configuration is now broader than URI-only setup:
   - owned clients can be tuned through pool sizing, timeouts, database selection, client name, authentication, and SSL flags
   - externally supplied `JedisPooled` clients are still supported and remain the right choice when the host application owns Redis infrastructure configuration
+- Builder-level metadata configuration is now broader too:
+  - selected cart properties or cart-derived values can be persisted as explicit Redis metadata fields
+  - this is the Redis analogue of JDBC `additionalFields`
+  - it is separate from the generic persisted property map and separate from the intentional Redis non-goal around `uniqueFields`
 - Archive behavior is now broader than the initial delete-only Redis stub:
   - `DELETE` remains the default
   - `NO_ACTION` is exposed through the builder

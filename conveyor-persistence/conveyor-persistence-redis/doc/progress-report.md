@@ -23,6 +23,10 @@ Implemented behavior and current semantics live in:
 Current v1 decisions:
 
 - `uniqueFields` is an intentional Redis non-goal.
+- Redis now supports JDBC-style `additionalFields` in a Redis-native metadata form.
+  - selected fields are persisted in part metadata, not as relational constraints
+  - stored field metadata is rehydrated into cart properties on Redis reads, so current move-style archivers preserve it
+  - detailed design notes remain in `/Users/mike/work/conveyor/conveyor-persistence/doc/plans/redis-persistence.md`
 - `SET_ARCHIVED` is an intentional Redis non-goal.
 - Move-style archive export is intentionally at-least-once at batch granularity.
 - Redis Functions are deferred to v2; v1 stays on Lua.

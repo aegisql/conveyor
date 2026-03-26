@@ -311,6 +311,11 @@ Current differences from JDBC:
   - `MOVE_TO_FILE`
   - `SET_ARCHIVED` is intentionally unsupported because retained archived-state updates are a poor fit for the current Redis model
 - Redis intentionally does not implement `uniqueFields`; if you need database-enforced uniqueness constraints, choose a JDBC backend
+- Redis now does support builder-declared additional fields as explicit part metadata
+  - this is the Redis analogue of JDBC `additionalFields`
+  - Redis read paths rehydrate those fields into cart properties, so current move-style archive flows preserve them
+  - it is intentionally separate from the `uniqueFields` non-goal
+  - the first increment is metadata-oriented, not relational
 - restore-order support now includes:
   - `BY_ID` as the default
   - `NO_ORDER` as backend iteration order
@@ -520,7 +525,7 @@ The same Conveyor concepts land in different storage structures depending on the
 |---|---|---|
 | logical persistence name | database + schema + table set chosen in the builder; helper presets give starting defaults that can be overridden | builder `name`, mapped to the Redis namespace `conv:{name}:*` |
 | part storage | rows in the part table, `PART` by default unless overridden | `conv:{name}:part:{id}:meta` plus `conv:{name}:part:{id}:payload` and Redis index keys |
-| part metadata | relational columns such as key, label, load type, timestamps, priority, and properties | fields in `conv:{name}:part:{id}:meta` |
+| part metadata | relational columns such as key, label, load type, timestamps, priority, properties, and configured additional fields | fields in `conv:{name}:part:{id}:meta` |
 | part value | serialized or converted payload stored in the row value column(s) | serialized or converted bytes in `conv:{name}:part:{id}:payload` |
 | completed build keys | rows in the completed log table, `COMPLETED_LOG` by default unless overridden | members of `conv:{name}:completed` |
 | static parts | stored in the same relational part model and restored through SQL queries | tracked in `conv:{name}:parts:static` |

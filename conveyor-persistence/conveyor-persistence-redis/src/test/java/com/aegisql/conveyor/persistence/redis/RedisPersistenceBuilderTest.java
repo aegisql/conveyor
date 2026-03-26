@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.crypto.KeyGenerator;
@@ -42,6 +43,7 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
 
         String name = testNamespace("builder-validation");
         RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(name);
+        assertTrue(builder.additionalFields().isEmpty());
         assertEquals(RestoreOrder.BY_ID, builder.restoreOrder());
         assertEquals(PriorityRestoreStrategy.JAVA_SORT, builder.priorityRestoreStrategy());
         assertEquals(ArchiveStrategy.DELETE, builder.archiveStrategy());
@@ -79,6 +81,32 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
             assertEquals(1L, persistence.nextUniquePartId());
             assertNamespaceMetadata(jedis.hgetAll(namespaceMetaKey), name);
         }
+    }
+
+    @Test
+    void supportsAdditionalFieldConfigurationAndRejectsInvalidFieldNames() {
+        RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(testNamespace("builder-additional-fields"));
+
+        RedisPersistenceBuilder<Integer> configured = builder
+                .addField(String.class, "AUDIT")
+                .addField(Integer.class, "VALUE_LENGTH", cart -> ((String) cart.getValue()).length());
+
+        assertTrue(builder.additionalFields().isEmpty());
+        assertEquals(2, configured.additionalFields().size());
+        assertEquals("AUDIT", configured.additionalFields().get(0).getName());
+        assertEquals("VALUE_LENGTH", configured.additionalFields().get(1).getName());
+
+        assertThrows(NullPointerException.class, () -> builder.fields(null));
+        assertThrows(NullPointerException.class, () -> builder.addField(null, "AUDIT"));
+        assertThrows(NullPointerException.class, () -> builder.addField(String.class, null));
+        assertThrows(NullPointerException.class, () -> builder.addField(String.class, "AUDIT", (Function<com.aegisql.conveyor.cart.Cart<?, ?, ?>, String>) null));
+        assertThrows(IllegalArgumentException.class, () -> builder.addField(String.class, "id"));
+        assertThrows(IllegalArgumentException.class, () -> builder.addField(String.class, "field:name"));
+        assertThrows(IllegalArgumentException.class, () -> builder.addField(String.class, "   "));
+        assertThrows(IllegalArgumentException.class, () -> builder.fields(List.of(
+                new AdditionalField<>(String.class, "AUDIT"),
+                new AdditionalField<>(String.class, "AUDIT")
+        )));
     }
 
     @Test

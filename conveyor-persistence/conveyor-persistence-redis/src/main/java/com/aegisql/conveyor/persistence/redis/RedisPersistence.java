@@ -61,6 +61,7 @@ public class RedisPersistence<K> implements Persistence<K> {
     private final long maxArchiveBatchTime;
     private final Set<String> nonPersistentProperties;
     private final Predicate<Cart<K, ?, ?>> persistentPartFilter;
+    private final List<AdditionalField<?>> additionalFields;
     private final RedisPersistenceBuilder.ArchiveOptions<K> archiveOptions;
     private final SerializableToBytesConverter<Serializable> serializableConverter = new SerializableToBytesConverter<>();
     private final EncryptingConverter payloadEncryptor;
@@ -87,6 +88,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.maxArchiveBatchTime = builder.maxArchiveBatchTime();
         this.nonPersistentProperties = builder.nonPersistentProperties();
         this.persistentPartFilter = builder.persistentPartFilter();
+        this.additionalFields = builder.additionalFields();
         this.archiveOptions = builder.archiveOptions();
         this.payloadEncryptor = builder.encryptionBuilder().get();
         this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor);
@@ -109,6 +111,7 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.maxArchiveBatchTime = source.maxArchiveBatchTime;
         this.nonPersistentProperties = source.nonPersistentProperties;
         this.persistentPartFilter = source.persistentPartFilter;
+        this.additionalFields = source.additionalFields;
         this.archiveOptions = source.archiveOptions;
         this.payloadEncryptor = source.payloadEncryptor;
         this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor);
@@ -192,6 +195,8 @@ public class RedisPersistence<K> implements Persistence<K> {
             FieldEncoding filterEncoding = encodePlainField(command.getFilter());
             filterEncoding.put(meta, "commandFilterHint", "commandFilterData", false);
         }
+
+        putAdditionalFieldMetadata(cart, meta);
 
         String encodedIndexedKey = cart.getKey() == null ? null : encodeSerializable(cart.getKey());
         if (useRedisPriorityIndex() && encodedIndexedKey != null) {
@@ -635,6 +640,19 @@ public class RedisPersistence<K> implements Persistence<K> {
         return properties;
     }
 
+    private void putAdditionalFieldMetadata(Cart<K, ?, ?> cart, Map<String, String> meta) {
+        for (AdditionalField<?> field : additionalFields) {
+            Object fieldValue;
+            try {
+                fieldValue = field.getAccessor().apply(cart);
+            } catch (RuntimeException e) {
+                throw new PersistenceException("Failed to evaluate Redis additional field '" + field.getName() + "'", e);
+            }
+            FieldEncoding encoding = encodePlainField(fieldValue);
+            encoding.put(meta, additionalFieldHintKey(field.getName()), additionalFieldDataKey(field.getName()), false);
+        }
+    }
+
     private List<String> savePartKeys(String payloadKey, String metaKey, String reverseKeyIndex, String encodedKey) {
         ArrayList<String> keys = new ArrayList<>();
         keys.add(trackerKey());
@@ -803,6 +821,14 @@ public class RedisPersistence<K> implements Persistence<K> {
         return carts;
     }
 
+    private String additionalFieldHintKey(String name) {
+        return "field:" + name + ":hint";
+    }
+
+    private String additionalFieldDataKey(String name) {
+        return "field:" + name + ":data";
+    }
+
     private List<String> orderedIdMembers(Collection<String> idMembers) {
         ArrayList<String> ordered = new ArrayList<>(idMembers);
         switch (restoreOrder) {
@@ -863,6 +889,7 @@ public class RedisPersistence<K> implements Persistence<K> {
             Object label = decodePlainField(meta.get("labelHint"), meta.get("labelData"));
             Object value = decodePayloadField(label, meta.get("valueHint"), encodedPayload, meta.get("valueData"));
             Map<String, Object> properties = decodeProperties(meta.get("propertiesHint"), meta.get("propertiesData"));
+            restoreAdditionalFieldProperties(meta, properties);
 
             if (loadType == LoadType.COMMAND) {
                 CommandLabel commandLabel = (CommandLabel) label;
@@ -898,6 +925,18 @@ public class RedisPersistence<K> implements Persistence<K> {
         } catch (Exception e) {
             LOG.error("Failed to decode Redis cart id={} namespace={} meta={}", id, namespace, meta, e);
             throw new PersistenceException("Failed to read Redis part cart", e);
+        }
+    }
+
+    private void restoreAdditionalFieldProperties(Map<String, String> meta, Map<String, Object> properties) {
+        for (Map.Entry<String, String> entry : meta.entrySet()) {
+            String key = entry.getKey();
+            if (!key.startsWith("field:") || !key.endsWith(":hint")) {
+                continue;
+            }
+            String name = key.substring("field:".length(), key.length() - ":hint".length());
+            Object value = decodePlainField(entry.getValue(), meta.get(additionalFieldDataKey(name)));
+            properties.put(name, value);
         }
     }
 

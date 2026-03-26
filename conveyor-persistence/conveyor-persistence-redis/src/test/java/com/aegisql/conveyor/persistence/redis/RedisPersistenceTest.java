@@ -1297,6 +1297,118 @@ class RedisPersistenceTest extends RedisTestSupport {
     }
 
     @Test
+    void storesConfiguredAdditionalFieldsAsRedisMetadata() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("additional-fields");
+        long id;
+        ShoppingCart<Integer, String, String> cart = new ShoppingCart<>(42, "alpha", "LBL");
+        cart.addProperty("AUDIT", "keep-me");
+        cart.addProperty("IGNORED", "skip-me");
+
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(name)
+                .nonPersistentProperty("AUDIT")
+                .addField(String.class, "AUDIT")
+                .addField(Integer.class, "VALUE_LENGTH", c -> ((String) c.getValue()).length())
+                .build()) {
+            persistence.archiveAll();
+            id = persistence.nextUniquePartId();
+            persistence.savePart(id, cart);
+
+            Cart<Integer, ?, String> restored = persistence.getPart(id);
+            assertNotNull(restored);
+            assertEquals("keep-me", restored.getProperty("AUDIT", String.class));
+            assertEquals(5, restored.getProperty("VALUE_LENGTH", Integer.class));
+            assertEquals("alpha", restored.getValue());
+        }
+
+        String namespace = "conv:{" + name + "}";
+        try (JedisPooled jedis = RedisConnectionFactory.openDefault()) {
+            Map<String, String> meta = jedis.hgetAll(namespace + ":part:" + id + ":meta");
+
+            assertEquals("keep-me", decodeMetaField(meta, "field:AUDIT"));
+            assertEquals(5, decodeMetaField(meta, "field:VALUE_LENGTH"));
+            assertNull(decodeMetaField(meta, "field:MISSING"));
+        }
+    }
+
+    @Test
+    void movesArchivedAdditionalFieldsToAnotherPersistence() throws Exception {
+        openRedis().close();
+
+        String sourceName = testNamespace("move-additional-fields-source");
+        String targetName = testNamespace("move-additional-fields-target");
+
+        ShoppingCart<Integer, String, String> cart = new ShoppingCart<>(41, "alpha", "LBL");
+        cart.addProperty("AUDIT", "keep-me");
+
+        try (Persistence<Integer> target = new RedisPersistenceBuilder<Integer>(targetName).build();
+             Persistence<Integer> source = new RedisPersistenceBuilder<Integer>(sourceName)
+                     .nonPersistentProperty("AUDIT")
+                     .addField(String.class, "AUDIT")
+                     .addField(Integer.class, "VALUE_LENGTH", c -> ((String) c.getValue()).length())
+                     .archiver(target)
+                     .build()) {
+            source.archiveAll();
+            target.archiveAll();
+
+            source.savePart(source.nextUniquePartId(), cart);
+            source.archiveAll();
+
+            Cart<Integer, ?, ?> restored = target.getAllParts().iterator().next();
+            assertEquals("keep-me", restored.getProperty("AUDIT", String.class));
+            assertEquals(5, restored.getProperty("VALUE_LENGTH", Integer.class));
+            assertEquals("alpha", restored.getValue());
+        }
+    }
+
+    @Test
+    void movesArchivedAdditionalFieldsToBinaryLogFile() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("move-additional-fields-file");
+        Path archiveDir = Path.of("target", "redis-archive-tests", name);
+        BinaryLogConfiguration configuration = BinaryLogConfiguration.builder()
+                .path(archiveDir.toString())
+                .moveToPath(archiveDir.toString())
+                .partTableName("redis-fields")
+                .maxFileSize("10MB")
+                .build();
+
+        ShoppingCart<Integer, String, String> cart = new ShoppingCart<>(51, "alpha", "LBL");
+        cart.addProperty("AUDIT", "keep-me");
+
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(name)
+                .nonPersistentProperty("AUDIT")
+                .addField(String.class, "AUDIT")
+                .addField(Integer.class, "VALUE_LENGTH", c -> ((String) c.getValue()).length())
+                .archiver(configuration)
+                .build()) {
+            persistence.archiveAll();
+            persistence.savePart(persistence.nextUniquePartId(), cart);
+            persistence.archiveAll();
+        }
+
+        Path archiveFile = archiveDir.resolve("redis-fields.blog");
+        assertTrue(Files.exists(archiveFile));
+
+        ArrayList<Cart<Integer, ?, Object>> carts = new ArrayList<>();
+        try (FileInputStream fileInputStream = new FileInputStream(archiveFile.toFile());
+             CartInputStream<Integer, Object> cartInputStream =
+                     new CartInputStream<>(castCartConverter(new ConverterAdviser<>()), fileInputStream)) {
+            Cart<Integer, ?, Object> restored;
+            while ((restored = cartInputStream.readCart()) != null) {
+                carts.add(restored);
+            }
+        }
+
+        assertEquals(1, carts.size());
+        assertEquals("keep-me", carts.get(0).getProperty("AUDIT", String.class));
+        assertEquals(5, carts.get(0).getProperty("VALUE_LENGTH", Integer.class));
+        assertEquals("alpha", carts.get(0).getValue());
+    }
+
+    @Test
     void readsLegacyWholeCartPayloadStructure() throws Exception {
         openRedis().close();
 
@@ -1597,6 +1709,16 @@ class RedisPersistenceTest extends RedisTestSupport {
 
     private static long decodePriorityIndexMember(String member) {
         return Long.parseLong(member.substring(member.lastIndexOf(':') + 1));
+    }
+
+    private static Object decodeMetaField(Map<String, String> meta, String fieldKeyPrefix) {
+        String hint = meta.get(fieldKeyPrefix + ":hint");
+        String encodedData = meta.get(fieldKeyPrefix + ":data");
+        if (hint == null && encodedData == null) {
+            return null;
+        }
+        ConverterAdviser<Object> adviser = new ConverterAdviser<>();
+        return adviser.getConverter(null, hint).fromPersistence(Base64.getUrlDecoder().decode(encodedData));
     }
 
     private static AssemblingConveyor<Integer, SmartLabel<OrderedReplayBuilder>, String> newOrderedReplayConveyor(
