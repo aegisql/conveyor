@@ -191,230 +191,60 @@ This difference should be explicit in docs, plans, and backend-selection guidanc
 
 ## Additional Cart-Property Fields
 
-Current JDBC persistence also supports a different feature that Redis now begins to implement in Redis-native form:
+Redis now supports the JDBC-like `additionalFields` idea in a Redis-native form.
 
-- builder-declared `additionalFields`
-- configured through:
-  - `fields(List<Field<?>>)`
+Current implemented behavior:
+
+- builder-declared additional fields are configured through:
+  - `fields(List<AdditionalField<?>>)`
   - `addField(Class<T>, String)`
   - `addField(Class<T>, String, Function<Cart<?,?,?>,T>)`
-- saved independently from the generic cart-property map in `JdbcPersistence.savePart(...)`
+- selected fields are stored as explicit metadata inside `conv:{name}:part:{id}:meta`
+  - `field:<NAME>:hint`
+  - `field:<NAME>:data`
+- stored field metadata is rehydrated into cart properties on Redis reads and recovery
+- move-style archivers preserve those values because they archive reconstructed carts
+- configured additional fields remain separate from:
+  - the generic persisted property map
+  - the intentional Redis non-goal around `uniqueFields`
 
-This feature is a better analogy for stronger Redis cart-property support than `uniqueFields`.
+This remains intentionally metadata-oriented:
 
-Current first-increment Redis status:
+- no field-specific secondary indexes
+- no dedicated field query API
+- no relational uniqueness semantics
 
-- builder-declared additional fields are now a Redis feature
-- selected fields are persisted as explicit metadata inside `conv:{name}:part:{id}:meta`
-- stored additional-field metadata is rehydrated into cart properties on Redis reads
-- current move-style archivers preserve those values because they archive reconstructed carts
-- it does not yet add field-specific secondary indexes or a new query API
+Remaining follow-up worth considering later:
 
-### Goal
+- opt-in Redis-native secondary indexes for selected fields if a concrete filtering or recovery use case appears
+- eventual extraction of the field descriptor into `conveyor-persistence-core` if we want JDBC and Redis to share one abstraction
 
-Add Redis support for selected cart-property fields, or other cart-derived fields, as first-class persisted metadata.
+## Custom Converter Registration
 
-Intended value:
+JDBC exposes custom binary converter registration through:
 
-- stronger diagnostics and observability
-- stronger recovery support when specific cart properties matter operationally
-- future Redis-native filtering or indexing if a concrete use case appears later
-- closer builder-level symmetry with JDBC where that symmetry is still natural
+- `addBinaryConverter(Class<T>, ObjectConverter<T, byte[]>)`
+- `addBinaryConverter(label, ObjectConverter<T, byte[]>)`
 
-### Non-Goals
+Redis now supports the same builder-level idea.
 
-- do not implement relational uniqueness semantics
-- do not turn Redis into a table/column engine
-- do not promise SQL-like querying across arbitrary fields
-- do not make field-level indexing mandatory in the first increment
+Current implemented behavior:
 
-### Current Redis Baseline
+- Redis builder supports:
+  - `addBinaryConverter(Class<T>, converter)`
+  - `addBinaryConverter(label, converter)`
+- configured converters are applied through the Redis `ConverterAdviser` path
+- class-based converters can handle non-serializable payload values
+- label-based converters can override payload encoding for specific labels
+- additional-field metadata uses the same converter-registration surface, so selected non-serializable field values can be persisted and rehydrated
 
-Redis already persists the filtered cart-property map through:
+Current comparison to JDBC:
 
-- `propertiesHint`
-- `propertiesData`
+- the core converter-registration capability is now present in Redis
+- Redis still does not expose all of the older JDBC builder convenience helpers around persistence filters
+- Redis still does not have the richer operational/JMX-style surface that the JDBC stack accumulated over time
 
-That is enough for cart reconstruction and replay.
-
-What is missing is first-class persistence for selected fields, analogous to JDBC `additionalFields`, where:
-
-- a field can be declared explicitly in the builder
-- the field can default to `cart.getProperty(name, type)`
-- the field can also come from a custom accessor
-- the field remains visible even when the full cart-property map is not the only operational representation we care about
-
-### Recommended Design
-
-#### 1. Builder Surface
-
-Add Redis builder methods mirroring JDBC naming and intent:
-
-- `fields(List<...>)`
-- `addField(Class<T> fieldClass, String name)`
-- `addField(Class<T> fieldClass, String name, Function<Cart<?,?,?>,T> accessor)`
-
-Expected behavior:
-
-- keep the Redis builder immutable, the same way its current configuration methods behave
-- keep the default accessor symmetric with JDBC:
-  - `cart.getProperty(name, fieldClass)`
-- reject duplicate configured field names
-- reject field names that collide with reserved Redis metadata names or reserved prefixes
-
-#### 2. Descriptor Placement
-
-Redis cannot depend on the JDBC-local `Field` class.
-
-Recommended path:
-
-- introduce a persistence-neutral field descriptor in `conveyor-persistence-core`
-- keep the shape equivalent to the current JDBC `Field<T>`:
-  - field class
-  - field name
-  - accessor
-
-Why this is the preferred direction:
-
-- avoids duplicating the concept in Redis
-- keeps JDBC and Redis builder surfaces conceptually aligned
-- keeps the abstraction out of the JDBC module where Redis cannot legally depend on it
-
-Compatibility note:
-
-- the existing JDBC `Field` type can remain temporarily as a wrapper or compatibility facade if we want to avoid immediate downstream churn
-- the first Redis implementation does not need that JDBC refactor to be all-or-nothing, but the long-term home of the abstraction should be `conveyor-persistence-core`
-
-#### 3. Save Path
-
-Extend `RedisPersistence.savePart(...)` to evaluate configured additional fields after the current cart-property extraction step.
-
-Behavior should follow the JDBC analogy:
-
-- configured additional fields are independent from the generic property blob
-- `nonPersistentProperties` should continue to filter only the generic `propertiesData` map
-- a configured additional field may still be persisted even when its source property is excluded from the generic property blob
-
-Encoding recommendation:
-
-- reuse the existing plain-field encoding path
-- do not use payload encryption for these fields in the first increment
-- treat them as metadata, the same way Redis currently treats keys, labels, properties, and other non-payload fields
-
-#### 4. Redis Storage Shape
-
-Store additional fields inside the existing part metadata hash:
-
-- `field:<NAME>:hint`
-- `field:<NAME>:data`
-
-This keeps the feature Redis-native:
-
-- no new table-like structure
-- no separate lookup key unless a later use case justifies indexing
-- no change to the payload key
-
-Why this fits the current implementation well:
-
-- the current Redis `savePart` path already sends an open-ended metadata map into the Lua script
-- adding new metadata pairs can piggyback on that existing atomic write path
-- the current reader already ignores unknown metadata keys, so additive field metadata is backward-friendly
-
-#### 5. Read Path And Recovery
-
-Current Redis behavior now restores stored additional fields into cart properties during read/recovery flows.
-
-Implications:
-
-- cart reconstruction still fundamentally relies on:
-  - payload
-  - label/key metadata
-  - generic `propertiesData`
-- additional fields remain additive metadata, not required structural fields
-- recovered carts and archived carts now carry additional-field values as normal cart properties
-- this keeps move-to-persistence and move-to-file compatible with the existing archiver shape
-
-What is still intentionally not added:
-
-- field-specific Redis secondary indexes
-- a dedicated field query API
-
-#### 6. Backward Compatibility
-
-Old Redis records without additional field metadata must continue to work unchanged.
-
-Preferred compatibility characteristics:
-
-- no Redis namespace version bump
-- no backend version bump
-- no Lua bundle version bump if the save script still only consumes a metadata map and does not need new structural behavior
-- old readers should ignore the added metadata fields safely
-- new readers should treat missing configured field metadata as "not present", not as corruption
-
-#### 7. Optional Later Extension
-
-If real workloads justify it later, Redis can add opt-in indexes for selected fields.
-
-That later stage should be separate from the first implementation.
-
-Only consider it when there is a concrete need for:
-
-- filtering
-- diagnostics
-- support tooling
-- targeted replay or recovery workflows
-
-Even then:
-
-- keep it Redis-native
-- keep it opt-in
-- do not drift into recreating relational uniqueness semantics
-
-### Test Evidence Plan
-
-Add Redis-local tests proving the feature at the same level of evidence we now expect from the module.
-
-#### Builder Tests
-
-- `addField(Class<T>, String)` stores field configuration immutably
-- `addField(Class<T>, String, accessor)` stores custom accessors immutably
-- duplicate field names are rejected
-- reserved-name collisions are rejected
-
-#### Persistence Save/Read Tests
-
-- a property-backed additional field is written into `:meta` as first-class metadata
-- a custom-accessor additional field is written into `:meta`
-- field values survive `getPart(...)` round-trip without affecting current cart restoration behavior
-- fields can still be persisted when the same source property is excluded from the generic property map
-- null field values are handled consistently and documented
-
-#### Compatibility Tests
-
-- old Redis data without field metadata still restores correctly
-- new Redis data with field metadata is ignored safely by the existing restoration logic
-
-#### Recovery And Archive Tests
-
-- recovery flows remain correct when carts carry configured additional fields
-- delete-style archive cleanup removes the same carts regardless of additional field metadata
-- move-style archive flows preserve the metadata in exported carts if the destination serializer already preserves cart properties and ids
-
-### Complexity Assessment
-
-- first increment:
-  - medium complexity
-  - mostly builder, metadata, and tests
-- later field-indexing work:
-  - medium to high complexity depending on query expectations
-
-### Recommended Delivery Order
-
-1. Introduce the neutral field descriptor in `conveyor-persistence-core`, or explicitly choose a temporary Redis-local equivalent if we want a narrower first patch.
-2. Add Redis builder methods mirroring JDBC `addField(...)`.
-3. Persist configured fields into `:meta` through the existing Lua-backed `savePart` path.
-4. Add Redis-local tests for builder behavior, saved metadata shape, compatibility, and recovery stability.
-5. Reassess only later whether any selected fields need Redis-native indexes.
+This is a better current statement of Redis-vs-JDBC gaps than the older missing-feature list.
 
 ## Archive Strategy Analysis
 

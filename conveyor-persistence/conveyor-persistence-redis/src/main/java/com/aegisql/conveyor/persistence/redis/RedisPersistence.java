@@ -62,10 +62,11 @@ public class RedisPersistence<K> implements Persistence<K> {
     private final Set<String> nonPersistentProperties;
     private final Predicate<Cart<K, ?, ?>> persistentPartFilter;
     private final List<AdditionalField<?>> additionalFields;
+    private final List<RedisPersistenceBuilder.ConverterRegistration> converterRegistrations;
     private final RedisPersistenceBuilder.ArchiveOptions<K> archiveOptions;
     private final SerializableToBytesConverter<Serializable> serializableConverter = new SerializableToBytesConverter<>();
     private final EncryptingConverter payloadEncryptor;
-    private final ConverterAdviser<Object> plainConverterAdviser = new ConverterAdviser<>();
+    private final ConverterAdviser<Object> plainConverterAdviser;
     private final ConverterAdviser<Object> payloadConverterAdviser;
     private final RedisLuaScriptBundle luaScripts;
     private final AtomicBoolean initialized;
@@ -89,9 +90,11 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.nonPersistentProperties = builder.nonPersistentProperties();
         this.persistentPartFilter = builder.persistentPartFilter();
         this.additionalFields = builder.additionalFields();
+        this.converterRegistrations = builder.converterRegistrations();
         this.archiveOptions = builder.archiveOptions();
         this.payloadEncryptor = builder.encryptionBuilder().get();
-        this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor);
+        this.plainConverterAdviser = newPlainConverterAdviser(converterRegistrations);
+        this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor, converterRegistrations);
         this.clientHandle = clientHandle;
         this.jedis = clientHandle.jedis();
         this.luaScripts = new RedisLuaScriptBundle(jedis);
@@ -112,9 +115,11 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.nonPersistentProperties = source.nonPersistentProperties;
         this.persistentPartFilter = source.persistentPartFilter;
         this.additionalFields = source.additionalFields;
+        this.converterRegistrations = source.converterRegistrations;
         this.archiveOptions = source.archiveOptions;
         this.payloadEncryptor = source.payloadEncryptor;
-        this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor);
+        this.plainConverterAdviser = newPlainConverterAdviser(converterRegistrations);
+        this.payloadConverterAdviser = newPayloadConverterAdviser(payloadEncryptor, converterRegistrations);
         this.clientHandle = source.clientHandle.retain();
         this.jedis = clientHandle.jedis();
         this.luaScripts = new RedisLuaScriptBundle(jedis);
@@ -123,8 +128,19 @@ public class RedisPersistence<K> implements Persistence<K> {
         this.archiver.setPersistence(this);
     }
 
-    private static ConverterAdviser<Object> newPayloadConverterAdviser(EncryptingConverter payloadEncryptor) {
+    private static ConverterAdviser<Object> newPlainConverterAdviser(List<RedisPersistenceBuilder.ConverterRegistration> converterRegistrations) {
         ConverterAdviser<Object> adviser = new ConverterAdviser<>();
+        for (RedisPersistenceBuilder.ConverterRegistration registration : converterRegistrations) {
+            registration.apply(adviser);
+        }
+        return adviser;
+    }
+
+    private static ConverterAdviser<Object> newPayloadConverterAdviser(
+            EncryptingConverter payloadEncryptor,
+            List<RedisPersistenceBuilder.ConverterRegistration> converterRegistrations
+    ) {
+        ConverterAdviser<Object> adviser = newPlainConverterAdviser(converterRegistrations);
         adviser.setEncryptor(payloadEncryptor);
         return adviser;
     }
@@ -961,7 +977,13 @@ public class RedisPersistence<K> implements Persistence<K> {
     }
 
     private FieldEncoding encodeField(ConverterAdviser<Object> adviser, Object label, Object value, boolean includeNullHint) {
-        String typeHint = value == null ? null : value.getClass().getTypeName();
+        String typeHint = null;
+        if (value != null) {
+            typeHint = value.getClass().getCanonicalName();
+            if (typeHint == null) {
+                typeHint = value.getClass().getTypeName();
+            }
+        }
         ObjectConverter<Object, byte[]> converter = adviser.getConverter(label, typeHint);
         byte[] bytes = converter.toPersistence(value);
         if (value == null && !includeNullHint) {

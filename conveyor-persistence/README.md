@@ -316,6 +316,9 @@ Current differences from JDBC:
   - Redis read paths rehydrate those fields into cart properties, so current move-style archive flows preserve them
   - it is intentionally separate from the `uniqueFields` non-goal
   - the first increment is metadata-oriented, not relational
+- Redis now does support JDBC-style custom binary converter registration
+  - class-based and label-based `addBinaryConverter(...)` registration are available in the Redis builder
+  - custom converters are used for payload values and for Redis additional-field metadata
 - restore-order support now includes:
   - `BY_ID` as the default
   - `NO_ORDER` as backend iteration order
@@ -325,6 +328,7 @@ Current differences from JDBC:
     - expired reads still use the expiration index first and then Java-side priority sorting
     - the better choice is workload-dependent, so users should evaluate it on their own real data loads when tuning matters
 - command-cart behavior still needs broader proof
+- Redis still has a smaller builder convenience surface than JDBC around persistence filters and related helper methods
 - current save and delete-style cleanup paths are Lua-backed atomic units
 - move-style archive flows still use Java orchestration before Redis-side cleanup, but they now delete each successfully exported batch immediately so interruption risk is bounded by the configured batch size rather than the whole request
 - move-style archive export is intentionally at-least-once at batch granularity rather than singleness-guaranteed

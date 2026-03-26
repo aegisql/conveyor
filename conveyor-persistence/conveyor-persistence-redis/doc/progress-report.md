@@ -27,6 +27,9 @@ Current v1 decisions:
   - selected fields are persisted in part metadata, not as relational constraints
   - stored field metadata is rehydrated into cart properties on Redis reads, so current move-style archivers preserve it
   - detailed design notes remain in `/Users/mike/work/conveyor/conveyor-persistence/doc/plans/redis-persistence.md`
+- Redis now supports JDBC-style custom binary converter registration.
+  - builder configuration mirrors JDBC `addBinaryConverter(...)` for class-based and label-based converters
+  - the current Redis read/write path applies those converters to payload values and additional-field metadata
 - `SET_ARCHIVED` is an intentional Redis non-goal.
 - Move-style archive export is intentionally at-least-once at batch granularity.
 - Redis Functions are deferred to v2; v1 stays on Lua.
@@ -50,6 +53,10 @@ Primary test evidence currently lives in:
 
 ### Remaining Gaps Compared To JDBC
 
+- Builder/API convenience parity.
+  - Redis now has the core converter-registration capability that JDBC exposes.
+  - It still does not expose the same convenience surface around cart-property and label-persistence filters.
+
 - Broader command-cart recovery coverage.
   - One recovered command path is proven.
   - Command behavior is not yet as broadly evidenced as the JDBC persistence stack.
@@ -66,6 +73,11 @@ Primary test evidence currently lives in:
 - Broader operational surface.
   - Redis currently has logging and test visibility.
   - It does not yet have the richer operational tooling shape that the JDBC side accumulated over time.
+
+- Shared descriptor cleanup.
+  - Redis currently uses its own `AdditionalField` descriptor.
+  - JDBC still uses its older `Field<?>` abstraction.
+  - Functionally this is acceptable, but the concept is still duplicated instead of shared in persistence core.
 
 - Retry and reconnect policy.
   - Long-running Redis deployments will see interruptions.

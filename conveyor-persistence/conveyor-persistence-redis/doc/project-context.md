@@ -23,9 +23,16 @@ The current implementation:
   - `fields(...)`
   - `addField(Class<T>, String)`
   - `addField(Class<T>, String, accessor)`
+- supports JDBC-style custom binary converter registration through:
+  - `addBinaryConverter(Class<T>, converter)`
+  - `addBinaryConverter(label, converter)`
 - persists configured additional fields as explicit entries inside the Redis `:meta` hash
 - rehydrates stored additional fields back into cart properties on Redis reads
 - preserves additional fields through move-style archiving because archived carts now carry them as normal cart properties
+- applies configured custom converters to:
+  - payload values
+  - labels when a label-specific converter is registered
+  - additional-field metadata
 - supports optional payload encryption through the same shared encryption builder pattern used by JDBC
 - maintains Redis-native indexes for active parts, static parts, expirations, per-key part ids, and completed keys
 - commits itemized cart writes through a Lua-backed atomic `savePart`
@@ -71,6 +78,8 @@ Tests currently cover:
 - direct `SecretKey`-based payload encryption
 - persisted command-cart replay during `PersistentConveyor` startup
 - incomplete-build replay across `PersistentConveyor` restart
+- class-based and label-based custom converter round-trip
+- custom converter use for additional-field metadata round-trip
 - recovered explicit-acknowledge handle delivery for completed builds
 - recovered explicit scrap-acknowledge handle delivery for `TIMED_OUT` and timeout-action `INVALID` builds
 - recovered cleanup for the current READY-path auto-ack and explicit-ack completed builds when the recovered conveyor is allowed to drain cleanly

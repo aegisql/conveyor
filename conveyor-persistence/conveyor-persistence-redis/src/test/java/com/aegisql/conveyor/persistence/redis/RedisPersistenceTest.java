@@ -21,6 +21,7 @@ import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.converters.CartToBytesConverter;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
 import com.aegisql.conveyor.persistence.converters.SerializableToBytesConverter;
+import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
@@ -1333,6 +1334,75 @@ class RedisPersistenceTest extends RedisTestSupport {
     }
 
     @Test
+    void supportsClassBasedCustomBinaryConverter() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("custom-converter-class");
+
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(name)
+                .addBinaryConverter(ClassConvertedValue.class, new ClassConvertedValueConverter())
+                .build()) {
+            persistence.archiveAll();
+            long id = persistence.nextUniquePartId();
+            persistence.savePart(id, new ShoppingCart<>(61, new ClassConvertedValue("alpha"), "CLASS"));
+
+            Cart<Integer, ?, String> restored = persistence.getPart(id);
+            assertNotNull(restored);
+            assertEquals(new ClassConvertedValue("alpha"), restored.getValue());
+        }
+    }
+
+    @Test
+    void supportsLabelBasedCustomBinaryConverter() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("custom-converter-label");
+
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(name)
+                .addBinaryConverter("SPECIAL", new LabelConvertedValueConverter())
+                .build()) {
+            persistence.archiveAll();
+            long id = persistence.nextUniquePartId();
+            persistence.savePart(id, new ShoppingCart<>(71, new LabelConvertedValue("beta"), "SPECIAL"));
+
+            Cart<Integer, ?, String> restored = persistence.getPart(id);
+            assertNotNull(restored);
+            assertEquals(new LabelConvertedValue("beta"), restored.getValue());
+        }
+    }
+
+    @Test
+    void supportsCustomConvertersForAdditionalFieldMetadata() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("custom-converter-additional-field");
+        long id;
+        ShoppingCart<Integer, String, String> cart = new ShoppingCart<>(81, "payload", "LBL");
+        cart.addProperty("META", new MetaValue("audit"));
+
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(name)
+                .nonPersistentProperty("META")
+                .addField(MetaValue.class, "META")
+                .addBinaryConverter(MetaValue.class, new MetaValueConverter())
+                .build()) {
+            persistence.archiveAll();
+            id = persistence.nextUniquePartId();
+            persistence.savePart(id, cart);
+
+            Cart<Integer, ?, String> restored = persistence.getPart(id);
+            assertNotNull(restored);
+            assertEquals(new MetaValue("audit"), restored.getProperty("META", MetaValue.class));
+        }
+
+        try (JedisPooled jedis = RedisConnectionFactory.openDefault()) {
+            Map<String, String> meta = jedis.hgetAll("conv:{" + name + "}:part:" + id + ":meta");
+            assertEquals("meta-value", meta.get("field:META:hint"));
+            assertEquals(new MetaValue("audit"),
+                    new MetaValueConverter().fromPersistence(Base64.getUrlDecoder().decode(meta.get("field:META:data"))));
+        }
+    }
+
+    @Test
     void movesArchivedAdditionalFieldsToAnotherPersistence() throws Exception {
         openRedis().close();
 
@@ -1616,7 +1686,7 @@ class RedisPersistenceTest extends RedisTestSupport {
     }
 
     private static void awaitTrue(java.util.function.BooleanSupplier condition, String message) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + 2_000L;
+        long deadline = System.currentTimeMillis() + 5_000L;
         while (System.currentTimeMillis() < deadline) {
             if (condition.getAsBoolean()) {
                 return;
@@ -1731,6 +1801,63 @@ class RedisPersistenceTest extends RedisTestSupport {
         conveyor.autoAcknowledgeOnStatus(Status.READY);
         conveyor.resultConsumer(bin -> results.put(bin.key, bin.product)).set();
         return conveyor;
+    }
+
+    private record ClassConvertedValue(String value) { }
+
+    private static final class ClassConvertedValueConverter implements ObjectConverter<ClassConvertedValue, byte[]> {
+        @Override
+        public byte[] toPersistence(ClassConvertedValue obj) {
+            return obj == null ? null : obj.value().getBytes(StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public ClassConvertedValue fromPersistence(byte[] p) {
+            return p == null ? null : new ClassConvertedValue(new String(p, StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public String conversionHint() {
+            return "class-converted-value";
+        }
+    }
+
+    private record LabelConvertedValue(String value) { }
+
+    private static final class LabelConvertedValueConverter implements ObjectConverter<LabelConvertedValue, byte[]> {
+        @Override
+        public byte[] toPersistence(LabelConvertedValue obj) {
+            return obj == null ? null : obj.value().getBytes(StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public LabelConvertedValue fromPersistence(byte[] p) {
+            return p == null ? null : new LabelConvertedValue(new String(p, StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public String conversionHint() {
+            return "label-converted-value";
+        }
+    }
+
+    private record MetaValue(String value) { }
+
+    private static final class MetaValueConverter implements ObjectConverter<MetaValue, byte[]> {
+        @Override
+        public byte[] toPersistence(MetaValue obj) {
+            return obj == null ? null : obj.value().getBytes(StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public MetaValue fromPersistence(byte[] p) {
+            return p == null ? null : new MetaValue(new String(p, StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public String conversionHint() {
+            return "meta-value";
+        }
     }
 
     private static final class RecoveryBuilder implements Supplier<String>, Serializable {

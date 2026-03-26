@@ -4,6 +4,7 @@ import com.aegisql.conveyor.cart.ShoppingCart;
 import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
+import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import org.junit.jupiter.api.Assumptions;
@@ -100,6 +101,9 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         assertThrows(NullPointerException.class, () -> builder.addField(null, "AUDIT"));
         assertThrows(NullPointerException.class, () -> builder.addField(String.class, null));
         assertThrows(NullPointerException.class, () -> builder.addField(String.class, "AUDIT", (Function<com.aegisql.conveyor.cart.Cart<?, ?, ?>, String>) null));
+        assertThrows(NullPointerException.class, () -> builder.addBinaryConverter((Class<String>) null, new TestStringConverter()));
+        assertThrows(NullPointerException.class, () -> builder.addBinaryConverter(String.class, null));
+        assertThrows(NullPointerException.class, () -> builder.addBinaryConverter("LABEL", null));
         assertThrows(IllegalArgumentException.class, () -> builder.addField(String.class, "id"));
         assertThrows(IllegalArgumentException.class, () -> builder.addField(String.class, "field:name"));
         assertThrows(IllegalArgumentException.class, () -> builder.addField(String.class, "   "));
@@ -107,6 +111,12 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
                 new AdditionalField<>(String.class, "AUDIT"),
                 new AdditionalField<>(String.class, "AUDIT")
         )));
+
+        RedisPersistenceBuilder<Integer> converters = builder
+                .addBinaryConverter(String.class, new TestStringConverter())
+                .addBinaryConverter("SPECIAL", new TestStringConverter());
+        assertTrue(builder.converterRegistrations().isEmpty());
+        assertEquals(2, converters.converterRegistrations().size());
     }
 
     @Test
@@ -560,6 +570,23 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         @Override
         public void archiveAll() {
             calls.add("all");
+        }
+    }
+
+    private static final class TestStringConverter implements ObjectConverter<String, byte[]> {
+        @Override
+        public byte[] toPersistence(String obj) {
+            return obj == null ? null : obj.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public String fromPersistence(byte[] p) {
+            return p == null ? null : new String(p, java.nio.charset.StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public String conversionHint() {
+            return "test-string";
         }
     }
 }

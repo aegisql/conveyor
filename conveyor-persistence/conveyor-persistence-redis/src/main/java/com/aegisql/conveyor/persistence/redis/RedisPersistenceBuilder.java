@@ -4,6 +4,8 @@ import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.archive.ArchiveStrategy;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
+import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
+import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.encryption.EncryptingConverterBuilder;
 import org.slf4j.Logger;
@@ -37,6 +39,7 @@ public class RedisPersistenceBuilder<K> {
     private final RestoreOrder restoreOrder;
     private final PriorityRestoreStrategy priorityRestoreStrategy;
     private final List<AdditionalField<?>> additionalFields;
+    private final List<ConverterRegistration> converterRegistrations;
     private final ArchiveOptions<K> archiveOptions;
     private final Integer maxTotal;
     private final Integer maxIdle;
@@ -64,6 +67,7 @@ public class RedisPersistenceBuilder<K> {
                 cart -> true,
                 RestoreOrder.BY_ID,
                 PriorityRestoreStrategy.JAVA_SORT,
+                List.of(),
                 List.of(),
                 ArchiveOptions.delete(),
                 null,
@@ -94,6 +98,7 @@ public class RedisPersistenceBuilder<K> {
             RestoreOrder restoreOrder,
             PriorityRestoreStrategy priorityRestoreStrategy,
             List<AdditionalField<?>> additionalFields,
+            List<ConverterRegistration> converterRegistrations,
             ArchiveOptions<K> archiveOptions,
             Integer maxTotal,
             Integer maxIdle,
@@ -120,6 +125,7 @@ public class RedisPersistenceBuilder<K> {
         this.restoreOrder = Objects.requireNonNull(restoreOrder, "restoreOrder must not be null");
         this.priorityRestoreStrategy = Objects.requireNonNull(priorityRestoreStrategy, "priorityRestoreStrategy must not be null");
         this.additionalFields = validatedAdditionalFields(additionalFields);
+        this.converterRegistrations = List.copyOf(Objects.requireNonNull(converterRegistrations, "converterRegistrations must not be null"));
         this.archiveOptions = Objects.requireNonNull(archiveOptions, "archiveOptions must not be null");
         this.maxTotal = maxTotal;
         this.maxIdle = maxIdle;
@@ -149,6 +155,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -179,6 +186,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -209,6 +217,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -239,6 +248,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -269,6 +279,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -299,6 +310,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -329,6 +341,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -359,6 +372,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -389,6 +403,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -419,6 +434,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -449,6 +465,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -482,6 +499,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -512,6 +530,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 additionalFields,
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -542,6 +561,7 @@ public class RedisPersistenceBuilder<K> {
                 restoreOrder,
                 priorityRestoreStrategy,
                 validatedAdditionalFields(fields),
+                converterRegistrations,
                 archiveOptions,
                 maxTotal,
                 maxIdle,
@@ -569,13 +589,36 @@ public class RedisPersistenceBuilder<K> {
         return fields(updated);
     }
 
+    public <T> RedisPersistenceBuilder<K> addBinaryConverter(Class<T> valueClass, ObjectConverter<T, byte[]> converter) {
+        Objects.requireNonNull(valueClass, "valueClass must not be null");
+        Objects.requireNonNull(converter, "converter must not be null");
+        ArrayList<ConverterRegistration> updated = new ArrayList<>(converterRegistrations);
+        updated.add(ConverterRegistration.forClass(valueClass, converter));
+        return new RedisPersistenceBuilder<>(
+                redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, updated, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
+                socketTimeoutMillis, blockingSocketTimeoutMillis, database, clientName, user, password, ssl
+        );
+    }
+
+    public <L, T> RedisPersistenceBuilder<K> addBinaryConverter(L label, ObjectConverter<T, byte[]> converter) {
+        Objects.requireNonNull(converter, "converter must not be null");
+        ArrayList<ConverterRegistration> updated = new ArrayList<>(converterRegistrations);
+        updated.add(ConverterRegistration.forLabel(label, converter));
+        return new RedisPersistenceBuilder<>(
+                redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, updated, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
+                socketTimeoutMillis, blockingSocketTimeoutMillis, database, clientName, user, password, ssl
+        );
+    }
+
     public RedisPersistenceBuilder<K> maxTotal(int value) {
         if (value < 1) {
             throw new IllegalArgumentException("maxTotal must be greater than 0");
         }
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, archiveOptions, value, maxIdle, minIdle, connectionTimeoutMillis,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, archiveOptions, value, maxIdle, minIdle, connectionTimeoutMillis,
                 socketTimeoutMillis, blockingSocketTimeoutMillis, database, clientName, user, password, ssl
         );
     }
@@ -586,7 +629,7 @@ public class RedisPersistenceBuilder<K> {
         }
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, archiveOptions, maxTotal, value, minIdle, connectionTimeoutMillis,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, archiveOptions, maxTotal, value, minIdle, connectionTimeoutMillis,
                 socketTimeoutMillis, blockingSocketTimeoutMillis, database, clientName, user, password, ssl
         );
     }
@@ -597,7 +640,7 @@ public class RedisPersistenceBuilder<K> {
         }
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, archiveOptions, maxTotal, maxIdle, value, connectionTimeoutMillis,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, archiveOptions, maxTotal, maxIdle, value, connectionTimeoutMillis,
                 socketTimeoutMillis, blockingSocketTimeoutMillis, database, clientName, user, password, ssl
         );
     }
@@ -608,7 +651,7 @@ public class RedisPersistenceBuilder<K> {
         }
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, archiveOptions, maxTotal, maxIdle, minIdle, value,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, archiveOptions, maxTotal, maxIdle, minIdle, value,
                 socketTimeoutMillis, blockingSocketTimeoutMillis, database, clientName, user, password, ssl
         );
     }
@@ -619,7 +662,7 @@ public class RedisPersistenceBuilder<K> {
         }
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
                 value, blockingSocketTimeoutMillis, database, clientName, user, password, ssl
         );
     }
@@ -630,7 +673,7 @@ public class RedisPersistenceBuilder<K> {
         }
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
                 socketTimeoutMillis, value, database, clientName, user, password, ssl
         );
     }
@@ -641,7 +684,7 @@ public class RedisPersistenceBuilder<K> {
         }
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
                 socketTimeoutMillis, blockingSocketTimeoutMillis, value, clientName, user, password, ssl
         );
     }
@@ -650,7 +693,7 @@ public class RedisPersistenceBuilder<K> {
         Objects.requireNonNull(value, "clientName must not be null");
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
                 socketTimeoutMillis, blockingSocketTimeoutMillis, database, value, user, password, ssl
         );
     }
@@ -659,7 +702,7 @@ public class RedisPersistenceBuilder<K> {
         Objects.requireNonNull(value, "user must not be null");
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
                 socketTimeoutMillis, blockingSocketTimeoutMillis, database, clientName, value, password, ssl
         );
     }
@@ -668,7 +711,7 @@ public class RedisPersistenceBuilder<K> {
         Objects.requireNonNull(value, "password must not be null");
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
                 socketTimeoutMillis, blockingSocketTimeoutMillis, database, clientName, user, value, ssl
         );
     }
@@ -676,7 +719,7 @@ public class RedisPersistenceBuilder<K> {
     public RedisPersistenceBuilder<K> ssl(boolean value) {
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
                 socketTimeoutMillis, blockingSocketTimeoutMillis, database, clientName, user, password, value
         );
     }
@@ -684,7 +727,7 @@ public class RedisPersistenceBuilder<K> {
     public RedisPersistenceBuilder<K> restoreOrder(RestoreOrder value) {
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, Objects.requireNonNull(value, "restoreOrder must not be null"), priorityRestoreStrategy, additionalFields, archiveOptions,
+                nonPersistentProperties, persistentPartFilter, Objects.requireNonNull(value, "restoreOrder must not be null"), priorityRestoreStrategy, additionalFields, converterRegistrations, archiveOptions,
                 maxTotal, maxIdle, minIdle, connectionTimeoutMillis, socketTimeoutMillis, blockingSocketTimeoutMillis,
                 database, clientName, user, password, ssl
         );
@@ -693,7 +736,7 @@ public class RedisPersistenceBuilder<K> {
     public RedisPersistenceBuilder<K> priorityRestoreStrategy(PriorityRestoreStrategy value) {
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, Objects.requireNonNull(value, "priorityRestoreStrategy must not be null"), additionalFields, archiveOptions,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, Objects.requireNonNull(value, "priorityRestoreStrategy must not be null"), additionalFields, converterRegistrations, archiveOptions,
                 maxTotal, maxIdle, minIdle, connectionTimeoutMillis, socketTimeoutMillis, blockingSocketTimeoutMillis,
                 database, clientName, user, password, ssl
         );
@@ -702,7 +745,7 @@ public class RedisPersistenceBuilder<K> {
     public RedisPersistenceBuilder<K> deleteArchiving() {
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, ArchiveOptions.delete(),
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, ArchiveOptions.delete(),
                 maxTotal, maxIdle, minIdle, connectionTimeoutMillis, socketTimeoutMillis, blockingSocketTimeoutMillis,
                 database, clientName, user, password, ssl
         );
@@ -711,7 +754,7 @@ public class RedisPersistenceBuilder<K> {
     public RedisPersistenceBuilder<K> noArchiving() {
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, ArchiveOptions.noAction(),
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, ArchiveOptions.noAction(),
                 maxTotal, maxIdle, minIdle, connectionTimeoutMillis, socketTimeoutMillis, blockingSocketTimeoutMillis,
                 database, clientName, user, password, ssl
         );
@@ -720,7 +763,7 @@ public class RedisPersistenceBuilder<K> {
     public RedisPersistenceBuilder<K> archiver(Persistence<K> archivingPersistence) {
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, ArchiveOptions.moveToPersistence(Objects.requireNonNull(archivingPersistence, "archivingPersistence must not be null")),
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, ArchiveOptions.moveToPersistence(Objects.requireNonNull(archivingPersistence, "archivingPersistence must not be null")),
                 maxTotal, maxIdle, minIdle, connectionTimeoutMillis, socketTimeoutMillis, blockingSocketTimeoutMillis,
                 database, clientName, user, password, ssl
         );
@@ -729,7 +772,7 @@ public class RedisPersistenceBuilder<K> {
     public RedisPersistenceBuilder<K> archiver(BinaryLogConfiguration binaryLogConfiguration) {
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, ArchiveOptions.moveToFile(Objects.requireNonNull(binaryLogConfiguration, "binaryLogConfiguration must not be null")),
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, ArchiveOptions.moveToFile(Objects.requireNonNull(binaryLogConfiguration, "binaryLogConfiguration must not be null")),
                 maxTotal, maxIdle, minIdle, connectionTimeoutMillis, socketTimeoutMillis, blockingSocketTimeoutMillis,
                 database, clientName, user, password, ssl
         );
@@ -738,7 +781,7 @@ public class RedisPersistenceBuilder<K> {
     public RedisPersistenceBuilder<K> archiver(Archiver<K> customArchiver) {
         return new RedisPersistenceBuilder<>(
                 redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
-                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, ArchiveOptions.custom(Objects.requireNonNull(customArchiver, "customArchiver must not be null")),
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, converterRegistrations, ArchiveOptions.custom(Objects.requireNonNull(customArchiver, "customArchiver must not be null")),
                 maxTotal, maxIdle, minIdle, connectionTimeoutMillis, socketTimeoutMillis, blockingSocketTimeoutMillis,
                 database, clientName, user, password, ssl
         );
@@ -747,9 +790,9 @@ public class RedisPersistenceBuilder<K> {
     public Persistence<K> build() {
         RedisConnectionSettings connectionSettings = connectionSettings();
         LOG.debug(
-                "Building RedisPersistence name={} uri={} autoInit={} minCompactSize={} maxArchiveBatchSize={} maxArchiveBatchTime={} restoreOrder={} priorityRestoreStrategy={} archiveStrategy={} encrypted={} nonPersistentProperties={} clientMode={} poolTuned={} clientTuned={}",
+                "Building RedisPersistence name={} uri={} autoInit={} minCompactSize={} maxArchiveBatchSize={} maxArchiveBatchTime={} restoreOrder={} priorityRestoreStrategy={} archiveStrategy={} encrypted={} nonPersistentProperties={} converterRegistrations={} clientMode={} poolTuned={} clientTuned={}",
                 name, redisUri, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, restoreOrder, priorityRestoreStrategy, archiveOptions.archiveStrategy(), encryptionBuilder.get() != null, nonPersistentProperties,
-                jedis == null ? "owned" : "external", connectionSettings.hasCustomPoolConfig(), connectionSettings.hasCustomClientConfig()
+                converterRegistrations.size(), jedis == null ? "owned" : "external", connectionSettings.hasCustomPoolConfig(), connectionSettings.hasCustomClientConfig()
         );
         RedisPersistence<K> persistence = new RedisPersistence<>(this);
         if (autoInit) {
@@ -830,6 +873,10 @@ public class RedisPersistenceBuilder<K> {
 
     List<AdditionalField<?>> additionalFields() {
         return new ArrayList<>(additionalFields);
+    }
+
+    List<ConverterRegistration> converterRegistrations() {
+        return new ArrayList<>(converterRegistrations);
     }
 
     ArchiveOptions<K> archiveOptions() {
@@ -941,6 +988,35 @@ public class RedisPersistenceBuilder<K> {
 
         BinaryLogConfiguration binaryLogConfiguration() {
             return binaryLogConfiguration;
+        }
+    }
+
+    static final class ConverterRegistration {
+        private final Class<?> valueClass;
+        private final Object label;
+        private final ObjectConverter<?, byte[]> converter;
+
+        private ConverterRegistration(Class<?> valueClass, Object label, ObjectConverter<?, byte[]> converter) {
+            this.valueClass = valueClass;
+            this.label = label;
+            this.converter = converter;
+        }
+
+        static ConverterRegistration forClass(Class<?> valueClass, ObjectConverter<?, byte[]> converter) {
+            return new ConverterRegistration(valueClass, null, converter);
+        }
+
+        static ConverterRegistration forLabel(Object label, ObjectConverter<?, byte[]> converter) {
+            return new ConverterRegistration(null, label, converter);
+        }
+
+        @SuppressWarnings("unchecked")
+        void apply(ConverterAdviser<Object> adviser) {
+            if (valueClass != null) {
+                adviser.addConverter(valueClass, (ObjectConverter<Object, byte[]>) converter);
+            } else {
+                adviser.addConverter(label, (ObjectConverter<Object, byte[]>) converter);
+            }
         }
     }
 }
