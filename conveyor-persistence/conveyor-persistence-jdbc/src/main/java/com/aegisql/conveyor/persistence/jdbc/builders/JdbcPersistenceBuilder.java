@@ -7,6 +7,7 @@ import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.archive.DoNothingArchiver;
 import com.aegisql.conveyor.persistence.converters.ConverterAdviser;
+import com.aegisql.conveyor.persistence.core.Field;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;

@@ -1,7 +1,7 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
 import com.aegisql.conveyor.persistence.core.PersistenceException;
-import com.aegisql.conveyor.persistence.jdbc.builders.Field;
+import com.aegisql.conveyor.persistence.core.Field;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.DriverManagerDataSource;
 import com.aegisql.conveyor.persistence.jdbc.engine.oracle.OracleEngine;
