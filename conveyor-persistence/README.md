@@ -331,7 +331,7 @@ Current differences from JDBC:
     - expired reads still use the expiration index first and then Java-side priority sorting
     - the better choice is workload-dependent, so users should evaluate it on their own real data loads when tuning matters
 - command-cart behavior still needs broader proof
-- Redis still has a smaller builder convenience surface than JDBC around persistence filters and related helper methods
+- Redis now exposes the main JDBC-style persistence-filter convenience methods, though the JDBC stack still has a broader accumulated operational surface
 - current save and delete-style cleanup paths are Lua-backed atomic units
 - move-style archive flows still use Java orchestration before Redis-side cleanup, but they now delete each successfully exported batch immediately so interruption risk is bounded by the configured batch size rather than the whole request
 - move-style archive export is intentionally at-least-once at batch granularity rather than singleness-guaranteed

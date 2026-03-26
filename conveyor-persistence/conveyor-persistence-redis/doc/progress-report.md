@@ -55,8 +55,8 @@ Primary test evidence currently lives in:
 ### Remaining Gaps Compared To JDBC
 
 - Builder/API convenience parity.
-  - Redis now has the core converter-registration capability that JDBC exposes.
-  - It still does not expose the same convenience surface around cart-property and label-persistence filters.
+  - Redis now has the main JDBC-style convenience surface around cart-property and label-persistence filters.
+  - The remaining differences are smaller API-shape details rather than missing practical filter support.
 
 - Broader command-cart recovery coverage.
   - One recovered command path is proven.

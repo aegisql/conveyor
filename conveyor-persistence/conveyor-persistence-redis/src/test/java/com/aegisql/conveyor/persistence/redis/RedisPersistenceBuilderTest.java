@@ -52,7 +52,11 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         assertThrows(NullPointerException.class, () -> builder.redisUri(null));
         assertThrows(NullPointerException.class, () -> builder.jedis(null));
         assertThrows(NullPointerException.class, () -> builder.nonPersistentProperty(null));
+        assertThrows(NullPointerException.class, () -> builder.doNotSaveCartProperties(null));
         assertThrows(NullPointerException.class, () -> builder.persistentPartFilter(null));
+        assertThrows(NullPointerException.class, () -> builder.addCartPersistenceFilter(null));
+        assertThrows(NullPointerException.class, () -> builder.addLabelPersistenceFilter(null));
+        assertThrows(NullPointerException.class, () -> builder.addLabelValuePersistenceFilter(null));
         assertThrows(NullPointerException.class, () -> builder.restoreOrder(null));
         assertThrows(NullPointerException.class, () -> builder.priorityRestoreStrategy(null));
         assertThrows(NullPointerException.class, () -> builder.clientName(null));
@@ -83,6 +87,36 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
             assertEquals(1L, persistence.nextUniquePartId());
             assertNamespaceMetadata(jedis.hgetAll(namespaceMetaKey), name);
         }
+    }
+
+    @Test
+    void supportsJdbcStylePersistenceFilterConvenienceMethods() {
+        RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(testNamespace("builder-filter-convenience"));
+
+        RedisPersistenceBuilder<Integer> propertiesConfigured = builder.doNotSaveCartProperties("A", "B", "C");
+        assertTrue(propertiesConfigured.nonPersistentProperties().containsAll(Set.of("A", "B", "C")));
+
+        ShoppingCart<Integer, String, String> keepGood = new ShoppingCart<>(1, "good-value", "KEEP");
+        ShoppingCart<Integer, String, String> keepBad = new ShoppingCart<>(1, "bad-value", "KEEP");
+        ShoppingCart<Integer, String, String> skipGood = new ShoppingCart<>(1, "good-value", "SKIP");
+
+        RedisPersistenceBuilder<Integer> composed = builder
+                .persistentPartFilter(cart -> !"SKIP".equals(cart.getLabel()))
+                .addCartPersistenceFilter(cart -> !"bad-value".equals(cart.getValue()));
+        assertTrue(composed.persistentPartFilter().test(keepGood));
+        assertFalse(composed.persistentPartFilter().test(keepBad));
+        assertFalse(composed.persistentPartFilter().test(skipGood));
+
+        RedisPersistenceBuilder<Integer> labelFiltered = builder
+                .addLabelPersistenceFilter((String label) -> "KEEP".equals(label));
+        assertTrue(labelFiltered.persistentPartFilter().test(keepGood));
+        assertFalse(labelFiltered.persistentPartFilter().test(skipGood));
+
+        RedisPersistenceBuilder<Integer> labelValueFiltered = builder
+                .addLabelValuePersistenceFilter((String label, String value) -> "KEEP".equals(label) && value.startsWith("good"));
+        assertTrue(labelValueFiltered.persistentPartFilter().test(keepGood));
+        assertFalse(labelValueFiltered.persistentPartFilter().test(keepBad));
+        assertFalse(labelValueFiltered.persistentPartFilter().test(skipGood));
     }
 
     @Test

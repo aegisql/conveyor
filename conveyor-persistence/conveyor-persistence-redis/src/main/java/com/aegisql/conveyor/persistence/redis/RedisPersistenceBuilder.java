@@ -20,10 +20,12 @@ import java.net.URI;
 import java.io.IOException;
 import javax.crypto.SecretKey;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -520,7 +522,45 @@ public class RedisPersistenceBuilder<K> {
         );
     }
 
+    public RedisPersistenceBuilder<K> doNotSaveCartProperties(String property, String... more) {
+        Objects.requireNonNull(property, "property must not be null");
+        HashSet<String> updated = new HashSet<>(nonPersistentProperties);
+        updated.add(property);
+        if (more != null) {
+            updated.addAll(Arrays.asList(more));
+        }
+        return new RedisPersistenceBuilder<>(
+                redisUri,
+                jedis,
+                name,
+                autoInit,
+                minCompactSize,
+                maxArchiveBatchSize,
+                maxArchiveBatchTime,
+                encryptionBuilder,
+                updated,
+                persistentPartFilter,
+                restoreOrder,
+                priorityRestoreStrategy,
+                additionalFields,
+                converterRegistrations,
+                archiveOptions,
+                maxTotal,
+                maxIdle,
+                minIdle,
+                connectionTimeoutMillis,
+                socketTimeoutMillis,
+                blockingSocketTimeoutMillis,
+                database,
+                clientName,
+                user,
+                password,
+                ssl
+        );
+    }
+
     public RedisPersistenceBuilder<K> persistentPartFilter(Predicate<Cart<K, ?, ?>> filter) {
+        Objects.requireNonNull(filter, "filter must not be null");
         return new RedisPersistenceBuilder<>(
                 redisUri,
                 jedis,
@@ -549,6 +589,21 @@ public class RedisPersistenceBuilder<K> {
                 password,
                 ssl
         );
+    }
+
+    public RedisPersistenceBuilder<K> addCartPersistenceFilter(Predicate<Cart<K, ?, ?>> partFilter) {
+        Objects.requireNonNull(partFilter, "partFilter must not be null");
+        return persistentPartFilter(partFilter.and(persistentPartFilter));
+    }
+
+    public <L> RedisPersistenceBuilder<K> addLabelPersistenceFilter(Predicate<L> labelFilter) {
+        Objects.requireNonNull(labelFilter, "labelFilter must not be null");
+        return addCartPersistenceFilter(cart -> labelFilter.test(cast(cart.getLabel())));
+    }
+
+    public <L, V> RedisPersistenceBuilder<K> addLabelValuePersistenceFilter(BiPredicate<L, V> labelValueFilter) {
+        Objects.requireNonNull(labelValueFilter, "labelValueFilter must not be null");
+        return addCartPersistenceFilter(cart -> labelValueFilter.test(cast(cart.getLabel()), cast(cart.getValue())));
     }
 
     public RedisPersistenceBuilder<K> fields(List<? extends Field<?>> fields) {
@@ -887,6 +942,11 @@ public class RedisPersistenceBuilder<K> {
 
     List<ConverterRegistration> converterRegistrations() {
         return new ArrayList<>(converterRegistrations);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T cast(Object value) {
+        return (T) value;
     }
 
     ArchiveOptions<K> archiveOptions() {
