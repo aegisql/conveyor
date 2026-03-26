@@ -584,13 +584,13 @@ public class RedisPersistenceBuilder<K> {
 
     public <T> RedisPersistenceBuilder<K> addField(Class<T> fieldClass, String name) {
         ArrayList<Field<?>> updated = new ArrayList<>(additionalFields);
-        updated.add(new AdditionalField<>(fieldClass, name));
+        updated.add(new Field<>(fieldClass, name));
         return fields(updated);
     }
 
     public <T> RedisPersistenceBuilder<K> addField(Class<T> fieldClass, String name, Function<Cart<?, ?, ?>, T> accessor) {
         ArrayList<Field<?>> updated = new ArrayList<>(additionalFields);
-        updated.add(new AdditionalField<>(fieldClass, name, accessor));
+        updated.add(new Field<>(fieldClass, name, accessor));
         return fields(updated);
     }
 

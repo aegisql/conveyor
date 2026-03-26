@@ -112,8 +112,8 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         assertThrows(IllegalArgumentException.class, () -> builder.addField(String.class, "field:name"));
         assertThrows(IllegalArgumentException.class, () -> builder.addField(String.class, "   "));
         assertThrows(IllegalArgumentException.class, () -> builder.fields(List.of(
-                new AdditionalField<>(String.class, "AUDIT"),
-                new AdditionalField<>(String.class, "AUDIT")
+                new com.aegisql.conveyor.persistence.core.Field<>(String.class, "AUDIT"),
+                new com.aegisql.conveyor.persistence.core.Field<>(String.class, "AUDIT")
         )));
 
         RedisPersistenceBuilder<Integer> converters = builder
