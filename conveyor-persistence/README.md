@@ -42,6 +42,25 @@ All current persistence backends are built around the same core ideas:
 - builder-based configuration
 - optional application-level payload encryption
 
+### Placement Futures
+
+For the persisted `place()` family of operations, the returned `CompletableFuture<Boolean>` is the client-visible outcome signal.
+
+- `true`
+  - the placement path completed successfully end to end
+- `false`
+  - the placement did not succeed end to end, but this is not limited to storage failure
+  - examples include conveyor-side cases such as unavailable builds or commands that legitimately return `false`
+- exception
+  - persistence/infrastructure failures are surfaced as exceptional completion rather than `false`
+
+This is common persistence behavior because `PersistentConveyor` owns the placement future contract, while the concrete JDBC and Redis backends both propagate storage write failures by throwing exceptions from `savePart(...)`.
+
+Important scope note:
+
+- this statement applies to persisted placement flows such as `part().place()`, `staticPart().place()`, and other placement-based loaders
+- `command()` is not persisted through `PersistentConveyor` and follows the forward conveyor command semantics instead
+
 ### Connection Ownership
 
 Connection and pooling strategy are part of persistence design.

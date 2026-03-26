@@ -2,13 +2,17 @@ package com.aegisql.conveyor.persistence.core;
 
 import com.aegisql.conveyor.Acknowledge;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.SmartLabel;
+import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.persistence.core.harness.PersistTestImpl;
 import com.aegisql.conveyor.persistence.core.harness.Trio;
+import com.aegisql.conveyor.persistence.core.harness.TrioBuilder;
 import com.aegisql.conveyor.persistence.core.harness.TrioConveyor;
 import com.aegisql.conveyor.persistence.core.harness.TrioPart;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.jupiter.api.*;
 
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -137,5 +141,25 @@ public class PersistentConveyorTest {
 		assertEquals(pc1,pc2);
 		
 		
+	}
+
+	@Test
+	public void placementFutureCompletesExceptionallyWhenPersistenceSaveFails() {
+		PersistTestImpl failingPersistence = new PersistTestImpl() {
+			@Override
+			public <L> void savePart(long id, Cart<Integer, ?, L> cart) {
+				throw new PersistenceException("simulated persistence failure");
+			}
+		};
+		TrioConveyor tc = new TrioConveyor();
+
+		PersistentConveyor<Integer, SmartLabel<TrioBuilder>, Trio> pc = new PersistentConveyor<>(failingPersistence, tc);
+
+		CompletionException error = assertThrows(CompletionException.class,
+				() -> pc.part().id(1).label(TrioPart.TEXT1).value("txt1").place().join());
+
+		assertInstanceOf(PersistenceException.class, error.getCause());
+		assertEquals("simulated persistence failure", error.getCause().getMessage());
+		assertTrue(tc.results.isEmpty());
 	}
 }
