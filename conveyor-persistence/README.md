@@ -318,9 +318,15 @@ Current differences from JDBC:
     - `JAVA_SORT` as the default
     - `REDIS_INDEX` when you want Redis to maintain extra priority indexes for active/static/per-key and replay-facing reads
     - expired reads still use the expiration index first and then Java-side priority sorting
+    - the better choice is workload-dependent, so users should evaluate it on their own real data loads when tuning matters
 - command-cart behavior still needs broader proof
 - current save and delete-style cleanup paths are Lua-backed atomic units
 - move-style archive flows still use Java orchestration before Redis-side cleanup, but they now delete each successfully exported batch immediately so interruption risk is bounded by the configured batch size rather than the whole request
+- move-style archive export is intentionally at-least-once at batch granularity rather than singleness-guaranteed
+  - duplicate archive records are acceptable
+  - archived cart ids still allow downstream de-duplication when a consumer needs it
+  - replay from archive should be treated as a business-sensitive special case even without duplicates
+- a later Redis enhancement may use Redis itself to hold batch key collections and processing status for move-style export coordination, including file export, but that would be for orchestration visibility rather than singleness guarantees
 
 Read before choosing Redis:
 

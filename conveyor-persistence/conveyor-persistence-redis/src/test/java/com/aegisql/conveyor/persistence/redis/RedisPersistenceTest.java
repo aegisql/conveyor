@@ -656,6 +656,125 @@ class RedisPersistenceTest extends RedisTestSupport {
     }
 
     @Test
+    void recoveredBuildTimedOutWithUnloadAllowsLaterCompletion() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("persistent-timeout-unload");
+        try (Persistence<Integer> cleanup = newRecoveryPersistence(name)) {
+            cleanup.archiveAll();
+        }
+
+        Persistence<Integer> firstPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> first =
+                firstPersistence.wrapConveyor(newRecoveryConveyor("redis-timeout-unload-first", new ConcurrentHashMap<>(), null, false));
+        try {
+            first.part().id(17).label(RecoveryPart.LEFT).value("unload-left").place().join();
+            first.part().id(17).label(RecoveryPart.RIGHT).value("unload-right").place().join();
+        } finally {
+            first.stop();
+        }
+
+        Map<Integer, String> recoveredResults = new ConcurrentHashMap<>();
+        List<AcknowledgeStatus<Integer>> statuses = Collections.synchronizedList(new ArrayList<>());
+        List<ScrapBin<Integer, ?>> scraps = Collections.synchronizedList(new ArrayList<>());
+        AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> recoveredForward =
+                newRecoveryConveyor("redis-timeout-unload-second", recoveredResults, null, Duration.ofMillis(250), Status.TIMED_OUT, Status.READY);
+        recoveredForward.addBeforeKeyEvictionAction(statuses::add);
+        recoveredForward.scrapConsumer(scrap -> scraps.add((ScrapBin<Integer, ?>) scrap)).set();
+
+        Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
+                secondPersistence.wrapConveyor(recoveredForward);
+        second.unloadOnBuilderTimeout(true);
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
+            awaitTrue(() -> statuses.stream().anyMatch(status -> status.getKey() == 17 && status.getStatus() == Status.TIMED_OUT),
+                    "Recovered unload flow should first emit TIMED_OUT");
+            awaitTrue(() -> scraps.stream().anyMatch(scrap ->
+                            scrap.key.equals(17)
+                                    && scrap.failureType == ScrapBin.FailureType.BUILD_EXPIRED
+                                    && scrap.comment.startsWith("Site expired. No timeout action")),
+                    "Recovered unload flow should still publish the timeout scrap");
+            awaitTrue(() -> !inspector.getAllPartIds(17).isEmpty() && inspector.getNumberOfParts() > 0,
+                    "Unload-on-timeout should leave recovered carts persisted for later replay");
+
+            second.part().id(17).label(RecoveryPart.NUMBER).value(11).place().join();
+            awaitTrue(() -> "no-prefix:unload-left:unload-right:11".equals(recoveredResults.get(17)),
+                    "Placing the missing part after recovered unload should replay the persisted carts and finish the build");
+        } finally {
+            second.completeAndStop().join();
+        }
+
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
+            awaitTrue(() -> inspector.getAllPartIds(17).isEmpty()
+                            && inspector.getAllParts().isEmpty()
+                            && inspector.getCompletedKeys().isEmpty()
+                            && inspector.getAllStaticParts().isEmpty(),
+                    "Recovered unload flow should cleanup Redis persistence state after the later completion drains cleanly");
+        }
+    }
+
+    @Test
+    void recoveredBuildTimedOutProvidesExplicitScrapAcknowledgeHandle() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("persistent-timeout-explicit-ack");
+        try (Persistence<Integer> cleanup = newRecoveryPersistence(name)) {
+            cleanup.archiveAll();
+        }
+
+        Persistence<Integer> firstPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> first =
+                firstPersistence.wrapConveyor(newRecoveryConveyor("redis-timeout-explicit-first", new ConcurrentHashMap<>(), null, false));
+        try {
+            first.part().id(18).label(RecoveryPart.LEFT).value("timeout-ack-left").place().join();
+            first.part().id(18).label(RecoveryPart.RIGHT).value("timeout-ack-right").place().join();
+        } finally {
+            first.stop();
+        }
+
+        Map<Integer, String> recoveredResults = new ConcurrentHashMap<>();
+        List<ScrapBin<Integer, ?>> scraps = Collections.synchronizedList(new ArrayList<>());
+        AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> recoveredForward =
+                newRecoveryConveyor("redis-timeout-explicit-second", recoveredResults, null, Duration.ofMillis(250));
+        recoveredForward.scrapConsumer(scrap -> scraps.add((ScrapBin<Integer, ?>) scrap)).set();
+
+        Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
+                secondPersistence.wrapConveyor(recoveredForward);
+        boolean stopped = false;
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
+            awaitTrue(() -> scraps.stream().anyMatch(scrap ->
+                            scrap.key.equals(18)
+                                    && scrap.failureType == ScrapBin.FailureType.BUILD_EXPIRED
+                                    && scrap.comment.startsWith("Site expired. No timeout action")
+                                    && scrap.acknowledge.isPresent()),
+                    "Recovered timed out build should expose an explicit acknowledge handle through scrap when auto-acknowledge is disabled");
+            assertTrue(recoveredResults.isEmpty(), "Recovered timed out build should not produce a READY result");
+            awaitTrue(() -> inspector.getNumberOfParts() > 0 && !inspector.getAllPartIds(18).isEmpty(),
+                    "Recovered timed out Redis state should stay populated while the scrap acknowledge handle is pending");
+
+            ScrapBin<Integer, ?> timedOutScrap = scraps.stream()
+                    .filter(scrap -> scrap.key.equals(18) && scrap.acknowledge.isPresent())
+                    .findFirst()
+                    .orElseThrow();
+            timedOutScrap.acknowledge.orElseThrow().ack();
+
+            second.completeAndStop().join();
+            stopped = true;
+
+            awaitTrue(() -> inspector.getAllPartIds(18).isEmpty()
+                            && inspector.getAllParts().isEmpty()
+                            && inspector.getCompletedKeys().isEmpty()
+                            && inspector.getAllStaticParts().isEmpty(),
+                    "Explicit scrap acknowledge for recovered TIMED_OUT should cleanup Redis persistence state");
+        } finally {
+            if (!stopped) {
+                second.stop();
+            }
+        }
+    }
+
+    @Test
     void recoveredBuildInvalidStatusCleansRedisStateWhenTimeoutActionFails() throws Exception {
         openRedis().close();
 
@@ -713,6 +832,139 @@ class RedisPersistenceTest extends RedisTestSupport {
                             && inspector.getCompletedKeys().isEmpty()
                             && inspector.getAllStaticParts().isEmpty(),
                     "Recovered invalid build should cleanup Redis persistence state after the conveyor drains cleanly");
+        }
+    }
+
+    @Test
+    void recoveredBuildInvalidProvidesExplicitScrapAcknowledgeHandle() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("persistent-invalid-explicit-ack");
+        try (Persistence<Integer> cleanup = newRecoveryPersistence(name)) {
+            cleanup.archiveAll();
+        }
+
+        Persistence<Integer> firstPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> first =
+                firstPersistence.wrapConveyor(newRecoveryConveyor("redis-invalid-explicit-first", new ConcurrentHashMap<>(), null, false));
+        try {
+            first.part().id(19).label(RecoveryPart.LEFT).value("invalid-ack-left").place().join();
+            first.part().id(19).label(RecoveryPart.RIGHT).value("invalid-ack-right").place().join();
+        } finally {
+            first.stop();
+        }
+
+        Map<Integer, String> recoveredResults = new ConcurrentHashMap<>();
+        List<ScrapBin<Integer, ?>> scraps = Collections.synchronizedList(new ArrayList<>());
+        AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> recoveredForward =
+                newRecoveryConveyor(
+                        "redis-invalid-explicit-second",
+                        recoveredResults,
+                        null,
+                        Duration.ofMillis(250),
+                        supplier -> {
+                            throw new IllegalStateException("recovered explicit timeout failure");
+                        });
+        recoveredForward.scrapConsumer(scrap -> scraps.add((ScrapBin<Integer, ?>) scrap)).set();
+
+        Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
+                secondPersistence.wrapConveyor(recoveredForward);
+        boolean stopped = false;
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
+            awaitTrue(() -> scraps.stream().anyMatch(scrap ->
+                            scrap.key.equals(19)
+                                    && scrap.failureType == ScrapBin.FailureType.BUILD_EXPIRED
+                                    && scrap.error instanceof IllegalStateException
+                                    && scrap.acknowledge.isPresent()),
+                    "Recovered invalid build should expose an explicit acknowledge handle through scrap when auto-acknowledge is disabled");
+            assertTrue(recoveredResults.isEmpty(), "Recovered invalid build should not produce a READY result");
+            awaitTrue(() -> inspector.getNumberOfParts() > 0 && !inspector.getAllPartIds(19).isEmpty(),
+                    "Recovered invalid Redis state should stay populated while the scrap acknowledge handle is pending");
+
+            ScrapBin<Integer, ?> invalidScrap = scraps.stream()
+                    .filter(scrap -> scrap.key.equals(19) && scrap.acknowledge.isPresent())
+                    .findFirst()
+                    .orElseThrow();
+            invalidScrap.acknowledge.orElseThrow().ack();
+
+            second.completeAndStop().join();
+            stopped = true;
+
+            awaitTrue(() -> inspector.getAllPartIds(19).isEmpty()
+                            && inspector.getAllParts().isEmpty()
+                            && inspector.getCompletedKeys().isEmpty()
+                            && inspector.getAllStaticParts().isEmpty(),
+                    "Explicit scrap acknowledge for recovered INVALID should cleanup Redis persistence state");
+        } finally {
+            if (!stopped) {
+                second.stop();
+            }
+        }
+    }
+
+    @Test
+    void recoveredBuildTimeoutActionCanCompleteAfterRestart() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("persistent-timeout-ready");
+        try (Persistence<Integer> cleanup = newRecoveryPersistence(name)) {
+            cleanup.archiveAll();
+        }
+
+        AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> firstForward = new AssemblingConveyor<>();
+        firstForward.setName("redis-timeout-ready-first");
+        firstForward.setBuilderSupplier(RecoveryBuilder::new);
+        firstForward.setReadinessEvaluator(builder -> {
+            RecoveryBuilder recoveryBuilder = (RecoveryBuilder) builder;
+            return recoveryBuilder.left != null && recoveryBuilder.right != null;
+        });
+
+        Persistence<Integer> firstPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> first =
+                firstPersistence.wrapConveyor(firstForward);
+        try {
+            first.part().id(20).label(RecoveryPart.LEFT).value("timeout-ready-left").place().join();
+        } finally {
+            first.stop();
+        }
+
+        Map<Integer, String> recoveredResults = new ConcurrentHashMap<>();
+        List<AcknowledgeStatus<Integer>> statuses = Collections.synchronizedList(new ArrayList<>());
+        List<ScrapBin<Integer, ?>> scraps = Collections.synchronizedList(new ArrayList<>());
+        AssemblingConveyor<Integer, SmartLabel<RecoveryBuilder>, String> recoveredForward = new AssemblingConveyor<>();
+        recoveredForward.setName("redis-timeout-ready-second");
+        recoveredForward.setBuilderSupplier(RecoveryBuilder::new);
+        recoveredForward.setDefaultBuilderTimeout(Duration.ofMillis(250));
+        recoveredForward.setOnTimeoutAction(supplier -> RecoveryBuilder.setRight((RecoveryBuilder) supplier, "timeout-ready-right"));
+        recoveredForward.setReadinessEvaluator(builder -> {
+            RecoveryBuilder recoveryBuilder = (RecoveryBuilder) builder;
+            return recoveryBuilder.left != null && recoveryBuilder.right != null;
+        });
+        recoveredForward.autoAcknowledgeOnStatus(Status.READY);
+        recoveredForward.resultConsumer(bin -> recoveredResults.put(bin.key, bin.product)).set();
+        recoveredForward.addBeforeKeyEvictionAction(statuses::add);
+        recoveredForward.scrapConsumer(scrap -> scraps.add((ScrapBin<Integer, ?>) scrap)).set();
+
+        Persistence<Integer> secondPersistence = newRecoveryPersistence(name);
+        PersistentConveyor<Integer, SmartLabel<RecoveryBuilder>, String> second =
+                secondPersistence.wrapConveyor(recoveredForward);
+        try {
+            awaitTrue(() -> "no-prefix:timeout-ready-left:timeout-ready-right:null".equals(recoveredResults.get(20)),
+                    "Recovered timeout action should be able to finish the build after restart");
+            awaitTrue(() -> statuses.stream().anyMatch(status -> status.getKey() == 20 && status.getStatus() == Status.READY),
+                    "Recovered timeout action that finishes the build should evict with READY status");
+            assertTrue(scraps.isEmpty(), "Recovered timeout action success should not publish scrap");
+        } finally {
+            second.completeAndStop().join();
+        }
+
+        try (Persistence<Integer> inspector = newRecoveryPersistence(name)) {
+            awaitTrue(() -> inspector.getAllPartIds(20).isEmpty()
+                            && inspector.getAllParts().isEmpty()
+                            && inspector.getCompletedKeys().isEmpty()
+                            && inspector.getAllStaticParts().isEmpty(),
+                    "Recovered timeout-action success should cleanup Redis persistence state after completion");
         }
     }
 

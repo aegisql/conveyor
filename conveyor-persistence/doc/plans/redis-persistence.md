@@ -164,6 +164,8 @@ Current bootstrap implication:
 - older namespaces missing the field can be upgraded:
   - `JAVA_SORT` is recorded directly
   - `REDIS_INDEX` triggers a one-time priority-index rebuild for existing active/static/per-key data
+- project-level benchmarking of `JAVA_SORT` vs `REDIS_INDEX` is intentionally deferred
+- users should evaluate the choice on their own real data volumes and replay patterns when operational tuning matters
 
 This is a deliberate tradeoff to reduce index complexity in the first implementation.
 
@@ -226,7 +228,14 @@ Current implementation note:
 - current implementation now narrows the interruption window by deleting each successfully exported batch immediately:
   - `MOVE_TO_PERSISTENCE` uses `Persistence.getMaxArchiveBatchSize()`
   - `MOVE_TO_FILE` uses `BinaryLogConfiguration.getBucketSize()`
-- the remaining gap is cross-system atomicity, not oversized Redis-side cleanup batches
+- duplicate records in the archive are acceptable for move-style Redis archiving and must be documented as such
+  - singleness is not guaranteed
+  - each archived cart still has its unique id, so downstream de-duplication remains possible when a consumer needs it
+  - replay from archive is already a special business operation even without duplicates
+- a future Redis-side batch manifest/status model may still be useful for move-style exports, including file exports
+  - Redis itself can hold the collection of keys in a batch and the processing status of that batch
+  - that would help coordination and restart handling
+  - it is not meant to turn move-style archiving into a singleness guarantee
 
 ## Initialization Semantics
 For Redis, `autoInit(true)` should be reinterpreted.
@@ -248,7 +257,8 @@ Current implementation status:
 - current namespace metadata includes Lua bundle markers:
   - `scriptMode=lua`
   - `scriptBundleVersion=1`
-- remaining script/function bootstrap work is concentrated around move-style archive orchestration and any future broader atomic bundles
+- v1 stays on Lua-backed bootstrap and atomic operations
+- any migration to Redis Functions is explicitly deferred to v2 because it would require reevaluating the current minimum supported Redis version
 
 It should not mean:
 - create database
@@ -318,6 +328,7 @@ Otherwise, completed-log and stored-cart correctness can be lost.
   - `MOVE_TO_PERSISTENCE`
   - `MOVE_TO_FILE`
   - `CUSTOM` with Redis-aware cleanup discipline
+- Redis Functions only if a v2 line accepts the required minimum-version jump beyond the current Lua-compatible floor
 
 ## What Not To Do
 - Do not add `redis` as another `JdbcPersistenceBuilder.engineType(...)`.

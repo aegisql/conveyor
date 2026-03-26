@@ -24,15 +24,21 @@
 - Current Redis `savePart` writes are now Lua-backed atomic units.
 - Current Redis delete-style archive and cleanup flows are now Lua-backed atomic units.
 - Current Redis move-style archive flows still use Java orchestration to export carts before Redis-side cleanup, but now delete each successfully exported batch immediately instead of waiting for the whole request.
+- Current Redis move-style archive semantics intentionally do not guarantee singleness in the destination archive.
+  - a crash between export and Redis-side deletion can still duplicate the current batch
+  - this is acceptable behavior for Redis move-style archiving
+  - each archived cart still carries a unique id, so downstream de-duplication remains available if a consumer needs it
+  - replay from archive is already a business-sensitive operation even without duplicates
 - Current Redis restore behavior is now explicitly configurable and proven for:
   - `BY_ID`
   - `NO_ORDER`
   - `BY_PRIORITY_AND_ID` with a builder-selected implementation:
-    - `JAVA_SORT`
-    - `REDIS_INDEX`
+  - `JAVA_SORT`
+  - `REDIS_INDEX`
   - one recovered command-cart path
   - restart-and-finish `PersistentConveyor` recovery
-- Recovery cleanup proof now includes the recovered `CANCELED`, `TIMED_OUT`, and timeout-action `INVALID` status paths in addition to the earlier `READY` paths.
+- Recovery cleanup proof now includes the recovered `CANCELED`, `TIMED_OUT`, and timeout-action `INVALID` status paths in addition to the earlier `READY` paths, with both auto-acknowledged and explicit-scrap-acknowledged timeout/error flows now covered.
+- Recovery proof now also includes recovered `TIMED_OUT` unload behavior and a recovered timeout-action success path when the timeout action can satisfy the configured readiness rule.
 - A first compatible slice of the JDBC-style performance tests now exists for Redis.
 
 ## Current Implemented Scope
@@ -238,6 +244,10 @@ Important note:
     - `REDIS_INDEX` `BY_PRIORITY_AND_ID` for active parts, static parts, and per-key indexes
     - legacy namespace upgrade into `REDIS_INDEX` when `priorityRestoreStrategy` metadata is missing
     - `BY_PRIORITY_AND_ID` replay behavior on a recovered `PersistentConveyor` flow for both `JAVA_SORT` and `REDIS_INDEX`
+  - current guidance:
+    - the choice is workload-dependent
+    - project-side benchmarking is not a near-term task
+    - users should evaluate `JAVA_SORT` vs `REDIS_INDEX` on their own real data volumes and replay patterns
 
 ### Archive Strategies
 
@@ -303,6 +313,8 @@ Redis should not be judged by whether it can imitate each JDBC strategy literall
   - Implementation note:
     - Redis now uses Redis-specific low-level archive hooks so move-style archivers can export carts and then delete without recursively calling back into `Persistence.archive...()`.
     - Successful batches are now deleted immediately after export using `Persistence.getMaxArchiveBatchSize()` as the commit/delete unit.
+    - Duplicate records in the destination archive remain acceptable if a crash occurs between export and deletion.
+    - Any consumer that truly needs de-duplication can use the archived cart ids.
 
 - `MOVE_TO_FILE`
   - Status:
@@ -314,6 +326,8 @@ Redis should not be judged by whether it can imitate each JDBC strategy literall
   - Implementation note:
     - Redis now uses a Redis-specific file archiver built on the same low-level archive hooks as `MOVE_TO_PERSISTENCE`.
     - Successful batches are now deleted immediately after export using `BinaryLogConfiguration.getBucketSize()` as the commit/delete unit.
+    - Duplicate records in the destination archive remain acceptable if a crash occurs between export and deletion.
+    - Redis itself could later hold batch manifests and batch-processing status for file export coordination without changing the intentional non-guarantee around singleness.
 
 - `CUSTOM`
   - Status:
@@ -369,17 +383,21 @@ Redis should not be judged by whether it can imitate each JDBC strategy literall
   - now has explicit recovered-acknowledgment evidence for a completed build
   - now has recovered cleanup evidence for the current READY-path auto-ack and explicit-ack flows when the recovered conveyor is allowed to drain cleanly
   - now has recovered cleanup evidence for the current CANCELED path when a recovered build is explicitly canceled and the conveyor is allowed to drain cleanly
-  - now has recovered cleanup evidence for the current TIMED_OUT path when the recovered conveyor auto-acknowledges `TIMED_OUT`
-  - now has recovered cleanup evidence for the current timeout-action `INVALID` path when the recovered conveyor auto-acknowledges `INVALID`
+  - now has recovered cleanup evidence for the current TIMED_OUT path for both auto-acknowledged and explicit-scrap-acknowledged flows
+  - now has recovered cleanup evidence for the current timeout-action `INVALID` path for both auto-acknowledged and explicit-scrap-acknowledged flows
+  - now has recovered unload-on-timeout evidence showing persisted carts can be replayed and later completed after restart
+  - now has recovered timeout-action-success evidence when the timeout action can satisfy the configured readiness rule after restart
 - Status:
   - partial
   - restart-and-finish recovery is proven
   - recovered explicit acknowledge delivery is proven
   - recovered READY-path cleanup is proven
   - recovered CANCELED cleanup is proven
-  - recovered TIMED_OUT cleanup is proven when the recovered conveyor auto-acknowledges `TIMED_OUT`
-  - recovered timeout-action `INVALID` cleanup is proven when the recovered conveyor auto-acknowledges `INVALID`
-  - broader recovery-mode coverage is still incomplete
+  - recovered TIMED_OUT cleanup is proven for both auto-acknowledged and explicit-scrap-acknowledged flows
+  - recovered timeout-action `INVALID` cleanup is proven for both auto-acknowledged and explicit-scrap-acknowledged flows
+  - recovered TIMED_OUT unload-and-later-complete behavior is proven
+  - recovered timeout-action success is proven when the timeout action can satisfy the configured readiness rule
+  - broader recovery-mode coverage is now relatively narrow and tied mostly to any future new recovery semantics
 
 ### Unique Field Constraints
 
@@ -459,7 +477,8 @@ Redis should not be judged by whether it can imitate each JDBC strategy literall
     - set
     - sorted-set
     - Lua scripting
-- These checks are run on eager init and on lazy first-use init.
+  - These checks are run on eager init and on lazy first-use init.
+  - Redis Functions are intentionally out of scope for v1 because adopting them would require a higher minimum Redis version than the current Lua-compatible floor.
 
 ### Done: Lua bootstrap registration for the current atomic write bundle
 
@@ -473,6 +492,9 @@ Redis should not be judged by whether it can imitate each JDBC strategy literall
   - after `SCRIPT FLUSH`
   - the next `savePart(...)` reloads the script on `NOSCRIPT` and still succeeds
   - the next Lua-backed delete/archive cleanup operation also reloads and still succeeds
+- V1 decision:
+  - keep Redis bootstrap and atomic server-side logic on Lua
+  - treat any Redis Function migration as a later v2 concern rather than a current roadmap item
 
 ### Done: Lua-backed delete-style archive and cleanup operations
 
@@ -714,8 +736,10 @@ This is meaningful because it shows the current itemized storage and reconstruct
   - covers recovered cleanup for the current READY-path auto-ack flow when the recovered conveyor drains through `completeAndStop()`
   - covers recovered cleanup for the current explicit-acknowledge flow when the recovered conveyor drains through `completeAndStop()`
   - covers recovered cleanup for the current CANCELED path when the recovered conveyor drains through `completeAndStop()`
-  - covers recovered cleanup for the current TIMED_OUT path when the recovered conveyor auto-acknowledges `TIMED_OUT`
-  - covers recovered cleanup for the current timeout-action `INVALID` path when the recovered conveyor auto-acknowledges `INVALID`
+  - covers recovered cleanup for the current TIMED_OUT path for both auto-acknowledged and explicit-scrap-acknowledged flows
+  - covers recovered cleanup for the current timeout-action `INVALID` path for both auto-acknowledged and explicit-scrap-acknowledged flows
+  - covers recovered unload-on-timeout behavior that preserves carts for later replay and completion
+  - covers recovered timeout-action success when the timeout action can satisfy the configured readiness rule
   - covers delete-style archive methods
   - covers `NO_ACTION`
   - covers `MOVE_TO_PERSISTENCE`
@@ -746,7 +770,7 @@ This is meaningful because it shows the current itemized storage and reconstruct
 - broader command-cart coverage beyond the currently proven replay path
 - stronger atomic behavior for move-style archive orchestration
 - indexed-key protection if the project decides Redis needs more than payload-only protection
-- broader recovery-mode coverage beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths
+- any additional recovery-mode coverage beyond the now-proven READY, CANCELED, TIMED_OUT, timeout-action INVALID, timeout unload, and timeout-action success flows
 - broader performance parity beyond the currently reproduced direct, shuffled persistent, and sorted persistent scenarios
 
 ## Ranked Backlog By Complexity
@@ -770,12 +794,13 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ### Medium Complexity
 
-- Benchmark and document when `JAVA_SORT` vs `REDIS_INDEX` is the better initialization-stage choice for `BY_PRIORITY_AND_ID`.
-  - Candidate scope:
-    - compare recovery and replay costs under both strategies
-    - compare Redis memory overhead for maintained priority indexes
+- Keep the `JAVA_SORT` vs `REDIS_INDEX` tradeoff documented as a user-side operational choice.
+  - Current direction:
+    - the feature is implemented
+    - project-side benchmarking is deferred to a later version
+    - users should benchmark the choice on their own real data loads when it matters
   - Why medium:
-    - the feature is implemented, but the operational tradeoff still needs clearer guidance
+    - the implementation is done, but the best choice depends heavily on workload shape and replay volume
 
 - Improve current data layout so metadata stays intentionally queryable without growing redundant mirrors again.
   - Candidate scope:
@@ -802,11 +827,20 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ### High Complexity
 
-- Replace the remaining move-style archive orchestration with stronger cross-system atomic boundaries where feasible.
+- Keep move-style archive semantics clearly documented as at-least-once export at batch granularity.
   - Why high:
     - `MOVE_TO_PERSISTENCE` and `MOVE_TO_FILE` still need Java to read carts and hand them off before Redis-side cleanup
   - Why important:
-    - delete-style cleanup is now atomic, and move-style flows now narrow duplicate risk to one successful batch, but there is still no true cross-system transaction
+    - users should not expect singleness from Redis move-style archiving
+    - duplicate archive records are acceptable, and de-duplication, when needed, should rely on cart ids outside the persistence layer
+
+- Decide whether Redis-tracked batch manifests and batch-processing status would materially help move-style orchestration.
+  - Current recommendation:
+    - treat this as an operational coordination feature, not as a singleness mechanism
+  - Why high:
+    - it adds new Redis state, lifecycle, and recovery semantics for batch export bookkeeping
+  - Why important:
+    - it may improve visibility and restart handling for `MOVE_TO_PERSISTENCE` and `MOVE_TO_FILE`, including file exports, without pretending to create a cross-system transaction
 
 - Keep archive strategy documentation and test evidence current.
   - Current state:
@@ -824,13 +858,15 @@ Complexity here means engineering effort plus semantic risk relative to the curr
     - recovered explicit acknowledgment is covered
     - recovered cleanup is covered for the current READY-path auto-ack and explicit-ack flows when the recovered conveyor drains cleanly
     - recovered cleanup is covered for the current CANCELED path when the recovered conveyor drains cleanly
-    - recovered cleanup is covered for the current TIMED_OUT path when the recovered conveyor auto-acknowledges `TIMED_OUT`
-    - recovered cleanup is covered for the current timeout-action `INVALID` path when the recovered conveyor auto-acknowledges `INVALID`
-    - broader recovery-mode coverage is still not proven
+    - recovered cleanup is covered for the current TIMED_OUT path for both auto-acknowledged and explicit-scrap-acknowledged flows
+    - recovered cleanup is covered for the current timeout-action `INVALID` path for both auto-acknowledged and explicit-scrap-acknowledged flows
+    - recovered TIMED_OUT unload-and-later-complete behavior is covered
+    - recovered timeout-action success is covered when the timeout action can satisfy the configured readiness rule
+    - remaining recovery gaps are now relatively narrow and tied mostly to any future new recovery semantics
 
 - Decide whether library-level reconnect or retry behavior should exist at all.
   - Current recommendation:
-    - do not add automatic retries before the remaining move-style archive flows have a clearer cross-system idempotence or transaction story
+    - do not add automatic retries before the remaining move-style archive flows have clearer cross-system export semantics
   - Why high:
     - blind retries around export-and-then-delete Redis flows can still create partial-write ambiguity across systems
   - Why important:
@@ -857,15 +893,16 @@ Complexity here means engineering effort plus semantic risk relative to the curr
 
 ## Recommended Next Sequence
 
-1. Broaden recovery proof into additional recovery modes beyond the currently proven READY, CANCELED, TIMED_OUT, and timeout-action INVALID paths.
-2. Benchmark and document when `JAVA_SORT` vs `REDIS_INDEX` should be chosen.
-3. Decide whether any later Redis Function work is worth the required minimum-version jump beyond the current Lua-compatible floor.
-4. Decide whether the remaining move-style cross-system gap needs idempotence markers or is acceptable as a documented batch-level tradeoff.
+1. Keep the recovery-proof documentation aligned with the now-proven READY, CANCELED, TIMED_OUT, timeout-action INVALID, timeout unload, and timeout-action success paths.
+2. Keep the move-style archive semantics documented as at-least-once export at batch granularity, with optional downstream de-duplication by archived cart id when a consumer needs it.
+3. Decide later whether Redis-tracked batch manifests and batch-processing status would materially help move-style export coordination and restart handling.
+4. Keep the `JAVA_SORT` vs `REDIS_INDEX` choice documented, and leave detailed benchmarking to user workloads unless a later version needs project-level guidance.
+5. Leave any Redis Function migration for v2, when a minimum-version jump can be evaluated as a product decision rather than a v1 delivery concern.
 
 ## Bottom Line
 
 - Redis persistence is no longer just a plan. It is a real first backend with working SPI coverage and good early test evidence.
 - The biggest remaining gap is not basic CRUD. The biggest gap is maturity compared to JDBC:
   - recovery breadth beyond the currently proven flows
-  - move-style archive orchestration beyond the now-batched save/export/delete paths
+  - move-style archive orchestration and bookkeeping beyond the now-batched save/export/delete paths
 - The module is in a solid v1 development state, but not yet in JDBC-level production-parity territory.

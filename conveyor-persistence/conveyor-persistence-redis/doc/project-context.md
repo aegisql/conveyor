@@ -65,10 +65,15 @@ Tests currently cover:
 - persisted command-cart replay during `PersistentConveyor` startup
 - incomplete-build replay across `PersistentConveyor` restart
 - recovered explicit-acknowledge handle delivery for completed builds
+- recovered explicit scrap-acknowledge handle delivery for `TIMED_OUT` and timeout-action `INVALID` builds
 - recovered cleanup for the current READY-path auto-ack and explicit-ack completed builds when the recovered conveyor is allowed to drain cleanly
 - recovered cleanup for the current CANCELED path when a recovered build is explicitly canceled and the conveyor is allowed to drain cleanly
 - recovered cleanup for the current TIMED_OUT path when the recovered conveyor auto-acknowledges `TIMED_OUT` and is allowed to drain cleanly
+- recovered cleanup for the current TIMED_OUT path when the recovered conveyor exposes an explicit scrap acknowledge handle and is allowed to drain after `ack()`
 - recovered cleanup for the current timeout-action `INVALID` path when the recovered conveyor auto-acknowledges `INVALID` and is allowed to drain cleanly
+- recovered cleanup for the current timeout-action `INVALID` path when the recovered conveyor exposes an explicit scrap acknowledge handle and is allowed to drain after `ack()`
+- recovered `TIMED_OUT` unload behavior when `PersistentConveyor.unloadOnBuilderTimeout(true)` preserves carts for later replay and completion
+- recovered timeout-action success behavior when a timeout action can satisfy the configured readiness rule after restart
 - explicit Redis restore-order support:
   - `BY_ID` as the default
   - `NO_ORDER` as backend iteration order with no extra re-sorting
@@ -146,9 +151,11 @@ Override options:
 - Cleanup and acknowledgment parity are still not as broad as JDBC:
   - the current READY-path recovery and cleanup behavior is now proven
   - the current recovered CANCELED cleanup behavior is now proven
-  - the current recovered TIMED_OUT cleanup behavior is now proven when the recovered conveyor auto-acknowledges `TIMED_OUT`
-  - the current recovered timeout-action `INVALID` cleanup behavior is now proven when the recovered conveyor auto-acknowledges `INVALID`
-  - broader recovery-mode coverage still needs evidence
+  - the current recovered TIMED_OUT cleanup behavior is now proven for both auto-acknowledged and explicit-scrap-acknowledged flows
+  - the current recovered timeout-action `INVALID` cleanup behavior is now proven for both auto-acknowledged and explicit-scrap-acknowledged flows
+  - the current recovered `TIMED_OUT` unload path is now proven when a later part arrives and finishes the build
+  - the current recovered timeout-action success path is now proven for a builder-state readiness rule that the timeout action can satisfy
+  - broader recovery-mode coverage still needs evidence only if new forward-conveyor recovery semantics are introduced later
 - The current reader still accepts the earlier whole-cart Redis format for backward compatibility.
 - New itemized writes no longer mirror value bytes into `:meta.valueData`.
 - New itemized writes now reach Redis through a Lua-backed atomic `savePart`.
@@ -168,6 +175,13 @@ Override options:
   - `MOVE_TO_PERSISTENCE` uses `Persistence.getMaxArchiveBatchSize()` as the move/delete batch size
   - `MOVE_TO_FILE` uses `BinaryLogConfiguration.getBucketSize()` as the move/delete batch size
   - `archiveAll()` now exports active/static ids incrementally, deletes completed keys, and only then clears the remaining namespace metadata/tracker keys
-- The remaining atomicity work is now concentrated on the final cross-system gap for move-style archiving rather than on oversized delete windows inside Redis cleanup.
+- Move-style archive export is intentionally not a singleness guarantee.
+  - a crash between export and Redis-side deletion can still duplicate a batch in the destination archive
+  - this is acceptable for Redis move-style archiving
+  - each archived cart still carries its own unique id, so downstream de-duplication remains possible when a consumer truly needs it
+  - replay from archive remains a business-sensitive operation even without duplicates, so duplication should not be treated as the only replay risk
+- A future Redis-side batch manifest/status mechanism may still be useful for move-style exports, including file exports.
+  - that would help with coordination, visibility, and restart handling
+  - it would not change the intentional non-guarantee around archive singleness
 - See `../doc/plans/redis-persistence.md` for the planned direction.
 - See `./progress-report.md` for the current implementation status and JDBC comparison.
