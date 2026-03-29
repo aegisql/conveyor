@@ -1,6 +1,7 @@
 package com.aegisql.conveyor.persistence.jdbc.engine;
 
 import com.aegisql.conveyor.persistence.core.Field;
+import com.aegisql.conveyor.persistence.jdbc.init.JdbcScriptSection;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionDefaults;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 
@@ -450,5 +451,21 @@ public interface EngineDepo <K> extends Closeable, ConnectionDefaults {
 	void setAdditionalFields(List<? extends Field<?>> additionalFields);
 
 	ConnectionFactory<?> getConnectionFactory();
+
+	List<JdbcScriptSection> getInitializationScriptSections(
+			String database,
+			String schema,
+			String partTable,
+			String completedLogTable,
+			List<List<String>> uniqueFields
+	);
+
+	List<JdbcScriptSection> getCleanupScriptSections(
+			String database,
+			String schema,
+			String partTable,
+			String completedLogTable,
+			List<List<String>> uniqueFields
+	);
 
 }

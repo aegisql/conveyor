@@ -3,6 +3,7 @@ package com.aegisql.conveyor.persistence.jdbc.engine.oracle;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.init.JdbcScriptSection;
 
 import java.sql.SQLException;
 import java.util.Locale;
@@ -204,5 +205,53 @@ public class OracleEngine<K> extends GenericEngine<K> {
 			case "java.util.UUID" -> "CHAR(36)";
 			default -> "VARCHAR2(255 CHAR)";
 		};
+	}
+
+	@Override
+	protected JdbcScriptSection getCreateDatabaseScriptSection(String database) {
+		if (database == null || database.isBlank()) {
+			return null;
+		}
+		return JdbcScriptSection.note(
+				"Create database",
+				"Oracle service or pluggable database creation is outside Conveyor initialization scope.",
+				"Use an existing service such as " + database + " before running the remaining statements."
+		);
+	}
+
+	@Override
+	protected JdbcScriptSection getCreateSchemaScriptSection(String schema) {
+		if (schema == null || schema.isBlank()) {
+			return null;
+		}
+		return JdbcScriptSection.note(
+				"Create schema",
+				"Oracle user/schema creation is outside Conveyor initialization scope.",
+				"Create user " + schema + " and grant required privileges before running the remaining statements."
+		);
+	}
+
+	@Override
+	protected JdbcScriptSection getDropSchemaScriptSection(String schema) {
+		if (schema == null || schema.isBlank()) {
+			return null;
+		}
+		return JdbcScriptSection.note(
+				"Drop schema",
+				"Oracle user/schema cleanup is intentionally not emitted automatically.",
+				"Drop user " + schema + " manually if that is part of your environment workflow."
+		);
+	}
+
+	@Override
+	protected JdbcScriptSection getDropDatabaseScriptSection(String database) {
+		if (database == null || database.isBlank()) {
+			return null;
+		}
+		return JdbcScriptSection.note(
+				"Drop database",
+				"Oracle service or pluggable database cleanup is outside Conveyor initialization scope.",
+				"Clean up service " + database + " with your DBA-managed procedure if needed."
+		);
 	}
 }

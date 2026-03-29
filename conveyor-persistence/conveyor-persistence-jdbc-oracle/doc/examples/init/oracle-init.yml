@@ -1,0 +1,16 @@
+mode: script
+type: oracle
+keyClass: java.lang.Long
+host: localhost
+port: 1521
+database: XEPDB1
+schema: CONVEYOR_APP
+partTable: PART
+completedLogTable: COMPLETED_LOG
+user: conveyor
+includeCleanup: true
+additionalFields:
+  - type: java.lang.Long
+    name: TRANSACTION_ID
+uniqueFields:
+  - [TRANSACTION_ID]

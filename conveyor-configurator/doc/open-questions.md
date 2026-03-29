@@ -6,6 +6,48 @@
 - **Suggested human follow-up:** capture the exact precedence rules in one maintained module doc.
 
 ## Scope of GraalJS-backed features
-- **Observed evidence:** the module depends on GraalJS and suppresses interpreter warnings during tests.
-- **Why ambiguous:** current docs do not clearly describe which configuration features require script execution versus simple parsing.
-- **Suggested human follow-up:** document the supported scripting/templating surface explicitly.
+- **Observed evidence:** `ConfigUtils` resolves many configurator values through `graal.js`, but the supported surface is broader and more nuanced than current docs suggest.
+- **What the current code actually covers:**
+  - Conveyor-side scriptable values:
+    - `builderSupplier`
+    - `firstResultConsumer` / `nextResultConsumer`
+    - `firstScrapConsumer` / `nextScrapConsumer`
+    - `timeoutAction`
+    - `acknowledgeAction`
+    - `addCartBeforePlacementValidator`
+    - `addBeforeKeyEvictionAction`
+    - `addBeforeKeyReschedulingAction`
+    - `defaultCartConsumer`
+    - `readinessEvaluator`
+    - `acceptedLabels` arrays
+    - `cartPayloadAccessor`
+    - `forward` tuples, including optional `keyTransformer`
+    - custom conveyor constructor / supplier
+  - Persistence-side scriptable values:
+    - `addField(..., accessor)`
+    - `addBinaryConverter(...)`
+    - `labelConverter(...)`
+    - `archiveStrategy.archiver`
+    - `idSupplier`
+  - Global and named lifecycle hooks:
+    - default/global `postInit`
+    - default/global `postFailure`
+    - named `postInit`
+- **Why the scope is still easy to misunderstand:**
+  - Not every one of these properties truly requires a live JS engine at runtime.
+  - Several paths can fall back to Java references such as:
+    - static fields
+    - constructors
+    - `new ...`
+    - classpath objects reached through `JAVAPATH`-style references
+  - Some function-expression cases degrade to a safe no-op when the script engine is unavailable, especially callback-style consumers.
+  - Other cases fail fast with `ConveyorConfigurationException` if GraalJS is unavailable and no Java-reference fallback applies.
+- **Current practical boundary from code:**
+  - GraalJS is the first-choice execution path for function expressions.
+  - Java-object/reference fallback exists for a meaningful subset of those features.
+  - The module does not require a full GraalVM JIT runtime; it is using the `graal.js` `ScriptEngine` surface.
+  - Current docs do not classify the supported properties into:
+    - script-required
+    - script-optional with Java fallback
+    - script-optional with no-op fallback
+- **Suggested human follow-up:** replace this open question with a maintained “Configurator Scripting Surface” doc that lists each supported property family and its exact fallback behavior when GraalJS is unavailable.

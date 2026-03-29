@@ -2,6 +2,7 @@ package com.aegisql.conveyor.persistence.jdbc.engine;
 
 import com.aegisql.conveyor.persistence.core.Field;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.jdbc.init.JdbcScriptSection;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.engine.statement_executor.StatementExecutor;
 import org.slf4j.Logger;
@@ -774,6 +775,154 @@ public abstract class GenericEngine <K> implements EngineDepo <K>  {
 		this.saveCompletedBuildKeyQuery = "INSERT INTO " + completedLogTable + "("+CART_KEY+") VALUES( ? )";
 		this.getAllCompletedKeysQuery = "SELECT "+CART_KEY+" FROM "+completedLogTable;
 
+	}
+
+	@Override
+	public List<JdbcScriptSection> getInitializationScriptSections(
+			String database,
+			String schema,
+			String partTable,
+			String completedLogTable,
+			List<List<String>> uniqueFields
+	) {
+		List<JdbcScriptSection> sections = new ArrayList<>();
+		addIfNotNull(sections, getCreateDatabaseScriptSection(database));
+		addIfNotNull(sections, getCreateSchemaScriptSection(schema));
+		addIfNotNull(sections, getCreatePartTableScriptSection(partTable));
+		addIfNotNull(sections, getCreatePartTableIndexScriptSection(partTable));
+		addIfNotNull(sections, getCreateCompletedLogTableScriptSection(completedLogTable));
+		for (List<String> fields : uniqueFields) {
+			addIfNotNull(sections, getCreateUniqueIndexScriptSection(partTable, fields));
+		}
+		return sections;
+	}
+
+	@Override
+	public List<JdbcScriptSection> getCleanupScriptSections(
+			String database,
+			String schema,
+			String partTable,
+			String completedLogTable,
+			List<List<String>> uniqueFields
+	) {
+		List<JdbcScriptSection> sections = new ArrayList<>();
+		for (int i = uniqueFields.size() - 1; i >= 0; i--) {
+			addIfNotNull(sections, getDropUniqueIndexScriptSection(partTable, uniqueFields.get(i)));
+		}
+		addIfNotNull(sections, getDropPartTableIndexScriptSection(partTable));
+		addIfNotNull(sections, getDropCompletedLogTableScriptSection(completedLogTable));
+		addIfNotNull(sections, getDropPartTableScriptSection(partTable));
+		addIfNotNull(sections, getDropSchemaScriptSection(schema));
+		addIfNotNull(sections, getDropDatabaseScriptSection(database));
+		return sections;
+	}
+
+	private void addIfNotNull(List<JdbcScriptSection> sections, JdbcScriptSection section) {
+		if (section != null) {
+			sections.add(section);
+		}
+	}
+
+	protected JdbcScriptSection getCreateDatabaseScriptSection(String database) {
+		if (!notEmpty(database)) {
+			return null;
+		}
+		return JdbcScriptSection.sql("Create database", sqlStatement(getCreateDatabaseSql(database)));
+	}
+
+	protected JdbcScriptSection getCreateSchemaScriptSection(String schema) {
+		if (!notEmpty(schema)) {
+			return null;
+		}
+		return JdbcScriptSection.sql("Create schema", sqlStatement(getCreateSchemaSql(schema)));
+	}
+
+	protected JdbcScriptSection getCreatePartTableScriptSection(String partTable) {
+		return JdbcScriptSection.sql("Create parts table", sqlStatement(getCreatePartTableSql(partTable)));
+	}
+
+	protected JdbcScriptSection getCreatePartTableIndexScriptSection(String partTable) {
+		return JdbcScriptSection.sql("Create parts table index", sqlStatement(getCreatePartTableIndexSql(partTable)));
+	}
+
+	protected JdbcScriptSection getCreateUniqueIndexScriptSection(String partTable, List<String> fields) {
+		return JdbcScriptSection.sql(
+				"Create unique index for " + String.join(", ", fields),
+				sqlStatement(getCreateUniqPartTableIndexSql(partTable, fields))
+		);
+	}
+
+	protected JdbcScriptSection getCreateCompletedLogTableScriptSection(String completedLogTable) {
+		return JdbcScriptSection.sql("Create completed log table", sqlStatement(getCreateCompletedLogTableScriptSql(completedLogTable)));
+	}
+
+	protected JdbcScriptSection getDropUniqueIndexScriptSection(String partTable, List<String> fields) {
+		return JdbcScriptSection.sql(
+				"Drop unique index for " + String.join(", ", fields),
+				sqlStatement(getDropUniquePartTableIndexSql(partTable, fields))
+		);
+	}
+
+	protected JdbcScriptSection getDropPartTableIndexScriptSection(String partTable) {
+		return JdbcScriptSection.sql("Drop parts table index", sqlStatement(getDropPartTableIndexSql(partTable)));
+	}
+
+	protected JdbcScriptSection getDropCompletedLogTableScriptSection(String completedLogTable) {
+		return JdbcScriptSection.sql("Drop completed log table", sqlStatement(getDropCompletedLogTableSql(completedLogTable)));
+	}
+
+	protected JdbcScriptSection getDropPartTableScriptSection(String partTable) {
+		return JdbcScriptSection.sql("Drop parts table", sqlStatement(getDropPartTableSql(partTable)));
+	}
+
+	protected JdbcScriptSection getDropSchemaScriptSection(String schema) {
+		if (!notEmpty(schema)) {
+			return null;
+		}
+		return JdbcScriptSection.sql("Drop schema", sqlStatement(getDropSchemaSql(schema)));
+	}
+
+	protected JdbcScriptSection getDropDatabaseScriptSection(String database) {
+		if (!notEmpty(database)) {
+			return null;
+		}
+		return JdbcScriptSection.sql("Drop database", sqlStatement(getDropDatabaseSql(database)));
+	}
+
+	protected String getDropUniquePartTableIndexSql(String partTable, List<String> fields) {
+		return "DROP INDEX " + indexName(partTable, fields);
+	}
+
+	protected String getCreateCompletedLogTableScriptSql(String completedLogTable) {
+		return getCompletedLogTableSql(completedLogTable);
+	}
+
+	protected String getDropPartTableIndexSql(String partTable) {
+		return "DROP INDEX " + indexName(partTable);
+	}
+
+	protected String getDropCompletedLogTableSql(String completedLogTable) {
+		return "DROP TABLE " + completedLogTable;
+	}
+
+	protected String getDropPartTableSql(String partTable) {
+		return "DROP TABLE " + partTable;
+	}
+
+	protected String getDropSchemaSql(String schema) {
+		return "DROP SCHEMA " + schema;
+	}
+
+	protected String getDropDatabaseSql(String database) {
+		return "DROP DATABASE " + database;
+	}
+
+	protected String sqlStatement(String sql) {
+		String trimmed = sql == null ? "" : sql.trim();
+		if (trimmed.isEmpty() || trimmed.endsWith(";")) {
+			return trimmed;
+		}
+		return trimmed + ";";
 	}
 
 	/**

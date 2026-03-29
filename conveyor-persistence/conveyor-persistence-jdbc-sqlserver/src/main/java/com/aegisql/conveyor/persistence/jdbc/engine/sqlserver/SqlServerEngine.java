@@ -112,4 +112,85 @@ public class SqlServerEngine<K> extends GenericEngine<K> {
 			default -> "VARCHAR(255) NOT NULL";
 		};
 	}
+
+	@Override
+	protected String getCreateDatabaseSql(String database) {
+		return "IF DB_ID(N'" + database + "') IS NULL CREATE DATABASE " + database;
+	}
+
+	@Override
+	protected String getCreatePartTableSql(String partTable) {
+		return "IF OBJECT_ID(N'" + partTable + "', N'U') IS NULL " + super.getCreatePartTableSql(partTable);
+	}
+
+	@Override
+	protected String getCreatePartTableIndexSql(String partTable) {
+		return """
+				IF NOT EXISTS (
+				    SELECT 1
+				    FROM sys.indexes
+				    WHERE name = N'%s' AND object_id = OBJECT_ID(N'%s')
+				)
+				CREATE INDEX %s ON %s(%s)
+				""".formatted(indexName(partTable), partTable, indexName(partTable), partTable, CART_KEY);
+	}
+
+	@Override
+	protected String getCreateUniqPartTableIndexSql(String partTable, java.util.List<String> fields) {
+		String indexName = indexName(partTable, fields);
+		return """
+				IF NOT EXISTS (
+				    SELECT 1
+				    FROM sys.indexes
+				    WHERE name = N'%s' AND object_id = OBJECT_ID(N'%s')
+				)
+				CREATE UNIQUE INDEX %s ON %s(%s)
+				""".formatted(indexName, partTable, indexName, partTable, String.join(",", fields));
+	}
+
+	@Override
+	protected String getCreateCompletedLogTableScriptSql(String completedLogTable) {
+		return "IF OBJECT_ID(N'" + completedLogTable + "', N'U') IS NULL " + getCompletedLogTableSql(completedLogTable);
+	}
+
+	@Override
+	protected String getDropUniquePartTableIndexSql(String partTable, java.util.List<String> fields) {
+		String indexName = indexName(partTable, fields);
+		return """
+				IF EXISTS (
+				    SELECT 1
+				    FROM sys.indexes
+				    WHERE name = N'%s' AND object_id = OBJECT_ID(N'%s')
+				)
+				DROP INDEX %s ON %s
+				""".formatted(indexName, partTable, indexName, partTable);
+	}
+
+	@Override
+	protected String getDropPartTableIndexSql(String partTable) {
+		String indexName = indexName(partTable);
+		return """
+				IF EXISTS (
+				    SELECT 1
+				    FROM sys.indexes
+				    WHERE name = N'%s' AND object_id = OBJECT_ID(N'%s')
+				)
+				DROP INDEX %s ON %s
+				""".formatted(indexName, partTable, indexName, partTable);
+	}
+
+	@Override
+	protected String getDropCompletedLogTableSql(String completedLogTable) {
+		return "IF OBJECT_ID(N'" + completedLogTable + "', N'U') IS NOT NULL DROP TABLE " + completedLogTable;
+	}
+
+	@Override
+	protected String getDropPartTableSql(String partTable) {
+		return "IF OBJECT_ID(N'" + partTable + "', N'U') IS NOT NULL DROP TABLE " + partTable;
+	}
+
+	@Override
+	protected String getDropDatabaseSql(String database) {
+		return "IF DB_ID(N'" + database + "') IS NOT NULL DROP DATABASE " + database;
+	}
 }

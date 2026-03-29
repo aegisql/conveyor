@@ -20,3 +20,4 @@ local_materials/
 logs/
 /conveyor.iml
 /conveyor-service/conveyor-service.iml
+/conveyor-persistence/conveyor-persistence-jdbc-derby/derby.log

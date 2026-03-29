@@ -5,6 +5,7 @@ import com.aegisql.conveyor.persistence.core.Field;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.init.JdbcScriptSection;
 
 import java.sql.ResultSet;
 import java.sql.Timestamp;
@@ -217,6 +218,16 @@ public class PersistTestImpl implements Persistence<Integer>{
 		@Override
 		public ConnectionFactory<?> getConnectionFactory() {
 			return null;
+		}
+
+		@Override
+		public List<JdbcScriptSection> getInitializationScriptSections(String database, String schema, String partTable, String completedLogTable, List<List<String>> uniqueFields) {
+			return List.of();
+		}
+
+		@Override
+		public List<JdbcScriptSection> getCleanupScriptSections(String database, String schema, String partTable, String completedLogTable, List<List<String>> uniqueFields) {
+			return List.of();
 		}
 
 		@Override

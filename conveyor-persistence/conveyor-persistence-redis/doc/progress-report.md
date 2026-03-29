@@ -7,9 +7,9 @@
 
 Implemented behavior and current semantics live in:
 
-- `/Users/mike/work/conveyor/conveyor-persistence/conveyor-persistence-redis/doc/project-context.md`
-- `/Users/mike/work/conveyor/conveyor-persistence/README.md`
-- `/Users/mike/work/conveyor/conveyor-persistence/doc/plans/redis-persistence.md`
+- `conveyor-persistence/conveyor-persistence-redis/doc/project-context.md`
+- `conveyor-persistence/README.md`
+- `conveyor-persistence/doc/plans/redis-persistence.md`
 
 ## Current Status
 
@@ -33,20 +33,20 @@ Implemented behavior and current semantics live in:
 Primary Redis evidence is grouped in:
 
 - learn/basic Redis behavior:
-  - `/Users/mike/work/conveyor/conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/`
+  - `conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/`
 - builder/bootstrap/runtime:
-  - `/Users/mike/work/conveyor/conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/RedisConnectionFactoryTest.java`
-  - `/Users/mike/work/conveyor/conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/RedisPersistenceBuilderTest.java`
-  - `/Users/mike/work/conveyor/conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/RedisBootstrapValidatorTest.java`
+  - `conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/RedisConnectionFactoryTest.java`
+  - `conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/RedisPersistenceBuilderTest.java`
+  - `conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/RedisBootstrapValidatorTest.java`
 - persistence, recovery, restore order, converters, and archiving:
-  - `/Users/mike/work/conveyor/conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/RedisPersistenceTest.java`
-  - `/Users/mike/work/conveyor/conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/archive/`
+  - `conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/RedisPersistenceTest.java`
+  - `conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/archive/`
 - current performance slice:
-  - `/Users/mike/work/conveyor/conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/RedisPerfTest.java`
+  - `conveyor-persistence/conveyor-persistence-redis/src/test/java/com/aegisql/conveyor/persistence/redis/RedisPerfTest.java`
 
 Cross-backend placement-future evidence lives in:
 
-- `/Users/mike/work/conveyor/conveyor-persistence/conveyor-persistence-core/src/test/java/com/aegisql/conveyor/persistence/core/PersistentConveyorTest.java`
+- `conveyor-persistence/conveyor-persistence-core/src/test/java/com/aegisql/conveyor/persistence/core/PersistentConveyorTest.java`
 
 ## Remaining Gaps Compared To JDBC
 
@@ -70,7 +70,7 @@ Cross-backend placement-future evidence lives in:
 
 - Recovery proof is no longer a broad gap.
 - The currently proven recovery matrix is described in:
-  - `/Users/mike/work/conveyor/conveyor-persistence/conveyor-persistence-redis/doc/project-context.md`
+  - `conveyor-persistence/conveyor-persistence-redis/doc/project-context.md`
 - Additional recovery work is only needed when:
   - new Redis-specific orchestration is introduced, or
   - new forward-conveyor recovery semantics appear in core

@@ -1,0 +1,12 @@
+mode: script
+type: sqlite
+keyClass: java.lang.Long
+database: conveyor_db.sqlite
+partTable: PART
+completedLogTable: COMPLETED_LOG
+includeCleanup: true
+additionalFields:
+  - type: java.lang.Long
+    name: TRANSACTION_ID
+uniqueFields:
+  - [TRANSACTION_ID]

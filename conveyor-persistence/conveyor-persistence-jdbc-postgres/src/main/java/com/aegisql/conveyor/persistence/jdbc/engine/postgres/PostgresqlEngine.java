@@ -115,5 +115,61 @@ public class PostgresqlEngine <K> extends GenericEngine<K> {
 		};
 	}
 
+	@Override
+	protected String getCreateSchemaSql(String schema) {
+		return "CREATE SCHEMA IF NOT EXISTS " + schema;
+	}
+
+	@Override
+	protected String getCreatePartTableSql(String partTable) {
+		return super.getCreatePartTableSql(partTable).replaceFirst("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ");
+	}
+
+	@Override
+	protected String getCreatePartTableIndexSql(String partTable) {
+		return "CREATE INDEX IF NOT EXISTS " + indexName(partTable) + " ON " + partTable + "(" + CART_KEY + ")";
+	}
+
+	@Override
+	protected String getCreateUniqPartTableIndexSql(String partTable, java.util.List<String> fields) {
+		String indexName = indexName(partTable, fields);
+		return "CREATE UNIQUE INDEX IF NOT EXISTS " + indexName + " ON " + partTable + "(" + String.join(",", fields) + ")";
+	}
+
+	@Override
+	protected String getCompletedLogTableSql(String completedLogTable) {
+		return super.getCompletedLogTableSql(completedLogTable).replaceFirst("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ");
+	}
+
+	@Override
+	protected String getDropUniquePartTableIndexSql(String partTable, java.util.List<String> fields) {
+		return "DROP INDEX IF EXISTS " + indexName(partTable, fields);
+	}
+
+	@Override
+	protected String getDropPartTableIndexSql(String partTable) {
+		return "DROP INDEX IF EXISTS " + indexName(partTable);
+	}
+
+	@Override
+	protected String getDropCompletedLogTableSql(String completedLogTable) {
+		return "DROP TABLE IF EXISTS " + completedLogTable;
+	}
+
+	@Override
+	protected String getDropPartTableSql(String partTable) {
+		return "DROP TABLE IF EXISTS " + partTable;
+	}
+
+	@Override
+	protected String getDropSchemaSql(String schema) {
+		return "DROP SCHEMA IF EXISTS " + schema;
+	}
+
+	@Override
+	protected String getDropDatabaseSql(String database) {
+		return "DROP DATABASE IF EXISTS " + database;
+	}
+
 
 }

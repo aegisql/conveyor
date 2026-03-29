@@ -6,6 +6,7 @@ import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.WrappedExternalDataSource;
+import com.aegisql.conveyor.persistence.jdbc.init.JdbcScriptSection;
 import org.sqlite.SQLiteConfig;
 
 import java.sql.SQLException;
@@ -82,6 +83,71 @@ public class SqliteMemoryEngine<K> extends GenericEngine<K> {
 			case "java.util.UUID" -> "CHAR(36) NOT NULL";
 			default -> "VARCHAR(255) NOT NULL";
 		};
+	}
+
+	@Override
+	protected JdbcScriptSection getCreateDatabaseScriptSection(String database) {
+		if (database == null || database.isBlank()) {
+			return null;
+		}
+		return JdbcScriptSection.note(
+				"Create database",
+				"SQLite in-memory databases are created when the client opens the shared memory URL.",
+				"Use " + database + " as the memory database name before running the remaining statements."
+		);
+	}
+
+	@Override
+	protected String getCreatePartTableSql(String partTable) {
+		return super.getCreatePartTableSql(partTable).replaceFirst("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ");
+	}
+
+	@Override
+	protected String getCreatePartTableIndexSql(String partTable) {
+		return "CREATE INDEX IF NOT EXISTS " + indexName(partTable) + " ON " + partTable + "(" + CART_KEY + ")";
+	}
+
+	@Override
+	protected String getCreateUniqPartTableIndexSql(String partTable, java.util.List<String> fields) {
+		String indexName = indexName(partTable, fields);
+		return "CREATE UNIQUE INDEX IF NOT EXISTS " + indexName + " ON " + partTable + "(" + String.join(",", fields) + ")";
+	}
+
+	@Override
+	protected String getCompletedLogTableSql(String completedLogTable) {
+		return super.getCompletedLogTableSql(completedLogTable).replaceFirst("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ");
+	}
+
+	@Override
+	protected String getDropUniquePartTableIndexSql(String partTable, java.util.List<String> fields) {
+		return "DROP INDEX IF EXISTS " + indexName(partTable, fields);
+	}
+
+	@Override
+	protected String getDropPartTableIndexSql(String partTable) {
+		return "DROP INDEX IF EXISTS " + indexName(partTable);
+	}
+
+	@Override
+	protected String getDropCompletedLogTableSql(String completedLogTable) {
+		return "DROP TABLE IF EXISTS " + completedLogTable;
+	}
+
+	@Override
+	protected String getDropPartTableSql(String partTable) {
+		return "DROP TABLE IF EXISTS " + partTable;
+	}
+
+	@Override
+	protected JdbcScriptSection getDropDatabaseScriptSection(String database) {
+		if (database == null || database.isBlank()) {
+			return null;
+		}
+		return JdbcScriptSection.note(
+				"Drop database",
+				"SQLite in-memory databases disappear when the owning process ends.",
+				"No SQL drop statement is emitted for memory database " + database + "."
+		);
 	}
 
 }

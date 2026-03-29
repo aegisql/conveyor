@@ -4,6 +4,7 @@ package com.aegisql.conveyor.persistence.jdbc.engine.derby;
 
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.init.JdbcScriptSection;
 
 import java.util.UUID;
 
@@ -49,5 +50,23 @@ public class DerbyMemoryEngine <K> extends GenericEngine<K> {
 			case "java.util.UUID" -> "CHAR(36) NOT NULL";
 			default -> "VARCHAR(255) NOT NULL";
 		};
+	}
+
+	@Override
+	protected JdbcScriptSection getCreateDatabaseScriptSection(String database) {
+		return JdbcScriptSection.note(
+				"Create database",
+				"Derby memory databases are created when the memory URL is opened.",
+				"No standalone SQL statement is emitted for Derby memory database creation."
+		);
+	}
+
+	@Override
+	protected JdbcScriptSection getDropDatabaseScriptSection(String database) {
+		return JdbcScriptSection.note(
+				"Drop database",
+				"Derby memory databases disappear when the owning process ends.",
+				"No standalone SQL drop statement is emitted for Derby memory cleanup."
+		);
 	}
 }

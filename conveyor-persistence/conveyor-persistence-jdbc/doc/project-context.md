@@ -20,3 +20,6 @@
 ## Key Tests
 - `ConnectionFactoryTest`
 - `FileArchiverTest`
+
+## Related Docs
+- `conveyor-persistence/conveyor-persistence-jdbc/doc/initialization.md`

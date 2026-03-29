@@ -4,6 +4,7 @@ package com.aegisql.conveyor.persistence.jdbc.engine.derby;
 
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.init.JdbcScriptSection;
 
 import java.util.UUID;
 
@@ -68,5 +69,29 @@ public class DerbyClientEngine <K> extends GenericEngine<K> {
 			case "java.util.UUID" -> "CHAR(36) NOT NULL";
 			default -> "VARCHAR(255) NOT NULL";
 		};
+	}
+
+	@Override
+	protected JdbcScriptSection getCreateDatabaseScriptSection(String database) {
+		if (database == null || database.isBlank()) {
+			return null;
+		}
+		return JdbcScriptSection.note(
+				"Create database",
+				"Derby database creation is driven by the JDBC URL create=true flag, not a standalone SQL statement.",
+				"Open database " + database + " with create=true before running the remaining statements."
+		);
+	}
+
+	@Override
+	protected JdbcScriptSection getDropDatabaseScriptSection(String database) {
+		if (database == null || database.isBlank()) {
+			return null;
+		}
+		return JdbcScriptSection.note(
+				"Drop database",
+				"Derby database cleanup is environment-specific and is not emitted as SQL.",
+				"Remove database " + database + " using your Derby administration procedure if needed."
+		);
 	}
 }

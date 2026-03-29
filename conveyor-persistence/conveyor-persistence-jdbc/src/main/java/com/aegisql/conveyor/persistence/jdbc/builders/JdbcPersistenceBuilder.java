@@ -23,6 +23,8 @@ import com.aegisql.conveyor.persistence.jdbc.converters.StringLabelConverter;
 import com.aegisql.conveyor.persistence.jdbc.engine.EngineDepo;
 import com.aegisql.conveyor.persistence.jdbc.engine.GenericEngine;
 import com.aegisql.conveyor.persistence.jdbc.engine.connectivity.ConnectionFactory;
+import com.aegisql.conveyor.persistence.jdbc.init.JdbcInitializationScriptOptions;
+import com.aegisql.conveyor.persistence.jdbc.init.JdbcScriptSection;
 import com.aegisql.id_builder.impl.BinaryIdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1153,6 +1155,31 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 		}
 	}
 
+	public String initializationScript() {
+		return initializationScript(JdbcInitializationScriptOptions.defaults());
+	}
+
+	public String initializationScript(JdbcInitializationScriptOptions options) {
+		JdbcInitializationScriptOptions scriptOptions = options == null
+				? JdbcInitializationScriptOptions.defaults()
+				: options;
+		try (EngineDepo<K> sqlEngine = buildPresetSqlEngine(engineType, keyClass)) {
+			List<JdbcScriptSection> sections = sqlEngine.getInitializationScriptSections(
+					database,
+					schema,
+					partTable,
+					completedLogTable,
+					uniqueFields
+			);
+			List<JdbcScriptSection> cleanupSections = scriptOptions.includeCleanupSection()
+					? sqlEngine.getCleanupScriptSections(database, schema, partTable, completedLogTable, uniqueFields)
+					: List.of();
+			return renderInitializationScript(scriptOptions, sections, cleanupSections);
+		} catch (Exception e) {
+			throw new PersistenceException("Failed generating initialization script", e);
+		}
+	}
+
 	/**
 	 * Gets jmx obj name.
 	 *
@@ -1426,6 +1453,122 @@ public class JdbcPersistenceBuilder<K> implements Cloneable {
 		if(port > 0) connectionFactory.setPort(port);
 		connectionFactory.setProperties(properties);
 		return engine;
+	}
+
+	private String renderInitializationScript(
+			JdbcInitializationScriptOptions options,
+			List<JdbcScriptSection> sections,
+			List<JdbcScriptSection> cleanupSections
+	) {
+		String scriptFile = options.scriptFileNameHint();
+		StringBuilder sb = new StringBuilder();
+		appendComment(sb, "Conveyor JDBC persistence initialization script");
+		appendComment(sb, "This script mirrors JdbcPersistenceBuilder.init() step order.");
+		appendComment(sb, "Review and extend it with grants, storage options, or engine-specific tuning as needed.");
+		appendComment(sb, "Engine: " + engineType);
+		appendComment(sb, "Key class: " + keyClass.getName());
+		appendComment(sb, "Database: " + displayValue(database));
+		appendComment(sb, "Schema: " + displayValue(schema));
+		appendComment(sb, "Parts table: " + partTable);
+		appendComment(sb, "Completed log table: " + completedLogTable);
+		appendComment(sb, "Suggested CLI usage:");
+		appendComment(sb, suggestedCliExample(scriptFile));
+		sb.append('\n');
+
+		int counter = 1;
+		for (JdbcScriptSection section : sections) {
+			appendSection(sb, counter++, section, false);
+		}
+
+		if (!cleanupSections.isEmpty()) {
+			appendComment(sb, "Optional cleanup section.");
+			appendComment(sb, "The following statements are commented out intentionally.");
+			sb.append('\n');
+			int cleanupCounter = 1;
+			for (JdbcScriptSection section : cleanupSections) {
+				appendSection(sb, cleanupCounter++, section, true);
+			}
+		}
+
+		return sb.toString();
+	}
+
+	private void appendSection(StringBuilder sb, int counter, JdbcScriptSection section, boolean commentOut) {
+		appendComment(sb, "[" + counter + "] " + section.title());
+		for (String line : section.lines()) {
+			if (section.executable()) {
+				if (commentOut) {
+					commentBlock(sb, line);
+				} else {
+					sb.append(line).append('\n');
+				}
+			} else {
+				appendComment(sb, line);
+			}
+		}
+		sb.append('\n');
+	}
+
+	private void appendComment(StringBuilder sb, String line) {
+		sb.append("-- ").append(line).append('\n');
+	}
+
+	private void commentBlock(StringBuilder sb, String block) {
+		for (String line : block.split("\\R", -1)) {
+			appendComment(sb, line);
+		}
+	}
+
+	private String displayValue(String value) {
+		return value == null || value.isBlank() ? "<not set>" : value;
+	}
+
+	private String suggestedCliExample(String scriptFile) {
+		String file = scriptFile == null || scriptFile.isBlank()
+				? JdbcInitializationScriptOptions.DEFAULT_SCRIPT_FILE
+				: scriptFile;
+		String hostValue = displayExampleHost();
+		String userValue = user == null || user.isBlank() ? "<user>" : user;
+		return switch (engineType) {
+			case "mysql", "mariadb" ->
+					(engineType.equals("mysql") ? "mysql" : "mariadb")
+							+ " -h " + hostValue + " -P " + effectivePort() + " -u " + userValue + " -p < " + file;
+			case "postgres" ->
+					"psql -h " + hostValue + " -p " + effectivePort() + " -U " + userValue
+							+ " -d " + (database == null || database.isBlank() ? "postgres" : database)
+							+ " -f " + file;
+			case "oracle" ->
+					"sqlplus " + userValue + "/<password>@//" + hostValue + ":" + effectivePort() + "/"
+							+ (database == null || database.isBlank() ? "<service>" : database)
+							+ " @" + file;
+			case "sqlserver" ->
+					"sqlcmd -S " + hostValue + "," + effectivePort() + " -d "
+							+ (database == null || database.isBlank() ? "master" : database)
+							+ " -U " + userValue + " -P <password> -i " + file;
+			case "sqlite" ->
+					"sqlite3 " + (database == null || database.isBlank() ? "conveyor.db" : database) + " < " + file;
+			case "sqlite-memory" ->
+					"sqlite3 'file:" + (database == null || database.isBlank() ? "conveyor" : database)
+							+ "?mode=memory&cache=shared' < " + file;
+			case "derby", "derby-client", "derby-memory" ->
+					"ij < " + file;
+			default -> "Run the script with your " + engineType + " SQL client.";
+		};
+	}
+
+	private String displayExampleHost() {
+		return host == null || host.isBlank() ? "localhost" : host;
+	}
+
+	private int effectivePort() {
+		return port > 0 ? port : switch (engineType) {
+			case "mysql", "mariadb" -> 3306;
+			case "postgres" -> 5432;
+			case "oracle" -> 1521;
+			case "sqlserver" -> 1433;
+			case "derby-client" -> 1527;
+			default -> 0;
+		};
 	}
 
 	@SuppressWarnings("unchecked")

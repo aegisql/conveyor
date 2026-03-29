@@ -248,19 +248,19 @@ Use this when the product is scheduled executable work rather than an assembled 
 
 If you want working examples from the current codebase, start here:
 
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/map/MapBuillderTest.java`
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/collection/CollectionBuilderTest.java`
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/batch/BatchConveyorBuilderTest.java`
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/counter/CounterAggregatorConveyorTest.java`
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/delay_line/DelayLineConveyorTest.java`
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/queue_pump/QueuePumpTest.java`
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/caching/CachingConveyorTest.java`
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/scalar/ScalarConvertingConveyorTest.java`
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/reflection/SimpleConveyorTest.java`
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/schedule/ScheduleBuilderTest.java`
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/demo/caching_conveyor/Demo.java`
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/demo/reflection/Demo.java`
-- `/Users/mike/work/conveyor/conveyor-accelerators/src/test/java/com/aegisql/conveyor/demo/simple_conveyor/Demo.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/map/MapBuillderTest.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/collection/CollectionBuilderTest.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/batch/BatchConveyorBuilderTest.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/counter/CounterAggregatorConveyorTest.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/delay_line/DelayLineConveyorTest.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/queue_pump/QueuePumpTest.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/caching/CachingConveyorTest.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/scalar/ScalarConvertingConveyorTest.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/reflection/SimpleConveyorTest.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/utils/schedule/ScheduleBuilderTest.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/demo/caching_conveyor/Demo.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/demo/reflection/Demo.java`
+- `conveyor-accelerators/src/test/java/com/aegisql/conveyor/demo/simple_conveyor/Demo.java`
 
 ## Notes
 

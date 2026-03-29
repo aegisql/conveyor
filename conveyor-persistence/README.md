@@ -165,11 +165,16 @@ Common JDBC characteristics:
 
 - relational storage model
 - explicit database/schema/table initialization through the builder, optional
+- offline SQL initialization script generation through the builder or `InitConveyorPersistence`
 - broader current feature maturity than Redis
 - mature recovery flows through `PersistentConveyor`
 - common optional encryption path
 - shared archiving and restore behavior
 - explicit connection ownership choices
+
+For JDBC initialization details and the standalone init app, see:
+
+- `conveyor-persistence/conveyor-persistence-jdbc/doc/initialization.md`
 
 In practice, choosing one JDBC helper over another is mostly about:
 

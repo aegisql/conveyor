@@ -1,0 +1,15 @@
+mode: script
+type: mysql
+keyClass: java.lang.Long
+host: localhost
+port: 3306
+database: conveyor_db
+partTable: PART
+completedLogTable: COMPLETED_LOG
+user: conveyor
+includeCleanup: true
+additionalFields:
+  - type: java.lang.Long
+    name: TRANSACTION_ID
+uniqueFields:
+  - [TRANSACTION_ID]
