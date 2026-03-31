@@ -1,0 +1,50 @@
+test.testName: persistence end to end redis
+conveyor:
+  c15:
+    builderSupplier: new com.aegisql.conveyor.config.harness.StringSupplier("c15");
+    defaultBuilderTimeout: 10 SECONDS
+    readyWhenAccepted:
+      - com.aegisql.conveyor.config.harness.NameLabel.FIRST
+      - com.aegisql.conveyor.config.harness.NameLabel.LAST
+    persistence:
+      redis.test.parts15:
+        keyClass: java.lang.Integer
+        redisUri: redis://localhost:6379/0
+        autoInit: true
+        restoreOrder: BY_PRIORITY_AND_ID
+        priorityRestoreStrategy: REDIS_INDEX
+        database: 1
+        clientName: redis-configurator-test15
+        ssl: false
+        maxBatchSize: 25
+        maxBatchTime: 2 SECONDS
+        minCompactSize: 2
+        maxTotal: 7
+        maxIdle: 4
+        minIdle: 1
+        connectionTimeoutMillis: 1500
+        socketTimeoutMillis: 1600
+        blockingSocketTimeoutMillis: 1700
+        doNotSaveProperties: transientA, AUDIT
+        addField: java.lang.String, AUDIT
+        addBinaryConverter: java.lang.String, new com.aegisql.conveyor.persistence.converters.StringToBytesConverter()
+        archiveStrategy: DELETE
+  c15auth:
+    builderSupplier: new com.aegisql.conveyor.config.harness.StringSupplier("c15auth");
+    defaultBuilderTimeout: 10 SECONDS
+    readyWhenAccepted:
+      - com.aegisql.conveyor.config.harness.NameLabel.FIRST
+      - com.aegisql.conveyor.config.harness.NameLabel.LAST
+    persistence:
+      redis.test.parts15auth:
+        keyClass: java.lang.Integer
+        redisUri: redis://localhost:6379/2
+        autoInit: false
+        username: redis-user
+        password: redis-pass
+        database: 2
+        clientName: redis-configurator-test15-auth
+        ssl: false
+        maxTotal: 3
+        maxIdle: 2
+        minIdle: 1

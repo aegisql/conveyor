@@ -1016,6 +1016,61 @@ public class RedisPersistenceBuilder<K> {
                         }
 
                         @Override
+                        public Integer getMaxTotal() {
+                            return maxTotal;
+                        }
+
+                        @Override
+                        public Integer getMaxIdle() {
+                            return maxIdle;
+                        }
+
+                        @Override
+                        public Integer getMinIdle() {
+                            return minIdle;
+                        }
+
+                        @Override
+                        public Integer getConnectionTimeoutMillis() {
+                            return connectionTimeoutMillis;
+                        }
+
+                        @Override
+                        public Integer getSocketTimeoutMillis() {
+                            return socketTimeoutMillis;
+                        }
+
+                        @Override
+                        public Integer getBlockingSocketTimeoutMillis() {
+                            return blockingSocketTimeoutMillis;
+                        }
+
+                        @Override
+                        public Integer getDatabase() {
+                            return database;
+                        }
+
+                        @Override
+                        public String getClientName() {
+                            return clientName;
+                        }
+
+                        @Override
+                        public String getUsername() {
+                            return user;
+                        }
+
+                        @Override
+                        public boolean isPasswordConfigured() {
+                            return password != null;
+                        }
+
+                        @Override
+                        public Boolean getSsl() {
+                            return ssl;
+                        }
+
+                        @Override
                         public int minCompactSize() {
                             return minCompactSize;
                         }

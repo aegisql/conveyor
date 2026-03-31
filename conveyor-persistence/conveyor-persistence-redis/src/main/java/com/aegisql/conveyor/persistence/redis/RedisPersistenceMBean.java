@@ -30,6 +30,28 @@ public interface RedisPersistenceMBean<K> extends Supplier<Persistence<K>> {
 
     long getMaxBatchTime();
 
+    Integer getMaxTotal();
+
+    Integer getMaxIdle();
+
+    Integer getMinIdle();
+
+    Integer getConnectionTimeoutMillis();
+
+    Integer getSocketTimeoutMillis();
+
+    Integer getBlockingSocketTimeoutMillis();
+
+    Integer getDatabase();
+
+    String getClientName();
+
+    String getUsername();
+
+    boolean isPasswordConfigured();
+
+    Boolean getSsl();
+
     int minCompactSize();
 
     boolean isAutoInit();

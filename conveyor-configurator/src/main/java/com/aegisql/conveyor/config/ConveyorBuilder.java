@@ -125,6 +125,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	/** The enable postpone expiration on timeout. */
 	private Boolean enablePostponeExpirationOnTimeout = null;
 
+	/** The unload on builder timeout. */
+	private Boolean unloadOnBuilderTimeout = null;
+
 	/** The auto acknowledge. */
 	private Boolean autoAcknowledge = null;
 
@@ -269,6 +272,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 			setIfNotNull(defaultCartConsumer, c::setDefaultCartConsumer);
 			setIfNotNull(enablePostponeExpiration, c::enablePostponeExpiration);
 			setIfNotNull(enablePostponeExpirationOnTimeout, c::enablePostponeExpirationOnTimeout);
+			if (unloadOnBuilderTimeout != null && c instanceof PersistentConveyor persistentConveyor) {
+				persistentConveyor.unloadOnBuilderTimeout(unloadOnBuilderTimeout);
+			}
 			setIfNotNull(autoAcknowledge, c::setAutoAcknowledge);
 			setIfNotNull(acknowledgeAction, c::setAcknowledgeAction);
 			setIfNotNull(cartPayloadAccessor, c::setCartPayloadAccessor);
@@ -652,6 +658,19 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	}
 
 	/**
+	 * Unload on builder timeout.
+	 *
+	 * @param b
+	 *            the builder
+	 * @param cp
+	 *            the property
+	 */
+	public static void unloadOnBuilderTimeout(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		b.unloadOnBuilderTimeout = cp.getValueAsBoolean();
+	}
+
+	/**
 	 * Auto acknowledge.
 	 *
 	 * @param b
@@ -930,6 +949,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				: "")
 				+ (enablePostponeExpirationOnTimeout != null
 				? "enablePostponeExpirationOnTimeout=" + enablePostponeExpirationOnTimeout + ", "
+				: "")
+				+ (unloadOnBuilderTimeout != null
+				? "unloadOnBuilderTimeout=" + unloadOnBuilderTimeout + ", "
 				: "")
 				+ (autoAcknowledge != null ? "autoAcknowledge=" + autoAcknowledge + ", " : "")
 				+ (acknowledgeAction != null ? "acknowledgeAction=" + acknowledgeAction + ", " : "")

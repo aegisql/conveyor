@@ -512,6 +512,9 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
 
         String name = testNamespace("builder-jmx");
         RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(name)
+                .user("builder-user")
+                .password("builder-pass")
+                .clientName("builder-client")
                 .addField(String.class, "AUDIT")
                 .addBinaryConverter(String.class, new TestStringConverter());
         ObjectName objectName = new ObjectName(builder.getJMXObjName());
@@ -529,6 +532,9 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
             assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Encrypted"));
             assertEquals(Boolean.TRUE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "AutoInit"));
             assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ExternalClient"));
+            assertEquals("builder-user", RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Username"));
+            assertEquals(Boolean.TRUE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "PasswordConfigured"));
+            assertEquals("builder-client", RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ClientName"));
             assertEquals(1, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "AdditionalFieldCount"));
             assertEquals(1, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ConverterCount"));
             assertEquals(builder.getJMXObjName(), objectName.toString());

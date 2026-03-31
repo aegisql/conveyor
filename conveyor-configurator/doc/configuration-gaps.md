@@ -8,15 +8,17 @@ It should focus on concrete unsupported capability, not on hypothetical future d
 
 ### Persistence
 
-- Redis persistence cannot be created declaratively.
-  - `PersistenceProperties.buildPersistence()` is hardwired to `JdbcPersistenceBuilder`.
-  - Config can attach an already-registered Redis persistence by JMX name, but it cannot build one.
-  - Missing Redis builder surface includes:
+- Redis builder-owned persistence is now supported declaratively.
+  - Current config can build Redis persistence through `RedisPersistenceBuilder`.
+  - Covered Redis surface now includes:
     - `redisUri`
-    - `jedis`
-    - Redis pool and client tuning
     - Redis restore-order strategy details
+    - Redis pool and client tuning
     - Redis-native archive options
+    - Redis additional fields and binary converters
+  - Remaining Redis declarative gap is injected/external client ownership:
+    - no first-class config path for a prebuilt `JedisPooled`
+    - no declarative custom Redis client provider hook
 
 - Generic/custom JDBC wiring is only partially supported.
   - The configurator supports the common preset JDBC flow.
@@ -27,10 +29,6 @@ It should focus on concrete unsupported capability, not on hypothetical future d
     - direct/external JDBC connection modes
     - non-DBCP pooled connection setup beyond the current boolean toggle
   - `type=jdbc` is therefore not fully declarative today.
-
-- `PersistentConveyor`-specific timeout recovery choice is missing.
-  - The configurator can wrap a conveyor with persistence.
-  - It cannot configure `unloadOnBuilderTimeout(boolean)`.
 
 ### Parallel
 
@@ -96,8 +94,7 @@ It should focus on concrete unsupported capability, not on hypothetical future d
 
 If configurator work starts from the highest-impact missing capability, the practical order is:
 
-1. declarative Redis persistence creation
-2. `PersistentConveyor.unloadOnBuilderTimeout(...)`
-3. `PBalanced` and task-pool support
-4. generic/custom JDBC connection and engine wiring
-5. meta-info completeness and named `postFailure`
+1. `PBalanced` and task-pool support
+2. generic/custom JDBC connection and engine wiring
+3. injected/external Redis client ownership paths
+4. meta-info completeness and named `postFailure`

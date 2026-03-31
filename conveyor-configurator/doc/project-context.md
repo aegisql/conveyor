@@ -14,7 +14,7 @@
 - Parse configuration files from classpath or filesystem.
 - Resolve environment/system property inputs used by configuration.
 - Instantiate assembling, parallel, batch, and persistent conveyors.
-- Bridge configuration to JDBC persistence builders and archive settings.
+- Bridge configuration to JDBC and Redis persistence builders and archive settings.
 
 ## External Integrations
 - SnakeYAML.

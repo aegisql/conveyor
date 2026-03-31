@@ -3,6 +3,7 @@ package com.aegisql.conveyor.config;
 import com.aegisql.conveyor.AssemblingConveyor;
 import com.aegisql.conveyor.BuilderSupplier;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.ScrapBin;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.config.harness.NameLabel;
@@ -19,6 +20,8 @@ import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
+import com.aegisql.conveyor.persistence.redis.RedisConnectionFactory;
+import com.aegisql.conveyor.persistence.redis.RedisPersistenceMBean;
 import com.aegisql.conveyor.utils.batch.BatchConveyor;
 import com.aegisql.id_builder.IdSource;
 import com.aegisql.id_builder.impl.DecimalIdGenerator;
@@ -32,13 +35,23 @@ import org.junitpioneer.jupiter.SetSystemProperty;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiPredicate;
+import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
+
+import javax.management.ObjectName;
+
+import redis.clients.jedis.JedisPooled;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -380,6 +393,25 @@ public class ConveyorConfigurationTest {
 		return carts;
 	}
 
+	private static void awaitTrue(BooleanSupplier condition, String message, Duration timeout) throws InterruptedException {
+		long deadline = System.nanoTime() + timeout.toNanos();
+		while (System.nanoTime() < deadline) {
+			if (condition.getAsBoolean()) {
+				return;
+			}
+			Thread.sleep(50);
+		}
+		assertTrue(condition.getAsBoolean(), message);
+	}
+
+	private static void deleteRedisNamespace(JedisPooled jedis, String persistenceName) {
+		String prefix = "conv:{" + persistenceName + "}";
+		Set<String> keys = jedis.keys(prefix + "*");
+		if (!keys.isEmpty()) {
+			jedis.del(keys.toArray(String[]::new));
+		}
+	}
+
 	@Test
 	public void testYampFile12WithDbcp() throws Exception {
 		ConveyorConfiguration.build("CP:test12.yml","JP:com.aegisql.conveyor.config.harness.TestBean");
@@ -426,5 +458,151 @@ public class ConveyorConfigurationTest {
 		ConveyorMetaInfo<Integer, NameLabel, String> metaInfo = c.getMetaInfo();
 		assertNotNull(metaInfo);
 		System.out.println(metaInfo);
+	}
+
+	@Test
+	public void testRedisPersistenceYaml() throws Exception {
+		requireRedisAvailability();
+
+		String persistenceName = "test.parts15";
+		String jmxName = "com.aegisql.conveyor.persistence.redis." + persistenceName + ":type=" + persistenceName;
+		String authPersistenceName = "test.parts15auth";
+		String authJmxName = "com.aegisql.conveyor.persistence.redis." + authPersistenceName + ":type=" + authPersistenceName;
+		String namespaceMetaKey = "conv:{" + persistenceName + "}:meta";
+		ObjectName objectName = new ObjectName(jmxName);
+		ObjectName authObjectName = new ObjectName(authJmxName);
+
+		ConveyorConfiguration.build("CP:test15.yml");
+
+		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c15");
+		assertNotNull(c);
+		assertTrue(c instanceof PersistentConveyor);
+
+		Persistence<Integer> persistence = Persistence.byName(jmxName);
+		Persistence<Integer> authPersistence = Persistence.byName(authJmxName);
+		assertNotNull(persistence);
+		assertNotNull(authPersistence);
+
+		try (JedisPooled db0 = RedisConnectionFactory.open("redis://localhost:6379/0");
+		     JedisPooled db1 = RedisConnectionFactory.open("redis://localhost:6379/1");
+		     JedisPooled db2 = RedisConnectionFactory.open("redis://localhost:6379/2")) {
+			deleteRedisNamespace(db0, persistenceName);
+			deleteRedisNamespace(db1, persistenceName);
+			deleteRedisNamespace(db2, authPersistenceName);
+
+			persistence.archiveAll();
+
+			assertTrue(RedisPersistenceMBean.mBeanServer.isRegistered(objectName));
+			assertEquals("redis://localhost:6379/0", RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "RedisUri"));
+			assertEquals("BY_PRIORITY_AND_ID", RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "RestoreOrder"));
+			assertEquals("REDIS_INDEX", RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "PriorityRestoreStrategy"));
+			assertEquals(25, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "MaxBatchSize"));
+			assertEquals(2000L, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "MaxBatchTime"));
+			assertEquals(7, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "MaxTotal"));
+			assertEquals(4, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "MaxIdle"));
+			assertEquals(1, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "MinIdle"));
+			assertEquals(1500, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ConnectionTimeoutMillis"));
+			assertEquals(1600, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "SocketTimeoutMillis"));
+			assertEquals(1700, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "BlockingSocketTimeoutMillis"));
+			assertEquals(1, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Database"));
+			assertEquals("redis-configurator-test15", RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ClientName"));
+			assertNull(RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Username"));
+			assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "PasswordConfigured"));
+			assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Ssl"));
+			assertEquals(1, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "AdditionalFieldCount"));
+			assertEquals(1, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ConverterCount"));
+			assertEquals(Boolean.TRUE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "AutoInit"));
+
+			assertTrue(RedisPersistenceMBean.mBeanServer.isRegistered(authObjectName));
+			assertEquals("redis://localhost:6379/2", RedisPersistenceMBean.mBeanServer.getAttribute(authObjectName, "RedisUri"));
+			assertEquals(2, RedisPersistenceMBean.mBeanServer.getAttribute(authObjectName, "Database"));
+			assertEquals("redis-configurator-test15-auth", RedisPersistenceMBean.mBeanServer.getAttribute(authObjectName, "ClientName"));
+			assertEquals("redis-user", RedisPersistenceMBean.mBeanServer.getAttribute(authObjectName, "Username"));
+			assertEquals(Boolean.TRUE, RedisPersistenceMBean.mBeanServer.getAttribute(authObjectName, "PasswordConfigured"));
+			assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(authObjectName, "Ssl"));
+			assertEquals(3, RedisPersistenceMBean.mBeanServer.getAttribute(authObjectName, "MaxTotal"));
+			assertEquals(2, RedisPersistenceMBean.mBeanServer.getAttribute(authObjectName, "MaxIdle"));
+			assertEquals(1, RedisPersistenceMBean.mBeanServer.getAttribute(authObjectName, "MinIdle"));
+			assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(authObjectName, "AutoInit"));
+			assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(authObjectName, "ExternalClient"));
+
+			CompletableFuture<Boolean> accepted = c.part().id(15).label(NameLabel.FIRST).value("FIRST_15")
+					.addProperty("AUDIT", "trace-15")
+					.addProperty("transientA", "drop-me")
+					.place();
+			assertTrue(accepted.join());
+
+			Collection<Cart<Integer, ?, Object>> carts = waitForPartCount(persistence.copy(), 1, Duration.ofSeconds(5));
+			assertEquals(1, carts.size());
+			assertEquals(2, persistence.getMinCompactSize());
+
+			Map<String, String> namespaceMeta = db1.hgetAll(namespaceMetaKey);
+			assertEquals("redis", namespaceMeta.get("backend"));
+			assertEquals("REDIS_INDEX", namespaceMeta.get("priorityRestoreStrategy"));
+			assertTrue(db0.hgetAll(namespaceMetaKey).isEmpty(), "Configured Redis database should isolate persistence state from db 0");
+			Long persistedId = persistence.getAllPartIds(15).iterator().next();
+			Map<String, String> partMeta = db1.hgetAll("conv:{test.parts15}:part:" + persistedId + ":meta");
+			assertTrue(partMeta.containsKey("field:AUDIT:hint"));
+			assertTrue(partMeta.containsKey("field:AUDIT:data"));
+			assertFalse(partMeta.containsKey("field:transientA:hint"));
+
+			assertTrue(c.part().id(15).label(NameLabel.LAST).value("LAST_15").place().join());
+		} finally {
+			persistence.archiveAll();
+			authPersistence.close();
+			c.completeAndStop().join();
+		}
+	}
+
+	@Test
+	public void testPersistentConveyorUnloadOnBuilderTimeoutYaml() throws Exception {
+		ConveyorConfiguration.build("CP:test16.yml");
+
+		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c16");
+		assertNotNull(c);
+		assertTrue(c instanceof PersistentConveyor);
+
+		Map<Integer, String> results = new ConcurrentHashMap<>();
+		List<ScrapBin<Integer, ?>> scraps = Collections.synchronizedList(new ArrayList<>());
+		c.resultConsumer().andThen(bin -> results.put(bin.key, bin.product)).set();
+		c.scrapConsumer().andThen(scrap -> scraps.add((ScrapBin<Integer, ?>) scrap)).set();
+
+		try (Persistence<Integer> persistence = Persistence.byName("derby.p16.parts16").copy()) {
+			try {
+				persistence.archiveAll();
+
+				assertTrue(c.part().id(16).label(NameLabel.FIRST).value("FIRST_16").place().join());
+				assertEquals(1, waitForPartCount(persistence, 1, Duration.ofSeconds(5)).size());
+
+				awaitTrue(() -> scraps.stream().anyMatch(scrap ->
+								scrap.key.equals(16)
+										&& scrap.failureType == ScrapBin.FailureType.BUILD_EXPIRED
+										&& scrap.comment.startsWith("Site expired. No timeout action")),
+						"Configurator should propagate unloadOnBuilderTimeout so the timed out build produces timeout scrap",
+						Duration.ofSeconds(5));
+
+				assertFalse(persistence.getAllPartIds(16).isEmpty(),
+						"Unload-on-timeout should keep the timed out carts persisted for later replay");
+
+				assertTrue(c.part().id(16).label(NameLabel.LAST).value("LAST_16").place().join());
+				awaitTrue(() -> "FIRST_16c16LAST_16".equals(results.get(16)),
+						"Placing the missing part after timeout should replay the persisted carts and finish the build",
+						Duration.ofSeconds(5));
+			} finally {
+				c.stop();
+				try (Persistence<Integer> cleanup = Persistence.byName("derby.p16.parts16").copy()) {
+					cleanup.archiveAll();
+				}
+			}
+		}
+	}
+
+	private static void requireRedisAvailability() {
+		String redisUri = RedisConnectionFactory.resolveRedisUri();
+		try (JedisPooled jedis = RedisConnectionFactory.open(redisUri)) {
+			Assumptions.assumeTrue("PONG".equals(jedis.ping()), "Redis did not respond with PONG at " + redisUri);
+		} catch (Exception e) {
+			Assumptions.assumeTrue(false, "Redis is not available at " + redisUri + ": " + e.getMessage());
+		}
 	}
 }

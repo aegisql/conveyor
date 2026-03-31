@@ -104,6 +104,12 @@
 			<scope>provided</scope>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.aegisql.persistence</groupId>
+			<artifactId>conveyor-persistence-redis</artifactId>
+			<scope>provided</scope>
+			<version>${project.version}</version>
+		</dependency>
 		<!--dependency>
 			<groupId>com.github.stefanbirkner</groupId>
 			<artifactId>system-rules</artifactId>

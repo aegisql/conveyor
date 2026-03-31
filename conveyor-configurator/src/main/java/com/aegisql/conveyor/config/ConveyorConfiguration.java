@@ -196,6 +196,7 @@ public class ConveyorConfiguration {
 					.<ConveyorProperty>when("acceptLabels", ConveyorBuilder::acceptLabels)
 					.<ConveyorProperty>when("enablePostponeExpiration", ConveyorBuilder::enablePostponeExpiration)
 					.<ConveyorProperty>when("enablePostponeExpirationOnTimeout",ConveyorBuilder::enablePostponeExpirationOnTimeout)
+					.<ConveyorProperty>when("unloadOnBuilderTimeout", ConveyorBuilder::unloadOnBuilderTimeout)
 					.<ConveyorProperty>when("autoAcknowledge", ConveyorBuilder::autoAcknowledge)
 					.<ConveyorProperty>when("acknowledgeAction", ConveyorBuilder::acknowledgeAction)
 					.<ConveyorProperty>when("autoAcknowledgeOnStatus", ConveyorBuilder::autoAcknowledgeOnStatus)

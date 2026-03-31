@@ -1,0 +1,15 @@
+test.testName: persistence unload on timeout
+conveyor:
+  c16:
+    builderSupplier: new com.aegisql.conveyor.config.harness.StringSupplier("c16");
+    defaultBuilderTimeout: 250 MILLISECONDS
+    unloadOnBuilderTimeout: true
+    readyWhenAccepted:
+      - com.aegisql.conveyor.config.harness.NameLabel.FIRST
+      - com.aegisql.conveyor.config.harness.NameLabel.LAST
+    persistence:
+      db_path: test-artifacts/persistence
+      derby.p16.parts16:
+        keyClass: java.lang.Integer
+        labelConverter: com.aegisql.conveyor.config.harness.NameLabel
+        archiveStrategy: DELETE
