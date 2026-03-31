@@ -2,23 +2,11 @@
 
 This document tracks configuration surface that exists in `conveyor-core`, `conveyor-parallel`, or persistence modules, but is not currently expressible as first-class configurator properties or YAML structure.
 
-It should focus on concrete unsupported capability, not on hypothetical future design.
+Implemented support belongs in `project-context.md`, not here.
 
 ## Current Gaps
 
 ### Persistence
-
-- Redis builder-owned persistence is now supported declaratively.
-  - Current config can build Redis persistence through `RedisPersistenceBuilder`.
-  - Covered Redis surface now includes:
-    - `redisUri`
-    - Redis restore-order strategy details
-    - Redis pool and client tuning
-    - Redis-native archive options
-    - Redis additional fields and binary converters
-  - Remaining Redis declarative gap is injected/external client ownership:
-    - no first-class config path for a prebuilt `JedisPooled`
-    - no declarative custom Redis client provider hook
 
 - Generic/custom JDBC wiring is only partially supported.
   - The configurator supports the common preset JDBC flow.
@@ -30,20 +18,16 @@ It should focus on concrete unsupported capability, not on hypothetical future d
     - non-DBCP pooled connection setup beyond the current boolean toggle
   - `type=jdbc` is therefore not fully declarative today.
 
-### Parallel
+- Redis still lacks external-client wiring.
+  - There is no first-class config path for:
+    - a prebuilt `JedisPooled`
+    - a custom Redis client provider hook
 
-- Parallel configuration is limited to:
-  - `KBalancedParallelConveyor` by numeric factor
-  - `LBalancedParallelConveyor` by named dependencies
-  - `PBalancedParallelConveyor` by YAML route map of child conveyor names to exact-match property values
+### Parallel
 
 - There is no first-class configurator support for:
   - `ParallelConveyor.setBalancingCartAlgorithm(...)`
   - `ParallelConveyor.setBalancingCommandAlgorithm(...)`
-
-- `TaskPoolConveyor` is not treated as a configurator gap in this document.
-  - It now lives in `conveyor-accelerators`.
-  - Configurator support for it is currently out of scope unless we explicitly decide accelerators should become declarative surface here.
 
 - Wrapper order is fixed for factor-based parallel plus persistence.
   - The configurator currently builds the parallel conveyor first and then wraps it in `PersistentConveyor`.
@@ -87,8 +71,6 @@ It should focus on concrete unsupported capability, not on hypothetical future d
 
 - Parallel surface:
   - `conveyor-parallel/src/main/java/com/aegisql/conveyor/parallel/ParallelConveyor.java`
-  - `conveyor-parallel/src/main/java/com/aegisql/conveyor/parallel/PBalancedParallelConveyor.java`
-  - `conveyor-accelerators/src/main/java/com/aegisql/conveyor/parallel/utils/task_pool_conveyor/TaskPoolConveyor.java`
 
 - Core meta-info surface:
   - `conveyor-core/src/main/java/com/aegisql/conveyor/meta/ConveyorMetaInfoBuilder.java`
