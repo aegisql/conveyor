@@ -19,6 +19,11 @@
       <artifactId>conveyor-core</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.aegisql</groupId>
+      <artifactId>conveyor-accelerators</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
   <organization>
   	<name>AEGIS DATA SOLUTIONS, LLC</name>

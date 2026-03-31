@@ -32,6 +32,10 @@
   - `com.aegisql.conveyor.utils.schedule.Schedule`
   - `com.aegisql.conveyor.utils.schedule.ScheduleBuilder`
   - `com.aegisql.conveyor.utils.schedule.SimpleScheduler`
+  - `com.aegisql.conveyor.parallel.utils.task_pool_conveyor.TaskId`
+  - `com.aegisql.conveyor.parallel.utils.task_pool_conveyor.TaskLoader`
+  - `com.aegisql.conveyor.parallel.utils.task_pool_conveyor.TaskPoolConveyor`
+  - `com.aegisql.conveyor.parallel.utils.task_pool_conveyor.TaskPoolConveyorMBean`
 
 ## Main Entry Points
 - `com.aegisql.conveyor.utils.batch.BatchConveyor`
@@ -45,6 +49,7 @@
 - `com.aegisql.conveyor.utils.reflection.SimpleConveyor`
 - `com.aegisql.conveyor.utils.scalar.ScalarConvertingConveyor`
 - `com.aegisql.conveyor.utils.schedule.SimpleScheduler`
+- `com.aegisql.conveyor.parallel.utils.task_pool_conveyor.TaskPoolConveyor`
 
 ## Responsibilities
 - Carry specialized utility conveyors and adjacent builders after they are extracted from `conveyor-core`.

@@ -85,7 +85,7 @@ It should focus on concrete unsupported capability, not on hypothetical future d
 - Parallel surface:
   - `conveyor-parallel/src/main/java/com/aegisql/conveyor/parallel/ParallelConveyor.java`
   - `conveyor-parallel/src/main/java/com/aegisql/conveyor/parallel/PBalancedParallelConveyor.java`
-  - `conveyor-parallel/src/main/java/com/aegisql/conveyor/parallel/utils/task_pool_conveyor/TaskPoolConveyor.java`
+  - `conveyor-accelerators/src/main/java/com/aegisql/conveyor/parallel/utils/task_pool_conveyor/TaskPoolConveyor.java`
 
 - Core meta-info surface:
   - `conveyor-core/src/main/java/com/aegisql/conveyor/meta/ConveyorMetaInfoBuilder.java`
