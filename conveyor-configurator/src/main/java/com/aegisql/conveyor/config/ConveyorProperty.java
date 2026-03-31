@@ -145,6 +145,9 @@ public class ConveyorProperty {
 					ConveyorProperty cpp = new ConveyorProperty(ConveyorPropertyType.CONVEYOR, cNameProperty.isDefaultProperty, cNameProperty.getConveyorName(), "persistenceProperty", pp);
 					consumer.accept(cpp);
 				});
+			} else if (propertyKey.toLowerCase().endsWith(ConveyorConfiguration.PROPERTY_DELIMITER + "pbalanced")) {
+				ConveyorProperty cp = evalProperty(propertyKey, value);
+				consumer.accept(cp);
 			} else {
 				map.forEach((part,val) -> eval(propertyKey+ConveyorConfiguration.PROPERTY_DELIMITER+part,val,consumer));
 			}

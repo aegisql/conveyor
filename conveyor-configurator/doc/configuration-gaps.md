@@ -35,12 +35,15 @@ It should focus on concrete unsupported capability, not on hypothetical future d
 - Parallel configuration is limited to:
   - `KBalancedParallelConveyor` by numeric factor
   - `LBalancedParallelConveyor` by named dependencies
+  - `PBalancedParallelConveyor` by YAML route map of child conveyor names to exact-match property values
 
 - There is no first-class configurator support for:
-  - `PBalancedParallelConveyor`
-  - `TaskPoolConveyor`
   - `ParallelConveyor.setBalancingCartAlgorithm(...)`
   - `ParallelConveyor.setBalancingCommandAlgorithm(...)`
+
+- `TaskPoolConveyor` is not treated as a configurator gap in this document.
+  - It now lives in `conveyor-accelerators`.
+  - Configurator support for it is currently out of scope unless we explicitly decide accelerators should become declarative surface here.
 
 - Wrapper order is fixed for factor-based parallel plus persistence.
   - The configurator currently builds the parallel conveyor first and then wraps it in `PersistentConveyor`.
@@ -94,7 +97,7 @@ It should focus on concrete unsupported capability, not on hypothetical future d
 
 If configurator work starts from the highest-impact missing capability, the practical order is:
 
-1. `PBalanced` and task-pool support
-2. generic/custom JDBC connection and engine wiring
-3. injected/external Redis client ownership paths
-4. meta-info completeness and named `postFailure`
+1. generic/custom JDBC connection and engine wiring
+2. injected/external Redis client ownership paths
+3. meta-info completeness and named `postFailure`
+4. balancing-algorithm surface beyond current K/L/P-balanced declarative support

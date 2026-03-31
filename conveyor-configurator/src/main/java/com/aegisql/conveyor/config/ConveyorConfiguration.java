@@ -205,6 +205,7 @@ public class ConveyorConfiguration {
 					.<String>when("completed", ConveyorBuilder::completed)
 					.<String>when("dependency", ConveyorBuilder::dependency)
 					.<ConveyorProperty>when("parallel", ConveyorBuilder::parallel)
+					.<ConveyorProperty>when("pBalanced", ConveyorBuilder::pBalanced)
 					.<ConveyorProperty>when("maxQueueSize", ConveyorBuilder::maxQueueSize)
 					.<ConveyorProperty>when("priority", ConveyorBuilder::priority)
 					.<ConveyorProperty>when("persistence", ConveyorBuilder::persitence)

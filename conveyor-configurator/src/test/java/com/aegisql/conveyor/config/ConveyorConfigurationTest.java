@@ -16,6 +16,7 @@ import com.aegisql.conveyor.loaders.StaticPartLoader;
 import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
+import com.aegisql.conveyor.parallel.PBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.archive.Archiver;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
@@ -594,6 +595,36 @@ public class ConveyorConfigurationTest {
 					cleanup.archiveAll();
 				}
 			}
+		}
+	}
+
+	@Test
+	public void testPBalancedYaml() throws Exception {
+		ConveyorConfiguration.build("CP:test17.yml");
+
+		Conveyor<Integer, NameLabel, String> c = Conveyor.byName("c17");
+		assertNotNull(c);
+		assertTrue(c instanceof PBalancedParallelConveyor);
+
+		Map<Integer, String> results = new ConcurrentHashMap<>();
+		c.resultConsumer().andThen(bin -> results.put(bin.key, bin.product)).set();
+
+		try {
+			assertTrue(c.part().id(17).label(NameLabel.FIRST).addProperty("version", 1).addProperty("lane", "A").value("LEFT-").place().join());
+			assertTrue(c.part().id(18).label(NameLabel.FIRST).addProperty("version", 2).addProperty("lane", "B").value("RIGHT-").place().join());
+			assertTrue(c.part().id(17).label(NameLabel.LAST).addProperty("version", 1).addProperty("lane", "A").value("-DONE").place().join());
+			assertTrue(c.part().id(18).label(NameLabel.LAST).addProperty("version", 2).addProperty("lane", "B").value("-DONE").place().join());
+
+			awaitTrue(() -> "LEFT-V1-DONE".equals(results.get(17)),
+					"PBalanced configurator route should send version=1/lane=A carts to c17.v1",
+					Duration.ofSeconds(5));
+			awaitTrue(() -> "RIGHT-V2-DONE".equals(results.get(18)),
+					"PBalanced configurator route should send version=2/lane=B carts to c17.v2",
+					Duration.ofSeconds(5));
+
+			assertFalse(c.part().id(19).label(NameLabel.FIRST).addProperty("version", 9).addProperty("lane", "Z").value("MISS").place().join());
+		} finally {
+			c.completeAndStop().join();
 		}
 	}
 

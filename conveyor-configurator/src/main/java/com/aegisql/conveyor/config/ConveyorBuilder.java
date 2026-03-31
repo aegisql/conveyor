@@ -7,8 +7,10 @@ import com.aegisql.conveyor.consumers.result.ResultConsumer;
 import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import com.aegisql.conveyor.meta.ConveyorMetaInfoBuilder;
+import com.aegisql.conveyor.parallel.ConveyorAcceptor;
 import com.aegisql.conveyor.parallel.KBalancedParallelConveyor;
 import com.aegisql.conveyor.parallel.LBalancedParallelConveyor;
+import com.aegisql.conveyor.parallel.PBalancedParallelConveyor;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
 import org.slf4j.Logger;
@@ -38,6 +40,9 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 
 	/** The l parallel. */
 	private final Set<String> lParallel = new LinkedHashSet<>();
+
+	/** The p balanced routing. */
+	private final Map<String, Map<String, Object>> pBalanced = new LinkedHashMap<>();
 
 	/** The dependencies. */
 	private final Set<String> dependencies = new HashSet<>();
@@ -236,7 +241,16 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				LOG.warn("MetaInfo configuration not found or incomplete. Ignoring");
 			}
 
-			if (parallelFactor > 1) {
+			if (parallelType == ParallelType.P_BALANCED && !pBalanced.isEmpty()) {
+				List<ConveyorAcceptor> testers = new ArrayList<>();
+				for (Map.Entry<String, Map<String, Object>> entry : pBalanced.entrySet()) {
+					ConveyorAcceptor tester = new ConveyorAcceptor(Conveyor.byName(entry.getKey()));
+					entry.getValue().forEach(tester::expectsValue);
+					testers.add(tester);
+				}
+				instance = new PBalancedParallelConveyor(testers);
+				LOG.info("Instantiate P-Balanced conveyor with routes={}", pBalanced);
+			} else if (parallelFactor > 1) {
 				ConveyorMetaInfo finalMetaInfo = metaInfo;
 				instance = new KBalancedParallelConveyor(()->constructor.apply(finalMetaInfo), parallelFactor);
 				LOG.info("Instantiate K-Balanced conveyor with parallelizm={}", parallelFactor);
@@ -819,10 +833,15 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 		try {
 			b.parallelFactor = Integer.parseInt(s.split("\\s+")[0]);
 			b.lParallel.clear();
+			b.pBalanced.clear();
+			b.parallelType = b.parallelFactor > 1 ? ParallelType.K_BALANCED : ParallelType.NONE;
 		} catch (Exception e) {
 			String[] parts = s.split(",");
 			if (parts.length > 0) {
 				b.parallelFactor = 1;
+				b.parallelType = ParallelType.L_BALANCED;
+				b.pBalanced.clear();
+				b.lParallel.clear();
 				for (String part : parts) {
 					String trimmed = part.trim();
 					b.dependencies.add(trimmed);
@@ -831,6 +850,36 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 			} else {
 				throw e;
 			}
+		}
+	}
+
+	public static void pBalanced(ConveyorBuilder b, ConveyorProperty cp) {
+		logRegister(cp);
+		if (!(cp.getValue() instanceof Map<?, ?> routeMap) || routeMap.isEmpty()) {
+			throw new ConveyorConfigurationException("pBalanced configuration must be a non-empty map of conveyor names to property maps");
+		}
+		b.parallelFactor = 1;
+		b.lParallel.clear();
+		b.pBalanced.clear();
+		b.parallelType = ParallelType.P_BALANCED;
+		for (Map.Entry<?, ?> entry : routeMap.entrySet()) {
+			String conveyorName = Objects.toString(entry.getKey(), "").trim();
+			if (conveyorName.isEmpty()) {
+				throw new ConveyorConfigurationException("pBalanced route name must not be empty");
+			}
+			if (!(entry.getValue() instanceof Map<?, ?> propertyMap) || propertyMap.isEmpty()) {
+				throw new ConveyorConfigurationException("pBalanced route '" + conveyorName + "' must define at least one matching property");
+			}
+			Map<String, Object> matchers = new LinkedHashMap<>();
+			for (Map.Entry<?, ?> propEntry : propertyMap.entrySet()) {
+				String propertyName = Objects.toString(propEntry.getKey(), "").trim();
+				if (propertyName.isEmpty()) {
+					throw new ConveyorConfigurationException("pBalanced route '" + conveyorName + "' contains an empty property name");
+				}
+				matchers.put(propertyName, propEntry.getValue());
+			}
+			b.dependencies.add(conveyorName);
+			b.pBalanced.put(conveyorName, matchers);
 		}
 	}
 	
@@ -915,6 +964,7 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 	public String toString() {
 		return "ConveyorBuilder [" + "dependencies=" + dependencies + ", "
 				+ "allFilesRead=" + allFilesRead + ", " + (lParallel != null ? "lParallel=" + lParallel + ", " : "")
+				+ (pBalanced != null && !pBalanced.isEmpty() ? "pBalanced=" + pBalanced + ", " : "")
 				+ (completed != null ? "completed=" + completed + ", " : "")
 				+ (constructor != null ? "constructor=" + constructor + ", " : "")
 				+ (maxQueueSize > 0 ? "maxQueueSize=" + maxQueueSize + ", " : "")
@@ -959,7 +1009,8 @@ public class ConveyorBuilder implements Supplier<Conveyor>, Testing {
 				? "autoAcknowledgeOnStatus=" + Arrays.toString(autoAcknowledgeOnStatus) + ", "
 				: "")
 				+ (cartPayloadAccessor != null ? "cartPayloadAccessor=" + cartPayloadAccessor + ", " : "")
-				+ (forward != null ? "forward=" + forward + ", " : "") + "parallelFactor=" + parallelFactor + ", "
+				+ (forward != null ? "forward=" + forward + ", " : "") + "parallelType=" + parallelType + ", "
+				+ "parallelFactor=" + parallelFactor + ", "
 				+ (persistence != null ? "persistence=" + persistence : "") + "]";
 	}
 

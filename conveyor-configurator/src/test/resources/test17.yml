@@ -1,0 +1,18 @@
+test.testName: pbalanced yaml
+conveyor:
+  c17.v1:
+    builderSupplier: new com.aegisql.conveyor.config.harness.StringSupplier("V1");
+  c17.v2:
+    builderSupplier: new com.aegisql.conveyor.config.harness.StringSupplier("V2");
+  c17:
+    defaultBuilderTimeout: 1 SECONDS
+    readyWhenAccepted:
+      - com.aegisql.conveyor.config.harness.NameLabel.FIRST
+      - com.aegisql.conveyor.config.harness.NameLabel.LAST
+    pBalanced:
+      c17.v1:
+        version: 1
+        lane: A
+      c17.v2:
+        version: 2
+        lane: B
