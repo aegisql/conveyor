@@ -512,8 +512,6 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
 
         String name = testNamespace("builder-jmx");
         RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(name)
-                .user("builder-user")
-                .password("builder-pass")
                 .clientName("builder-client")
                 .addField(String.class, "AUDIT")
                 .addBinaryConverter(String.class, new TestStringConverter());
@@ -532,12 +530,41 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
             assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Encrypted"));
             assertEquals(Boolean.TRUE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "AutoInit"));
             assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ExternalClient"));
-            assertEquals("builder-user", RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Username"));
-            assertEquals(Boolean.TRUE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "PasswordConfigured"));
+            assertNull(RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Username"));
+            assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "PasswordConfigured"));
             assertEquals("builder-client", RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ClientName"));
             assertEquals(1, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "AdditionalFieldCount"));
             assertEquals(1, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ConverterCount"));
             assertEquals(builder.getJMXObjName(), objectName.toString());
+            assertSame(persistence, Persistence.byName(builder.getJMXObjName()));
+        } finally {
+            if (RedisPersistenceMBean.mBeanServer.isRegistered(objectName)) {
+                RedisPersistenceMBean.mBeanServer.unregisterMBean(objectName);
+            }
+        }
+    }
+
+    @Test
+    void registersRedisPersistenceMBeanWithConfiguredCredentialsWhenAutoInitDisabled() throws Exception {
+        String name = testNamespace("builder-jmx-auth");
+        RedisPersistenceBuilder<Integer> builder = new RedisPersistenceBuilder<Integer>(name)
+                .autoInit(false)
+                .user("builder-user")
+                .password("builder-pass")
+                .clientName("builder-client");
+        ObjectName objectName = new ObjectName(builder.getJMXObjName());
+
+        if (RedisPersistenceMBean.mBeanServer.isRegistered(objectName)) {
+            RedisPersistenceMBean.mBeanServer.unregisterMBean(objectName);
+        }
+
+        try (Persistence<Integer> persistence = builder.build()) {
+            assertTrue(RedisPersistenceMBean.mBeanServer.isRegistered(objectName));
+            assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "AutoInit"));
+            assertEquals(Boolean.FALSE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ExternalClient"));
+            assertEquals("builder-user", RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "Username"));
+            assertEquals(Boolean.TRUE, RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "PasswordConfigured"));
+            assertEquals("builder-client", RedisPersistenceMBean.mBeanServer.getAttribute(objectName, "ClientName"));
             assertSame(persistence, Persistence.byName(builder.getJMXObjName()));
         } finally {
             if (RedisPersistenceMBean.mBeanServer.isRegistered(objectName)) {

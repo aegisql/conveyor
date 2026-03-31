@@ -27,6 +27,7 @@ Do not assume older wiki or README text is still correct if tests and code disag
 
 ## Validation Expectations
 - Run the narrowest relevant module tests before completing code changes.
+- If you change code in an upstream module that other modules depend on, run regression tests for the dependent module(s), not just compile checks.
 - If you touch shared APIs in `conveyor-core`, validate downstream modules that depend on them.
 - Core changes require a higher bar than other modules: broad regression coverage, careful dependency review, and explicit verification of downstream impact.
 - If you touch persistence contracts, validate both persistence modules and any configurator/service code that depends on them.
