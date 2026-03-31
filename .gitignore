@@ -22,3 +22,4 @@ logs/
 /conveyor-service/conveyor-service.iml
 /conveyor-persistence/conveyor-persistence-jdbc-derby/derby.log
 test-artifacts/
+/derby.log
