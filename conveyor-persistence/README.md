@@ -578,6 +578,8 @@ Practical interpretation:
 
 ## Related Docs
 
+- Spring integration:
+  - `../doc/spring-users.md`
 - JDBC notes:
   - `./conveyor-persistence-jdbc/doc/project-context.md`
   - `./conveyor-persistence-jdbc/doc/integration-tests.md`

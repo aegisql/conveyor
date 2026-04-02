@@ -10,6 +10,10 @@ Spring Boot service for working with Conveyor instances over HTTP:
   - `demo` profile: local in-memory users.
   - `prod` profile: OAuth2/OIDC with optional JWT resource-server mode.
 
+If you are embedding conveyors in your own Spring application rather than using this packaged service, see:
+
+- `../doc/spring-users.md`
+
 ## Dashboard UI Overview
 
 The dashboard is organized around conveyor inspection and request testing. The sections below use the built-in UI screenshots as a quick map.

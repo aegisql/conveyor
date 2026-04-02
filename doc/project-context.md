@@ -47,3 +47,7 @@
 ## Operational Assumptions
 - Modules now keep generated test artifacts inside module-local cleanup directories such as `test-artifacts` and `test-dbs` (inferred from recent POM/test wiring).
 - `conveyor-service` is the only module with container/runtime deployment packaging.
+
+## Related Docs
+- `doc/spring-users.md`
+  - Guidance for Spring applications that want Spring to own infrastructure while using Conveyor beans and optional configurator support.
