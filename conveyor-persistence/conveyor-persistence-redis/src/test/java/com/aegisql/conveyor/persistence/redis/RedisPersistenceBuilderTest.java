@@ -7,6 +7,7 @@ import com.aegisql.conveyor.persistence.archive.BinaryLogConfiguration;
 import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
+import com.aegisql.conveyor.persistence.redis.harness.TrioPart;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import redis.clients.jedis.ConnectionPoolConfig;
@@ -142,6 +143,8 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
         assertThrows(NullPointerException.class, () -> builder.addBinaryConverter((Class<String>) null, new TestStringConverter()));
         assertThrows(NullPointerException.class, () -> builder.addBinaryConverter(String.class, null));
         assertThrows(NullPointerException.class, () -> builder.addBinaryConverter("LABEL", null));
+        assertThrows(NullPointerException.class, () -> builder.labelConverter((ObjectConverter<?, byte[]>) null));
+        assertThrows(NullPointerException.class, () -> builder.labelConverter((Class<TrioPart>) null));
         assertThrows(IllegalArgumentException.class, () -> builder.addField(String.class, "id"));
         assertThrows(IllegalArgumentException.class, () -> builder.addField(String.class, "field:name"));
         assertThrows(IllegalArgumentException.class, () -> builder.addField(String.class, "   "));
@@ -152,9 +155,10 @@ class RedisPersistenceBuilderTest extends RedisTestSupport {
 
         RedisPersistenceBuilder<Integer> converters = builder
                 .addBinaryConverter(String.class, new TestStringConverter())
-                .addBinaryConverter("SPECIAL", new TestStringConverter());
+                .addBinaryConverter("SPECIAL", new TestStringConverter())
+                .labelConverter(TrioPart.class);
         assertTrue(builder.converterRegistrations().isEmpty());
-        assertEquals(2, converters.converterRegistrations().size());
+        assertEquals(3, converters.converterRegistrations().size());
     }
 
     @Test

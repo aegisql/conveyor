@@ -18,11 +18,14 @@ import javax.management.ObjectName;
 import javax.management.StandardMBean;
 import java.net.URI;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import javax.crypto.SecretKey;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiPredicate;
@@ -32,6 +35,7 @@ import java.util.function.Predicate;
 public class RedisPersistenceBuilder<K> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RedisPersistenceBuilder.class);
+    private static final Object LABEL_FIELD_KEY = new Object();
 
     private final String redisUri;
     private final JedisPooled jedis;
@@ -672,6 +676,22 @@ public class RedisPersistenceBuilder<K> {
         );
     }
 
+    public RedisPersistenceBuilder<K> labelConverter(ObjectConverter<?, byte[]> labelConv) {
+        Objects.requireNonNull(labelConv, "labelConv must not be null");
+        ArrayList<ConverterRegistration> updated = new ArrayList<>(converterRegistrations);
+        updated.add(ConverterRegistration.forLabelField(labelConv));
+        return new RedisPersistenceBuilder<>(
+                redisUri, jedis, name, autoInit, minCompactSize, maxArchiveBatchSize, maxArchiveBatchTime, encryptionBuilder,
+                nonPersistentProperties, persistentPartFilter, restoreOrder, priorityRestoreStrategy, additionalFields, updated, archiveOptions, maxTotal, maxIdle, minIdle, connectionTimeoutMillis,
+                socketTimeoutMillis, blockingSocketTimeoutMillis, database, clientName, user, password, ssl
+        );
+    }
+
+    public <L extends Enum<L>> RedisPersistenceBuilder<K> labelConverter(Class<L> enClass) {
+        Objects.requireNonNull(enClass, "enClass must not be null");
+        return labelConverter(new EnumStringBytesConverter<>(enClass));
+    }
+
     public RedisPersistenceBuilder<K> maxTotal(int value) {
         if (value < 1) {
             throw new IllegalArgumentException("maxTotal must be greater than 0");
@@ -942,6 +962,44 @@ public class RedisPersistenceBuilder<K> {
 
     List<ConverterRegistration> converterRegistrations() {
         return new ArrayList<>(converterRegistrations);
+    }
+
+    static Object labelFieldKey() {
+        return LABEL_FIELD_KEY;
+    }
+
+    private static final class EnumStringBytesConverter<E extends Enum<E>> implements ObjectConverter<E, byte[]> {
+
+        private final Map<String, E> values = new HashMap<>();
+        private final Class<E> enumType;
+
+        private EnumStringBytesConverter(Class<E> enumType) {
+            this.enumType = enumType;
+            for (E constant : enumType.getEnumConstants()) {
+                values.put(String.valueOf(constant), constant);
+            }
+        }
+
+        @Override
+        public byte[] toPersistence(E obj) {
+            if (obj == null) {
+                return null;
+            }
+            return String.valueOf(obj).getBytes(StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public E fromPersistence(byte[] p) {
+            if (p == null || p.length == 0) {
+                return null;
+            }
+            return values.get(new String(p, StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public String conversionHint() {
+            return enumType.getSimpleName() + ":byte[]";
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -1239,6 +1297,10 @@ public class RedisPersistenceBuilder<K> {
 
         static ConverterRegistration forLabel(Object label, ObjectConverter<?, byte[]> converter) {
             return new ConverterRegistration(null, label, converter);
+        }
+
+        static ConverterRegistration forLabelField(ObjectConverter<?, byte[]> converter) {
+            return new ConverterRegistration(null, LABEL_FIELD_KEY, converter);
         }
 
         @SuppressWarnings("unchecked")

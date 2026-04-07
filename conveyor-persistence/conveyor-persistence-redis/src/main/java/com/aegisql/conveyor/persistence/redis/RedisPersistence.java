@@ -190,7 +190,7 @@ public class RedisPersistence<K> implements Persistence<K> {
 
         Map<String, Object> persistentProperties = extractPersistentProperties(cart);
         FieldEncoding keyEncoding = encodePlainField(cart.getKey());
-        FieldEncoding labelEncoding = encodePlainField(cart.getLabel());
+        FieldEncoding labelEncoding = encodeLabelField(cart.getLabel());
         FieldEncoding valueEncoding = encodePayloadField(cart.getLabel(), cart.getValue());
         FieldEncoding propertiesEncoding = encodePlainField(persistentProperties.isEmpty() ? null : (Serializable) persistentProperties);
 
@@ -903,7 +903,7 @@ public class RedisPersistence<K> implements Persistence<K> {
             long expirationTime = parseLong(meta.get("expirationTime"));
             long priority = parseLong(meta.get("priority"));
             K key = castKey(decodePlainField(meta.get("keyHint"), meta.get("keyData")));
-            Object label = decodePlainField(meta.get("labelHint"), meta.get("labelData"));
+            Object label = decodeLabelField(meta.get("labelHint"), meta.get("labelData"));
             Object value = decodePayloadField(label, meta.get("valueHint"), encodedPayload, meta.get("valueData"));
             Map<String, Object> properties = decodeProperties(meta.get("propertiesHint"), meta.get("propertiesData"));
             restoreAdditionalFieldProperties(meta, properties);
@@ -977,6 +977,10 @@ public class RedisPersistence<K> implements Persistence<K> {
         return encodeField(plainConverterAdviser, null, value, false);
     }
 
+    private FieldEncoding encodeLabelField(Object value) {
+        return encodeField(plainConverterAdviser, RedisPersistenceBuilder.labelFieldKey(), value, false);
+    }
+
     private FieldEncoding encodeField(ConverterAdviser<Object> adviser, Object label, Object value, boolean includeNullHint) {
         String typeHint = null;
         if (value != null) {
@@ -1019,6 +1023,14 @@ public class RedisPersistence<K> implements Persistence<K> {
             return null;
         }
         ObjectConverter<Object, byte[]> converter = plainConverterAdviser.getConverter(null, hint);
+        return converter.fromPersistence(decodeBytes(encodedValue));
+    }
+
+    private Object decodeLabelField(String hint, String encodedValue) {
+        if (hint == null && encodedValue == null) {
+            return null;
+        }
+        ObjectConverter<Object, byte[]> converter = plainConverterAdviser.getConverter(RedisPersistenceBuilder.labelFieldKey(), hint);
         return converter.fromPersistence(decodeBytes(encodedValue));
     }
 

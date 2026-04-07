@@ -25,6 +25,7 @@ import com.aegisql.conveyor.persistence.core.ObjectConverter;
 import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.core.PersistenceException;
 import com.aegisql.conveyor.persistence.core.PersistentConveyor;
+import com.aegisql.conveyor.persistence.redis.harness.TrioPart;
 import com.aegisql.conveyor.persistence.utils.CartInputStream;
 import com.aegisql.conveyor.serial.SerializablePredicate;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -358,6 +360,7 @@ class RedisPersistenceTest extends RedisTestSupport {
 
         String name = testNamespace("move-to-file");
         Path archiveDir = Path.of("target", "redis-archive-tests", name);
+        deleteArchiveDir(archiveDir);
         BinaryLogConfiguration configuration = BinaryLogConfiguration.builder()
                 .path(archiveDir.toString())
                 .moveToPath(archiveDir.toString())
@@ -1420,6 +1423,36 @@ class RedisPersistenceTest extends RedisTestSupport {
     }
 
     @Test
+    void supportsExplicitEnumLabelConverter() throws Exception {
+        openRedis().close();
+
+        String name = testNamespace("enum-label-converter");
+        long id;
+
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(name)
+                .labelConverter(TrioPart.class)
+                .build()) {
+            persistence.archiveAll();
+            id = persistence.nextUniquePartId();
+            persistence.savePart(id, new ShoppingCart<>(91, "enum-value", TrioPart.TEXT1));
+
+            Cart<Integer, ?, TrioPart> restored = persistence.getPart(id);
+            assertNotNull(restored);
+            assertEquals(91, restored.getKey());
+            assertEquals("enum-value", restored.getValue());
+            assertEquals(TrioPart.TEXT1, restored.getLabel());
+        }
+
+        try (JedisPooled jedis = RedisConnectionFactory.openDefault()) {
+            Map<String, String> meta = jedis.hgetAll("conv:{" + name + "}:part:" + id + ":meta");
+            assertEquals("TrioPart:byte[]", meta.get("labelHint"));
+            assertNotNull(meta.get("labelData"));
+            assertEquals("TEXT1",
+                    new String(Base64.getUrlDecoder().decode(meta.get("labelData")), StandardCharsets.UTF_8));
+        }
+    }
+
+    @Test
     void supportsClassBasedCustomBinaryConverter() throws Exception {
         openRedis().close();
 
@@ -1524,6 +1557,7 @@ class RedisPersistenceTest extends RedisTestSupport {
 
         String name = testNamespace("move-additional-fields-file");
         Path archiveDir = Path.of("target", "redis-archive-tests", name);
+        deleteArchiveDir(archiveDir);
         BinaryLogConfiguration configuration = BinaryLogConfiguration.builder()
                 .path(archiveDir.toString())
                 .moveToPath(archiveDir.toString())
@@ -1875,6 +1909,17 @@ class RedisPersistenceTest extends RedisTestSupport {
         }
         ConverterAdviser<Object> adviser = new ConverterAdviser<>();
         return adviser.getConverter(null, hint).fromPersistence(Base64.getUrlDecoder().decode(encodedData));
+    }
+
+    private static void deleteArchiveDir(Path archiveDir) throws Exception {
+        if (!Files.exists(archiveDir)) {
+            return;
+        }
+        try (var paths = Files.walk(archiveDir)) {
+            for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(path);
+            }
+        }
     }
 
     private static AssemblingConveyor<Integer, SmartLabel<OrderedReplayBuilder>, String> newOrderedReplayConveyor(

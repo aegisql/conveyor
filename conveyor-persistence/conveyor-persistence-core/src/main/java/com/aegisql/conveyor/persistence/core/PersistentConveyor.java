@@ -113,15 +113,15 @@ public class PersistentConveyor<K, L, OUT> implements Conveyor<K, L, OUT> {
 		LOG.debug("Static parts: {}", staticParts);
 		Collection<Cart<K, ?, L>> allParts = persistence.getAllParts();
 		LOG.debug("All parts: {}", allParts);
-		staticParts.forEach(this::place);
+		staticParts.forEach(cart -> this.place(cart).join());
 		allParts.forEach(cart -> {
 			long cartExpTime = cart.getExpirationTime();
 			if (cartExpTime == 0 || cartExpTime > System.currentTimeMillis()) {
 				cart.addProperty("#TIMESTAMP", System.nanoTime());
 				if(cart.getLoadType() == LoadType.COMMAND) {
-					forward.command((GeneralCommand) cart);
+					forward.command((GeneralCommand) cart).join();
 				} else {
-					forward.place(cart);
+					forward.place(cart).join();
 				}
 			} else {
 				if (cleaner != null) {

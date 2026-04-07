@@ -56,5 +56,6 @@
 	    <module>conveyor-persistence-jdbc-oracle</module>
 	    <module>conveyor-persistence-jdbc-sqlserver</module>
 	    <module>conveyor-persistence-redis</module>
+	    <module>conveyor-persistence-ui</module>
 	  </modules>
 	</project>
