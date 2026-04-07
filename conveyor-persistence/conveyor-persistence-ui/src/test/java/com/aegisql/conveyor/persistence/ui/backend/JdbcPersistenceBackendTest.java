@@ -10,6 +10,7 @@ import com.aegisql.conveyor.persistence.ui.model.PersistenceSnapshot;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -139,6 +140,41 @@ class JdbcPersistenceBackendTest {
 
         assertTrue(backend.lookupDatabases(profile).contains(databaseFile.toString()));
         assertNotNull(backend.lookupSchemas(profile));
+    }
+
+    @Test
+    void treatsMissingDerbyDatabaseAsInitializable() throws Exception {
+        Path databaseDir = tempDir.resolve("fresh-derby-db");
+        Files.createDirectories(databaseDir);
+        PersistenceProfile profile = new PersistenceProfile(
+                null,
+                "Derby Workbench",
+                PersistenceKind.DERBY,
+                Integer.class.getName(),
+                null,
+                null,
+                null,
+                databaseDir.toString(),
+                "app",
+                "PART",
+                "COMPLETED_LOG",
+                null,
+                null,
+                null
+        ).normalized();
+
+        JdbcPersistenceBackend backend = new JdbcPersistenceBackend();
+        assertEquals(ConnectionStatus.CONNECTED_UNINITIALIZED, backend.connectionStatus(profile));
+
+        PersistenceSnapshot beforeInit = backend.inspect(profile, 20, 0);
+        assertEquals(ConnectionStatus.CONNECTED_UNINITIALIZED, beforeInit.status());
+        assertTrue(beforeInit.canInitialize());
+
+        backend.initialize(profile);
+        assertEquals(ConnectionStatus.READY, backend.connectionStatus(profile));
+
+        PersistenceSnapshot afterInit = backend.inspect(profile, 20, 0);
+        assertEquals(ConnectionStatus.READY, afterInit.status());
     }
 
     @SuppressWarnings("unchecked")

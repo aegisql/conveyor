@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PersistenceProfileTest {
 
@@ -113,5 +114,36 @@ class PersistenceProfileTest {
         assertEquals(original.completedLogTable(), duplicate.completedLogTable());
         assertEquals(original.user(), duplicate.user());
         assertEquals(original.password(), duplicate.password());
+    }
+
+    @Test
+    void derbyDefaultsUseValidDatabaseName() {
+        PersistenceProfile defaults = PersistenceProfile.defaults(PersistenceKind.DERBY).normalized();
+
+        assertNull(defaults.database());
+        assertEquals("conveyor_db", defaults.schema());
+        assertTrue(defaults.displayName().contains("Derby"));
+    }
+
+    @Test
+    void derbyProfilesMigrateLegacyDatabaseName() {
+        PersistenceProfile normalized = new PersistenceProfile(
+                7L,
+                "Legacy Derby",
+                PersistenceKind.DERBY,
+                "java.lang.Long",
+                null,
+                null,
+                null,
+                "/tmp/derby-home",
+                "conveyor-db",
+                "PART",
+                "COMPLETED_LOG",
+                null,
+                null,
+                null
+        ).normalized();
+
+        assertEquals("conveyor_db", normalized.schema());
     }
 }

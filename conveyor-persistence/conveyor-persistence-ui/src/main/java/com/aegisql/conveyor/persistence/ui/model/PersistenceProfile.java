@@ -19,6 +19,9 @@ public record PersistenceProfile(
         String redisUri
 ) {
 
+    private static final String LEGACY_DERBY_DATABASE_NAME = "conveyor-db";
+    private static final String DEFAULT_DERBY_DATABASE_NAME = "conveyor_db";
+
     public PersistenceProfile {
         Objects.requireNonNull(kind, "kind must not be null");
     }
@@ -46,6 +49,7 @@ public record PersistenceProfile(
 
     public PersistenceProfile normalized() {
         String normalizedDatabase = normalizedDatabase();
+        String normalizedSchema = normalizedSchema();
         String normalizedPartTable = kind.isJdbc() ? defaultIfBlank(partTable, kind.defaultPartTable()) : trimToNull(partTable);
         String normalizedPersistenceName = kind.isRedis() ? defaultIfBlank(persistenceName, kind.defaultPersistenceName()) : trimToNull(persistenceName);
         return new PersistenceProfile(
@@ -57,7 +61,7 @@ public record PersistenceProfile(
                 kind.isNetwork() ? defaultIfBlank(host, kind.defaultHost()) : trimToNull(host),
                 port != null ? port : kind.defaultPort(),
                 normalizedDatabase,
-                trimToNull(schema),
+                normalizedSchema,
                 normalizedPartTable,
                 kind.isJdbc() ? defaultIfBlank(completedLogTable, kind.defaultCompletedLogTable()) : trimToNull(completedLogTable),
                 trimToNull(user),
@@ -108,6 +112,17 @@ public record PersistenceProfile(
             return trimToNull(database);
         }
         return defaultIfBlank(database, kind.defaultDatabase());
+    }
+
+    private String normalizedSchema() {
+        String normalized = trimToNull(schema);
+        if (kind != PersistenceKind.DERBY) {
+            return normalized;
+        }
+        if (normalized == null || LEGACY_DERBY_DATABASE_NAME.equals(normalized)) {
+            return DEFAULT_DERBY_DATABASE_NAME;
+        }
+        return normalized;
     }
 
     public static String suggestedDisplayName(PersistenceKind kind, String database, String partTable, String persistenceName) {

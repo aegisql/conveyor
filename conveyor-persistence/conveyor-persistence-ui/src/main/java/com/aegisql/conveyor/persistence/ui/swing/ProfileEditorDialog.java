@@ -8,6 +8,7 @@ import com.aegisql.conveyor.persistence.ui.model.PersistenceProfile;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -23,6 +24,7 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +47,19 @@ final class ProfileEditorDialog extends JDialog {
     private final JButton databaseLookupButton = new JButton("Lookup");
     private final JButton schemaLookupButton = new JButton("Lookup");
     private final JLabel databaseLabel = new JLabel("Database");
+    private final JLabel schemaLabel = new JLabel("Schema");
     private final JLabel persistenceNameLabel = new JLabel("Persistence Name");
+    private final FormRow keyClassRow;
+    private final FormRow persistenceNameRow;
+    private final FormRow hostRow;
+    private final FormRow portRow;
+    private final FormRow databaseRow;
+    private final FormRow schemaRow;
+    private final FormRow partTableRow;
+    private final FormRow completedLogTableRow;
+    private final FormRow userRow;
+    private final FormRow passwordRow;
+    private final FormRow redisUriRow;
 
     private PersistenceProfile value;
     private PersistenceKind currentKind;
@@ -56,6 +70,17 @@ final class ProfileEditorDialog extends JDialog {
     private ProfileEditorDialog(Component owner, PersistenceProfile profile) {
         super(SwingUtilities.getWindowAncestor(owner), "Persistence Profile", ModalityType.APPLICATION_MODAL);
         this.value = profile.normalized();
+        this.keyClassRow = new FormRow(new JLabel("Key Class"), keyClassField);
+        this.persistenceNameRow = new FormRow(persistenceNameLabel, fieldPanel(persistenceNameField, persistenceLookupButton));
+        this.hostRow = new FormRow(new JLabel("Host"), hostField);
+        this.portRow = new FormRow(new JLabel("Port"), portField);
+        this.databaseRow = new FormRow(databaseLabel, fieldPanel(databaseField, databaseLookupButton));
+        this.schemaRow = new FormRow(schemaLabel, fieldPanel(schemaField, schemaLookupButton));
+        this.partTableRow = new FormRow(new JLabel("Part Table"), partTableField);
+        this.completedLogTableRow = new FormRow(new JLabel("Completed Log Table"), completedLogTableField);
+        this.userRow = new FormRow(new JLabel("User"), userField);
+        this.passwordRow = new FormRow(new JLabel("Password"), passwordField);
+        this.redisUriRow = new FormRow(new JLabel("Redis URI"), redisUriField);
         setLayout(new BorderLayout(8, 8));
         add(formPanel(), BorderLayout.CENTER);
         add(buttonPanel(), BorderLayout.SOUTH);
@@ -95,17 +120,17 @@ final class ProfileEditorDialog extends JDialog {
         int row = 0;
         row = addRow(panel, gbc, row, "Display Name", displayNameField);
         row = addRow(panel, gbc, row, "Type", kindCombo);
-        row = addRow(panel, gbc, row, "Key Class", keyClassField);
-        row = addRow(panel, gbc, row, persistenceNameLabel, fieldPanel(persistenceNameField, persistenceLookupButton));
-        row = addRow(panel, gbc, row, "Host", hostField);
-        row = addRow(panel, gbc, row, "Port", portField);
-        row = addRow(panel, gbc, row, databaseLabel, fieldPanel(databaseField, databaseLookupButton));
-        row = addRow(panel, gbc, row, "Schema", fieldPanel(schemaField, schemaLookupButton));
-        row = addRow(panel, gbc, row, "Part Table", partTableField);
-        row = addRow(panel, gbc, row, "Completed Log Table", completedLogTableField);
-        row = addRow(panel, gbc, row, "User", userField);
-        row = addRow(panel, gbc, row, "Password", passwordField);
-        addRow(panel, gbc, row, "Redis URI", redisUriField);
+        row = addRow(panel, gbc, row, keyClassRow);
+        row = addRow(panel, gbc, row, persistenceNameRow);
+        row = addRow(panel, gbc, row, hostRow);
+        row = addRow(panel, gbc, row, portRow);
+        row = addRow(panel, gbc, row, databaseRow);
+        row = addRow(panel, gbc, row, schemaRow);
+        row = addRow(panel, gbc, row, partTableRow);
+        row = addRow(panel, gbc, row, completedLogTableRow);
+        row = addRow(panel, gbc, row, userRow);
+        row = addRow(panel, gbc, row, passwordRow);
+        addRow(panel, gbc, row, redisUriRow);
         return panel;
     }
 
@@ -129,6 +154,10 @@ final class ProfileEditorDialog extends JDialog {
         gbc.weightx = 1.0;
         panel.add(field, gbc);
         return row + 1;
+    }
+
+    private int addRow(JPanel panel, GridBagConstraints gbc, int row, FormRow formRow) {
+        return addRow(panel, gbc, row, formRow.label(), formRow.field());
     }
 
     private JPanel buttonPanel() {
@@ -163,28 +192,46 @@ final class ProfileEditorDialog extends JDialog {
     }
 
     private void applyKind(PersistenceKind kind) {
-        boolean jdbc = kind.isJdbc();
-        boolean redis = kind.isRedis();
-        boolean network = kind.isNetwork() && !redis;
+        keyClassField.setEnabled(kind.showsKeyClassField());
+        persistenceNameField.setEnabled(kind.showsPersistenceNameField());
+        hostField.setEnabled(kind.showsHostField());
+        portField.setEnabled(kind.showsPortField());
+        databaseField.setEnabled(kind.showsDatabaseField());
+        schemaField.setEnabled(kind.showsSchemaField());
+        partTableField.setEnabled(kind.showsPartTableField());
+        completedLogTableField.setEnabled(kind.showsCompletedLogTableField());
+        userField.setEnabled(kind.showsUserField());
+        passwordField.setEnabled(kind.showsPasswordField());
+        redisUriField.setEnabled(kind.showsRedisUriField());
+        databaseLookupButton.setEnabled(kind.showsDatabaseField());
+        schemaLookupButton.setEnabled(kind.usesSchemaLookup());
+        persistenceLookupButton.setEnabled(kind.showsPersistenceNameField());
+        schemaLookupButton.setVisible(kind.usesSchemaLookup());
 
-        keyClassField.setEnabled(jdbc);
-        persistenceNameField.setEnabled(redis);
-        hostField.setEnabled(network);
-        portField.setEnabled(network);
-        databaseField.setEnabled(jdbc);
-        schemaField.setEnabled(jdbc);
-        partTableField.setEnabled(jdbc);
-        completedLogTableField.setEnabled(jdbc);
-        redisUriField.setEnabled(redis);
-        databaseLookupButton.setEnabled(jdbc);
-        schemaLookupButton.setEnabled(jdbc);
-        persistenceLookupButton.setEnabled(redis);
+        keyClassRow.setVisible(kind.showsKeyClassField());
+        persistenceNameRow.setVisible(kind.showsPersistenceNameField());
+        hostRow.setVisible(kind.showsHostField());
+        portRow.setVisible(kind.showsPortField());
+        databaseRow.setVisible(kind.showsDatabaseField());
+        schemaRow.setVisible(kind.showsSchemaField());
+        partTableRow.setVisible(kind.showsPartTableField());
+        completedLogTableRow.setVisible(kind.showsCompletedLogTableField());
+        userRow.setVisible(kind.showsUserField());
+        passwordRow.setVisible(kind.showsPasswordField());
+        redisUriRow.setVisible(kind.showsRedisUriField());
 
         databaseLabel.setText(kind.databaseFieldLabel());
-        persistenceNameLabel.setText(redis ? "Persistence Name / Namespace" : "Persistence Name (Redis)");
-        persistenceNameField.setToolTipText(redis
+        schemaLabel.setText(kind.schemaFieldLabel());
+        databaseLookupButton.setText(kind.databaseActionLabel());
+        databaseLookupButton.setToolTipText(kind.databaseActionToolTip());
+        persistenceNameLabel.setText(kind.isRedis() ? "Persistence Name / Namespace" : "Persistence Name (Redis)");
+        persistenceNameField.setToolTipText(kind.isRedis()
                 ? "Use the Redis persistence name that created keys like conv:{name}:meta. This is not the runtime conveyor name."
                 : null);
+        schemaField.setToolTipText(kind == PersistenceKind.DERBY
+                ? "Derby uses this as the database name created inside the selected home directory."
+                : null);
+        pack();
     }
 
     private void wireLookupActions() {
@@ -197,16 +244,49 @@ final class ProfileEditorDialog extends JDialog {
                 draftProfile -> PersistenceBackendFactory.forProfile(draftProfile).lookupPersistenceNames(draftProfile),
                 persistenceNameField
         ));
-        databaseLookupButton.addActionListener(e -> lookupValues(
-                "Databases",
-                draftProfile -> PersistenceBackendFactory.forProfile(draftProfile).lookupDatabases(draftProfile),
-                databaseField
-        ));
+        databaseLookupButton.addActionListener(e -> handleDatabaseAction());
         schemaLookupButton.addActionListener(e -> lookupValues(
                 "Schemas",
                 draftProfile -> PersistenceBackendFactory.forProfile(draftProfile).lookupSchemas(draftProfile),
                 schemaField
         ));
+    }
+
+    private void handleDatabaseAction() {
+        PersistenceKind kind = (PersistenceKind) kindCombo.getSelectedItem();
+        if (kind == null || !kind.showsDatabaseField()) {
+            return;
+        }
+        if (kind.usesLocalDatabasePath()) {
+            browseLocalDatabase(kind);
+            return;
+        }
+        lookupValues(
+                "Databases",
+                draftProfile -> PersistenceBackendFactory.forProfile(draftProfile).lookupDatabases(draftProfile),
+                databaseField
+        );
+    }
+
+    private void browseLocalDatabase(PersistenceKind kind) {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle(kind.databaseChooserTitle());
+        chooser.setFileSelectionMode(kind.usesDirectoryDatabasePath() ? JFileChooser.DIRECTORIES_ONLY : JFileChooser.FILES_ONLY);
+        chooser.setApproveButtonText("Select");
+        chooser.setSelectedFile(initialDatabaseSelection(kind));
+        int result = chooser.showDialog(this, "Select");
+        if (result == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile() != null) {
+            databaseField.setText(chooser.getSelectedFile().getAbsolutePath());
+        }
+    }
+
+    private File initialDatabaseSelection(PersistenceKind kind) {
+        String currentValue = trimToNull(databaseField.getText());
+        if (currentValue != null) {
+            return new File(currentValue);
+        }
+        String defaultValue = kind.defaultDatabase();
+        return defaultValue == null ? new File(System.getProperty("user.home")) : new File(defaultValue);
     }
 
     private void lookupValues(String title, java.util.function.Function<PersistenceProfile, List<String>> lookup, JTextField targetField) {
@@ -348,6 +428,9 @@ final class ProfileEditorDialog extends JDialog {
                 new String(passwordField.getPassword()),
                 redisUriField.getText()
         ).normalized();
+        if (profile.kind() == PersistenceKind.DERBY && !profile.schema().matches("[A-Za-z][A-Za-z0-9_]*")) {
+            throw new IllegalArgumentException("Derby database name must start with a letter and use only letters, digits, or underscores.");
+        }
         if (profile.displayName().isBlank()) {
             throw new IllegalArgumentException("Display name is required");
         }
@@ -394,6 +477,13 @@ final class ProfileEditorDialog extends JDialog {
         @Override
         public void changedUpdate(DocumentEvent e) {
             action.run();
+        }
+    }
+
+    private record FormRow(JLabel label, Component field) {
+        private void setVisible(boolean visible) {
+            label.setVisible(visible);
+            field.setVisible(visible);
         }
     }
 }

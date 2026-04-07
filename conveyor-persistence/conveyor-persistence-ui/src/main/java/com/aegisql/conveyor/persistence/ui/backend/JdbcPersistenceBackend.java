@@ -11,6 +11,8 @@ import com.aegisql.conveyor.persistence.ui.model.PersistenceSnapshot;
 import com.aegisql.conveyor.persistence.ui.model.SummaryEntry;
 import com.aegisql.conveyor.persistence.ui.model.TableData;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -49,6 +51,9 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
             executeHealthQuery(connection, normalized.kind());
             return connectionStatus(connection, normalized);
         } catch (Exception e) {
+            if (canInitializeLocalDerby(normalized, e)) {
+                return ConnectionStatus.CONNECTED_UNINITIALIZED;
+            }
             PersistenceSnapshot fallback = inspectWithBootstrapFallback(normalized, e, 0);
             return fallback == null ? ConnectionStatus.FAILED : fallback.status();
         }
@@ -64,6 +69,9 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
         try (Connection connection = openConnection(normalized)) {
             return inspectInitializedDatabase(connection, normalized, rowLimit, normalizedPageIndex);
         } catch (Exception e) {
+            if (canInitializeLocalDerby(normalized, e)) {
+                return localDerbyInitializationSnapshot(normalized, e, normalizedPageIndex);
+            }
             PersistenceSnapshot fallback = inspectWithBootstrapFallback(normalized, e, normalizedPageIndex);
             if (fallback != null) {
                 return fallback;
@@ -199,8 +207,9 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
             if (normalized.port() != null) {
                 builder = builder.port(normalized.port());
             }
-            if (normalized.database() != null) {
-                builder = builder.database(normalized.database());
+            String effectiveDatabase = effectiveDatabaseValue(normalized);
+            if (effectiveDatabase != null) {
+                builder = builder.database(effectiveDatabase);
             }
             if (normalized.schema() != null) {
                 builder = builder.schema(normalized.schema());
@@ -265,7 +274,7 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
                         + ";databaseName=" + normalized.database() + ";encrypt=false;trustServerCertificate=true";
             }
             case SQLITE -> "jdbc:sqlite:" + normalized.database();
-            case DERBY -> "jdbc:derby:" + normalized.database() + ';';
+            case DERBY -> "jdbc:derby:" + effectiveDatabaseValue(normalized) + ';';
             case REDIS -> throw new IllegalArgumentException("Redis does not use JDBC URLs");
         };
     }
@@ -297,6 +306,7 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
     private void executeHealthQuery(Connection connection, PersistenceKind kind) throws SQLException {
         String sql = switch (kind) {
             case ORACLE -> "SELECT 1 FROM DUAL";
+            case DERBY -> "VALUES 1";
             default -> "SELECT 1";
         };
         try (Statement statement = connection.createStatement();
@@ -635,6 +645,60 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
         return profile.kind().isJdbc()
                 && profile.kind().isNetwork()
                 && profile.database() == null;
+    }
+
+    private String effectiveDatabaseValue(PersistenceProfile profile) {
+        if (profile.database() == null || profile.kind() != PersistenceKind.DERBY) {
+            return profile.database();
+        }
+        Path configured = Path.of(profile.database());
+        if (Files.isDirectory(configured) && !looksLikeDerbyDatabaseDirectory(configured)) {
+            String databaseName = profile.schema() != null ? profile.schema() : "conveyor_db";
+            return configured.resolve(databaseName).toString();
+        }
+        return profile.database();
+    }
+
+    private boolean looksLikeDerbyDatabaseDirectory(Path path) {
+        return Files.exists(path.resolve("service.properties"));
+    }
+
+    private boolean canInitializeLocalDerby(PersistenceProfile profile, Exception error) {
+        if (profile.kind() != PersistenceKind.DERBY || profile.database() == null) {
+            return false;
+        }
+        String message = error.getMessage();
+        if (message == null) {
+            return false;
+        }
+        String lower = message.toLowerCase(Locale.ROOT);
+        return lower.contains("database")
+                && (lower.contains("not found")
+                || lower.contains("does not exist")
+                || lower.contains("not created"));
+    }
+
+    private PersistenceSnapshot localDerbyInitializationSnapshot(PersistenceProfile profile, Exception originalFailure, int pageIndex) {
+        return new PersistenceSnapshot(
+                ConnectionStatus.CONNECTED_UNINITIALIZED,
+                "Derby database not initialized",
+                "The selected Derby home directory is reachable but the target database has not been created yet. Use Initialize to create the database and persistence tables.",
+                List.of(
+                        new SummaryEntry("Engine", profile.kind().displayName()),
+                        new SummaryEntry("Database Home Directory", profile.database()),
+                        new SummaryEntry("Target Database Path", effectiveDatabaseValue(profile)),
+                        new SummaryEntry("Connection Error", originalFailure.getMessage())
+                ),
+                List.of(),
+                List.of(),
+                pageIndex,
+                pageIndex > 0,
+                false,
+                true,
+                true,
+                false,
+                false
+        );
     }
 
     private String formatJdbcValue(Object value) {

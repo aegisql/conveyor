@@ -219,6 +219,7 @@ public final class PersistenceWorkbenchFrame extends javax.swing.JFrame {
         int index = tabs.indexOfComponent(panel);
         StatusTabTitle title = new StatusTabTitle(
                 selected.label(),
+                () -> tabs.setSelectedComponent(panel),
                 () -> closeTab(selected.id()),
                 event -> showTabContextMenu(selected.id(), event)
         );
@@ -321,7 +322,12 @@ public final class PersistenceWorkbenchFrame extends javax.swing.JFrame {
 
         private final JLabel dotLabel = new JLabel("\u25cf");
 
-        private StatusTabTitle(String title, Runnable closeAction, java.util.function.Consumer<MouseEvent> popupAction) {
+        private StatusTabTitle(
+                String title,
+                Runnable selectAction,
+                Runnable closeAction,
+                java.util.function.Consumer<MouseEvent> popupAction
+        ) {
             super(new FlowLayout(FlowLayout.LEFT, 6, 0));
             setOpaque(false);
             dotLabel.setFont(dotLabel.getFont().deriveFont(Font.BOLD, 14f));
@@ -340,11 +346,13 @@ public final class PersistenceWorkbenchFrame extends javax.swing.JFrame {
             MouseAdapter popupListener = new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
+                    selectAction.run();
                     popupAction.accept(e);
                 }
 
                 @Override
                 public void mouseReleased(MouseEvent e) {
+                    selectAction.run();
                     popupAction.accept(e);
                 }
             };

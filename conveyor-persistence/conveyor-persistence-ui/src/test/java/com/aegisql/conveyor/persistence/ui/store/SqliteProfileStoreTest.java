@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,5 +72,33 @@ class SqliteProfileStoreTest {
 
         store.delete(updated.id());
         assertEquals(0, store.listProfiles().size());
+    }
+
+    @Test
+    void listProfilesMigratesLegacyDerbyDatabaseName() throws Exception {
+        Path storePath = tempDir.resolve("profiles.db");
+        SqliteProfileStore store = new SqliteProfileStore(storePath);
+
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + storePath);
+             PreparedStatement statement = connection.prepareStatement("""
+                     INSERT INTO profiles (
+                         display_name, kind, key_class_name, database_name, schema_name, part_table, completed_log_table
+                     ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                     """)) {
+            statement.setString(1, "Legacy Derby");
+            statement.setString(2, PersistenceKind.DERBY.name());
+            statement.setString(3, "java.lang.Long");
+            statement.setString(4, tempDir.resolve("derby-home").toString());
+            statement.setString(5, "conveyor-db");
+            statement.setString(6, "PART");
+            statement.setString(7, "COMPLETED_LOG");
+            statement.executeUpdate();
+        }
+
+        List<PersistenceProfile> profiles = store.listProfiles();
+
+        assertEquals(1, profiles.size());
+        assertEquals(PersistenceKind.DERBY, profiles.getFirst().kind());
+        assertEquals("conveyor_db", profiles.getFirst().schema());
     }
 }
