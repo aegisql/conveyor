@@ -74,6 +74,7 @@ Last version supporting Java 8 is 1.4.4
 * Added support for OracleDB in persistence
 * Added support for SQL Server in persistence
 * Added support for no-sql REDIS in persistence
+* Persistence UI tool
 * Code refactoring and cleanup
 * Tests and bugfixes
 
