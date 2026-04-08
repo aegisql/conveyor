@@ -41,7 +41,7 @@ java -jar conveyor-persistence/conveyor-persistence-ui/target/conveyor-persisten
   - paging
   - refresh
   - initialize
-  - show script when supported
+  - show initialization preview when supported
   - archive expired
   - archive all
 - Bottom area:
@@ -165,17 +165,30 @@ When the database is reachable but the Conveyor tables are missing:
 - the tab should be yellow
 - `Initialize Persistence` becomes available
 
-You can also open the generated SQL script instead of initializing directly.
+You can also open the initialization preview instead of initializing directly.
+
+For JDBC, that preview window includes:
+- `SQL`
+  - generated initialization SQL
+- `Java`
+  - equivalent Java builder code that performs the same initialization
 
 This is useful when:
 - initialization should be reviewed first
 - a DBA wants to run the script separately
-- you want to save the script for later use
+- you want to save either the SQL or Java example for later use
 
-[Screenshot Placeholder: JDBC tab before initialization with Initialize and Show Script enabled]
+[Screenshot Placeholder: JDBC tab before initialization with Initialize and Initialization Preview enabled]
+[Screenshot Placeholder: Initialization preview window with SQL and Java tabs]
 
 ### Redis
 Redis does not use SQL scripts.
+
+For Redis, the same preview window opens with:
+- `Java`
+  - example `RedisPersistenceBuilder` code that initializes the namespace
+
+There is no SQL tab for Redis.
 
 When the Redis server is reachable but the namespace is not initialized:
 - the tab should be yellow
@@ -328,6 +341,7 @@ Each open tab also has its own close button.
 - The UI does not expose every persistence-builder option.
 - Preview is raw and bounded to a page size, not a full domain explorer.
 - Redis has no SQL-script workflow.
+- Redis does have a Java initialization preview workflow in the UI.
 - JDBC index metadata depends on what the driver and database user are allowed to expose.
 
 ## Suggested Screenshot Set

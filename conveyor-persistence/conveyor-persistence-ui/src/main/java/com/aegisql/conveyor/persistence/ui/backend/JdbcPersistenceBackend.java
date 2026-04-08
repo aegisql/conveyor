@@ -153,6 +153,12 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
     }
 
     @Override
+    public String initializationJavaCode(PersistenceProfile profile) {
+        PersistenceProfile normalized = profile.normalized();
+        return JavaInitializationCodeGenerator.jdbcInitializationCode(normalized, effectiveDatabaseValue(normalized));
+    }
+
+    @Override
     public void initialize(PersistenceProfile profile) {
         requirePersistenceDatabase(profile);
         newBuilder(profile).autoInit(false).init();

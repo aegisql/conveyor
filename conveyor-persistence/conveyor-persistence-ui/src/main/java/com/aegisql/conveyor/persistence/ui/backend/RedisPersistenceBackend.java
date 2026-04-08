@@ -75,7 +75,7 @@ final class RedisPersistenceBackend implements PersistenceBackend {
                         normalizedPageIndex > 0,
                         false,
                         true,
-                        false,
+                        true,
                         false,
                         false
                 );
@@ -109,7 +109,7 @@ final class RedisPersistenceBackend implements PersistenceBackend {
                     normalizedPageIndex > 0,
                     activePreview.hasNext() || staticPreview.hasNext() || completedPreview.hasNext(),
                     false,
-                    false,
+                    true,
                     true,
                     true
             );
@@ -128,7 +128,7 @@ final class RedisPersistenceBackend implements PersistenceBackend {
                     normalizedPageIndex > 0,
                     false,
                     false,
-                    false,
+                    true,
                     false,
                     false
             );
@@ -162,6 +162,16 @@ final class RedisPersistenceBackend implements PersistenceBackend {
     @Override
     public String initializationScript(PersistenceProfile profile) {
         throw new UnsupportedOperationException("Redis initialization does not use SQL scripts");
+    }
+
+    @Override
+    public String initializationJavaCode(PersistenceProfile profile) {
+        return JavaInitializationCodeGenerator.redisInitializationCode(profile);
+    }
+
+    @Override
+    public InitializationPreview initializationPreview(PersistenceProfile profile) {
+        return new InitializationPreview(null, initializationJavaCode(profile));
     }
 
     @Override

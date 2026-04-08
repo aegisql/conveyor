@@ -20,6 +20,12 @@ public interface PersistenceBackend {
 
     String initializationScript(PersistenceProfile profile);
 
+    String initializationJavaCode(PersistenceProfile profile);
+
+    default InitializationPreview initializationPreview(PersistenceProfile profile) {
+        return new InitializationPreview(initializationScript(profile), initializationJavaCode(profile));
+    }
+
     void initialize(PersistenceProfile profile);
 
     void archiveExpired(PersistenceProfile profile);

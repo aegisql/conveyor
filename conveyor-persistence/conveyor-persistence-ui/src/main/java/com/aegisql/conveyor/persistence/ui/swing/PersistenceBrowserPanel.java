@@ -60,7 +60,7 @@ public final class PersistenceBrowserPanel extends JPanel {
     private final JButton nextPageButton = actionButton(WorkbenchIcons.nextPage(), "Next Page");
     private final JButton refreshButton = actionButton(WorkbenchIcons.refresh(), "Refresh");
     private final JButton initializeButton = actionButton(WorkbenchIcons.initialize(), "Initialize Persistence");
-    private final JButton showSqlButton = actionButton(WorkbenchIcons.script(), "Show Initialization SQL");
+    private final JButton showSqlButton = actionButton(WorkbenchIcons.script(), "Show Initialization Preview");
     private final JButton archiveExpiredButton = actionButton(WorkbenchIcons.archiveExpired(), "Archive Expired Data");
     private final JButton archiveAllButton = actionButton(WorkbenchIcons.archiveAll(), "Archive All Data");
     private PersistenceSnapshot currentSnapshot;
@@ -193,15 +193,15 @@ public final class PersistenceBrowserPanel extends JPanel {
     }
 
     private void loadInitializationScript() {
-        setBusy(true, "Generating initialization script...");
+        setBusy(true, "Generating initialization preview...");
         CompletableFuture
-                .supplyAsync(() -> backend.initializationScript(profile), executor)
-                .whenComplete((script, error) -> SwingUtilities.invokeLater(() -> {
+                .supplyAsync(() -> backend.initializationPreview(profile), executor)
+                .whenComplete((preview, error) -> SwingUtilities.invokeLater(() -> {
                     setBusy(false, lastStatusText);
                     if (error != null) {
-                        JOptionPane.showMessageDialog(this, rootMessage(error), "Script Generation Failed", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(this, rootMessage(error), "Preview Generation Failed", JOptionPane.ERROR_MESSAGE);
                     } else {
-                        SqlTextDialog.showDialog(this, profile.label() + " Initialization Script", script);
+                        SqlTextDialog.showDialog(this, profile.label() + " Initialization Preview", preview);
                     }
                 }));
     }

@@ -58,10 +58,14 @@ For a user-facing walkthrough, see:
 ### Initialization And Maintenance
 - JDBC:
   - initialize persistence
-  - generate initialization SQL
-  - view/copy/save initialization SQL from the UI
+  - generate an initialization preview
+  - preview includes:
+    - SQL
+    - equivalent Java builder code
+  - view/copy/save either preview tab from the UI
 - Redis:
   - initialize persistence namespace
+  - Java initialization preview only
   - no SQL script path
 - Both backend families:
   - archive expired data
@@ -205,6 +209,8 @@ Credential storage shape:
   - legacy AES/ECB default compatibility
 - It does not decode arbitrary application payload classes unless built-in persistence converters are enough
 - Redis does not have an initialization-script workflow
+- Redis does have an initialization-preview workflow
+  - Java only
 - Index metadata is best-effort and depends on JDBC metadata support and database permissions
 
 ## Residual Risks And Review Findings

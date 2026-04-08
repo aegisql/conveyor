@@ -178,6 +178,14 @@ For JDBC initialization details and the standalone init app, see:
 - `conveyor-persistence/conveyor-persistence-ui/doc/project-context.md`
 - `conveyor-persistence/conveyor-persistence-ui/doc/user-manual.md`
 
+The persistence workbench now exposes initialization previews directly in the UI:
+
+- JDBC:
+  - generated SQL
+  - equivalent Java builder code
+- Redis:
+  - equivalent Java builder code
+
 In practice, choosing one JDBC helper over another is mostly about:
 
 - what database you already run
@@ -500,6 +508,7 @@ Notes:
 - `jdbcConnection(dataSource)` is the shared/cached path.
 - `driverManagerJdbcConnection()` is the direct non-`DataSource` path.
 - If you are targeting another JDBC-capable database, the same persistence shape can be used with `conveyor-persistence-jdbc` plus your driver and engine-specific configuration.
+- The persistence workbench can show the same JDBC initialization in both SQL and Java form for copy/save use.
 
 ### Redis Example
 
@@ -552,6 +561,7 @@ Notes:
   - `ssl(...)`
 - externally supplied `JedisPooled` clients remain the right option when the host application already owns Redis connection infrastructure
 - current Redis encryption protects value payload bytes, not Redis lookup/index keys
+- The persistence workbench can generate equivalent Java initialization code for Redis profiles, even though Redis has no SQL init script workflow.
 
 ## Concept Mapping
 

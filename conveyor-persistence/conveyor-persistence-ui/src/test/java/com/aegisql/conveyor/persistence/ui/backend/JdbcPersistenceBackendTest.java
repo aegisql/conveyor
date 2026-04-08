@@ -144,6 +144,42 @@ class JdbcPersistenceBackendTest {
     }
 
     @Test
+    void generatesJavaInitializationCodeForJdbcProfile() {
+        Path databaseFile = tempDir.resolve("java-preview.db");
+        PersistenceProfile profile = new PersistenceProfile(
+                null,
+                "SQLite Java",
+                PersistenceKind.SQLITE,
+                Integer.class.getName(),
+                null,
+                null,
+                null,
+                databaseFile.toString(),
+                null,
+                "PART",
+                "COMPLETED_LOG",
+                null,
+                "secret",
+                null,
+                PayloadEncryptionMode.LEGACY_AES_ECB,
+                "viewer-secret"
+        ).normalized();
+
+        JdbcPersistenceBackend backend = new JdbcPersistenceBackend();
+        String code = backend.initializationJavaCode(profile);
+
+        assertTrue(code.contains("JdbcPersistenceBuilder"));
+        assertTrue(code.contains(".presetInitializer(\"sqlite\", Integer.class)"));
+        assertTrue(code.contains(".database(\"" + databaseFile.toString().replace("\\", "\\\\") + "\")"));
+        assertTrue(code.contains(".partTable(\"PART\")"));
+        assertTrue(code.contains(".completedLogTable(\"COMPLETED_LOG\")"));
+        assertTrue(code.contains(".password(\"<jdbc-password>\")"));
+        assertTrue(code.contains(".encryptionSecret(\"<encryption-secret>\")"));
+        assertTrue(code.contains(".encryptionTransformation(\"AES/ECB/PKCS5Padding\")"));
+        assertTrue(code.contains("builder.init();"));
+    }
+
+    @Test
     void treatsMissingDerbyDatabaseAsInitializable() throws Exception {
         Path databaseDir = tempDir.resolve("fresh-derby-db");
         Files.createDirectories(databaseDir);

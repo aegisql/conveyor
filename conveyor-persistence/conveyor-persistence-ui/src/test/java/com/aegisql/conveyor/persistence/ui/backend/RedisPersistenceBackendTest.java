@@ -73,6 +73,40 @@ class RedisPersistenceBackendTest {
     }
 
     @Test
+    void generatesJavaInitializationCodeForRedisProfile() {
+        PersistenceProfile profile = new PersistenceProfile(
+                null,
+                "Redis Java",
+                PersistenceKind.REDIS,
+                null,
+                "orders-cache",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "tester",
+                "secret",
+                "redis://localhost:6379/2",
+                PayloadEncryptionMode.MANAGED_DEFAULT,
+                "viewer-secret"
+        ).normalized();
+
+        RedisPersistenceBackend backend = new RedisPersistenceBackend();
+        String code = backend.initializationJavaCode(profile);
+
+        assertTrue(code.contains("RedisPersistenceBuilder<Object>"));
+        assertTrue(code.contains("new RedisPersistenceBuilder<Object>(\"orders-cache\")"));
+        assertTrue(code.contains(".redisUri(\"redis://localhost:6379/2\")"));
+        assertTrue(code.contains(".user(\"tester\")"));
+        assertTrue(code.contains(".password(\"<redis-password>\")"));
+        assertTrue(code.contains(".encryptionSecret(\"<encryption-secret>\")"));
+        assertTrue(code.contains(".autoInit(true);"));
+        assertTrue(code.contains("builder.build()"));
+    }
+
+    @Test
     void showsAvailablePersistencesWhenRedisNamespaceNameDoesNotMatchConveyorName() {
         Assumptions.assumeTrue(redisAvailable(), "Redis is not available for RedisPersistenceBackendTest");
 
