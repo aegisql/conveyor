@@ -2,6 +2,7 @@ package com.aegisql.conveyor.persistence.ui.swing;
 
 import com.aegisql.conveyor.persistence.ui.backend.PersistenceBackend;
 import com.aegisql.conveyor.persistence.ui.backend.PersistenceBackendFactory;
+import com.aegisql.conveyor.persistence.ui.model.PayloadEncryptionMode;
 import com.aegisql.conveyor.persistence.ui.model.PersistenceKind;
 import com.aegisql.conveyor.persistence.ui.model.PersistenceProfile;
 
@@ -43,6 +44,8 @@ final class ProfileEditorDialog extends JDialog {
     private final JTextField userField = new JTextField(30);
     private final JPasswordField passwordField = new JPasswordField(30);
     private final JTextField redisUriField = new JTextField(30);
+    private final JComboBox<PayloadEncryptionMode> payloadEncryptionModeCombo = new JComboBox<>(PayloadEncryptionMode.values());
+    private final JPasswordField encryptionSecretField = new JPasswordField(30);
     private final JButton persistenceLookupButton = new JButton("Lookup");
     private final JButton databaseLookupButton = new JButton("Lookup");
     private final JButton schemaLookupButton = new JButton("Lookup");
@@ -60,6 +63,8 @@ final class ProfileEditorDialog extends JDialog {
     private final FormRow userRow;
     private final FormRow passwordRow;
     private final FormRow redisUriRow;
+    private final FormRow payloadEncryptionModeRow;
+    private final FormRow encryptionSecretRow;
 
     private PersistenceProfile value;
     private PersistenceKind currentKind;
@@ -81,6 +86,8 @@ final class ProfileEditorDialog extends JDialog {
         this.userRow = new FormRow(new JLabel("User"), userField);
         this.passwordRow = new FormRow(new JLabel("Password"), passwordField);
         this.redisUriRow = new FormRow(new JLabel("Redis URI"), redisUriField);
+        this.payloadEncryptionModeRow = new FormRow(new JLabel("Value Encryption"), payloadEncryptionModeCombo);
+        this.encryptionSecretRow = new FormRow(new JLabel("Encryption Secret"), encryptionSecretField);
         setLayout(new BorderLayout(8, 8));
         add(formPanel(), BorderLayout.CENTER);
         add(buttonPanel(), BorderLayout.SOUTH);
@@ -130,7 +137,9 @@ final class ProfileEditorDialog extends JDialog {
         row = addRow(panel, gbc, row, completedLogTableRow);
         row = addRow(panel, gbc, row, userRow);
         row = addRow(panel, gbc, row, passwordRow);
-        addRow(panel, gbc, row, redisUriRow);
+        row = addRow(panel, gbc, row, redisUriRow);
+        row = addRow(panel, gbc, row, payloadEncryptionModeRow);
+        addRow(panel, gbc, row, encryptionSecretRow);
         return panel;
     }
 
@@ -189,6 +198,8 @@ final class ProfileEditorDialog extends JDialog {
         userField.setText(nullToEmpty(profile.user()));
         passwordField.setText(nullToEmpty(profile.password()));
         redisUriField.setText(nullToEmpty(profile.redisUri()));
+        payloadEncryptionModeCombo.setSelectedItem(profile.payloadEncryptionMode());
+        encryptionSecretField.setText(nullToEmpty(profile.encryptionSecret()));
     }
 
     private void applyKind(PersistenceKind kind) {
@@ -219,6 +230,8 @@ final class ProfileEditorDialog extends JDialog {
         userRow.setVisible(kind.showsUserField());
         passwordRow.setVisible(kind.showsPasswordField());
         redisUriRow.setVisible(kind.showsRedisUriField());
+        payloadEncryptionModeRow.setVisible(true);
+        encryptionSecretRow.setVisible(true);
 
         databaseLabel.setText(kind.databaseFieldLabel());
         schemaLabel.setText(kind.schemaFieldLabel());
@@ -231,6 +244,8 @@ final class ProfileEditorDialog extends JDialog {
         schemaField.setToolTipText(kind == PersistenceKind.DERBY
                 ? "Derby uses this as the database name created inside the selected home directory."
                 : null);
+        payloadEncryptionModeCombo.setToolTipText("Choose the stored-value encryption mode used by this persistence so the viewer can try to decrypt cart values.");
+        encryptionSecretField.setToolTipText("Optional secret used to decrypt encrypted cart values during preview.");
         pack();
     }
 
@@ -426,7 +441,9 @@ final class ProfileEditorDialog extends JDialog {
                 completedLogTableField.getText(),
                 userField.getText(),
                 new String(passwordField.getPassword()),
-                redisUriField.getText()
+                redisUriField.getText(),
+                (PayloadEncryptionMode) payloadEncryptionModeCombo.getSelectedItem(),
+                new String(encryptionSecretField.getPassword())
         ).normalized();
         if (profile.kind() == PersistenceKind.DERBY && !profile.schema().matches("[A-Za-z][A-Za-z0-9_]*")) {
             throw new IllegalArgumentException("Derby database name must start with a letter and use only letters, digits, or underscores.");

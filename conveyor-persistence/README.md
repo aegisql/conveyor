@@ -176,6 +176,7 @@ For JDBC initialization details and the standalone init app, see:
 
 - `conveyor-persistence/conveyor-persistence-jdbc/doc/initialization.md`
 - `conveyor-persistence/conveyor-persistence-ui/doc/project-context.md`
+- `conveyor-persistence/conveyor-persistence-ui/doc/user-manual.md`
 
 In practice, choosing one JDBC helper over another is mostly about:
 

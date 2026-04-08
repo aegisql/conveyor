@@ -97,7 +97,9 @@ class PersistenceProfileTest {
                 "COMPLETED_LOG",
                 "tester",
                 "secret",
-                null
+                null,
+                PayloadEncryptionMode.MANAGED_DEFAULT,
+                "value-secret"
         );
 
         PersistenceProfile duplicate = original.duplicateAsNew();
@@ -114,6 +116,8 @@ class PersistenceProfileTest {
         assertEquals(original.completedLogTable(), duplicate.completedLogTable());
         assertEquals(original.user(), duplicate.user());
         assertEquals(original.password(), duplicate.password());
+        assertEquals(original.payloadEncryptionMode(), duplicate.payloadEncryptionMode());
+        assertEquals(original.encryptionSecret(), duplicate.encryptionSecret());
     }
 
     @Test
@@ -145,5 +149,28 @@ class PersistenceProfileTest {
         ).normalized();
 
         assertEquals("conveyor_db", normalized.schema());
+    }
+
+    @Test
+    void defaultsToNoPayloadEncryptionWhenNotSpecified() {
+        PersistenceProfile normalized = new PersistenceProfile(
+                null,
+                "SQLite Dev",
+                PersistenceKind.SQLITE,
+                "java.lang.Long",
+                null,
+                null,
+                null,
+                "/tmp/dev.db",
+                null,
+                "PART",
+                "COMPLETED_LOG",
+                null,
+                null,
+                null
+        ).normalized();
+
+        assertEquals(PayloadEncryptionMode.NONE, normalized.payloadEncryptionMode());
+        assertNull(normalized.encryptionSecret());
     }
 }

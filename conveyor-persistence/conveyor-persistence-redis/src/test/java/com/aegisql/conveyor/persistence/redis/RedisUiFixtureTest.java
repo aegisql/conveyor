@@ -27,6 +27,7 @@ class RedisUiFixtureTest extends RedisTestSupport {
 
     private static final int FIXTURE_SIZE = 24;
     private static final int STATIC_PART_COUNT = 3;
+    private static final String FIXTURE_SECRET = "redis-ui-fixture-secret";
 
     @Test
     void leavesTrioDataForInspection() throws Exception {
@@ -35,9 +36,11 @@ class RedisUiFixtureTest extends RedisTestSupport {
         ThreadPool pool = new ThreadPool(3);
 
         System.out.println("Redis UI inspection namespace: " + name);
+        System.out.println("Redis UI inspection secret: " + FIXTURE_SECRET);
 
         try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(name)
                 .labelConverter(TrioPart.class)
+                .encryptionSecret(FIXTURE_SECRET)
                 .maxArchiveBatchSize(1)
                 .noArchiving()
                 .build()) {

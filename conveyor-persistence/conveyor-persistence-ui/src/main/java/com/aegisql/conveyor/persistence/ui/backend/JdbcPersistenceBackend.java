@@ -39,8 +39,6 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
     private static final String CART_VALUE_COLUMN = "CART_VALUE";
     private static final String VALUE_TYPE_COLUMN = "VALUE_TYPE";
 
-    private final ConverterAdviser<Object> converterAdviser = new ConverterAdviser<>();
-
     @Override
     public ConnectionStatus connectionStatus(PersistenceProfile profile) {
         PersistenceProfile normalized = profile.normalized();
@@ -220,7 +218,7 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
             if (normalized.password() != null) {
                 builder = builder.password(normalized.password());
             }
-            return builder;
+            return ProfileEncryptionSupport.apply(builder, normalized);
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Failed to load key class " + normalized.keyClassName(), e);
         }
@@ -358,7 +356,7 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
         }
     }
 
-    private TablePreview previewTable(Connection connection, String title, String tableRef, int rowLimit, int pageIndex) throws SQLException {
+    private TablePreview previewTable(Connection connection, PersistenceProfile profile, String title, String tableRef, int rowLimit, int pageIndex) throws SQLException {
         int offset = Math.max(0, pageIndex) * Math.max(1, rowLimit);
         try (Statement statement = connection.createStatement()) {
             statement.setMaxRows(offset + Math.max(1, rowLimit) + 1);
@@ -386,7 +384,7 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
                     String valueType = valueTypeIndex >= 0 ? resultSet.getString(valueTypeIndex + 1) : null;
                     for (int i = 1; i <= metaData.getColumnCount(); i++) {
                         if (i == cartValueIndex + 1 && valueType != null) {
-                            row.add(formatCartValue(resultSet, i, valueType));
+                            row.add(formatCartValue(profile, resultSet, i, valueType));
                         } else {
                             row.add(formatJdbcValue(resultSet.getObject(i)));
                         }
@@ -407,15 +405,21 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
         return -1;
     }
 
-    private String formatCartValue(ResultSet resultSet, int valueIndex, String valueType) throws SQLException {
+    private String formatCartValue(PersistenceProfile profile, ResultSet resultSet, int valueIndex, String valueType) throws SQLException {
         byte[] bytes = resultSet.getBytes(valueIndex);
         if (bytes == null) {
             return "";
         }
         try {
+            ConverterAdviser<Object> converterAdviser = ProfileEncryptionSupport.isEncryptedHint(valueType)
+                    ? ProfileEncryptionSupport.newDecryptingConverterAdviser(profile)
+                    : new ConverterAdviser<>();
             Object decoded = converterAdviser.getConverter(null, valueType).fromPersistence(bytes);
             return formatJdbcValue(decoded);
         } catch (Exception ignored) {
+            if (ProfileEncryptionSupport.isEncryptedHint(valueType)) {
+                return ProfileEncryptionSupport.encryptedPayloadMessage(profile);
+            }
             return formatJdbcValue(resultSet.getObject(valueIndex));
         }
     }
@@ -478,8 +482,8 @@ final class JdbcPersistenceBackend implements PersistenceBackend {
         summary.add(new SummaryEntry("Stored Parts", Long.toString(partCount)));
         summary.add(new SummaryEntry("Completed Keys", Long.toString(completedCount)));
         summary.add(new SummaryEntry("Preview Limit", Integer.toString(rowLimit)));
-        TablePreview partPreview = previewTable(connection, "Parts", partTableRef, rowLimit, pageIndex);
-        TablePreview completedPreview = previewTable(connection, "Completed Keys", completedTableRef, rowLimit, pageIndex);
+        TablePreview partPreview = previewTable(connection, normalized, "Parts", partTableRef, rowLimit, pageIndex);
+        TablePreview completedPreview = previewTable(connection, normalized, "Completed Keys", completedTableRef, rowLimit, pageIndex);
 
         return new PersistenceSnapshot(
                 ConnectionStatus.READY,

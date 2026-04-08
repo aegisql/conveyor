@@ -5,6 +5,7 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.jdbc.builders.JdbcPersistenceBuilder;
 import com.aegisql.conveyor.persistence.ui.model.ConnectionStatus;
 import com.aegisql.conveyor.persistence.ui.model.PersistenceKind;
+import com.aegisql.conveyor.persistence.ui.model.PayloadEncryptionMode;
 import com.aegisql.conveyor.persistence.ui.model.PersistenceProfile;
 import com.aegisql.conveyor.persistence.ui.model.PersistenceSnapshot;
 import org.junit.jupiter.api.Test;
@@ -177,15 +178,69 @@ class JdbcPersistenceBackendTest {
         assertEquals(ConnectionStatus.READY, afterInit.status());
     }
 
+    @Test
+    void decryptsEncryptedJdbcCartValuesWhenSecretIsConfigured() throws Exception {
+        Path databaseFile = tempDir.resolve("encrypted-workbench.db");
+        PersistenceProfile profile = new PersistenceProfile(
+                null,
+                "SQLite Encrypted",
+                PersistenceKind.SQLITE,
+                Integer.class.getName(),
+                null,
+                null,
+                null,
+                databaseFile.toString(),
+                null,
+                "PART",
+                "COMPLETED_LOG",
+                null,
+                null,
+                null,
+                PayloadEncryptionMode.MANAGED_DEFAULT,
+                "viewer-secret"
+        ).normalized();
+
+        JdbcPersistenceBackend backend = new JdbcPersistenceBackend();
+        backend.initialize(profile);
+
+        try (Persistence<Integer> persistence = buildPersistence(profile, "viewer-secret")) {
+            long id = persistence.nextUniquePartId();
+            persistence.savePart(id, new ShoppingCart<>(401, "shielded-value", "LBL"));
+            persistence.savePartId(401, id);
+        }
+
+        PersistenceSnapshot decrypted = backend.inspect(profile, 20, 0);
+        assertEquals("shielded-value", cellValue(decrypted, "Parts", "CART_VALUE", 0));
+        assertTrue(cellValue(decrypted, "Parts", "VALUE_TYPE", 0).startsWith("__##"));
+
+        PersistenceSnapshot hidden = backend.inspect(
+                profile.withPayloadEncryptionMode(PayloadEncryptionMode.NONE).withEncryptionSecret(null),
+                20,
+                0
+        );
+        assertEquals("<encrypted payload>", cellValue(hidden, "Parts", "CART_VALUE", 0));
+
+        PersistenceSnapshot wrongSecret = backend.inspect(profile.withEncryptionSecret("wrong-secret"), 20, 0);
+        assertEquals("<decryption failed>", cellValue(wrongSecret, "Parts", "CART_VALUE", 0));
+    }
+
     @SuppressWarnings("unchecked")
     private Persistence<Integer> buildPersistence(PersistenceProfile profile) {
+        return buildPersistence(profile, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Persistence<Integer> buildPersistence(PersistenceProfile profile, String encryptionSecret) {
         try {
-            return (Persistence<Integer>) JdbcPersistenceBuilder.presetInitializer("sqlite", Integer.class)
+            JdbcPersistenceBuilder<Integer> builder = JdbcPersistenceBuilder.presetInitializer("sqlite", Integer.class)
                     .autoInit(false)
                     .database(profile.database())
                     .partTable(profile.partTable())
-                    .completedLogTable(profile.completedLogTable())
-                    .build();
+                    .completedLogTable(profile.completedLogTable());
+            if (encryptionSecret != null) {
+                builder = builder.encryptionSecret(encryptionSecret);
+            }
+            return (Persistence<Integer>) builder.build();
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

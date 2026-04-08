@@ -18,6 +18,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.ArrayList;
 import java.util.List;
 
 final class PersistenceStatusDialog extends JDialog {
@@ -27,7 +28,8 @@ final class PersistenceStatusDialog extends JDialog {
             String title,
             ConnectionStatus currentStatus,
             PersistenceSnapshot snapshot,
-            String fallbackText
+            String fallbackText,
+            String credentialStorageHint
     ) {
         super(SwingUtilities.getWindowAncestor(owner), title, ModalityType.APPLICATION_MODAL);
         setLayout(new BorderLayout(8, 8));
@@ -59,7 +61,7 @@ final class PersistenceStatusDialog extends JDialog {
                 header.add(detailArea, BorderLayout.CENTER);
             }
             add(header, BorderLayout.NORTH);
-            add(tabbedContent(snapshot), BorderLayout.CENTER);
+            add(tabbedContent(snapshot, credentialStorageHint), BorderLayout.CENTER);
         }
 
         setPreferredSize(new Dimension(860, 520));
@@ -72,14 +74,15 @@ final class PersistenceStatusDialog extends JDialog {
             String title,
             ConnectionStatus currentStatus,
             PersistenceSnapshot snapshot,
-            String fallbackText
+            String fallbackText,
+            String credentialStorageHint
     ) {
-        new PersistenceStatusDialog(owner, title, currentStatus, snapshot, fallbackText).setVisible(true);
+        new PersistenceStatusDialog(owner, title, currentStatus, snapshot, fallbackText, credentialStorageHint).setVisible(true);
     }
 
-    private JTabbedPane tabbedContent(PersistenceSnapshot snapshot) {
+    private JTabbedPane tabbedContent(PersistenceSnapshot snapshot, String credentialStorageHint) {
         JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("Summary", tablePane(summaryTable(snapshot.summaryEntries())));
+        tabs.addTab("Summary", tablePane(summaryTable(snapshot.summaryEntries(), credentialStorageHint)));
         for (TableData table : snapshot.infoTables()) {
             tabs.addTab(table.title(), tablePane(table));
         }
@@ -88,14 +91,17 @@ final class PersistenceStatusDialog extends JDialog {
 
     private JScrollPane tablePane(TableData table) {
         JTable jTable = new JTable(table.toTableModel());
-        jTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+        WorkbenchTables.style(jTable);
         return new JScrollPane(jTable);
     }
 
-    private TableData summaryTable(List<SummaryEntry> entries) {
-        List<List<String>> rows = entries.stream()
+    private TableData summaryTable(List<SummaryEntry> entries, String credentialStorageHint) {
+        List<List<String>> rows = new ArrayList<>(entries.stream()
                 .map(entry -> List.of(entry.label(), entry.value()))
-                .toList();
+                .toList());
+        if (credentialStorageHint != null && !credentialStorageHint.isBlank()) {
+            rows.add(List.of("Credential Storage", credentialStorageHint));
+        }
         return new TableData("Summary", List.of("Field", "Value"), rows);
     }
 

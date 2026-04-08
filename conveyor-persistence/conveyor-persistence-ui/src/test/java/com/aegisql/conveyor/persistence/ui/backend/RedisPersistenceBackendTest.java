@@ -6,6 +6,7 @@ import com.aegisql.conveyor.persistence.core.Persistence;
 import com.aegisql.conveyor.persistence.redis.RedisPersistenceBuilder;
 import com.aegisql.conveyor.persistence.ui.model.ConnectionStatus;
 import com.aegisql.conveyor.persistence.ui.model.PersistenceKind;
+import com.aegisql.conveyor.persistence.ui.model.PayloadEncryptionMode;
 import com.aegisql.conveyor.persistence.ui.model.PersistenceProfile;
 import com.aegisql.conveyor.persistence.ui.model.PersistenceSnapshot;
 import com.aegisql.conveyor.persistence.ui.model.TableData;
@@ -293,12 +294,85 @@ class RedisPersistenceBackendTest {
         }
     }
 
+    @Test
+    void decryptsEncryptedRedisValuesWhenSecretIsConfigured() throws Exception {
+        Assumptions.assumeTrue(redisAvailable(), "Redis is not available for RedisPersistenceBackendTest");
+
+        String persistenceName = "ui-encrypted-" + System.nanoTime();
+        PersistenceProfile profile = new PersistenceProfile(
+                null,
+                "Redis Encrypted",
+                PersistenceKind.REDIS,
+                null,
+                persistenceName,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "redis://localhost:6379",
+                PayloadEncryptionMode.MANAGED_DEFAULT,
+                "viewer-secret"
+        ).normalized();
+
+        try (Persistence<Integer> persistence = new RedisPersistenceBuilder<Integer>(persistenceName)
+                .encryptionSecret("viewer-secret")
+                .noArchiving()
+                .build()) {
+            persistence.archiveAll();
+            persistence.savePart(1L, new ShoppingCart<>(17, "visible-value", "LBL"));
+        }
+
+        RedisPersistenceBackend backend = new RedisPersistenceBackend();
+        try {
+            PersistenceSnapshot decrypted = backend.inspect(profile, 20, 0);
+            assertEquals(ConnectionStatus.READY, decrypted.status());
+            assertEquals("17", cellValue(decrypted, "Active Parts", "Key", 0));
+            assertEquals("LBL", cellValue(decrypted, "Active Parts", "Label", 0));
+            assertEquals("visible-value", cellValue(decrypted, "Active Parts", "Value", 0));
+            assertTrue(cellValue(decrypted, "Active Parts", "Value Hint", 0).startsWith("__##"));
+
+            PersistenceSnapshot hidden = backend.inspect(
+                    profile.withPayloadEncryptionMode(PayloadEncryptionMode.NONE).withEncryptionSecret(null),
+                    20,
+                    0
+            );
+            assertEquals("17", cellValue(hidden, "Active Parts", "Key", 0));
+            assertEquals("LBL", cellValue(hidden, "Active Parts", "Label", 0));
+            assertEquals("<encrypted payload>", cellValue(hidden, "Active Parts", "Value", 0));
+
+            PersistenceSnapshot wrongSecret = backend.inspect(profile.withEncryptionSecret("wrong-secret"), 20, 0);
+            assertEquals("17", cellValue(wrongSecret, "Active Parts", "Key", 0));
+            assertEquals("LBL", cellValue(wrongSecret, "Active Parts", "Label", 0));
+            assertEquals("<decryption failed>", cellValue(wrongSecret, "Active Parts", "Value", 0));
+        } finally {
+            backend.archiveAll(profile);
+        }
+    }
+
     private boolean redisAvailable() {
         try (JedisPooled jedis = new JedisPooled("redis://localhost:6379")) {
             return "PONG".equalsIgnoreCase(jedis.ping());
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private String cellValue(PersistenceSnapshot snapshot, String tableTitle, String columnName, int rowIndex) {
+        return snapshot.tables().stream()
+                .filter(table -> table.title().equals(tableTitle))
+                .findFirst()
+                .map(table -> {
+                    int columnIndex = table.columns().indexOf(columnName);
+                    if (columnIndex < 0) {
+                        throw new AssertionError("Column not found: " + columnName);
+                    }
+                    return table.rows().get(rowIndex).get(columnIndex);
+                })
+                .orElseThrow(() -> new AssertionError("Table not found: " + tableTitle));
     }
 
     private static String encodeInt(int value) {

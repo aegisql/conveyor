@@ -7,6 +7,7 @@ import com.aegisql.conveyor.persistence.ui.model.PersistenceProfile;
 import com.aegisql.conveyor.persistence.ui.model.PersistenceSnapshot;
 import com.aegisql.conveyor.persistence.ui.model.SummaryEntry;
 import com.aegisql.conveyor.persistence.ui.model.TableData;
+import com.aegisql.conveyor.persistence.ui.store.SqliteProfileStore;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -25,6 +26,10 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
@@ -38,6 +43,7 @@ public final class PersistenceBrowserPanel extends JPanel {
     private static final long STATUS_POLL_SECONDS = 3L;
 
     private final PersistenceProfile profile;
+    private final SqliteProfileStore store;
     private final PersistenceBackend backend;
     private final Executor executor;
     private final ScheduledExecutorService statusScheduler;
@@ -45,8 +51,10 @@ public final class PersistenceBrowserPanel extends JPanel {
 
     private final JTabbedPane tablesPane = new JTabbedPane();
     private final JTextArea cellDetailArea = new JTextArea();
+    private final JLabel cellDetailStatusBar = new JLabel(" ");
     private final JSplitPane contentSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     private final JButton infoButton = actionButton(WorkbenchIcons.info(), "Connection Info");
+    private final JButton columnsButton = actionButton(WorkbenchIcons.columns(), "Choose Visible Columns");
     private final JButton previousPageButton = actionButton(WorkbenchIcons.previousPage(), "Previous Page");
     private final JLabel pageLabel = new JLabel("Page 1");
     private final JButton nextPageButton = actionButton(WorkbenchIcons.nextPage(), "Next Page");
@@ -60,24 +68,29 @@ public final class PersistenceBrowserPanel extends JPanel {
     private String lastStatusText = "Not connected yet";
     private volatile ConnectionStatus latestStatus = ConnectionStatus.FAILED;
     private final ScheduledFuture<?> statusPollTask;
+    private final Map<String, Set<String>> hiddenColumnsByTable;
 
     public PersistenceBrowserPanel(
             PersistenceProfile profile,
+            SqliteProfileStore store,
             Executor executor,
             ScheduledExecutorService statusScheduler,
             Consumer<ConnectionStatus> statusListener
     ) {
         super(new BorderLayout(8, 8));
         this.profile = profile.normalized();
+        this.store = store;
         this.backend = PersistenceBackendFactory.forProfile(this.profile);
         this.executor = executor;
         this.statusScheduler = statusScheduler;
         this.statusListener = statusListener == null ? status -> { } : statusListener;
+        this.hiddenColumnsByTable = loadHiddenColumns();
 
         add(topPanel(), BorderLayout.NORTH);
         add(contentPanel(), BorderLayout.CENTER);
         tablesPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         tablesPane.setPreferredSize(new java.awt.Dimension(900, 360));
+        tablesPane.addChangeListener(e -> updateColumnsButtonState());
 
         wireActions();
         this.statusPollTask = this.statusScheduler.scheduleWithFixedDelay(
@@ -96,6 +109,7 @@ public final class PersistenceBrowserPanel extends JPanel {
     private JPanel topPanel() {
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT));
         actions.add(infoButton);
+        actions.add(columnsButton);
         actions.add(previousPageButton);
         actions.add(pageLabel);
         actions.add(nextPageButton);
@@ -112,15 +126,21 @@ public final class PersistenceBrowserPanel extends JPanel {
         cellDetailArea.setLineWrap(false);
         cellDetailArea.setWrapStyleWord(false);
         cellDetailArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-        cellDetailArea.setText("Select a table cell to view the full value here.");
-        cellDetailArea.setCaretPosition(0);
+        cellDetailArea.setText("");
 
         JScrollPane detailScrollPane = new JScrollPane(cellDetailArea);
-        detailScrollPane.setBorder(BorderFactory.createTitledBorder("Cell Details"));
         detailScrollPane.setPreferredSize(new Dimension(900, 160));
 
+        JPanel detailPanel = new JPanel(new BorderLayout());
+        detailPanel.add(detailScrollPane, BorderLayout.CENTER);
+        cellDetailStatusBar.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 0, 0, new java.awt.Color(209, 213, 219)),
+                BorderFactory.createEmptyBorder(4, 8, 4, 8)
+        ));
+        detailPanel.add(cellDetailStatusBar, BorderLayout.SOUTH);
+
         contentSplitPane.setTopComponent(tablesPane);
-        contentSplitPane.setBottomComponent(detailScrollPane);
+        contentSplitPane.setBottomComponent(detailPanel);
         contentSplitPane.setResizeWeight(0.8);
         contentSplitPane.setContinuousLayout(true);
         contentSplitPane.setOneTouchExpandable(true);
@@ -129,6 +149,7 @@ public final class PersistenceBrowserPanel extends JPanel {
 
     private void wireActions() {
         infoButton.addActionListener(e -> showStatusDialog());
+        columnsButton.addActionListener(e -> chooseVisibleColumns());
         previousPageButton.addActionListener(e -> {
             if (pageIndex > 0) {
                 pageIndex--;
@@ -207,6 +228,7 @@ public final class PersistenceBrowserPanel extends JPanel {
         lastStatusText = statusText(snapshot);
         pageLabel.setText("Page " + (snapshot.pageIndex() + 1));
         rebuildTables(snapshot);
+        updateColumnsButtonState();
         previousPageButton.setEnabled(snapshot.hasPreviousPage());
         nextPageButton.setEnabled(snapshot.hasNextPage());
         refreshButton.setEnabled(true);
@@ -218,17 +240,23 @@ public final class PersistenceBrowserPanel extends JPanel {
     }
 
     private void rebuildTables(PersistenceSnapshot snapshot) {
+        int selectedIndex = tablesPane.getSelectedIndex();
         tablesPane.removeAll();
+        int firstRowNumber = snapshot.pageIndex() * PREVIEW_LIMIT + 1;
         for (TableData table : snapshot.tables()) {
-            JTable jTable = new JTable(table.toTableModel());
-            jTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+            TableData filteredTable = applyColumnPreferences(table.withRowNumbers(firstRowNumber));
+            JTable jTable = new JTable(filteredTable.toTableModel());
+            WorkbenchTables.style(jTable);
             jTable.setCellSelectionEnabled(true);
-            jTable.getSelectionModel().addListSelectionListener(e -> updateCellDetailFromSelection(table, jTable));
-            jTable.getColumnModel().getSelectionModel().addListSelectionListener(e -> updateCellDetailFromSelection(table, jTable));
-            tablesPane.addTab(table.title(), new JScrollPane(jTable));
+            jTable.getSelectionModel().addListSelectionListener(e -> updateCellDetailFromSelection(filteredTable, jTable));
+            jTable.getColumnModel().getSelectionModel().addListSelectionListener(e -> updateCellDetailFromSelection(filteredTable, jTable));
+            tablesPane.addTab(filteredTable.title(), new JScrollPane(jTable));
         }
         if (snapshot.tables().isEmpty()) {
             tablesPane.addTab("No Data", new JScrollPane(new JTextArea("No preview data available for the current state.")));
+            tablesPane.setSelectedIndex(0);
+        } else if (selectedIndex >= 0 && selectedIndex < tablesPane.getTabCount()) {
+            tablesPane.setSelectedIndex(selectedIndex);
         }
         resetCellDetail();
     }
@@ -247,6 +275,7 @@ public final class PersistenceBrowserPanel extends JPanel {
 
     private void setBusy(boolean busy, String text) {
         if (busy) {
+            columnsButton.setEnabled(false);
             previousPageButton.setEnabled(false);
             nextPageButton.setEnabled(false);
             refreshButton.setEnabled(false);
@@ -258,6 +287,7 @@ public final class PersistenceBrowserPanel extends JPanel {
             showSnapshot(currentSnapshot);
         } else {
             pageLabel.setText("Page " + (pageIndex + 1));
+            updateColumnsButtonState();
             previousPageButton.setEnabled(pageIndex > 0);
             nextPageButton.setEnabled(false);
             refreshButton.setEnabled(true);
@@ -273,7 +303,14 @@ public final class PersistenceBrowserPanel extends JPanel {
     }
 
     private void showStatusDialog() {
-        PersistenceStatusDialog.showDialog(this, profile.label() + " Info", latestStatus, currentSnapshot, lastStatusText);
+        PersistenceStatusDialog.showDialog(
+                this,
+                profile.label() + " Info",
+                latestStatus,
+                currentSnapshot,
+                lastStatusText,
+                store.credentialStoreDisplayName()
+        );
     }
 
     private String statusText(PersistenceSnapshot snapshot) {
@@ -325,8 +362,71 @@ public final class PersistenceBrowserPanel extends JPanel {
         statusPollTask.cancel(true);
     }
 
+    private Map<String, Set<String>> loadHiddenColumns() {
+        if (profile.id() == null) {
+            return new HashMap<>();
+        }
+        return new HashMap<>(store.loadHiddenColumns(profile.id()));
+    }
+
+    private TableData applyColumnPreferences(TableData table) {
+        Set<String> hiddenColumns = hiddenColumnsByTable.get(table.title());
+        if (hiddenColumns == null || hiddenColumns.isEmpty() || hiddenColumns.size() >= table.columns().size()) {
+            return table;
+        }
+        return table.filteredColumns(hiddenColumns);
+    }
+
+    private void chooseVisibleColumns() {
+        TableData sourceTable = selectedSourceTable();
+        if (sourceTable == null) {
+            return;
+        }
+        Set<String> hiddenColumns = new LinkedHashSet<>(hiddenColumnsByTable.getOrDefault(sourceTable.title(), Set.of()));
+        Set<String> visibleColumns = new LinkedHashSet<>(sourceTable.columns());
+        visibleColumns.removeAll(hiddenColumns);
+        ColumnVisibilityDialog.chooseVisibleColumns(this, sourceTable.title(), sourceTable.columns(), visibleColumns)
+                .ifPresent(selectedColumns -> {
+                    if (selectedColumns.isEmpty()) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "At least one column must remain visible.",
+                                "Invalid Column Selection",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                    }
+                    Set<String> updatedHiddenColumns = new LinkedHashSet<>(sourceTable.columns());
+                    updatedHiddenColumns.removeAll(selectedColumns);
+                    hiddenColumnsByTable.put(sourceTable.title(), updatedHiddenColumns);
+                    if (profile.id() != null) {
+                        store.saveHiddenColumns(profile.id(), sourceTable.title(), updatedHiddenColumns);
+                    }
+                    rebuildTables(currentSnapshot);
+                    updateColumnsButtonState();
+                });
+    }
+
+    private TableData selectedSourceTable() {
+        if (currentSnapshot == null || currentSnapshot.tables().isEmpty()) {
+            return null;
+        }
+        int selectedIndex = tablesPane.getSelectedIndex();
+        if (selectedIndex < 0 || selectedIndex >= currentSnapshot.tables().size()) {
+            return null;
+        }
+        int firstRowNumber = currentSnapshot.pageIndex() * PREVIEW_LIMIT + 1;
+        return currentSnapshot.tables().get(selectedIndex).withRowNumbers(firstRowNumber);
+    }
+
+    private void updateColumnsButtonState() {
+        TableData selectedTable = selectedSourceTable();
+        columnsButton.setEnabled(selectedTable != null && !selectedTable.columns().isEmpty());
+    }
+
     private void resetCellDetail() {
-        cellDetailArea.setText("Select a table cell to view the full value here.");
+        cellDetailArea.setText("");
+        cellDetailStatusBar.setText(" ");
         cellDetailArea.setCaretPosition(0);
     }
 
@@ -340,13 +440,8 @@ public final class PersistenceBrowserPanel extends JPanel {
             return;
         }
         String value = table.rows().get(row).get(column);
-        StringBuilder builder = new StringBuilder();
-        builder.append("Table: ").append(table.title()).append('\n');
-        builder.append("Row: ").append(row + 1).append('\n');
-        builder.append("Column: ").append(table.columns().get(column)).append('\n');
-        builder.append('\n');
-        builder.append(value == null ? "" : value);
-        cellDetailArea.setText(builder.toString());
+        cellDetailArea.setText(value == null ? "" : value);
+        cellDetailStatusBar.setText("Table: " + table.title() + "    Row: " + (row + 1) + "    Column: " + table.columns().get(column));
         cellDetailArea.setCaretPosition(0);
     }
 

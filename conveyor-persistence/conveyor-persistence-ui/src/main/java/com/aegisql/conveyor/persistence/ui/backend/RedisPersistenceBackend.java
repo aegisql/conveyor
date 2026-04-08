@@ -31,9 +31,6 @@ import java.util.stream.Collectors;
 
 final class RedisPersistenceBackend implements PersistenceBackend {
 
-    private final ConverterAdviser<Object> plainConverterAdviser = new ConverterAdviser<>();
-    private final ConverterAdviser<Object> payloadConverterAdviser = new ConverterAdviser<>();
-
     @Override
     public ConnectionStatus connectionStatus(PersistenceProfile profile) {
         PersistenceProfile normalized = profile.normalized();
@@ -93,8 +90,8 @@ final class RedisPersistenceBackend implements PersistenceBackend {
             summary.add(new SummaryEntry("Expiring Parts", Long.toString(expiringCount)));
             summary.add(new SummaryEntry("Completed Keys", Long.toString(completedCount)));
             summary.add(new SummaryEntry("Preview Limit", Integer.toString(rowLimit)));
-            TablePage activePreview = partsTable(jedis, namespace, "Active Parts", namespace + ":parts:active", activeCount, rowLimit, normalizedPageIndex);
-            TablePage staticPreview = partsTable(jedis, namespace, "Static Parts", namespace + ":parts:static", staticCount, rowLimit, normalizedPageIndex);
+            TablePage activePreview = partsTable(normalized, jedis, namespace, "Active Parts", namespace + ":parts:active", activeCount, rowLimit, normalizedPageIndex);
+            TablePage staticPreview = partsTable(normalized, jedis, namespace, "Static Parts", namespace + ":parts:static", staticCount, rowLimit, normalizedPageIndex);
             TablePage completedPreview = completedKeysTable(jedis, namespace, completedCount, rowLimit, normalizedPageIndex);
 
             return new PersistenceSnapshot(
@@ -206,6 +203,7 @@ final class RedisPersistenceBackend implements PersistenceBackend {
             if (normalized.password() != null) {
                 builder = builder.password(normalized.password());
             }
+            builder = ProfileEncryptionSupport.apply(builder, normalized);
             @SuppressWarnings("unchecked")
             Persistence<Object> persistence = (Persistence<Object>) builder.build();
             return persistence;
@@ -236,11 +234,15 @@ final class RedisPersistenceBackend implements PersistenceBackend {
         return new TableData("Namespace Meta", List.of("Field", "Value"), rows);
     }
 
-    private TablePage partsTable(JedisPooled jedis, String namespace, String title, String indexKey, long totalCount, int rowLimit, int pageIndex) {
+    private TablePage partsTable(PersistenceProfile profile, JedisPooled jedis, String namespace, String title, String indexKey, long totalCount, int rowLimit, int pageIndex) {
         int offset = Math.max(0, pageIndex) * Math.max(1, rowLimit);
         List<String> ids = jedis.zrange(indexKey, offset, offset + Math.max(0, rowLimit - 1));
         boolean staticParts = "Static Parts".equals(title);
         List<List<String>> rows = new ArrayList<>();
+        ConverterAdviser<Object> plainConverterAdviser = new ConverterAdviser<>();
+        ConverterAdviser<Object> decryptingPlainConverterAdviser = ProfileEncryptionSupport.newDecryptingConverterAdviser(profile);
+        ConverterAdviser<Object> payloadConverterAdviser = new ConverterAdviser<>();
+        ConverterAdviser<Object> decryptingPayloadConverterAdviser = ProfileEncryptionSupport.newDecryptingConverterAdviser(profile);
         for (String id : ids) {
             Map<String, String> meta = jedis.hgetAll(namespace + ":part:" + id + ":meta");
             String payload = jedis.get(namespace + ":part:" + id + ":payload");
@@ -248,9 +250,9 @@ final class RedisPersistenceBackend implements PersistenceBackend {
                     .filter(key -> key.startsWith("field:") && key.endsWith(":hint"))
                     .map(key -> key.substring("field:".length(), key.length() - ":hint".length()))
                     .collect(Collectors.toCollection(java.util.TreeSet::new));
-            Object key = decodePlainField(meta.get("keyHint"), meta.get("keyData"));
-            Object label = decodePlainField(meta.get("labelHint"), meta.get("labelData"));
-            Object value = decodePayloadField(label, meta.get("valueHint"), payload, meta.get("valueData"));
+            Object key = decodePlainField(profile, plainConverterAdviser, decryptingPlainConverterAdviser, meta.get("keyHint"), meta.get("keyData"));
+            Object label = decodePlainField(profile, plainConverterAdviser, decryptingPlainConverterAdviser, meta.get("labelHint"), meta.get("labelData"));
+            Object value = decodePayloadField(profile, payloadConverterAdviser, decryptingPayloadConverterAdviser, label, meta.get("valueHint"), payload, meta.get("valueData"));
             if (staticParts) {
                 rows.add(List.of(
                         id,
@@ -377,27 +379,46 @@ final class RedisPersistenceBackend implements PersistenceBackend {
         return truncate(String.valueOf(value));
     }
 
-    private Object decodePayloadField(Object label, String hint, String encodedPayload, String legacyEncodedValue) {
+    private Object decodePayloadField(PersistenceProfile profile,
+                                      ConverterAdviser<Object> payloadConverterAdviser,
+                                      ConverterAdviser<Object> decryptingPayloadConverterAdviser,
+                                      Object label,
+                                      String hint,
+                                      String encodedPayload,
+                                      String legacyEncodedValue) {
         String encodedValue = encodedPayload != null ? encodedPayload : legacyEncodedValue;
         if (hint == null && encodedValue == null) {
             return null;
         }
         try {
-            ObjectConverter<Object, byte[]> converter = payloadConverterAdviser.getConverter(label, hint);
+            ObjectConverter<Object, byte[]> converter = ProfileEncryptionSupport.isEncryptedHint(hint)
+                    ? decryptingPayloadConverterAdviser.getConverter(label, hint)
+                    : payloadConverterAdviser.getConverter(label, hint);
             return converter.fromPersistence(decodeBytes(encodedValue));
         } catch (Exception e) {
-            return "<unreadable payload>";
+            return ProfileEncryptionSupport.isEncryptedHint(hint)
+                    ? ProfileEncryptionSupport.encryptedPayloadMessage(profile)
+                    : "<unreadable payload>";
         }
     }
 
-    private Object decodePlainField(String hint, String encodedValue) {
+    private Object decodePlainField(PersistenceProfile profile,
+                                    ConverterAdviser<Object> plainConverterAdviser,
+                                    ConverterAdviser<Object> decryptingPlainConverterAdviser,
+                                    String hint,
+                                    String encodedValue) {
         if (hint == null && encodedValue == null) {
             return null;
         }
         try {
-            ObjectConverter<Object, byte[]> converter = plainConverterAdviser.getConverter(null, hint);
+            ObjectConverter<Object, byte[]> converter = ProfileEncryptionSupport.isEncryptedHint(hint)
+                    ? decryptingPlainConverterAdviser.getConverter(null, hint)
+                    : plainConverterAdviser.getConverter(null, hint);
             return converter.fromPersistence(decodeBytes(encodedValue));
         } catch (Exception e) {
+            if (ProfileEncryptionSupport.isEncryptedHint(hint)) {
+                return ProfileEncryptionSupport.encryptedFieldMessage(profile);
+            }
             String fallback = bestEffortReadablePlainValue(hint, decodeBytes(encodedValue));
             return fallback == null ? "<unreadable>" : fallback;
         }

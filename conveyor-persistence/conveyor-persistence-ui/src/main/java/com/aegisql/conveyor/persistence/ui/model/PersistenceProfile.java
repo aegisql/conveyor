@@ -16,7 +16,9 @@ public record PersistenceProfile(
         String completedLogTable,
         String user,
         String password,
-        String redisUri
+        String redisUri,
+        PayloadEncryptionMode payloadEncryptionMode,
+        String encryptionSecret
 ) {
 
     private static final String LEGACY_DERBY_DATABASE_NAME = "conveyor-db";
@@ -24,6 +26,42 @@ public record PersistenceProfile(
 
     public PersistenceProfile {
         Objects.requireNonNull(kind, "kind must not be null");
+    }
+
+    public PersistenceProfile(
+            Long id,
+            String displayName,
+            PersistenceKind kind,
+            String keyClassName,
+            String persistenceName,
+            String host,
+            Integer port,
+            String database,
+            String schema,
+            String partTable,
+            String completedLogTable,
+            String user,
+            String password,
+            String redisUri
+    ) {
+        this(
+                id,
+                displayName,
+                kind,
+                keyClassName,
+                persistenceName,
+                host,
+                port,
+                database,
+                schema,
+                partTable,
+                completedLogTable,
+                user,
+                password,
+                redisUri,
+                PayloadEncryptionMode.NONE,
+                null
+        );
     }
 
     public static PersistenceProfile defaults(PersistenceKind kind) {
@@ -42,7 +80,9 @@ public record PersistenceProfile(
                 kind.defaultCompletedLogTable(),
                 null,
                 null,
-                kind.defaultRedisUri()
+                kind.defaultRedisUri(),
+                PayloadEncryptionMode.NONE,
+                null
         );
         return profile.normalized();
     }
@@ -52,6 +92,7 @@ public record PersistenceProfile(
         String normalizedSchema = normalizedSchema();
         String normalizedPartTable = kind.isJdbc() ? defaultIfBlank(partTable, kind.defaultPartTable()) : trimToNull(partTable);
         String normalizedPersistenceName = kind.isRedis() ? defaultIfBlank(persistenceName, kind.defaultPersistenceName()) : trimToNull(persistenceName);
+        PayloadEncryptionMode normalizedEncryptionMode = payloadEncryptionMode == null ? PayloadEncryptionMode.NONE : payloadEncryptionMode;
         return new PersistenceProfile(
                 id,
                 defaultIfBlank(displayName, suggestedDisplayName(kind, normalizedDatabase, normalizedPartTable, normalizedPersistenceName)),
@@ -66,7 +107,9 @@ public record PersistenceProfile(
                 kind.isJdbc() ? defaultIfBlank(completedLogTable, kind.defaultCompletedLogTable()) : trimToNull(completedLogTable),
                 trimToNull(user),
                 trimToNull(password),
-                kind.isRedis() ? defaultIfBlank(redisUri, kind.defaultRedisUri()) : trimToNull(redisUri)
+                kind.isRedis() ? defaultIfBlank(redisUri, kind.defaultRedisUri()) : trimToNull(redisUri),
+                normalizedEncryptionMode,
+                trimToNull(encryptionSecret)
         );
     }
 
@@ -85,7 +128,72 @@ public record PersistenceProfile(
                 completedLogTable,
                 user,
                 password,
-                redisUri
+                redisUri,
+                payloadEncryptionMode,
+                encryptionSecret
+        );
+    }
+
+    public PersistenceProfile withPassword(String newPassword) {
+        return new PersistenceProfile(
+                id,
+                displayName,
+                kind,
+                keyClassName,
+                persistenceName,
+                host,
+                port,
+                database,
+                schema,
+                partTable,
+                completedLogTable,
+                user,
+                newPassword,
+                redisUri,
+                payloadEncryptionMode,
+                encryptionSecret
+        );
+    }
+
+    public PersistenceProfile withEncryptionSecret(String newEncryptionSecret) {
+        return new PersistenceProfile(
+                id,
+                displayName,
+                kind,
+                keyClassName,
+                persistenceName,
+                host,
+                port,
+                database,
+                schema,
+                partTable,
+                completedLogTable,
+                user,
+                password,
+                redisUri,
+                payloadEncryptionMode,
+                newEncryptionSecret
+        );
+    }
+
+    public PersistenceProfile withPayloadEncryptionMode(PayloadEncryptionMode newPayloadEncryptionMode) {
+        return new PersistenceProfile(
+                id,
+                displayName,
+                kind,
+                keyClassName,
+                persistenceName,
+                host,
+                port,
+                database,
+                schema,
+                partTable,
+                completedLogTable,
+                user,
+                password,
+                redisUri,
+                newPayloadEncryptionMode,
+                encryptionSecret
         );
     }
 

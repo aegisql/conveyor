@@ -158,7 +158,11 @@ public final class PersistenceWorkbenchFrame extends javax.swing.JFrame {
         if (selected == null) {
             return;
         }
-        ProfileEditorDialog.edit(this, selected).ifPresent(profile -> {
+        PersistenceProfile profileWithCredentials = resolveCredentials(selected, "Edit Connection");
+        if (profileWithCredentials == null) {
+            return;
+        }
+        ProfileEditorDialog.edit(this, profileWithCredentials).ifPresent(profile -> {
             PersistenceProfile saved = store.save(profile.withId(selected.id()));
             loadProfiles();
             selectProfile(saved.id());
@@ -171,7 +175,11 @@ public final class PersistenceWorkbenchFrame extends javax.swing.JFrame {
         if (selected == null) {
             return;
         }
-        ProfileEditorDialog.edit(this, selected.duplicateAsNew()).ifPresent(profile -> {
+        PersistenceProfile profileWithCredentials = resolveCredentials(selected, "Duplicate Connection");
+        if (profileWithCredentials == null) {
+            return;
+        }
+        ProfileEditorDialog.edit(this, profileWithCredentials.duplicateAsNew()).ifPresent(profile -> {
             PersistenceProfile saved = store.save(profile);
             loadProfiles();
             selectProfile(saved.id());
@@ -213,12 +221,16 @@ public final class PersistenceWorkbenchFrame extends javax.swing.JFrame {
             tabs.setSelectedComponent(existing);
             return;
         }
-        PersistenceBrowserPanel panel = new PersistenceBrowserPanel(selected, executor, statusScheduler, status -> updateTabStatus(selected.id(), status));
+        PersistenceProfile profileWithCredentials = resolveCredentials(selected, "Open Connection");
+        if (profileWithCredentials == null) {
+            return;
+        }
+        PersistenceBrowserPanel panel = new PersistenceBrowserPanel(profileWithCredentials, store, executor, statusScheduler, status -> updateTabStatus(selected.id(), status));
         openPanels.put(selected.id(), panel);
-        tabs.addTab(selected.label(), panel);
+        tabs.addTab(profileWithCredentials.label(), panel);
         int index = tabs.indexOfComponent(panel);
         StatusTabTitle title = new StatusTabTitle(
-                selected.label(),
+                profileWithCredentials.label(),
                 () -> tabs.setSelectedComponent(panel),
                 () -> closeTab(selected.id()),
                 event -> showTabContextMenu(selected.id(), event)
@@ -241,6 +253,20 @@ public final class PersistenceWorkbenchFrame extends javax.swing.JFrame {
         StatusTabTitle title = tabTitles.get(profileId);
         if (title != null) {
             title.setStatus(status);
+        }
+    }
+
+    private PersistenceProfile resolveCredentials(PersistenceProfile profile, String actionName) {
+        try {
+            return store.withCredentials(profile);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    rootMessage(e),
+                    actionName + " Failed",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return null;
         }
     }
 
@@ -305,6 +331,14 @@ public final class PersistenceWorkbenchFrame extends javax.swing.JFrame {
                 break;
             }
         }
+    }
+
+    private String rootMessage(Throwable error) {
+        Throwable current = error;
+        while (current.getCause() != null) {
+            current = current.getCause();
+        }
+        return current.getMessage() == null ? current.toString() : current.getMessage();
     }
 
     @Override

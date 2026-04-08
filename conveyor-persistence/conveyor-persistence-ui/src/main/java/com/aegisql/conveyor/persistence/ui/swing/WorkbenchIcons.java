@@ -117,6 +117,22 @@ final class WorkbenchIcons {
         };
     }
 
+    static Icon columns() {
+        return new PaintedIcon(SIZE, new Color(59, 130, 246)) {
+            @Override
+            protected void paintIcon(Graphics2D g2) {
+                g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                g2.draw(new RoundRectangle2D.Float(2.6f, 4.6f, 9.2f, 8.8f, 1.4f, 1.4f));
+                g2.draw(new Line2D.Float(5.7f, 5f, 5.7f, 13f));
+                g2.draw(new Line2D.Float(8.8f, 5f, 8.8f, 13f));
+                g2.draw(new Line2D.Float(2.9f, 8.9f, 11.5f, 8.9f));
+                g2.draw(new RoundRectangle2D.Float(10.2f, 9.8f, 4.2f, 4.2f, 1f, 1f));
+                g2.draw(new Line2D.Float(11.1f, 11.9f, 12f, 12.8f));
+                g2.draw(new Line2D.Float(12f, 12.8f, 13.6f, 10.9f));
+            }
+        };
+    }
+
     static Icon closeTab() {
         return new PaintedIcon(18, new Color(107, 114, 128)) {
             @Override
@@ -174,10 +190,11 @@ final class WorkbenchIcons {
             @Override
             protected void paintIcon(Graphics2D g2) {
                 g2.setStroke(new BasicStroke(1.9f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                g2.draw(new Rectangle2D.Float(3.8f, 5f, 10.4f, 8.2f));
-                g2.draw(new Line2D.Float(7f, 3.2f, 11f, 3.2f));
-                g2.draw(new Line2D.Float(6.2f, 9f, 8.2f, 11f));
-                g2.draw(new Line2D.Float(8.2f, 11f, 12f, 7.2f));
+                g2.draw(new Rectangle2D.Float(3.8f, 8.1f, 10.4f, 5.2f));
+                g2.draw(new Line2D.Float(6.7f, 6.1f, 11.3f, 6.1f));
+                g2.draw(new Line2D.Float(9f, 3.3f, 9f, 10.1f));
+                g2.draw(new Line2D.Float(7.2f, 8.1f, 9f, 10.1f));
+                g2.draw(new Line2D.Float(10.8f, 8.1f, 9f, 10.1f));
             }
         };
     }
