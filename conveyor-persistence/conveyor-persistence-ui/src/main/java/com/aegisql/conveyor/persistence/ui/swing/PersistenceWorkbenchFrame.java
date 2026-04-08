@@ -8,6 +8,7 @@ import com.aegisql.conveyor.persistence.ui.store.SqliteProfileStore;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
@@ -18,11 +19,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.ListCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -71,20 +75,9 @@ public final class PersistenceWorkbenchFrame extends javax.swing.JFrame {
 
     private JPanel leftPanel() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         profileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        profileList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
-            javax.swing.JLabel label = new javax.swing.JLabel(value.label() + " [" + value.kind().displayName() + "]");
-            label.setOpaque(true);
-            label.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
-            if (isSelected) {
-                label.setBackground(list.getSelectionBackground());
-                label.setForeground(list.getSelectionForeground());
-            } else {
-                label.setBackground(list.getBackground());
-                label.setForeground(list.getForeground());
-            }
-            return label;
-        });
+        profileList.setCellRenderer(new ProfileListCellRenderer());
         profileList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -103,6 +96,10 @@ public final class PersistenceWorkbenchFrame extends javax.swing.JFrame {
                 maybeShowProfileContextMenu(e);
             }
         });
+        JLabel headerLabel = new JLabel("Persistence Connections");
+        headerLabel.setFont(headerLabel.getFont().deriveFont(Font.BOLD, 18f));
+        headerLabel.setBorder(BorderFactory.createEmptyBorder(0, 2, 6, 2));
+        panel.add(headerLabel, BorderLayout.NORTH);
         panel.add(new JScrollPane(profileList), BorderLayout.CENTER);
         panel.add(buttonBar(), BorderLayout.SOUTH);
         return panel;
@@ -402,6 +399,70 @@ public final class PersistenceWorkbenchFrame extends javax.swing.JFrame {
                 case CONNECTED_UNINITIALIZED -> UNINITIALIZED_COLOR;
                 case FAILED -> FAILED_COLOR;
             });
+        }
+    }
+
+    private static final class ProfileListCellRenderer extends JPanel implements ListCellRenderer<PersistenceProfile> {
+        private static final Color SUBTITLE_COLOR = new Color(100, 116, 139);
+        private static final Color SUBTITLE_SELECTED_COLOR = new Color(226, 232, 240);
+
+        private final JLabel iconLabel = new JLabel();
+        private final JLabel titleLabel = new JLabel();
+        private final JLabel subtitleLabel = new JLabel();
+
+        private ProfileListCellRenderer() {
+            super(new BorderLayout(10, 0));
+            setOpaque(true);
+            setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
+            JPanel textPanel = new JPanel(new GridLayout(2, 1, 0, 2));
+            textPanel.setOpaque(false);
+
+            titleLabel.setFont(titleLabel.getFont().deriveFont(Font.PLAIN, 14f));
+            subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(Font.PLAIN, 11f));
+
+            iconLabel.setPreferredSize(new Dimension(34, 34));
+            iconLabel.setHorizontalAlignment(JLabel.CENTER);
+            iconLabel.setVerticalAlignment(JLabel.CENTER);
+
+            textPanel.add(titleLabel);
+            textPanel.add(subtitleLabel);
+
+            add(iconLabel, BorderLayout.WEST);
+            add(textPanel, BorderLayout.CENTER);
+        }
+
+        @Override
+        public Component getListCellRendererComponent(
+                JList<? extends PersistenceProfile> list,
+                PersistenceProfile value,
+                int index,
+                boolean isSelected,
+                boolean cellHasFocus
+        ) {
+            iconLabel.setIcon(PersistenceKindIcons.forKind(value.kind()));
+            titleLabel.setText(value.label());
+            subtitleLabel.setText(value.kind().displayName());
+            setToolTipText(value.kind().displayName());
+
+            if (isSelected) {
+                applySelectionColors(list.getSelectionBackground(), list.getSelectionForeground(), SUBTITLE_SELECTED_COLOR);
+            } else {
+                applySelectionColors(list.getBackground(), list.getForeground(), SUBTITLE_COLOR);
+            }
+            return this;
+        }
+
+        private void applySelectionColors(Color background, Color foreground, Color subtitleForeground) {
+            setBackground(background);
+            titleLabel.setForeground(foreground);
+            subtitleLabel.setForeground(subtitleForeground);
+            iconLabel.setForeground(foreground);
+            for (Component component : getComponents()) {
+                if (component instanceof JComponent jComponent) {
+                    jComponent.setBackground(background);
+                }
+            }
         }
     }
 }
