@@ -28,7 +28,7 @@ mvn -pl conveyor-persistence/conveyor-persistence-ui -am -DskipTests package
 java -jar conveyor-persistence/conveyor-persistence-ui/target/conveyor-persistence-ui-<version>.jar
 ```
 
-[Screenshot Placeholder: Application window on first launch]
+![Persistence Workbench main window](img/persistence_workbench.png)
 
 ## Main Screen
 - Left side:
@@ -71,7 +71,7 @@ The dot on each tab updates automatically.
 - Save the profile.
 - Select it and click `Open`.
 
-[Screenshot Placeholder: Persistence Profile dialog after choosing a backend type]
+![Persistence connection settings](img/connection_settings.png)
 
 ## Backend-Specific Setup
 
@@ -178,8 +178,9 @@ This is useful when:
 - a DBA wants to run the script separately
 - you want to save either the SQL or Java example for later use
 
-[Screenshot Placeholder: JDBC tab before initialization with Initialize and Initialization Preview enabled]
-[Screenshot Placeholder: Initialization preview window with SQL and Java tabs]
+![Initialization preview SQL tab](img/init_sql.png)
+
+![Initialization preview Java tab](img/init_java.png)
 
 ### Redis
 Redis does not use SQL scripts.
@@ -262,7 +263,7 @@ The choice is remembered:
 
 So you can keep one profile focused on the columns you care about most.
 
-[Screenshot Placeholder: Column chooser dialog with checkboxes]
+![Visible columns chooser](img/visible_columns.png)
 
 ## Connection Info Window
 Click the `info` button in a tab to open a separate status window.
@@ -278,7 +279,7 @@ This is the fastest place to confirm:
 - what namespace or URL is in use
 - whether indexes exist
 
-[Screenshot Placeholder: Connection Info window with Summary and Indexes tabs]
+![Connection info window](img/connection_info.png)
 
 ## Maintenance Actions
 
