@@ -1,20 +1,21 @@
 package com.aegisql.conveyor.utils;
 
 import com.aegisql.conveyor.BuilderSupplier;
+import com.aegisql.conveyor.AssemblingConveyor;
+import com.aegisql.conveyor.AssemblingConveyorMBean;
 import com.aegisql.conveyor.Conveyor;
+import com.aegisql.conveyor.exception.ConveyorRuntimeException;
 import com.aegisql.conveyor.LabeledValueConsumer;
 import com.aegisql.conveyor.Status;
 import com.aegisql.conveyor.cart.Cart;
 import com.aegisql.conveyor.cart.command.GeneralCommand;
+import com.aegisql.conveyor.loaders.PartLoader;
 import com.aegisql.conveyor.meta.ConveyorMetaInfo;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -26,7 +27,7 @@ import java.util.function.Supplier;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -37,9 +38,36 @@ class ConveyorAdapterTest {
 
     static class TestAdapterConveyor extends ConveyorAdapter<Integer,String,String>{
 
+        private boolean partIntercepted;
+
         TestAdapterConveyor(Conveyor<Integer, String, String> innerConveyor) {
             super(innerConveyor);
         }
+
+        @Override
+        public PartLoader<Integer, String> part() {
+            partIntercepted = true;
+            return super.part();
+        }
+    }
+
+    private static String uniqueName(String prefix) {
+        return prefix + "-" + Long.toUnsignedString(System.nanoTime());
+    }
+
+    private static void safeUnregister(String name) {
+        try {
+            Conveyor.unRegister(name);
+        } catch (Exception ignored) {
+            // best-effort cleanup for tests
+        }
+    }
+
+    private static Conveyor<Integer, String, String> mockNamedInner(String name) {
+        Conveyor<Integer, String, String> inner = mock(Conveyor.class);
+        when(inner.getName()).thenReturn(name);
+        when(inner.mBeanInterface()).thenReturn(null);
+        return inner;
     }
 
     private static Object defaultArgument(Class<?> type) {
@@ -81,57 +109,123 @@ class ConveyorAdapterTest {
     }
 
     @Test
-    void delegatesAllPublicMethods() throws Exception {
-        Conveyor<Integer, String, String> inner = mock(Conveyor.class);
+    void setNameIsFinalToPreserveAdapterRegistrationContract() throws NoSuchMethodException {
+        assertTrue(Modifier.isFinal(ConveyorAdapter.class.getMethod("setName", String.class).getModifiers()));
+    }
+
+    @Test
+    void delegatesRepresentativeOperationalMethods() {
+        var publicName = uniqueName("adapter-delegate");
+        Conveyor<Integer, String, String> inner = mockNamedInner(publicName);
         TestAdapterConveyor adapter = new TestAdapterConveyor(inner);
 
-        for (Method method : ConveyorAdapter.class.getDeclaredMethods()) {
-            if (Modifier.isStatic(method.getModifiers()) || method.isSynthetic()) {
-                continue;
-            }
-            if ("toString".equals(method.getName())) {
-                continue;
-            }
+        try {
+            adapter.stop();
+            adapter.setDefaultBuilderTimeout(Duration.ofMillis(1));
+            adapter.setIdleHeartBeat(1, TimeUnit.MILLISECONDS);
+            adapter.getAcceptedLabels();
+            adapter.unwrap();
 
-            Object[] args = Arrays.stream(method.getParameterTypes())
-                    .map(ConveyorAdapterTest::defaultArgument)
-                    .toArray();
-
-            try {
-                method.invoke(adapter, args);
-            } catch (InvocationTargetException e) {
-                fail(method.getName() + " should delegate without throwing, but got: " + e.getTargetException());
-            }
+            assertSame(inner, adapter.unwrap());
+            verify(inner, atLeastOnce()).stop();
+            verify(inner, atLeastOnce()).setDefaultBuilderTimeout(Duration.ofMillis(1));
+            verify(inner, atLeastOnce()).setIdleHeartBeat(1, TimeUnit.MILLISECONDS);
+            verify(inner, atLeastOnce()).getAcceptedLabels();
+            verify(inner, atLeastOnce()).setName(publicName + "#" + Integer.toUnsignedString(System.identityHashCode(adapter)));
+        } finally {
+            safeUnregister(publicName);
         }
-
-        assertSame(inner, adapter.unwrap());
-        verify(inner, atLeastOnce()).stop();
-        verify(inner, atLeastOnce()).unRegister();
-        verify(inner, atLeastOnce()).setName("name");
     }
 
     @Test
     void toStringUsesMetaInfoGenericWhenAvailable() {
-        Conveyor<Integer, String, String> inner = mock(Conveyor.class);
+        var publicName = uniqueName("adapter-to-string");
+        Conveyor<Integer, String, String> inner = mockNamedInner(publicName);
         ConveyorMetaInfo<Integer, String, String> meta = mock(ConveyorMetaInfo.class);
         when(meta.generic()).thenReturn("<Integer,String,String>");
         when(inner.getMetaInfo()).thenReturn(meta);
         when(inner.toString()).thenReturn("Adapter<?,?,?>");
 
         TestAdapterConveyor adapter = new TestAdapterConveyor(inner);
-        assertEquals("Adapter<Integer,String,String>", adapter.toString());
-        assertEquals("Adapter<Integer,String,String>", adapter.toString());
+        try {
+            assertEquals("Adapter<Integer,String,String>", adapter.toString());
+            assertEquals("Adapter<Integer,String,String>", adapter.toString());
+        } finally {
+            safeUnregister(publicName);
+        }
     }
 
     @Test
     void toStringFallsBackWhenMetaInfoFails() {
-        Conveyor<Integer, String, String> inner = mock(Conveyor.class);
+        var publicName = uniqueName("adapter-to-string-fallback");
+        Conveyor<Integer, String, String> inner = mockNamedInner(publicName);
         when(inner.getMetaInfo()).thenThrow(new RuntimeException("boom"));
         when(inner.toString()).thenReturn("Adapter<?,?,?>");
 
         TestAdapterConveyor adapter = new TestAdapterConveyor(inner);
-        assertEquals("Adapter<?,?,?>", adapter.toString());
-        assertEquals("Adapter<?,?,?>", adapter.toString());
+        try {
+            assertEquals("Adapter<?,?,?>", adapter.toString());
+            assertEquals("Adapter<?,?,?>", adapter.toString());
+        } finally {
+            safeUnregister(publicName);
+        }
+    }
+
+    @Test
+    void constructorClaimsWrappedNameForLookupAndMbeans() {
+        var publicName = uniqueName("adapter-public");
+        var inner = new AssemblingConveyor<Integer, String, String>();
+        inner.setName(publicName);
+
+        var adapter = new TestAdapterConveyor(inner);
+        var hiddenInnerName = publicName + "#" + Integer.toUnsignedString(System.identityHashCode(adapter));
+
+        try {
+            assertEquals(publicName, adapter.getName());
+            assertEquals(hiddenInnerName, adapter.unwrap().getName());
+            assertSame(adapter, Conveyor.byName(publicName));
+            assertSame(inner, Conveyor.byName(hiddenInnerName));
+
+            ((TestAdapterConveyor) Conveyor.byName(publicName)).part();
+            assertTrue(adapter.partIntercepted);
+
+            var publicMBean = (AssemblingConveyorMBean) adapter.getMBeanInstance(publicName);
+            assertEquals(publicName, publicMBean.getName());
+            assertEquals(TestAdapterConveyor.class.getSimpleName(), publicMBean.getType());
+            assertSame(adapter, publicMBean.conveyor());
+
+            var hiddenMBean = (AssemblingConveyorMBean) inner.getMBeanInstance(hiddenInnerName);
+            assertEquals(hiddenInnerName, hiddenMBean.getName());
+            assertEquals("AssemblingConveyor", hiddenMBean.getType());
+            assertSame(inner, hiddenMBean.conveyor());
+        } finally {
+            adapter.unRegister();
+        }
+    }
+
+    @Test
+    void setNameRebindsPublicAndHiddenNames() {
+        var originalPublicName = uniqueName("adapter-public-old");
+        var newPublicName = uniqueName("adapter-public-new");
+        var inner = new AssemblingConveyor<Integer, String, String>();
+        inner.setName(originalPublicName);
+
+        var adapter = new TestAdapterConveyor(inner);
+        var hiddenOldName = originalPublicName + "#" + Integer.toUnsignedString(System.identityHashCode(adapter));
+        var hiddenNewName = newPublicName + "#" + Integer.toUnsignedString(System.identityHashCode(adapter));
+
+        try {
+            adapter.setName(newPublicName);
+
+            assertEquals(newPublicName, adapter.getName());
+            assertEquals(hiddenNewName, adapter.unwrap().getName());
+            assertThrows(ConveyorRuntimeException.class, () -> Conveyor.byName(originalPublicName));
+            assertThrows(ConveyorRuntimeException.class, () -> Conveyor.byName(hiddenOldName));
+            assertSame(adapter, Conveyor.byName(newPublicName));
+            assertSame(inner, Conveyor.byName(hiddenNewName));
+        } finally {
+            adapter.unRegister();
+        }
     }
 
 }

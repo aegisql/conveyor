@@ -86,6 +86,37 @@ class TaskPoolConveyor1Test {
 
     }
 
+    @Test
+    public void explicitNamingStillReturnsTaskPoolAdapterByPublicName() {
+        var baseName = "task-pool-adapter-" + Long.toUnsignedString(System.nanoTime());
+        var conveyor = new AssemblingConveyor<Integer, String, Integer>();
+        conveyor.setName(baseName);
+
+        var taskPoolConveyor = new TaskPoolConveyor<Integer, String, Integer>(conveyor, 1);
+        var renamedBaseName = baseName + "-renamed";
+
+        try {
+            taskPoolConveyor.setName(renamedBaseName);
+
+            assertEquals("task_pool_" + renamedBaseName, taskPoolConveyor.getName());
+            assertEquals(renamedBaseName, taskPoolConveyor.unwrap().getName());
+            assertSame(taskPoolConveyor, Conveyor.byName(taskPoolConveyor.getName()));
+            assertSame(conveyor, Conveyor.byName(renamedBaseName));
+
+            var mBean = (TaskPoolConveyorMBean) taskPoolConveyor.getMBeanInstance(taskPoolConveyor.getName());
+            assertEquals(taskPoolConveyor.getName(), mBean.getName());
+            assertEquals(renamedBaseName, mBean.getEnclosedConveyorName());
+            assertSame(taskPoolConveyor, mBean.conveyor());
+        } finally {
+            safeUnregister(taskPoolConveyor.getName());
+            safeUnregister(renamedBaseName);
+            safeUnregister("task_manager_" + renamedBaseName);
+            safeUnregister("task_processor[0]_" + renamedBaseName);
+            safeUnregister("task_manager_" + baseName);
+            safeUnregister("task_processor[0]_" + baseName);
+        }
+    }
+
 
     @Test
     public void basicTaskTest() throws InterruptedException {
@@ -318,6 +349,14 @@ class TaskPoolConveyor1Test {
         assertTrue(errorCounter.get()>0);
 
 
+    }
+
+    private static void safeUnregister(String name) {
+        try {
+            Conveyor.unRegister(name);
+        } catch (Exception ignored) {
+            // best-effort cleanup for tests
+        }
     }
 
     @Test

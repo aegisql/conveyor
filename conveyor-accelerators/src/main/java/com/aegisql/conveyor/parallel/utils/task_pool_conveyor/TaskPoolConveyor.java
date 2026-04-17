@@ -43,9 +43,6 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
     // Round-robin loop for distributing tasks
     private final RoundRobinLoop rr;
 
-    // Name of the conveyor
-    private String name;
-
     // Scrap consumer for handling task failures by completing exceptionally
     public final ScrapConsumer<K,?> ON_FAILURE_COMPLETE_EXCEPTIONALLY = bin->{
         bin.conveyor.command().id(bin.key).completeExceptionally(bin.error != null ? bin.error:new ConveyorRuntimeException("Task failed: "+bin.failureType+" "+bin.comment,bin.error));
@@ -97,7 +94,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
      * @param poolSize the size of the pool
      */
     public TaskPoolConveyor(Conveyor<K,L,OUT> conv, int poolSize) {
-        super(conv);
+        super(conv, false);
         LOG.debug("Creating TaskPoolConveyor with pool size: {}", poolSize);
         loadersPool = new PartLoader[poolSize];
         conveyors = new Conveyor[poolSize];
@@ -236,26 +233,21 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
     }
 
     @Override
-    public void setName(String name) {
-        String oldName = this.name;
-        innerConveyor.setName(name);
-        this.name = "task_pool_"+name;
-        taskManager.setName("task_manager_"+name);
-        for(int i = 0; i < conveyors.length; i++) {
-            conveyors[i].setName("task_processor["+i+"]_"+name);
-        }
-        try {
-            //unregister old name
-            Conveyor.unRegister(oldName);
-        } catch (Exception e) {
-            //Ignore. Might be already unregistered
-        }
-        this.setMbean(this.name);
+    protected String publicAdapterName(String requestedName) {
+        return "task_pool_" + requestedName;
     }
 
     @Override
-    public String getName() {
-        return this.name;
+    protected String innerConveyorName(String requestedName, String publicAdapterName) {
+        return requestedName;
+    }
+
+    @Override
+    protected void renameOwnedConveyors(String requestedName, String publicAdapterName, String innerConveyorName) {
+        taskManager.setName("task_manager_" + requestedName);
+        for (int i = 0; i < conveyors.length; i++) {
+            conveyors[i].setName("task_processor[" + i + "]_" + requestedName);
+        }
     }
 
     /**
@@ -304,7 +296,7 @@ public class TaskPoolConveyor<K, L, OUT> extends ConveyorAdapter<K, L, OUT> {
         Conveyor.register(this, new TaskPoolConveyorMBean() {
             @Override
             public String getName() {
-                return thisConv.name;
+                return thisConv.getName();
             }
 
             @Override

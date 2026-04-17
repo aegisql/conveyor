@@ -1,7 +1,10 @@
 package com.aegisql.conveyor;
 
 import com.aegisql.conveyor.exception.ConveyorRuntimeException;
+import com.aegisql.conveyor.utils.ConveyorAdapter;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 import static com.aegisql.conveyor.MBeanRegister.MBEAN;
 import static org.junit.jupiter.api.Assertions.*;
@@ -98,6 +101,32 @@ public class MBeanRegisterTest {
             );
         } finally {
             MBEAN.unRegister("MBeanKnownNamesTest");
+        }
+    }
+
+    @Test
+    public void adapterAndHiddenInnerNamesAreRegisteredAndNestedInTree() {
+        var publicName = "MBeanAdapterTreeTest-" + Long.toUnsignedString(System.nanoTime());
+        var inner = new AssemblingConveyor<Integer, String, String>();
+        inner.setName(publicName);
+
+        var adapter = new ConveyorAdapter<Integer, String, String>(inner) { };
+        var hiddenInnerName = publicName + "#" + Integer.toUnsignedString(System.identityHashCode(adapter));
+
+        try {
+            assertTrue(MBEAN.getRegisteredConveyorNames().contains(publicName));
+            assertTrue(MBEAN.getRegisteredConveyorNames().contains(hiddenInnerName));
+
+            Map<String, Map<String, ?>> tree = Conveyor.getKnownConveyorNameTree();
+            assertTrue(tree.containsKey(publicName));
+            assertFalse(tree.containsKey(hiddenInnerName));
+
+            Map<String, ?> adapterSubTree = tree.get(publicName);
+            assertNotNull(adapterSubTree);
+            assertTrue(adapterSubTree.containsKey(hiddenInnerName));
+            assertTrue(((Map<String, ?>) adapterSubTree.get(hiddenInnerName)).isEmpty());
+        } finally {
+            adapter.unRegister();
         }
     }
 

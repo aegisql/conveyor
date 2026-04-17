@@ -140,7 +140,6 @@ public class PrioritySupplierTest {
 
     }
 
-
     @Test
     public void newestShouldBeFirstWithNanoResolutionTest() {
         PriorityBlockingQueue<Cart> queue = Priority.NEWEST_FIRST.get();
@@ -160,7 +159,6 @@ public class PrioritySupplierTest {
         assertEquals(1,queue.poll().getKey());
 
     }
-
 
     @Test
     public void expireSoonerShouldBeFirstTest() {

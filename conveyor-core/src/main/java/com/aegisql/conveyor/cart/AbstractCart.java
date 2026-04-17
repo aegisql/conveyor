@@ -8,6 +8,7 @@ import com.aegisql.conveyor.consumers.scrap.ScrapConsumer;
 import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.CompletableFuture;
 
 // TODO: Auto-generated Javadoc
@@ -56,8 +57,25 @@ public abstract class AbstractCart<K, V, L> implements Cart<K, V, L> {
 	/** The load type. */
 	protected final LoadType loadType;
 
+	/**
+	 * Tracks the last assigned nano timestamp so cart ordering remains stable even when
+	 * {@link System#nanoTime()} returns the same value for consecutive constructions.
+	 */
+	private static final AtomicLong LAST_ASSIGNED_CART_CREATION_NANO_TIMESTAMP = new AtomicLong(Long.MIN_VALUE);
+
 	/** The cart creation nano timestamp. */
-	private final long cartCreationNanoTimestamp = System.nanoTime();
+	private final long cartCreationNanoTimestamp = nextCartCreationNanoTimestamp();
+
+	private static long nextCartCreationNanoTimestamp() {
+		while (true) {
+			long previous = LAST_ASSIGNED_CART_CREATION_NANO_TIMESTAMP.get();
+			long current = System.nanoTime();
+			long candidate = current > previous ? current : previous + 1;
+			if (LAST_ASSIGNED_CART_CREATION_NANO_TIMESTAMP.compareAndSet(previous, candidate)) {
+				return candidate;
+			}
+		}
+	}
 	
 	/**
 	 * Instantiates a new abstract cart.

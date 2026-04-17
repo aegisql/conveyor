@@ -13,17 +13,31 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.function.*;
 
 public abstract class ConveyorAdapter<K, L, OUT> implements Conveyor<K, L, OUT> {
 
     protected final Conveyor<K, L, OUT> innerConveyor;
 
+    private String publicName;
+    private String hiddenInnerName;
+    private Conveyor<?,?,?> enclosingConveyor;
     private String generic = null;
 
     public ConveyorAdapter(Conveyor<K, L, OUT> innerConveyor) {
+        this(innerConveyor, true);
+    }
+
+    protected ConveyorAdapter(Conveyor<K, L, OUT> innerConveyor, boolean claimWrappedName) {
         Objects.requireNonNull(innerConveyor,"conveyor instance is required");
         this.innerConveyor = innerConveyor;
+        if (claimWrappedName) {
+            claimPublicName(innerConveyor.getName(), true);
+        }
     }
 
     @Override
@@ -167,8 +181,8 @@ public abstract class ConveyorAdapter<K, L, OUT> implements Conveyor<K, L, OUT> 
     }
 
     @Override
-    public void setName(String string) {
-        innerConveyor.setName(string);
+    public final void setName(String string) {
+        claimPublicName(string, false);
     }
 
     @Override
@@ -213,7 +227,7 @@ public abstract class ConveyorAdapter<K, L, OUT> implements Conveyor<K, L, OUT> 
 
     @Override
     public String getName() {
-        return innerConveyor.getName();
+        return publicName != null ? publicName : innerConveyor.getName();
     }
 
     @Override
@@ -308,22 +322,27 @@ public abstract class ConveyorAdapter<K, L, OUT> implements Conveyor<K, L, OUT> 
 
     @Override
     public void setEnclosingConveyor(Conveyor<?,?,?> conveyor) {
-        innerConveyor.setEnclosingConveyor(conveyor);
+        this.enclosingConveyor = conveyor;
     }
 
     @Override
     public Object getMBeanInstance(String name) {
-        return innerConveyor.getMBeanInstance(name);
+        return Conveyor.super.getMBeanInstance(name);
     }
 
     @Override
     public void register(Object mbeanObject) {
-        innerConveyor.register(mbeanObject);
+        Conveyor.super.register(mbeanObject);
     }
 
     @Override
     public void unRegister() {
-        innerConveyor.unRegister();
+        Conveyor.super.unRegister();
+        try {
+            innerConveyor.unRegister();
+        } catch (Exception ignored) {
+            // Hidden inner conveyor may already be unregistered.
+        }
     }
 
     @Override
@@ -333,7 +352,7 @@ public abstract class ConveyorAdapter<K, L, OUT> implements Conveyor<K, L, OUT> 
 
     @Override
     public Conveyor<?,?,?> getEnclosingConveyor() {
-        return innerConveyor.getEnclosingConveyor();
+        return enclosingConveyor;
     }
 
     @Override
@@ -350,6 +369,109 @@ public abstract class ConveyorAdapter<K, L, OUT> implements Conveyor<K, L, OUT> 
 
     public Conveyor<K,L,OUT> unwrap() {
         return innerConveyor;
+    }
+
+    protected void setMbean(String name) {
+        registerMbean(name, mBeanInterface());
+    }
+
+    protected String publicAdapterName(String requestedName) {
+        return requestedName;
+    }
+
+    protected String innerConveyorName(String requestedName, String publicAdapterName) {
+        return hiddenName(publicAdapterName);
+    }
+
+    protected void bindInnerConveyor(String requestedName, String publicAdapterName, String innerConveyorName) {
+        innerConveyor.setName(innerConveyorName);
+        innerConveyor.setEnclosingConveyor(this);
+    }
+
+    protected void renameOwnedConveyors(String requestedName, String publicAdapterName, String innerConveyorName) {
+        // Default adapter owns only the wrapped conveyor.
+    }
+
+    private void claimPublicName(String name, boolean constructorPhase) {
+        Objects.requireNonNull(name, "conveyor name is required");
+        if (constructorPhase && this.enclosingConveyor == null) {
+            this.enclosingConveyor = innerConveyor.getEnclosingConveyor();
+        }
+        String oldPublicName = this.publicName;
+        this.publicName = publicAdapterName(name);
+        this.hiddenInnerName = innerConveyorName(name, this.publicName);
+
+        if (!constructorPhase && oldPublicName != null) {
+            try {
+                Conveyor.unRegister(oldPublicName);
+            } catch (Exception ignored) {
+                // Adapter may already be unregistered under the old public name.
+            }
+        }
+
+        bindInnerConveyor(name, publicName, hiddenInnerName);
+        renameOwnedConveyors(name, publicName, hiddenInnerName);
+
+        if (constructorPhase) {
+            registerMbean(publicName, innerConveyor.mBeanInterface());
+        } else {
+            setMbean(publicName);
+        }
+    }
+
+    private String hiddenName(String name) {
+        return name + "#" + Integer.toUnsignedString(System.identityHashCode(this));
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void registerMbean(String name, Class<?> mBeanInterface) {
+        if (mBeanInterface == null) {
+            Conveyor.register(this, null);
+            return;
+        }
+
+        final Object hiddenMBean = innerConveyor.getMBeanInstance(hiddenInnerName);
+        final Conveyor<K, L, OUT> thisConveyor = this;
+        final String adapterName = this.publicName != null ? this.publicName : name;
+        final String adapterType = getClass().getSimpleName();
+
+        Object proxy = Proxy.newProxyInstance(
+                mBeanInterface.getClassLoader(),
+                new Class[]{mBeanInterface},
+                new InvocationHandler() {
+                    @Override
+                    public Object invoke(Object proxyInstance, Method method, Object[] args) throws Throwable {
+                        if (method.getDeclaringClass() == Object.class) {
+                            return switch (method.getName()) {
+                                case "toString" -> "ConveyorAdapterMBeanProxy[" + adapterName + "]";
+                                case "hashCode" -> System.identityHashCode(proxyInstance);
+                                case "equals" -> proxyInstance == args[0];
+                                default -> method.invoke(this, args);
+                            };
+                        }
+
+                        if ("conveyor".equals(method.getName()) && method.getParameterCount() == 0) {
+                            return thisConveyor;
+                        }
+                        if ("getName".equals(method.getName()) && method.getParameterCount() == 0
+                                && method.getReturnType() == String.class) {
+                            return adapterName;
+                        }
+                        if ("getType".equals(method.getName()) && method.getParameterCount() == 0
+                                && method.getReturnType() == String.class && adapterType != null && !adapterType.isBlank()) {
+                            return adapterType;
+                        }
+
+                        try {
+                            return method.invoke(hiddenMBean, args);
+                        } catch (InvocationTargetException e) {
+                            throw e.getTargetException();
+                        }
+                    }
+                }
+        );
+
+        Conveyor.register(this, proxy);
     }
 
 }
