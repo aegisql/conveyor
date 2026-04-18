@@ -756,32 +756,32 @@
     updateFileName(initialFile);
   }
 
+  function toDate(value) {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      const millis = Math.abs(value) < 100000000000 ? value * 1000 : value;
+      return new Date(millis);
+    }
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return null;
+      }
+      const numeric = Number(trimmed);
+      if (Number.isFinite(numeric)) {
+        const millis = Math.abs(numeric) < 100000000000 ? numeric * 1000 : numeric;
+        return new Date(millis);
+      }
+      const parsed = Date.parse(trimmed);
+      if (!Number.isNaN(parsed)) {
+        return new Date(parsed);
+      }
+    }
+    return null;
+  }
+
   function formatClockTime(value) {
     if (value === null || value === undefined || value === '') {
       return 'n/a';
-    }
-
-    function toDate(raw) {
-      if (typeof raw === 'number' && Number.isFinite(raw)) {
-        const millis = Math.abs(raw) < 100000000000 ? raw * 1000 : raw;
-        return new Date(millis);
-      }
-      if (typeof raw === 'string') {
-        const trimmed = raw.trim();
-        if (!trimmed) {
-          return null;
-        }
-        const numeric = Number(trimmed);
-        if (Number.isFinite(numeric)) {
-          const millis = Math.abs(numeric) < 100000000000 ? numeric * 1000 : numeric;
-          return new Date(millis);
-        }
-        const parsed = Date.parse(trimmed);
-        if (!Number.isNaN(parsed)) {
-          return new Date(parsed);
-        }
-      }
-      return null;
     }
 
     const date = toDate(value);
@@ -794,6 +794,28 @@
       minute: '2-digit',
       second: '2-digit',
       hour12: false
+    }).format(date);
+  }
+
+  function formatLocalDateTime(value) {
+    if (value === null || value === undefined || value === '') {
+      return '-';
+    }
+
+    const date = toDate(value);
+    if (!date || Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+
+    return new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZoneName: 'short'
     }).format(date);
   }
 
@@ -2698,7 +2720,8 @@
         metaInfoValue.textContent = asText(payload.metaInfoAvailable);
       }
       if (generatedAtValue) {
-        generatedAtValue.textContent = asText(payload.generatedAt);
+        generatedAtValue.textContent = formatLocalDateTime(payload.generatedAt);
+        generatedAtValue.title = asText(payload.generatedAt);
       }
       if (uploadDirValue) {
         uploadDirValue.textContent = asText(payload.uploadDirectory);
@@ -2733,6 +2756,12 @@
       } finally {
         requestInFlight = false;
       }
+    }
+
+    if (generatedAtValue) {
+      const initialValue = generatedAtValue.textContent;
+      generatedAtValue.textContent = formatLocalDateTime(initialValue);
+      generatedAtValue.title = asText(initialValue);
     }
 
     refreshDetails();

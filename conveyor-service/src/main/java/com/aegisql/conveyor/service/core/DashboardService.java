@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -152,7 +153,9 @@ public class DashboardService {
         payload.put("metaInfo", metaInfo.details);
         payload.put("enclosingConveyor", enclosingConveyor);
         payload.put("topLevel", enclosingConveyor == null);
-        payload.put("generatedAt", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(Instant.now().atOffset(ZoneOffset.UTC)));
+        payload.put("generatedAt", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(
+                Instant.now().truncatedTo(ChronoUnit.SECONDS).atOffset(ZoneOffset.UTC)
+        ));
         payload.put("uploadDirectory", configuredUploadDir);
         payload.put("loaderErrors", getLoaderErrors());
         payload.put("attributes", List.of());

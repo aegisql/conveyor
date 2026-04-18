@@ -138,6 +138,8 @@ class DashboardServiceTest {
             assertThat(inspected).containsEntry("name", conveyorName);
             assertThat(inspected).containsEntry("topLevel", true);
             assertThat(inspected).containsEntry("metaInfoAvailable", true);
+            assertThat((String) inspected.get("generatedAt"))
+                    .matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z");
 
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> attributes = (List<Map<String, Object>>) inspected.get("attributes");
