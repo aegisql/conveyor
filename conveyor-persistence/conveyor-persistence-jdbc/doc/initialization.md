@@ -1,11 +1,14 @@
 # JDBC Initialization
 
-This module now supports two complementary initialization paths:
+JDBC persistence initialization is now supported through:
 
-- runtime initialization through `JdbcPersistenceBuilder.init()`
-- offline SQL generation through `JdbcPersistenceBuilder.initializationScript(...)`
+- runtime initialization via `JdbcPersistenceBuilder.init()`
+- offline SQL generation via `JdbcPersistenceBuilder.initializationScript(...)`
+- the persistence UI, which exposes both SQL and equivalent Java initialization previews
 
-The generated script follows the same step order as builder `init()`:
+The supported user-facing initialization path is now the persistence UI.
+
+The generated SQL follows the same step order as builder `init()`:
 
 1. create database
 2. create schema
@@ -14,11 +17,11 @@ The generated script follows the same step order as builder `init()`:
 5. create completed-log table
 6. create configured unique indexes
 
-This is intended to improve the handoff from development to controlled environments where database administrators prefer to review and extend SQL before it is applied.
+This keeps the runtime path and the reviewable SQL path aligned for controlled environments.
 
 ## Builder API
 
-Generate a script directly from the builder:
+Generate SQL directly from the builder:
 
 ```java
 JdbcPersistenceBuilder<Long> builder =
@@ -37,152 +40,37 @@ String script = builder.initializationScript(
 
 Notes:
 
-- The script is engine-aware and uses the current engine DDL methods.
-- The cleanup section is optional and always commented out.
-- Some engines cannot express every runtime creation step as portable SQL.
-  Example:
+- the script is engine-aware and uses the current engine DDL methods
+- the cleanup section is optional and always commented out
+- some engines cannot express every runtime creation step as portable SQL
   - Derby database creation is driven by the JDBC URL
-  - Oracle service/schema creation is intentionally left to DBA-managed setup
+  - Oracle service/schema creation remains DBA-managed
 
-## Standalone App
+## Persistence UI
 
-Use:
+The persistence UI now owns the interactive initialization workflow.
 
-- `com.aegisql.conveyor.persistence.jdbc.InitConveyorPersistence`
+For JDBC profiles, the UI exposes:
 
-The app supports built-in JDBC engine types only:
+- generated SQL
+- equivalent Java builder code
 
-- `derby`
-- `derby-client`
-- `derby-memory`
-- `mysql`
-- `mariadb`
-- `oracle`
-- `sqlserver`
-- `postgres`
-- `sqlite`
-- `sqlite-memory`
+See:
 
-Modes:
+- `conveyor-persistence/conveyor-persistence-ui/doc/project-context.md`
+- `conveyor-persistence/conveyor-persistence-ui/doc/user-manual.md`
 
-- `script`
-  - generate SQL only
-  - stdout by default
-  - write to file if `--output` is provided
-- `init`
-  - execute initialization only
+## Example Generated SQL
 
-## Runtime Options
+Engine-specific generated SQL examples remain available in the helper modules:
 
-```text
-InitConveyorPersistence --mode script --type postgres --key-class java.lang.Long \
-  --database conveyor_db --schema conveyor_db \
-  --part-table PART --completed-log-table COMPLETED_LOG \
-  --field java.lang.Long,TRANSACTION_ID \
-  --unique-field TRANSACTION_ID \
-  --include-cleanup
-```
-
-## YAML Configuration
-
-Example file:
-
-- `conveyor-persistence/conveyor-persistence-jdbc/doc/examples/init/postgres-init.yml`
-
-Engine-specific helper-module examples:
-
-- `conveyor-persistence/conveyor-persistence-jdbc-derby/doc/examples/init/derby-init.yml`
 - `conveyor-persistence/conveyor-persistence-jdbc-derby/doc/examples/init/derby-init.sql`
-- `conveyor-persistence/conveyor-persistence-jdbc-mariadb/doc/examples/init/mariadb-init.yml`
 - `conveyor-persistence/conveyor-persistence-jdbc-mariadb/doc/examples/init/mariadb-init.sql`
-- `conveyor-persistence/conveyor-persistence-jdbc-mysql/doc/examples/init/mysql-init.yml`
 - `conveyor-persistence/conveyor-persistence-jdbc-mysql/doc/examples/init/mysql-init.sql`
-- `conveyor-persistence/conveyor-persistence-jdbc-oracle/doc/examples/init/oracle-init.yml`
 - `conveyor-persistence/conveyor-persistence-jdbc-oracle/doc/examples/init/oracle-init.sql`
-- `conveyor-persistence/conveyor-persistence-jdbc-postgres/doc/examples/init/postgres-init.yml`
 - `conveyor-persistence/conveyor-persistence-jdbc-postgres/doc/examples/init/postgres-init.sql`
-- `conveyor-persistence/conveyor-persistence-jdbc-sqlite/doc/examples/init/sqlite-init.yml`
 - `conveyor-persistence/conveyor-persistence-jdbc-sqlite/doc/examples/init/sqlite-init.sql`
-- `conveyor-persistence/conveyor-persistence-jdbc-sqlserver/doc/examples/init/sqlserver-init.yml`
 - `conveyor-persistence/conveyor-persistence-jdbc-sqlserver/doc/examples/init/sqlserver-init.sql`
-
-The YAML file covers the initialization inputs that materially affect schema generation:
-
-- engine type
-- key class
-- host / port / database / schema
-- table names
-- user / password
-- JDBC properties
-- additional fields
-- unique indexes
-- script mode and output settings
-
-`uniqueFields` is intentionally a list of index definitions, where each definition is itself a list of field names.
-
-Examples:
-
-```yaml
-uniqueFields:
-  - [TRANSACTION_ID]
-  - [ACCOUNT_ID, EXTERNAL_ID]
-```
-
-This means:
-
-- one single-column unique index on `TRANSACTION_ID`
-- one composite unique index on `(ACCOUNT_ID, EXTERNAL_ID)`
-
-## Typical Flows
-
-### Generate Script To Stdout
-
-If `--output` is omitted, the SQL script is written to standard output.
-This is the right mode when you want to:
-
-- review the script in the terminal
-- pipe it into another tool
-- redirect it yourself
-
-```bash
-java -cp ... com.aegisql.conveyor.persistence.jdbc.InitConveyorPersistence \
-  --config conveyor-persistence/conveyor-persistence-jdbc-postgres/doc/examples/init/postgres-init.yml
-```
-
-Examples:
-
-```bash
-java -cp ... com.aegisql.conveyor.persistence.jdbc.InitConveyorPersistence \
-  --config conveyor-persistence/conveyor-persistence-jdbc-postgres/doc/examples/init/postgres-init.yml \
-  | less
-```
-
-```bash
-java -cp ... com.aegisql.conveyor.persistence.jdbc.InitConveyorPersistence \
-  --config conveyor-persistence/conveyor-persistence-jdbc-postgres/doc/examples/init/postgres-init.yml \
-  > conveyor-init.sql
-```
-
-### Generate Script To File
-
-Use `--output` when you want the tool itself to write the file.
-In this mode the SQL goes to the named file and the tool prints only a short confirmation message to standard output.
-
-```bash
-java -cp ... com.aegisql.conveyor.persistence.jdbc.InitConveyorPersistence \
-  --config conveyor-persistence/conveyor-persistence-jdbc-postgres/doc/examples/init/postgres-init.yml \
-  --output ./conveyor-init.sql
-```
-
-### Execute Initialization Directly
-
-```bash
-java -cp ... com.aegisql.conveyor.persistence.jdbc.InitConveyorPersistence \
-  --mode init \
-  --type derby-memory \
-  --key-class java.lang.Long \
-  --schema conveyor_db
-```
 
 ## Admin Extension Points
 
@@ -197,7 +85,7 @@ DBAs can extend it with:
 
 ## Current Boundaries
 
-- The standalone app is limited to built-in engine types.
-- The app does not execute the optional cleanup section.
-- The generated script mirrors the builder `init()` order, but does not promise full metadata-driven `IF NOT EXISTS` behavior on every engine.
-- Oracle service and user/schema provisioning remain outside Conveyor-managed SQL.
+- initialization script generation is limited to the built-in engine support in the JDBC module
+- the optional cleanup section is generated as comments only
+- the script mirrors builder `init()` order, but does not promise uniform `IF NOT EXISTS` behavior on every engine
+- Oracle service and user/schema provisioning remain outside Conveyor-managed SQL
