@@ -15,7 +15,7 @@
     <description>Spring Boot service exposing conveyor REST API and dashboard</description>
 
     <properties>
-        <spring-boot.version>4.0.5</spring-boot.version>
+        <spring-boot.version>4.0.6</spring-boot.version>
         <container.image.repo>ghcr.io/aegisql/conveyor-service</container.image.repo>
     </properties>
 
